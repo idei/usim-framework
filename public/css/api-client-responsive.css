@@ -1,0 +1,54 @@
+/* API Client - Responsive Styles */
+
+@media (max-width: 768px) {
+    .container {
+        padding: 0 0.5rem;
+    }
+
+    .header-content {
+        margin-left: 1rem;
+        flex-direction: column;
+        text-align: center;
+        gap: 1rem;
+    }
+
+    .header-title h1 {
+        font-size: 1.5rem;
+    }
+
+    .main-content {
+        flex-direction: column;
+    }
+
+    .request-panel,
+    .response-panel {
+        width: 100%;
+        margin-bottom: 1rem;
+    }
+
+    .method-url-group {
+        flex-direction: column;
+    }
+
+    .method-select {
+        margin-bottom: 0.5rem;
+    }
+
+    .history-group {
+        grid-template-columns: auto 1fr auto;
+        gap: 0.25rem;
+    }
+
+    .new-query-button,
+    .delete-history-button {
+        min-width: 40px;
+        height: 40px;
+        padding: 10px;
+    }
+
+    .new-query-button svg,
+    .delete-history-button svg {
+        width: 14px;
+        height: 14px;
+    }
+}

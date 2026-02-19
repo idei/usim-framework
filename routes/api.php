@@ -1,0 +1,95 @@
+<?php
+
+use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\FileController;
+use App\Http\Controllers\Api\UserController;
+
+Route::get('/ping', fn() => response()->json([
+    'success' => true,
+    'data' => ['status' => 'ok'],
+    'message' => 'API is running correctly'
+]));
+
+Route::post('/register', [AuthController::class, 'register'])->name('api.register');
+Route::post('/login', [AuthController::class, 'login'])->name('api.login');
+
+// Rutas para reset de contraseña
+Route::post('/password/forgot', [AuthController::class, 'forgotPassword'])->name('api.password.forgot');
+Route::post('/password/reset', [AuthController::class, 'resetPassword'])->name('api.password.reset');
+
+// Ruta para verificar email
+Route::get('/email/verify/{id}/{hash}', [AuthController::class, 'verifyEmail'])
+    ->middleware('signed')
+    ->name('verification.verify');
+
+Route::middleware('auth:sanctum')->group(function () {
+    Route::post('/logout', [AuthController::class, 'logout']);
+    Route::get('/user', [AuthController::class, 'user']);
+
+    // Reenviar email de verificación
+    Route::post('/email/resend', [AuthController::class, 'resendVerificationEmail']);
+
+    // Rutas para manejo de archivos
+    Route::prefix('files')->group(function () {
+        Route::post('/upload', [FileController::class, 'upload']);
+        Route::get('/', [FileController::class, 'index']);
+        Route::get('/download/{filename}', [FileController::class, 'download']);
+        Route::delete('/{filename}', [FileController::class, 'delete']);
+    });
+
+    // Ejemplo de ruta con permiso específico
+    Route::get('/admin/dashboard', function () {
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Bienvenido al panel de administración',
+            'data' => [
+                'stats' => [
+                    'users' => 150,
+                    'posts' => 320,
+                    'comments' => 1240,
+                ]
+            ]
+        ]);
+    })->middleware('permission:access-admin-panel');
+
+    // Ejemplo de ruta para usuarios autenticados
+    Route::get('/user/profile', function () {
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Perfil de usuario',
+            'data' => [
+                'profile' => [
+                    'bio' => 'Usuario activo del sistema',
+                    'posts_count' => 15,
+                    'followers' => 42,
+                ]
+            ]
+        ]);
+    });
+});
+
+
+Route::middleware(['auth:sanctum', 'role:admin'])->group(function () {
+    Route::get('users/count', [UserController::class, 'count'])->name('users.count');
+    Route::apiResource('users', UserController::class);
+
+    // Rutas adicionales específicas si las necesitas
+    // Route::post('users/{user}/restore', [UserController::class, 'restore'])->name('users.restore');
+    // Route::delete('users/{user}/force-delete', [UserController::class, 'forceDelete'])->name('users.force-delete');
+});
+
+/*
+ * Esto genera automáticamente las siguientes rutas (protegidas con Sanctum y rol admin):
+ * GET    /api/users           -> index   (Lista todos los usuarios)
+ * POST   /api/users           -> store   (Crea un nuevo usuario)
+ * GET    /api/users/{user}    -> show    (Muestra un usuario específico)
+ * PUT    /api/users/{user}    -> update  (Actualiza un usuario completo)
+ * PATCH  /api/users/{user}    -> update  (Actualiza parcialmente un usuario)
+ * DELETE /api/users/{user}    -> destroy (Elimina un usuario)
+ * GET    /api/users/count     -> count   (Cuenta el número total de usuarios)
+ *
+ * Todas las rutas requieren:
+ * - Autenticación mediante token de Sanctum
+ * - Rol de 'admin' (usando Spatie Permission)
+ */

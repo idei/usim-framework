@@ -1,0 +1,675 @@
+/* Documentation Dark Theme CSS - Unificado con API Client */
+/* Este archivo unifica el tema oscuro para todas las vistas de documentación */
+
+:root {
+    /* Colores principales - Dark Theme unificado */
+    --primary-color: #00d4aa;
+    --primary-dark: #00b894;
+    --primary-light: #00e6b8;
+    --secondary-color: #a0aec0;
+    --success-color: #00b894;
+    --success-light: #55e6b8;
+    --error-color: #ff6b6b;
+    --warning-color: #ffd93d;
+    --info-color: #74b9ff;
+
+    /* Colores de estado */
+    --status-success-bg: rgba(0, 184, 148, 0.15);
+    --status-error-bg: rgba(255, 107, 107, 0.15);
+    --status-warning-bg: rgba(255, 217, 61, 0.15);
+
+    /* Colores de fondo - Dark Theme */
+    --bg-gradient-start: #0f1419;
+    --bg-gradient-end: #1a202c;
+    --header-gradient-start: #161b22;
+    --header-gradient-end: #21262d;
+    --button-gradient-start: #00d4aa;
+    --button-gradient-end: #00b894;
+
+    /* Colores de texto - Dark Theme */
+    --text-primary: #f7fafc;
+    --text-secondary: #e2e8f0;
+    --text-muted: #a0aec0;
+    --text-light: #ffffff;
+    --text-dark: #2d3748;
+
+    /* Colores de borde - Dark Theme */
+    --border-color: #2d3748;
+    --border-hover: #4a5568;
+    --border-focus: #00d4aa;
+
+    /* Colores de fondo secundarios - Dark Theme */
+    --bg-white: #1a202c;
+    --bg-light: #2d3748;
+    --bg-dark: #171923;
+    --bg-darker: #0f1419;
+    --bg-panel: #1a202c;
+    --bg-card: #2d3748;
+
+    /* Syntax highlighting JSON - Dark Theme */
+    --json-key-color: #79dae8;
+    --json-string-color: #98d982;
+    --json-number-color: #ffb86c;
+    --json-boolean-color: #ff9580;
+    --json-null-color: #a0aec0;
+
+    /* Espaciado */
+    --spacing-xs: 5px;
+    --spacing-sm: 10px;
+    --spacing-md: 15px;
+    --spacing-lg: 20px;
+    --spacing-xl: 30px;
+
+    /* Border radius */
+    --border-radius-sm: 4px;
+    --border-radius-md: 8px;
+    --border-radius-lg: 12px;
+    --border-radius-xl: 20px;
+
+    /* Sombras */
+    --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.1);
+    --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
+    --shadow-lg: 0 10px 20px rgba(39, 174, 96, 0.3);
+    --shadow-xl: 0 20px 40px rgba(0, 0, 0, 0.1);
+    --box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+
+    /* Tipografía */
+    --font-family-primary: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    --font-family-mono: 'Courier New', monospace;
+    --font-size-xs: 0.8rem;
+    --font-size-sm: 0.85rem;
+    --font-size-base: 0.9rem;
+    --font-size-md: 1rem;
+    --font-size-lg: 1.1rem;
+    --font-size-xl: 1.2rem;
+    --font-size-xxl: 1.4rem;
+    --font-size-hero: 2.5rem;
+
+    /* Pesos de fuente */
+    --font-weight-normal: 400;
+    --font-weight-medium: 500;
+    --font-weight-semibold: 600;
+    --font-weight-bold: 700;
+
+    /* Transiciones */
+    --transition-fast: 0.2s ease;
+    --transition-normal: 0.3s ease;
+    --transition-slow: 0.5s ease;
+}
+
+/* Reset y estilos base */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: var(--font-family-primary);
+    line-height: 1.6;
+    color: var(--text-primary);
+    background: linear-gradient(135deg, var(--bg-gradient-start) 0%, var(--bg-gradient-end) 100%);
+    min-height: 100vh;
+    padding: 20px;
+}
+
+.container {
+    max-width: 1000px;
+    margin: 0 auto;
+    background: var(--bg-panel);
+    border-radius: var(--border-radius-md);
+    box-shadow: var(--box-shadow);
+    overflow: hidden;
+}
+
+/* Header */
+.header {
+    background: linear-gradient(135deg, var(--header-gradient-start) 0%, var(--header-gradient-end) 100%);
+    color: var(--text-light);
+    padding: 20px 30px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 15px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.header h1 {
+    font-size: 1.8rem;
+    font-weight: var(--font-weight-bold);
+    background: linear-gradient(135deg, var(--primary-color), var(--primary-light));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.back-button {
+    background: rgba(0, 212, 170, 0.2);
+    color: var(--primary-color);
+    text-decoration: none;
+    padding: 8px 16px;
+    border-radius: 6px;
+    transition: all var(--transition-normal);
+    font-weight: var(--font-weight-medium);
+    border: 1px solid rgba(0, 212, 170, 0.3);
+}
+
+.back-button:hover {
+    background: rgba(0, 212, 170, 0.3);
+    border-color: var(--primary-color);
+    transform: translateY(-1px);
+}
+
+/* Contenido */
+.content {
+    padding: 30px;
+    max-height: 80vh;
+    overflow-y: auto;
+    background: var(--bg-panel);
+}
+
+/* Estilos para Markdown - Dark Theme */
+.markdown-content h1,
+.markdown-content h2,
+.markdown-content h3,
+.markdown-content h4,
+.markdown-content h5,
+.markdown-content h6 {
+    margin: 25px 0 15px 0;
+    color: var(--text-primary);
+    font-weight: var(--font-weight-semibold);
+}
+
+.markdown-content h1 {
+    font-size: 2rem;
+    border-bottom: 2px solid var(--primary-color);
+    padding-bottom: 10px;
+    color: var(--text-light);
+}
+
+.markdown-content h2 {
+    font-size: 1.6rem;
+    color: var(--primary-light);
+}
+
+.markdown-content h3 {
+    font-size: 1.3rem;
+    color: var(--text-secondary);
+}
+
+.markdown-content p {
+    margin: 15px 0;
+    text-align: justify;
+    color: var(--text-primary);
+}
+
+.markdown-content ul,
+.markdown-content ol {
+    margin: 15px 0;
+    padding-left: 30px;
+    color: var(--text-primary);
+}
+
+.markdown-content li {
+    margin: 8px 0;
+}
+
+.markdown-content code {
+    background: var(--bg-card);
+    padding: 2px 6px;
+    border-radius: var(--border-radius-sm);
+    font-family: var(--font-family-mono);
+    font-size: 0.9em;
+    color: var(--json-string-color);
+    border: 1px solid var(--border-color);
+}
+
+.markdown-content pre {
+    background: var(--bg-darker) !important;
+    color: var(--text-light);
+    padding: 20px;
+    border-radius: var(--border-radius-md);
+    overflow-x: auto;
+    margin: 20px 0;
+    font-family: var(--font-family-mono);
+    font-size: 0.9rem;
+    line-height: 1.4;
+    border: 1px solid var(--border-color);
+    position: relative;
+}
+
+.markdown-content pre code {
+    background: transparent !important;
+    padding: 0;
+    border: none;
+    color: inherit;
+    font-size: inherit;
+}
+
+/* Estilos para Highlight.js en tema oscuro */
+.markdown-content .hljs {
+    background: var(--bg-darker) !important;
+    color: var(--text-light) !important;
+}
+
+/* Wrapper para tablas responsivas */
+.table-wrapper {
+    overflow-x: auto;
+    margin: 20px 0;
+    border-radius: var(--border-radius-md);
+    box-shadow: var(--shadow-md);
+}
+
+.table-wrapper table {
+    margin: 0;
+    min-width: 100%;
+}
+
+/* Blockquotes mejorados */
+.markdown-content .markdown-blockquote {
+    border-left: 4px solid var(--primary-color);
+    background: var(--bg-card);
+    padding: 15px 20px;
+    margin: 20px 0;
+    font-style: italic;
+    color: var(--text-secondary);
+    border-radius: var(--border-radius-sm);
+    position: relative;
+}
+
+.markdown-content .markdown-blockquote::before {
+    content: '"';
+    font-size: 3rem;
+    color: var(--primary-color);
+    position: absolute;
+    top: -10px;
+    left: 15px;
+    line-height: 1;
+    opacity: 0.3;
+}
+
+/* Headers con IDs generados por Marked.js */
+.markdown-content h1[id],
+.markdown-content h2[id],
+.markdown-content h3[id],
+.markdown-content h4[id],
+.markdown-content h5[id],
+.markdown-content h6[id] {
+    position: relative;
+    scroll-margin-top: 20px;
+}
+
+.markdown-content h1[id]:hover::after,
+.markdown-content h2[id]:hover::after,
+.markdown-content h3[id]:hover::after,
+.markdown-content h4[id]:hover::after,
+.markdown-content h5[id]:hover::after,
+.markdown-content h6[id]:hover::after {
+    content: '🔗';
+    position: absolute;
+    right: -30px;
+    opacity: 0.6;
+    font-size: 0.8em;
+    cursor: pointer;
+}
+
+/* Estilos específicos para headers mejorados */
+.markdown-content .markdown-heading {
+    margin: 25px 0 15px 0;
+    color: var(--text-primary);
+    font-weight: var(--font-weight-semibold);
+    line-height: 1.2;
+}
+
+.markdown-content h1.markdown-heading {
+    font-size: 2rem;
+    border-bottom: 2px solid var(--primary-color);
+    padding-bottom: 10px;
+    color: var(--text-light);
+    margin-top: 0;
+}
+
+.markdown-content h2.markdown-heading {
+    font-size: 1.6rem;
+    color: var(--primary-light);
+}
+
+.markdown-content h3.markdown-heading {
+    font-size: 1.3rem;
+    color: var(--text-secondary);
+}
+
+.markdown-content h4.markdown-heading {
+    font-size: 1.1rem;
+    color: var(--text-primary);
+}
+
+.markdown-content h5.markdown-heading {
+    font-size: 1rem;
+    color: var(--text-primary);
+}
+
+.markdown-content h6.markdown-heading {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+}
+
+.markdown-content ul,
+.markdown-content ol {
+    margin: 15px 0;
+    padding-left: 30px;
+    color: var(--text-primary);
+}
+
+.markdown-content li {
+    margin: 8px 0;
+    line-height: 1.5;
+}
+
+.markdown-content li p {
+    margin: 5px 0;
+}
+
+/* Estilos para enlaces - Dark Theme */
+.markdown-content a {
+    color: var(--primary-color);
+    text-decoration: none;
+    border-bottom: 1px solid transparent;
+    transition: all var(--transition-fast);
+    font-weight: var(--font-weight-medium);
+    position: relative;
+    padding: 2px 4px;
+    border-radius: 3px;
+}
+
+.markdown-content a:hover {
+    color: var(--primary-light);
+    background: rgba(0, 212, 170, 0.1);
+    border-bottom-color: var(--primary-color);
+    transform: translateY(-1px);
+}
+
+.markdown-content a:focus {
+    outline: 2px solid var(--primary-color);
+    outline-offset: 2px;
+    background: rgba(0, 212, 170, 0.15);
+}
+
+/* Enlaces externos con icono */
+.markdown-content a[target="_blank"]::after {
+    content: ' 🔗';
+    font-size: 0.8em;
+    margin-left: 4px;
+    opacity: 0.7;
+    transition: opacity var(--transition-fast);
+}
+
+.markdown-content a[target="_blank"]:hover::after {
+    opacity: 1;
+}
+
+/* Enlaces internos (anchors) */
+.markdown-content a[href^="#"] {
+    color: var(--info-color);
+    font-weight: var(--font-weight-normal);
+}
+
+.markdown-content a[href^="#"]:hover {
+    color: var(--text-light);
+    background: rgba(116, 185, 255, 0.1);
+    border-bottom-color: var(--info-color);
+}
+
+/* Enlaces específicos por tipo */
+.markdown-content a.external-link {
+    color: var(--primary-color);
+    font-weight: var(--font-weight-medium);
+}
+
+.markdown-content a.external-link:hover {
+    color: var(--primary-light);
+    box-shadow: 0 2px 8px rgba(0, 212, 170, 0.3);
+}
+
+.markdown-content a.internal-link {
+    color: var(--info-color);
+    font-weight: var(--font-weight-normal);
+}
+
+.markdown-content a.internal-link:hover {
+    color: var(--text-light);
+    background: rgba(116, 185, 255, 0.15);
+    border-bottom-color: var(--info-color);
+}
+
+.markdown-content a.email-link {
+    color: var(--warning-color);
+    font-weight: var(--font-weight-normal);
+}
+
+.markdown-content a.email-link:hover {
+    color: var(--text-light);
+    background: rgba(255, 217, 61, 0.15);
+    border-bottom-color: var(--warning-color);
+}
+
+.markdown-content a.email-link::before {
+    content: '✉ ';
+    font-size: 0.9em;
+    margin-right: 4px;
+}
+
+/* Enlaces en código inline */
+.markdown-content code a {
+    color: var(--json-key-color);
+    background: transparent;
+    padding: 0;
+    border-radius: 0;
+    font-family: inherit;
+}
+
+.markdown-content code a:hover {
+    color: var(--primary-light);
+    background: rgba(0, 212, 170, 0.1);
+}
+
+/* Separadores horizontales */
+.markdown-content hr {
+    border: none;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--primary-color), transparent);
+    margin: 30px 0;
+}
+
+/* Mejoras para checkboxes de tareas (GitHub Flavored Markdown) */
+.markdown-content input[type="checkbox"] {
+    margin-right: 8px;
+    accent-color: var(--primary-color);
+}
+
+.markdown-content li input[type="checkbox"] {
+    margin-left: -20px;
+    margin-right: 8px;
+}
+
+/* Estilos para definiciones */
+.markdown-content dl {
+    margin: 20px 0;
+}
+
+.markdown-content dt {
+    font-weight: var(--font-weight-semibold);
+    color: var(--text-light);
+    margin-top: 15px;
+}
+
+.markdown-content dd {
+    margin-left: 20px;
+    margin-bottom: 10px;
+    color: var(--text-secondary);
+}
+
+/* Mensaje de error para renderizado */
+.error-message {
+    color: var(--error-color);
+    background: var(--status-error-bg);
+    padding: 15px;
+    border-radius: var(--border-radius-md);
+    border: 1px solid var(--error-color);
+    margin: 20px 0;
+    font-weight: var(--font-weight-medium);
+}
+
+/* Error pages */
+.error-icon {
+    font-size: 4rem;
+    margin-bottom: 20px;
+    color: var(--error-color);
+}
+
+.error-message {
+    font-size: 1.2rem;
+    margin-bottom: 15px;
+    color: var(--text-secondary);
+}
+
+.file-name {
+    background: var(--bg-card);
+    padding: 10px;
+    border-radius: var(--border-radius-sm);
+    font-family: var(--font-family-mono);
+    color: var(--error-color);
+    margin: 20px 0;
+    border: 1px solid var(--border-color);
+}
+
+.actions {
+    margin-top: 30px;
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.button {
+    display: inline-block;
+    padding: 12px 24px;
+    border-radius: var(--border-radius-sm);
+    text-decoration: none;
+    font-weight: var(--font-weight-medium);
+    transition: all var(--transition-normal);
+}
+
+.button-primary {
+    background: var(--primary-color);
+    color: var(--text-light);
+}
+
+.button-primary:hover {
+    background: var(--primary-dark);
+    transform: translateY(-1px);
+}
+
+.button-secondary {
+    background: var(--text-muted);
+    color: var(--text-light);
+}
+
+.button-secondary:hover {
+    background: var(--border-hover);
+    transform: translateY(-1px);
+}
+
+/* Scrollbar personalizado - Dark Theme */
+.content::-webkit-scrollbar {
+    width: 8px;
+}
+
+.content::-webkit-scrollbar-track {
+    background: var(--bg-card);
+    border-radius: var(--border-radius-sm);
+}
+
+.content::-webkit-scrollbar-thumb {
+    background: var(--text-muted);
+    border-radius: var(--border-radius-sm);
+}
+
+.content::-webkit-scrollbar-thumb:hover {
+    background: var(--primary-color);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    body {
+        padding: 10px;
+    }
+
+    .header {
+        padding: 15px 20px;
+        flex-direction: column;
+        text-align: center;
+    }
+
+    .header h1 {
+        font-size: 1.5rem;
+    }
+
+    .content {
+        padding: 20px;
+    }
+
+    .markdown-content h1 {
+        font-size: 1.6rem;
+    }
+
+    .markdown-content h2 {
+        font-size: 1.3rem;
+    }
+
+    .markdown-content pre {
+        padding: 15px;
+        font-size: 0.8rem;
+    }
+
+    .actions {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .button {
+        width: 200px;
+    }
+}
+
+@media (max-width: 480px) {
+    .header {
+        padding: 10px 15px;
+    }
+
+    .content {
+        padding: 15px;
+    }
+
+    .markdown-content {
+        font-size: 0.9rem;
+    }
+
+    /* Enlaces responsive */
+    .markdown-content a {
+        padding: 4px 6px;
+        display: inline-block;
+        margin: 2px 0;
+    }
+
+    .markdown-content a[target="_blank"]::after {
+        content: ' 🔗';
+        font-size: 0.7em;
+    }
+
+    .markdown-content a.email-link::before {
+        content: '✉ ';
+        font-size: 0.8em;
+    }
+}
