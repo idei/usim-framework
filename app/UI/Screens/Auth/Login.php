@@ -15,8 +15,8 @@ use Idei\Usim\Services\Support\UIStateManager;
 
 class Login extends AbstractUIService
 {
-    protected string $store_email = 'admin@email.com';
-    protected string $store_password = '2444';
+    protected string $store_email = 'admin@gmail.com';
+    protected string $store_password = 'CHANGE_ME';
     protected string $store_token = '';
     protected LabelBuilder $lbl_login_result;
 

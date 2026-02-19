@@ -14,7 +14,7 @@
             "onAutoForward": "ignore"
         }
     },
-    "postCreateCommand": "bash -c 'composer install && (cp .env.example .env || true) && php artisan key:generate --force && php artisan migrate --seed --force && (if [ ! -L public/storage ]; then php artisan storage:link; fi) && chmod -R 775 storage bootstrap/cache' && git config --global user.name 'idei' && git config --global user.email 'idei.cefn@gmail.com'",
+    "postCreateCommand": "bash -c 'composer install && (cp .env.example .env || true) && php artisan key:generate --force && php artisan migrate --seed --force && (if [ ! -L public/storage ]; then php artisan storage:link; fi) && chmod -R 775 storage bootstrap/cache'",
     "postStartCommand": "bash /workspaces/usim-framework/.devcontainer/init.sh && cd /workspaces/usim-framework && npm install chokidar --save-dev --no-update-notifier",
     "customizations": {
         "vscode": {
