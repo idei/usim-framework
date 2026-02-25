@@ -40,18 +40,29 @@ class HttpClient
     }
 
     /**
+     * Get internal URL for API requests
+     */
+    private static function getInternalUrl(string $route, array $routeParams = []): string
+    {
+        $url = route($route, $routeParams, false);
+        $baseUrl = config('app.url');
+        return rtrim($baseUrl, '/') . '/' . ltrim($url, '/');
+    }
+
+    /**
      * Get cookie jar from current request
      */
-    private static function getCookieJar(): \GuzzleHttp\Cookie\CookieJar
+    private static function getCookieJar(string $url): \GuzzleHttp\Cookie\CookieJar
     {
         $cookies = new \GuzzleHttp\Cookie\CookieJar();
+        $host = parse_url($url, PHP_URL_HOST);
 
         // Copy all cookies from the current request
         foreach (request()->cookies as $name => $value) {
             $cookies->setCookie(new \GuzzleHttp\Cookie\SetCookie([
                 'Name' => $name,
                 'Value' => $value,
-                'Domain' => request()->getHost(),
+                'Domain' => $host,
                 'Path' => '/',
             ]));
         }
@@ -68,8 +79,8 @@ class HttpClient
      */
     public static function get(string $route, array $queryParams = [], array $routeParams = []): array
     {
-        $url = route($route, $routeParams);
-        $cookieJar = self::getCookieJar();
+        $url = self::getInternalUrl($route, $routeParams);
+        $cookieJar = self::getCookieJar($url);
 
         /** @var Response $response */
         $response = Http::withHeaders(self::getHeaders())
@@ -88,8 +99,8 @@ class HttpClient
      */
     public static function post(string $route, array $data = [], array $routeParams = []): array
     {
-        $url = route($route, $routeParams);
-        $cookieJar = self::getCookieJar();
+        $url = self::getInternalUrl($route, $routeParams);
+        $cookieJar = self::getCookieJar($url);
 
         /** @var Response $response */
         $response = Http::withHeaders(self::getHeaders())
@@ -108,8 +119,8 @@ class HttpClient
      */
     public static function put(string $route, array $data = [], array $routeParams = []): array
     {
-        $url = route($route, $routeParams);
-        $cookieJar = self::getCookieJar();
+        $url = self::getInternalUrl($route, $routeParams);
+        $cookieJar = self::getCookieJar($url);
 
         /** @var Response $response */
         $response = Http::withHeaders(self::getHeaders())
@@ -128,8 +139,8 @@ class HttpClient
      */
     public static function patch(string $route, array $data = [], array $routeParams = []): array
     {
-        $url = route($route, $routeParams);
-        $cookieJar = self::getCookieJar();
+        $url = self::getInternalUrl($route, $routeParams);
+        $cookieJar = self::getCookieJar($url);
 
         /** @var Response $response */
         $response = Http::withHeaders(self::getHeaders())
@@ -148,8 +159,8 @@ class HttpClient
      */
     public static function delete(string $route, array $data = [], array $routeParams = []): array
     {
-        $url = route($route, $routeParams);
-        $cookieJar = self::getCookieJar();
+        $url = self::getInternalUrl($route, $routeParams);
+        $cookieJar = self::getCookieJar($url);
 
         /** @var Response $response */
         $response = Http::withHeaders(self::getHeaders())
@@ -164,7 +175,7 @@ class HttpClient
      */
     public static function request(string $method, string $route, array $data = []): array
     {
-        $url = route($route);
+        $url = self::getInternalUrl($route);
 
         /** @var Response $response */
         $response = Http::withHeaders(self::getHeaders())
@@ -178,7 +189,7 @@ class HttpClient
      */
     public static function getRaw(string $route, array $queryParams = []): Response
     {
-        $url = route($route);
+        $url = self::getInternalUrl($route);
 
         /** @var Response $response */
         $response = Http::withHeaders(self::getHeaders())
@@ -192,7 +203,7 @@ class HttpClient
      */
     public static function postRaw(string $route, array $data = []): Response
     {
-        $url = route($route);
+        $url = self::getInternalUrl($route);
 
         /** @var Response $response */
         $response = Http::withHeaders(self::getHeaders())
