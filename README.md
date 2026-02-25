@@ -505,6 +505,15 @@ Si tienes preguntas o encuentras problemas:
 
 Este proyecto está bajo la licencia MIT. Puedes usarlo libremente para tus proyectos personales y académicos.
 
+## Créditos
+
+Este framework utiliza y agradece el trabajo de las siguientes librerías Open Source:
+
+- [spatie/laravel-permission](https://spatie.be/docs/laravel-permission) - Manejo de Roles y Permisos.
+- [illuminate/support](https://laravel.com) - Componentes base de Laravel.
+
+Agradecimiento especial a [Spatie](https://spatie.be) por sus excelentes contribuciones al ecosistema Laravel.
+
 ---
 
 **Proyecto USIM - Backend-Driven UI Framework**

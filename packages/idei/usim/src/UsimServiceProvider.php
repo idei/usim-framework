@@ -3,7 +3,6 @@
 namespace Idei\Usim;
 
 use Illuminate\Support\ServiceProvider;
-use Laravel\Octane\Events\RequestReceived;
 use Idei\Usim\Services\Support\UIIdGenerator;
 use Illuminate\Contracts\Events\Dispatcher;
 
@@ -51,9 +50,11 @@ class UsimServiceProvider extends ServiceProvider
         $events->listen(UsimEvent::class, UsimEventDispatcher::class);
 
         // Listener para resetear estado en Octane/RoadRunner
-        $events->listen(RequestReceived::class, function () {
-            UIIdGenerator::reset();
-        });
+        if (class_exists(\Laravel\Octane\Events\RequestReceived::class)) {
+            $events->listen(\Laravel\Octane\Events\RequestReceived::class, function () {
+                UIIdGenerator::reset();
+            });
+        }
 
         $this->publishes([
             __DIR__.'/../config/usim.php' => config_path('ui-services.php'),

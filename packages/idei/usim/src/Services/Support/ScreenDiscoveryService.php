@@ -2,7 +2,6 @@
 
 namespace Idei\Usim\Services\Support;
 
-use Illuminate\Support\Str;
 use Symfony\Component\Finder\Finder;
 use Symfony\Component\Finder\SplFileInfo;
 use Idei\Usim\Services\AbstractUIService;
@@ -16,7 +15,7 @@ class ScreenDiscoveryService
      */
     public function discover(): array
     {
-        $screensPath = app_path('UI/Screens');
+        $screensPath = config('ui-services.screens_path', app_path('UI/Screens'));
 
         if (!is_dir($screensPath)) {
             return [];
@@ -91,7 +90,11 @@ class ScreenDiscoveryService
         // Simple extraction assuming PSR-4 structure inside App\UI\Screens
         // We can optimize this by token parsing if needed, but for now assumption works.
         $relativePath = $file->getRelativePathname();
-        $class = 'App\\UI\\Screens\\' . str_replace(['/', '.php'], ['\\', ''], $relativePath);
+
+        $namespace = config('ui-services.screens_namespace', 'App\\UI\\Screens');
+        $namespace = rtrim($namespace, '\\');
+
+        $class = $namespace . '\\' . str_replace(['/', '.php'], ['\\', ''], $relativePath);
 
         return $class;
     }
