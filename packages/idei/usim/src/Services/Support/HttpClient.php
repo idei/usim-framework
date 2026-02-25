@@ -45,7 +45,7 @@ class HttpClient
     private static function getInternalUrl(string $route, array $routeParams = []): string
     {
         $url = route($route, $routeParams, false);
-        $baseUrl = config('app.url');
+        $baseUrl = config('usim.api_url', config('app.url'));
         return rtrim($baseUrl, '/') . '/' . ltrim($url, '/');
     }
 

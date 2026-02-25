@@ -22,6 +22,17 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | API Base URL
+    |--------------------------------------------------------------------------
+    |
+    | La URL base para las peticiones HTTP internas hacia la API.
+    | Si no se define, utilizará la URL principal de la aplicación (APP_URL).
+    | Útil cuando la API está en un servidor o contenedor diferente.
+    */
+    'api_url' => env('API_BASE_URL', env('APP_URL')),
+
+    /*
+    |--------------------------------------------------------------------------
     | Registered UI Services
     |--------------------------------------------------------------------------
     */

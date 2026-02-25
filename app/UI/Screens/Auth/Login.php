@@ -184,7 +184,7 @@ class Login extends AbstractUIService
     private function httpPost(string $route, array $data): array
     {
         $url = route($route, [], false);
-        $baseUrl = config('app.url');
+        $baseUrl = config('usim.api_url', config('app.url'));
         $fullUrl = rtrim($baseUrl, '/') . '/' . ltrim($url, '/');
         $response = Http::post($fullUrl, $data);
         return $response->json();
