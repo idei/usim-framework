@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>Demo - {{ ucfirst(str_replace('-', ' ', $demo)) }}</title>
+    <title>{{ ucfirst(str_replace('-', ' ', $screen)) }}</title>
     <link rel="stylesheet" href="{{ asset('vendor/idei/usim/css/ui-components.css') }}">
     <link rel="stylesheet" href="{{ asset('vendor/idei/usim/css/uploader-component.css') }}">
     <link rel="stylesheet" href="{{ asset('vendor/idei/usim/css/image-crop-editor.css') }}">
@@ -35,8 +35,8 @@
 
     <script>
         // Pass service name from Laravel to JavaScript
-        window.DEMO_NAME = '{{ $demo }}';
-        window.RESET_DEMO = {{ $reset ? 'true' : 'false' }};
+        window.SCREEN_NAME = '{{ $screen }}';
+        window.RESET_STATE = {{ $reset ? 'true' : 'false' }};
         window.MENU_SERVICE = 'menu';
         window.PARAMS = @json($allParams);
         window.QUERY_PARAMS = new URLSearchParams(window.location.search);

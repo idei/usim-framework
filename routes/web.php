@@ -4,7 +4,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\LogViewerController;
 use App\Http\Controllers\DocumentationController;
 
-// Log viewer routes (MUST be before dynamic demo route)
+// Log viewer routes (MUST be before dynamic screen route)
 // Route::prefix('logs')->group(function () {
 //     Route::get('/', [LogViewerController::class, 'index'])->name('logs.index');
 //     Route::get('/content', [LogViewerController::class, 'content'])->name('logs.content');
@@ -12,27 +12,27 @@ use App\Http\Controllers\DocumentationController;
 //     Route::post('/clear', [LogViewerController::class, 'clear'])->name('logs.clear');
 // });
 
-// Demo route - Default landing demo
+// Screen route - Default landing screen
 // Route::get('/', function () {
 //     $reset = request()->query('reset', false);
-//     return view('demo', [
-//         'demo' => 'landing',
+//     return view('usim::app', [
+//         'screen' => 'landing',
 //         'reset' => $reset
 //     ]);
 // });
 
 // Route::get('/login', function () {
 //     $reset = request()->query('reset', false);
-//     return view('demo', [
-//         'demo' => 'auth/login',
+//     return view('usim::app', [
+//         'screen' => 'auth/login',
 //         'reset' => $reset
 //     ]);
 // })->name('login');
 
 // Route::get('/email/verify/{id}/{hash}', function () {
 //     $reset = request()->query('reset', false);
-//     return view('demo', [
-//         'demo' => 'auth/email-verified',
+//     return view('usim::app', [
+//         'screen' => 'auth/email-verified',
 //         'reset' => $reset
 //     ]);
 // })->middleware('signed')->name('verification.notice');
@@ -40,8 +40,8 @@ use App\Http\Controllers\DocumentationController;
 // Reset Password Route (Landing from Email)
 // Route::get('/reset-password', function () {
 //     $reset = request()->query('reset', false);
-//     return view('demo', [
-//         'demo' => 'reset-password',
+//     return view('usim::app', [
+//         'screen' => 'reset-password',
 //         'reset' => $reset
 //     ]);
 // })->name('password.reset');
@@ -55,8 +55,8 @@ use App\Http\Controllers\DocumentationController;
 //     /*
 //     Route::get('/admin/dashboard', function () {
 //         $reset = request()->query('reset', false);
-//         return view('demo', [
-//             'demo' => 'admin/dashboard',
+//         return view('usim::app', [
+//             'screen' => 'admin/dashboard',
 //             'reset' => $reset
 //         ]);
 //     })->name('admin.dashboard');
@@ -68,8 +68,8 @@ use App\Http\Controllers\DocumentationController;
 // Route::middleware(['auth:sanctum'])->group(function () {
 //     Route::get('/profile', function () {
 //         $reset = request()->query('reset', false);
-//         return view('demo', [
-//             'demo' => 'profile',
+//         return view('usim::app', [
+//             'screen' => 'profile',
 //             'reset' => $reset
 //         ]);
 //     })->name('profile');
@@ -84,8 +84,8 @@ Route::get('/{screen?}', function (?string $screen = 'home') {
     if ($screen === 'favicon.ico') return abort(404);
 
     $reset = request()->query('reset', false);
-    return view('usim::demo', [
-        'demo' => $screen,
+    return view('usim::app', [
+        'screen' => $screen,
         'reset' => $reset
     ]);
 })->where('screen', '^(?!api|storage|css|js|images|telescope|_debugbar).*$')->name('ui.catchall');

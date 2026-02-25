@@ -51,7 +51,7 @@ php artisan config:clear
 php artisan route:clear
 php artisan view:clear
 
-# Open browser to the demo page
+# Open browser to the app page
 # echo "Opening browser to http://127.0.0.1:8000"
 # if [ -n "$BROWSER" ]; then
 #     # Dev container - use $BROWSER variable set by VS Code

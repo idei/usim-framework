@@ -2537,16 +2537,16 @@ class UIRenderer {
 let globalRenderer = null;
 
 // ==================== Main Application ====================
-async function loadDemoUI(demoName = null) {
+async function loadScreenUI(screenName = null) {
     try {
-        // Use demo name from window global (set by Laravel) or parameter
-        const demo = demoName || window.DEMO_NAME || 'button-demo';
+        // Use screen name from window global (set by Laravel) or parameter
+        const screen = screenName || window.SCREEN_NAME || 'home';
 
         // Build query parameters string
         const urlParams = new URLSearchParams();
 
         // Add reset parameter if needed
-        if (window.RESET_DEMO) {
+        if (window.RESET_STATE) {
             urlParams.append('reset', 'true');
         }
 
@@ -2571,7 +2571,7 @@ async function loadDemoUI(demoName = null) {
         const usimStorage = localStorage.getItem('usim') || '';
         const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
         // Use /api/ui/ prefix to separate UI definitions from Data API
-        const response = await fetch(`/api/ui/${demo}${queryString}`, {
+        const response = await fetch(`/api/ui/${screen}${queryString}`, {
             method: 'GET',
             headers: {
                 'Accept': 'application/json',
@@ -2592,15 +2592,15 @@ async function loadDemoUI(demoName = null) {
         globalRenderer.render();
 
         // If reset flag was used, clear it after loading
-        if (window.RESET_DEMO) {
+        if (window.RESET_STATE) {
             window.history.replaceState({}, document.title, window.location.pathname);
-            window.RESET_DEMO = false;
+            window.RESET_STATE = false;
         }
 
-        console.log('✅ Demo UI loaded successfully');
+        console.log('✅ Screen UI loaded successfully');
 
     } catch (error) {
-        console.error('Error loading demo UI:', error);
+        console.error('Error loading screen UI:', error);
         document.getElementById('main').innerHTML = `
             <div style="padding: 20px; color: red; background: #fee; border: 1px solid #fcc; border-radius: 6px;">
                 <h2>❌ Error loading UI components</h2>
@@ -3212,7 +3212,7 @@ async function loadMenuUI() {
     }
 
     try {
-        const resetQuery = window.RESET_DEMO ? 'reset=true' : '';
+        const resetQuery = window.RESET_STATE ? 'reset=true' : '';
         const usimStorage = localStorage.getItem('usim') || '';
         const parentElement = 'parent=menu';
 
@@ -3298,7 +3298,7 @@ async function loadMenuUI() {
 
 // Load UI on page load
 document.addEventListener('DOMContentLoaded', async () => {
-    await loadDemoUI();  // Load main UI first to create globalRenderer
+    await loadScreenUI();  // Load main UI first to create globalRenderer
     await loadMenuUI();  // Then load menu and merge into globalRenderer
 
     // Check for pending toast after page load

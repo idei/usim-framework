@@ -16,13 +16,13 @@ class UIController extends Controller
     }
 
     /**
-     * Show UI for the specified demo service
+     * Show UI for the specified screen service
      *
-     * @param string $demo The demo name from the route (e.g., 'demo-ui', 'input-demo')
+     * @param string $screen The screen name from the route (e.g., 'admin/dashboard')
      * @param bool $reset Whether to reset the stored UI state
      * @return JsonResponse
      */
-    public function show(string $demo): JsonResponse
+    public function show(string $screen): JsonResponse
     {
         $reset = request()->query('reset', false);
         $parent = request()->query('parent', "main");
@@ -33,7 +33,7 @@ class UIController extends Controller
         // Convert path to namespace class name
         // Supports nested folders: 'admin/dashboard' -> 'Admin\Dashboard'
         // Supports kebab-case files: 'demos/input-demo' -> 'Demos\InputDemo'
-        $serviceName = collect(explode('/', $demo))
+        $serviceName = collect(explode('/', $screen))
             ->map(fn($segment) => Str::studly($segment))
             ->join('\\');
 
@@ -45,7 +45,7 @@ class UIController extends Controller
         // Check if service class exists
         if (!class_exists($serviceClass)) {
             return response()->json([
-                'error' => 'Demo service not found',
+                'error' => 'Screen not found',
                 'service' => $serviceName,
             ], 404);
         }
