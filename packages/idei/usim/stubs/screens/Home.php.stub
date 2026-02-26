@@ -1,0 +1,95 @@
+<?php
+
+namespace {{ namespace }};
+
+use Idei\Usim\Services\UIBuilder;
+use Idei\Usim\Services\Enums\LayoutType;
+use Idei\Usim\Services\AbstractUIService;
+use Idei\Usim\Services\Components\UIContainer;
+
+class Home extends AbstractUIService
+{
+    protected function buildBaseUI(UIContainer $container, ...$params): void
+    {
+        $container
+            ->layout(LayoutType::VERTICAL)
+            ->shadow(false)
+            ->justifyContent('center')
+            ->alignItems('center')
+            ->padding(20);
+
+        // Hero Section
+        $container->add(
+            UIBuilder::label('welcome')
+                ->text('🚀 Welcome to USIM UI Framework')
+                ->style('h1')
+                ->center()
+        );
+
+        $container->add(
+            UIBuilder::label('subtitle')
+                ->text('A modern UI component system for web applications')
+                ->style('h2')
+                ->center()
+        );
+
+        // Features Section
+        $container->add(
+            UIBuilder::label('features_title')
+                ->text('✨ Key Features')
+                ->style('h3')
+                ->center()
+        );
+
+        // Features Cards Container
+        $featuresContainer = UIBuilder::container('features')
+            ->layout(LayoutType::HORIZONTAL)
+            ->padding(20)
+            ->gap("20px")
+            ->shadow(false)
+            ->justifyContent('center')
+            ->alignItems('center');
+
+        $featuresContainer->add(
+            UIBuilder::card('components_card')
+                ->title('🎨 Modern Components')
+                ->description('Complete system with buttons, forms, tables, modals and more. Professional and responsive design.')
+                ->theme('primary')
+                ->elevation('medium')
+        );
+
+        $featuresContainer->add(
+            UIBuilder::card('easy_card')
+                ->title('⚡ Easy to Use')
+                ->description('Fluent API with method chaining. Build complex interfaces with simple, readable code.')
+                ->theme('success')
+                ->elevation('medium')
+        );
+
+        $featuresContainer->add(
+            UIBuilder::card('custom_card')
+                ->title('🎯 Customizable')
+                ->description('Flexible styles, themes, sizes and advanced configurations for each component.')
+                ->theme('warning')
+                ->elevation('medium')
+        );
+
+        $container->add($featuresContainer);
+
+        // Getting Started Section
+        $container->add(
+            UIBuilder::label('getting_started')
+                ->text('🚀 Get Started Now!')
+                ->style('h2')
+                ->center()
+        );
+
+        $container->add(
+            UIBuilder::card('getting_started_card')
+                ->title('Your USIM App is Ready')
+                ->description('Start building your screens in app/UI/Screens. Each PHP class becomes a full UI screen.')
+                ->style('elevated')
+                ->size('large')
+        );
+    }
+}

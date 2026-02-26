@@ -1,0 +1,12 @@
+
+// USIM Dynamic UI Screen Catcher (Catch-All)
+// Must be the LAST route definition to not intercept other specific routes
+Route::get('/{screen?}', function (?string $screen = 'home') {
+    if ($screen === 'favicon.ico') return abort(404);
+
+    $reset = request()->query('reset', false);
+    return view('usim::app', [
+        'screen' => $screen,
+        'reset' => $reset
+    ]);
+})->where('screen', '^(?!api|storage|css|js|images|telescope|_debugbar).*$')->name('ui.catchall');

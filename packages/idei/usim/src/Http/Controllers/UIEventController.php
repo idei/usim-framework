@@ -2,7 +2,7 @@
 
 namespace Idei\Usim\Http\Controllers;
 
-use App\Http\Controllers\Controller;
+use Illuminate\Routing\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Idei\Usim\Services\UIChangesCollector;

@@ -1,0 +1,182 @@
+<?php
+
+namespace {{ namespace }};
+
+use Idei\Usim\Events\UsimEvent;
+use Idei\Usim\Services\UIBuilder;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Password;
+use Idei\Usim\Services\AbstractUIService;
+use Idei\Usim\Services\Upload\UploadService;
+use Idei\Usim\Services\Components\UIContainer;
+use Idei\Usim\Services\Components\InputBuilder;
+use Idei\Usim\Services\Components\UploaderBuilder;
+
+class Profile extends AbstractUIService
+{
+    protected InputBuilder $input_email;
+    protected InputBuilder $input_name;
+    protected UploaderBuilder $uploader_profile;
+
+    public static function authorize(): bool
+    {
+        return self::requireAuth();
+    }
+
+    public static function getMenuLabel(): string
+    {
+        return 'Profile';
+    }
+
+    public static function getMenuIcon(): ?string
+    {
+        return '👤';
+    }
+
+    protected function buildBaseUI(UIContainer $container, ...$params): void
+    {
+        $user = Auth::user();
+
+        $container
+            ->title('My Profile')
+            ->maxWidth('600px')
+            ->centerHorizontal()
+            ->shadow(2)
+            ->padding('30px');
+
+        $container->add(
+            UIBuilder::label('lbl_title')
+                ->text("👤 Profile Settings")
+                ->style('primary')
+                ->fontSize(20)
+                ->fontWeight('bold')
+        );
+
+        $this->input_email = UIBuilder::input('input_email')
+            ->label('Email')
+            ->type('email')
+            ->value($user->email)
+            ->disabled(true)
+            ->width('100%');
+
+        $container->add($this->input_email);
+
+        $this->input_name = UIBuilder::input('input_name')
+            ->label('Full Name')
+            ->type('text')
+            ->placeholder('Your full name')
+            ->value($user->name ?? '')
+            ->required(true)
+            ->width('100%');
+
+        $container->add($this->input_name);
+
+        $this->uploader_profile = UIBuilder::uploader('uploader_profile')
+            ->allowedTypes(['image/*'])
+            ->label('Profile Photo')
+            ->maxFiles(1)
+            ->maxSize(2)
+            ->aspect('1:1')
+            ->size(1);
+
+        $container->add($this->uploader_profile);
+
+        $container->add(
+            UIBuilder::button('btn_save_profile')
+                ->label('💾 Save Changes')
+                ->action('save_profile')
+                ->style('primary')
+                ->width('100%')
+        );
+
+        $container->add(
+            UIBuilder::button('btn_change_password')
+                ->label('🔒 Change Password')
+                ->action('change_password')
+                ->style('secondary')
+                ->width('100%')
+        );
+    }
+
+    protected function postLoadUI(): void
+    {
+        $user = Auth::user();
+
+        $this->input_email->value($user->email ?? '');
+        $this->input_name->value($user->name ?? '');
+
+        if (!$user->email_verified_at) {
+            $this->input_email->error('Email not verified. Please verify your email.');
+        } else {
+            $this->input_email->error(null);
+        }
+
+        $imageUrl = null;
+
+        if ($user->profile_image) {
+            $imageUrl = UploadService::fileUrl("uploads/images/{$user->profile_image}") . '?t=' . time();
+        }
+
+        $this->uploader_profile->existingFile($imageUrl);
+    }
+
+    public function onSaveProfile(array $params): void
+    {
+        try {
+            $user = Auth::user();
+
+            $name = trim($params['input_name'] ?? '');
+
+            if (empty($name)) {
+                $this->input_name->error('Name is required');
+                return;
+            }
+
+            $user->name = $name;
+
+            if ($filename = $this->uploader_profile->confirm($params, 'images', $user->profile_image)) {
+                $user->profile_image = $filename;
+            }
+
+            $user->save();
+            $this->input_name->error(null);
+
+            event(new UsimEvent('updated_profile', [
+                'user' => $user
+            ]));
+
+            $this->toast('Profile updated', 'success');
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::error('Error saving profile: ' . $e->getMessage() . "\n" . $e->getTraceAsString());
+            $this->toast('Error saving profile: ' . $e->getMessage(), 'error');
+        }
+    }
+
+    public function onResendVerification(array $params): void
+    {
+        $user = Auth::user();
+
+        if ($user->email_verified_at) {
+            $this->toast('Your email is already verified', 'info');
+            return;
+        }
+
+        $user->sendEmailVerificationNotification();
+        $this->toast('Verification email sent. Check your inbox', 'success');
+    }
+
+    public function onChangePassword(array $params): void
+    {
+        $user = Auth::user();
+
+        $status = Password::sendResetLink([
+            'email' => $user->email
+        ]);
+
+        if ($status === Password::RESET_LINK_SENT) {
+            $this->toast('Password change link sent to your email', 'success');
+        } else {
+            $this->toast('Error sending the link. Please try again', 'error');
+        }
+    }
+}
