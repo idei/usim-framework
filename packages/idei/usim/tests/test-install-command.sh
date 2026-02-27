@@ -41,8 +41,9 @@ if [ ! -f "app/UI/Screens/Menu.php" ]; then
     exit 1
 else
     # Verificar que es la versión minimal
-    if ! grep -q "Menu (Minimal)" app/UI/Screens/Menu.php; then
+    if ! grep -q "Menu Service (Minimal)" app/UI/Screens/Menu.php; then
         echo "❌ Error: Menu.php no parece ser la versión Minimal."
+        head -n 20 app/UI/Screens/Menu.php # Mostrar las primeras líneas para depurar
         exit 1
     fi
 fi
