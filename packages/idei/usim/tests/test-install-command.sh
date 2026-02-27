@@ -36,9 +36,15 @@ if [ ! -f "app/UI/Screens/Home.php" ]; then
     echo "❌ Error: Home.php no se creó."
     exit 1
 fi
-if [ ! -f "app/UI/Screens/MenuMinimal.php" ]; then
-    echo "❌ Error: MenuMinimal.php no se creó."
+if [ ! -f "app/UI/Screens/Menu.php" ]; then
+    echo "❌ Error: Menu.php no se creó."
     exit 1
+else
+    # Verificar que es la versión minimal
+    if ! grep -q "Menu Service (Minimal)" app/UI/Screens/Menu.php; then
+        echo "❌ Error: Menu.php no parece ser la versión Minimal."
+        exit 1
+    fi
 fi
 
 # Verificar sintaxis PHP
@@ -58,6 +64,11 @@ php artisan usim:install --preset=full --force
 # Verificar archivos clave adicionales
 if [ ! -f "app/UI/Screens/Auth/Login.php" ]; then
     echo "❌ Error: Login.php no se creó."
+    exit 1
+fi
+
+if grep -q "Menu Service (Minimal)" app/UI/Screens/Menu.php; then
+    echo "❌ Error: Menu.php parece ser la versión Minimal (debería ser Full)."
     exit 1
 fi
 if [ ! -f "config/users.php" ]; then
