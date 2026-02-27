@@ -13,7 +13,7 @@ use Idei\Usim\Services\Support\FakeDataHelper;
  *
  * Provides a modal dialog with registration form
  */
-class RegisterDialogService
+class RegisterDialog
 {
 
     public static function open(...$params): void

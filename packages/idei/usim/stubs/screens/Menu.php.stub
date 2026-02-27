@@ -4,7 +4,7 @@ namespace {{ namespace }};
 
 use {{ screensNamespace }}\Auth\Login;
 use {{ screensNamespace }}\Auth\Profile;
-use {{ componentsNamespace }}\Modals\RegisterDialogService;
+use {{ componentsNamespace }}\Modals\RegisterDialog;
 use Idei\Usim\Services\AbstractUIService;
 use Idei\Usim\Services\Components\MenuDropdownBuilder;
 use Idei\Usim\Services\Components\UIContainer;
@@ -175,7 +175,7 @@ class Menu extends AbstractUIService
 
     public function onShowRegisterForm(array $params): void
     {
-        RegisterDialogService::open(
+        RegisterDialog::open(
             submitAction: 'submit_register',
             fakeData: false,
             callerServiceId: $this->getServiceComponentId()

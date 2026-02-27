@@ -1,7 +1,7 @@
 <?php
 namespace App\UI\Screens;
 
-use App\UI\Components\Modals\RegisterDialogService;
+use App\UI\Components\Modals\RegisterDialog;
 use App\UI\Screens\Admin\Dashboard;
 use App\UI\Screens\Auth\Login;
 use App\UI\Screens\Auth\Profile;
@@ -236,7 +236,7 @@ class Menu extends AbstractUIService
      */
     public function onShowRegisterForm(array $params): void
     {
-        RegisterDialogService::open(
+        RegisterDialog::open(
             submitAction: 'submit_register',
             fakeData: true,
             callerServiceId: $this->getServiceComponentId()

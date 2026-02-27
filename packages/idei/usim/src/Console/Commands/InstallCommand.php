@@ -170,8 +170,8 @@ class InstallCommand extends Command
         // Modals
         $this->newLine();
         $this->info('Installing Modal components...');
-        $this->installComponent('Modals/LoginDialogService.php.stub', 'LoginDialogService.php', 'Modals');
-        $this->installComponent('Modals/RegisterDialogService.php.stub', 'RegisterDialogService.php', 'Modals');
+        $this->installComponent('Modals/LoginDialog.php.stub', 'LoginDialog.php', 'Modals');
+        $this->installComponent('Modals/RegisterDialog.php.stub', 'RegisterDialog.php', 'Modals');
 
         // AuthController
         $this->newLine();

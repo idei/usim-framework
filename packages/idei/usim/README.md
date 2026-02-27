@@ -671,8 +671,8 @@ app/
 └── UI/
     ├── Components/
     │   └── Modals/
-    │       ├── LoginDialogService.php
-    │       └── RegisterDialogService.php
+    │       ├── LoginDialog.php
+    │       └── RegisterDialog.php
     └── Screens/
         ├── Home.php              # Landing page
         ├── Menu.php              # Navigation menu

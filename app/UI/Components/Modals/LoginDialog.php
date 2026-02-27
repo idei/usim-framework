@@ -11,7 +11,7 @@ use Idei\Usim\Services\Enums\JustifyContent;
  *
  * Provides a modal dialog with login form
  */
-class LoginDialogService
+class LoginDialog
 {
     /**
      * Build login dialog UI
