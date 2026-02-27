@@ -77,6 +77,15 @@ if [ ! -f "config/users.php" ]; then
     exit 1
 fi
 
+# Verificar duplicados en .env
+echo "🔍 Verificando duplicados en .env..."
+DUPLICATES=$(grep "ADMIN_EMAIL" .env | wc -l)
+if [ "$DUPLICATES" -gt 1 ]; then
+    echo "❌ Error: Se encontraron duplicados en .env (ADMIN_EMAIL aparece $DUPLICATES veces)."
+    grep -n "ADMIN_EMAIL" .env
+    exit 1
+fi
+
 # Verificar sintaxis PHP
 echo "🔍 Verificando sintaxis PHP en archivos generados..."
 find app/UI -name "*.php" -print0 | xargs -0 -n1 php -l > /dev/null

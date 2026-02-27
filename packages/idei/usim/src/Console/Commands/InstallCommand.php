@@ -552,16 +552,33 @@ class InstallCommand extends Command
         }
 
         $envContent = $this->files->get($envPath);
+        $stubContent = $this->files->get($this->stubsPath('env.stub'));
+        $variables = explode("\n", $stubContent);
 
-        // Check if USIM variables already exist
-        if (str_contains($envContent, 'USIM Framework')) {
-            $this->line('  <fg=blue>→</> USIM .env variables already present');
-            return;
+        $appendContent = '';
+        foreach ($variables as $line) {
+            $line = trim($line);
+            if (empty($line) || str_starts_with($line, '#')) {
+                continue;
+            }
+
+            // Extract variable name
+            $parts = explode('=', $line, 2);
+            $key = trim($parts[0] ?? '');
+
+            // Check if key exists (ensure it's the full key, not a suffix)
+            if ($key && !preg_match("/(^|\n)\s*" . preg_quote($key, '/') . "\s*=/m", $envContent)) {
+                $appendContent .= $line . "\n";
+            }
         }
 
-        $stubContent = $this->files->get($this->stubsPath('env.stub'));
-        $this->files->append($envPath, "\n" . trim($stubContent) . "\n");
-        $this->line('  <fg=green>✓</> USIM variables appended to .env');
+        if (!empty($appendContent)) {
+            $this->info('  Appending missing environment variables...');
+            $this->files->append($envPath, "\n# --- USIM Framework ---\n" . trim($appendContent) . "\n");
+            $this->line('  <fg=green>✓</> .env updated');
+        } else {
+            $this->line('  <fg=blue>→</> USIM environment variables already present');
+        }
     }
 
     // =========================================================================
