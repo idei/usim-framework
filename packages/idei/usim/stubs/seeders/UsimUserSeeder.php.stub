@@ -1,0 +1,44 @@
+<?php
+
+namespace Database\Seeders;
+
+use {{ userModel }};
+use Illuminate\Support\Str;
+use Illuminate\Database\Seeder;
+
+class UsimUserSeeder extends Seeder
+{
+    public function run(): void
+    {
+        if ({{ userModelClass }}::count() > 1) {
+            return;
+        }
+
+        $this->createConfigUser('ADMIN', 'admin');
+        $this->createConfigUser('USER', 'user');
+    }
+
+    private function createConfigUser(string $prefix, string $role): void
+    {
+        $configKey = strtolower($prefix);
+        $userConfig = config("users.{$configKey}");
+
+        $firstName = $userConfig['first_name'];
+        $lastName = $userConfig['last_name'];
+        $fullName = trim($firstName . ' ' . $lastName);
+        $email = $userConfig['email'];
+        $password = $userConfig['password'];
+
+        $user = {{ userModelClass }}::firstOrCreate(
+            ['email' => $email],
+            [
+                'name' => $fullName,
+                'email_verified_at' => now(),
+                'remember_token' => Str::random(10),
+                'password' => bcrypt($password)
+            ]
+        );
+
+        $user->assignRole($role);
+    }
+}

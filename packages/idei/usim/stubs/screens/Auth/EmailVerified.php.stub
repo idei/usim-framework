@@ -1,0 +1,238 @@
+<?php
+
+namespace {{ namespace }};
+
+use Idei\Usim\Services\UIBuilder;
+use Idei\Usim\Services\Enums\LayoutType;
+use Idei\Usim\Services\AbstractUIService;
+use Idei\Usim\Services\Support\HttpClient;
+use Idei\Usim\Services\Components\UIContainer;
+
+class EmailVerified extends AbstractUIService
+{
+    protected string $verificationStatus = 'loading';
+    protected string $errorMessage = '';
+
+    protected function buildBaseUI(UIContainer $container, ...$params): void
+    {
+        $container
+            ->layout(LayoutType::VERTICAL)
+            ->shadow(false)
+            ->justifyContent('start')
+            ->alignItems('center')
+            ->padding(40)
+            ->paddingTop('80px')
+            ->minHeight('100vh');
+
+        switch ($this->verificationStatus) {
+            case 'loading':
+                $this->buildLoadingUI($container);
+                break;
+            case 'success':
+                $this->buildSuccessUI($container);
+                break;
+            case 'already_verified':
+                $this->buildAlreadyVerifiedUI($container);
+                break;
+            case 'error':
+                $this->buildErrorUI($container);
+                break;
+        }
+    }
+
+    protected function postLoadUI(): void
+    {
+        if ($this->verificationStatus !== 'loading') {
+            return;
+        }
+
+        $id = request('id');
+        $hash = request('hash');
+
+        if (!$id || !$hash) {
+            $this->errorMessage = 'Invalid verification link. Missing required parameters.';
+            $this->verificationStatus = 'error';
+            $this->container->clear();
+            $this->buildBaseUI($this->container);
+            return;
+        }
+
+        try {
+            $signedApiUrl = \Illuminate\Support\Facades\URL::temporarySignedRoute(
+                'verification.verify',
+                now()->addMinutes(60),
+                ['id' => $id, 'hash' => $hash]
+            );
+
+            $parsed = parse_url($signedApiUrl);
+            $queryParams = [];
+            if (isset($parsed['query'])) {
+                parse_str($parsed['query'], $queryParams);
+            }
+
+            $response = HttpClient::get(
+                'verification.verify',
+                queryParams: $queryParams,
+                routeParams: ['id' => $id, 'hash' => $hash]
+            );
+
+            $status = $response['status'] ?? 'error';
+            $message = $response['message'] ?? 'Unknown error';
+
+            if ($status === 'success') {
+                if (str_contains($message, 'already verified')) {
+                    $this->verificationStatus = 'already_verified';
+                } else {
+                    $this->verificationStatus = 'success';
+                }
+            } else {
+                $this->errorMessage = $message;
+                $this->verificationStatus = 'error';
+            }
+        } catch (\Exception $e) {
+            $this->errorMessage = 'Could not verify email. The link may have expired or be invalid.';
+            $this->verificationStatus = 'error';
+        }
+
+        $this->container->clear();
+        $this->buildBaseUI($this->container);
+    }
+
+    private function buildLoadingUI(UIContainer $container): void
+    {
+        $container->add(
+            UIBuilder::label('loading_message')
+                ->text('⏳ Verifying your email...')
+                ->style('h2')
+                ->center()
+                ->color('#666')
+        );
+    }
+
+    private function buildSuccessUI(UIContainer $container): void
+    {
+        $container->add(
+            UIBuilder::label('success_icon')
+                ->text('✅')
+                ->style('h1')
+                ->center()
+                ->fontSize('80px')
+        );
+
+        $container->add(
+            UIBuilder::label('verified_message')
+                ->text('Your email has been verified successfully')
+                ->style('h2')
+                ->center()
+                ->color('#4CAF50')
+        );
+
+        $container->add(
+            UIBuilder::label('verified_subtitle')
+                ->text('You can now access all platform features')
+                ->style('p')
+                ->center()
+                ->color('#666')
+                ->marginTop('10px')
+        );
+
+        $container->add(
+            UIBuilder::card('success_card')
+                ->title('Verification Complete')
+                ->description('Your account has been activated. You can now log in and enjoy all available services.')
+                ->theme('success')
+                ->elevation('medium')
+                ->maxWidth('600px')
+                ->marginTop('30px')
+                ->addAction('Go to Login', 'go_to_login', [], 'success')
+                ->addAction('Go to Home', 'go_to_home', [], 'outline')
+        );
+    }
+
+    private function buildAlreadyVerifiedUI(UIContainer $container): void
+    {
+        $container->add(
+            UIBuilder::label('info_icon')
+                ->text('ℹ️')
+                ->style('h1')
+                ->center()
+                ->fontSize('80px')
+        );
+
+        $container->add(
+            UIBuilder::label('already_verified_message')
+                ->text('Your email has already been verified')
+                ->style('h2')
+                ->center()
+                ->color('#2196F3')
+        );
+
+        $container->add(
+            UIBuilder::card('info_card')
+                ->title('Email Verified')
+                ->description('Your account is already active. You can log in normally.')
+                ->theme('info')
+                ->elevation('medium')
+                ->maxWidth('600px')
+                ->marginTop('30px')
+                ->addAction('Go to Login', 'go_to_login', [], 'primary')
+                ->addAction('Go to Home', 'go_to_home', [], 'outline')
+        );
+    }
+
+    private function buildErrorUI(UIContainer $container): void
+    {
+        $container->add(
+            UIBuilder::label('error_icon')
+                ->text('❌')
+                ->style('h1')
+                ->center()
+                ->fontSize('80px')
+        );
+
+        $container->add(
+            UIBuilder::label('error_message')
+                ->text('Error verifying email')
+                ->style('h2')
+                ->center()
+                ->color('#f44336')
+        );
+
+        $container->add(
+            UIBuilder::label('error_detail')
+                ->text($this->errorMessage)
+                ->style('p')
+                ->center()
+                ->color('#666')
+                ->marginTop('10px')
+        );
+
+        $container->add(
+            UIBuilder::card('error_card')
+                ->title('Verification Failed')
+                ->description('The verification link may have expired or be invalid. Please request a new verification link.')
+                ->theme('danger')
+                ->elevation('medium')
+                ->maxWidth('600px')
+                ->marginTop('30px')
+                ->addAction('Request New Link', 'resend_verification', [], 'danger')
+                ->addAction('Go to Home', 'go_to_home', [], 'outline')
+        );
+    }
+
+    public function onGoToLogin(array $params): void
+    {
+        $this->redirect('/auth/login');
+    }
+
+    public function onGoToHome(array $params): void
+    {
+        $this->redirect('/');
+    }
+
+    public function onResendVerification(array $params): void
+    {
+        $this->toast('Please log in to request a new verification link', 'info');
+        $this->redirect('/auth/login');
+    }
+}

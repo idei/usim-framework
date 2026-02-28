@@ -2,7 +2,6 @@
 
 namespace App\UI\Components\Modals;
 
-use Idei\Usim\Services\Support\UIDebug;
 use Idei\Usim\Services\UIBuilder;
 use Idei\Usim\Services\Enums\LayoutType;
 use Idei\Usim\Services\Enums\JustifyContent;
@@ -13,7 +12,7 @@ use Idei\Usim\Services\UIChangesCollector;
  *
  * Provides a modal dialog with registration form
  */
-class EditUserDialogService
+class EditUserDialog
 {
 
     public static function open(...$params): void

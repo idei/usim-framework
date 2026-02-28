@@ -1,6 +1,6 @@
 <?php
 
-namespace App\UI\Components\Modals;
+namespace {{ componentsNamespace }};
 
 use Idei\Usim\Services\UIBuilder;
 use Idei\Usim\Services\Enums\LayoutType;
@@ -11,16 +11,8 @@ use Idei\Usim\Services\Enums\JustifyContent;
  *
  * Provides a modal dialog with login form
  */
-class LoginDialogService
+class LoginDialog
 {
-    /**
-     * Build login dialog UI
-     *
-     * @param string $submitAction Action to call when form is submitted
-     * @param string|null $cancelAction Action to call when cancel is clicked
-     * @param int|null $callerServiceId Service ID that will receive callbacks
-     * @return array UI components for the modal
-     */
     public function getUI(
         ?int $callerServiceId = null,
         string $submitAction = 'submit_login',
@@ -28,13 +20,11 @@ class LoginDialogService
         string $defaultEmail = '',
         string $defaultPassword = ''
     ): array {
-        // Main container for the modal
         $loginContainer = UIBuilder::container('login_dialog')
             ->parent('modal')
             ->shadow(false)
             ->padding('30px');
 
-        // Email input
         $loginContainer->add(
             UIBuilder::input('login_email')
                 ->label('Email')
@@ -43,7 +33,6 @@ class LoginDialogService
                 ->required(true)
         );
 
-        // Password input
         $loginContainer->add(
             UIBuilder::input('login_password')
                 ->label('Password')
@@ -53,7 +42,6 @@ class LoginDialogService
                 ->required(true)
         );
 
-        // Buttons container
         $buttonsContainer = UIBuilder::container('login_buttons')
             ->layout(LayoutType::HORIZONTAL)
             ->justifyContent(JustifyContent::SPACE_BETWEEN)
@@ -61,7 +49,6 @@ class LoginDialogService
             ->shadow(false)
             ->padding('20px 0 0 0');
 
-        // Cancel button
         if ($cancelAction) {
             $buttonsContainer->add(
                 UIBuilder::button('btn_cancel_login')
@@ -73,7 +60,6 @@ class LoginDialogService
             );
         }
 
-        // Submit button
         $buttonsContainer->add(
             UIBuilder::button('btn_submit_login')
                 ->label('Login')

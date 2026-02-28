@@ -1,20 +1,10 @@
 <?php
-namespace App\UI\Screens;
 
-use App\UI\Components\Modals\RegisterDialog;
-use App\UI\Screens\Admin\Dashboard;
-use App\UI\Screens\Auth\Login;
-use App\UI\Screens\Auth\Profile;
-use App\UI\Screens\Demo\ButtonDemo;
-use App\UI\Screens\Demo\CalendarDemo;
-use App\UI\Screens\Demo\CheckboxDemo;
-use App\UI\Screens\Demo\DemoUi;
-use App\UI\Screens\Demo\FormDemo;
-use App\UI\Screens\Demo\InputDemo;
-use App\UI\Screens\Demo\ModalDemo;
-use App\UI\Screens\Demo\SelectDemo;
-use App\UI\Screens\Demo\TableDemo;
-use App\UI\Screens\Demo\UploaderDemo;
+namespace {{ namespace }};
+
+use {{ screensNamespace }}\Auth\Login;
+use {{ screensNamespace }}\Auth\Profile;
+use {{ componentsNamespace }}\Modals\RegisterDialog;
 use Idei\Usim\Services\AbstractUIService;
 use Idei\Usim\Services\Components\MenuDropdownBuilder;
 use Idei\Usim\Services\Components\UIContainer;
@@ -43,7 +33,7 @@ class Menu extends AbstractUIService
     protected function buildBaseUI(UIContainer $container, ...$params): void
     {
         $container
-            ->parent('menu') // Important to set parent!
+            ->parent('menu')
             ->shadow(0)
             ->borderRadius(0)
             ->layout(LayoutType::HORIZONTAL)
@@ -71,18 +61,13 @@ class Menu extends AbstractUIService
             $this->user_menu->clearItems();
             $this->populateUserMenu($this->user_menu);
         } else {
-            // Caso 1: Usuario no autenticado - trigger con icono de configuración
             $this->user_menu->trigger("⚙️");
         }
     }
 
-    /**
-     * Actualizar el trigger del menú de usuario según el estado del perfil
-     */
     private function updateUserMenuTrigger($user): void
     {
         if ($user->profile_image) {
-            // Caso 3: Usuario con imagen de perfil
             $imageUrl = UploadService::fileUrl("uploads/images/$user->profile_image");
             $this->user_menu->triggerImage(
                 imageUrl: $imageUrl,
@@ -90,7 +75,6 @@ class Menu extends AbstractUIService
                 label: $user->name
             );
         } else {
-            // Caso 2: Usuario sin imagen de perfil - icono + nombre
             $this->user_menu->trigger("👤 $user->name");
         }
     }
@@ -110,32 +94,8 @@ class Menu extends AbstractUIService
     private function populateMainMenu(MenuDropdownBuilder $menu): void
     {
         $menu->link('Home', '/', '🏠');
-        $menu->screen(Dashboard::class);
-        $this->buildDemosMenu($menu);
         $menu->separator();
         $menu->item('About', 'show_about_info', [], 'ℹ️');
-    }
-
-    private function buildDemosMenu(MenuDropdownBuilder $menu): void
-    {
-        if (env('APP_DEMO_MODE', true) === false) {
-            return;
-        }
-
-        $menu->separator();
-        $menu->submenu('Demos', function ($submenu) {
-            $submenu->screen(ButtonDemo::class, "Button Demo", '🖲️');
-            $submenu->screen(TableDemo::class, "Table Demo", '📊');
-            $submenu->screen(ModalDemo::class, "Modal Demo", '🪟');
-            $submenu->item('Abort Error', 'show_error_info', [], '❌');
-            $submenu->screen(FormDemo::class, "Form Demo", '📝');
-            $submenu->screen(DemoUi::class, "Demo UI", '🎨');
-            $submenu->screen(InputDemo::class, "Input Demo", '⌨️');
-            $submenu->screen(SelectDemo::class, "Select Demo", '📋');
-            $submenu->screen(CheckboxDemo::class, "Checkbox Demo", '☑️');
-            $submenu->screen(UploaderDemo::class, "Uploader Demo", '📤');
-            $submenu->screen(CalendarDemo::class, "Calendar Demo", '📅');
-        }, '🎮');
     }
 
     private function buildUserMenu(): MenuDropdownBuilder
@@ -162,11 +122,9 @@ class Menu extends AbstractUIService
         if ($user) {
             $this->updateUserMenuTrigger($user);
 
-            // Rebuild user menu to check permissions for items
             $this->user_menu->clearItems();
             $this->populateUserMenu($this->user_menu);
 
-            // Rebuild main menu to check permissions for screen() items
             $this->main_menu->clearItems();
             $this->populateMainMenu($this->main_menu);
         }
@@ -178,29 +136,24 @@ class Menu extends AbstractUIService
         if ($user) {
             $this->updateUserMenuTrigger($user);
         }
-    }    /**
-         * Handler to confirm logout
-         */
+    }
+
     public function onConfirmLogout(array $params): void
     {
-        // Delete Sanctum token if user is authenticated
         $user = request()->user();
         if ($user && $user->currentAccessToken()) {
             $user->currentAccessToken()->delete();
         }
         Auth::logout();
 
-        // Clear storage variables
         $this->store_token = '';
         $this->store_password = '';
 
         $this->user_menu->trigger("⚙️");
 
-        // Rebuild user menu to update screen() items
         $this->user_menu->clearItems();
         $this->populateUserMenu($this->user_menu);
 
-        // Rebuild main menu to remove restricted screen() items
         $this->main_menu->clearItems();
         $this->populateMainMenu($this->main_menu);
 
@@ -208,44 +161,27 @@ class Menu extends AbstractUIService
         $this->redirect();
     }
 
-    /**
-     * Handler for About info dialog
-     */
     public function onShowAboutInfo(array $params): void
     {
-        // Get this service ID to receive the callback
         $serviceId = $this->getServiceComponentId();
 
         ConfirmDialogService::open(
             type: DialogType::INFO,
-            title: "Acerca de USIM Framework",
-            message: "Sistema de componentes UI v1.0\n
-            Desarrollado con Laravel y componentes modulares.\n
-            Soporta: Tables, Modals, Forms, Menus y más.",
+            title: "About USIM Framework",
+            message: "USIM UI Component System v1.0\n\nBuilt with Laravel and modular components.\nSupports: Tables, Modals, Forms, Menus and more.",
             callerServiceId: $serviceId
         );
     }
 
-    public function onShowErrorInfo(array $params): void
-    {
-        $this->abort(500, "This is a simulated error for testing error handling.");
-    }
-
-    /**
-     * Handler for Register form
-     */
     public function onShowRegisterForm(array $params): void
     {
         RegisterDialog::open(
             submitAction: 'submit_register',
-            fakeData: true,
+            fakeData: false,
             callerServiceId: $this->getServiceComponentId()
         );
     }
 
-    /**
-     * Handler to submit register (receives form data)
-     */
     public function onSubmitRegister(array $params): void
     {
         $params['roles'] = ['user'];
@@ -260,52 +196,33 @@ class Menu extends AbstractUIService
         } else {
             $this->toast($message, 'error');
 
-            // Update modal inputs with validation errors
             $errors = $response['errors'] ?? [];
-
             if (!empty($errors)) {
                 $modalUpdates = [];
-
                 foreach ($errors as $fieldName => $messages) {
-                    // Concatenate all error messages for the field
                     $modalUpdates[$fieldName] = [
                         'error' => implode(' ', $messages)
                     ];
                 }
-
                 $this->updateModal($modalUpdates);
             }
         }
     }
 
-    /**
-     * Handler to close profile dialog
-     */
-    public function onCloseProfileDialog(array $params): void
-    {
-        $this->closeModal();
-    }
-
-    /**
-     * Handler for Logout
-     */
     public function onLogoutUser(array $params): void
     {
         $serviceId = $this->getServiceComponentId();
 
         ConfirmDialogService::open(
             type: DialogType::CONFIRM,
-            title: "Cerrar Sesión",
-            message: "¿Estás seguro que deseas cerrar sesión?",
+            title: "Logout",
+            message: "Are you sure you want to log out?",
             confirmAction: 'confirm_logout',
             cancelAction: 'cancel_logout',
             callerServiceId: $serviceId
         );
     }
 
-    /**
-     * Handler to cancel logout
-     */
     public function onCancelLogout(array $params): void
     {
         $this->closeModal();

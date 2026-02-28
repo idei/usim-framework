@@ -12,6 +12,7 @@
     "require": {
         "php": "^8.2",
         "illuminate/support": "^10.0|^11.0|^12.0",
+        "laravel/sanctum": "^3.0|^4.0",
         "spatie/laravel-permission": "^6.0",
         "symfony/finder": "^6.0|^7.0"
     },

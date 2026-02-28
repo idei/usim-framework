@@ -1,6 +1,6 @@
 <?php
 
-namespace App\UI\Components\Modals;
+namespace {{ componentsNamespace }};
 
 use Idei\Usim\Services\UIBuilder;
 use Idei\Usim\Services\Enums\LayoutType;
@@ -13,9 +13,8 @@ use Idei\Usim\Services\Support\FakeDataHelper;
  *
  * Provides a modal dialog with registration form
  */
-class RegisterDialogService
+class RegisterDialog
 {
-
     public static function open(...$params): void
     {
         $dialog = new self();
@@ -24,14 +23,6 @@ class RegisterDialogService
         $uiChanges->add($format);
     }
 
-    /**
-     * Build register dialog UI
-     *
-     * @param string $submitAction Action to call when form is submitted
-     * @param string|null $cancelAction Action to call when cancel is clicked
-     * @param int|null $callerServiceId Service ID that will receive callbacks
-     * @return array UI components for the modal
-     */
     public function getUI(
         string $submitAction = 'submit_register',
         ?string $cancelAction = 'close_modal',
@@ -52,13 +43,12 @@ class RegisterDialogService
             $password_confirmation = $userData['password_confirmation'];
             $role = $userData['role'];
         }
-        // Main container for the modal
+
         $registerContainer = UIBuilder::container('register_dialog')
             ->parent('modal')
             ->shadow(false)
             ->padding('20px');
 
-        // Name input
         $registerContainer->add(
             UIBuilder::input('name')
                 ->label('Full Name')
@@ -68,7 +58,6 @@ class RegisterDialogService
                 ->autocomplete('off')
         );
 
-        // Email input
         $registerContainer->add(
             UIBuilder::input('email')
                 ->label('Email')
@@ -78,7 +67,6 @@ class RegisterDialogService
                 ->autocomplete('off')
         );
 
-        // Password input
         $registerContainer->add(
             UIBuilder::input('password')
                 ->label('Password')
@@ -89,7 +77,6 @@ class RegisterDialogService
                 ->autocomplete('new-password')
         );
 
-        // Password confirmation
         $registerContainer->add(
             UIBuilder::input('password_confirmation')
                 ->label('Confirm Password')
@@ -101,8 +88,6 @@ class RegisterDialogService
         );
 
         if ($askForRole) {
-
-            // Role select
             $registerContainer->add(
                 UIBuilder::select('roles')
                     ->label('Role')
@@ -114,7 +99,6 @@ class RegisterDialogService
                     ->required(true)
             );
 
-            // Checkbox for sending verification email
             $registerContainer->add(
                 UIBuilder::checkbox('send_verification_email')
                     ->label('Send verification email')
@@ -122,7 +106,6 @@ class RegisterDialogService
             );
         }
 
-        // Buttons container
         $buttonsContainer = UIBuilder::container('register_buttons')
             ->layout(LayoutType::HORIZONTAL)
             ->justifyContent(JustifyContent::SPACE_BETWEEN)
@@ -130,7 +113,6 @@ class RegisterDialogService
             ->gap('10px')
             ->padding('10px 0 0 0');
 
-        // Cancel button
         if ($cancelAction) {
             $buttonsContainer->add(
                 UIBuilder::button('btn_cancel_register')
@@ -142,7 +124,6 @@ class RegisterDialogService
             );
         }
 
-        // Submit button
         $buttonsContainer->add(
             UIBuilder::button('btn_submit_register')
                 ->label('Register')

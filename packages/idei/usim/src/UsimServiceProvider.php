@@ -10,6 +10,7 @@ use Idei\Usim\Services\UIChangesCollector;
 use Idei\Usim\Events\UsimEvent;
 use Idei\Usim\Listeners\UsimEventDispatcher;
 use Idei\Usim\Console\Commands\DiscoverScreensCommand;
+use Idei\Usim\Console\Commands\InstallCommand;
 
 use Illuminate\Console\Scheduling\Schedule;
 
@@ -27,6 +28,7 @@ class UsimServiceProvider extends ServiceProvider
 
         $this->commands([
             DiscoverScreensCommand::class,
+            InstallCommand::class,
         ]);
     }
 

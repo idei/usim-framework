@@ -1,0 +1,40 @@
+<?php
+
+namespace {{ namespace }};
+
+use Idei\Usim\Services\AbstractUIService;
+use Idei\Usim\Services\Components\MenuDropdownBuilder;
+use Idei\Usim\Services\Components\UIContainer;
+use Idei\Usim\Services\Enums\AlignItems;
+use Idei\Usim\Services\Enums\JustifyContent;
+use Idei\Usim\Services\Enums\LayoutType;
+use Idei\Usim\Services\UIBuilder;
+
+/**
+ * Menu Service (Minimal)
+ *
+ * Builds a simple navigation menu without authentication
+ */
+class Menu extends AbstractUIService
+{
+    protected function buildBaseUI(UIContainer $container, ...$params): void
+    {
+        $container
+            ->parent('menu')
+            ->shadow(0)
+            ->borderRadius(0)
+            ->layout(LayoutType::HORIZONTAL)
+            ->justifyContent(JustifyContent::SPACE_BETWEEN)
+            ->alignItems(AlignItems::CENTER)
+            ->padding(0);
+
+        $main_menu = UIBuilder::menuDropdown('main_menu')
+            ->trigger()
+            ->position('bottom-left')
+            ->width(200);
+
+        $main_menu->link('Home', '/', '🏠');
+
+        $container->add($main_menu);
+    }
+}
