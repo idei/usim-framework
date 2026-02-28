@@ -3,10 +3,10 @@
 namespace App\Http\Controllers\Api;
 
 use App\Models\User;
+use App\Services\Auth\LoginService;
 use Illuminate\Support\Str;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
-use Idei\Usim\Services\Support\UIDebug;
 use Illuminate\Auth\Events\Verified;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Auth\Events\Registered;
@@ -65,7 +65,7 @@ class AuthController extends Controller
         ], 201);
     }
 
-    public function login(Request $request)
+    public function login(Request $request, LoginService $loginService)
     {
         $request->validate([
             'email' => 'required|email',
@@ -73,48 +73,17 @@ class AuthController extends Controller
             'remember' => 'boolean',
         ]);
 
-        $user = User::where('email', $request->email)->first();
+        $response = $loginService->login(
+            $request->email,
+            $request->password,
+            $request->boolean('remember')
+        );
 
-        if (!$user || !Hash::check($request->password, $user->password)) {
-            UIDebug::error('Credenciales inválidas para el email: ' . $request->email);
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Credenciales inválidas',
-                'errors' => ['email' => ['The provided credentials are incorrect.']]
-            ], 401);
-        }
+        $httpStatus = $response['status'] === 'success' ? 200 : 401;
 
-        // Determinar el nombre del token según "remember"
-        $tokenName = $request->remember ? 'auth_token_remember' : 'auth_token';
+        unset($response['user']);
 
-        // Crear token con expiración según "remember"
-        if ($request->remember) {
-            // Token con duración extendida (30 días)
-            $token = $user->createToken($tokenName, ['*'], now()->addDays(30))->plainTextToken;
-        } else {
-            // Token con duración estándar (24 horas)
-            $token = $user->createToken($tokenName, ['*'], now()->addDay())->plainTextToken;
-        }
-
-        // Obtener permisos del usuario usando Spatie
-        $permissions = $user->getAllPermissions()->pluck('name')->toArray();
-        $roles = $user->getRoleNames()->toArray();
-
-        return response()->json([
-            'status' => 'success',
-            'message' => 'Autenticación exitosa',
-            'data' => [
-                'user' => [
-                    'id' => $user->id,
-                    'name' => $user->name,
-                    'email' => $user->email,
-                    'roles' => $roles,
-                    'permissions' => $permissions,
-                ],
-                'token' => $token,
-                'remember' => $request->remember ?? false,
-            ]
-        ]);
+        return response()->json($response, $httpStatus);
     }
 
     public function logout(Request $request)

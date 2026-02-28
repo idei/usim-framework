@@ -6,6 +6,7 @@ use Spatie\Permission\Models\Role;
 describe('Authentication', function () {
 
     it('permite registrar un usuario', function () {
+        /** @var \Tests\TestCase $this */
 
         Role::create(['name' => 'admin']);
         Role::create(['name' => 'user']);
@@ -24,6 +25,7 @@ describe('Authentication', function () {
     });
 
     it('permite loguear un usuario registrado', function () {
+        /** @var \Tests\TestCase $this */
         // Crear un usuario primero
         $user = User::factory()->create([
             'email' => 'juan@example.com',
@@ -42,6 +44,7 @@ describe('Authentication', function () {
     });
 
     it('rechaza login con credenciales inválidas', function () {
+        /** @var \Tests\TestCase $this */
         $user = User::factory()->create([
             'email' => 'juan@example.com',
             'password' => bcrypt('secret123'),
@@ -57,6 +60,7 @@ describe('Authentication', function () {
     });
 
     it('valida campos requeridos en registro', function () {
+        /** @var \Tests\TestCase $this */
         $response = $this->postJson('/api/register', []);
 
         $response->assertStatus(422);

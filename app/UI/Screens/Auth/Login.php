@@ -2,19 +2,24 @@
 namespace App\UI\Screens\Auth;
 
 use App\Models\User;
+use App\Services\Auth\LoginService;
 use Idei\Usim\Events\UsimEvent;
+use Idei\Usim\Services\AbstractUIService;
+use Idei\Usim\Services\Components\LabelBuilder;
+use Idei\Usim\Services\Components\UIContainer;
+use Idei\Usim\Services\Enums\JustifyContent;
+use Idei\Usim\Services\Enums\LayoutType;
+use Idei\Usim\Services\Support\UIStateManager;
 use Idei\Usim\Services\UIBuilder;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Http;
-use Idei\Usim\Services\Enums\LayoutType;
-use Idei\Usim\Services\AbstractUIService;
-use Idei\Usim\Services\Enums\JustifyContent;
-use Idei\Usim\Services\Components\UIContainer;
-use Idei\Usim\Services\Components\LabelBuilder;
-use Idei\Usim\Services\Support\UIStateManager;
 
 class Login extends AbstractUIService
 {
+    public function __construct(
+        protected LoginService $loginService
+    ) {
+    }
+
     protected string $store_email = 'admin@gmail.com';
     protected string $store_password = 'CHANGE_ME';
     protected string $store_token = '';
@@ -118,11 +123,7 @@ class Login extends AbstractUIService
         $password = $params['login_password'] ?? '';
         $remember = $params['remember'] ?? false;
 
-        $response = $this->httpPost('api.login', [
-            'email' => $email,
-            'password' => $password,
-            'remember' => $remember,
-        ]);
+        $response = $this->loginService->login($email, $password, (bool) $remember);
 
         $message = $response['message'] ?? 'Login failed.';
         $status = $response['status'] ?? 'error';
@@ -140,7 +141,7 @@ class Login extends AbstractUIService
         // Store token in UIStateManager for HttpClient
         UIStateManager::setAuthToken($this->store_token);
 
-        $user = User::where('email', $email)->first();
+        $user = $response['user'] ?? User::where('email', $email)->first();
         Auth::login($user);
 
         // Disparar evento - TODOS los servicios en ui-services.php lo recibirán
@@ -150,43 +151,5 @@ class Login extends AbstractUIService
         ]));
 
         $this->redirect();
-
-        // UIDebug::info('Token stored:', ['token' => $this->store_token]);
-
-
-        // // Here I use the Auth facade for authentication
-        // if (Auth::attempt(['email' => $email, 'password' => $password])) {
-        //     // Authentication passed
-        //     $user = User::where('email', $email)->first();
-
-        //     // Token con duración estándar (24 horas)
-        //     $token = $user->createToken('auth_token', ['*'], now()->addDay())->plainTextToken;
-
-        //     $this->store_token    = $token;
-        //     $this->store_email    = $email;
-        //     $this->store_password = $password;
-
-        //     // Disparar evento - TODOS los servicios en ui-services.php lo recibirán
-        //     event(new UsimEvent('logged_user', [
-        //         'user'      => $user,
-        //         'timestamp' => now(),
-        //     ]));
-        //     $this->toast("Login successful! Welcome, {$user->name}!", 'success');
-        //     $this->redirect();
-        // } else {
-        //     // Authentication failed
-        //     $this->lbl_login_result
-        //         ->text('Invalid email or password.')
-        //         ->style('error');
-        // }
-    }
-
-    private function httpPost(string $route, array $data): array
-    {
-        $url = route($route, [], false);
-        $baseUrl = config('usim.api_url', config('app.url'));
-        $fullUrl = rtrim($baseUrl, '/') . '/' . ltrim($url, '/');
-        $response = Http::post($fullUrl, $data);
-        return $response->json();
     }
 }
