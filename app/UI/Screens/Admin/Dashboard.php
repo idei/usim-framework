@@ -1,6 +1,7 @@
 <?php
 namespace App\UI\Screens\Admin;
 
+use App\Services\Auth\RegisterService;
 use Idei\Usim\Services\UIBuilder;
 use Idei\Usim\Services\Enums\DialogType;
 use Idei\Usim\Services\Enums\LayoutType;
@@ -17,6 +18,10 @@ use Idei\Usim\Services\Modals\ConfirmDialogService;
 
 class Dashboard extends AbstractUIService
 {
+    public function __construct(
+        protected RegisterService $registerService
+    ) {
+    }
     public static function authorize(): bool
     {
         return self::requireRole('admin');
@@ -102,10 +107,17 @@ class Dashboard extends AbstractUIService
 
     public function onSubmitRegister(array $params): void
     {
-        $params['roles'] = [$params['roles']];
-        $response = HttpClient::post('users.store', $params);
-        $status = $response['status'] ?? 'success';
-        $message = $response['message'] ?? 'User registered successfully';
+        $response = $this->registerService->register(
+            name: $params['name'] ?? '',
+            email: $params['email'] ?? '',
+            password: $params['password'] ?? '',
+            passwordConfirmation: $params['password_confirmation'] ?? '',
+            roles: isset($params['roles']) ? [$params['roles']] : ['user'],
+            sendVerificationEmail: (bool) ($params['send_verification_email'] ?? true)
+        );
+
+        $status = $response['status'];
+        $message = $response['message'];
 
         if ($status === 'success') {
             $this->toast($message, 'success');

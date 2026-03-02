@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Models\User;
+use App\Services\Auth\RegisterService;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
@@ -127,7 +128,7 @@ class UserController extends Controller
     /**
      * Store a newly created user.
      */
-    public function store(Request $request): JsonResponse
+    public function store(Request $request, RegisterService $registerService): JsonResponse
     {
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
@@ -138,39 +139,26 @@ class UserController extends Controller
             "send_verification_email" => ['sometimes', 'boolean'],
         ]);
 
-        $user = User::create([
-            'name' => $validated['name'],
-            'email' => $validated['email'],
-            'password' => Hash::make($validated['password']),
-        ]);
+        $response = $registerService->register(
+            name: $validated['name'],
+            email: $validated['email'],
+            password: $validated['password'],
+            passwordConfirmation: $validated['password_confirmation'],
+            roles: $validated['roles'] ?? ['user'],
+            sendVerificationEmail: $validated['send_verification_email'] ?? true
+        );
 
-        if (isset($validated['roles'])) {
-            $user->assignRole($validated['roles']);
+        $httpStatus = $response['status'] === 'success' ? 201 : 422;
+
+        // Remove the Eloquent user model from the API response
+        unset($response['user']);
+
+        // Customize message for admin context
+        if ($response['status'] === 'success') {
+            $response['message'] = 'Usuario creado exitosamente';
         }
 
-        if (!empty($validated['send_verification_email'])) {
-            $user->sendEmailVerificationNotification();
-        }
-
-        $token = $user->createToken('auth_token')->plainTextToken;
-
-        // Obtener permisos del usuario
-        $permissions = $user->getAllPermissions()->pluck('name')->toArray();
-
-        return response()->json([
-            'status' => 'success',
-            'message' => 'Usuario creado exitosamente',
-            'data' => [
-                'user' => [
-                    'id' => $user->id,
-                    'name' => $user->name,
-                    'email' => $user->email,
-                    'roles' => $user->getRoleNames(),
-                    'permissions' => $permissions,
-                ],
-                'token' => $token,
-            ]
-        ], 201);
+        return response()->json($response, $httpStatus);
     }
 
     /**
