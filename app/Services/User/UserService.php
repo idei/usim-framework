@@ -3,6 +3,8 @@
 namespace App\Services\User;
 
 use App\Models\User;
+use Illuminate\Auth\Events\Verified;
+use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Password as PasswordBroker;
@@ -322,5 +324,57 @@ class UserService
                     });
             });
         });
+    }
+
+    /**
+     * Verify user email with ID and hash
+     *
+     * @param int $id User ID
+     * @param string $hash Email verification hash
+     * @return array Response array with status and message
+     */
+    public function verifyEmail(int $id, string $hash): array
+    {
+        $user = User::find($id);
+
+        if (!$user) {
+            return [
+                'success' => false,
+                'status' => 'error',
+                'message' => 'Usuario no encontrado.',
+            ];
+        }
+
+        // Verify hash matches user's email
+        if (sha1($user->getEmailForVerification()) !== $hash) {
+            return [
+                'success' => false,
+                'status' => 'invalid',
+                'message' => 'Enlace de verificación inválido.',
+            ];
+        }
+
+        // Check if already verified
+        if ($user->hasVerifiedEmail()) {
+            return [
+                'success' => true,
+                'status' => 'already_verified',
+                'message' => 'Su email ya ha sido verificado anteriormente.',
+            ];
+        }
+
+        // Mark as verified
+        $user->markEmailAsVerified();
+
+        // Fire Verified event if user implements MustVerifyEmail
+        if ($user instanceof MustVerifyEmail) {
+            event(new Verified($user));
+        }
+
+        return [
+            'success' => true,
+            'status' => 'verified',
+            'message' => 'Su email ha sido verificado satisfactoriamente.',
+        ];
     }
 }

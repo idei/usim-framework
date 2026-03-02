@@ -5,19 +5,18 @@ namespace App\Http\Controllers\Api;
 use App\Models\User;
 use App\Services\Auth\LoginService;
 use App\Services\Auth\RegisterService;
-use Illuminate\Support\Str;
+use App\Services\Auth\PasswordService;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use Illuminate\Auth\Events\Verified;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Auth\Events\Registered;
-use Illuminate\Support\Facades\Password;
-use Illuminate\Auth\Events\PasswordReset;
-use Illuminate\Support\Facades\Validator;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 
 class AuthController extends Controller
 {
+    public function __construct(
+        protected PasswordService $passwordService
+    ) {
+    }
     public function register(Request $request, RegisterService $registerService)
     {
         $response = $registerService->register(
@@ -166,44 +165,12 @@ class AuthController extends Controller
      */
     public function forgotPassword(Request $request)
     {
-        $validator = Validator::make($request->all(), [
-            'email' => 'required|email'
-        ]);
+        $response = $this->passwordService->sendResetLink(
+            $request->input('email', '')
+        );
 
-        if ($validator->fails()) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Validation errors',
-                'errors' => $validator->errors()
-            ], 422);
-        }
-
-        // Verificar que el usuario existe
-        $user = User::where('email', $request->email)->first();
-
-        if (!$user) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'We can\'t find a user with that email address.',
-                'errors' => ['email' => ['We can\'t find a user with that email address.']]
-            ], 404);
-        }
-
-        $status = Password::sendResetLink($request->only('email'));
-
-        if (isset($status) && $status === Password::RESET_LINK_SENT) {
-            return response()->json([
-                'status' => 'success',
-                'data' => null,
-                'message' => 'Password reset link sent to your email address'
-            ], 200);
-        }
-
-        return response()->json([
-            'status' => 'error',
-            'message' => 'No se pudo enviar el email de recuperación.',
-            'errors' => ['email' => ['No se pudo enviar el email de recuperación']]
-        ], 500);
+        $httpStatus = $response['status'] === 'success' ? 200 : 400;
+        return response()->json($response, $httpStatus);
     }
 
     /**
@@ -211,45 +178,14 @@ class AuthController extends Controller
      */
     public function resetPassword(Request $request)
     {
-        $validator = Validator::make($request->all(), [
-            'token' => 'required',
-            'email' => 'required|email',
-            'password' => 'required|string|min:8|confirmed',
-        ]);
-
-        if ($validator->fails()) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Validation errors',
-                'errors' => $validator->errors()
-            ], 422);
-        }
-
-        $status = Password::reset(
-            $request->only('email', 'password', 'password_confirmation', 'token'),
-            function (User $user, string $password) {
-                $user->forceFill([
-                    'password' => Hash::make($password)
-                ])->setRememberToken(Str::random(60));
-
-                $user->save();
-
-                event(new PasswordReset($user));
-            }
+        $response = $this->passwordService->resetPassword(
+            token: $request->input('token', ''),
+            email: $request->input('email', ''),
+            password: $request->input('password', ''),
+            passwordConfirmation: $request->input('password_confirmation', '')
         );
 
-        if ($status === Password::PASSWORD_RESET) {
-            return response()->json([
-                'status' => 'success',
-                'data' => null,
-                'message' => 'Password has been reset successfully'
-            ], 200);
-        }
-
-        return response()->json([
-            'status' => 'error',
-            'message' => 'Unable to reset password',
-            'errors' => ['email' => [__($status)]]
-        ], 400);
+        $httpStatus = $response['status'] === 'success' ? 200 : 422;
+        return response()->json($response, $httpStatus);
     }
 }

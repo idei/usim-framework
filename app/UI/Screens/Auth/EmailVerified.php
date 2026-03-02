@@ -2,16 +2,19 @@
 
 namespace App\UI\Screens\Auth;
 
-use App\Models\User;
+use App\Services\User\UserService;
 use Idei\Usim\Services\AbstractUIService;
 use Idei\Usim\Services\Components\UIContainer;
 use Idei\Usim\Services\Enums\LayoutType;
 use Idei\Usim\Services\UIBuilder;
-use Illuminate\Auth\Events\Verified;
-use Illuminate\Contracts\Auth\MustVerifyEmail;
 
 class EmailVerified extends AbstractUIService
 {
+    public function __construct(
+        protected UserService $userService
+    ) {
+    }
+
     protected string $verificationStatus = 'loading';
     protected string $errorMessage = '';
 
@@ -31,7 +34,7 @@ class EmailVerified extends AbstractUIService
             case 'loading':
                 $this->buildLoadingUI($container);
                 break;
-            case 'success':
+            case 'verified':
                 $this->buildSuccessUI($container);
                 break;
             case 'already_verified':
@@ -62,27 +65,17 @@ class EmailVerified extends AbstractUIService
             return;
         }
 
-        // Verificación directa (sin HTTP call para evitar deadlock en Octane)
+        // Verificación a través del servicio
         try {
-            $user = User::find($id);
+            $result = $this->userService->verifyEmail((int)$id, $hash);
 
-            if (!$user) {
-                $this->errorMessage = 'Usuario no encontrado.';
-                $this->verificationStatus = 'error';
-            } elseif (sha1($user->getEmailForVerification()) !== $hash) {
-                $this->errorMessage = 'Enlace de verificación inválido.';
-                $this->verificationStatus = 'error';
-            } elseif ($user->hasVerifiedEmail()) {
-                $this->verificationStatus = 'already_verified';
+            if (!$result['success']) {
+                $this->errorMessage = $result['message'];
+                $this->verificationStatus = $result['status'] === 'invalid' ? 'error' : $result['status'];
             } else {
-                $user->markEmailAsVerified();
-
-                if ($user instanceof MustVerifyEmail) {
-                    event(new Verified($user));
-                }
-
-                $this->verificationStatus = 'success';
+                $this->verificationStatus = $result['status'];
             }
+
         } catch (\Exception $e) {
             \Illuminate\Support\Facades\Log::error('Email verification failed', [
                 'message' => $e->getMessage(),

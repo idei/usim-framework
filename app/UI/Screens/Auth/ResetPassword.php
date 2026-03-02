@@ -2,16 +2,21 @@
 
 namespace App\UI\Screens\Auth;
 
+use App\Services\Auth\PasswordService;
 use Idei\Usim\Services\UIBuilder;
 use Idei\Usim\Services\Enums\LayoutType;
 use Idei\Usim\Services\AbstractUIService;
-use Idei\Usim\Services\Support\HttpClient;
 use Idei\Usim\Services\Components\UIContainer;
 use Idei\Usim\Services\Components\InputBuilder;
 use Idei\Usim\Services\Components\LabelBuilder;
 
 class ResetPassword extends AbstractUIService
 {
+    public function __construct(
+        protected PasswordService $passwordService
+    ) {
+    }
+
     protected LabelBuilder $lbl_result;
     protected InputBuilder $password;
     protected InputBuilder $password_confirmation;
@@ -154,12 +159,12 @@ class ResetPassword extends AbstractUIService
         }
 
         try {
-            $response = HttpClient::post('api.password.reset', [
-                'token' => $token,
-                'email' => $email,
-                'password' => $password,
-                'password_confirmation' => $passwordConfirmation,
-            ]);
+            $response = $this->passwordService->resetPassword(
+                token: $token,
+                email: $email,
+                password: $password,
+                passwordConfirmation: $passwordConfirmation
+            );
 
             $status = $response['status'] ?? 'error';
             $message = $response['message'] ?? 'Error desconocido';

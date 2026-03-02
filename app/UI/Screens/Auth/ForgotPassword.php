@@ -2,17 +2,20 @@
 
 namespace App\UI\Screens\Auth;
 
+use App\Services\Auth\PasswordService;
 use Idei\Usim\Services\UIBuilder;
 use Idei\Usim\Services\Enums\LayoutType;
 use Idei\Usim\Services\AbstractUIService;
-use Idei\Usim\Services\Support\HttpClient;
 use Idei\Usim\Services\Components\UIContainer;
 use Idei\Usim\Services\Components\LabelBuilder;
-use App\Models\User;
-use Illuminate\Support\Facades\Password;
 
 class ForgotPassword extends AbstractUIService
 {
+    public function __construct(
+        protected PasswordService $passwordService
+    ) {
+    }
+
     protected LabelBuilder $lbl_result;
     protected \Idei\Usim\Services\Components\InputBuilder $email;
 
@@ -133,43 +136,23 @@ class ForgotPassword extends AbstractUIService
     {
         $email = $params['email'] ?? '';
 
-        // Manually finding components since automatic injection might not be fully wired up for properties yet
-        // or to ensure we have the instance if it wasn't auto-injected.
-        // In a perfect USIM, properties matching ID are auto-injected.
-        if (!isset($this->lbl_result)) {
-             // Fallback or ensure we defined it in buildBaseUI properly with matching ID.
-             // Ideally USIM reflects on properties.
-             // For now, let's assume the framework injects them if they are protected properties.
-        }
-
         if (empty($email)) {
-             if (isset($this->lbl_result)) {
+            if (isset($this->lbl_result)) {
                 $this->lbl_result->text('Por favor ingresa un email.')->style('error')->visible(true);
-             }
+            }
             return;
         }
 
         try {
-            // Verificar que el usuario existe
-            $user = User::where('email', $email)->first();
+            $result = $this->passwordService->sendResetLink($email);
 
-            if (!$user) {
-                $this->lbl_result->text('No se encontró un usuario con ese email.')->style('error')->visible(true);
-                $this->toast('No se encontró un usuario con ese email.', 'error');
-                return;
-            }
-
-            // Ejecutar directamente para que la notificación capture el request real del navegador
-            $status = Password::sendResetLink(['email' => $email]);
-
-            if ($status === Password::RESET_LINK_SENT) {
+            if ($result['success']) {
                 $this->lbl_result->text('Enlace enviado a tu correo.')->style('success')->visible(true);
                 $this->toast('Enlace enviado. Revisa tu correo.', 'success');
                 $this->email->value('');
             } else {
-                $message = 'No se pudo enviar el email de recuperación.';
-                $this->lbl_result->text($message)->style('error')->visible(true);
-                $this->toast($message, 'error');
+                $this->lbl_result->text($result['message'])->style('error')->visible(true);
+                $this->toast($result['message'], 'error');
             }
 
         } catch (\Exception $e) {
