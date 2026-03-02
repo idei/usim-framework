@@ -2,11 +2,11 @@
 namespace App\UI\Screens\Admin;
 
 use App\Services\Auth\RegisterService;
+use App\Services\User\UserService;
 use Idei\Usim\Services\UIBuilder;
 use Idei\Usim\Services\Enums\DialogType;
 use Idei\Usim\Services\Enums\LayoutType;
 use Idei\Usim\Services\AbstractUIService;
-use Idei\Usim\Services\Support\HttpClient;
 use Idei\Usim\Services\Components\UIContainer;
 use Idei\Usim\Services\Components\InputBuilder;
 use Idei\Usim\Services\Components\TableBuilder;
@@ -19,7 +19,8 @@ use Idei\Usim\Services\Modals\ConfirmDialogService;
 class Dashboard extends AbstractUIService
 {
     public function __construct(
-        protected RegisterService $registerService
+        protected RegisterService $registerService,
+        protected UserService $userService
     ) {
     }
     public static function authorize(): bool
@@ -146,14 +147,24 @@ class Dashboard extends AbstractUIService
 
     public function onEditUser(array $params): void
     {
-        $user = HttpClient::get(
-            "users.show",
-        routeParams: ['user' => $params['user_id']]
-        )['data'] ?? null;
+        $userId = $params['user_id'] ?? null;
+        if (!$userId) {
+            $this->toast('User ID is required', 'error');
+            return;
+        }
+
+        $response = $this->userService->getUser($userId);
+        if ($response['status'] !== 'success') {
+            $this->toast($response['message'], 'error');
+            return;
+        }
+
+        $user = $response['data'] ?? null;
         if (!$user) {
             $this->toast('User not found', 'error');
             return;
         }
+
         EditUserDialog::open(
             user: $user,
             callerServiceId: $this->getServiceComponentId()
@@ -167,14 +178,23 @@ class Dashboard extends AbstractUIService
             $this->toast('User ID is required for update', 'error');
             return;
         }
-        $params['roles'] = ["$params[roles]",];
-        $response = HttpClient::put(
-            "users.update",
-            $params,
-            routeParams: ['user' => $userId]
-        );
-        $status = $response['status'] ?? 'success';
-        $message = $response['message'] ?? 'User updated successfully';
+
+        // Get the user model
+        $user = $this->userService->findUser($userId);
+        if (!$user) {
+            $this->toast('User not found', 'error');
+            return;
+        }
+
+        // Prepare data for update
+        $updateData = $params;
+        if (isset($updateData['roles'])) {
+            $updateData['roles'] = (array) $updateData['roles'];
+        }
+
+        $response = $this->userService->updateUser($user, $updateData);
+        $status = $response['status'];
+        $message = $response['message'];
 
         if ($status === 'success') {
             $this->toast($message, 'success');
@@ -203,14 +223,24 @@ class Dashboard extends AbstractUIService
 
     public function onDeleteUser(array $params): void
     {
-        $user = HttpClient::get(
-            "users.show",
-        routeParams: ['user' => $params['user_id']]
-        )['data'] ?? null;
+        $userId = $params['user_id'] ?? null;
+        if (!$userId) {
+            $this->toast('User ID is required', 'error');
+            return;
+        }
+
+        $response = $this->userService->getUser($userId);
+        if ($response['status'] !== 'success') {
+            $this->toast('User not found', 'error');
+            return;
+        }
+
+        $user = $response['data'] ?? null;
         if (!$user) {
             $this->toast('User not found', 'error');
             return;
         }
+
         ConfirmDialogService::open(
             type: DialogType::WARNING,
             title: "Delete User",
@@ -229,12 +259,17 @@ class Dashboard extends AbstractUIService
             return;
         }
 
-        $response = HttpClient::delete(
-            "users.destroy",
-            routeParams: ['user' => $userId]
-        );
-        $status = $response['status'] ?? 'error';
-        $message = $response['message'] ?? 'Failed to delete user';
+        // Get the user
+        $user = $this->userService->findUser($userId);
+        if (!$user) {
+            $this->toast('User not found', 'error');
+            return;
+        }
+
+        $response = $this->userService->deleteUser($user);
+        $status = $response['status'];
+        $message = $response['message'];
+
         $this->toast($message, $status);
         $this->users_table->refresh();
         $this->closeModal();

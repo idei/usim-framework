@@ -4,16 +4,18 @@ namespace App\Http\Controllers\Api;
 
 use App\Models\User;
 use App\Services\Auth\RegisterService;
-use Illuminate\Support\Facades\Auth;
+use App\Services\User\UserService;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use App\Http\Controllers\Controller;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Password as PasswordBroker;
 use Illuminate\Validation\Rules\Password;
 
 class UserController extends Controller
 {
+    public function __construct(
+        protected UserService $userService
+    ) {
+    }
     /**
      * Apply search filter to query
      */
@@ -166,11 +168,9 @@ class UserController extends Controller
      */
     public function show(User $user): JsonResponse
     {
-        return response()->json([
-            'status' => 'success',
-            'message' => "Usuario $user->name recuperado exitosamente",
-            'data' => $user->load('roles'),
-        ]);
+        $response = $this->userService->getUser($user->id);
+        $httpStatus = $response['status'] === 'success' ? 200 : 404;
+        return response()->json($response, $httpStatus);
     }
 
     /**
@@ -178,7 +178,7 @@ class UserController extends Controller
      */
     public function update(Request $request, User $user): JsonResponse
     {
-        $validated = $request->validate([
+        $request->validate([
             'name' => ['sometimes', 'string', 'max:255'],
             'email' => ['sometimes', 'string', 'email', 'max:255', 'unique:users,email,' . $user->id],
             'password' => ['sometimes', 'confirmed', Password::defaults()],
@@ -188,34 +188,9 @@ class UserController extends Controller
             "send_verification_email" => ['sometimes', 'boolean'],
         ]);
 
-        if (isset($validated['password'])) {
-            $validated['password'] = Hash::make($validated['password']);
-        }
-
-        $user->update(array_filter($validated, fn($key) => $key !== 'roles', ARRAY_FILTER_USE_KEY));
-
-        if (isset($validated['roles'])) {
-            $user->syncRoles($validated['roles']);
-        }
-
-        if (!empty($validated['send_reset_email'])) {
-            // Send password reset email
-            $token = PasswordBroker::createToken($user);
-            $user->sendPasswordResetNotification($token);
-        }
-
-        if (!empty($validated['send_verification_email'])) {
-            // Mark email as unverified and send verification email
-            $user->email_verified_at = null;
-            $user->save();
-            $user->sendEmailVerificationNotification();
-        }
-
-        return response()->json([
-            'status' => 'success',
-            'message' => 'Usuario actualizado exitosamente',
-            'data' => $user->fresh()->load('roles'),
-        ]);
+        $response = $this->userService->updateUser($user, $request->all());
+        $httpStatus = $response['status'] === 'success' ? 200 : 422;
+        return response()->json($response, $httpStatus);
     }
 
     /**
@@ -223,19 +198,8 @@ class UserController extends Controller
      */
     public function destroy(User $user): JsonResponse
     {
-        // Delete the user if it is different from the currently authenticated user
-        if (Auth::id() === $user->id) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'No se puede eliminar el usuario autenticado actualmente',
-            ], 403);
-        }
-
-        $user->delete();
-
-        return response()->json([
-            'status' => 'success',
-            'message' => "Usuario $user->name eliminado exitosamente",
-        ]);
+        $response = $this->userService->deleteUser($user);
+        $httpStatus = $response['status'] === 'success' ? 200 : 403;
+        return response()->json($response, $httpStatus);
     }
 }
