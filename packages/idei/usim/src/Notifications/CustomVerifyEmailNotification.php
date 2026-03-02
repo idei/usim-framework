@@ -6,19 +6,25 @@ use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
-use Illuminate\Support\Facades\Config;
-use Illuminate\Support\Facades\URL;
-use Illuminate\Support\Carbon;
 
 class CustomVerifyEmailNotification extends Notification implements ShouldQueue
 {
     use Queueable;
 
     /**
+     * Base URL captured from the current HTTP request.
+     * Stored at dispatch time so queued jobs use the correct port.
+     */
+    protected string $baseUrl;
+
+    /**
      * Create a new notification instance.
      */
     public function __construct()
     {
+        // Capture the real base URL from the current request (includes correct port)
+        $this->baseUrl = rtrim(request()->getSchemeAndHttpHost(), '/');
+
         // Set queue name for email notifications
         $this->onQueue('emails');
     }
@@ -53,11 +59,10 @@ class CustomVerifyEmailNotification extends Notification implements ShouldQueue
      */
     protected function verificationUrl($notifiable): string
     {
-        $appUrl = config('app.url');
         $id = $notifiable->getKey();
         $hash = sha1($notifiable->getEmailForVerification());
 
-        return "{$appUrl}/auth/email-verified?id={$id}&hash={$hash}";
+        return "{$this->baseUrl}/auth/email-verified?id={$id}&hash={$hash}";
     }
 
     /**

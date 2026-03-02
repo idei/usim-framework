@@ -10,6 +10,28 @@ get_env_value() {
 
 env_db=$(get_env_value "DB_CONNECTION")
 
+# Determine available port (starting from 8000)
+find_available_port() {
+    local port=8000
+    while netstat -tuln 2>/dev/null | grep -q ":$port " || ss -tuln 2>/dev/null | grep -q ":$port "; do
+        port=$((port + 1))
+    done
+    echo $port
+}
+
+# Update APP_URL in .env to match the actual port
+update_env_url() {
+    local port="$1"
+    local current_url
+    current_url=$(get_env_value "APP_URL")
+    local new_url="http://127.0.0.1:${port}"
+
+    if [[ "$current_url" != "$new_url" ]]; then
+        sed -i "s|^APP_URL=.*|APP_URL=${new_url}           # Cambiar si fuera necesario sin la \"/\" al final.|" .env
+        echo "APP_URL actualizado a ${new_url}"
+    fi
+}
+
 if [[ "$*" == *"-r"* ]]; then
     if [[ "$env_db" == "mysql" ]]; then
         # Get the .env DB values that do not start with '#'
@@ -29,7 +51,7 @@ if [[ "$*" == *"-r"* ]]; then
     php artisan migrate --force --seed
 fi
 
-# Check if port 8000 is already in use
+# Check if port 8000 is already in use (server already running)
 if netstat -tuln 2>/dev/null | grep -q ":8000 " || ss -tuln 2>/dev/null | grep -q ":8000 "; then
     echo "✓ Server already running on port 8000"
     if [ -n "$BROWSER" ]; then
@@ -43,6 +65,12 @@ if netstat -tuln 2>/dev/null | grep -q ":8000 " || ss -tuln 2>/dev/null | grep -
     fi
     exit 0
 fi
+
+# Find available port and update .env
+SERVER_PORT=$(find_available_port)
+update_env_url "$SERVER_PORT"
+
+echo "Using port: $SERVER_PORT"
 
 # Clear cache before starting the server
 echo "Clearing cache..."
@@ -92,4 +120,4 @@ trap cleanup SIGINT SIGTERM
 
 # Start Octane server
 # php artisan serve
-php artisan octane:start --watch --host=0.0.0.0 --port=8000
+php artisan octane:start --watch --host=0.0.0.0 --port=$SERVER_PORT

@@ -43,6 +43,9 @@ RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - && \
 # Verificar instalación de Node.js y npm
 RUN node --version && npm --version
 
+# Instalar Mailpit (servidor SMTP local para desarrollo)
+RUN curl -sL https://raw.githubusercontent.com/axllent/mailpit/develop/install.sh | bash
+
 # Limpieza
 RUN apt-get clean && rm -rf /var/lib/apt/lists/*
 

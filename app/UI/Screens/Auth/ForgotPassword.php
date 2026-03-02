@@ -8,6 +8,8 @@ use Idei\Usim\Services\AbstractUIService;
 use Idei\Usim\Services\Support\HttpClient;
 use Idei\Usim\Services\Components\UIContainer;
 use Idei\Usim\Services\Components\LabelBuilder;
+use App\Models\User;
+use Illuminate\Support\Facades\Password;
 
 class ForgotPassword extends AbstractUIService
 {
@@ -148,20 +150,25 @@ class ForgotPassword extends AbstractUIService
         }
 
         try {
-            $response = HttpClient::post('api.password.forgot', [
-                'email' => $email
-            ]);
+            // Verificar que el usuario existe
+            $user = User::where('email', $email)->first();
 
-            $status = $response['status'] ?? 'error';
-            $message = $response['message'] ?? 'Error desconocido';
+            if (!$user) {
+                $this->lbl_result->text('No se encontró un usuario con ese email.')->style('error')->visible(true);
+                $this->toast('No se encontró un usuario con ese email.', 'error');
+                return;
+            }
 
-            $this->lbl_result->text($message)->style($status)->visible(true);
+            // Ejecutar directamente para que la notificación capture el request real del navegador
+            $status = Password::sendResetLink(['email' => $email]);
 
-            if ($status === 'success') {
+            if ($status === Password::RESET_LINK_SENT) {
+                $this->lbl_result->text('Enlace enviado a tu correo.')->style('success')->visible(true);
                 $this->toast('Enlace enviado. Revisa tu correo.', 'success');
-                // Opcional: limpiar input
                 $this->email->value('');
             } else {
+                $message = 'No se pudo enviar el email de recuperación.';
+                $this->lbl_result->text($message)->style('error')->visible(true);
                 $this->toast($message, 'error');
             }
 
