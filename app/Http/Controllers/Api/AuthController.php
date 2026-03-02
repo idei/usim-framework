@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Models\User;
 use App\Services\Auth\LoginService;
+use App\Services\Auth\RegisterService;
 use Illuminate\Support\Str;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
@@ -17,52 +18,23 @@ use Illuminate\Contracts\Auth\MustVerifyEmail;
 
 class AuthController extends Controller
 {
-    public function register(Request $request)
+    public function register(Request $request, RegisterService $registerService)
     {
-        $validator = Validator::make($request->all(), [
-            'name' => 'required|string|max:100',
-            'email' => 'required|string|email|max:255|unique:users',
-            'password' => 'required|string|min:8|confirmed',
-        ]);
+        $response = $registerService->register(
+            name: (string) $request->input('name', ''),
+            email: (string) $request->input('email', ''),
+            password: (string) $request->input('password', ''),
+            passwordConfirmation: (string) $request->input('password_confirmation', ''),
+            roles: (array) $request->input('roles', ['user']),
+            sendVerificationEmail: (bool) $request->boolean('send_verification_email', true),
+        );
 
-        if ($validator->fails()) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Validation errors',
-                'errors' => $validator->errors()
-            ], 422);
-        }
+        $httpStatus = $response['status'] === 'success' ? 201 : 422;
 
-        $user = User::create([
-            'name' => $request->name,
-            'email' => $request->email,
-            'password' => Hash::make($request->password),
-        ]);
+        // Remove the Eloquent user model from the API response
+        unset($response['user']);
 
-        // Asignar rol por defecto
-        $user->assignRole('user');
-
-        event(new Registered($user));
-
-        $token = $user->createToken('auth_token')->plainTextToken;
-
-        // Obtener permisos del usuario
-        $permissions = $user->getAllPermissions()->pluck('name')->toArray();
-
-        return response()->json([
-            'status' => 'success',
-            'message' => 'Usuario registrado exitosamente',
-            'data' => [
-                'user' => [
-                    'id' => $user->id,
-                    'name' => $user->name,
-                    'email' => $user->email,
-                    'roles' => $user->getRoleNames(),
-                    'permissions' => $permissions,
-                ],
-                'token' => $token,
-            ]
-        ], 201);
+        return response()->json($response, $httpStatus);
     }
 
     public function login(Request $request, LoginService $loginService)

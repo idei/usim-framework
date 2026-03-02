@@ -2,6 +2,7 @@
 namespace App\UI\Screens;
 
 use App\UI\Components\Modals\RegisterDialog;
+use App\Services\Auth\RegisterService;
 use App\UI\Screens\Admin\Dashboard;
 use App\UI\Screens\Auth\Login;
 use App\UI\Screens\Auth\Profile;
@@ -23,7 +24,6 @@ use Idei\Usim\Services\Enums\DialogType;
 use Idei\Usim\Services\Enums\JustifyContent;
 use Idei\Usim\Services\Enums\LayoutType;
 use Idei\Usim\Services\Modals\ConfirmDialogService;
-use Idei\Usim\Services\Support\HttpClient;
 use Idei\Usim\Services\UIBuilder;
 use Idei\Usim\Services\Upload\UploadService;
 use Illuminate\Support\Facades\Auth;
@@ -35,6 +35,11 @@ use Illuminate\Support\Facades\Auth;
  */
 class Menu extends AbstractUIService
 {
+    public function __construct(
+        protected RegisterService $registerService
+    ) {
+    }
+
     protected MenuDropdownBuilder $main_menu;
     protected MenuDropdownBuilder $user_menu;
     protected string $store_token = '';
@@ -248,9 +253,15 @@ class Menu extends AbstractUIService
      */
     public function onSubmitRegister(array $params): void
     {
-        $params['roles'] = ['user'];
-        $params['send_verification_email'] = true;
-        $response = HttpClient::post('api.register', $params);
+        $response = $this->registerService->register(
+            name: $params['name'] ?? '',
+            email: $params['email'] ?? '',
+            password: $params['password'] ?? '',
+            passwordConfirmation: $params['password_confirmation'] ?? '',
+            roles: (array) ($params['roles'] ?? ['user']),
+            sendVerificationEmail: (bool) ($params['send_verification_email'] ?? true)
+        );
+
         $status = $response['status'];
         $message = $response['message'];
 
