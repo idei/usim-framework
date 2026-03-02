@@ -138,6 +138,19 @@ class UserService
 
         // Sync roles if provided
         if (isset($validated['roles']) && is_array($validated['roles'])) {
+            // Prevent authenticated admin from removing their own admin role
+            if (
+                Auth::id() === $user->id
+                && $user->hasRole('admin')
+                && !in_array('admin', $validated['roles'], true)
+            ) {
+                return [
+                    'status' => 'error',
+                    'message' => 'No puedes quitarte tu propio rol de administrador',
+                    'errors' => ['roles' => ['No puedes quitarte tu propio rol de administrador.']],
+                ];
+            }
+
             // Validate roles exist
             $invalidRoles = [];
             foreach ($validated['roles'] as $roleName) {
