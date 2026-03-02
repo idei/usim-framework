@@ -16,21 +16,6 @@ class UserController extends Controller
         protected UserService $userService
     ) {
     }
-    /**
-     * Apply search filter to query
-     */
-    private function applySearchFilter($query, ?string $search)
-    {
-        return $query->when($search, function ($query, $search) {
-            $query->where(function ($query) use ($search) {
-                $query->where('users.name', 'like', "%{$search}%")
-                    ->orWhere('users.email', 'like', "%{$search}%")
-                    ->orWhereHas('roles', function ($query) use ($search) {
-                        $query->where('name', 'like', "%{$search}%");
-                    });
-            });
-        });
-    }
 
     /**
      * Display a listing of users.
@@ -50,73 +35,14 @@ class UserController extends Controller
             'sort_direction' => ['sometimes', 'in:asc,desc'],
         ]);
 
-        $perPage = $validated['per_page'] ?? 15;
-        $sortBy = $validated['sort_by'] ?? 'updated_at';
-        $sortDirection = $validated['sort_direction'] ?? 'desc';
-        $search = $validated['search'] ?? null;
-        if ($search === '') {
-            $search = null;
-        }
-
-        $query = User::with('roles');
-        $this->applySearchFilter($query, $search);
-
-        // Ordenamiento
-        if ($sortBy === 'roles') {
-            $query->leftJoin('model_has_roles', 'users.id', '=', 'model_has_roles.model_id')
-                ->leftJoin('roles', 'model_has_roles.role_id', '=', 'roles.id')
-                ->select('users.*', 'roles.name as role_name')
-                ->orderBy('roles.name', $sortDirection);
-        } else {
-            $query->orderBy($sortBy, $sortDirection);
-        }
-
-        $users = $query->paginate($perPage);
-
-        // Transformar los datos para incluir roles como string
-        $transformedUsers = $users->getCollection()->map(function ($user) {
-            $rolesString = $user->roles
-                ->pluck('name')
-                ->sort()
-                ->values()
-                ->implode(', ');
-
-            return [
-                'id' => $user->id,
-                'name' => $user->name,
-                'email' => $user->email,
-                'email_verified' => $user->email_verified_at ? true : false,
-                'roles' => $rolesString,
-                'created_at' => $user->created_at->diffForHumans(),
-                'updated_at' => $user->updated_at->diffForHumans(),
-            ];
-        });
-
-        return response()->json([
-            'status' => 'success',
-            'message' => 'Usuarios recuperados exitosamente',
-            'data' => [
-                'users' => $transformedUsers,
-                'pagination' => [
-                    'current_page' => $users->currentPage(),
-                    'total_pages' => $users->lastPage(),
-                    'per_page' => $users->perPage(),
-                    'total_items' => $users->total()
-                ],
-            ]
-        ]);
+        $response = $this->userService->getUsersList($validated);
+        return response()->json($response);
     }
 
     public function count(Request $request): JsonResponse
     {
         $search = $request->query('search', null);
-        if ($search === '') {
-            $search = null;
-        }
-
-        $query = User::query();
-        $this->applySearchFilter($query, $search);
-        $totalUsers = $query->count();
+        $totalUsers = $this->userService->countUsers($search);
 
         return response()->json([
             'status' => 'success',

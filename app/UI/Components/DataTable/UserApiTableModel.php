@@ -2,18 +2,27 @@
 
 namespace App\UI\Components\DataTable;
 
-use Idei\Usim\Services\Support\UIDebug;
-use Idei\Usim\Services\Support\HttpClient;
+use App\Services\User\UserService;
 use Idei\Usim\Services\Support\UIStateManager;
 use Idei\Usim\Services\DataTable\AbstractDataTableModel;
+use Idei\Usim\Services\Components\TableBuilder;
 
 /**
  * User API Table Model
  *
  * Implementation for real User model from database
  */
-class UserApiTableModel extends \Idei\Usim\Services\DataTable\AbstractDataTableModel
+class UserApiTableModel extends AbstractDataTableModel
 {
+    protected UserService $userService;
+
+    public function __construct(TableBuilder $tableBuilder)
+    {
+        parent::__construct($tableBuilder);
+
+        // Resolve UserService from container since TableBuilder doesn't support DI
+        $this->userService = app(UserService::class);
+    }
     public function getColumns(): array
     {
         return [
@@ -35,11 +44,7 @@ class UserApiTableModel extends \Idei\Usim\Services\DataTable\AbstractDataTableM
     protected function countTotal(): int
     {
         $searchTerm = $this->getSearchTerm();
-        $query = [];
-        if ($searchTerm) {
-            $query['search'] = $searchTerm;
-        }
-        return HttpClient::get('users.count', $query)['data']['count'] ?? 0;
+        return $this->userService->countUsers($searchTerm);
     }
 
     public function setSearchTerm(string|null $searchTerm): void
@@ -70,23 +75,24 @@ class UserApiTableModel extends \Idei\Usim\Services\DataTable\AbstractDataTableM
         $sortBy = $this->tableBuilder->getSortColumn();
         $sortDirection = $this->tableBuilder->getSortDirection();
         $searchTerm = $this->getSearchTerm();
-        $query = [];
+
+        $params = [
+            'per_page' => $paginationData['per_page'],
+            'page' => $paginationData['current_page'],
+        ];
+
         if ($searchTerm) {
-            $query['search'] = $searchTerm;
+            $params['search'] = $searchTerm;
         }
-        $currentPage = $paginationData['current_page'];
-        $perPage = $paginationData['per_page'];
-        $query['per_page'] = $perPage;
-        $query['page'] = $currentPage;
         if ($sortBy) {
-            $query['sort_by'] = $sortBy;
+            $params['sort_by'] = $sortBy;
         }
         if ($sortDirection) {
-            $query['sort_direction'] = $sortDirection;
+            $params['sort_direction'] = $sortDirection;
         }
 
-        $data = HttpClient::get('users.index', $query);
-        return $data['data']['users'] ?? [];
+        $response = $this->userService->getUsersList($params);
+        return $response['data']['users'] ?? [];
     }
 
     public function getFormattedPageData(int $currentPage, int $perPage): array

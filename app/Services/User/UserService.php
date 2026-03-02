@@ -206,4 +206,108 @@ class UserService
             'message' => "Usuario $userName eliminado exitosamente",
         ];
     }
+
+    /**
+     * Get paginated users list with search and sorting
+     *
+     * @param array $params Query parameters (per_page, search, sort_by, sort_direction, page)
+     * @return array Response with users data and pagination info
+     */
+    public function getUsersList(array $params = []): array
+    {
+        $perPage = $params['per_page'] ?? 15;
+        $sortBy = $params['sort_by'] ?? 'updated_at';
+        $sortDirection = $params['sort_direction'] ?? 'desc';
+        $search = $params['search'] ?? null;
+        $page = $params['page'] ?? 1;
+
+        if ($search === '') {
+            $search = null;
+        }
+
+        $query = User::with('roles');
+        $this->applySearchFilter($query, $search);
+
+        // Ordenamiento
+        if ($sortBy === 'roles') {
+            $query->leftJoin('model_has_roles', 'users.id', '=', 'model_has_roles.model_id')
+                ->leftJoin('roles', 'model_has_roles.role_id', '=', 'roles.id')
+                ->select('users.*', 'roles.name as role_name')
+                ->orderBy('roles.name', $sortDirection);
+        } else {
+            $query->orderBy($sortBy, $sortDirection);
+        }
+
+        $users = $query->paginate($perPage, ['*'], 'page', $page);
+
+        // Transformar los datos para incluir roles como string
+        $transformedUsers = $users->getCollection()->map(function ($user) {
+            $rolesString = $user->roles
+                ->pluck('name')
+                ->sort()
+                ->values()
+                ->implode(', ');
+
+            return [
+                'id' => $user->id,
+                'name' => $user->name,
+                'email' => $user->email,
+                'email_verified' => $user->email_verified_at ? true : false,
+                'roles' => $rolesString,
+                'created_at' => $user->created_at->diffForHumans(),
+                'updated_at' => $user->updated_at->diffForHumans(),
+            ];
+        });
+
+        return [
+            'status' => 'success',
+            'message' => 'Usuarios recuperados exitosamente',
+            'data' => [
+                'users' => $transformedUsers->toArray(),
+                'pagination' => [
+                    'current_page' => $users->currentPage(),
+                    'total_pages' => $users->lastPage(),
+                    'per_page' => $users->perPage(),
+                    'total_items' => $users->total()
+                ],
+            ]
+        ];
+    }
+
+    /**
+     * Count total users with optional search filter
+     *
+     * @param string|null $search Search term
+     * @return int Total count
+     */
+    public function countUsers(?string $search = null): int
+    {
+        if ($search === '') {
+            $search = null;
+        }
+
+        $query = User::query();
+        $this->applySearchFilter($query, $search);
+        return $query->count();
+    }
+
+    /**
+     * Apply search filter to query
+     *
+     * @param $query
+     * @param string|null $search
+     * @return mixed
+     */
+    private function applySearchFilter($query, ?string $search)
+    {
+        return $query->when($search, function ($query, $search) {
+            $query->where(function ($query) use ($search) {
+                $query->where('users.name', 'like', "%{$search}%")
+                    ->orWhere('users.email', 'like', "%{$search}%")
+                    ->orWhereHas('roles', function ($query) use ($search) {
+                        $query->where('name', 'like', "%{$search}%");
+                    });
+            });
+        });
+    }
 }
