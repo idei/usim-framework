@@ -2,11 +2,13 @@
 
 namespace App\UI\Screens\Auth;
 
-use Idei\Usim\Services\UIBuilder;
-use Idei\Usim\Services\Enums\LayoutType;
+use App\Models\User;
 use Idei\Usim\Services\AbstractUIService;
-use Idei\Usim\Services\Support\HttpClient;
 use Idei\Usim\Services\Components\UIContainer;
+use Idei\Usim\Services\Enums\LayoutType;
+use Idei\Usim\Services\UIBuilder;
+use Illuminate\Auth\Events\Verified;
+use Illuminate\Contracts\Auth\MustVerifyEmail;
 
 class EmailVerified extends AbstractUIService
 {
@@ -60,44 +62,32 @@ class EmailVerified extends AbstractUIService
             return;
         }
 
-        // Llamar a la API de verificación
+        // Verificación directa (sin HTTP call para evitar deadlock en Octane)
         try {
-            // Generamos una URL firmada válida para la API, ya que el enlace de entrada es público (sin firma)
-            // pero el endpoint de API requiere firma.
-            // Como estamos en un contexto seguro (backend), podemos autofirmar la petición.
-            $signedApiUrl = \Illuminate\Support\Facades\URL::temporarySignedRoute(
-                'verification.verify',
-                now()->addMinutes(60),
-                ['id' => $id, 'hash' => $hash]
-            );
+            $user = User::find($id);
 
-            // Extraemos query params de la URL firmada (expires, signature)
-            $parsed = parse_url($signedApiUrl);
-            $queryParams = [];
-            if (isset($parsed['query'])) {
-                parse_str($parsed['query'], $queryParams);
-            }
-
-            $response = HttpClient::get(
-                'verification.verify',
-                queryParams: $queryParams,
-                routeParams: ['id' => $id, 'hash' => $hash]
-            );
-
-            $status = $response['status'] ?? 'error';
-            $message = $response['message'] ?? 'Error desconocido';
-
-            if ($status === 'success') {
-                if (str_contains($message, 'already verified')) {
-                    $this->verificationStatus = 'already_verified';
-                } else {
-                    $this->verificationStatus = 'success';
-                }
-            } else {
-                $this->errorMessage = $message;
+            if (!$user) {
+                $this->errorMessage = 'Usuario no encontrado.';
                 $this->verificationStatus = 'error';
+            } elseif (sha1($user->getEmailForVerification()) !== $hash) {
+                $this->errorMessage = 'Enlace de verificación inválido.';
+                $this->verificationStatus = 'error';
+            } elseif ($user->hasVerifiedEmail()) {
+                $this->verificationStatus = 'already_verified';
+            } else {
+                $user->markEmailAsVerified();
+
+                if ($user instanceof MustVerifyEmail) {
+                    event(new Verified($user));
+                }
+
+                $this->verificationStatus = 'success';
             }
         } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error('Email verification failed', [
+                'message' => $e->getMessage(),
+                'exception' => get_class($e),
+            ]);
             $this->errorMessage = 'No se pudo verificar el email. El enlace puede haber expirado o ser inválido.';
             $this->verificationStatus = 'error';
         }
