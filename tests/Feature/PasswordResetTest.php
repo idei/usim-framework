@@ -4,12 +4,13 @@ use App\Models\User;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Facades\Notification;
-use App\Notifications\ResetPasswordNotification;
+use Idei\Usim\Notifications\ResetPasswordNotification;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
 uses(RefreshDatabase::class);
 
 test('user can request password reset link', function () {
+    /** @var \Tests\TestCase $this */
     Notification::fake();
 
     $user = User::factory()->create([
@@ -30,6 +31,7 @@ test('user can request password reset link', function () {
 });
 
 test('user cannot request password reset with invalid email', function () {
+    /** @var \Tests\TestCase $this */
     $response = $this->postJson('/api/password/forgot', [
         'email' => 'nonexistent@example.com',
     ]);
@@ -42,6 +44,7 @@ test('user cannot request password reset with invalid email', function () {
 });
 
 test('forgot password validates email field', function () {
+    /** @var \Tests\TestCase $this */
     $response = $this->postJson('/api/password/forgot', []);
 
     $response->assertStatus(422)
@@ -53,6 +56,7 @@ test('forgot password validates email field', function () {
 });
 
 test('user can reset password with valid token', function () {
+    /** @var \Tests\TestCase $this */
     $user = User::factory()->create([
         'email' => 'test@example.com',
         'password' => Hash::make('old-password'),
@@ -77,6 +81,7 @@ test('user can reset password with valid token', function () {
 });
 
 test('user cannot reset password with invalid token', function () {
+    /** @var \Tests\TestCase $this */
     $user = User::factory()->create([
         'email' => 'test@example.com',
     ]);
@@ -96,6 +101,7 @@ test('user cannot reset password with invalid token', function () {
 });
 
 test('password reset validates required fields', function () {
+    /** @var \Tests\TestCase $this */
     $response = $this->postJson('/api/password/reset', []);
 
     $response->assertStatus(422)
@@ -107,6 +113,7 @@ test('password reset validates required fields', function () {
 });
 
 test('password reset validates password confirmation', function () {
+    /** @var \Tests\TestCase $this */
     $response = $this->postJson('/api/password/reset', [
         'token' => 'some-token',
         'email' => 'test@example.com',

@@ -3,7 +3,7 @@
 use App\Models\User;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Facades\Notification;
-use App\Notifications\CustomVerifyEmailNotification;
+use Idei\Usim\Notifications\CustomVerifyEmailNotification;
 use Spatie\Permission\Models\Role;
 
 describe('Email Verification', function () {
@@ -11,6 +11,7 @@ describe('Email Verification', function () {
     // RefreshDatabase trait handles database setup automatically
 
     it('envía notificación de verificación cuando se registra un usuario', function () {
+        /** @var \Tests\TestCase $this */
         Notification::fake();
 
         $userData = [
@@ -38,6 +39,7 @@ describe('Email Verification', function () {
     });
 
     it('verifica el email con un enlace válido', function () {
+        /** @var \Tests\TestCase $this */
         $user = User::factory()->create([
             'email' => 'test@example.com',
             'email_verified_at' => null,
@@ -69,6 +71,7 @@ describe('Email Verification', function () {
     });
 
     it('rechaza enlaces de verificación inválidos', function () {
+        /** @var \Tests\TestCase $this */
         $user = User::factory()->create([
             'email_verified_at' => null,
         ]);
@@ -99,6 +102,7 @@ describe('Email Verification', function () {
     });
 
     it('maneja intentos de verificación con usuario inexistente', function () {
+        /** @var \Tests\TestCase $this */
         $nonExistentUserId = 99999;
 
         $verificationUrl = URL::temporarySignedRoute(
@@ -121,6 +125,7 @@ describe('Email Verification', function () {
     });
 
     it('maneja usuarios con email ya verificado', function () {
+        /** @var \Tests\TestCase $this */
         $user = User::factory()->create([
             'email_verified_at' => now(),
         ]);
@@ -145,6 +150,7 @@ describe('Email Verification', function () {
     });
 
     it('permite reenviar email de verificación', function () {
+        /** @var \Tests\TestCase $this */
         Notification::fake();
 
         $user = User::factory()->create([
@@ -164,6 +170,7 @@ describe('Email Verification', function () {
     });
 
     it('no reenvía email si ya está verificado', function () {
+        /** @var \Tests\TestCase $this */
         Notification::fake();
 
         $user = User::factory()->create([
@@ -183,12 +190,14 @@ describe('Email Verification', function () {
     });
 
     it('requiere autenticación para reenviar email', function () {
+        /** @var \Tests\TestCase $this */
         $response = $this->postJson('/api/email/resend');
 
         $response->assertStatus(401);
     });
 
     it('rechaza enlaces de verificación expirados', function () {
+        /** @var \Tests\TestCase $this */
         $user = User::factory()->create([
             'email_verified_at' => null,
         ]);
@@ -218,6 +227,7 @@ describe('Email Verification', function () {
     });
 
     it('verifica que el hash coincida con el email del usuario', function () {
+        /** @var \Tests\TestCase $this */
         $user = User::factory()->create([
             'email' => 'correct@example.com',
             'email_verified_at' => null,
