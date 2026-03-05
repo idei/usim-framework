@@ -1,6 +1,7 @@
 <?php
 
 require_once __DIR__ . '/Support/UiScreenTestHelpers.php';
+require_once __DIR__ . '/Support/UiScenario.php';
 
 /*
 |--------------------------------------------------------------------------

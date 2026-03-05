@@ -3,85 +3,35 @@
 use App\UI\Screens\Demo\ButtonDemo;
 use Idei\Usim\Services\Support\UIIdGenerator;
 use Idei\Usim\Services\UIChangesCollector;
-use Illuminate\Testing\TestResponse;
-use Tests\TestCase;
-
-function startButtonDemoSession(TestCase $test): array
-{
-    app()->forgetScopedInstances();
-
-    $screen = getScreenJson($test, ButtonDemo::class, ['reset' => true]);
-    $screen->assertOk();
-
-    $button = findComponentByName($screen->json(), 'btn_toggle');
-    expect($button)->not->toBeNull();
-
-    return [
-        'component_id' => (int) $button['_id'],
-        'usim' => (string) ($screen->json('storage.usim') ?? ''),
-    ];
-}
-
-function buttonClick(TestCase $test, int $componentId, string $usimStorage, ?bool $storeState = null): TestResponse
-{
-    app()->forgetScopedInstances();
-
-    $payload = [
-        'component_id' => $componentId,
-        'event' => 'click',
-        'action' => 'toggle_label',
-        'parameters' => [],
-    ];
-
-    if ($usimStorage !== '') {
-        $payload['usim'] = $usimStorage;
-    }
-
-    if ($storeState !== null) {
-        $payload['storage'] = [
-            'store_state' => $storeState,
-        ];
-    }
-
-    return $test->postJson('/api/ui-event', $payload);
-}
-
-function usimFromState(bool $state): string
-{
-    return encrypt(json_encode([
-        'store_state' => $state,
-    ]));
-}
-
-function assertButtonState(TestResponse $response, int $componentId, string $label, string $style): void
-{
-    $updatedButton = $response->json((string) $componentId);
-    expect($updatedButton)->toBeArray();
-    expect($updatedButton['label'] ?? null)->toBe($label);
-    expect($updatedButton['style'] ?? null)->toBe($style);
-}
 
 it('loads button demo screen with btn_toggle component', function () {
-    $response = getScreenJson($this, ButtonDemo::class, ['reset' => true]);
+    $ui = uiScenario($this, ButtonDemo::class, ['reset' => true]);
+    $btnToggle = $ui->component('btn_toggle');
 
-    $response->assertOk();
-
-    $button = findComponentByName($response->json(), 'btn_toggle');
-    expect($button)->not->toBeNull();
-    expect($button['type'])->toBe('button');
-    expect($button['label'])->toBe('Click Me!');
-    expect($button['action'])->toBe('toggle_label');
+    $btnToggle->expect('label')->toBe('Click Me!');
+    $ui->assertNoIssues();
 });
 
 it('toggles button label to clicked when toggle_label event is sent', function () {
-    $session = startButtonDemoSession($this);
-    $componentId = $session['component_id'];
+    $ui = uiScenario($this, ButtonDemo::class, ['reset' => true]);
+    $btnToggle = $ui->component('btn_toggle');
 
-    $response = buttonClick($this, $componentId, $session['usim'], false);
+    $btnToggle->expect('label')->toBe('Click Me!');
+    $btnToggle->click();
+    $btnToggle->expect('label')->toBe('Clicked! 🎉');
+    $ui->assertNoIssues();
+});
 
-    $response->assertOk();
+it('supports overriding store variables in scenario', function () {
+    $ui = uiScenario($this, ButtonDemo::class, ['reset' => true])
+        ->setStore('store_state', true);
 
-    assertButtonState($response, $componentId, 'Clicked! 🎉', 'success');
+    expect($ui->store('store_state'))->toBeTrue();
+
+    $ui->component('btn_toggle')->click();
+
+    expect($ui->store('store_state'))->toBeFalse();
+    $ui->assertNoIssues();
 });
 
 it('alternates button content on consecutive clicks', function () {
