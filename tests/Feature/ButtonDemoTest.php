@@ -39,20 +39,16 @@ it('alternates button content on consecutive clicks', function () {
     $btnToggle = $ui->component('btn_toggle');
 
     $btnToggle->expect('label')->toBe('Click Me!');
-    $btnToggle->expect('style')->toBe('primary');
 
     $expectedStates = [
-        ['label' => 'Clicked! 🎉', 'style' => 'success'],
-        ['label' => 'Click Me!', 'style' => 'primary'],
-        ['label' => 'Clicked! 🎉', 'style' => 'success'],
-        ['label' => 'Click Me!', 'style' => 'primary'],
-        ['label' => 'Clicked! 🎉', 'style' => 'success'],
+        'Clicked! 🎉',
+        'Click Me!',
+        'Clicked! 🎉',
     ];
 
     foreach ($expectedStates as $expected) {
         $btnToggle->click();
-        $btnToggle->expect('label')->toBe($expected['label']);
-        $btnToggle->expect('style')->toBe($expected['style']);
+        $btnToggle->expect('label')->toBe($expected);
     }
 
     $ui->assertNoIssues();

@@ -2,7 +2,6 @@
 
 namespace Idei\Usim\Http\Middleware;
 
-use Idei\Usim\Services\Support\UIDebug;
 use Idei\Usim\Services\Support\UIStateManager;
 use Closure;
 use Illuminate\Http\Request;
