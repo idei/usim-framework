@@ -1,28 +1,14 @@
 <?php
 
 use App\Models\User;
+use App\UI\Screens\Admin\Dashboard;
+use App\UI\Screens\Auth\Login;
+use App\UI\Screens\Auth\Profile;
 use Spatie\Permission\Models\Role;
-
-function firstUiComponentFromPayload(array $payload): ?array
-{
-    $reservedKeys = ['storage', 'action', 'redirect', 'toast', 'abort', 'modal', 'update_modal'];
-
-    foreach ($payload as $key => $value) {
-        if (in_array((string) $key, $reservedKeys, true)) {
-            continue;
-        }
-
-        if (is_array($value) && isset($value['type'], $value['parent'], $value['_id'])) {
-            return $value;
-        }
-    }
-
-    return null;
-}
 
 it('returns login screen UI contract with renderable components', function () {
     /** @var \Tests\TestCase $this */
-    $response = $this->getJson('/api/ui/auth/login');
+    $response = getScreenJson($this, Login::class);
 
     $response->assertOk();
 
@@ -35,7 +21,7 @@ it('returns login screen UI contract with renderable components', function () {
 
 it('redirects guest when requesting profile screen', function () {
     /** @var \Tests\TestCase $this */
-    $response = $this->getJson('/api/ui/auth/profile');
+    $response = getScreenJson($this, Profile::class);
 
     $response->assertOk();
     expect($response->json('redirect'))->toContain('/auth/login');
@@ -43,7 +29,7 @@ it('redirects guest when requesting profile screen', function () {
 
 it('redirects guest when requesting admin dashboard screen', function () {
     /** @var \Tests\TestCase $this */
-    $response = $this->getJson('/api/ui/admin/dashboard');
+    $response = getScreenJson($this, Dashboard::class);
 
     $response->assertOk();
     expect($response->json('redirect'))->toContain('/auth/login');
@@ -55,7 +41,7 @@ it('returns abort 403 when authenticated user has no admin role', function () {
     /** @var User $user */
     $this->actingAs($user);
 
-    $response = $this->getJson('/api/ui/admin/dashboard');
+    $response = getScreenJson($this, Dashboard::class);
 
     $response->assertOk();
     expect($response->json('abort.code'))->toBe(403);
@@ -70,7 +56,7 @@ it('returns admin dashboard components for admin user without redirect or abort'
     /** @var User $admin */
     $this->actingAs($admin);
 
-    $response = $this->getJson('/api/ui/admin/dashboard');
+    $response = getScreenJson($this, Dashboard::class);
 
     $response->assertOk();
     expect($response->json('redirect'))->toBeNull();

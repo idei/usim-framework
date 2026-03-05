@@ -1,21 +1,10 @@
 <?php
 
 use App\Models\User;
-
-function serviceRootComponentId(array $payload): int
-{
-    foreach ($payload as $id => $component) {
-        if (!is_array($component)) {
-            continue;
-        }
-
-        if (($component['type'] ?? null) === 'container' && is_numeric($id)) {
-            return (int) $id;
-        }
-    }
-
-    throw new RuntimeException('Service root component id not found in UI payload.');
-}
+use App\UI\Screens\Auth\ForgotPassword;
+use App\UI\Screens\Auth\Login;
+use App\UI\Screens\Auth\ResetPassword;
+use App\UI\Screens\Menu;
 
 it('returns redirect contract on successful login event', function () {
     /** @var \Tests\TestCase $this */
@@ -25,7 +14,7 @@ it('returns redirect contract on successful login event', function () {
         'password' => bcrypt($password),
     ]);
 
-    $uiResponse = $this->getJson('/api/ui/auth/login');
+    $uiResponse = getScreenJson($this, Login::class);
     $uiResponse->assertOk();
     $componentId = serviceRootComponentId($uiResponse->json());
 
@@ -50,7 +39,7 @@ it('returns non-redirect UI feedback contract for invalid login event', function
         'password' => bcrypt('secret123'),
     ]);
 
-    $uiResponse = $this->getJson('/api/ui/auth/login');
+    $uiResponse = getScreenJson($this, Login::class);
     $uiResponse->assertOk();
     $componentId = serviceRootComponentId($uiResponse->json());
 
@@ -71,7 +60,7 @@ it('returns non-redirect UI feedback contract for invalid login event', function
 
 it('returns UI feedback when forgot-password is submitted without email', function () {
     /** @var \Tests\TestCase $this */
-    $uiResponse = $this->getJson('/api/ui/auth/forgot-password');
+    $uiResponse = getScreenJson($this, ForgotPassword::class);
     $uiResponse->assertOk();
     $componentId = serviceRootComponentId($uiResponse->json());
 
@@ -88,7 +77,7 @@ it('returns UI feedback when forgot-password is submitted without email', functi
 
 it('returns UI error feedback when reset-password has mismatched confirmation', function () {
     /** @var \Tests\TestCase $this */
-    $uiResponse = $this->getJson('/api/ui/auth/reset-password');
+    $uiResponse = getScreenJson($this, ResetPassword::class);
     $uiResponse->assertOk();
     $componentId = serviceRootComponentId($uiResponse->json());
 
@@ -115,7 +104,7 @@ it('returns redirect contract on confirm_logout event from menu screen', functio
     $user = User::factory()->create();
     $this->actingAs($user);
 
-    $uiResponse = $this->getJson('/api/ui/menu?parent=menu');
+    $uiResponse = getScreenJson($this, Menu::class, ['parent' => 'menu']);
     $uiResponse->assertOk();
     $componentId = serviceRootComponentId($uiResponse->json());
 

@@ -6,26 +6,11 @@ use Idei\Usim\Services\UIChangesCollector;
 use Illuminate\Testing\TestResponse;
 use Tests\TestCase;
 
-function findComponentByName(array $payload, string $name): ?array
-{
-    foreach ($payload as $key => $component) {
-        if (!is_array($component)) {
-            continue;
-        }
-
-        if (($component['name'] ?? null) === $name) {
-            return $component;
-        }
-    }
-
-    return null;
-}
-
 function startButtonDemoSession(TestCase $test): array
 {
     app()->forgetScopedInstances();
 
-    $screen = $test->getJson('/api/ui/demo/button-demo?reset=true');
+    $screen = getScreenJson($test, ButtonDemo::class, ['reset' => true]);
     $screen->assertOk();
 
     $button = findComponentByName($screen->json(), 'btn_toggle');
@@ -77,8 +62,7 @@ function assertButtonState(TestResponse $response, int $componentId, string $lab
 }
 
 it('loads button demo screen with btn_toggle component', function () {
-    /** @var \Tests\TestCase $this */
-    $response = $this->getJson('/api/ui/demo/button-demo?reset=true');
+    $response = getScreenJson($this, ButtonDemo::class, ['reset' => true]);
 
     $response->assertOk();
 
@@ -90,7 +74,6 @@ it('loads button demo screen with btn_toggle component', function () {
 });
 
 it('toggles button label to clicked when toggle_label event is sent', function () {
-    /** @var \Tests\TestCase $this */
     $session = startButtonDemoSession($this);
     $componentId = $session['component_id'];
 
