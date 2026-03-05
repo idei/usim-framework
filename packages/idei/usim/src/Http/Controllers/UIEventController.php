@@ -38,6 +38,7 @@ class UIEventController extends Controller
      */
     public function handleEvent(Request $request): JsonResponse
     {
+        $this->uiChanges->reset();
         $incomingStorage = $request->storage ?? [];
         // \Illuminate\Support\Facades\Log::info('UIEventController Incoming Storage:', $incomingStorage);
 

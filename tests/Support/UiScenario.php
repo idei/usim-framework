@@ -1,7 +1,6 @@
 <?php
 
 use Idei\Usim\Services\Support\UIStateManager;
-use Idei\Usim\Services\UIChangesCollector;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Testing\TestResponse;
 use Illuminate\Support\Str;
@@ -43,8 +42,7 @@ if (!class_exists('UiMemoryRenderer')) {
             'set_uploader_existing_file' => null,
         ];
 
-        /** @var array<string, mixed> */
-        private array $store = [];
+        private ?string $rawUsim = null;
 
         private bool $hasSnapshot = false;
 
@@ -80,55 +78,17 @@ if (!class_exists('UiMemoryRenderer')) {
 
         public function usimStorage(): string
         {
-            $current = $this->meta['storage']['usim'] ?? null;
-
-            if ($this->store === [] && is_string($current) && $current !== '') {
-                $decoded = $this->decodeUsimToStore($current);
-                if (is_array($decoded)) {
-                    $this->store = $decoded;
-                }
+            // Browser-like behavior: replay the exact encrypted payload returned by backend.
+            if (is_string($this->rawUsim) && $this->rawUsim !== '') {
+                return $this->rawUsim;
             }
 
-            $encoded = $this->encodeStoreToUsim();
-            $this->meta['storage']['usim'] = $encoded;
-
-            return $encoded;
+            return '';
         }
 
-        /** @return array<string, mixed> */
-        public function store(): array
+        public function opaqueUsim(): string
         {
-            return $this->store;
-        }
-
-        public function getStoreValue(string $key, mixed $default = null): mixed
-        {
-            return $this->store[$key] ?? $default;
-        }
-
-        public function mergeStore(array $values): void
-        {
-            foreach ($values as $key => $value) {
-                if (!is_string($key)) {
-                    continue;
-                }
-
-                $this->setStoreValue($key, $value);
-            }
-        }
-
-        public function setStoreValue(string $key, mixed $value): void
-        {
-            if (!str_starts_with($key, 'store_')) {
-                $this->issues[] = [
-                    'type' => 'invalid_store_key',
-                    'key' => $key,
-                    'message' => 'Store key should start with store_.',
-                ];
-            }
-
-            $this->store[$key] = $value;
-            $this->meta['storage']['usim'] = $this->encodeStoreToUsim();
+            return is_string($this->rawUsim) ? $this->rawUsim : '';
         }
 
         private function resolveMode(string $mode): string
@@ -212,10 +172,7 @@ if (!class_exists('UiMemoryRenderer')) {
                 $this->meta['storage'] = array_merge($this->meta['storage'], $payload['storage']);
 
                 if (isset($payload['storage']['usim']) && is_string($payload['storage']['usim']) && $payload['storage']['usim'] !== '') {
-                    $decoded = $this->decodeUsimToStore($payload['storage']['usim']);
-                    if (is_array($decoded)) {
-                        $this->store = $decoded;
-                    }
+                    $this->rawUsim = $payload['storage']['usim'];
                 }
             }
 
@@ -287,42 +244,16 @@ if (!class_exists('UiMemoryRenderer')) {
             return isset($component['type']) || isset($component['_id']) || isset($component['parent']);
         }
 
-        /** @return array<string, mixed>|null */
-        private function decodeUsimToStore(string $encrypted): ?array
-        {
-            try {
-                $decrypted = decrypt($encrypted);
-                $decoded = json_decode($decrypted, true);
-
-                if (!is_array($decoded)) {
-                    $this->issues[] = [
-                        'type' => 'invalid_usim_json',
-                        'message' => 'Decrypted usim is not a JSON object.',
-                    ];
-                    return null;
-                }
-
-                return $decoded;
-            } catch (Throwable $e) {
-                $this->issues[] = [
-                    'type' => 'invalid_usim_payload',
-                    'message' => 'Failed to decrypt usim payload: ' . $e->getMessage(),
-                ];
-
-                return null;
-            }
-        }
-
-        private function encodeStoreToUsim(): string
-        {
-            return encrypt((string) json_encode($this->store));
-        }
     }
 }
 
 if (!class_exists('UiScenario')) {
     final class UiScenario
     {
+        private const STORAGE_HEADER = 'header';
+        private const STORAGE_BODY = 'body';
+        private const STORAGE_NONE = 'none';
+
         private TestCase $test;
 
         private UiMemoryRenderer $memory;
@@ -358,7 +289,6 @@ if (!class_exists('UiScenario')) {
                 ARRAY_FILTER_USE_KEY
             );
 
-            $scenario->resetUiCollector();
             $response = $scenario
                 ->testWithClientCookie()
                 ->getJson(screenApiUrl($screenClass, $query));
@@ -375,27 +305,9 @@ if (!class_exists('UiScenario')) {
             return $this;
         }
 
-        public function withStore(array $store): self
+        public function opaqueUsim(): string
         {
-            $this->memory->mergeStore($store);
-            return $this;
-        }
-
-        public function setStore(string $key, mixed $value): self
-        {
-            $this->memory->setStoreValue($key, $value);
-            return $this;
-        }
-
-        public function store(string $key, mixed $default = null): mixed
-        {
-            return $this->memory->getStoreValue($key, $default);
-        }
-
-        /** @return array<string, mixed> */
-        public function allStore(): array
-        {
-            return $this->memory->store();
+            return $this->memory->opaqueUsim();
         }
 
         public function component(string $name): UiComponentRef
@@ -421,22 +333,106 @@ if (!class_exists('UiScenario')) {
                 throw new RuntimeException("Component '{$componentName}' does not have a numeric _id.");
             }
 
+            return $this->sendUiEvent(
+                componentId: (int) $componentId,
+                event: 'click',
+                action: $action,
+                parameters: $parameters,
+                storageMode: self::STORAGE_HEADER,
+                syncComponentId: (int) $componentId
+            );
+        }
+
+        public function input(string $componentName, string $action, array $parameters = []): TestResponse
+        {
+            $componentId = $this->mustGetComponentId($componentName);
+
+            return $this->sendUiEvent(
+                componentId: $componentId,
+                event: 'input',
+                action: $action,
+                parameters: $parameters,
+                storageMode: self::STORAGE_BODY,
+                syncComponentId: $componentId
+            );
+        }
+
+        public function change(
+            string $componentName,
+            string $action,
+            array $parameters = [],
+            bool $includeStorageHeader = true
+        ): TestResponse {
+            $componentId = $this->mustGetComponentId($componentName);
+
+            return $this->sendUiEvent(
+                componentId: $componentId,
+                event: 'change',
+                action: $action,
+                parameters: $parameters,
+                storageMode: $includeStorageHeader ? self::STORAGE_HEADER : self::STORAGE_NONE,
+                syncComponentId: $componentId
+            );
+        }
+
+        public function action(
+            string $componentName,
+            string $action,
+            array $parameters = [],
+            bool $includeStorageHeader = true
+        ): TestResponse {
+            $componentId = $this->mustGetComponentId($componentName);
+
+            return $this->sendUiEvent(
+                componentId: $componentId,
+                event: 'action',
+                action: $action,
+                parameters: $parameters,
+                storageMode: $includeStorageHeader ? self::STORAGE_HEADER : self::STORAGE_NONE,
+                syncComponentId: $componentId
+            );
+        }
+
+        public function timeout(int $callerServiceId, string $action, array $parameters = []): TestResponse
+        {
+            return $this->sendUiEvent(
+                componentId: $callerServiceId,
+                event: 'timeout',
+                action: $action,
+                parameters: $parameters,
+                storageMode: self::STORAGE_HEADER,
+                syncComponentId: null
+            );
+        }
+
+        private function sendUiEvent(
+            int $componentId,
+            string $event,
+            string $action,
+            array $parameters,
+            string $storageMode,
+            ?int $syncComponentId
+        ): TestResponse {
+
             $payload = [
-                'component_id' => (int) $componentId,
-                'event' => 'click',
+                'component_id' => $componentId,
+                'event' => $event,
                 'action' => $action,
                 'parameters' => $parameters,
             ];
 
             $headers = [];
             $usimStorage = $this->memory->usimStorage();
-            if ($usimStorage !== '') {
-                $headers['X-USIM-Storage'] = $usimStorage;
-                // Middleware supports body fallback for tests/environments where custom headers are not propagated.
+            if ($usimStorage !== '' && $storageMode === self::STORAGE_HEADER) {
+                // In test client, encrypted header transport can be unreliable; use body fallback accepted by middleware.
                 $payload['usim'] = $usimStorage;
             }
 
-            $this->resetUiCollector();
+            if ($usimStorage !== '' && $storageMode === self::STORAGE_BODY) {
+                // Input events in ui-renderer send storage in body field "storage".
+                $payload['storage'] = $usimStorage;
+            }
+
             $response = $this
                 ->testWithClientCookie()
                 ->postJson('/api/ui-event', $payload, $headers);
@@ -449,7 +445,7 @@ if (!class_exists('UiScenario')) {
                 // Some backend flows persist state but emit no component delta for the triggering control.
                 // In that case, refresh current screen snapshot to keep the in-memory model browser-like.
                 $responseJson = $response->json();
-                if (!is_array($responseJson) || !array_key_exists((string) $componentId, $responseJson)) {
+                if ($syncComponentId !== null && (!is_array($responseJson) || !array_key_exists((string) $syncComponentId, $responseJson))) {
                     $this->syncFromServer();
                 }
             }
@@ -486,14 +482,21 @@ if (!class_exists('UiScenario')) {
             return $component;
         }
 
-        private function testWithClientCookie(): TestCase
+        private function mustGetComponentId(string $name): int
         {
-            return $this->test->withCookie(UIStateManager::CLIENT_ID_COOKIE, encrypt($this->clientId));
+            $component = $this->mustGetComponent($name);
+            $componentId = $component['_id'] ?? null;
+
+            if (!is_numeric($componentId)) {
+                throw new RuntimeException("Component '{$name}' does not have a numeric _id.");
+            }
+
+            return (int) $componentId;
         }
 
-        private function resetUiCollector(): void
+        private function testWithClientCookie(): TestCase
         {
-            app()->instance(UIChangesCollector::class, new UIChangesCollector());
+            return $this->test->withCookie(UIStateManager::CLIENT_ID_COOKIE, $this->clientId);
         }
 
         private function syncFromServer(): void
@@ -502,14 +505,41 @@ if (!class_exists('UiScenario')) {
                 return;
             }
 
-            $this->resetUiCollector();
+            $headers = [];
+            $usimStorage = $this->memory->usimStorage();
+            if ($usimStorage !== '') {
+                $headers['X-USIM-Storage'] = $usimStorage;
+            }
+
             $response = $this
                 ->testWithClientCookie()
-                ->getJson(screenApiUrl($this->screenClass, $this->screenQuery));
+                ->getJson(screenApiUrl($this->screenClass, $this->screenQuery), $headers);
 
             if ($response->isOk()) {
-                $this->ingest($response->json(), 'initial');
+                $payload = $response->json();
+                if ($this->hasUiComponents($payload)) {
+                    $this->ingest($payload, 'initial');
+                }
             }
+        }
+
+        private function hasUiComponents(mixed $payload): bool
+        {
+            if (!is_array($payload)) {
+                return false;
+            }
+
+            foreach ($payload as $value) {
+                if (!is_array($value)) {
+                    continue;
+                }
+
+                if (isset($value['type']) && isset($value['_id'])) {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         private function configurePersistentCacheForUiState(): void

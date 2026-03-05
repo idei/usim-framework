@@ -7,6 +7,12 @@ class UIChangesCollector
     protected array $changes = [];
     protected array $storage_changes = [];
 
+    public function reset(): void
+    {
+        $this->changes = [];
+        $this->storage_changes = [];
+    }
+
     public function add(array $change = []): void
     {
         $this->changes += $change;

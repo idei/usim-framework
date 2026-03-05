@@ -1,8 +1,6 @@
 <?php
 
 use App\UI\Screens\Demo\ButtonDemo;
-use Idei\Usim\Services\Support\UIIdGenerator;
-use Idei\Usim\Services\UIChangesCollector;
 
 it('loads button demo screen with btn_toggle component', function () {
     $ui = uiScenario($this, ButtonDemo::class, ['reset' => true]);
@@ -22,45 +20,40 @@ it('toggles button label to clicked when toggle_label event is sent', function (
     $ui->assertNoIssues();
 });
 
-it('supports overriding store variables in scenario', function () {
-    $ui = uiScenario($this, ButtonDemo::class, ['reset' => true])
-        ->setStore('store_state', true);
+it('replays backend usim as opaque token', function () {
+    $ui = uiScenario($this, ButtonDemo::class, ['reset' => true]);
+    $initialUsim = $ui->opaqueUsim();
 
-    expect($ui->store('store_state'))->toBeTrue();
+    expect($initialUsim)->not->toBe('');
 
     $ui->component('btn_toggle')->click();
+    $updatedUsim = $ui->opaqueUsim();
 
-    expect($ui->store('store_state'))->toBeFalse();
+    expect($updatedUsim)->not->toBe('');
+    expect($updatedUsim)->not->toBe($initialUsim);
     $ui->assertNoIssues();
 });
 
 it('alternates button content on consecutive clicks', function () {
-    $componentId = UIIdGenerator::generateFromName(ButtonDemo::class, 'btn_toggle');
+    $ui = uiScenario($this, ButtonDemo::class, ['reset' => true]);
+    $btnToggle = $ui->component('btn_toggle');
 
-    app()->forgetScopedInstances();
-    $service = app(ButtonDemo::class);
-    $service->initializeEventContext(['store_state' => false]);
-    $service->onToggleLabel([]);
-    $service->finalizeEventContext(reload: true);
-    $result1 = app(UIChangesCollector::class)->all();
-    expect($result1[(string) $componentId]['label'] ?? null)->toBe('Clicked! 🎉');
-    expect($result1[(string) $componentId]['style'] ?? null)->toBe('success');
+    $btnToggle->expect('label')->toBe('Click Me!');
+    $btnToggle->expect('style')->toBe('primary');
 
-    app()->forgetScopedInstances();
-    $service = app(ButtonDemo::class);
-    $service->initializeEventContext(['store_state' => true]);
-    $service->onToggleLabel([]);
-    $service->finalizeEventContext(reload: true);
-    $result2 = app(UIChangesCollector::class)->all();
-    expect($result2[(string) $componentId]['label'] ?? null)->toBe('Click Me!');
-    expect($result2[(string) $componentId]['style'] ?? null)->toBe('primary');
+    $expectedStates = [
+        ['label' => 'Clicked! 🎉', 'style' => 'success'],
+        ['label' => 'Click Me!', 'style' => 'primary'],
+        ['label' => 'Clicked! 🎉', 'style' => 'success'],
+        ['label' => 'Click Me!', 'style' => 'primary'],
+        ['label' => 'Clicked! 🎉', 'style' => 'success'],
+    ];
 
-    app()->forgetScopedInstances();
-    $service = app(ButtonDemo::class);
-    $service->initializeEventContext(['store_state' => false]);
-    $service->onToggleLabel([]);
-    $service->finalizeEventContext(reload: true);
-    $result3 = app(UIChangesCollector::class)->all();
-    expect($result3[(string) $componentId]['label'] ?? null)->toBe('Clicked! 🎉');
-    expect($result3[(string) $componentId]['style'] ?? null)->toBe('success');
+    foreach ($expectedStates as $expected) {
+        $btnToggle->click();
+        $btnToggle->expect('label')->toBe($expected['label']);
+        $btnToggle->expect('style')->toBe($expected['style']);
+    }
+
+    $ui->assertNoIssues();
 });

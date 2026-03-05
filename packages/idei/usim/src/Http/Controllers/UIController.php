@@ -24,6 +24,7 @@ class UIController extends Controller
      */
     public function show(string $screen): JsonResponse
     {
+        $this->uiChanges->reset();
         $reset = request()->query('reset', false);
         $parent = request()->query('parent', "main");
         $allQueryParams = request()->query();
