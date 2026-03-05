@@ -519,8 +519,11 @@ if (!class_exists('UiScenario')) {
             }
 
             // UI diff flow depends on previous UI snapshot being available across requests.
-            // In tests, CACHE_STORE=array is request-local; force a persistent driver for browser-like behavior.
-            config(['cache.default' => 'file']);
+            // In tests, CACHE_STORE/SESSION_DRIVER=array are request-local; force persistent drivers for browser-like behavior.
+            config([
+                'cache.default' => 'file',
+                'session.driver' => 'file',
+            ]);
             Cache::setDefaultDriver('file');
             self::$persistentCacheConfigured = true;
         }
