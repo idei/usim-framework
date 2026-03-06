@@ -30,7 +30,7 @@ it('includes edit_user actions in table payload', function () {
     $response->assertOk();
 
     $payload = $response->json();
-    expect(payloadContainsAction($payload, 'edit_user'))->toBeTrue();
+    expect(uiPayloadContainsAction($payload, 'edit_user'))->toBeTrue();
 });
 
 it('changes page and updates pagination flags', function () {
@@ -60,7 +60,7 @@ it('edits a user through table action and persists database update', function ()
 
     $user->refresh();
     expect($user->name)->toContain('(E)');
-    expect(payloadContainsText($response->json(), '(E)'))->toBeTrue();
+    expect(uiPayloadContainsText($response->json(), '(E)'))->toBeTrue();
 
     $ui->assertNoIssues();
 });

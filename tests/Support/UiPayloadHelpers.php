@@ -26,8 +26,8 @@ if (!function_exists('uiFind')) {
     }
 }
 
-if (!function_exists('payloadContainsAction')) {
-    function payloadContainsAction(mixed $value, string $action): bool
+if (!function_exists('uiPayloadContainsAction')) {
+    function uiPayloadContainsAction(mixed $value, string $action): bool
     {
         return uiFind(
             $value,
@@ -36,8 +36,8 @@ if (!function_exists('payloadContainsAction')) {
     }
 }
 
-if (!function_exists('payloadContainsText')) {
-    function payloadContainsText(mixed $value, string $needle): bool
+if (!function_exists('uiPayloadContainsText')) {
+    function uiPayloadContainsText(mixed $value, string $needle): bool
     {
         return uiFind(
             $value,
@@ -46,20 +46,41 @@ if (!function_exists('payloadContainsText')) {
     }
 }
 
+if (!function_exists('uiPayloadContainsStyle')) {
+    function uiPayloadContainsStyle(mixed $value, string $style): bool
+    {
+        return uiFind(
+            $value,
+            static fn (mixed $node): bool => is_array($node) && (($node['style'] ?? null) === $style)
+        ) !== null;
+    }
+}
+
+if (!function_exists('payloadContainsAction')) {
+    function payloadContainsAction(mixed $value, string $action): bool
+    {
+        return uiPayloadContainsAction($value, $action);
+    }
+}
+
+if (!function_exists('payloadContainsText')) {
+    function payloadContainsText(mixed $value, string $needle): bool
+    {
+        return uiPayloadContainsText($value, $needle);
+    }
+}
+
 if (!function_exists('demoUiPayloadContainsText')) {
     function demoUiPayloadContainsText(mixed $value, string $needle): bool
     {
-        return payloadContainsText($value, $needle);
+        return uiPayloadContainsText($value, $needle);
     }
 }
 
 if (!function_exists('demoUiPayloadContainsStyle')) {
     function demoUiPayloadContainsStyle(mixed $value, string $style): bool
     {
-        return uiFind(
-            $value,
-            static fn (mixed $node): bool => is_array($node) && (($node['style'] ?? null) === $style)
-        ) !== null;
+        return uiPayloadContainsStyle($value, $style);
     }
 }
 

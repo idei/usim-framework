@@ -53,8 +53,8 @@ it('adds settings label dynamically when open settings action is triggered', fun
     $response->assertOk();
 
     $payload = $response->json();
-    expect(demoUiPayloadContainsText($payload, 'Settings panel opened!'))->toBeTrue();
-    expect(demoUiPayloadContainsStyle($payload, 'warning'))->toBeTrue();
+    expect(uiPayloadContainsText($payload, 'Settings panel opened!'))->toBeTrue();
+    expect(uiPayloadContainsStyle($payload, 'warning'))->toBeTrue();
 
     $ui->assertNoIssues();
 });
