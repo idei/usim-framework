@@ -130,7 +130,7 @@ if (!class_exists('UiMemoryRenderer')) {
             $this->captureMeta($payload);
 
             foreach ($payload as $key => $value) {
-                $jsonKey = (string) $key;
+                $jsonKey = $this->resolveComponentKey((string) $key);
 
                 if ($this->isReservedKey($jsonKey) || !is_array($value)) {
                     continue;
@@ -158,6 +158,18 @@ if (!class_exists('UiMemoryRenderer')) {
             }
 
             $this->hasSnapshot = true;
+        }
+
+        private function resolveComponentKey(string $incomingKey): string
+        {
+            if (is_numeric($incomingKey)) {
+                $mappedKey = $this->keyByInternalId[(int) $incomingKey] ?? null;
+                if (is_string($mappedKey) && $mappedKey !== '') {
+                    return $mappedKey;
+                }
+            }
+
+            return $incomingKey;
         }
 
         private function isReservedKey(string $key): bool
@@ -442,10 +454,10 @@ if (!class_exists('UiScenario')) {
             if ($response->isOk()) {
                 $this->ingest($response->json(), 'auto');
 
-                // Some backend flows persist state but emit no component delta for the triggering control.
+                // Some backend flows return only meta keys (e.g. storage) with no component deltas.
                 // In that case, refresh current screen snapshot to keep the in-memory model browser-like.
                 $responseJson = $response->json();
-                if ($syncComponentId !== null && (!is_array($responseJson) || !array_key_exists((string) $syncComponentId, $responseJson))) {
+                if ($syncComponentId !== null && !$this->hasUiComponents($responseJson)) {
                     $this->syncFromServer();
                 }
             }
