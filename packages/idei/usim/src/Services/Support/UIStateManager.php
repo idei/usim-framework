@@ -43,9 +43,15 @@ class UIStateManager
      */
     protected static function getOrCreateClientId(): string
     {
+        $sessionClientId = session()->get(self::CLIENT_ID_COOKIE);
+        if (is_string($sessionClientId) && $sessionClientId !== '') {
+            return $sessionClientId;
+        }
+
         $clientId = request()->cookie(self::CLIENT_ID_COOKIE);
 
         if ($clientId) {
+            session()->put(self::CLIENT_ID_COOKIE, $clientId);
             return $clientId;
         }
 
@@ -63,6 +69,8 @@ class UIStateManager
             httpOnly: true, // Not accessible from JavaScript
             sameSite: 'lax' // CSRF protection
         );
+
+        session()->put(self::CLIENT_ID_COOKIE, $clientId);
 
         return $clientId;
     }
