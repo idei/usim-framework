@@ -5,29 +5,23 @@ use App\UI\Screens\Auth\Login;
 
 it('loads login screen with expected components and actions', function () {
     /** @var \Tests\TestCase $this */
-    $response = getScreenJson($this, Login::class);
-    $response->assertOk();
+    $ui = uiScenario($this, Login::class, ['reset' => true]);
 
-    $payload = $response->json();
+    $emailInput = $ui->component('login_email');
+    $passwordInput = $ui->component('login_password');
+    $submitButton = $ui->component('btn_submit_login');
+    $forgotButton = $ui->component('btn_forgot_password');
 
-    $emailInput = findComponentByName($payload, 'login_email');
-    $passwordInput = findComponentByName($payload, 'login_password');
-    $submitButton = findComponentByName($payload, 'btn_submit_login');
-    $forgotButton = findComponentByName($payload, 'btn_forgot_password');
+    $emailInput->expect('type')->toBe('input');
+    $emailInput->expect('input_type')->toBe('email');
 
-    expect($emailInput)->not->toBeNull();
-    expect($emailInput['type'] ?? null)->toBe('input');
-    expect($emailInput['input_type'] ?? null)->toBe('email');
+    $passwordInput->expect('type')->toBe('input');
+    $passwordInput->expect('input_type')->toBe('password');
 
-    expect($passwordInput)->not->toBeNull();
-    expect($passwordInput['type'] ?? null)->toBe('input');
-    expect($passwordInput['input_type'] ?? null)->toBe('password');
+    $submitButton->expect('action')->toBe('submit_login');
+    $forgotButton->expect('action')->toBe('navigate_forgot_password');
 
-    expect($submitButton)->not->toBeNull();
-    expect($submitButton['action'] ?? null)->toBe('submit_login');
-
-    expect($forgotButton)->not->toBeNull();
-    expect($forgotButton['action'] ?? null)->toBe('navigate_forgot_password');
+    $ui->assertNoIssues();
 });
 
 it('authenticates configured admin user and returns redirect contract', function () {

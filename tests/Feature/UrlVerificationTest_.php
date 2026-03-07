@@ -1,7 +1,7 @@
 <?php
 
 use App\Models\User;
-use App\Notifications\ResetPasswordNotification;
+use Idei\Usim\Notifications\ResetPasswordNotification;
 
 test('verifica la URL generada en el email de reset de contraseña', function () {
     $user = User::factory()->create([

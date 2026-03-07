@@ -5,77 +5,58 @@ use App\UI\Screens\Home;
 use App\UI\Screens\Menu;
 
 it('returns home screen with expected core components', function () {
-    $response = getScreenJson($this, Home::class);
-    $response->assertOk();
+    $ui = uiScenario($this, Home::class, ['reset' => true]);
 
-    $payload = $response->json();
+    $welcome = $ui->component('welcome');
+    $subtitle = $ui->component('subtitle');
+    $features = $ui->component('features');
+    $componentsCard = $ui->component('components_card');
+    $gettingStartedCard = $ui->component('getting_started_card');
 
-    $welcome = findComponentByName($payload, 'welcome');
-    $subtitle = findComponentByName($payload, 'subtitle');
-    $features = findComponentByName($payload, 'features');
-    $componentsCard = findComponentByName($payload, 'components_card');
-    $gettingStartedCard = findComponentByName($payload, 'getting_started_card');
+    $welcome->expect('type')->toBe('label');
+    expect($welcome->data()['text'] ?? '')->toContain('Welcome to USIM UI Framework');
 
-    expect($welcome)->not->toBeNull();
-    expect($welcome['type'] ?? null)->toBe('label');
-    expect($welcome['text'] ?? '')->toContain('Welcome to USIM UI Framework');
+    $subtitle->expect('type')->toBe('label');
+    $features->expect('type')->toBe('container');
+    $componentsCard->expect('type')->toBe('card');
+    $gettingStartedCard->expect('type')->toBe('card');
 
-    expect($subtitle)->not->toBeNull();
-    expect($subtitle['type'] ?? null)->toBe('label');
-
-    expect($features)->not->toBeNull();
-    expect($features['type'] ?? null)->toBe('container');
-
-    expect($componentsCard)->not->toBeNull();
-    expect($componentsCard['type'] ?? null)->toBe('card');
-
-    expect($gettingStartedCard)->not->toBeNull();
-    expect($gettingStartedCard['type'] ?? null)->toBe('card');
+    $ui->assertNoIssues();
 });
 
 it('declares expected home card actions', function () {
-    $response = getScreenJson($this, Home::class);
-    $response->assertOk();
+    $ui = uiScenario($this, Home::class, ['reset' => true]);
 
-    $payload = $response->json();
+    $componentsCard = $ui->component('components_card')->data();
+    $easyCard = $ui->component('easy_card')->data();
+    $customCard = $ui->component('custom_card')->data();
+    $gettingStartedCard = $ui->component('getting_started_card')->data();
 
-    $componentsCard = findComponentByName($payload, 'components_card');
-    $easyCard = findComponentByName($payload, 'easy_card');
-    $customCard = findComponentByName($payload, 'custom_card');
-    $gettingStartedCard = findComponentByName($payload, 'getting_started_card');
-
-    expect($componentsCard)->not->toBeNull();
     expect(cardHasAction($componentsCard, 'view_demos'))->toBeTrue();
-
-    expect($easyCard)->not->toBeNull();
     expect(cardHasAction($easyCard, 'view_code'))->toBeTrue();
-
-    expect($customCard)->not->toBeNull();
     expect(cardHasAction($customCard, 'customize'))->toBeTrue();
-
-    expect($gettingStartedCard)->not->toBeNull();
     expect(cardHasAction($gettingStartedCard, 'view_all_demos'))->toBeTrue();
     expect(cardHasAction($gettingStartedCard, 'view_docs'))->toBeTrue();
+
+    $ui->assertNoIssues();
 });
 
 it('returns menu screen for guests with settings trigger and register option', function () {
-    $response = getScreenJson($this, Menu::class, ['parent' => 'menu']);
-    $response->assertOk();
+    $ui = uiScenario($this, Menu::class, ['parent' => 'menu']);
 
-    $payload = $response->json();
-    $mainMenu = findComponentByName($payload, 'main_menu');
-    $userMenu = findComponentByName($payload, 'user_menu');
+    $mainMenu = $ui->component('main_menu')->data();
+    $userMenu = $ui->component('user_menu')->data();
 
-    expect($mainMenu)->not->toBeNull();
     expect($mainMenu['type'] ?? null)->toBe('menudropdown');
     expect(menuItemsContainLabel($mainMenu['items'] ?? [], 'Home'))->toBeTrue();
     expect(menuItemsContainLabel($mainMenu['items'] ?? [], 'About'))->toBeTrue();
 
-    expect($userMenu)->not->toBeNull();
     expect($userMenu['type'] ?? null)->toBe('menudropdown');
     expect($userMenu['trigger']['label'] ?? null)->toBe('⚙️');
     expect(menuItemsContainLabel($userMenu['items'] ?? [], 'Register'))->toBeTrue();
     expect(menuItemsContainLabel($userMenu['items'] ?? [], 'Logout'))->toBeFalse();
+
+    $ui->assertNoIssues();
 });
 
 it('returns menu screen for authenticated users with user trigger and logout option', function () {
@@ -87,13 +68,9 @@ it('returns menu screen for authenticated users with user trigger and logout opt
 
     $this->actingAs($user);
 
-    $response = getScreenJson($this, Menu::class, ['parent' => 'menu']);
-    $response->assertOk();
+    $ui = uiScenario($this, Menu::class, ['parent' => 'menu']);
+    $userMenu = $ui->component('user_menu')->data();
 
-    $payload = $response->json();
-    $userMenu = findComponentByName($payload, 'user_menu');
-
-    expect($userMenu)->not->toBeNull();
     expect($userMenu['type'] ?? null)->toBe('menudropdown');
 
     $triggerLabel = (string) ($userMenu['trigger']['label'] ?? '');
@@ -101,42 +78,36 @@ it('returns menu screen for authenticated users with user trigger and logout opt
 
     expect(menuItemsContainLabel($userMenu['items'] ?? [], 'Logout'))->toBeTrue();
     expect(menuItemsContainLabel($userMenu['items'] ?? [], 'Register'))->toBeFalse();
+
+    $ui->assertNoIssues();
 });
 
 it('shows profile, logout and admin dashboard items after admin login', function () {
     /** @var \Tests\TestCase $this */
     $this->loginAs('admin');
 
-    $menuResponse = getScreenJson($this, Menu::class, ['parent' => 'menu']);
-    $menuResponse->assertOk();
-
-    $payload = $menuResponse->json();
-    $mainMenu = findComponentByName($payload, 'main_menu');
-    $userMenu = findComponentByName($payload, 'user_menu');
-
-    expect($mainMenu)->not->toBeNull();
-    expect($userMenu)->not->toBeNull();
+    $ui = uiScenario($this, Menu::class, ['parent' => 'menu']);
+    $mainMenu = $ui->component('main_menu')->data();
+    $userMenu = $ui->component('user_menu')->data();
 
     expect(menuItemsContainLabel($mainMenu['items'] ?? [], 'Admin Dashboard'))->toBeTrue();
     expect(menuItemsContainLabel($userMenu['items'] ?? [], 'Profile'))->toBeTrue();
     expect(menuItemsContainLabel($userMenu['items'] ?? [], 'Logout'))->toBeTrue();
+
+    $ui->assertNoIssues();
 });
 
 it('shows profile/logout and hides admin dashboard after regular user login', function () {
     /** @var \Tests\TestCase $this */
     $this->loginAs('user');
 
-    $menuResponse = getScreenJson($this, Menu::class, ['parent' => 'menu']);
-    $menuResponse->assertOk();
-
-    $payload = $menuResponse->json();
-    $mainMenu = findComponentByName($payload, 'main_menu');
-    $userMenu = findComponentByName($payload, 'user_menu');
-
-    expect($mainMenu)->not->toBeNull();
-    expect($userMenu)->not->toBeNull();
+    $ui = uiScenario($this, Menu::class, ['parent' => 'menu']);
+    $mainMenu = $ui->component('main_menu')->data();
+    $userMenu = $ui->component('user_menu')->data();
 
     expect(menuItemsContainLabel($mainMenu['items'] ?? [], 'Admin Dashboard'))->toBeFalse();
     expect(menuItemsContainLabel($userMenu['items'] ?? [], 'Profile'))->toBeTrue();
     expect(menuItemsContainLabel($userMenu['items'] ?? [], 'Logout'))->toBeTrue();
+
+    $ui->assertNoIssues();
 });
