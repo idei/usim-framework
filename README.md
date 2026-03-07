@@ -61,6 +61,15 @@ USIM es un framework de UI reactivo donde:
 - **Queue Workers** para procesamiento en background
 - **Scheduler** para tareas programadas
 
+## Documentacion de Tests de Screens
+
+Si vas a crear o mantener tests de UI (USIM), usa estos documentos:
+
+- Guia humana paso a paso: [tests/SCREEN_TESTING_GUIDE.md](tests/SCREEN_TESTING_GUIDE.md)
+- Plantilla para pedirle a un agente que genere tests: [tests/prompt.md](tests/prompt.md)
+
+Recomendacion: leer primero la guia y luego usar `tests/prompt.md` como base para generar nuevos tests de manera consistente.
+
 ### Características Técnicas
 - **API RESTful** con respuestas JSON consistentes
 - **Backend-driven UI** con renderizador JavaScript agnóstico

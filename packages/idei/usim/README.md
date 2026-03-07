@@ -28,6 +28,7 @@ A **Server-Driven UI** framework for Laravel. Define your entire user interface 
 - [Data Tables](#data-tables)
 - [File Uploads](#file-uploads)
 - [Authentication Scaffolding](#authentication-scaffolding)
+- [Testing Screens](#testing-screens)
 - [Configuration](#configuration)
 - [API Endpoints](#api-endpoints)
 - [Artisan Commands](#artisan-commands)
@@ -586,6 +587,35 @@ USER_PASSWORD=your-secure-password
 ```
 
 Then run `php artisan db:seed`.
+
+---
+
+## Testing Screens
+
+This package ships a self-contained testing guide under `docs/`:
+
+- `docs/SCREEN_TESTING_GUIDE.md` — Human-oriented guide with patterns, helpers, and examples.
+- `docs/prompt.md` — Copy/paste prompt template to ask any agent/chat to generate new screen tests.
+
+Recommended workflow:
+
+1. Read the guide to follow the project conventions (`uiScenario`, component-level assertions, response contracts).
+2. Use `docs/prompt.md` as a base when delegating test generation to an AI agent.
+3. Validate locally with `php artisan test` (or file-level execution first).
+
+Core approach used across this project:
+
+```php
+$ui = uiScenario($this, SomeScreen::class, ['reset' => true]);
+
+$ui->component('btn_submit')->expect('action')->toBe('submit_form');
+
+$response = $ui->click('btn_submit', ['field' => 'value']);
+$response->assertOk();
+expect($response->json('toast.type'))->toBe('success');
+
+$ui->assertNoIssues();
+```
 
 ---
 
