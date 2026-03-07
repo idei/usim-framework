@@ -140,12 +140,18 @@ class ResetPassword extends AbstractUIService
     {
         $token = $params['reset_token'] ?? '';
         $email = $params['reset_email'] ?? '';
+        $expires = (int) ($params['expires'] ?? request()->query('expires', 0));
         $password = $params['password'] ?? '';
         $passwordConfirmation = $params['password_confirmation'] ?? '';
 
         if (empty($token) || empty($email)) {
              $this->showError('Enlace inválido o expirado.');
              return;
+        }
+
+        if ($expires > 0 && now()->timestamp > $expires) {
+            $this->showError('El enlace de restablecimiento ha expirado. Solicita uno nuevo.');
+            return;
         }
 
         if (strlen($password) < 8) {

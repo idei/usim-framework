@@ -145,14 +145,16 @@ class ForgotPassword extends AbstractUIService
 
         try {
             $result = $this->passwordService->sendResetLink($email);
+            $status = $result['status'] ?? 'error';
+            $message = $result['message'] ?? 'No se pudo enviar el enlace de recuperación.';
 
-            if ($result['success']) {
+            if ($status === 'success') {
                 $this->lbl_result->text('Enlace enviado a tu correo.')->style('success')->visible(true);
                 $this->toast('Enlace enviado. Revisa tu correo.', 'success');
                 $this->email->value('');
             } else {
-                $this->lbl_result->text($result['message'])->style('error')->visible(true);
-                $this->toast($result['message'], 'error');
+                $this->lbl_result->text($message)->style('error')->visible(true);
+                $this->toast($message, 'error');
             }
 
         } catch (\Exception $e) {
