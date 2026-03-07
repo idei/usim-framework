@@ -102,3 +102,41 @@ it('returns menu screen for authenticated users with user trigger and logout opt
     expect(menuItemsContainLabel($userMenu['items'] ?? [], 'Logout'))->toBeTrue();
     expect(menuItemsContainLabel($userMenu['items'] ?? [], 'Register'))->toBeFalse();
 });
+
+it('shows profile, logout and admin dashboard items after admin login', function () {
+    /** @var \Tests\TestCase $this */
+    $this->loginAs('admin');
+
+    $menuResponse = getScreenJson($this, Menu::class, ['parent' => 'menu']);
+    $menuResponse->assertOk();
+
+    $payload = $menuResponse->json();
+    $mainMenu = findComponentByName($payload, 'main_menu');
+    $userMenu = findComponentByName($payload, 'user_menu');
+
+    expect($mainMenu)->not->toBeNull();
+    expect($userMenu)->not->toBeNull();
+
+    expect(menuItemsContainLabel($mainMenu['items'] ?? [], 'Admin Dashboard'))->toBeTrue();
+    expect(menuItemsContainLabel($userMenu['items'] ?? [], 'Profile'))->toBeTrue();
+    expect(menuItemsContainLabel($userMenu['items'] ?? [], 'Logout'))->toBeTrue();
+});
+
+it('shows profile/logout and hides admin dashboard after regular user login', function () {
+    /** @var \Tests\TestCase $this */
+    $this->loginAs('user');
+
+    $menuResponse = getScreenJson($this, Menu::class, ['parent' => 'menu']);
+    $menuResponse->assertOk();
+
+    $payload = $menuResponse->json();
+    $mainMenu = findComponentByName($payload, 'main_menu');
+    $userMenu = findComponentByName($payload, 'user_menu');
+
+    expect($mainMenu)->not->toBeNull();
+    expect($userMenu)->not->toBeNull();
+
+    expect(menuItemsContainLabel($mainMenu['items'] ?? [], 'Admin Dashboard'))->toBeFalse();
+    expect(menuItemsContainLabel($userMenu['items'] ?? [], 'Profile'))->toBeTrue();
+    expect(menuItemsContainLabel($userMenu['items'] ?? [], 'Logout'))->toBeTrue();
+});
