@@ -595,12 +595,12 @@ Then run `php artisan db:seed`.
 This package ships a self-contained testing guide under `docs/`:
 
 - `docs/SCREEN_TESTING_GUIDE.md` — Human-oriented guide with patterns, helpers, and examples.
-- `docs/prompt.md` — Copy/paste prompt template to ask any agent/chat to generate new screen tests.
+- `docs/tests_prompt.md` — Copy/paste prompt template to ask any agent/chat to generate new screen tests.
 
 Recommended workflow:
 
 1. Read the guide to follow the project conventions (`uiScenario`, component-level assertions, response contracts).
-2. Use `docs/prompt.md` as a base when delegating test generation to an AI agent.
+2. Use `docs/tests_prompt.md` as a base when delegating test generation to an AI agent.
 3. Validate locally with `php artisan test` (or file-level execution first).
 
 Core approach used across this project:
