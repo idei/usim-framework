@@ -65,6 +65,16 @@ class EmailVerified extends AbstractUIService
             return;
         }
 
+        // Enforce link expiration using signed URL expires timestamp.
+        $expires = (int) request('expires', 0);
+        if ($expires > 0 && now()->timestamp > $expires) {
+            $this->errorMessage = 'El enlace de verificación ha expirado. Solicite uno nuevo.';
+            $this->verificationStatus = 'error';
+            $this->container->clear();
+            $this->buildBaseUI($this->container);
+            return;
+        }
+
         // Verificación a través del servicio
         try {
             $result = $this->userService->verifyEmail((int)$id, $hash);
