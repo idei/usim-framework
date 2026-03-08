@@ -38,6 +38,7 @@ Created with fluent builders, for example:
 - `UIBuilder::table(...)`
 - `UIBuilder::uploader(...)`
 - `UIBuilder::menuDropdown(...)`
+- `UIBuilder::carousel(...)`
 
 ### Event handling
 - Components expose actions (`->action('save_item')`).

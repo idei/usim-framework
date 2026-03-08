@@ -215,6 +215,7 @@ class MyScreen extends AbstractUIService
 | `UIBuilder::menuDropdown()` | `MenuDropdownBuilder` | Navigation dropdown menus |
 | `UIBuilder::uploader()` | `UploaderBuilder` | File upload with preview and crop |
 | `UIBuilder::calendar()` | `CalendarBuilder` | Calendar/date picker |
+| `UIBuilder::carousel()` | `CarouselBuilder` | Media carousel for image/audio/video with manual/auto modes |
 
 All builders extend `BaseUIBuilder` and share common methods:
 
