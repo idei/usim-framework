@@ -1,22 +1,20 @@
 <?php
 namespace App\UI\Screens\Auth;
 
-use App\Models\User;
+use App\Services\Auth\AuthSessionService;
 use App\Services\Auth\LoginService;
-use Idei\Usim\Events\UsimEvent;
 use Idei\Usim\Services\AbstractUIService;
 use Idei\Usim\Services\Components\LabelBuilder;
 use Idei\Usim\Services\Components\UIContainer;
 use Idei\Usim\Services\Enums\JustifyContent;
 use Idei\Usim\Services\Enums\LayoutType;
-use Idei\Usim\Services\Support\UIStateManager;
 use Idei\Usim\Services\UIBuilder;
-use Illuminate\Support\Facades\Auth;
 
 class Login extends AbstractUIService
 {
     public function __construct(
-        protected LoginService $loginService
+        protected LoginService $loginService,
+        protected AuthSessionService $authSessionService
     ) {
     }
 
@@ -138,37 +136,13 @@ class Login extends AbstractUIService
         $this->store_email = $email;
         $this->store_password = $password;
 
-        // Store token in UIStateManager for HttpClient
-        UIStateManager::setAuthToken($this->store_token);
-
-        $user = $response['user'] ?? User::where('email', $email)->first();
-        Auth::login($user);
-
-        // Disparar evento - TODOS los servicios en ui-services.php lo recibirán
-        event(new UsimEvent('logged_user', [
-            'user' => $user,
-            'timestamp' => now(),
-        ]));
-
-        $this->redirect($this->resolvePostLoginRedirect($user));
-    }
-
-    private function resolvePostLoginRedirect(User $user): string
-    {
-        $rolesConfig = config('users.roles', []);
-
-        foreach ($user->getRoleNames() as $roleName) {
-            $screenClass = data_get($rolesConfig, "{$roleName}.default_screen");
-
-            if (
-                is_string($screenClass)
-                && class_exists($screenClass)
-                && is_subclass_of($screenClass, AbstractUIService::class)
-            ) {
-                return $screenClass::getRoutePath();
-            }
+        $user = $response['user'] ?? null;
+        if (!$user) {
+            $this->toast('Unable to resolve authenticated user.', 'error');
+            return;
         }
 
-        return redirect()->intended('/')->getTargetUrl();
+        $redirectTo = $this->authSessionService->start($user, $this->store_token);
+        $this->redirect($redirectTo);
     }
 }

@@ -3,11 +3,17 @@
 namespace App\Services\Auth;
 
 use App\Models\User;
+use App\Services\Auth\AuthSessionService;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 
 class LoginService
 {
+    public function __construct(
+        protected AuthSessionService $authSessionService
+    ) {
+    }
+
     public function login(string $email, string $password, bool $remember = false): array
     {
         $validator = Validator::make([
@@ -38,10 +44,7 @@ class LoginService
             ];
         }
 
-        $tokenName = $remember ? 'auth_token_remember' : 'auth_token';
-        $token = $remember
-            ? $user->createToken($tokenName, ['*'], now()->addDays(30))->plainTextToken
-            : $user->createToken($tokenName, ['*'], now()->addDay())->plainTextToken;
+        $token = $this->authSessionService->issueToken($user, $remember);
 
         $permissions = $user->getAllPermissions()->pluck('name')->toArray();
         $roles = $user->getRoleNames()->toArray();

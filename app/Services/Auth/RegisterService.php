@@ -3,12 +3,18 @@
 namespace App\Services\Auth;
 
 use App\Models\User;
+use App\Services\Auth\AuthSessionService;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 
 class RegisterService
 {
+    public function __construct(
+        protected AuthSessionService $authSessionService
+    ) {
+    }
+
     /**
      * Register a new user.
      *
@@ -63,7 +69,7 @@ class RegisterService
             event(new Registered($user));
         }
 
-        $token = $user->createToken('auth_token')->plainTextToken;
+        $token = $this->authSessionService->issueToken($user);
 
         $permissions = $user->getAllPermissions()->pluck('name')->toArray();
 

@@ -2,6 +2,7 @@
 
 use App\Models\User;
 use App\UI\Screens\Auth\EmailVerified;
+use App\UI\Screens\Home;
 use App\UI\Screens\Menu;
 use Idei\Usim\Notifications\CustomVerifyEmailNotification;
 use Illuminate\Support\Facades\Notification;
@@ -52,13 +53,14 @@ it('submits register modal and sends verification notification', function () {
     ]));
 
     $submitResponse->assertOk();
-    expect($submitResponse->json('action'))->toBe('close_modal');
+    expect($submitResponse->json('redirect'))->toBe(Home::getRoutePath());
     expect($submitResponse->json('toast.type'))->toBe('success');
 
     $user = User::where('email', $email)->first();
 
     expect($user)->not->toBeNull();
     expect($user?->email_verified_at)->toBeNull();
+    $this->assertAuthenticatedAs($user);
 
     Notification::assertSentTo($user, CustomVerifyEmailNotification::class);
     $this->assertDatabaseHas('users', ['email' => $email]);

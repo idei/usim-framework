@@ -2,6 +2,7 @@
 namespace App\UI\Screens;
 
 use App\UI\Components\Modals\RegisterDialog;
+use App\Services\Auth\AuthSessionService;
 use App\Services\Auth\RegisterService;
 use App\UI\Screens\Admin\Dashboard;
 use App\UI\Screens\Auth\Login;
@@ -36,7 +37,8 @@ use Illuminate\Support\Facades\Auth;
 class Menu extends AbstractUIService
 {
     public function __construct(
-        protected RegisterService $registerService
+        protected RegisterService $registerService,
+        protected AuthSessionService $authSessionService
     ) {
     }
 
@@ -262,31 +264,51 @@ class Menu extends AbstractUIService
             sendVerificationEmail: (bool) ($params['send_verification_email'] ?? true)
         );
 
-        $status = $response['status'];
-        $message = $response['message'];
-
-        if ($status === 'success') {
-            $this->toast($message, 'success');
-            $this->closeModal();
-        } else {
-            $this->toast($message, 'error');
-
-            // Update modal inputs with validation errors
-            $errors = $response['errors'] ?? [];
-
-            if (!empty($errors)) {
-                $modalUpdates = [];
-
-                foreach ($errors as $fieldName => $messages) {
-                    // Concatenate all error messages for the field
-                    $modalUpdates[$fieldName] = [
-                        'error' => implode(' ', $messages)
-                    ];
-                }
-
-                $this->updateModal($modalUpdates);
-            }
+        if (($response['status'] ?? 'error') !== 'success') {
+            $this->handleRegisterError($response);
+            return;
         }
+
+        $this->handleRegisterSuccess($response);
+    }
+
+    private function handleRegisterSuccess(array $response): void
+    {
+        $message = (string) ($response['message'] ?? 'Usuario registrado exitosamente');
+        $this->toast($message, 'success');
+
+        $user = $response['user'] ?? null;
+        if (!$user) {
+            $this->closeModal();
+            return;
+        }
+
+        $token = data_get($response, 'data.token');
+        $redirectTo = $this->authSessionService->start($user, is_string($token) ? $token : null);
+        $this->redirect($redirectTo);
+    }
+
+    private function handleRegisterError(array $response): void
+    {
+        $message = (string) ($response['message'] ?? 'Validation errors');
+        $this->toast($message, 'error');
+        $this->updateModalValidationErrors((array) ($response['errors'] ?? []));
+    }
+
+    private function updateModalValidationErrors(array $errors): void
+    {
+        if ($errors === []) {
+            return;
+        }
+
+        $modalUpdates = [];
+        foreach ($errors as $fieldName => $messages) {
+            $modalUpdates[$fieldName] = [
+                'error' => implode(' ', (array) $messages),
+            ];
+        }
+
+        $this->updateModal($modalUpdates);
     }
 
     /**
