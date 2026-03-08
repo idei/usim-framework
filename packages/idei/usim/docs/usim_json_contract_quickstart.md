@@ -4,6 +4,8 @@ Guia corta para implementar un cliente USIM en cualquier plataforma: Android, iO
 
 Documento largo de referencia: `packages/idei/usim/docs/usim_json_contract.md`
 
+Propuesta de evolucion de contrato: `packages/idei/usim/docs/usim_contract_v1_proposal.md`
+
 Plantillas de implementacion por plataforma:
 
 - `packages/idei/usim/docs/client_templates/android_kotlin_template.md`
