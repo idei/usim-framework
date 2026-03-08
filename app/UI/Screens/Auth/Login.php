@@ -150,6 +150,25 @@ class Login extends AbstractUIService
             'timestamp' => now(),
         ]));
 
-        $this->redirect();
+        $this->redirect($this->resolvePostLoginRedirect($user));
+    }
+
+    private function resolvePostLoginRedirect(User $user): string
+    {
+        $rolesConfig = config('users.roles', []);
+
+        foreach ($user->getRoleNames() as $roleName) {
+            $screenClass = data_get($rolesConfig, "{$roleName}.default_screen");
+
+            if (
+                is_string($screenClass)
+                && class_exists($screenClass)
+                && is_subclass_of($screenClass, AbstractUIService::class)
+            ) {
+                return $screenClass::getRoutePath();
+            }
+        }
+
+        return redirect()->intended('/')->getTargetUrl();
     }
 }

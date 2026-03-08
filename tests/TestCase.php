@@ -30,7 +30,7 @@ abstract class TestCase extends BaseTestCase
 
         Role::findOrCreate($role);
 
-        $userConfig = config("users.{$role}");
+        $userConfig = config("users.roles.{$role}.seed_user", []);
         $firstName = $userConfig['first_name'] ?? ucfirst($role);
         $lastName = $userConfig['last_name'] ?? 'User';
         $email = $userConfig['email'] ?? "{$role}@example.com";

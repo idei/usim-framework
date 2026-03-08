@@ -22,6 +22,10 @@ class UsimServiceProvider extends ServiceProvider
             __DIR__.'/../config/usim.php', 'ui-services'
         );
 
+        $this->mergeConfigFrom(
+            __DIR__.'/../config/users.php', 'users'
+        );
+
         $this->app->scoped(UIChangesCollector::class, function ($app) {
             return new UIChangesCollector();
         });
@@ -60,6 +64,7 @@ class UsimServiceProvider extends ServiceProvider
 
         $this->publishes([
             __DIR__.'/../config/usim.php' => config_path('ui-services.php'),
+            __DIR__.'/../config/users.php' => config_path('users.php'),
         ], 'usim-config');
 
         $this->publishes([

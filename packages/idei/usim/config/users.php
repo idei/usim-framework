@@ -4,13 +4,16 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | Default Users Configuration
+    | Role Definitions
     |--------------------------------------------------------------------------
     |
-    | These values are used to create default users when seeding the database.
+    | Centralized role metadata used by scaffolded auth/seed flows.
+    | - default_screen: Screen class-string opened after login.
+    | - label/description: Multi-language metadata.
+    | - permissions: Default permissions for role provisioning.
+    | - seed_user: Default seeded account for the role.
     |
     */
-
     'roles' => [
         'admin' => [
             'label' => [

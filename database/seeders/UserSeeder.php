@@ -17,21 +17,32 @@ class UserSeeder extends Seeder
             return;
         }
 
-        $this->createConfigUser('ADMIN', 'admin');
-        $this->createConfigUser('USER', 'user');
+        $rolesConfig = config('users.roles', []);
+
+        foreach ($rolesConfig as $roleName => $roleMeta) {
+            if (!\is_string($roleName) || $roleName === '') {
+                continue;
+            }
+
+            $this->createConfigUser($roleName, (array) ($roleMeta['seed_user'] ?? []));
+        }
 
         User::factory(107)->create()->each(function ($user) {
             $user->assignRole('user');
         });
     }
 
-    private function createConfigUser(string $prefix, string $role)
+    private function createConfigUser(string $role, array $seedUserConfig = []): void
     {
-        $configKey = strtolower($prefix);
-        $userConfig = config("users.{$configKey}");
+        $legacyUserConfig = (array) config("users.{$role}", []);
+        $userConfig = array_merge($legacyUserConfig, $seedUserConfig);
 
-        $firstName = $userConfig['first_name'];
-        $lastName = $userConfig['last_name'];
+        if (empty($userConfig['email']) || empty($userConfig['password'])) {
+            return;
+        }
+
+        $firstName = $userConfig['first_name'] ?? ucfirst($role);
+        $lastName = $userConfig['last_name'] ?? 'User';
         $fullName = trim($firstName . ' ' . $lastName);
         $email = $userConfig['email'];
         $password = $userConfig['password'];

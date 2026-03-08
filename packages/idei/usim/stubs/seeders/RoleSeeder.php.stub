@@ -11,32 +11,38 @@ class RoleSeeder extends Seeder
 {
     public function run(): void
     {
-        if (Role::count() > 2) {
-            return;
-        }
-
         app()[PermissionRegistrar::class]->forgetCachedPermissions();
 
-        $permissions = [
-            'access-admin-panel',
-            'manage-users',
-            'edit-content',
-            'remove-content',
-            'view-reports',
-            'view-logs'
-        ];
+        $rolesConfig = config('users.roles', []);
+        $permissions = collect($rolesConfig)
+            ->pluck('permissions')
+            ->flatten()
+            ->filter(fn ($permission) => is_string($permission) && $permission !== '*' && $permission !== '')
+            ->unique()
+            ->values()
+            ->all();
 
         foreach ($permissions as $permission) {
-            Permission::create(['name' => $permission]);
+            Permission::firstOrCreate(['name' => $permission]);
         }
 
-        $roleUser = Role::create(['name' => 'user']);
-        $roleUser->givePermissionTo(['edit-content']);
+        foreach ($rolesConfig as $roleName => $roleMeta) {
+            if (!is_string($roleName) || $roleName === '') {
+                continue;
+            }
 
-        $roleVerified = Role::create(['name' => 'verified']);
-        $roleVerified->givePermissionTo(['access-admin-panel']);
+            $role = Role::firstOrCreate(['name' => $roleName]);
+            $rolePermissions = collect($roleMeta['permissions'] ?? [])
+                ->filter(fn ($permission) => is_string($permission) && $permission !== '' && $permission !== '*')
+                ->values()
+                ->all();
 
-        $roleAdmin = Role::create(['name' => 'admin']);
-        $roleAdmin->givePermissionTo(Permission::all());
+            if (in_array('*', $roleMeta['permissions'] ?? [], true)) {
+                $role->syncPermissions(Permission::all());
+                continue;
+            }
+
+            $role->syncPermissions($rolePermissions);
+        }
     }
 }

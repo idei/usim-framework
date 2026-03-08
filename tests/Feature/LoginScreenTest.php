@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\User;
+use App\UI\Screens\Admin\Dashboard;
 use App\UI\Screens\Auth\Login;
 
 it('loads login screen with expected components and actions', function () {
@@ -32,7 +33,7 @@ it('authenticates configured admin user and returns redirect contract', function
     $response = $result['response'];
 
     $response->assertOk();
-    expect($response->json('redirect'))->not->toBeNull();
+    expect($response->json('redirect'))->toBe(Dashboard::getRoutePath());
     expect($response->json('toast.type'))->toBe('success');
     $this->assertAuthenticatedAs($adminUser);
 });

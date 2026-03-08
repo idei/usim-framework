@@ -10,21 +10,27 @@ class UsimUserSeeder extends Seeder
 {
     public function run(): void
     {
-        if ({{ userModelClass }}::count() > 1) {
+        $rolesConfig = config('users.roles', []);
+
+        foreach ($rolesConfig as $roleName => $roleMeta) {
+            if (!is_string($roleName) || $roleName === '') {
+                continue;
+            }
+
+            $this->createConfigUser($roleName, (array) ($roleMeta['seed_user'] ?? []));
+        }
+    }
+
+    private function createConfigUser(string $role, array $seedUserConfig = []): void
+    {
+        $userConfig = $seedUserConfig;
+
+        if (empty($userConfig['email']) || empty($userConfig['password'])) {
             return;
         }
 
-        $this->createConfigUser('ADMIN', 'admin');
-        $this->createConfigUser('USER', 'user');
-    }
-
-    private function createConfigUser(string $prefix, string $role): void
-    {
-        $configKey = strtolower($prefix);
-        $userConfig = config("users.{$configKey}");
-
-        $firstName = $userConfig['first_name'];
-        $lastName = $userConfig['last_name'];
+        $firstName = $userConfig['first_name'] ?? ucfirst($role);
+        $lastName = $userConfig['last_name'] ?? 'User';
         $fullName = trim($firstName . ' ' . $lastName);
         $email = $userConfig['email'];
         $password = $userConfig['password'];
