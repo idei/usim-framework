@@ -576,6 +576,7 @@ abstract class AbstractUIService
             'menudropdown' => MenuDropdownBuilder::class,
             'uploader' => UploaderBuilder::class,
             'calendar' => \Idei\Usim\Services\Components\CalendarBuilder::class,
+            'carousel' => \Idei\Usim\Services\Components\CarouselBuilder::class,
             'default' => null,
         };
     }

@@ -7,6 +7,7 @@
     <title>{{ ucfirst(str_replace('-', ' ', $screen)) }}</title>
     <link rel="stylesheet" href="{{ asset('vendor/idei/usim/css/ui-components.css') }}">
     <link rel="stylesheet" href="{{ asset('vendor/idei/usim/css/uploader-component.css') }}">
+    <link rel="stylesheet" href="{{ asset('vendor/idei/usim/css/carousel-component.css') }}">
     <link rel="stylesheet" href="{{ asset('vendor/idei/usim/css/image-crop-editor.css') }}">
 </head>
 <body>
@@ -45,5 +46,6 @@
     <script src="{{ asset('vendor/idei/usim/js/image-crop-editor.js') }}"></script>
     <script src="{{ asset('vendor/idei/usim/js/uploader-component.js') }}"></script>
     <script src="{{ asset('vendor/idei/usim/js/calendar-component.js') }}"></script>
+    <script src="{{ asset('vendor/idei/usim/js/carousel-component.js') }}"></script>
 </body>
 </html>

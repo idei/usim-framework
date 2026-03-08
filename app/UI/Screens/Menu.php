@@ -9,6 +9,7 @@ use App\UI\Screens\Auth\Login;
 use App\UI\Screens\Auth\Profile;
 use App\UI\Screens\Demo\ButtonDemo;
 use App\UI\Screens\Demo\CalendarDemo;
+use App\UI\Screens\Demo\CarouselDemo;
 use App\UI\Screens\Demo\CheckboxDemo;
 use App\UI\Screens\Demo\DemoUi;
 use App\UI\Screens\Demo\FormDemo;
@@ -142,6 +143,7 @@ class Menu extends AbstractUIService
             $submenu->screen(CheckboxDemo::class, "Checkbox Demo", '☑️');
             $submenu->screen(UploaderDemo::class, "Uploader Demo", '📤');
             $submenu->screen(CalendarDemo::class, "Calendar Demo", '📅');
+            $submenu->screen(CarouselDemo::class, "Carousel Demo", '🎞️');
         }, '🎮');
     }
 

@@ -1509,6 +1509,8 @@ class ComponentFactory {
                 return window.UploaderComponent ? new window.UploaderComponent(id, config) : null;
             case 'calendar':
                 return window.CalendarComponent ? new window.CalendarComponent(id, config) : null;
+            case 'carousel':
+                return window.CarouselComponent ? new window.CarouselComponent(id, config) : null;
             case 'storage':
                 return new StorageComponent(id, config);
             default:

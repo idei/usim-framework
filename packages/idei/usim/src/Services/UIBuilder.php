@@ -15,6 +15,7 @@ use Idei\Usim\Services\Components\MenuDropdownBuilder;
 use Idei\Usim\Services\Components\CardBuilder;
 use Idei\Usim\Services\Components\UploaderBuilder;
 use Idei\Usim\Services\Components\CalendarBuilder;
+use Idei\Usim\Services\Components\CarouselBuilder;
 
 /**
  * Factory class for creating UI components
@@ -168,5 +169,16 @@ class UIBuilder
     public static function calendar(?string $name = null): CalendarBuilder
     {
         return new CalendarBuilder($name);
+    }
+
+    /**
+     * Create a new carousel component
+     *
+     * @param string|null $name The optional semantic name for the carousel
+     * @return CarouselBuilder
+     */
+    public static function carousel(?string $name = null): CarouselBuilder
+    {
+        return new CarouselBuilder($name);
     }
 }

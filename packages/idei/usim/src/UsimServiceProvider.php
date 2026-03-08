@@ -67,9 +67,5 @@ class UsimServiceProvider extends ServiceProvider
             __DIR__.'/../config/users.php' => config_path('users.php'),
         ], 'usim-config');
 
-        $this->publishes([
-            __DIR__.'/../resources/js' => public_path('js'),
-            __DIR__.'/../resources/css' => public_path('css'),
-        ], 'usim-assets');
     }
 }
