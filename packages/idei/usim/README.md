@@ -34,6 +34,7 @@ A **Server-Driven UI** framework for Laravel. Define your entire user interface 
 - [Artisan Commands](#artisan-commands)
 - [Octane / RoadRunner Support](#octane--roadrunner-support)
 - [Directory Structure](#directory-structure)
+- [Release & Upgrade Guide](docs/package-update-and-consumer-upgrade-guide.md)
 - [License](#license)
 
 ---
