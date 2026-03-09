@@ -49,3 +49,10 @@ function something()
 {
     // ..
 }
+
+if (!function_exists('uiScenario')) {
+    function uiScenario(Tests\TestCase $test, string $screenClass, array $query = []): Tests\Support\UiScenario
+    {
+        return Tests\Support\UiScenario::boot($test, $screenClass, $query);
+    }
+}

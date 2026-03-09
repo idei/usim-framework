@@ -50,8 +50,8 @@ class InstallCommand extends Command
         $this->newLine();
 
         // --- Resolve namespaces ---
-        $this->screensNamespace = config('ui-services.screens_namespace', 'App\\UI\\Screens');
-        $this->screensPath = config('ui-services.screens_path', app_path('UI/Screens'));
+        $this->screensNamespace = \config('ui-services.screens_namespace', 'App\\UI\\Screens');
+        $this->screensPath = \config('ui-services.screens_path', \app_path('UI/Screens'));
         $this->componentsNamespace = Str::beforeLast($this->screensNamespace, '\\Screens') . '\\Components';
         $this->componentsPath = Str::beforeLast($this->screensPath, '/Screens') . '/Components';
 
@@ -147,7 +147,7 @@ class InstallCommand extends Command
             '{{ userModelClass }}' => $this->resolveUserModelClass(),
         ]);
 
-        $relativePath = str_replace(base_path() . '/', '', $targetFile);
+        $relativePath = str_replace(\base_path() . '/', '', $targetFile);
         $this->line("  <fg=green>✓</> {$relativePath}");
     }
 
@@ -226,7 +226,7 @@ class InstallCommand extends Command
             '{{ componentsNamespace }}' => $namespace,
         ]);
 
-        $relativePath = str_replace(base_path() . '/', '', $targetFile);
+        $relativePath = str_replace(\base_path() . '/', '', $targetFile);
         $this->line("  <fg=green>✓</> {$relativePath}");
     }
 
@@ -236,7 +236,7 @@ class InstallCommand extends Command
 
     protected function installAuthController(): void
     {
-        $controllerPath = app_path('Http/Controllers/Api/AuthController.php');
+        $controllerPath = \app_path('Http/Controllers/Api/AuthController.php');
         $stubPath = $this->stubsPath('controllers/AuthController.php.stub');
 
         $this->publishStub($stubPath, $controllerPath, [
@@ -245,7 +245,7 @@ class InstallCommand extends Command
             '{{ userModelClass }}' => $this->resolveUserModelClass(),
         ]);
 
-        $relativePath = str_replace(base_path() . '/', '', $controllerPath);
+        $relativePath = str_replace(\base_path() . '/', '', $controllerPath);
         $this->line("  <fg=green>✓</> {$relativePath}");
     }
 
@@ -255,7 +255,7 @@ class InstallCommand extends Command
 
     protected function configureUserModel(): void
     {
-        $userModelPath = app_path('Models/User.php');
+        $userModelPath = \app_path('Models/User.php');
 
         if (!$this->files->exists($userModelPath)) {
             // No User model — publish ours
@@ -373,7 +373,7 @@ class InstallCommand extends Command
 
     protected function installMigrations(): void
     {
-        $migrationsPath = database_path('migrations');
+        $migrationsPath = \database_path('migrations');
 
         // temporary_uploads
         if (!$this->migrationExists('create_temporary_uploads_table')) {
@@ -421,7 +421,7 @@ class InstallCommand extends Command
 
     protected function migrationExists(string $migrationName): bool
     {
-        $migrationsPath = database_path('migrations');
+        $migrationsPath = \database_path('migrations');
 
         if (!$this->files->isDirectory($migrationsPath)) {
             return false;
@@ -438,7 +438,7 @@ class InstallCommand extends Command
 
     protected function installSeeders(): void
     {
-        $seedersPath = database_path('seeders');
+        $seedersPath = \database_path('seeders');
 
         // RoleSeeder
         $roleSeederPath = $seedersPath . '/RoleSeeder.php';
@@ -476,10 +476,10 @@ class InstallCommand extends Command
 
     protected function installUsersConfig(): void
     {
-        $configPath = config_path('users.php');
+        $configPath = \config_path('users.php');
         $stubPath = $this->stubsPath('config/users.php.stub');
         $this->publishStub($stubPath, $configPath, []);
-        $relativePath = str_replace(base_path() . '/', '', $configPath);
+        $relativePath = str_replace(\base_path() . '/', '', $configPath);
         $this->line("  <fg=green>✓</> {$relativePath}");
     }
 
@@ -489,7 +489,7 @@ class InstallCommand extends Command
 
     protected function installApiAuthRoutes(): void
     {
-        $targetPath = base_path('routes/api-auth.php');
+        $targetPath = \base_path('routes/api-auth.php');
         $stubPath = $this->stubsPath('routes/api-auth.php.stub');
 
         $this->publishStub($stubPath, $targetPath, [
@@ -498,7 +498,7 @@ class InstallCommand extends Command
         $this->line('  <fg=green>✓</> routes/api-auth.php');
 
         // Check if api.php already includes api-auth.php
-        $apiRoutesPath = base_path('routes/api.php');
+        $apiRoutesPath = \base_path('routes/api.php');
         if ($this->files->exists($apiRoutesPath)) {
             $contents = $this->files->get($apiRoutesPath);
             $requireStatement = "require __DIR__.'/api-auth.php';";
@@ -521,7 +521,7 @@ class InstallCommand extends Command
         $this->newLine();
         $this->info('Installing web routes...');
 
-        $webRoutesPath = base_path('routes/web.php');
+        $webRoutesPath = \base_path('routes/web.php');
         $contents = $this->files->exists($webRoutesPath) ? $this->files->get($webRoutesPath) : '';
 
         if (str_contains($contents, 'ui.catchall')) {
@@ -544,7 +544,7 @@ class InstallCommand extends Command
         $this->newLine();
         $this->info('Configuring .env...');
 
-        $envPath = base_path('.env');
+        $envPath = \base_path('.env');
 
         if (!$this->files->exists($envPath)) {
             $this->line('  <fg=yellow>!</> .env file not found, skipping');
@@ -641,13 +641,13 @@ class InstallCommand extends Command
     protected function resolveUserModelImport(): string
     {
         // Check if the app has a custom User model location
-        $authConfig = config('auth.providers.users.model', 'App\\Models\\User');
+        $authConfig = \config('auth.providers.users.model', 'App\\Models\\User');
         return $authConfig;
     }
 
     protected function resolveUserModelClass(): string
     {
         $fullClass = $this->resolveUserModelImport();
-        return class_basename($fullClass);
+        return \class_basename($fullClass);
     }
 }
