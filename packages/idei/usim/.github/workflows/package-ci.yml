@@ -1,0 +1,59 @@
+name: Package CI
+
+on:
+  push:
+    paths:
+      - 'src/**'
+      - 'config/**'
+      - 'routes/**'
+      - 'resources/**'
+      - 'stubs/**'
+      - 'composer.json'
+      - 'README.md'
+      - '.github/workflows/package-ci.yml'
+  pull_request:
+    paths:
+      - 'src/**'
+      - 'config/**'
+      - 'routes/**'
+      - 'resources/**'
+      - 'stubs/**'
+      - 'composer.json'
+      - 'README.md'
+      - '.github/workflows/package-ci.yml'
+
+jobs:
+  quality:
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        php: ['8.2', '8.3']
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          coverage: none
+
+      - name: Validate composer.json
+        working-directory: .
+        run: composer validate --strict --no-check-publish
+
+      - name: Lint PHP sources
+        run: |
+          set -e
+          find src config routes -type f -name '*.php' -print0 | xargs -0 -n1 php -l
+
+      - name: Lint generated PHP stubs
+        run: |
+          set -e
+          for file in $(find stubs -type f -name '*.stub'); do
+            cp "$file" /tmp/usim-lint.php
+            php -l /tmp/usim-lint.php
+          done

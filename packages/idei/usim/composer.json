@@ -3,12 +3,24 @@
     "description": "UI Services Implementation Model Framework",
     "type": "library",
     "license": "MIT",
+    "keywords": [
+        "laravel",
+        "sdui",
+        "server-driven-ui",
+        "framework",
+        "ui"
+    ],
+    "homepage": "https://github.com/idei/usim",
     "authors": [
         {
             "name": "Idei Team",
             "email": "dev@idei.cl"
         }
     ],
+    "support": {
+        "issues": "https://github.com/idei/usim/issues",
+        "source": "https://github.com/idei/usim"
+    },
     "require": {
         "php": "^8.2",
         "illuminate/support": "^10.0|^11.0|^12.0",
