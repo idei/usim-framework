@@ -5,21 +5,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
-    {{-- Meta tags básicas para Open Graph --}}
+    {{-- Open Graph (usado por WhatsApp, Facebook, LinkedIn) --}}
     <meta property="og:title" content="{{ ucfirst(str_replace('-', ' ', $screen)) }}" />
-    <meta property="og:description" content="Descripción de la pantalla {{ $screen }}" />
+    <meta property="og:description" content="USIM — UI Services Implementation Model {{ $screen }}" />
     <meta property="og:image" content="{{ asset('vendor/idei/usim/images/default-image.png') }}" />
+    <meta property="og:url" content="{{ url()->current() }}" />
+    <meta property="og:type" content="website" />
 
-    {{-- Meta tags para Twitter Card --}}
+    {{-- Twitter Card (fallback adicional) --}}
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="{{ ucfirst(str_replace('-', ' ', $screen)) }}" />
-    <meta name="twitter:description" content="Descripción de la pantalla {{ $screen }}" />
     <meta name="twitter:image" content="{{ asset('vendor/idei/usim/images/default-image.png') }}" />
-
-    {{-- Meta tags para WhatsApp --}}
-    <meta name="whatsapp:title" content="{{ ucfirst(str_replace('-', ' ', $screen)) }}" />
-    <meta name="whatsapp:description" content="Descripción de la pantalla {{ $screen }}" />
-    <meta name="whatsapp:image" content="{{ asset('vendor/idei/usim/images/default-image.png') }}" />
 
     <title>{{ ucfirst(str_replace('-', ' ', $screen)) }}</title>
     <link rel="stylesheet" href="{{ asset('vendor/idei/usim/css/ui-components.css') }}">
