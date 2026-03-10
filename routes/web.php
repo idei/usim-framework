@@ -88,7 +88,7 @@ Route::get('/{screen?}', function (?string $screen = 'home') {
         'screen' => $screen,
         'reset' => $reset
     ]);
-})->where('screen', '^(?!api|storage|css|js|images|telescope|_debugbar).*$')->name('ui.catchall');
+})->where('screen', '^(?!api|vendor|storage|css|js|images|telescope|_debugbar).*$')->name('ui.catchall');
 
 // Rutas para documentación
 // Route::prefix('docs')->group(function () {
