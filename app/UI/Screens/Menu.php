@@ -126,10 +126,6 @@ class Menu extends AbstractUIService
 
     private function buildDemosMenu(MenuDropdownBuilder $menu): void
     {
-        if (env('APP_DEMO_MODE', true) === false) {
-            return;
-        }
-
         $menu->separator();
         $menu->submenu('Demos', function ($submenu) {
             $submenu->screen(ButtonDemo::class, "Button Demo", '🖲️');
