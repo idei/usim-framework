@@ -41,6 +41,10 @@ class Login extends AbstractUIService
 
     protected function buildBaseUI(UIContainer $container, ...$params): void
     {
+        // If app is in demo mode, pre-fill the email and password for convenience
+        $email = env('APP_DEMO_MODE', false) === true ? $this->store_email : '';
+        $password = env('APP_DEMO_MODE', false) === true ? $this->store_password : '';
+
         $container
             ->title('User Login')
             ->maxWidth('450px')
@@ -52,7 +56,7 @@ class Login extends AbstractUIService
             UIBuilder::input('login_email')
                 ->label('Email')
                 ->placeholder('Enter your email')
-                ->value($this->store_email)
+                ->value($email)
                 ->type('email')
                 ->required(true)
                 ->width('100%')
@@ -63,7 +67,7 @@ class Login extends AbstractUIService
                 ->label('Password')
                 ->type('password')
                 ->placeholder('Enter your password')
-                ->value($this->store_password)
+                ->value($password)
                 ->required(true)
                 ->width('100%')
         );

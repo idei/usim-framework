@@ -90,7 +90,7 @@ class Dashboard extends AbstractUIService
     public function onAddUserClicked(array $params): void
     {
         RegisterDialog::open(
-            fakeData: true,
+            fakeData: env('APP_DEMO_MODE', false) === true,
             askForRole: true,
             callerServiceId: $this->getServiceComponentId()
         );
