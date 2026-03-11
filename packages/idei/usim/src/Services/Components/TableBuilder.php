@@ -2,9 +2,6 @@
 
 namespace Idei\Usim\Services\Components;
 
-use Idei\Usim\Services\DataTable\UsersDataTableModel;
-use Idei\Usim\Services\Support\UIDebug;
-use Illuminate\Support\Facades\Log;
 use Idei\Usim\Services\Contracts\UIElement;
 use Idei\Usim\Services\DataTable\AbstractDataTableModel;
 

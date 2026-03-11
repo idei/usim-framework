@@ -991,7 +991,13 @@ class TableComponent extends UIComponent {
                         oldPagination.replaceWith(newPagination);
                     }
                 } else {
-                    console.log('No pagination found in response');
+                    // No pagination data in response (e.g. same page clicked — diff was empty).
+                    // The loading state was set but will never be cleared by replaceWith, so
+                    // reset it explicitly to re-enable the buttons and hide the spinner.
+                    console.log('No pagination found in response — resetting loading state');
+                    if (paginationDiv) {
+                        this.setLoadingState(paginationDiv, false);
+                    }
                 }
 
                 // Apply all other UI updates from server
