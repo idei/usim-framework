@@ -55,7 +55,6 @@ class PrepareUIContext
                 // Desencripta el contenido utilizando la APP_KEY del proyecto
                 $decrypted = decrypt($encrypted);
                 $storage = json_decode($decrypted, true);
-                \Illuminate\Support\Facades\Log::info('UIContext Decrypted:', ['keys' => array_keys($storage ?? [])]);
 
             } catch (DecryptException $e) {
                 \Illuminate\Support\Facades\Log::warning('UIContext Decrypt Failed: ' . $e->getMessage());

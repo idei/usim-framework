@@ -2,15 +2,17 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\LogViewerController;
-use App\Http\Controllers\DocumentationController;
+// use App\Http\Controllers\DocumentationController;
 
-// Log viewer routes (MUST be before dynamic screen route)
-// Route::prefix('logs')->group(function () {
-//     Route::get('/', [LogViewerController::class, 'index'])->name('logs.index');
-//     Route::get('/content', [LogViewerController::class, 'content'])->name('logs.content');
-//     Route::get('/download', [LogViewerController::class, 'download'])->name('logs.download');
-//     Route::post('/clear', [LogViewerController::class, 'clear'])->name('logs.clear');
-// });
+if (config('app.env') === 'local') {
+    // Rutas para el visor de logs - Solo en entorno local
+    Route::prefix('logs')->group(function () {
+        Route::get('/', [LogViewerController::class, 'index'])->name('logs.index');
+        Route::get('/content', [LogViewerController::class, 'content'])->name('logs.content');
+        Route::get('/download', [LogViewerController::class, 'download'])->name('logs.download');
+        Route::post('/clear', [LogViewerController::class, 'clear'])->name('logs.clear');
+    });
+}
 
 // Screen route - Default landing screen
 // Route::get('/', function () {
@@ -81,7 +83,8 @@ use App\Http\Controllers\DocumentationController;
 // Now also handles the root path '/' defaulting to 'landing'
 // Must be the LAST route definition to not intercept other specific routes
 Route::get('/{screen?}', function (?string $screen = 'home') {
-    if ($screen === 'favicon.ico') return abort(404);
+    if ($screen === 'favicon.ico')
+        return abort(404);
 
     $reset = request()->query('reset', false);
     return view('usim::app', [

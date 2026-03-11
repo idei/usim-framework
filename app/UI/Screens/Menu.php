@@ -243,7 +243,7 @@ class Menu extends AbstractUIService
     {
         RegisterDialog::open(
             submitAction: 'submit_register',
-            fakeData: env('APP_DEMO_MODE', false) === true,
+            fakeData: config('app.env') === 'local',
             callerServiceId: $this->getServiceComponentId()
         );
     }

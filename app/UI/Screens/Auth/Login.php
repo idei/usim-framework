@@ -9,6 +9,7 @@ use Idei\Usim\Services\Components\UIContainer;
 use Idei\Usim\Services\Enums\JustifyContent;
 use Idei\Usim\Services\Enums\LayoutType;
 use Idei\Usim\Services\UIBuilder;
+// use Illuminate\Support\Facades\Log;
 
 class Login extends AbstractUIService
 {
@@ -18,14 +19,15 @@ class Login extends AbstractUIService
     ) {
     }
 
-    protected string $store_email = 'admin@gmail.com';
-    protected string $store_password = 'CHANGE_ME';
+    protected string $store_email = '';
+    protected string $store_password = '';
     protected string $store_token = '';
     protected LabelBuilder $lbl_login_result;
 
     public static function authorize(): bool
     {
-        // This screen should only be accessible to guests (not authenticated users)
+        // This screen should only be accessible to guests,
+        // i.e. users who are not authenticated.
         return !self::requireAuth();
     }
 
@@ -41,9 +43,18 @@ class Login extends AbstractUIService
 
     protected function buildBaseUI(UIContainer $container, ...$params): void
     {
-        // If app is in demo mode, pre-fill the email and password for convenience
-        $email = env('APP_DEMO_MODE', false) === true ? $this->store_email : '';
-        $password = env('APP_DEMO_MODE', false) === true ? $this->store_password : '';
+        $email = '';
+        $password = '';
+
+        if (config('app.env') === 'local') {
+            // Pre-fill credentials in local environment for easier testing
+            $email = empty($this->store_email)
+                ? config('users.roles.admin.seed_user.email')
+                : $this->store_email;
+            $password = empty($this->store_password)
+                ? config('users.roles.admin.seed_user.password')
+                : $this->store_password;
+        }
 
         $container
             ->title('User Login')
