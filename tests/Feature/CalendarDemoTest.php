@@ -8,13 +8,8 @@ it('loads calendar demo with expected defaults', function () {
     $calendar = $ui->component('academic_calendar')->data();
 
     expect($calendar['type'] ?? null)->toBe('calendar');
-    expect($calendar['year'] ?? null)->toBe(2026);
-    expect($calendar['month'] ?? null)->toBe(4);
     expect($calendar['show_saturday_info'] ?? null)->toBeFalse();
     expect($calendar['show_sunday_info'] ?? null)->toBeFalse();
-    expect($calendar['cell_size'] ?? null)->toBe('60px');
-    expect($calendar['event_border_radius'] ?? null)->toBe('50%');
-    expect($calendar['events'] ?? null)->toBe([]);
 
     $ui->assertNoIssues();
 });

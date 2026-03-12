@@ -4,11 +4,11 @@ namespace Tests\Support;
 
 final class UiComponentRef
 {
-    private \Tests\Support\UiScenario $scenario;
+    private UiScenario $scenario;
 
     private string $name;
 
-    public function __construct(\Tests\Support\UiScenario $scenario, string $name)
+    public function __construct(UiScenario $scenario, string $name)
     {
         $this->scenario = $scenario;
         $this->name = $name;

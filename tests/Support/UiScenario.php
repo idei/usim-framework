@@ -17,7 +17,7 @@ final class UiScenario
 
     private TestCase $test;
 
-    private \Tests\Support\UiMemoryRenderer $memory;
+    private UiMemoryRenderer $memory;
 
     private string $clientId;
 
@@ -33,7 +33,7 @@ final class UiScenario
     private function __construct(TestCase $test)
     {
         $this->test = $test;
-        $this->memory = new \Tests\Support\UiMemoryRenderer();
+        $this->memory = new UiMemoryRenderer();
         $this->clientId = (string) Str::uuid();
         $this->screenClass = '';
         $this->screenQuery = [];
@@ -71,13 +71,13 @@ final class UiScenario
         return $this->memory->opaqueUsim();
     }
 
-    public function component(string $name): \Tests\Support\UiComponentRef
+    public function component(string $name): UiComponentRef
     {
         if ($this->memory->componentByName($name) === null) {
             throw new RuntimeException("Component not found by name: {$name}");
         }
 
-        return new \Tests\Support\UiComponentRef($this, $name);
+        return new UiComponentRef($this, $name);
     }
 
     public function click(string $componentName, array $parameters = []): TestResponse

@@ -50,6 +50,7 @@ it('submits register modal and sends verification notification', function () {
         'email' => $email,
         'password' => 'password123',
         'password_confirmation' => 'password123',
+        'accept_terms' => true
     ]));
 
     $submitResponse->assertOk();
@@ -87,6 +88,7 @@ it('verifies the registered user after opening the email verification link', fun
         'email' => $email,
         'password' => 'password123',
         'password_confirmation' => 'password123',
+        'accept_terms' => true
     ]))->assertOk();
 
     /** @var User|null $user */
