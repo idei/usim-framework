@@ -81,7 +81,7 @@ class FormDemo extends AbstractUIService
     public function onSubmitForm(array $params): void
     {
         // Get input values from frontend parameters (sent by collectContextValues)
-        $name  = trim($params['input_name'] ?? '');
+        $name = trim($params['input_name'] ?? '');
         $email = trim($params['input_email'] ?? '');
 
         // Clear previous errors
@@ -104,7 +104,7 @@ class FormDemo extends AbstractUIService
         if (empty($email)) {
             $this->input_email->error('Email is required');
             $hasErrors = true;
-        } elseif (! filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
             $this->input_email->error('Email is invalid');
             $hasErrors = true;
         }
@@ -114,6 +114,7 @@ class FormDemo extends AbstractUIService
             $this->lbl_result
                 ->text('❌ Please fix the errors above')
                 ->style('danger');
+            $this->toast('Please correct the errors in the form', 'error');
         } else {
             $this->lbl_result
                 ->text("✅ Form submitted successfully!\n\nName: {$name}\nEmail: {$email}")
