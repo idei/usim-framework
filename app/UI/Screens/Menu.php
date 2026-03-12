@@ -248,11 +248,21 @@ class Menu extends AbstractUIService
         );
     }
 
+    public function onOpenTermsAndConditions(array $params): void
+    {
+        $this->redirect('terms');
+    }
+
     /**
      * Handler to submit register (receives form data)
      */
     public function onSubmitRegister(array $params): void
     {
+        if ($params['accept_terms'] == false) {
+            $this->toast('You must accept the terms and conditions to register.', type: 'error');
+            return;
+        }
+
         $response = $this->registerService->register(
             name: $params['name'] ?? '',
             email: $params['email'] ?? '',

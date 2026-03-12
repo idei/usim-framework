@@ -120,6 +120,24 @@ class RegisterDialog
                     ->label('Send verification email')
                     ->checked(true)
             );
+
+        } else {
+
+            // Add Checkbox for accepting terms and conditions
+            $registerContainer->add(
+                UIBuilder::checkbox('accept_terms')
+                    ->label('I accept the terms and conditions')
+                    ->checked(false)
+                    ->required(true)
+            );
+
+            // The link to the page with terms and conditions (a button with link style)
+            $registerContainer->add(
+                UIBuilder::button('btn_terms')
+                    ->label('Read terms and conditions')
+                    ->style('link')
+                    ->action('open_terms_and_conditions')
+            );
         }
 
         // Buttons container

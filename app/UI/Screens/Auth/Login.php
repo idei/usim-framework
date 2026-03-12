@@ -108,6 +108,14 @@ class Login extends AbstractUIService
                 ->action('submit_login')
         );
 
+        // Add checkbox for "Remember Me"
+        $buttonsContainer->add(
+            UIBuilder::input('remember')
+                ->type('checkbox')
+                ->label('Remember Me')
+                ->style('self-center') // Align checkbox with buttons
+        );
+
         $container->add($buttonsContainer);
 
         // Forgot Password Link

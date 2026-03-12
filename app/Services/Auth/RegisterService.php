@@ -57,6 +57,7 @@ class RegisterService
             'name' => $name,
             'email' => $email,
             'password' => Hash::make($password),
+            'terms_accepted_at' => now(), // Store the timestamp when terms were accepted
         ]);
 
         // Assign roles
