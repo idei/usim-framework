@@ -1,8 +1,9 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\LogViewerController;
 use App\Http\Controllers\DocumentationController;
+use App\Http\Controllers\LogViewerController;
+use App\Http\Controllers\TermsController;
+use Illuminate\Support\Facades\Route;
 
 if (config('app.env') === 'local') {
     // Rutas para el visor de logs - Solo en entorno local
@@ -27,7 +28,10 @@ Route::get('/{screen?}', function (?string $screen = 'home') {
         'screen' => $screen,
         'reset' => $reset
     ]);
-})->where('screen', '^(?!api|docs|vendor|storage|css|js|images|telescope|_debugbar).*$')->name('ui.catchall');
+})->where('screen', '^(?!api|docs|terms|vendor|storage|css|js|images|telescope|_debugbar).*$')->name('ui.catchall');
+
+// Terms of Service Route
+Route::get('/terms', TermsController::class)->name('terms');
 
 // Documentation Routes
 Route::prefix('docs')->group(function () {
