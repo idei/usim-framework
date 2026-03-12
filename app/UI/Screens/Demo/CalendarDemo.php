@@ -19,22 +19,27 @@ class CalendarDemo extends AbstractUIService
             ->shadow(0)
             ->padding('30px');
 
-        $container->add(
-            UIBuilder::calendar('academic_calendar')
-                ->year(2026)
-                ->month(4)
-                ->showSaturdayInfo(false)
-                ->showSundayInfo(false)
-                ->cellSize('60px')
-                ->eventBorderRadius('50%')
-                ->numberStyle([
-                    'font_size' => '13px',
-                    'background_color' => '#ffffff',
-                    'color' => '#333333',
-                    'box_shadow' => 'none'
-                ])
-                ->borderRadius('2px')
-        );
+        $this->academic_calendar = UIBuilder::calendar('academic_calendar')
+            ->year(2026)
+            ->month(date('n'))
+            ->showSaturdayInfo(false)
+            ->showSundayInfo(false)
+            ->cellSize('60px')
+            ->eventBorderRadius('50%')
+            ->numberStyle([
+                'font_size' => '13px',
+                'background_color' => '#ffffff',
+                'color' => '#333333',
+                'box_shadow' => 'none'
+            ])
+            ->borderRadius('2px');
+
+        $this->onMonthChanged([
+            'year' => 2026,
+            'month' => date('n')
+        ]);
+
+        $container->add($this->academic_calendar);
     }
 
     /**

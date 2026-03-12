@@ -30,7 +30,7 @@ class Dashboard extends AbstractUIService
 
     public static function getMenuLabel(): string
     {
-        return 'Admin Dashboard';
+        return 'Dashboard';
     }
 
     public static function getMenuIcon(): ?string

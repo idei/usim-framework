@@ -90,7 +90,7 @@ it('shows profile, logout and admin dashboard items after admin login', function
     $mainMenu = $ui->component('main_menu')->data();
     $userMenu = $ui->component('user_menu')->data();
 
-    expect(menuItemsContainLabel($mainMenu['items'] ?? [], 'Admin Dashboard'))->toBeTrue();
+    expect(menuItemsContainLabel($mainMenu['items'] ?? [], 'Dashboard'))->toBeTrue();
     expect(menuItemsContainLabel($userMenu['items'] ?? [], 'Profile'))->toBeTrue();
     expect(menuItemsContainLabel($userMenu['items'] ?? [], 'Logout'))->toBeTrue();
 
@@ -105,7 +105,7 @@ it('shows profile/logout and hides admin dashboard after regular user login', fu
     $mainMenu = $ui->component('main_menu')->data();
     $userMenu = $ui->component('user_menu')->data();
 
-    expect(menuItemsContainLabel($mainMenu['items'] ?? [], 'Admin Dashboard'))->toBeFalse();
+    expect(menuItemsContainLabel($mainMenu['items'] ?? [], 'Dashboard'))->toBeFalse();
     expect(menuItemsContainLabel($userMenu['items'] ?? [], 'Profile'))->toBeTrue();
     expect(menuItemsContainLabel($userMenu['items'] ?? [], 'Logout'))->toBeTrue();
 
