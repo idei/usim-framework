@@ -1,0 +1,1 @@
+The only purpose of this file is to ensure that the `tests/Unit` directory is included in the repository, as Git does not track empty directories. This allows us to maintain the structure of our test suite and easily add unit tests in the future.
