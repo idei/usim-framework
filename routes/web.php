@@ -2,7 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\LogViewerController;
-// use App\Http\Controllers\DocumentationController;
+use App\Http\Controllers\DocumentationController;
 
 if (config('app.env') === 'local') {
     // Rutas para el visor de logs - Solo en entorno local
@@ -27,23 +27,23 @@ Route::get('/{screen?}', function (?string $screen = 'home') {
         'screen' => $screen,
         'reset' => $reset
     ]);
-})->where('screen', '^(?!api|vendor|storage|css|js|images|telescope|_debugbar).*$')->name('ui.catchall');
+})->where('screen', '^(?!api|docs|vendor|storage|css|js|images|telescope|_debugbar).*$')->name('ui.catchall');
 
-// Rutas para documentación
-// Route::prefix('docs')->group(function () {
-//     // Índice principal de documentación
-//     Route::get('/', [DocumentationController::class, 'docsIndex'])->name('docs.index');
+// Documentation Routes
+Route::prefix('docs')->group(function () {
+    // Índice principal de documentación
+    Route::get('/', [DocumentationController::class, 'docsIndex'])->name('docs.index');
 
-//     // Documentación principal (3 archivos)
-//     Route::get('/api-complete', [DocumentationController::class, 'apiCompleteDocs'])->name('docs.api-complete');
-//     Route::get('/implementation-summary', [DocumentationController::class, 'implementationSummaryDocs'])->name('docs.implementation-summary');
-//     Route::get('/technical-components', [DocumentationController::class, 'technicalComponentsDocs'])->name('docs.technical-components');
+    // Documentación principal (3 archivos)
+    Route::get('/api-complete', [DocumentationController::class, 'apiCompleteDocs'])->name('docs.api-complete');
+    Route::get('/implementation-summary', [DocumentationController::class, 'implementationSummaryDocs'])->name('docs.implementation-summary');
+    Route::get('/technical-components', [DocumentationController::class, 'technicalComponentsDocs'])->name('docs.technical-components');
 
-//     // Documentación especializada (2 archivos)
-//     Route::get('/email-customization', [DocumentationController::class, 'emailCustomizationDocs'])->name('docs.email-customization');
-//     Route::get('/file-upload-examples', [DocumentationController::class, 'fileUploadExamplesDocs'])->name('docs.file-upload-examples');
+    // Documentación especializada (2 archivos)
+    Route::get('/email-customization', [DocumentationController::class, 'emailCustomizationDocs'])->name('docs.email-customization');
+    Route::get('/file-upload-examples', [DocumentationController::class, 'fileUploadExamplesDocs'])->name('docs.file-upload-examples');
 
-//     // Rutas de compatibilidad con enlaces antiguos (redirects)
-//     Route::get('/api-client', fn() => redirect()->route('docs.api-complete'))->name('docs.api-client.redirect');
-//     Route::get('/css-structure', fn() => redirect()->route('docs.technical-components'))->name('docs.css-structure.redirect');
-// });
+    // Rutas de compatibilidad con enlaces antiguos (redirects)
+    Route::get('/api-client', fn() => redirect()->route('docs.api-complete'))->name('docs.api-client.redirect');
+    Route::get('/css-structure', fn() => redirect()->route('docs.technical-components'))->name('docs.css-structure.redirect');
+});
