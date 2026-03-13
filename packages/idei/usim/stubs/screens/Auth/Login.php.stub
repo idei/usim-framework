@@ -15,7 +15,7 @@ class Login extends AbstractUIService
 {
     public function __construct(
         protected LoginService $loginService,
-        protected AuthSessionService $authSessionService,
+        protected AuthSessionService $authSessionService
     ) {
     }
 
@@ -26,6 +26,8 @@ class Login extends AbstractUIService
 
     public static function authorize(): bool
     {
+        // This screen should only be accessible to guests,
+        // i.e. users who are not authenticated.
         return !self::requireAuth();
     }
 
@@ -41,12 +43,17 @@ class Login extends AbstractUIService
 
     protected function buildBaseUI(UIContainer $container, ...$params): void
     {
-        $email = $this->store_email;
-        $password = $this->store_password;
+        $email = '';
+        $password = '';
 
         if (config('app.env') === 'local') {
-            $email = $email !== '' ? $email : (string) config('users.roles.admin.seed_user.email', '');
-            $password = $password !== '' ? $password : (string) config('users.roles.admin.seed_user.password', '');
+            // Pre-fill credentials in local environment for easier testing
+            $email = empty($this->store_email)
+                ? config('users.roles.admin.seed_user.email')
+                : $this->store_email;
+            $password = empty($this->store_password)
+                ? config('users.roles.admin.seed_user.password')
+                : $this->store_password;
         }
 
         $container
@@ -101,27 +108,20 @@ class Login extends AbstractUIService
                 ->action('submit_login')
         );
 
-        $buttonsContainer->add(
-            UIBuilder::input('remember')
-                ->type('checkbox')
-                ->label('Remember Me')
-                ->style('self-center')
-        );
-
         $container->add($buttonsContainer);
 
         $container->add(
-            UIBuilder::container('forgot_pwd_container')
-                ->layout(LayoutType::HORIZONTAL)
-                ->justifyContent('center')
-                ->padding('15px 0 0 0')
-                ->add(
-                    UIBuilder::button('btn_forgot_password')
-                        ->label('Forgot your password?')
-                        ->style('text-blue-600 hover:text-blue-800 bg-transparent border-0')
-                        ->action('navigate_forgot_password')
-                )
+            UIBuilder::button('btn_forgot_password')
+                ->label('¿Olvidaste tu contraseña?')
+                ->style('link')
+                ->action('navigate_forgot_password')
+                ->width('100%')
         );
+    }
+
+    protected function postLoadUI(): void
+    {
+        $this->lbl_login_result->text('')->style('');
     }
 
     public function onNavigateForgotPassword(array $params): void
@@ -133,20 +133,20 @@ class Login extends AbstractUIService
     {
         $email = $params['login_email'] ?? '';
         $password = $params['login_password'] ?? '';
-        $remember = (bool) ($params['remember'] ?? false);
+        $remember = $params['remember'] ?? false;
 
-        $response = $this->loginService->login($email, $password, $remember);
+        $response = $this->loginService->login($email, $password, (bool) $remember);
 
         $message = $response['message'] ?? 'Login failed.';
         $status = $response['status'] ?? 'error';
         $this->toast($message, $status);
         $this->lbl_login_result->text($message)->style($status);
 
-        if ($status === 'error') {
+        if ($response['status'] === 'error') {
             return;
         }
 
-        $this->store_token = (string) data_get($response, 'data.token', '');
+        $this->store_token = $response['data']['token'] ?? '';
         $this->store_email = $email;
         $this->store_password = $password;
 
