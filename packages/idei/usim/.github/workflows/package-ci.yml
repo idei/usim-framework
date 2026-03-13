@@ -53,7 +53,8 @@ jobs:
       - name: Lint generated PHP stubs
         run: |
           set -e
-          for file in $(find stubs -type f -name '*.stub'); do
-            cp "$file" /tmp/usim-lint.php
+          for file in $(find stubs -type f -name '*.php.stub'); do
+            # Replace template placeholders so the stub can be parsed as valid PHP.
+            sed -E 's/\{\{[[:space:]]*[^}]+[[:space:]]*\}\}/App\\\\StubPlaceholder/g' "$file" > /tmp/usim-lint.php
             php -l /tmp/usim-lint.php
           done
