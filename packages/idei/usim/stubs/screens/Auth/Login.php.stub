@@ -16,6 +16,12 @@ use Idei\Usim\Services\Support\UIStateManager;
 
 class Login extends AbstractUIService
 {
+   public function __construct(
+        protected LoginService $loginService,
+        protected AuthSessionService $authSessionService
+    ) {
+    }
+
     protected string $store_email = '';
     protected string $store_password = '';
     protected string $store_token = '';
@@ -23,6 +29,8 @@ class Login extends AbstractUIService
 
     public static function authorize(): bool
     {
+        // This screen should only be accessible to guests,
+        // i.e. users who are not authenticated.
         return !self::requireAuth();
     }
 
@@ -38,6 +46,19 @@ class Login extends AbstractUIService
 
     protected function buildBaseUI(UIContainer $container, ...$params): void
     {
+        $email = '';
+        $password = '';
+
+        if (config('app.env') === 'local') {
+            // Pre-fill credentials in local environment for easier testing
+            $email = empty($this->store_email)
+                ? config('users.roles.admin.seed_user.email')
+                : $this->store_email;
+            $password = empty($this->store_password)
+                ? config('users.roles.admin.seed_user.password')
+                : $this->store_password;
+        }
+
         $container
             ->title('User Login')
             ->maxWidth('450px')
@@ -49,7 +70,7 @@ class Login extends AbstractUIService
             UIBuilder::input('login_email')
                 ->label('Email')
                 ->placeholder('Enter your email')
-                ->value($this->store_email)
+                ->value($email)
                 ->type('email')
                 ->required(true)
                 ->width('100%')
@@ -60,7 +81,7 @@ class Login extends AbstractUIService
                 ->label('Password')
                 ->type('password')
                 ->placeholder('Enter your password')
-                ->value($this->store_password)
+                ->value($password)
                 ->required(true)
                 ->width('100%')
         );
@@ -90,6 +111,14 @@ class Login extends AbstractUIService
                 ->action('submit_login')
         );
 
+        // Add checkbox for "Remember Me"
+        $buttonsContainer->add(
+            UIBuilder::input('remember')
+                ->type('checkbox')
+                ->label('Remember Me')
+                ->style('self-center') // Align checkbox with buttons
+        );
+
         $container->add($buttonsContainer);
 
         // Forgot Password Link
@@ -100,8 +129,8 @@ class Login extends AbstractUIService
                 ->padding('15px 0 0 0')
                 ->add(
                     UIBuilder::button('btn_forgot_password')
-                        ->label('Forgot your password?')
-                        ->style('text-blue-600 hover:text-blue-800 bg-transparent border-0')
+                        ->label('¿Olvidaste tu contraseña?')
+                        ->style('text-blue-600 hover:text-blue-800 bg-transparent border-0') // Style as link
                         ->action('navigate_forgot_password')
                 )
         );
@@ -118,11 +147,7 @@ class Login extends AbstractUIService
         $password = $params['login_password'] ?? '';
         $remember = $params['remember'] ?? false;
 
-        $response = $this->httpPost('api.login', [
-            'email' => $email,
-            'password' => $password,
-            'remember' => $remember,
-        ]);
+        $response = $this->loginService->login($email, $password, (bool) $remember);
 
         $message = $response['message'] ?? 'Login failed.';
         $status = $response['status'] ?? 'error';
@@ -137,26 +162,13 @@ class Login extends AbstractUIService
         $this->store_email = $email;
         $this->store_password = $password;
 
-        // Store token in UIStateManager for HttpClient
-        UIStateManager::setAuthToken($this->store_token);
+        $user = $response['user'] ?? null;
+        if (!$user) {
+            $this->toast('Unable to resolve authenticated user.', 'error');
+            return;
+        }
 
-        $user = {{ userModelClass }}::where('email', $email)->first();
-        Auth::login($user);
-
-        event(new UsimEvent('logged_user', [
-            'user' => $user,
-            'timestamp' => now(),
-        ]));
-
-        $this->redirect();
-    }
-
-    private function httpPost(string $route, array $data): array
-    {
-        $url = route($route, [], false);
-        $baseUrl = config('usim.api_url', config('app.url'));
-        $fullUrl = rtrim($baseUrl, '/') . '/' . ltrim($url, '/');
-        $response = Http::post($fullUrl, $data);
-        return $response->json();
+        $redirectTo = $this->authSessionService->start($user, $this->store_token);
+        $this->redirect($redirectTo);
     }
 }
