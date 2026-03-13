@@ -6,6 +6,8 @@ The format is based on Keep a Changelog, and this project follows Semantic Versi
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-03-13
+
 ### Added
 - Service-layer scaffolding stubs for auth and user flows: `App\Services\Auth\AuthSessionService`, `LoginService`, `RegisterService`, `PasswordService`, and `App\Services\User\UserService`.
 - Test scaffolding stubs under `stubs/tests` including `Pest.php`, `TestCase.php`, UI test support helpers, and feature test templates for home/menu, login, password recovery, and auth event contracts.
