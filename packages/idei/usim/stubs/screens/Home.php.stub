@@ -2,10 +2,10 @@
 
 namespace {{ namespace }};
 
-use Idei\Usim\Services\UIBuilder;
-use Idei\Usim\Services\Enums\LayoutType;
 use Idei\Usim\Services\AbstractUIService;
 use Idei\Usim\Services\Components\UIContainer;
+use Idei\Usim\Services\Enums\LayoutType;
+use Idei\Usim\Services\UIBuilder;
 
 class Home extends AbstractUIService
 {
@@ -18,7 +18,6 @@ class Home extends AbstractUIService
             ->alignItems('center')
             ->padding(20);
 
-        // Hero Section
         $container->add(
             UIBuilder::label('welcome')
                 ->text('🚀 Welcome to USIM UI Framework')
@@ -33,7 +32,6 @@ class Home extends AbstractUIService
                 ->center()
         );
 
-        // Features Section
         $container->add(
             UIBuilder::label('features_title')
                 ->text('✨ Key Features')
@@ -41,11 +39,10 @@ class Home extends AbstractUIService
                 ->center()
         );
 
-        // Features Cards Container
         $featuresContainer = UIBuilder::container('features')
             ->layout(LayoutType::HORIZONTAL)
             ->padding(20)
-            ->gap("20px")
+            ->gap('20px')
             ->shadow(false)
             ->justifyContent('center')
             ->alignItems('center');
@@ -53,7 +50,8 @@ class Home extends AbstractUIService
         $featuresContainer->add(
             UIBuilder::card('components_card')
                 ->title('🎨 Modern Components')
-                ->description('Complete system with buttons, forms, tables, modals and more. Professional and responsive design.')
+                ->description('Complete system with buttons, forms, tables, modals, uploaders, and more. Professional and responsive design.')
+                ->image('https://picsum.photos/350/200?random=1', 'top', 'Modern UI components')
                 ->theme('primary')
                 ->elevation('medium')
         );
@@ -61,7 +59,8 @@ class Home extends AbstractUIService
         $featuresContainer->add(
             UIBuilder::card('easy_card')
                 ->title('⚡ Easy to Use')
-                ->description('Fluent API with method chaining. Build complex interfaces with simple, readable code.')
+                ->description('Fluent API with method chaining. Build complex interfaces with simple, readable PHP code.')
+                ->image('https://picsum.photos/350/200?random=2', 'top', 'Easy to use API')
                 ->theme('success')
                 ->elevation('medium')
         );
@@ -69,14 +68,14 @@ class Home extends AbstractUIService
         $featuresContainer->add(
             UIBuilder::card('custom_card')
                 ->title('🎯 Customizable')
-                ->description('Flexible styles, themes, sizes and advanced configurations for each component.')
+                ->description('Flexible styles, themes, sizes, and advanced configuration for each component in your app.')
+                ->image('https://picsum.photos/350/200?random=3', 'top', 'Customizable UI components')
                 ->theme('warning')
                 ->elevation('medium')
         );
 
         $container->add($featuresContainer);
 
-        // Getting Started Section
         $container->add(
             UIBuilder::label('getting_started')
                 ->text('🚀 Get Started Now!')
@@ -87,7 +86,7 @@ class Home extends AbstractUIService
         $container->add(
             UIBuilder::card('getting_started_card')
                 ->title('Your USIM App is Ready')
-                ->description('Start building your screens in app/UI/Screens. Each PHP class becomes a full UI screen.')
+                ->description('Start building your screens in app/UI/Screens. Each PHP class becomes a complete UI screen rendered by USIM.')
                 ->style('elevated')
                 ->size('large')
         );

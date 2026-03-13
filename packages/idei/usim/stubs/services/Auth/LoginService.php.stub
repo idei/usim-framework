@@ -1,0 +1,65 @@
+<?php
+
+namespace {{ namespace }};
+
+use {{ userModel }};
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Validator;
+
+class LoginService
+{
+    public function __construct(
+        protected AuthSessionService $authSessionService,
+    ) {
+    }
+
+    public function login(string $email, string $password, bool $remember = false): array
+    {
+        $validator = Validator::make([
+            'email' => $email,
+            'password' => $password,
+            'remember' => $remember,
+        ], [
+            'email' => 'required|email',
+            'password' => 'required',
+            'remember' => 'boolean',
+        ]);
+
+        if ($validator->fails()) {
+            return [
+                'status' => 'error',
+                'message' => 'Validation errors',
+                'errors' => $validator->errors()->toArray(),
+            ];
+        }
+
+        $user = {{ userModelClass }}::where('email', $email)->first();
+
+        if (!$user || !Hash::check($password, $user->password)) {
+            return [
+                'status' => 'error',
+                'message' => 'Invalid credentials',
+                'errors' => ['email' => ['The provided credentials are incorrect.']],
+            ];
+        }
+
+        $token = $this->authSessionService->issueToken($user, $remember);
+
+        return [
+            'status' => 'success',
+            'message' => 'Authentication successful',
+            'data' => [
+                'user' => [
+                    'id' => $user->id,
+                    'name' => $user->name,
+                    'email' => $user->email,
+                    'roles' => $user->getRoleNames()->toArray(),
+                    'permissions' => $user->getAllPermissions()->pluck('name')->toArray(),
+                ],
+                'token' => $token,
+                'remember' => $remember,
+            ],
+            'user' => $user,
+        ];
+    }
+}

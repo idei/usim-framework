@@ -1,0 +1,51 @@
+<?php
+
+namespace {{ namespace }};
+
+use {{ userModel }};
+use Illuminate\Auth\Events\Verified;
+use Illuminate\Contracts\Auth\MustVerifyEmail;
+
+class UserService
+{
+    public function verifyEmail(int $id, string $hash): array
+    {
+        $user = {{ userModelClass }}::find($id);
+
+        if (!$user) {
+            return [
+                'success' => false,
+                'status' => 'error',
+                'message' => 'User not found.',
+            ];
+        }
+
+        if (sha1($user->getEmailForVerification()) !== $hash) {
+            return [
+                'success' => false,
+                'status' => 'error',
+                'message' => 'Invalid verification link.',
+            ];
+        }
+
+        if ($user->hasVerifiedEmail()) {
+            return [
+                'success' => true,
+                'status' => 'already_verified',
+                'message' => 'Your email has already been verified.',
+            ];
+        }
+
+        $user->markEmailAsVerified();
+
+        if ($user instanceof MustVerifyEmail) {
+            event(new Verified($user));
+        }
+
+        return [
+            'success' => true,
+            'status' => 'verified',
+            'message' => 'Your email has been verified successfully.',
+        ];
+    }
+}

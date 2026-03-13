@@ -6,6 +6,17 @@ The format is based on Keep a Changelog, and this project follows Semantic Versi
 
 ## [Unreleased]
 
+### Added
+- Service-layer scaffolding stubs for auth and user flows: `App\Services\Auth\AuthSessionService`, `LoginService`, `RegisterService`, `PasswordService`, and `App\Services\User\UserService`.
+- Test scaffolding stubs under `stubs/tests` including `Pest.php`, `TestCase.php`, UI test support helpers, and feature test templates for home/menu, login, password recovery, and auth event contracts.
+- Full preset installer publishing for test scaffolding files into the consumer `tests/` directory.
+
+### Changed
+- Refreshed core scaffolding stubs to match the current working app architecture: `Home`, `Menu`, auth screens, `AuthController`, `User` model, and web catch-all route stubs.
+- Installer full preset now publishes service stubs before auth screens to keep generated code dependencies coherent.
+- Seeder scaffolding updated from `UsimUserSeeder` to `UserSeeder`, including installer references and post-install guidance.
+- User model scaffolding no longer injects the `UsimUser` trait automatically; default model stub now uses explicit notification methods for reset/verification flows.
+
 ## [0.2.0] - 2026-03-12
 
 ### Added

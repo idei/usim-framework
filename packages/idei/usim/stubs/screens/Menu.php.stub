@@ -2,9 +2,11 @@
 
 namespace {{ namespace }};
 
+use App\Services\Auth\AuthSessionService;
+use App\Services\Auth\RegisterService;
+use {{ componentsNamespace }}\Modals\RegisterDialog;
 use {{ screensNamespace }}\Auth\Login;
 use {{ screensNamespace }}\Auth\Profile;
-use {{ componentsNamespace }}\Modals\RegisterDialog;
 use Idei\Usim\Services\AbstractUIService;
 use Idei\Usim\Services\Components\MenuDropdownBuilder;
 use Idei\Usim\Services\Components\UIContainer;
@@ -13,18 +15,18 @@ use Idei\Usim\Services\Enums\DialogType;
 use Idei\Usim\Services\Enums\JustifyContent;
 use Idei\Usim\Services\Enums\LayoutType;
 use Idei\Usim\Services\Modals\ConfirmDialogService;
-use Idei\Usim\Services\Support\HttpClient;
 use Idei\Usim\Services\UIBuilder;
 use Idei\Usim\Services\Upload\UploadService;
 use Illuminate\Support\Facades\Auth;
 
-/**
- * Menu Service
- *
- * Builds the main navigation menu for screens
- */
 class Menu extends AbstractUIService
 {
+    public function __construct(
+        protected RegisterService $registerService,
+        protected AuthSessionService $authSessionService,
+    ) {
+    }
+
     protected MenuDropdownBuilder $main_menu;
     protected MenuDropdownBuilder $user_menu;
     protected string $store_token = '';
@@ -53,16 +55,14 @@ class Menu extends AbstractUIService
         if (Auth::check()) {
             $user = Auth::user();
             $this->updateUserMenuTrigger($user);
-            // Rebuild main menu to check permissions for screen() items
             $this->main_menu->clearItems();
             $this->populateMainMenu($this->main_menu);
-
-            // Rebuild user menu to check permissions for items
             $this->user_menu->clearItems();
             $this->populateUserMenu($this->user_menu);
-        } else {
-            $this->user_menu->trigger("⚙️");
+            return;
         }
+
+        $this->user_menu->trigger('⚙️');
     }
 
     private function updateUserMenuTrigger($user): void
@@ -72,23 +72,25 @@ class Menu extends AbstractUIService
             $this->user_menu->triggerImage(
                 imageUrl: $imageUrl,
                 alt: $user->name,
-                label: $user->name
+                label: $user->name,
             );
-        } else {
-            $this->user_menu->trigger("👤 $user->name");
+
+            return;
         }
+
+        $this->user_menu->trigger("👤 $user->name");
     }
 
     private function buildLeftMenu(): MenuDropdownBuilder
     {
-        $main_menu = UIBuilder::menuDropdown('main_menu')
+        $mainMenu = UIBuilder::menuDropdown('main_menu')
             ->trigger()
             ->position('bottom-left')
             ->width(200);
 
-        $this->populateMainMenu($main_menu);
+        $this->populateMainMenu($mainMenu);
 
-        return $main_menu;
+        return $mainMenu;
     }
 
     private function populateMainMenu(MenuDropdownBuilder $menu): void
@@ -100,12 +102,14 @@ class Menu extends AbstractUIService
 
     private function buildUserMenu(): MenuDropdownBuilder
     {
-        $user_menu = UIBuilder::menuDropdown('user_menu')
+        $userMenu = UIBuilder::menuDropdown('user_menu')
             ->position('bottom-right')
             ->width(180);
-        $user_menu->trigger("⚙️");
-        $this->populateUserMenu($user_menu);
-        return $user_menu;
+
+        $userMenu->trigger('⚙️');
+        $this->populateUserMenu($userMenu);
+
+        return $userMenu;
     }
 
     private function populateUserMenu(MenuDropdownBuilder $menu): void
@@ -119,15 +123,15 @@ class Menu extends AbstractUIService
     public function onLoggedUser(array $params): void
     {
         $user = Auth::user();
-        if ($user) {
-            $this->updateUserMenuTrigger($user);
-
-            $this->user_menu->clearItems();
-            $this->populateUserMenu($this->user_menu);
-
-            $this->main_menu->clearItems();
-            $this->populateMainMenu($this->main_menu);
+        if (!$user) {
+            return;
         }
+
+        $this->updateUserMenuTrigger($user);
+        $this->user_menu->clearItems();
+        $this->populateUserMenu($this->user_menu);
+        $this->main_menu->clearItems();
+        $this->populateMainMenu($this->main_menu);
     }
 
     public function onUpdatedProfile(array $params): void
@@ -144,16 +148,15 @@ class Menu extends AbstractUIService
         if ($user && $user->currentAccessToken()) {
             $user->currentAccessToken()->delete();
         }
+
         Auth::logout();
 
         $this->store_token = '';
         $this->store_password = '';
 
-        $this->user_menu->trigger("⚙️");
-
+        $this->user_menu->trigger('⚙️');
         $this->user_menu->clearItems();
         $this->populateUserMenu($this->user_menu);
-
         $this->main_menu->clearItems();
         $this->populateMainMenu($this->main_menu);
 
@@ -163,13 +166,11 @@ class Menu extends AbstractUIService
 
     public function onShowAboutInfo(array $params): void
     {
-        $serviceId = $this->getServiceComponentId();
-
         ConfirmDialogService::open(
             type: DialogType::INFO,
-            title: "About USIM Framework",
-            message: "USIM UI Component System v1.0\n\nBuilt with Laravel and modular components.\nSupports: Tables, Modals, Forms, Menus and more.",
-            callerServiceId: $serviceId
+            title: 'About USIM Framework',
+            message: "USIM UI Component System v1.0\n\nBuilt with Laravel and modular components.\nSupports tables, modals, forms, menus and more.",
+            callerServiceId: $this->getServiceComponentId(),
         );
     }
 
@@ -177,49 +178,78 @@ class Menu extends AbstractUIService
     {
         RegisterDialog::open(
             submitAction: 'submit_register',
-            fakeData: false,
-            callerServiceId: $this->getServiceComponentId()
+            fakeData: config('app.env') === 'local',
+            callerServiceId: $this->getServiceComponentId(),
         );
     }
 
     public function onSubmitRegister(array $params): void
     {
-        $params['roles'] = ['user'];
-        $params['send_verification_email'] = true;
-        $response = HttpClient::post('api.register', $params);
-        $status = $response['status'];
-        $message = $response['message'];
+        $response = $this->registerService->register(
+            name: $params['name'] ?? '',
+            email: $params['email'] ?? '',
+            password: $params['password'] ?? '',
+            passwordConfirmation: $params['password_confirmation'] ?? '',
+            roles: (array) ($params['roles'] ?? ['user']),
+            sendVerificationEmail: (bool) ($params['send_verification_email'] ?? true),
+        );
 
-        if ($status === 'success') {
-            $this->toast($message, 'success');
-            $this->closeModal();
-        } else {
-            $this->toast($message, 'error');
-
-            $errors = $response['errors'] ?? [];
-            if (!empty($errors)) {
-                $modalUpdates = [];
-                foreach ($errors as $fieldName => $messages) {
-                    $modalUpdates[$fieldName] = [
-                        'error' => implode(' ', $messages)
-                    ];
-                }
-                $this->updateModal($modalUpdates);
-            }
+        if (($response['status'] ?? 'error') !== 'success') {
+            $this->handleRegisterError($response);
+            return;
         }
+
+        $this->handleRegisterSuccess($response);
+    }
+
+    private function handleRegisterSuccess(array $response): void
+    {
+        $message = (string) ($response['message'] ?? 'User registered successfully');
+        $this->toast($message, 'success');
+
+        $user = $response['user'] ?? null;
+        if (!$user) {
+            $this->closeModal();
+            return;
+        }
+
+        $token = data_get($response, 'data.token');
+        $redirectTo = $this->authSessionService->start($user, is_string($token) ? $token : null);
+        $this->redirect($redirectTo);
+    }
+
+    private function handleRegisterError(array $response): void
+    {
+        $message = (string) ($response['message'] ?? 'Validation errors');
+        $this->toast($message, 'error');
+        $this->updateModalValidationErrors((array) ($response['errors'] ?? []));
+    }
+
+    private function updateModalValidationErrors(array $errors): void
+    {
+        if ($errors === []) {
+            return;
+        }
+
+        $modalUpdates = [];
+        foreach ($errors as $fieldName => $messages) {
+            $modalUpdates[$fieldName] = [
+                'error' => implode(' ', (array) $messages),
+            ];
+        }
+
+        $this->updateModal($modalUpdates);
     }
 
     public function onLogoutUser(array $params): void
     {
-        $serviceId = $this->getServiceComponentId();
-
         ConfirmDialogService::open(
             type: DialogType::CONFIRM,
-            title: "Logout",
-            message: "Are you sure you want to log out?",
+            title: 'Logout',
+            message: 'Are you sure you want to log out?',
             confirmAction: 'confirm_logout',
             cancelAction: 'cancel_logout',
-            callerServiceId: $serviceId
+            callerServiceId: $this->getServiceComponentId(),
         );
     }
 

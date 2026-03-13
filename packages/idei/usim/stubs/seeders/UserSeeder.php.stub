@@ -3,13 +3,17 @@
 namespace Database\Seeders;
 
 use {{ userModel }};
-use Illuminate\Support\Str;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Str;
 
-class UsimUserSeeder extends Seeder
+class UserSeeder extends Seeder
 {
     public function run(): void
     {
+        if ({{ userModelClass }}::count() > 1) {
+            return;
+        }
+
         $rolesConfig = config('users.roles', []);
 
         foreach ($rolesConfig as $roleName => $roleMeta) {
@@ -23,7 +27,8 @@ class UsimUserSeeder extends Seeder
 
     private function createConfigUser(string $role, array $seedUserConfig = []): void
     {
-        $userConfig = $seedUserConfig;
+        $legacyUserConfig = (array) config("users.{$role}", []);
+        $userConfig = array_merge($legacyUserConfig, $seedUserConfig);
 
         if (empty($userConfig['email']) || empty($userConfig['password'])) {
             return;
@@ -32,16 +37,14 @@ class UsimUserSeeder extends Seeder
         $firstName = $userConfig['first_name'] ?? ucfirst($role);
         $lastName = $userConfig['last_name'] ?? 'User';
         $fullName = trim($firstName . ' ' . $lastName);
-        $email = $userConfig['email'];
-        $password = $userConfig['password'];
 
         $user = {{ userModelClass }}::firstOrCreate(
-            ['email' => $email],
+            ['email' => $userConfig['email']],
             [
                 'name' => $fullName,
                 'email_verified_at' => now(),
                 'remember_token' => Str::random(10),
-                'password' => bcrypt($password)
+                'password' => bcrypt($userConfig['password']),
             ]
         );
 
