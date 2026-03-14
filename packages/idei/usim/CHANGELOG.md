@@ -6,6 +6,11 @@ The format is based on Keep a Changelog, and this project follows Semantic Versi
 
 ## [Unreleased]
 
+## [0.3.1] - 2026-03-13
+
+### Fixed
+- Package CI stub lint now validates only `*.php.stub` files and replaces template placeholders before running `php -l`.
+
 ## [0.3.0] - 2026-03-13
 
 ### Added
