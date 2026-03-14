@@ -4,9 +4,10 @@ use Illuminate\Support\Facades\Route;
 use Idei\Usim\Http\Controllers\UIEventController;
 use Idei\Usim\Http\Controllers\UploadController;
 use Idei\Usim\Http\Controllers\UIController;
+use Idei\Usim\Http\Middleware\PrepareUIContext;
 
 // USIM routes require 'web' middleware (session) to maintain UI state
-Route::middleware('web')->prefix('api')->group(function () {
+Route::middleware(['web', PrepareUIContext::class])->prefix('api')->group(function () {
     // UI Screen Loader - Namespaced to /ui/ to avoid collision with REST API
     Route::get('/ui/{screen}', [UIController::class, 'show'])
         ->name('api.screen')
@@ -20,6 +21,6 @@ Route::middleware('web')->prefix('api')->group(function () {
     Route::delete('/upload/temporary/{id}', [UploadController::class, 'deleteTemporary'])->name('upload.temporary.delete');
 });
 
-Route::middleware('web')->group(function () {
+Route::middleware(['web', PrepareUIContext::class])->group(function () {
     Route::get('/files/{path}', [UploadController::class, 'serveFile'])->where('path', '.*')->name('files.serve');
 });

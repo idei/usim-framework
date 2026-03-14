@@ -54,7 +54,8 @@ class PrepareUIContext
             try {
                 // Desencripta el contenido utilizando la APP_KEY del proyecto
                 $decrypted = decrypt($encrypted);
-                $storage = json_decode($decrypted, true);
+                $decodedStorage = json_decode($decrypted, true);
+                $storage = is_array($decodedStorage) ? $decodedStorage : [];
 
             } catch (DecryptException $e) {
                 \Illuminate\Support\Facades\Log::warning('UIContext Decrypt Failed: ' . $e->getMessage());
@@ -62,15 +63,12 @@ class PrepareUIContext
             }
         }
 
-        // Si el contenido es válido, exponerlo y setear token Bearer
-        if (is_array($storage)) {
-            $request->merge(['storage' => $storage]);
+        $request->merge(['storage' => $storage]);
 
-            if (!empty($storage['store_token'])) {
-                $store_token = $storage['store_token'];
-                $request->headers->set('Authorization', 'Bearer ' . $store_token);
-                UIStateManager::setAuthToken($store_token);
-            }
+        if (!empty($storage['store_token'])) {
+            $store_token = $storage['store_token'];
+            $request->headers->set('Authorization', 'Bearer ' . $store_token);
+            UIStateManager::setAuthToken($store_token);
         }
     }
 

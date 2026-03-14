@@ -572,6 +572,12 @@ class InstallCommand extends Command
         $webRoutesPath = \base_path('routes/web.php');
         $contents = $this->files->exists($webRoutesPath) ? $this->files->get($webRoutesPath) : '';
 
+        [$contents, $disabledDefaultWelcomeRoute] = $this->disableDefaultWelcomeRoute($contents);
+        if ($disabledDefaultWelcomeRoute) {
+            $this->files->put($webRoutesPath, $contents);
+            $this->line('  <fg=green>✓</> Default welcome route disabled in routes/web.php');
+        }
+
         if (str_contains($contents, 'ui.catchall')) {
             $this->line('  <fg=blue>→</> Catch-all route already exists in routes/web.php');
             return;
@@ -581,6 +587,42 @@ class InstallCommand extends Command
 
         $this->files->append($webRoutesPath, "\n" . $stubContent);
         $this->line('  <fg=green>✓</> Catch-all route added to routes/web.php');
+    }
+
+    /**
+     * Disable Laravel default welcome route to avoid conflicts with USIM catch-all route.
+     *
+     * @return array{0: string, 1: bool}
+     */
+    protected function disableDefaultWelcomeRoute(string $contents): array
+    {
+        $patterns = [
+            '/Route::get\(\s*["\']\/["\']\s*,\s*function\s*\(\)\s*\{\s*return\s+view\(\s*["\']welcome["\']\s*\)\s*;\s*\}\s*\)\s*;\s*/s',
+            '/Route::view\(\s*["\']\/["\']\s*,\s*["\']welcome["\']\s*\)\s*;\s*/s',
+        ];
+
+        $disabled = false;
+
+        foreach ($patterns as $pattern) {
+            $contents = preg_replace_callback(
+                $pattern,
+                static function (array $matches) use (&$disabled): string {
+                    $disabled = true;
+
+                    $lines = preg_split('/\R/', trim($matches[0])) ?: [];
+                    $commentedRoute = implode("\n", array_map(
+                        static fn(string $line): string => '// ' . $line,
+                        $lines
+                    ));
+
+                    return "// Disabled by usim:install to allow USIM catch-all route.\n{$commentedRoute}\n\n";
+                },
+                $contents,
+                1
+            ) ?? $contents;
+        }
+
+        return [$contents, $disabled];
     }
 
     // =========================================================================
@@ -648,9 +690,8 @@ class InstallCommand extends Command
         $steps = [];
 
         if ($this->preset === 'full') {
-            $steps[] = 'Run <fg=yellow>php artisan migrate</> to create database tables';
-            $steps[] = 'Run <fg=yellow>php artisan db:seed</> to create default users (configure .env first)';
             $steps[] = 'Add <fg=yellow>RoleSeeder::class</> and <fg=yellow>UserSeeder::class</> to your DatabaseSeeder';
+            $steps[] = 'Run <fg=yellow>php artisan migrate --seed --force</> to create database tables and seed';
         }
 
         $steps[] = 'Run <fg=yellow>php artisan usim:discover</> after creating new screens';

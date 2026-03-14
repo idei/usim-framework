@@ -6,6 +6,13 @@ The format is based on Keep a Changelog, and this project follows Semantic Versi
 
 ## [Unreleased]
 
+## [0.3.2] - 2026-03-13
+
+### Fixed
+- USIM routes now always include `PrepareUIContext` middleware from the package to avoid host-app bootstrap coupling.
+- Initial UI loads now normalize missing or invalid storage payloads to an empty array, preventing `UIChangesCollector::setStorage()` type errors.
+- `usim:install` now disables the default Laravel `/` welcome route when adding the USIM catch-all route to avoid route conflicts.
+
 ## [0.3.1] - 2026-03-13
 
 ### Fixed

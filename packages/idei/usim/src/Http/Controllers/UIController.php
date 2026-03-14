@@ -29,7 +29,7 @@ class UIController extends Controller
         $parent = request()->query('parent', "main");
         $allQueryParams = request()->query();
 
-        $incomingStorage = request()->storage;
+        $incomingStorage = request()->storage ?? [];
 
         // Convert path to namespace class name
         // Supports nested folders: 'admin/dashboard' -> 'Admin\Dashboard'

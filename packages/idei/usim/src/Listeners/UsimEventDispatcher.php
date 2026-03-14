@@ -14,7 +14,7 @@ class UsimEventDispatcher
         $methodName = 'on' . str_replace('_', '', ucwords($event->eventName, '_'));
 
         $rootComponents  = UIStateManager::getRootComponents();
-        $incomingStorage = request()->storage;
+        $incomingStorage = request()->storage ?? [];
 
         foreach ($rootComponents as $parent => $rootComponentId) {
             $serviceClass = UIIdGenerator::getContextFromId($rootComponentId);
