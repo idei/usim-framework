@@ -13,8 +13,9 @@
     "homepage": "https://github.com/idei/usim",
     "authors": [
         {
-            "name": "Idei Team",
-            "email": "dev@idei.cl"
+            "name": "Instituto de Informática - FCEFyN - UNSJ",
+            "email": "idei.cefn@gmail.com",
+            "homepage": "https://idei.unsj.edu.ar"
         }
     ],
     "support": {
