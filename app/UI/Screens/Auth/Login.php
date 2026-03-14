@@ -108,29 +108,21 @@ class Login extends AbstractUIService
                 ->action('submit_login')
         );
 
-        // Add checkbox for "Remember Me"
-        $buttonsContainer->add(
-            UIBuilder::input('remember')
-                ->type('checkbox')
-                ->label('Remember Me')
-                ->style('self-center') // Align checkbox with buttons
-        );
-
         $container->add($buttonsContainer);
 
-        // Forgot Password Link
+        // Forgot Password Link left-aligned below the buttons and filled with the full width of the container
         $container->add(
-            UIBuilder::container('forgot_pwd_container')
-                ->layout(LayoutType::HORIZONTAL)
-                ->justifyContent('center')
-                ->padding('15px 0 0 0')
-                ->add(
-                    UIBuilder::button('btn_forgot_password')
-                        ->label('¿Olvidaste tu contraseña?')
-                        ->style('text-blue-600 hover:text-blue-800 bg-transparent border-0') // Style as link
-                        ->action('navigate_forgot_password')
-                )
+            UIBuilder::button('btn_forgot_password')
+                ->label('¿Olvidaste tu contraseña?')
+                ->style('link')
+                ->action('navigate_forgot_password')
+                ->width('100%')
         );
+    }
+
+    protected function postLoadUI(): void
+    {
+        $this->lbl_login_result->text('')->style('');
     }
 
     public function onNavigateForgotPassword(array $params): void

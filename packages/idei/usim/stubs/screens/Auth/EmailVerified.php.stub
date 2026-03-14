@@ -2,14 +2,20 @@
 
 namespace {{ namespace }};
 
-use Idei\Usim\Services\UIBuilder;
-use Idei\Usim\Services\Enums\LayoutType;
+use App\Services\User\UserService;
 use Idei\Usim\Services\AbstractUIService;
-use Idei\Usim\Services\Support\HttpClient;
 use Idei\Usim\Services\Components\UIContainer;
+use Idei\Usim\Services\Enums\LayoutType;
+use Idei\Usim\Services\UIBuilder;
+use Illuminate\Support\Facades\Log;
 
 class EmailVerified extends AbstractUIService
 {
+    public function __construct(
+        protected UserService $userService,
+    ) {
+    }
+
     protected string $verificationStatus = 'loading';
     protected string $errorMessage = '';
 
@@ -28,7 +34,7 @@ class EmailVerified extends AbstractUIService
             case 'loading':
                 $this->buildLoadingUI($container);
                 break;
-            case 'success':
+            case 'verified':
                 $this->buildSuccessUI($container);
                 break;
             case 'already_verified':
@@ -57,39 +63,30 @@ class EmailVerified extends AbstractUIService
             return;
         }
 
+        $expires = (int) request('expires', 0);
+        if ($expires > 0 && now()->timestamp > $expires) {
+            $this->errorMessage = 'The verification link has expired. Please request a new one.';
+            $this->verificationStatus = 'error';
+            $this->container->clear();
+            $this->buildBaseUI($this->container);
+            return;
+        }
+
         try {
-            $signedApiUrl = \Illuminate\Support\Facades\URL::temporarySignedRoute(
-                'verification.verify',
-                now()->addMinutes(60),
-                ['id' => $id, 'hash' => $hash]
-            );
+            $result = $this->userService->verifyEmail((int) $id, (string) $hash);
 
-            $parsed = parse_url($signedApiUrl);
-            $queryParams = [];
-            if (isset($parsed['query'])) {
-                parse_str($parsed['query'], $queryParams);
-            }
-
-            $response = HttpClient::get(
-                'verification.verify',
-                queryParams: $queryParams,
-                routeParams: ['id' => $id, 'hash' => $hash]
-            );
-
-            $status = $response['status'] ?? 'error';
-            $message = $response['message'] ?? 'Unknown error';
-
-            if ($status === 'success') {
-                if (str_contains($message, 'already verified')) {
-                    $this->verificationStatus = 'already_verified';
-                } else {
-                    $this->verificationStatus = 'success';
-                }
+            if (!($result['success'] ?? false)) {
+                $this->errorMessage = (string) ($result['message'] ?? 'Could not verify email.');
+                $this->verificationStatus = (string) ($result['status'] ?? 'error');
             } else {
-                $this->errorMessage = $message;
-                $this->verificationStatus = 'error';
+                $this->verificationStatus = (string) ($result['status'] ?? 'verified');
             }
         } catch (\Exception $e) {
+            Log::error('Email verification failed', [
+                'message' => $e->getMessage(),
+                'exception' => get_class($e),
+            ]);
+
             $this->errorMessage = 'Could not verify email. The link may have expired or be invalid.';
             $this->verificationStatus = 'error';
         }

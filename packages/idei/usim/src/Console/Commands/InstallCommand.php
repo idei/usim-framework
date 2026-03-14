@@ -158,6 +158,10 @@ class InstallCommand extends Command
     protected function installFullPreset(): void
     {
         $this->newLine();
+        $this->info('Installing Auth services...');
+        $this->installAuthServices();
+
+        $this->newLine();
         $this->info('Installing Auth screens...');
 
         // Auth Screens
@@ -202,6 +206,11 @@ class InstallCommand extends Command
         $this->newLine();
         $this->info('Installing API auth routes...');
         $this->installApiAuthRoutes();
+
+        // Tests scaffolding
+        $this->newLine();
+        $this->info('Publishing test stubs...');
+        $this->installTestStubs();
     }
 
     // =========================================================================
@@ -224,6 +233,75 @@ class InstallCommand extends Command
 
         $this->publishStub($stubPath, $targetFile, [
             '{{ componentsNamespace }}' => $namespace,
+        ]);
+
+        $relativePath = str_replace(\base_path() . '/', '', $targetFile);
+        $this->line("  <fg=green>✓</> {$relativePath}");
+    }
+
+    protected function installAuthServices(): void
+    {
+        $this->installService('Auth/AuthSessionService.php.stub', 'AuthSessionService.php', 'Auth');
+        $this->installService('Auth/LoginService.php.stub', 'LoginService.php', 'Auth');
+        $this->installService('Auth/RegisterService.php.stub', 'RegisterService.php', 'Auth');
+        $this->installService('Auth/PasswordService.php.stub', 'PasswordService.php', 'Auth');
+        $this->installService('User/UserService.php.stub', 'UserService.php', 'User');
+    }
+
+    protected function installService(string $stubName, string $targetName, ?string $subdirectory = null): void
+    {
+        $stubPath = $this->stubsPath("services/{$stubName}");
+
+        $targetDir = $subdirectory
+            ? \app_path('Services/' . $subdirectory)
+            : \app_path('Services');
+
+        $targetFile = $targetDir . '/' . $targetName;
+
+        $namespace = $subdirectory
+            ? 'App\\Services\\' . str_replace('/', '\\', $subdirectory)
+            : 'App\\Services';
+
+        $this->publishStub($stubPath, $targetFile, [
+            '{{ namespace }}' => $namespace,
+            '{{ userModel }}' => $this->resolveUserModelImport(),
+            '{{ userModelClass }}' => $this->resolveUserModelClass(),
+        ]);
+
+        $relativePath = str_replace(\base_path() . '/', '', $targetFile);
+        $this->line("  <fg=green>✓</> {$relativePath}");
+    }
+
+    protected function installTestStubs(): void
+    {
+        $this->installTestFile('Pest.php.stub', 'Pest.php');
+        $this->installTestFile('TestCase.php.stub', 'TestCase.php');
+
+        $this->installTestFile('Support/UiScreenTestHelpers.php.stub', 'UiScreenTestHelpers.php', 'Support');
+        $this->installTestFile('Support/UiMemoryRenderer.php.stub', 'UiMemoryRenderer.php', 'Support');
+        $this->installTestFile('Support/UiComponentRef.php.stub', 'UiComponentRef.php', 'Support');
+        $this->installTestFile('Support/UiScenario.php.stub', 'UiScenario.php', 'Support');
+        $this->installTestFile('Support/UiPayloadHelpers.php.stub', 'UiPayloadHelpers.php', 'Support');
+
+        $this->installTestFile('Feature/HomeMenuScreenTest.php.stub', 'HomeMenuScreenTest.php', 'Feature');
+        $this->installTestFile('Feature/LoginScreenTest.php.stub', 'LoginScreenTest.php', 'Feature');
+        $this->installTestFile('Feature/PasswordRecoveryUiTest.php.stub', 'PasswordRecoveryUiTest.php', 'Feature');
+        $this->installTestFile('Feature/UiAuthEventsContractTest.php.stub', 'UiAuthEventsContractTest.php', 'Feature');
+    }
+
+    protected function installTestFile(string $stubName, string $targetName, ?string $subdirectory = null): void
+    {
+        $stubPath = $this->stubsPath("tests/{$stubName}");
+
+        $targetDir = $subdirectory
+            ? \base_path('tests/' . $subdirectory)
+            : \base_path('tests');
+
+        $targetFile = $targetDir . '/' . $targetName;
+
+        $this->publishStub($stubPath, $targetFile, [
+            '{{ userModel }}' => $this->resolveUserModelImport(),
+            '{{ userModelClass }}' => $this->resolveUserModelClass(),
         ]);
 
         $relativePath = str_replace(\base_path() . '/', '', $targetFile);
@@ -263,44 +341,14 @@ class InstallCommand extends Command
             $this->publishStub($stubPath, $userModelPath, [
                 '{{ namespace }}' => 'App\\Models',
             ]);
-            $this->line('  <fg=green>✓</> User model created with USIM traits');
+            $this->line('  <fg=green>✓</> User model created with USIM auth defaults');
             return;
         }
 
-        // User model exists — check if it already has our traits
+        // User model exists — ensure the auth-related traits/interfaces are present.
         $contents = $this->files->get($userModelPath);
 
         $modified = false;
-
-        // Check for UsimUser trait
-        if (!str_contains($contents, 'UsimUser')) {
-            // Add import
-            if (!str_contains($contents, 'Idei\\Usim\\Traits\\UsimUser')) {
-                $contents = preg_replace(
-                    '/(use Illuminate\\\\Foundation\\\\Auth\\\\User as Authenticatable;)/',
-                    "$1\nuse Idei\\Usim\\Traits\\UsimUser;",
-                    $contents
-                );
-            }
-
-            // Add trait usage
-            $contents = preg_replace(
-                '/(use\s+HasFactory\s*,\s*Notifiable)/',
-                '$1, UsimUser',
-                $contents
-            );
-
-            // Fallback: if the pattern above didn't match, try simpler
-            if (!str_contains($contents, 'UsimUser')) {
-                $contents = preg_replace(
-                    '/(use\s+HasFactory)/',
-                    '$1, UsimUser',
-                    $contents
-                );
-            }
-
-            $modified = true;
-        }
 
         // Check for HasApiTokens
         if (!str_contains($contents, 'HasApiTokens')) {
@@ -361,7 +409,7 @@ class InstallCommand extends Command
 
         if ($modified) {
             $this->files->put($userModelPath, $contents);
-            $this->line('  <fg=green>✓</> User model updated with USIM traits');
+            $this->line('  <fg=green>✓</> User model updated with USIM auth defaults');
         } else {
             $this->line('  <fg=blue>→</> User model already configured');
         }
@@ -446,25 +494,25 @@ class InstallCommand extends Command
         $this->publishStub($stubPath, $roleSeederPath, []);
         $this->line('  <fg=green>✓</> RoleSeeder');
 
-        // UsimUserSeeder
-        $userSeederPath = $seedersPath . '/UsimUserSeeder.php';
-        $stubPath = $this->stubsPath('seeders/UsimUserSeeder.php.stub');
+        // UserSeeder
+        $userSeederPath = $seedersPath . '/UserSeeder.php';
+        $stubPath = $this->stubsPath('seeders/UserSeeder.php.stub');
         $this->publishStub($stubPath, $userSeederPath, [
             '{{ userModel }}' => $this->resolveUserModelImport(),
             '{{ userModelClass }}' => $this->resolveUserModelClass(),
         ]);
-        $this->line('  <fg=green>✓</> UsimUserSeeder');
+        $this->line('  <fg=green>✓</> UserSeeder');
 
         // Suggest adding to DatabaseSeeder
         $databaseSeederPath = $seedersPath . '/DatabaseSeeder.php';
         if ($this->files->exists($databaseSeederPath)) {
             $contents = $this->files->get($databaseSeederPath);
-            if (!str_contains($contents, 'RoleSeeder') && !str_contains($contents, 'UsimUserSeeder')) {
+            if (!str_contains($contents, 'RoleSeeder') && !str_contains($contents, 'UserSeeder')) {
                 $this->newLine();
                 $this->warn('  Add to your DatabaseSeeder::run():');
                 $this->line('    $this->call([');
                 $this->line('        RoleSeeder::class,');
-                $this->line('        UsimUserSeeder::class,');
+                $this->line('        UserSeeder::class,');
                 $this->line('    ]);');
             }
         }
@@ -547,8 +595,15 @@ class InstallCommand extends Command
         $envPath = \base_path('.env');
 
         if (!$this->files->exists($envPath)) {
-            $this->line('  <fg=yellow>!</> .env file not found, skipping');
-            return;
+            $envExamplePath = \base_path('.env.example');
+
+            if ($this->files->exists($envExamplePath)) {
+                $envPath = $envExamplePath;
+                $this->line('  <fg=blue>→</> .env not found, using .env.example');
+            } else {
+                $this->line('  <fg=yellow>!</> .env and .env.example not found, skipping');
+                return;
+            }
         }
 
         $envContent = $this->files->get($envPath);
@@ -595,7 +650,7 @@ class InstallCommand extends Command
         if ($this->preset === 'full') {
             $steps[] = 'Run <fg=yellow>php artisan migrate</> to create database tables';
             $steps[] = 'Run <fg=yellow>php artisan db:seed</> to create default users (configure .env first)';
-            $steps[] = 'Add <fg=yellow>RoleSeeder::class</> and <fg=yellow>UsimUserSeeder::class</> to your DatabaseSeeder';
+            $steps[] = 'Add <fg=yellow>RoleSeeder::class</> and <fg=yellow>UserSeeder::class</> to your DatabaseSeeder';
         }
 
         $steps[] = 'Run <fg=yellow>php artisan usim:discover</> after creating new screens';

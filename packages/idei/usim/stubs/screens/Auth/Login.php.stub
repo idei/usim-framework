@@ -2,21 +2,18 @@
 
 namespace {{ namespace }};
 
-use {{ userModel }};
-use Idei\Usim\Events\UsimEvent;
-use Idei\Usim\Services\UIBuilder;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Http;
-use Idei\Usim\Services\Enums\LayoutType;
+use App\Services\Auth\AuthSessionService;
+use App\Services\Auth\LoginService;
 use Idei\Usim\Services\AbstractUIService;
-use Idei\Usim\Services\Enums\JustifyContent;
-use Idei\Usim\Services\Components\UIContainer;
 use Idei\Usim\Services\Components\LabelBuilder;
-use Idei\Usim\Services\Support\UIStateManager;
+use Idei\Usim\Services\Components\UIContainer;
+use Idei\Usim\Services\Enums\JustifyContent;
+use Idei\Usim\Services\Enums\LayoutType;
+use Idei\Usim\Services\UIBuilder;
 
 class Login extends AbstractUIService
 {
-   public function __construct(
+    public function __construct(
         protected LoginService $loginService,
         protected AuthSessionService $authSessionService
     ) {
@@ -111,29 +108,20 @@ class Login extends AbstractUIService
                 ->action('submit_login')
         );
 
-        // Add checkbox for "Remember Me"
-        $buttonsContainer->add(
-            UIBuilder::input('remember')
-                ->type('checkbox')
-                ->label('Remember Me')
-                ->style('self-center') // Align checkbox with buttons
-        );
-
         $container->add($buttonsContainer);
 
-        // Forgot Password Link
         $container->add(
-            UIBuilder::container('forgot_pwd_container')
-                ->layout(LayoutType::HORIZONTAL)
-                ->justifyContent('center')
-                ->padding('15px 0 0 0')
-                ->add(
-                    UIBuilder::button('btn_forgot_password')
-                        ->label('¿Olvidaste tu contraseña?')
-                        ->style('text-blue-600 hover:text-blue-800 bg-transparent border-0') // Style as link
-                        ->action('navigate_forgot_password')
-                )
+            UIBuilder::button('btn_forgot_password')
+                ->label('¿Olvidaste tu contraseña?')
+                ->style('link')
+                ->action('navigate_forgot_password')
+                ->width('100%')
         );
+    }
+
+    protected function postLoadUI(): void
+    {
+        $this->lbl_login_result->text('')->style('');
     }
 
     public function onNavigateForgotPassword(array $params): void
