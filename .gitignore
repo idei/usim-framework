@@ -26,3 +26,4 @@ rr
 .rr.yaml
 .ssh
 /dev
+/.laravel-template
