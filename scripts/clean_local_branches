@@ -9,3 +9,6 @@ for branch in $(git branch --format='%(refname:short)'); do
     fi
 done
 echo "Limpieza de ramas locales completada."
+
+#TODO: Considerar que la rama local puede estar en otro repositorio remoto, no necesariamente el origin.
+# En ese caso, se debería verificar si la rama remota existe en el repositorio remoto correspondiente antes de eliminar la rama local.
