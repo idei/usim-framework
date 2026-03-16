@@ -56,16 +56,19 @@ class InstallCommand extends Command
         // === STEP 3: Install auth scaffolding, controller, model, and supporting files ===
         $this->installAuthScaffolding();
 
-        // === STEP 4: Install web routes (catch-all) ===
+        // === STEP 4: Install email and page views ===
+        $this->installViews();
+
+        // === STEP 5: Install web routes (catch-all) ===
         $this->installWebRoutes();
 
-        // === STEP 5: Append .env variables ===
+        // === STEP 6: Append .env variables ===
         $this->appendEnvVariables();
 
-        // === STEP 6: Run usim:discover ===
+        // === STEP 7: Run usim:discover ===
         $this->call('usim:discover');
 
-        // === STEP 7: Summary ===
+        // === STEP 8: Summary ===
         $this->newLine();
         $this->info('USIM installed successfully!');
         $this->newLine();
@@ -100,6 +103,29 @@ class InstallCommand extends Command
         ]);
 
         $this->line('  <fg=green>✓</> Assets published');
+    }
+
+    // =========================================================================
+    // Views Installation
+    // =========================================================================
+
+    protected function installViews(): void
+    {
+        $this->newLine();
+        $this->info('Publishing email and page views...');
+
+        $views = [
+            'emails/verify-email.blade.php' => \resource_path('views/emails/verify-email.blade.php'),
+            'emails/reset-password.blade.php' => \resource_path('views/emails/reset-password.blade.php'),
+            'terms.blade.php' => \resource_path('views/terms.blade.php'),
+        ];
+
+        foreach ($views as $stub => $target) {
+            $stubPath = $this->stubsPath("views/{$stub}");
+            $this->publishStub($stubPath, $target, []);
+            $relativePath = str_replace(\base_path() . '/', '', $target);
+            $this->line("  <fg=green>✓</> {$relativePath}");
+        }
     }
 
     // =========================================================================
@@ -172,6 +198,12 @@ class InstallCommand extends Command
         $this->newLine();
         $this->info('Configuring User model...');
         $this->configureUserModel();
+
+        // EventServiceProvider
+        $this->newLine();
+        $this->info('Installing EventServiceProvider...');
+        $this->installEventServiceProvider();
+        $this->registerBootstrapProviders();
 
         // Migrations
         $this->newLine();
@@ -393,11 +425,133 @@ class InstallCommand extends Command
             $modified = true;
         }
 
+        // Check for CanResetPassword interface
+        if (!str_contains($contents, 'CanResetPassword')) {
+            if (!str_contains($contents, 'Illuminate\\Contracts\\Auth\\CanResetPassword')) {
+                $contents = preg_replace(
+                    '/(use Illuminate\\\\Foundation\\\\Auth\\\\User as Authenticatable;)/',
+                    "use Illuminate\\Contracts\\Auth\\CanResetPassword;\n$1",
+                    $contents
+                );
+            }
+
+            // Append to existing implements clause or add new one
+            if (str_contains($contents, 'implements ')) {
+                $contents = preg_replace(
+                    '/(implements\s+[\w\\\\,\s]+?)(?=\s*\{)/',
+                    '$1, CanResetPassword',
+                    $contents
+                );
+            } else {
+                $contents = preg_replace(
+                    '/(extends\s+Authenticatable)(?!\s+implements)/',
+                    '$1 implements CanResetPassword',
+                    $contents
+                );
+            }
+
+            $modified = true;
+        }
+
+        // Check for UsimUser trait (ignore commented-out lines)
+        if (!preg_match('/^\s*(?!\/\/)[^\n]*UsimUser/m', $contents)) {
+            if (!preg_match('/^\s*(?!\/\/)\s*use\s+Idei\\\\Usim\\\\Traits\\\\UsimUser/m', $contents)) {
+                $contents = preg_replace(
+                    '/(use Illuminate\\\\Foundation\\\\Auth\\\\User as Authenticatable;)/',
+                    "use Idei\\Usim\\Traits\\UsimUser;\n$1",
+                    $contents
+                );
+            }
+
+            $contents = preg_replace(
+                '/(use\s+HasFactory)/',
+                '$1, UsimUser',
+                $contents
+            );
+
+            $modified = true;
+        }
+
+        // Check for terms_accepted_at in $fillable
+        if (!str_contains($contents, 'terms_accepted_at')) {
+            // Add to fillable array
+            $contents = preg_replace(
+                '/(protected\s+\$fillable\s*=\s*\[)([^\]]*)(\])/s',
+                "$1$2    'terms_accepted_at',\n    $3",
+                $contents
+            );
+
+            // Add cast — try casts() method first, then $casts property
+            if (str_contains($contents, 'function casts()')) {
+                $contents = preg_replace(
+                    "/(function\s+casts\s*\\(\\)[^{]*\\{[^}]*)('password'\s*=>\s*'hashed',)/",
+                    "$1$2\n            'terms_accepted_at' => 'datetime',",
+                    $contents
+                );
+                // Fallback: insert before closing brace of casts()
+                if (!str_contains($contents, "'terms_accepted_at' => 'datetime',")) {
+                    $contents = preg_replace(
+                        '/(function\s+casts\s*\(\)[^{]*\{[^}]*)(\})/s',
+                        "$1        'terms_accepted_at' => 'datetime',\n    $2",
+                        $contents
+                    );
+                }
+            } elseif (str_contains($contents, '$casts')) {
+                $contents = preg_replace(
+                    '/(protected\s+\$casts\s*=\s*\[)([^\]]*)(\])/s',
+                    "$1$2        'terms_accepted_at' => 'datetime',\n    $3",
+                    $contents
+                );
+            }
+
+            $modified = true;
+        }
+
         if ($modified) {
             $this->files->put($userModelPath, $contents);
             $this->line('  <fg=green>✓</> User model updated with USIM auth defaults');
         } else {
             $this->line('  <fg=blue>→</> User model already configured');
+        }
+    }
+
+    // =========================================================================
+    // EventServiceProvider
+    // =========================================================================
+
+    protected function installEventServiceProvider(): void
+    {
+        $targetPath = \app_path('Providers/EventServiceProvider.php');
+        $stubPath = $this->stubsPath('providers/EventServiceProvider.php.stub');
+        $this->publishStub($stubPath, $targetPath, []);
+        $relativePath = str_replace(\base_path() . '/', '', $targetPath);
+        $this->line("  <fg=green>✓</> {$relativePath}");
+    }
+
+    protected function registerBootstrapProviders(): void
+    {
+        $providersPath = \base_path('bootstrap/providers.php');
+
+        if (!$this->files->exists($providersPath)) {
+            $this->line('  <fg=yellow>!</> bootstrap/providers.php not found, skipping');
+            return;
+        }
+
+        $contents = $this->files->get($providersPath);
+
+        if (str_contains($contents, 'EventServiceProvider')) {
+            $this->line('  <fg=blue>→</> EventServiceProvider already in bootstrap/providers.php');
+            return;
+        }
+
+        // Insert EventServiceProvider::class before the closing ];
+        $pos = strrpos($contents, '];');
+        if ($pos !== false) {
+            $contents = substr($contents, 0, $pos)
+                . "    App\\Providers\\EventServiceProvider::class,\n];"
+                . substr($contents, $pos + 2);
+            $this->files->put($providersPath, $contents);
+            $this->line('  <fg=green>✓</> EventServiceProvider registered in bootstrap/providers.php');
         }
     }
 
@@ -429,6 +583,17 @@ class InstallCommand extends Command
             $this->line('  <fg=green>✓</> add_profile_image_to_users_table migration');
         } else {
             $this->line('  <fg=blue>→</> add_profile_image_to_users_table already exists');
+        }
+
+        // terms_accepted_at column
+        if (!$this->migrationExists('add_terms_accepted_at_to_users_table')) {
+            $timestamp = date('Y_m_d_His', time() + 2);
+            $stubPath = $this->stubsPath('migrations/add_terms_accepted_at_to_users_table.php.stub');
+            $target = $migrationsPath . "/{$timestamp}_add_terms_accepted_at_to_users_table.php";
+            $this->publishStub($stubPath, $target, []);
+            $this->line('  <fg=green>✓</> add_terms_accepted_at_to_users_table migration');
+        } else {
+            $this->line('  <fg=blue>→</> add_terms_accepted_at_to_users_table already exists');
         }
 
         // personal_access_tokens (Sanctum)
@@ -675,9 +840,11 @@ class InstallCommand extends Command
 
         $steps = [];
 
-        $steps[] = 'Add <fg=yellow>RoleSeeder::class</> and <fg=yellow>UserSeeder::class</> to your DatabaseSeeder';
-        $steps[] = 'Ejemplo de DatabaseSeeder:';
-        $steps[] = '<fg=gray>class DatabaseSeeder extends Seeder {' .
+        $steps[] = 'Ensure your User model implements <fg=yellow>MustVerifyEmail</> and <fg=yellow>CanResetPassword</>, and uses the <fg=yellow>UsimUser</> trait';
+
+        $steps[] = "Add <fg=yellow>RoleSeeder::class</> and <fg=yellow>UserSeeder::class</> to your DatabaseSeeder" .
+            "\nEjemplo de DatabaseSeeder:" .
+            "<fg=gray>class DatabaseSeeder extends Seeder {" .
             "\n    use WithoutModelEvents;" .
             "\n\n    public function run(): void {" .
             "\n        \$this->call(RoleSeeder::class);" .
@@ -689,6 +856,9 @@ class InstallCommand extends Command
         $steps[] = 'Run <fg=yellow>php artisan usim:discover</> after creating new screens';
         $steps[] = 'Set symbolic link for storage: <fg=yellow>php artisan storage:link</>';
         $steps[] = 'Run <fg=yellow>php artisan serve</> and visit <fg=yellow>http://localhost:8000</>';
+
+        // Add steps for getting MailPit un up and running
+        $steps[] = 'For email testing, we recommend using MailPit: https://github.com/axllent/mailpit';
 
         foreach ($steps as $i => $step) {
             $num = $i + 1;

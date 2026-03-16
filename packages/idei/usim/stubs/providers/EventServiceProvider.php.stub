@@ -1,0 +1,37 @@
+<?php
+
+namespace App\Providers;
+
+use Illuminate\Queue\Events\JobFailed;
+use Illuminate\Queue\Events\JobProcessed;
+use Illuminate\Support\Facades\Event;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\ServiceProvider;
+
+class EventServiceProvider extends ServiceProvider
+{
+    public function boot(): void
+    {
+        // Log when an email job is processed successfully
+        Event::listen(JobProcessed::class, function (JobProcessed $event) {
+            if (str_contains($event->job->resolveName(), 'Notification') ||
+                str_contains($event->job->resolveName(), 'SendEmailVerification')) {
+                Log::info('✅ Email sent successfully', [
+                    'job' => $event->job->resolveName(),
+                    'queue' => $event->job->getQueue(),
+                ]);
+            }
+        });
+
+        // Log when an email job fails
+        Event::listen(JobFailed::class, function (JobFailed $event) {
+            if (str_contains($event->job->resolveName(), 'Notification') ||
+                str_contains($event->job->resolveName(), 'SendEmailVerification')) {
+                Log::error('❌ Email failed to send', [
+                    'job' => $event->job->resolveName(),
+                    'exception' => $event->exception->getMessage(),
+                ]);
+            }
+        });
+    }
+}

@@ -2,8 +2,7 @@
 
 namespace {{ namespace }};
 
-use Idei\Usim\Notifications\CustomVerifyEmailNotification;
-use Idei\Usim\Notifications\ResetPasswordNotification;
+use Idei\Usim\Traits\UsimUser;
 use Illuminate\Contracts\Auth\CanResetPassword;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -14,12 +13,13 @@ use Spatie\Permission\Traits\HasRoles;
 
 class User extends Authenticatable implements MustVerifyEmail, CanResetPassword
 {
-    use HasFactory, Notifiable, HasRoles, HasApiTokens;
+    use HasFactory, Notifiable, HasRoles, HasApiTokens, UsimUser;
 
     protected $fillable = [
         'name',
         'email',
         'password',
+        'terms_accepted_at',
     ];
 
     protected $hidden = [
@@ -32,6 +32,7 @@ class User extends Authenticatable implements MustVerifyEmail, CanResetPassword
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'terms_accepted_at' => 'datetime',
         ];
     }
 
@@ -40,13 +41,4 @@ class User extends Authenticatable implements MustVerifyEmail, CanResetPassword
         return "User: {$this->name}, Email: {$this->email}";
     }
 
-    public function sendPasswordResetNotification($token): void
-    {
-        $this->notify(new ResetPasswordNotification($token));
-    }
-
-    public function sendEmailVerificationNotification(): void
-    {
-        $this->notify(new CustomVerifyEmailNotification());
-    }
 }
