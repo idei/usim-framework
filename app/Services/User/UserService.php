@@ -3,6 +3,7 @@
 namespace App\Services\User;
 
 use App\Models\User;
+use Idei\Usim\Events\UsimEvent;
 use Illuminate\Auth\Events\Verified;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Support\Facades\Auth;
@@ -188,6 +189,13 @@ class UserService
             $user->email_verified_at = null;
             $user->save();
             $user->sendEmailVerificationNotification();
+        }
+
+        // If the updated user is the currently authenticated user, fire an event to update the user data in the UI
+        if (Auth::id() === $user->id) {
+            event(new UsimEvent('updated_profile', [
+                'user' => $user
+            ]));
         }
 
         return [
