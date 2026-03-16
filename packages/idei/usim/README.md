@@ -6,8 +6,7 @@ A **Server-Driven UI** framework for Laravel. Define your entire user interface 
 
 - [Requirements](#requirements)
 - [Installation](#installation)
-  - [Quick Start (Full Preset)](#quick-start-full-preset)
-  - [Minimal Preset](#minimal-preset)
+    - [Quick Start](#quick-start)
 - [Core Concepts](#core-concepts)
   - [Screens](#screens)
   - [UIBuilder — The Component Factory](#uibuilder--the-component-factory)
@@ -59,12 +58,12 @@ composer require idei/usim
 
 Laravel's package auto-discovery will register `UsimServiceProvider` automatically.
 
-### Quick Start (Full Preset)
+### Quick Start
 
-Run the install command and choose the **full** preset to scaffold a complete working application with authentication, profile, menus, seeders, and routes:
+Run the install command to scaffold a complete working application with authentication, profile, menus, seeders, and routes:
 
 ```bash
-php artisan usim:install --preset=full
+php artisan usim:install
 ```
 
 Then follow the printed instructions:
@@ -76,14 +75,6 @@ php artisan serve
 ```
 
 Visit `http://localhost:8000` — you have a working USIM app.
-
-### Minimal Preset
-
-If you only want a Home screen and a simple navigation menu (no auth):
-
-```bash
-php artisan usim:install --preset=minimal
-```
 
 > Use `--force` to overwrite existing files.
 
@@ -555,7 +546,7 @@ public function onSaveProfile(array $params): void
 
 ## Authentication Scaffolding
 
-The **full** preset (`usim:install --preset=full`) provides a complete authentication system:
+`php artisan usim:install` provides a complete authentication and admin system:
 
 | Screen | Path | Description |
 |---|---|---|
@@ -564,12 +555,14 @@ The **full** preset (`usim:install --preset=full`) provides a complete authentic
 | `ResetPassword` | `/auth/reset-password` | Reset password form |
 | `EmailVerified` | `/auth/email-verified` | Email verification handler |
 | `Profile` | `/auth/profile` | User profile (name, photo, password change) |
+| `Admin\Dashboard` | `/admin/dashboard` | User management table with CRUD and role assignment (admin only) |
 
 Supporting files:
 
 - **AuthController** — API endpoints for register, login, logout, verify email, reset password
 - **UsimUser trait** — Custom notification methods for password reset and email verification
-- **RoleSeeder / UsimUserSeeder** — Default roles (admin/user/verified) and seed users from `.env`
+- **UserService** — Full user management: find, get, create, update (with role sync, email validation, notifications)
+- **RoleSeeder / UserSeeder** — Default roles (admin/user/verified) and seed users from `.env`
 - **Migrations** — `temporary_uploads`, `profile_image` column on users table
 
 ### Default Users (via `.env`)
@@ -644,6 +637,7 @@ return [
 | `screens_namespace` | PSR-4 namespace where screens live | `App\UI\Screens` |
 | `screens_path` | Filesystem path to scan for screens | `app/UI/Screens` |
 | `api_url` | Base URL for internal HTTP calls | `APP_URL` |
+| `upload_disk` | Laravel filesystem disk for uploaded files | `local` (override via `UPLOAD_DISK`) |
 
 ---
 
@@ -668,9 +662,7 @@ The client-side JavaScript (`ui-renderer.js`) handles these calls automatically.
 | Command | Description |
 |---|---|
 | `php artisan usim:discover` | Scan screens directory and generate manifest cache |
-| `php artisan usim:install` | Scaffold a new USIM application |
-| `php artisan usim:install --preset=minimal` | Scaffold with only Home + Menu |
-| `php artisan usim:install --preset=full` | Scaffold with full auth system |
+| `php artisan usim:install` | Scaffold a complete USIM application (screens, auth, admin, tests) |
 | `php artisan usim:install --force` | Overwrite existing files |
 
 ---
@@ -692,7 +684,7 @@ The `UIChangesCollector` is registered as a **scoped** singleton, ensuring clean
 
 ## Directory Structure
 
-After `usim:install --preset=full`, your application will have:
+After `usim:install`, your application will have:
 
 ```
 app/
@@ -700,14 +692,27 @@ app/
 │   └── AuthController.php        # Auth API endpoints
 ├── Models/
 │   └── User.php                  # With UsimUser, HasRoles, HasApiTokens traits
+├── Services/
+│   ├── Auth/
+│   │   ├── AuthSessionService.php
+│   │   ├── LoginService.php
+│   │   ├── PasswordService.php
+│   │   └── RegisterService.php
+│   └── User/
+│       └── UserService.php       # Full CRUD, role management, email notifications
 └── UI/
     ├── Components/
+    │   ├── DataTable/
+    │   │   └── UserApiTableModel.php  # Paginated user table
     │   └── Modals/
+    │       ├── EditUserDialog.php
     │       ├── LoginDialog.php
     │       └── RegisterDialog.php
     └── Screens/
         ├── Home.php              # Landing page
-        ├── Menu.php              # Navigation menu
+        ├── Menu.php              # Navigation menu (links Dashboard for admins)
+        ├── Admin/
+        │   └── Dashboard.php     # User management (admin only)
         └── Auth/
             ├── Login.php
             ├── ForgotPassword.php
@@ -723,7 +728,7 @@ database/
 │   └── *_add_profile_image_to_users_table.php
 └── seeders/
     ├── RoleSeeder.php
-    └── UsimUserSeeder.php
+    └── UserSeeder.php
 routes/
 ├── api-auth.php                  # Auth API routes
 └── web.php                       # + catch-all route for screens

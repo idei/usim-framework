@@ -9,13 +9,11 @@ use Illuminate\Support\Str;
 class InstallCommand extends Command
 {
     protected $signature = 'usim:install
-                            {--preset=full : Installation preset (minimal or full)}
                             {--force : Overwrite existing files}';
 
     protected $description = 'Install the USIM framework scaffolding';
 
     protected Filesystem $files;
-    protected string $preset;
     protected bool $force;
 
     /**
@@ -36,17 +34,7 @@ class InstallCommand extends Command
     {
         $this->force = $this->option('force');
 
-        // --- Choose Preset ---
-        $this->preset = $this->option('preset');
-        if (!in_array($this->preset, ['minimal', 'full'])) {
-            $this->preset = $this->choice(
-                'Which preset would you like to install?',
-                ['full', 'minimal'],
-                0
-            );
-        }
-
-        $this->info("Installing USIM [{$this->preset}] preset...");
+        $this->info('Installing USIM scaffolding...');
         $this->newLine();
 
         // --- Resolve namespaces ---
@@ -59,27 +47,20 @@ class InstallCommand extends Command
         $this->publishConfig();
         $this->publishAssets();
 
-        // === STEP 2: Install screens (both presets) ===
+        // === STEP 2: Install core screens ===
         $this->installScreen('Home.php.stub', 'Home.php');
 
-        if ($this->preset === 'minimal') {
-            $this->installScreen('MenuMinimal.php.stub', 'Menu.php');
-        } else {
-            $this->installScreen('Menu.php.stub', 'Menu.php');
-        }
+        $this->installScreen('Menu.php.stub', 'Menu.php');
+        $this->installScreen('Admin/Dashboard.php.stub', 'Dashboard.php', 'Admin');
 
-        // === STEP 3: Full preset — Auth screens, modals, controller, model, etc. ===
-        if ($this->preset === 'full') {
-            $this->installFullPreset();
-        }
+        // === STEP 3: Install auth scaffolding, controller, model, and supporting files ===
+        $this->installAuthScaffolding();
 
         // === STEP 4: Install web routes (catch-all) ===
         $this->installWebRoutes();
 
         // === STEP 5: Append .env variables ===
-        if ($this->preset === 'full') {
-            $this->appendEnvVariables();
-        }
+        $this->appendEnvVariables();
 
         // === STEP 6: Run usim:discover ===
         $this->call('usim:discover');
@@ -152,10 +133,10 @@ class InstallCommand extends Command
     }
 
     // =========================================================================
-    // Full Preset
+    // Auth scaffolding
     // =========================================================================
 
-    protected function installFullPreset(): void
+    protected function installAuthScaffolding(): void
     {
         $this->newLine();
         $this->info('Installing Auth services...');
@@ -176,6 +157,11 @@ class InstallCommand extends Command
         $this->info('Installing Modal components...');
         $this->installComponent('Modals/LoginDialog.php.stub', 'LoginDialog.php', 'Modals');
         $this->installComponent('Modals/RegisterDialog.php.stub', 'RegisterDialog.php', 'Modals');
+        $this->installComponent('Modals/EditUserDialog.php.stub', 'EditUserDialog.php', 'Modals');
+
+        $this->newLine();
+        $this->info('Installing DataTable components...');
+        $this->installComponent('DataTable/UserApiTableModel.php.stub', 'UserApiTableModel.php', 'DataTable');
 
         // AuthController
         $this->newLine();
@@ -689,12 +675,19 @@ class InstallCommand extends Command
 
         $steps = [];
 
-        if ($this->preset === 'full') {
-            $steps[] = 'Add <fg=yellow>RoleSeeder::class</> and <fg=yellow>UserSeeder::class</> to your DatabaseSeeder';
-            $steps[] = 'Run <fg=yellow>php artisan migrate --seed --force</> to create database tables and seed';
-        }
+        $steps[] = 'Add <fg=yellow>RoleSeeder::class</> and <fg=yellow>UserSeeder::class</> to your DatabaseSeeder';
+        $steps[] = 'Ejemplo de DatabaseSeeder:';
+        $steps[] = '<fg=gray>class DatabaseSeeder extends Seeder {' .
+            "\n    use WithoutModelEvents;" .
+            "\n\n    public function run(): void {" .
+            "\n        \$this->call(RoleSeeder::class);" .
+            "\n        \$this->call(UserSeeder::class);" .
+            "\n    }" .
+            "\n}</fg=gray>";
+        $steps[] = 'Run <fg=yellow>php artisan migrate --seed --force</> to create database tables and seed';
 
         $steps[] = 'Run <fg=yellow>php artisan usim:discover</> after creating new screens';
+        $steps[] = 'Set symbolic link for storage: <fg=yellow>php artisan storage:link</>';
         $steps[] = 'Run <fg=yellow>php artisan serve</> and visit <fg=yellow>http://localhost:8000</>';
 
         foreach ($steps as $i => $step) {

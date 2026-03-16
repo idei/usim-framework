@@ -1,0 +1,116 @@
+<?php
+
+namespace {{ componentsNamespace }};
+
+use Idei\Usim\Services\Enums\JustifyContent;
+use Idei\Usim\Services\Enums\LayoutType;
+use Idei\Usim\Services\UIBuilder;
+use Idei\Usim\Services\UIChangesCollector;
+
+class EditUserDialog
+{
+    public static function open(...$params): void
+    {
+        $dialog = new self();
+        $format = $dialog->getUI(...$params);
+        $uiChanges = app(UIChangesCollector::class);
+        $uiChanges->add($format);
+    }
+
+    public function getUI(
+        string $submitAction = 'submit_update_user',
+        ?string $cancelAction = 'close_modal',
+        array $user = null,
+        ?int $callerServiceId = null
+    ): array {
+        $name = $user ? $user['name'] : '';
+        $email = $user ? $user['email'] : '';
+        $role = $user ? ($user['roles'][0]['name'] ?? 'user') : 'user';
+        $emailVerified = $user ? $user['email_verified_at'] !== null : false;
+
+        $container = UIBuilder::container('register_dialog')
+            ->parent('modal')
+            ->shadow(false)
+            ->padding('20px');
+
+        $container->add(
+            UIBuilder::input('user_id')
+                ->type('hidden')
+                ->value($user ? $user['id'] : '')
+        );
+
+        $container->add(
+            UIBuilder::input('name')
+                ->label('Full Name')
+                ->placeholder('Enter your full name')
+                ->required(true)
+                ->value($name)
+                ->autocomplete('off')
+        );
+
+        $container->add(
+            UIBuilder::input('email')
+                ->label('Email')
+                ->placeholder('Enter your email')
+                ->required(true)
+                ->value($email)
+                ->autocomplete('off')
+        );
+
+        $container->add(
+            UIBuilder::select('roles')
+                ->label('Role')
+                ->options([
+                    ['value' => 'user', 'label' => 'User'],
+                    ['value' => 'admin', 'label' => 'Admin'],
+                ])
+                ->value($role)
+                ->required(true)
+        );
+
+        $container->add(
+            UIBuilder::checkbox('send_reset_email')
+                ->label('Send password reset email to user')
+                ->checked(false)
+        );
+
+        if (!$emailVerified) {
+            $container->add(
+                UIBuilder::checkbox('send_verification_email')
+                    ->label('Send email verification to user')
+                    ->checked(false)
+            );
+        }
+
+        $buttons = UIBuilder::container('register_buttons')
+            ->layout(LayoutType::HORIZONTAL)
+            ->justifyContent(JustifyContent::SPACE_BETWEEN)
+            ->shadow(false)
+            ->gap('10px')
+            ->padding('10px 0 0 0');
+
+        if ($cancelAction) {
+            $buttons->add(
+                UIBuilder::button('btn_cancel_register')
+                    ->label('Cancel')
+                    ->style('secondary')
+                    ->action($cancelAction, [
+                        '_caller_service_id' => $callerServiceId,
+                    ])
+            );
+        }
+
+        $buttons->add(
+            UIBuilder::button('btn_submit_register')
+                ->label('Update User')
+                ->style('primary')
+                ->action($submitAction, [
+                    '_caller_service_id' => $callerServiceId,
+                ])
+        );
+
+        $container->add($buttons);
+
+        return $container->toJson();
+    }
+}

@@ -33,6 +33,17 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Upload Disk
+    |--------------------------------------------------------------------------
+    |
+    | Disco de filesystem usado para almacenar los archivos subidos.
+    | Por defecto 'local' (disponible en cualquier app Laravel sin config extra).
+    | Publica config/ui-services.php y cámbialo si necesitas un disco dedicado.
+    */
+    'upload_disk' => env('UPLOAD_DISK', 'local'),
+
+    /*
+    |--------------------------------------------------------------------------
     | Registered UI Services
     |--------------------------------------------------------------------------
     */

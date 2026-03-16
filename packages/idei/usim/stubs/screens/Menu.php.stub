@@ -5,6 +5,7 @@ namespace {{ namespace }};
 use App\Services\Auth\AuthSessionService;
 use App\Services\Auth\RegisterService;
 use {{ componentsNamespace }}\Modals\RegisterDialog;
+use {{ screensNamespace }}\Admin\Dashboard;
 use {{ screensNamespace }}\Auth\Login;
 use {{ screensNamespace }}\Auth\Profile;
 use Idei\Usim\Services\AbstractUIService;
@@ -96,6 +97,9 @@ class Menu extends AbstractUIService
     private function populateMainMenu(MenuDropdownBuilder $menu): void
     {
         $menu->link('Home', '/', '🏠');
+        if (Auth::check()) {
+            $menu->screen(Dashboard::class);
+        }
         $menu->separator();
         $menu->item('About', 'show_about_info', [], 'ℹ️');
     }

@@ -55,8 +55,7 @@ git push usim-public v0.1.0
 
 ```bash
 composer require idei/usim
-php artisan usim:install --preset=minimal --force
-php artisan usim:install --preset=full --force
+php artisan usim:install --force
 ```
 
 - Verify generated files compile and routes work.

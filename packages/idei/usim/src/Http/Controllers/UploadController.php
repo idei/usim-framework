@@ -139,12 +139,13 @@ class UploadController extends Controller
         $path = ltrim($path, '/');
 
         // Verificar que el archivo existe en el disco 'uploads'
-        if (!Storage::disk('uploads')->exists($path)) {
+        $uploadDisk = config('ui-services.upload_disk', 'local');
+        if (!Storage::disk($uploadDisk)->exists($path)) {
             abort(404, 'File not found');
         }
 
         // Obtener el archivo
-        $file = Storage::disk('uploads')->get($path);
+        $file = Storage::disk($uploadDisk)->get($path);
 
         // Detectar MIME type manualmente
         $extension = pathinfo($path, PATHINFO_EXTENSION);

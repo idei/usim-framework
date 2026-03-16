@@ -6,6 +6,25 @@ The format is based on Keep a Changelog, and this project follows Semantic Versi
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-03-15
+
+### Added
+- Admin Dashboard screen stub (`App\UI\Screens\Admin\Dashboard`) with full user management: search, paginated user table, create, edit, and delete users with role assignment.
+- `EditUserDialog` modal component stub for inline user editing from the Admin Dashboard.
+- `UserApiTableModel` data table component stub (`App\UI\Components\DataTable`) for paginated, searchable user lists backed by `UserService`.
+- `upload_disk` configuration key (`config/ui-services.php`) to set the filesystem disk used for uploads. Defaults to `local`; override via `UPLOAD_DISK` env variable.
+- `UPLOAD_DISK=local` entry added to the published `.env` template.
+
+### Changed
+- `usim:install` now exposes a single unified installation flow; the `minimal` preset and `--preset` option were removed.
+- `usim:install` now scaffolds the Admin Dashboard screen in `App\UI\Screens\Admin` alongside the core Home, Menu, and auth screens.
+- Menu scaffold updated to show a link to the Admin Dashboard for authenticated users.
+- `UserService` stub significantly expanded with `findUser`, `getUser`, `updateUser`, and `createUser` methods including field validation, role management, and email notification handling.
+- `UploadController` and `UploadService` now use the configurable `upload_disk` key instead of the hardcoded `uploads` disk name.
+
+### Removed
+- `MenuMinimal.php.stub` — removed alongside the minimal preset.
+
 ## [0.3.2] - 2026-03-13
 
 ### Fixed

@@ -1,0 +1,122 @@
+<?php
+
+namespace {{ componentsNamespace }};
+
+use App\Services\User\UserService;
+use Idei\Usim\Services\Components\TableBuilder;
+use Idei\Usim\Services\DataTable\AbstractDataTableModel;
+use Idei\Usim\Services\Support\UIStateManager;
+
+class UserApiTableModel extends AbstractDataTableModel
+{
+    protected UserService $userService;
+
+    public function __construct(TableBuilder $tableBuilder)
+    {
+        parent::__construct($tableBuilder);
+        $this->userService = app(UserService::class);
+    }
+
+    public function getColumns(): array
+    {
+        return [
+            'name' => ['label' => 'Name', 'width' => [400, 400], 'sort_by' => 'name'],
+            'email' => ['label' => 'Email', 'width' => [350, 350], 'sort_by' => 'email'],
+            'email_verified' => ['label' => 'Verified', 'width' => [100, 100], 'sort_by' => 'email_verified_at'],
+            'roles' => ['label' => 'Role', 'width' => [100, 100], 'sort_by' => 'roles'],
+            'updated_at' => ['label' => 'Updated', 'width' => [200, 200], 'sort_by' => 'updated_at'],
+            'edit' => ['label' => '', 'width' => [25, 25]],
+            'delete' => ['label' => '', 'width' => [25, 25]],
+        ];
+    }
+
+    protected function getAllData(): array
+    {
+        return [];
+    }
+
+    protected function countTotal(): int
+    {
+        $searchTerm = $this->getSearchTerm();
+        return $this->userService->countUsers($searchTerm);
+    }
+
+    public function setSearchTerm(string|null $searchTerm): void
+    {
+        UIStateManager::storeKeyValue('user_table_search', $searchTerm);
+    }
+
+    public function getSearchTerm(): ?string
+    {
+        return UIStateManager::getKeyValue('user_table_search');
+    }
+
+    public function clearSearch(): void
+    {
+        UIStateManager::clearKeyValue('user_table_search');
+    }
+
+    public function getPageData(): array
+    {
+        $paginationData = $this->tableBuilder->getPaginationData();
+        $sortBy = $this->tableBuilder->getSortColumn();
+        $sortDirection = $this->tableBuilder->getSortDirection();
+        $searchTerm = $this->getSearchTerm();
+
+        $params = [
+            'per_page' => $paginationData['per_page'],
+            'page' => $paginationData['current_page'],
+        ];
+
+        if ($searchTerm) {
+            $params['search'] = $searchTerm;
+        }
+        if ($sortBy) {
+            $params['sort_by'] = $sortBy;
+        }
+        if ($sortDirection) {
+            $params['sort_direction'] = $sortDirection;
+        }
+
+        $response = $this->userService->getUsersList($params);
+        return $response['data']['users'] ?? [];
+    }
+
+    public function getFormattedPageData(int $currentPage, int $perPage): array
+    {
+        $users = $this->getPageData();
+        $formatted = [];
+
+        foreach ($users as $user) {
+            $formatted[] = [
+                'name' => $user['name'],
+                'email' => $user['email'],
+                'email_verified' => $user['email_verified'] ? '✅' : '⚠️',
+                'roles' => $user['roles'],
+                'updated_at' => $user['updated_at'],
+                'edit' => [
+                    'button' => [
+                        'label' => '✏️',
+                        'action' => 'edit_user',
+                        'style' => 'secondary',
+                        'parameters' => [
+                            'user_id' => $user['id'],
+                        ],
+                    ],
+                ],
+                'delete' => [
+                    'button' => [
+                        'label' => '🗑️',
+                        'action' => 'delete_user',
+                        'style' => 'danger',
+                        'parameters' => [
+                            'user_id' => $user['id'],
+                        ],
+                    ],
+                ],
+            ];
+        }
+
+        return $formatted;
+    }
+}
