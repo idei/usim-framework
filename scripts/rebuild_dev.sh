@@ -41,6 +41,17 @@ echo "4) Installing USIM..."
 composer require idei/usim:@dev
 
 echo ""
+echo "5) Copying ./start.sh to dev/ directory..."
+cp "$ROOT_DIR/start.sh" "$DEV_DIR/start.sh"
+
+echo ""
+echo "6) Copying ./.env to dev/ directory..."
+cp "$ROOT_DIR/.env" "$DEV_DIR/.env"
+
+# change to dev directory for next steps
+cd $DEV_DIR
+
+echo ""
 echo "---------------------------------------"
 echo "Dev environment ready"
 echo "---------------------------------------"
@@ -48,8 +59,6 @@ echo ""
 echo "Run:"
 echo ""
 echo "cd dev"
-echo "php artisan serve"
+echo "./start.sh"
 echo ""
-echo "Test installer with:"
-echo ""
-echo "php artisan usim:install"
+echo "Test installer with: php artisan usim:install"
