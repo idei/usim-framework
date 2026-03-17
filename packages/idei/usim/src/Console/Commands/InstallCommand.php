@@ -836,29 +836,27 @@ class InstallCommand extends Command
     protected function printPostInstallInstructions(): void
     {
         $this->components->info('Next steps:');
-        $this->newLine();
 
         $steps = [];
 
-        $steps[] = 'Ensure your User model implements <fg=yellow>MustVerifyEmail</> and <fg=yellow>CanResetPassword</>, and uses the <fg=yellow>UsimUser</> trait';
+        $userModelPath = \app_path('Models/User.php');
+        $databaseSeederPath = \database_path('seeders/DatabaseSeeder.php');
 
-        $steps[] = "Add <fg=yellow>RoleSeeder::class</> and <fg=yellow>UserSeeder::class</> to your DatabaseSeeder" .
-            "\nEjemplo de DatabaseSeeder:" .
-            "<fg=gray>class DatabaseSeeder extends Seeder {" .
-            "\n    use WithoutModelEvents;" .
-            "\n\n    public function run(): void {" .
-            "\n        \$this->call(RoleSeeder::class);" .
-            "\n        \$this->call(UserSeeder::class);" .
-            "\n    }" .
-            "\n}</fg=gray>";
-        $steps[] = 'Run <fg=yellow>php artisan migrate --seed --force</> to create database tables and seed';
+        $steps[] = "Ensure your <href=file://{$userModelPath}>User</> model implements:\n" .
+            "     <fg=yellow>MustVerifyEmail</> and <fg=yellow>CanResetPassword</> interfaces, and uses the <fg=yellow>UsimUser</> trait\n";
 
-        $steps[] = 'Run <fg=yellow>php artisan usim:discover</> after creating new screens';
-        $steps[] = 'Set symbolic link for storage: <fg=yellow>php artisan storage:link</>';
-        $steps[] = 'Run <fg=yellow>php artisan serve</> and visit <fg=yellow>http://localhost:8000</>';
-
-        // Add steps for getting MailPit un up and running
-        $steps[] = 'For email testing, we recommend using MailPit: https://github.com/axllent/mailpit';
+        $steps[] = "Add <fg=yellow>RoleSeeder::class</> and <fg=yellow>UserSeeder::class</> to your " .
+            "<href=file://{$databaseSeederPath}>DatabaseSeeder</>:\n" .
+            "     <fg=gray>class DatabaseSeeder extends Seeder {\n" .
+            "         use WithoutModelEvents;\n\n" .
+            "         public function run(): void {\n" .
+            "             \$this->call(RoleSeeder::class);\n" .
+            "             \$this->call(UserSeeder::class);\n" .
+            "         }\n" .
+            "     }</fg=gray>\n";
+        $steps[] = "Run <fg=yellow>php artisan usim:discover</> after creating new screens\n";
+        $steps[] = "Run <fg=yellow>./start.sh [-r]</> to start the development server.\n" .
+            "     <fg=gray>Note: -r option removes database and starts fresh)</fg=gray>";
 
         foreach ($steps as $i => $step) {
             $num = $i + 1;
