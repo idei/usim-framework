@@ -20,6 +20,22 @@ echo "1) Preparing Laravel template..."
 if [ ! -d "$CACHE_DIR" ]; then
     echo "Downloading Laravel template (first time only)..."
     composer create-project laravel/laravel "$CACHE_DIR" --prefer-dist
+    cd "$CACHE_DIR"
+
+    rm composer.lock
+
+    # Install Pest
+    composer require pestphp/pest --dev -w
+
+    # Initialize Pest
+    ./vendor/bin/pest --init
+
+    # Now Install Octane in the cached template to speed up future installs
+    composer require laravel/octane
+    php artisan octane:install --server=roadrunner -n
+
+    # Config the storagele symlink for the cached template
+    php artisan storage:link
 else
     echo "Laravel template already cached."
 fi
@@ -33,41 +49,24 @@ cp -r "$CACHE_DIR" "$DEV_DIR"
 
 cd "$DEV_DIR"
 
-# Acá un mensaje de confirmación para asegurar que los próximos pasos se ejecuten en el directorio correcto
-echo "Current directory: $(pwd)"
-
 echo ""
 echo "3) Configuring local USIM repository..."
 
 composer config repositories.usim path ../packages/idei/usim
-
-echo ""
-echo "4) Installing USIM..."
-
 composer require idei/usim:@dev
 
 echo ""
-echo "Installing Octane..."
-composer require laravel/octane
-php artisan octane:install --server=roadrunner -n
-
-echo ""
-echo "5) Copying ./start.sh to dev/ directory..."
+echo "4) Copying ./start.sh and ./env to $DEV_DIR directory..."
 cp "$ROOT_DIR/start.sh" "$DEV_DIR/start.sh"
-
-echo ""
-echo "6) Copying ./.env to dev/ directory..."
 cp "$ROOT_DIR/.env" "$DEV_DIR/.env"
-
 
 echo ""
 echo "---------------------------------------"
 echo "Dev environment ready"
 echo "---------------------------------------"
 echo ""
-echo "Run:"
-echo ""
-echo "./start.sh"
-echo ""
 echo "Test installer with:"
 echo "php artisan usim:install"
+echo ""
+echo "Run:"
+echo "./start.sh -r"
