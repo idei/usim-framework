@@ -2,9 +2,12 @@
 
 namespace Idei\Usim\Console\Commands;
 
+use Idei\Usim\Support\CodeModifier\ClassModifier;
 use Illuminate\Console\Command;
 use Illuminate\Filesystem\Filesystem;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Str;
+use Tests\Traits\UsimTestHelpers;
 
 class InstallCommand extends Command
 {
@@ -292,8 +295,10 @@ class InstallCommand extends Command
 
     protected function installTestStubs(): void
     {
-        $this->installTestFile('Pest.php.stub', 'Pest.php');
-        $this->installTestFile('TestCase.php.stub', 'TestCase.php');
+        $this->installTestFile('Support/usim_bootstrap.php.stub', 'usim_bootstrap.php', 'Support');
+        $this->installTestFile('Traits/UsimTestHelpers.php.stub', 'UsimTestHelpers.php', 'Traits');
+        $this->installTestFile('Pest.php.stub', 'Pest.php', null, fn($path) => $this->addRequireToPest($path));
+        $this->installTestFile('TestCase.php.stub', 'TestCase.php', null, fn($path) => $this->addUsimTestHelpersToTestCase($path));
 
         $this->installTestFile('Support/UiScreenTestHelpers.php.stub', 'UiScreenTestHelpers.php', 'Support');
         $this->installTestFile('Support/UiMemoryRenderer.php.stub', 'UiMemoryRenderer.php', 'Support');
@@ -307,8 +312,12 @@ class InstallCommand extends Command
         $this->installTestFile('Feature/UiAuthEventsContractTest.php.stub', 'UiAuthEventsContractTest.php', 'Feature');
     }
 
-    protected function installTestFile(string $stubName, string $targetName, ?string $subdirectory = null): void
-    {
+    protected function installTestFile(
+        string $stubName,
+        string $targetName,
+        ?string $subdirectory = null,
+        ?callable $postInstallCallback = null
+    ): void {
         $stubPath = $this->stubsPath("tests/{$stubName}");
 
         $targetDir = $subdirectory
@@ -320,10 +329,43 @@ class InstallCommand extends Command
         $this->publishStub($stubPath, $targetFile, [
             '{{ userModel }}' => $this->resolveUserModelImport(),
             '{{ userModelClass }}' => $this->resolveUserModelClass(),
-        ]);
+        ], $postInstallCallback);
 
         $relativePath = str_replace(\base_path() . '/', '', $targetFile);
         $this->line("  <fg=green>✓</> {$relativePath}");
+    }
+
+    protected function addUsimTestHelpersToTestCase(string $path): void
+    {
+        $this->line("  <fg=green>✓</> Adding traits to TestCase.php...");
+        ClassModifier::addTraitToClass($path, 'TestCase', RefreshDatabase::class);
+        ClassModifier::addTraitToClass($path, 'TestCase', UsimTestHelpers::class);
+    }
+
+    protected function addRequireToPest(string $path): void
+    {
+        if (!file_exists($path)) {
+            return;
+        }
+
+        $content = file_get_contents($path);
+
+        $line = "require_once __DIR__ . '/Support/usim_bootstrap.php';";
+
+        // Evitar duplicados
+        if (str_contains($content, $line)) {
+            return;
+        }
+
+        // Insertar después de <?php
+        $content = preg_replace(
+            '/<\?php\s*/',
+            "<?php\n\n{$line}\n\n",
+            $content,
+            1
+        );
+
+        file_put_contents($path, $content);
     }
 
     // =========================================================================
@@ -875,9 +917,12 @@ class InstallCommand extends Command
         return dirname(__DIR__, 3) . '/stubs/' . ltrim($path, '/');
     }
 
-    protected function publishStub(string $stubPath, string $targetPath, array $replacements): void
+    protected function publishStub(string $stubPath, string $targetPath, array $replacements, ?callable $postInstallCallback = null): void
     {
         if ($this->files->exists($targetPath) && !$this->force) {
+            if ($postInstallCallback) {
+                $postInstallCallback($targetPath);
+            }
             return;
         }
 
@@ -893,6 +938,10 @@ class InstallCommand extends Command
         }
 
         $this->files->put($targetPath, $content);
+
+        if ($postInstallCallback) {
+            $postInstallCallback($targetPath);
+        }
     }
 
     protected function resolveUserModelImport(): string

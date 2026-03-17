@@ -29,7 +29,10 @@
         "illuminate/support": "^10.0|^11.0|^12.0",
         "laravel/sanctum": "^3.0|^4.0",
         "spatie/laravel-permission": "^6.0",
-        "symfony/finder": "^6.0|^7.0"
+        "symfony/finder": "^6.0|^7.0",
+        "nikic/php-parser": "^5.7",
+        "symfony/var-dumper": "^6.0|^7.0",
+        "illuminate/contracts": "^10.0|^11.0|^12.0"
     },
     "suggest": {
         "laravel/octane": "Required to handle state reset in long-running processes."

@@ -19,16 +19,16 @@ echo "1) Preparing Laravel template..."
 
 if [ ! -d "$CACHE_DIR" ]; then
     echo "Downloading Laravel template (first time only)..."
-    composer create-project laravel/laravel "$CACHE_DIR" --prefer-dist
+    composer create-project laravel/laravel:^12.0 "$CACHE_DIR" --prefer-dist
     cd "$CACHE_DIR"
 
     rm composer.lock
 
     # Install Pest
-    composer require pestphp/pest --dev -w
+    composer require pestphp/pest --dev -w --no-interaction
 
     # Initialize Pest
-    ./vendor/bin/pest --init
+    ./vendor/bin/pest --init --no-interaction
 
     # Now Install Octane in the cached template to speed up future installs
     composer require laravel/octane

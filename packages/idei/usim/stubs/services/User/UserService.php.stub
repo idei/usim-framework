@@ -3,6 +3,7 @@
 namespace {{ namespace }};
 
 use {{ userModel }};
+use Idei\Usim\Events\UsimEvent;
 use Illuminate\Auth\Events\Verified;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Support\Facades\Auth;
