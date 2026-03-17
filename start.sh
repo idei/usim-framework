@@ -118,12 +118,5 @@ cleanup() {
 # Trap SIGINT (Ctrl+C) and SIGTERM
 trap cleanup SIGINT SIGTERM
 
-# if the '--octane' flag is passed, start Octane server instead of the default Laravel server
-if [[ "$*" == *"--octane"* ]]; then
-    echo "Starting Octane server..."
-    php artisan octane:start --watch --host=0.0.0 --port=$SERVER_PORT
-    exit 0
-fi
-
-# Start the default Laravel server
-php artisan serve
+echo "Starting Octane server..."
+php artisan octane:start --watch --host=0.0.0 --port=$SERVER_PORT
