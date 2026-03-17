@@ -79,27 +79,9 @@ php artisan config:clear
 php artisan route:clear
 php artisan view:clear
 
-# Open browser to the app page
-# echo "Opening browser to http://127.0.0.1:8000"
-# if [ -n "$BROWSER" ]; then
-#     # Dev container - use $BROWSER variable set by VS Code
-#     "$BROWSER" "http://127.0.0.1:8000" 2>/dev/null || echo "✓ Server ready at http://127.0.0.1:8000"
-# elif grep -q Microsoft /proc/version 2>/dev/null || [ -n "$WSL_DISTRO_NAME" ]; then
-#     # WSL - use Windows command
-#     cmd.exe /c start "http://127.0.0.1:8000"
-# elif command -v xdg-open > /dev/null; then
-#     xdg-open "http://127.0.0.1:8000" &
-# else
-#     echo "✓ Server ready at http://127.0.0.1:8000"
-#     echo "  Open this URL manually in your browser"
-# fi
-
 # Register UI Screens/Components
 echo "Discovering UI Screens..."
 php artisan usim:discover
-
-# Start the Laravel server (this will block the terminal)
-echo "Starting Laravel server..."
 
 # Start queue worker in background
 echo "Starting queue worker in background..."
@@ -119,4 +101,4 @@ cleanup() {
 trap cleanup SIGINT SIGTERM
 
 echo "Starting Octane server..."
-php artisan octane:start --watch --host=0.0.0 --port=$SERVER_PORT
+php artisan octane:start --watch --host=0.0.0.0 --port=$SERVER_PORT
