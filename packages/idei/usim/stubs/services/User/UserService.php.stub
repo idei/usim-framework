@@ -191,6 +191,13 @@ class UserService
             $user->sendEmailVerificationNotification();
         }
 
+        // If the updated user is the currently authenticated user, fire an event to update the user data in the UI
+        if (Auth::id() === $user->id) {
+            event(new UsimEvent('updated_profile', [
+                'user' => $user
+            ]));
+        }
+
         return [
             'status' => 'success',
             'message' => 'Usuario actualizado exitosamente',
@@ -327,6 +334,13 @@ class UserService
         });
     }
 
+    /**
+     * Verify user email with ID and hash
+     *
+     * @param int $id User ID
+     * @param string $hash Email verification hash
+     * @return array Response array with status and message
+     */
     public function verifyEmail(int $id, string $hash): array
     {
         $user = {{ userModelClass }}::find($id);
@@ -339,6 +353,7 @@ class UserService
             ];
         }
 
+        // Verify hash matches user's email
         if (sha1($user->getEmailForVerification()) !== $hash) {
             return [
                 'success' => false,
@@ -347,6 +362,7 @@ class UserService
             ];
         }
 
+        // Check if already verified
         if ($user->hasVerifiedEmail()) {
             return [
                 'success' => true,
@@ -355,10 +371,17 @@ class UserService
             ];
         }
 
+        // Mark as verified
         $user->markEmailAsVerified();
 
+        // Fire Verified event if user implements MustVerifyEmail
         if ($user instanceof MustVerifyEmail) {
             event(new Verified($user));
+
+            // Fire custom UsimEvent for updating user data in the UI
+            event(new UsimEvent('email_verified', [
+                'user' => $user
+            ]));
         }
 
         return [
