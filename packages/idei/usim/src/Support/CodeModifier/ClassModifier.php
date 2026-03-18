@@ -237,4 +237,181 @@ class ClassModifier
         $printer = new Standard();
         file_put_contents($filePath, $printer->prettyPrintFile($ast));
     }
+
+    public static function addPropertyArrayValue(
+        string $filePath,
+        string $className,
+        string $propertyName,
+        string $value
+    ): void {
+        if (!file_exists($filePath)) {
+            return;
+        }
+
+        $code = file_get_contents($filePath);
+
+        $parser = (new ParserFactory())->createForNewestSupportedVersion();
+        $ast = $parser->parse($code);
+
+        if (!$ast) {
+            return;
+        }
+
+        $traverser = new NodeTraverser();
+
+        $traverser->addVisitor(
+            new class ($className, $propertyName, $value) extends NodeVisitorAbstract {
+
+            public function __construct(
+            private $className,
+            private $propertyName,
+            private $value
+            ) {}
+
+            public function enterNode(Node $node)
+            {
+                if ($node instanceof Class_ && $node->name->toString() === $this->className) {
+
+                    foreach ($node->stmts as $stmt) {
+
+                        if ($stmt instanceof \PhpParser\Node\Stmt\Property) {
+
+                            if ($stmt->props[0]->name->toString() === $this->propertyName) {
+
+                                $prop = $stmt->props[0];
+
+                                if ($prop->default instanceof \PhpParser\Node\Expr\Array_) {
+
+                                    foreach ($prop->default->items as $item) {
+                                        if ($item && $item->value instanceof \PhpParser\Node\Scalar\String_) {
+                                            if ($item->value->value === $this->value) {
+                                                return;
+                                            }
+                                        }
+                                    }
+
+                                    $prop->default->items[] = new \PhpParser\Node\Expr\ArrayItem(
+                                        new \PhpParser\Node\Scalar\String_($this->value)
+                                    );
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            }
+        );
+
+        $ast = $traverser->traverse($ast);
+
+        $printer = new Standard();
+        file_put_contents($filePath, $printer->prettyPrintFile($ast));
+    }
+
+    public static function addCast(
+        string $filePath,
+        string $className,
+        string $field,
+        string $type
+    ): void {
+        if (!file_exists($filePath)) {
+            return;
+        }
+
+        $code = file_get_contents($filePath);
+
+        $parser = (new ParserFactory())->createForNewestSupportedVersion();
+        $ast = $parser->parse($code);
+
+        if (!$ast) {
+            return;
+        }
+
+        $traverser = new NodeTraverser();
+
+        $traverser->addVisitor(
+            new class ($className, $field, $type) extends NodeVisitorAbstract {
+
+            public function __construct(
+            private $className,
+            private $field,
+            private $type
+            ) {}
+
+            public function enterNode(Node $node)
+            {
+                if ($node instanceof Class_ && $node->name->toString() === $this->className) {
+
+                    $handled = false;
+
+                    foreach ($node->stmts as $stmt) {
+
+                        // Caso 1: método casts()
+                        if (
+                        $stmt instanceof \PhpParser\Node\Stmt\ClassMethod
+                        && $stmt->name->toString() === 'casts'
+                        ) {
+
+                            foreach ($stmt->stmts as $methodStmt) {
+
+                                if (
+                                $methodStmt instanceof \PhpParser\Node\Stmt\Return_
+                                && $methodStmt->expr instanceof \PhpParser\Node\Expr\Array_
+                                ) {
+
+                                    foreach ($methodStmt->expr->items as $item) {
+                                        if ($item && $item->key instanceof \PhpParser\Node\Scalar\String_) {
+                                            if ($item->key->value === $this->field) {
+                                                return;
+                                            }
+                                        }
+                                    }
+
+                                    $methodStmt->expr->items[] = new \PhpParser\Node\Expr\ArrayItem(
+                                        new \PhpParser\Node\Scalar\String_($this->type),
+                                        new \PhpParser\Node\Scalar\String_($this->field)
+                                    );
+
+                                    $handled = true;
+                                }
+                            }
+                        }
+
+                        // Caso 2: propiedad $casts
+                        if (
+                        $stmt instanceof \PhpParser\Node\Stmt\Property
+                        && $stmt->props[0]->name->toString() === 'casts'
+                        ) {
+
+                            $prop = $stmt->props[0];
+
+                            if ($prop->default instanceof \PhpParser\Node\Expr\Array_) {
+
+                                foreach ($prop->default->items as $item) {
+                                    if ($item && $item->key instanceof \PhpParser\Node\Scalar\String_) {
+                                        if ($item->key->value === $this->field) {
+                                            return;
+                                        }
+                                    }
+                                }
+
+                                $prop->default->items[] = new \PhpParser\Node\Expr\ArrayItem(
+                                    new \PhpParser\Node\Scalar\String_($this->type),
+                                    new \PhpParser\Node\Scalar\String_($this->field)
+                                );
+
+                                $handled = true;
+                            }
+                        }
+                    }
+                }
+            }
+            }
+        );
+
+        $ast = $traverser->traverse($ast);
+
+        $printer = new Standard();
+        file_put_contents($filePath, $printer->prettyPrintFile($ast));
+    }
 }

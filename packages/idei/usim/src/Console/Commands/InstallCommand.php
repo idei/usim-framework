@@ -7,7 +7,6 @@ use Illuminate\Console\Command;
 use Illuminate\Filesystem\Filesystem;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Str;
-use Tests\Traits\UsimTestHelpers;
 
 class InstallCommand extends Command
 {
@@ -339,7 +338,7 @@ class InstallCommand extends Command
     {
         $this->line("  <fg=green>✓</> Adding traits to TestCase.php...");
         ClassModifier::addTraitToClass($path, 'TestCase', RefreshDatabase::class);
-        ClassModifier::addTraitToClass($path, 'TestCase', UsimTestHelpers::class);
+        ClassModifier::addTraitToClass($path, 'TestCase', "Tests\\Traits\\UsimTestHelpers");
     }
 
     protected function addRequireToPest(string $path): void
@@ -390,171 +389,32 @@ class InstallCommand extends Command
     // =========================================================================
     // User Model Configuration
     // =========================================================================
-
     protected function configureUserModel(): void
     {
         $userModelPath = \app_path('Models/User.php');
 
         if (!$this->files->exists($userModelPath)) {
-            // No User model — publish ours
             $stubPath = $this->stubsPath('models/User.php.stub');
+
             $this->publishStub($stubPath, $userModelPath, [
                 '{{ namespace }}' => 'App\\Models',
             ]);
+
             $this->line('  <fg=green>✓</> User model created with USIM auth defaults');
             return;
         }
 
-        // User model exists — ensure the auth-related traits/interfaces are present.
-        $contents = $this->files->get($userModelPath);
+        ClassModifier::addTraitToClass($userModelPath, 'User', \Laravel\Sanctum\HasApiTokens::class);
+        ClassModifier::addTraitToClass($userModelPath, 'User', \Spatie\Permission\Traits\HasRoles::class);
+        ClassModifier::addTraitToClass($userModelPath, 'User', \Idei\Usim\Traits\UsimUser::class);
 
-        $modified = false;
+        ClassModifier::addInterface($userModelPath, 'User', \Illuminate\Contracts\Auth\MustVerifyEmail::class);
+        ClassModifier::addInterface($userModelPath, 'User', \Illuminate\Contracts\Auth\CanResetPassword::class);
 
-        // Check for HasApiTokens
-        if (!str_contains($contents, 'HasApiTokens')) {
-            if (!str_contains($contents, 'Laravel\\Sanctum\\HasApiTokens')) {
-                $contents = preg_replace(
-                    '/(use Illuminate\\\\Foundation\\\\Auth\\\\User as Authenticatable;)/',
-                    "use Laravel\\Sanctum\\HasApiTokens;\n$1",
-                    $contents
-                );
-            }
+        ClassModifier::addPropertyArrayValue($userModelPath, 'User', 'fillable', 'terms_accepted_at');
+        ClassModifier::addCast($userModelPath, 'User', 'terms_accepted_at', 'datetime');
 
-            $contents = preg_replace(
-                '/(use\s+HasFactory)/',
-                '$1, HasApiTokens',
-                $contents
-            );
-
-            $modified = true;
-        }
-
-        // Check for HasRoles
-        if (!str_contains($contents, 'HasRoles')) {
-            if (!str_contains($contents, 'Spatie\\Permission\\Traits\\HasRoles')) {
-                $contents = preg_replace(
-                    '/(use Illuminate\\\\Foundation\\\\Auth\\\\User as Authenticatable;)/',
-                    "use Spatie\\Permission\\Traits\\HasRoles;\n$1",
-                    $contents
-                );
-            }
-
-            $contents = preg_replace(
-                '/(use\s+HasFactory)/',
-                '$1, HasRoles',
-                $contents
-            );
-
-            $modified = true;
-        }
-
-        // Check for MustVerifyEmail interface
-        if (!str_contains($contents, 'MustVerifyEmail')) {
-            if (!str_contains($contents, 'Illuminate\\Contracts\\Auth\\MustVerifyEmail')) {
-                $contents = preg_replace(
-                    '/(use Illuminate\\\\Foundation\\\\Auth\\\\User as Authenticatable;)/',
-                    "use Illuminate\\Contracts\\Auth\\MustVerifyEmail;\n$1",
-                    $contents
-                );
-            }
-
-            $contents = preg_replace(
-                '/(extends\s+Authenticatable)(?!\s+implements)/',
-                '$1 implements MustVerifyEmail',
-                $contents
-            );
-
-            $modified = true;
-        }
-
-        // Check for CanResetPassword interface
-        if (!str_contains($contents, 'CanResetPassword')) {
-            if (!str_contains($contents, 'Illuminate\\Contracts\\Auth\\CanResetPassword')) {
-                $contents = preg_replace(
-                    '/(use Illuminate\\\\Foundation\\\\Auth\\\\User as Authenticatable;)/',
-                    "use Illuminate\\Contracts\\Auth\\CanResetPassword;\n$1",
-                    $contents
-                );
-            }
-
-            // Append to existing implements clause or add new one
-            if (str_contains($contents, 'implements ')) {
-                $contents = preg_replace(
-                    '/(implements\s+[\w\\\\,\s]+?)(?=\s*\{)/',
-                    '$1, CanResetPassword',
-                    $contents
-                );
-            } else {
-                $contents = preg_replace(
-                    '/(extends\s+Authenticatable)(?!\s+implements)/',
-                    '$1 implements CanResetPassword',
-                    $contents
-                );
-            }
-
-            $modified = true;
-        }
-
-        // Check for UsimUser trait (ignore commented-out lines)
-        if (!preg_match('/^\s*(?!\/\/)[^\n]*UsimUser/m', $contents)) {
-            if (!preg_match('/^\s*(?!\/\/)\s*use\s+Idei\\\\Usim\\\\Traits\\\\UsimUser/m', $contents)) {
-                $contents = preg_replace(
-                    '/(use Illuminate\\\\Foundation\\\\Auth\\\\User as Authenticatable;)/',
-                    "use Idei\\Usim\\Traits\\UsimUser;\n$1",
-                    $contents
-                );
-            }
-
-            $contents = preg_replace(
-                '/(use\s+HasFactory)/',
-                '$1, UsimUser',
-                $contents
-            );
-
-            $modified = true;
-        }
-
-        // Check for terms_accepted_at in $fillable
-        if (!str_contains($contents, 'terms_accepted_at')) {
-            // Add to fillable array
-            $contents = preg_replace(
-                '/(protected\s+\$fillable\s*=\s*\[)([^\]]*)(\])/s',
-                "$1$2    'terms_accepted_at',\n    $3",
-                $contents
-            );
-
-            // Add cast — try casts() method first, then $casts property
-            if (str_contains($contents, 'function casts()')) {
-                $contents = preg_replace(
-                    "/(function\s+casts\s*\\(\\)[^{]*\\{[^}]*)('password'\s*=>\s*'hashed',)/",
-                    "$1$2\n            'terms_accepted_at' => 'datetime',",
-                    $contents
-                );
-                // Fallback: insert before closing brace of casts()
-                if (!str_contains($contents, "'terms_accepted_at' => 'datetime',")) {
-                    $contents = preg_replace(
-                        '/(function\s+casts\s*\(\)[^{]*\{[^}]*)(\})/s',
-                        "$1        'terms_accepted_at' => 'datetime',\n    $2",
-                        $contents
-                    );
-                }
-            } elseif (str_contains($contents, '$casts')) {
-                $contents = preg_replace(
-                    '/(protected\s+\$casts\s*=\s*\[)([^\]]*)(\])/s',
-                    "$1$2        'terms_accepted_at' => 'datetime',\n    $3",
-                    $contents
-                );
-            }
-
-            $modified = true;
-        }
-
-        if ($modified) {
-            $this->files->put($userModelPath, $contents);
-            $this->line('  <fg=green>✓</> User model updated with USIM auth defaults');
-        } else {
-            $this->line('  <fg=blue>→</> User model already configured');
-        }
+        $this->line('  <fg=green>✓</> User model updated with USIM auth defaults');
     }
 
     // =========================================================================
