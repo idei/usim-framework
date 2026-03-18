@@ -23,17 +23,75 @@ class UIComponent {
     applyCommonAttributes(element) {
         // Use internal component ID (_id) for data attribute, not JSON key
         const componentId = this.config._id || this.id;
+        const normalizeSizeValue = (value) => typeof value === 'number' ? value + 'px' : value;
+        const layout = typeof this.config.layout === 'string'
+            ? this.config.layout.toLowerCase()
+            : null;
+
         element.setAttribute('data-component-id', componentId);
         if (this.config.name) {
             element.id = this.config.name;
         }
 
+        // Ensure layout-specific spacing works even when CSS only defines part of the layouts.
+        if (layout === 'grid') {
+            element.style.setProperty('display', 'grid', 'important');
+        } else if (layout === 'flex') {
+            element.style.setProperty('display', 'flex', 'important');
+        }
+
+        if (this.config.flex_direction) {
+            element.style.setProperty('flex-direction', this.config.flex_direction, 'important');
+        }
+        if (this.config.flex_wrap) {
+            element.style.setProperty('flex-wrap', this.config.flex_wrap, 'important');
+        }
+
+        if (this.config.grid_template_columns) {
+            element.style.setProperty('grid-template-columns', this.config.grid_template_columns, 'important');
+        }
+        if (this.config.grid_template_rows) {
+            element.style.setProperty('grid-template-rows', this.config.grid_template_rows, 'important');
+        }
+        if (this.config.grid_template_areas) {
+            element.style.setProperty('grid-template-areas', this.config.grid_template_areas, 'important');
+        }
+        if (this.config.grid_auto_columns) {
+            element.style.setProperty('grid-auto-columns', this.config.grid_auto_columns, 'important');
+        }
+        if (this.config.grid_auto_rows) {
+            element.style.setProperty('grid-auto-rows', this.config.grid_auto_rows, 'important');
+        }
+        if (this.config.grid_auto_flow) {
+            element.style.setProperty('grid-auto-flow', this.config.grid_auto_flow, 'important');
+        }
+
         // Apply visual styling if specified
+        if (this.config.background_color) {
+            element.style.backgroundColor = this.config.background_color;
+        }
+        if (this.config.background_image) {
+            element.style.backgroundImage = `url(${this.config.background_image})`;
+        }
+        if (this.config.background_size) {
+            element.style.backgroundSize = this.config.background_size;
+        }
+        if (this.config.background_position) {
+            element.style.backgroundPosition = this.config.background_position;
+        }
+        if (this.config.border) {
+            element.style.border = this.config.border === true
+                ? '1px solid #d7dee8'
+                : this.config.border;
+        }
         if (this.config.box_shadow) {
             element.style.boxShadow = this.config.box_shadow;
         }
         if (this.config.border_radius) {
             element.style.borderRadius = this.config.border_radius;
+        }
+        if (this.config.opacity !== undefined && this.config.opacity !== null) {
+            element.style.opacity = this.config.opacity;
         }
 
         // Apply layout properties with !important to override CSS
@@ -43,10 +101,14 @@ class UIComponent {
         if (this.config.align_items) {
             element.style.setProperty('align-items', this.config.align_items, 'important');
         }
-        if (this.config.gap) {
-            // Support both number (px) and string with units
-            const gapValue = typeof this.config.gap === 'number' ? this.config.gap + 'px' : this.config.gap;
-            element.style.setProperty('gap', gapValue, 'important');
+        if (this.config.gap !== undefined && this.config.gap !== null && this.config.gap !== '') {
+            element.style.setProperty('gap', normalizeSizeValue(this.config.gap), 'important');
+        }
+        if (this.config.row_gap !== undefined && this.config.row_gap !== null && this.config.row_gap !== '') {
+            element.style.setProperty('row-gap', normalizeSizeValue(this.config.row_gap), 'important');
+        }
+        if (this.config.column_gap !== undefined && this.config.column_gap !== null && this.config.column_gap !== '') {
+            element.style.setProperty('column-gap', normalizeSizeValue(this.config.column_gap), 'important');
         }
 
         // Apply padding

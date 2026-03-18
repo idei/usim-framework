@@ -105,18 +105,14 @@ class DemoUi extends AbstractUIService
                 ->style('default')
         );
 
-        /**
-         * Container for new dynamically added components that will be arranged
-         * horizontally until the width is filled, then continue on the next row.
-         * Components will have a 10px horizontal and vertical gap, and no shadow
-         * to maintain a clean design.
-         */
         $this->new_components_container = UIBuilder::container('new_components_container')
             ->layout(LayoutType::GRID)
+            ->gridTemplateColumns('repeat(auto-fit, minmax(80px, 1fr))')
+            ->fullWidth()
             ->shadow(false)
-            ->border(true)
-            ->padding('10px')
-            ->gap('10px');
+            ->border('1px solid #d7dee8')
+            ->padding('5px')
+            ->gap('5px');
 
         $container->add($this->new_components_container);
 
