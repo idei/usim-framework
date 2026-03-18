@@ -343,23 +343,24 @@ class UIContainer implements UIElement
      * Add a child element to this container
      *
      * @param UIElement $element The element to add
+     * @param bool $result Reference parameter to indicate if the element was added (true) or ignored due to duplicate ID (false)
      * @return self For method chaining
      * @throws \InvalidArgumentException If element with same ID already exists
      */
-    public function add(UIElement $element): self
+    public function add(UIElement $element, bool &$result = null): self
     {
         $elementId = $element->getId();
 
         if (isset($this->children[$elementId])) {
-            throw new \InvalidArgumentException(
-                "Element with ID '{$elementId}' already exists in container '{$this->id}'"
-            );
+            $result = false;
+            return $this;
         }
 
         // Automatically set the child's parent to this container's ID
         $element->setParent($this->id);
 
         $this->children[$elementId] = $element;
+        $result = true;
         return $this;
     }
 

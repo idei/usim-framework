@@ -2027,6 +2027,12 @@ class UIRenderer {
                         const componentId = changes._id;
                         if (!componentId) continue;
 
+                        // If parent is null, remove the component and all descendants from DOM/registry
+                        if (changes.parent === null) {
+                            this.removeComponentAndChildren(componentId);
+                            continue;
+                        }
+
                         const element = document.querySelector(`[data-component-id="${componentId}"]`);
 
                         if (element) {
@@ -2051,6 +2057,12 @@ class UIRenderer {
             const componentId = changes._id;
             if (!componentId) continue;
 
+            // If parent is null, remove the component and all descendants from DOM/registry
+            if (changes.parent === null) {
+                this.removeComponentAndChildren(componentId);
+                continue;
+            }
+
             const element = document.querySelector(`[data-component-id="${componentId}"]`);
 
             if (element) {
@@ -2061,6 +2073,65 @@ class UIRenderer {
                 this.addComponent(jsonKey, changes);
             }
         }
+    }
+
+    /**
+     * Remove a component and all descendants from DOM and component registry
+     *
+     * @param {number|string} componentId - Internal component id (_id)
+     */
+    removeComponentAndChildren(componentId) {
+        const targetId = String(componentId);
+        const removedIds = new Set([targetId]);
+
+        // Remove subtree from DOM (removing parent removes visual children automatically)
+        const rootElement = document.querySelector(`[data-component-id="${componentId}"]`);
+        if (rootElement) {
+            const descendants = rootElement.querySelectorAll('[data-component-id]');
+            descendants.forEach((el) => {
+                const id = el.getAttribute('data-component-id');
+                if (id !== null) {
+                    removedIds.add(String(id));
+                }
+            });
+
+            rootElement.remove();
+        }
+
+        // Also resolve descendants from registry (covers orphaned/stale entries)
+        let foundNewDescendant = true;
+        while (foundNewDescendant) {
+            foundNewDescendant = false;
+
+            for (const [mapKey, component] of this.components.entries()) {
+                if (!component || !component.config) {
+                    continue;
+                }
+
+                const parentId = component.config.parent;
+                const internalId = component.config._id !== undefined
+                    ? String(component.config._id)
+                    : String(mapKey);
+
+                if (parentId !== undefined && parentId !== null && removedIds.has(String(parentId)) && !removedIds.has(internalId)) {
+                    removedIds.add(internalId);
+                    foundNewDescendant = true;
+                }
+            }
+        }
+
+        // Cleanup component registry
+        for (const [mapKey, component] of this.components.entries()) {
+            const internalId = component && component.config && component.config._id !== undefined
+                ? String(component.config._id)
+                : String(mapKey);
+
+            if (removedIds.has(internalId) || removedIds.has(String(mapKey))) {
+                this.components.delete(mapKey);
+            }
+        }
+
+        console.log(`🗑️ Removed component ${componentId} and ${Math.max(removedIds.size - 1, 0)} descendants`);
     }
 
     /**

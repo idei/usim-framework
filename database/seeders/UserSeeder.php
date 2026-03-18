@@ -27,7 +27,7 @@ class UserSeeder extends Seeder
             $this->createConfigUser($roleName, (array) ($roleMeta['seed_user'] ?? []));
         }
 
-        User::factory(107)->create()->each(function ($user) {
+        User::factory(4)->create()->each(function ($user) {
             $user->assignRole('user');
         });
     }
