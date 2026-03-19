@@ -1,30 +1,31 @@
 <?php
 namespace App\UI\Screens\Demo;
 
-use Idei\Usim\Services\UIBuilder;
-use Idei\Usim\Services\Enums\LayoutType;
 use Idei\Usim\Services\AbstractUIService;
-use Idei\Usim\Services\Components\UIContainer;
+use Idei\Usim\Services\Components\ButtonBuilder;
 use Idei\Usim\Services\Components\LabelBuilder;
+use Idei\Usim\Services\Components\UIContainer;
+use Idei\Usim\Services\Enums\LayoutType;
+use Idei\Usim\Services\UIBuilder;
 
 class DemoUi extends AbstractUIService
 {
     protected LabelBuilder $lbl_welcome;
     protected LabelBuilder $lbl_counter;
-    protected LabelBuilder $lbl_new_components;
     protected UIContainer $new_components_container;
     protected int $store_counter = 1000;
     protected int $store_new_components = 0;
-    protected array $store_dynamic_buttons = [];
 
     protected function buildBaseUI(UIContainer $container, ...$params): void
     {
         $container
             ->title('Demo UI Components')
-            ->maxWidth('500px')
+            ->maxWidth('600px')
             ->centerHorizontal()
-            ->shadow(2)
-            ->padding('30px');
+            ->shadow(1)
+            ->backgroundColor('rgba(182, 194, 221, 0.92)')
+            ->rounded(false)
+            ->padding('10px');
 
         $this->buildUIElements($container);
     }
@@ -51,15 +52,6 @@ class DemoUi extends AbstractUIService
                 ->action('test_action')
                 ->icon('star')
                 ->style('primary')
-                ->variant('filled')
-        );
-
-        $container->add(
-            UIBuilder::button('btn_test_add')
-                ->label('➕ Test Add')
-                ->action('add_new_component')
-                ->icon('settings')
-                ->style('warning')
                 ->variant('filled')
         );
 
@@ -100,43 +92,50 @@ class DemoUi extends AbstractUIService
         $container->add($counterContainer);
 
         $container->add(
+            UIBuilder::button('btn_test_add')
+                ->label('➕ Test Add')
+                ->action('add_new_component')
+                ->icon('settings')
+                ->style('warning')
+                ->variant('filled')
+        );
+
+        $container->add(
             UIBuilder::label()
-                ->text('💡 New buttons will be added below when you press "Test Add"')
+                ->text('💡 Press "Test Add" to add buttons below.')
                 ->style('default')
         );
 
         $this->new_components_container = UIBuilder::container('new_components_container')
             ->layout(LayoutType::GRID)
-            ->gridTemplateColumns('repeat(auto-fit, minmax(80px, 1fr))')
+            ->rounded(false)
+            ->gridTemplateColumns('repeat(auto-fill, minmax(150px, 150px))')
+            ->gridTemplateRows('repeat(auto-fill, minmax(40px, 40px))')
+            ->minHeight('100px')
+            ->justifyContent('start')
             ->fullWidth()
-            ->shadow(false)
-            ->border('1px solid #d7dee8')
+            ->backgroundColor('#f0f0f0')
+            ->border('2px solid #96a0ad')
             ->padding('5px')
             ->gap('5px');
 
         $container->add($this->new_components_container);
-
-        $this->lbl_new_components = UIBuilder::label('lbl_new_components');
-        $this->updateDynamicButtonsLabel();
-        $container->add($this->lbl_new_components);
     }
 
     protected function postLoadUI(): void
     {
         $this->updateCounterLabel($this->lbl_counter, $this->store_counter);
-        $this->updateDynamicButtonsLabel();
     }
 
     public function onResetState(array $params): void
     {
         $this->store_counter = 1000;
         $this->store_new_components = 0;
-        $this->store_dynamic_buttons = [];
         $this->lbl_welcome
             ->text('🔵 Initial State: Press "Test Update" to change this text')
             ->style('info');
+        $this->new_components_container->clear();
         $this->updateCounterLabel($this->lbl_counter, $this->store_counter);
-        $this->updateDynamicButtonsLabel();
     }
 
     public function onTestAction(array $params): void
@@ -177,7 +176,8 @@ class DemoUi extends AbstractUIService
         $added = false;
         $button_number = $this->store_new_components + 1;
         $new_button = UIBuilder::button("btn_new_button_$button_number")
-            ->label("✨ Button $button_number");
+            ->label("✨ Button $button_number")
+            ->style('info');
 
         $new_button->action('new_button_action', [
             'id' => $new_button->getId(),
@@ -188,30 +188,20 @@ class DemoUi extends AbstractUIService
 
         if ($added) {
             $this->store_new_components++;
-            $this->store_dynamic_buttons[] = $new_button->getId();
-            $this->updateDynamicButtonsLabel();
         }
     }
 
     public function onNewButtonAction(array $params): void
     {
-        $buttonId = $params['id'] ?? 'unknown';
-        $this->new_components_container->remove($buttonId);
-        $this->store_dynamic_buttons = array_filter($this->store_dynamic_buttons, fn($v) => $v !== $buttonId);
-        $this->updateDynamicButtonsLabel();
-    }
+        $button = $this->findRootComponentAs($params['id'] ?? null, ButtonBuilder::class);
 
-    private function updateDynamicButtonsLabel(): void
-    {
-        if (empty($this->store_dynamic_buttons)) {
-            $this->lbl_new_components
-                ->text('No new components added yet.')
-                ->style('default');
-        } else {
-            $str_buttons = implode(', ', $this->store_dynamic_buttons);
-            $this->lbl_new_components
-                ->text($str_buttons)
-                ->style('success');
+        if (!$button) {
+            return;
         }
+
+        $style = $button->get('style') !== 'warning' ? 'warning' : 'info';
+        $button->style($style);
+
+        //$this->new_components_container->remove((int) ($params['id'] ?? 0));
     }
 }

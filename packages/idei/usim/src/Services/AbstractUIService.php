@@ -16,6 +16,7 @@ use Idei\Usim\Services\Components\TableHeaderRowBuilder;
 use Idei\Usim\Services\Components\TableRowBuilder;
 use Idei\Usim\Services\Components\UIContainer;
 use Idei\Usim\Services\Components\UploaderBuilder;
+use Idei\Usim\Services\Contracts\UIElement;
 use Idei\Usim\Services\Enums\LayoutType;
 use Idei\Usim\Services\Support\UIDiffer;
 use Idei\Usim\Services\Support\UIIdGenerator;
@@ -770,5 +771,42 @@ abstract class AbstractUIService
         $this->uiChanges()->add([
             'update_modal' => $content,
         ]);
+    }
+
+    /**
+     * Find a component by ID and return it only if it matches the expected class.
+     *
+     * @template T of UIElement
+     * @param UIContainer $container
+     * @param int|string|null $id
+     * @param class-string<T> $expectedClass
+     * @return T|null
+     */
+    protected function findComponentAs(UIContainer $container, int|string|null $id, string $expectedClass): ?UIElement
+    {
+        if ($id === null || $id === '') {
+            return null;
+        }
+
+        $component = $container->findById((int) $id);
+
+        return $component instanceof $expectedClass ? $component : null;
+    }
+
+    /**
+     * Find a component in the root service container and return it as the expected class.
+     *
+     * @template T of UIElement
+     * @param int|string|null $id
+     * @param class-string<T> $expectedClass
+     * @return T|null
+     */
+    protected function findRootComponentAs(int|string|null $id, string $expectedClass): ?UIElement
+    {
+        if (!isset($this->container)) {
+            return null;
+        }
+
+        return $this->findComponentAs($this->container, $id, $expectedClass);
     }
 }

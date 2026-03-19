@@ -389,7 +389,7 @@ class UIContainer implements UIElement
      */
     public function remove(int|string $elementId): self
     {
-        $elementId = (string)$elementId;
+        $elementId = (string) $elementId;
         if (!isset($this->children[$elementId])) {
             throw new \InvalidArgumentException(
                 "Element with ID '{$elementId}' not found in container '{$this->id}'"
@@ -412,7 +412,7 @@ class UIContainer implements UIElement
      */
     public function tryRemove(int|string $elementId): bool
     {
-        $elementId = (string)$elementId;
+        $elementId = (string) $elementId;
         if (isset($this->children[$elementId])) {
             // Mark the element for deletion by setting parent to null
             $this->children[$elementId]->setParent(null);
@@ -433,14 +433,14 @@ class UIContainer implements UIElement
      */
     public function update(int|string $elementId, UIElement $newElement): self
     {
-        $elementId = (string)$elementId;
+        $elementId = (string) $elementId;
         if (!isset($this->children[$elementId])) {
             throw new \InvalidArgumentException(
                 "Element with ID '{$elementId}' not found in container '{$this->id}'"
             );
         }
 
-        if ((string)$newElement->getId() !== $elementId) {
+        if ((string) $newElement->getId() !== $elementId) {
             throw new \InvalidArgumentException(
                 "New element ID '{$newElement->getId()}' does not match target ID '{$elementId}'"
             );
@@ -458,7 +458,7 @@ class UIContainer implements UIElement
      */
     public function find(int|string $elementId): ?UIElement
     {
-        $elementId = (string)$elementId;
+        $elementId = (string) $elementId;
         // Check direct children first
         if (isset($this->children[$elementId])) {
             return $this->children[$elementId];
@@ -485,7 +485,7 @@ class UIContainer implements UIElement
      */
     public function has(int|string $elementId): bool
     {
-        $elementId = (string)$elementId;
+        $elementId = (string) $elementId;
         return isset($this->children[$elementId]);
     }
 
@@ -516,6 +516,9 @@ class UIContainer implements UIElement
      */
     public function clear(): self
     {
+        foreach ($this->children as $child) {
+            $child->setParent(null);
+        }
         $this->children = [];
         return $this;
     }
@@ -818,10 +821,14 @@ class UIContainer implements UIElement
      */
     public function paddingEach(?string $top = null, ?string $right = null, ?string $bottom = null, ?string $left = null): self
     {
-        if ($top !== null) $this->config['padding_top'] = $top;
-        if ($right !== null) $this->config['padding_right'] = $right;
-        if ($bottom !== null) $this->config['padding_bottom'] = $bottom;
-        if ($left !== null) $this->config['padding_left'] = $left;
+        if ($top !== null)
+            $this->config['padding_top'] = $top;
+        if ($right !== null)
+            $this->config['padding_right'] = $right;
+        if ($bottom !== null)
+            $this->config['padding_bottom'] = $bottom;
+        if ($left !== null)
+            $this->config['padding_left'] = $left;
         return $this;
     }
 
@@ -900,10 +907,14 @@ class UIContainer implements UIElement
      */
     public function marginEach(?string $top = null, ?string $right = null, ?string $bottom = null, ?string $left = null): static
     {
-        if ($top !== null) $this->config['margin_top'] = $top;
-        if ($right !== null) $this->config['margin_right'] = $right;
-        if ($bottom !== null) $this->config['margin_bottom'] = $bottom;
-        if ($left !== null) $this->config['margin_left'] = $left;
+        if ($top !== null)
+            $this->config['margin_top'] = $top;
+        if ($right !== null)
+            $this->config['margin_right'] = $right;
+        if ($bottom !== null)
+            $this->config['margin_bottom'] = $bottom;
+        if ($left !== null)
+            $this->config['margin_left'] = $left;
         return $this;
     }
 
@@ -1482,10 +1493,12 @@ class UIContainer implements UIElement
      * @param string|int $radius Radius value (e.g., '8px', 8, 'medium') or integer for pixels
      * @return self For method chaining
      */
-    public function rounded(string|int $radius = 8): self
+    public function rounded(string|int|bool $radius = 8): self
     {
         if (is_int($radius)) {
             $radius = $radius === 0 ? '0' : "{$radius}px";
+        } elseif (is_bool($radius)) {
+            $radius = $radius ? '8px' : '0';
         }
         return $this->borderRadius($radius);
     }
@@ -1605,21 +1618,21 @@ class UIContainer implements UIElement
         // Buscar en el stack trace la primera clase que NO sea del namespace UI (Legacy o Package)
         foreach ($trace as $frame) {
             if (isset($frame['class'])) {
-                 // Skip internal classes from Legacy Framework (App/UI/Components)
-                 if (str_starts_with($frame['class'], 'App\\UI\\Components\\')) {
-                     continue;
-                 }
-                 // Skip internal classes from New Package Framework
-                 if (str_starts_with($frame['class'], 'Idei\\Usim\\Services\\')) {
-                     continue;
-                 }
-                 // Skip Http Controllers
-                 if (str_starts_with($frame['class'], 'Idei\\Usim\\Http\\')) {
-                     continue;
-                 }
+                // Skip internal classes from Legacy Framework (App/UI/Components)
+                if (str_starts_with($frame['class'], 'App\\UI\\Components\\')) {
+                    continue;
+                }
+                // Skip internal classes from New Package Framework
+                if (str_starts_with($frame['class'], 'Idei\\Usim\\Services\\')) {
+                    continue;
+                }
+                // Skip Http Controllers
+                if (str_starts_with($frame['class'], 'Idei\\Usim\\Http\\')) {
+                    continue;
+                }
 
-                 // Found the consumer service!
-                 return $frame['class'];
+                // Found the consumer service!
+                return $frame['class'];
             }
         }
 
