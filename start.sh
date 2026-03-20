@@ -48,7 +48,8 @@ if [[ "$*" == *"-r"* ]]; then
         rm -f database/database.sqlite
     fi
 
-    php artisan migrate --force --seed
+    php artisan migrate --force
+    php artisan db:seed --class=UsimSeeder
 fi
 
 # Check if port 8000 is already in use (server already running)
