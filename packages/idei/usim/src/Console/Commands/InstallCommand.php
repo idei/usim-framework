@@ -222,10 +222,10 @@ class InstallCommand extends Command
         $this->info('Publishing users config...');
         $this->installUsersConfig();
 
-        // API Auth routes
-        $this->newLine();
-        $this->info('Installing API auth routes...');
-        $this->installApiAuthRoutes();
+        // // API Auth routes
+        // $this->newLine();
+        // $this->info('Installing API auth routes...');
+        // $this->installApiAuthRoutes();
 
         // Tests scaffolding
         $this->newLine();
@@ -588,30 +588,30 @@ class InstallCommand extends Command
     // API Auth Routes
     // =========================================================================
 
-    protected function installApiAuthRoutes(): void
-    {
-        $targetPath = \base_path('routes/api-auth.php');
-        $stubPath = $this->stubsPath('routes/api-auth.php.stub');
+    // protected function installApiAuthRoutes(): void
+    // {
+    //     $targetPath = \base_path('routes/api-auth.php');
+    //     $stubPath = $this->stubsPath('routes/api-auth.php.stub');
 
-        $this->publishStub($stubPath, $targetPath, [
-            '{{ authControllerClass }}' => 'App\\Http\\Controllers\\Api\\AuthController',
-        ]);
-        $this->line('  <fg=green>✓</> routes/api-auth.php');
+    //     $this->publishStub($stubPath, $targetPath, [
+    //         '{{ authControllerClass }}' => 'App\\Http\\Controllers\\Api\\AuthController',
+    //     ]);
+    //     $this->line('  <fg=green>✓</> routes/api-auth.php');
 
-        // Check if api.php already includes api-auth.php
-        $apiRoutesPath = \base_path('routes/api.php');
-        if ($this->files->exists($apiRoutesPath)) {
-            $contents = $this->files->get($apiRoutesPath);
-            $requireStatement = "require __DIR__.'/api-auth.php';";
+    //     // Check if api.php already includes api-auth.php
+    //     $apiRoutesPath = \base_path('routes/api.php');
+    //     if ($this->files->exists($apiRoutesPath)) {
+    //         $contents = $this->files->get($apiRoutesPath);
+    //         $requireStatement = "require __DIR__.'/api-auth.php';";
 
-            if (!str_contains($contents, 'api-auth.php')) {
-                $this->files->append($apiRoutesPath, "\n\n// USIM Auth Routes\n{$requireStatement}\n");
-                $this->line('  <fg=green>✓</> Added require to routes/api.php');
-            } else {
-                $this->line('  <fg=blue>→</> routes/api.php already includes api-auth.php');
-            }
-        }
-    }
+    //         if (!str_contains($contents, 'api-auth.php')) {
+    //             $this->files->append($apiRoutesPath, "\n\n// USIM Auth Routes\n{$requireStatement}\n");
+    //             $this->line('  <fg=green>✓</> Added require to routes/api.php');
+    //         } else {
+    //             $this->line('  <fg=blue>→</> routes/api.php already includes api-auth.php');
+    //         }
+    //     }
+    // }
 
     // =========================================================================
     // Web Routes (catch-all)
