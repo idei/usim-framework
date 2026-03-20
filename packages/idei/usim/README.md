@@ -44,12 +44,12 @@ A **Server-Driven UI** framework for Laravel. Define your entire user interface 
 |---|---|
 | PHP | ^8.2 |
 | Laravel | 10.x / 11.x / 12.x |
-| laravel/sanctum | ^3.0 \| ^4.0 |
+| laravel/sanctum | `^3.0` / `^4.0` |
 | spatie/laravel-permission | ^6.0 |
-| symfony/finder | ^6.0 \| ^7.0 |
+| symfony/finder | `^6.0` / `^7.0` |
 | nikic/php-parser | ^5.7 |
-| symfony/var-dumper | ^6.0 \| ^7.0 |
-| illuminate/contracts | ^10.0 \| ^11.0 \| ^12.0 |
+| symfony/var-dumper | `^6.0` / `^7.0` |
+| illuminate/contracts | `^10.0` / `^11.0` / `^12.0` |
 
 ---
 
