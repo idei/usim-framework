@@ -1,0 +1,53 @@
+<?php
+
+namespace Database\Seeders;
+
+use App\Models\User;
+use Illuminate\Database\Seeder;
+use Illuminate\Support\Str;
+
+class UsimUserSeeder extends Seeder
+{
+    public function run(): void
+    {
+        if (User::count() > 0) {
+            return;
+        }
+
+        $rolesConfig = config('users.roles', []);
+
+        foreach ($rolesConfig as $roleName => $roleMeta) {
+            if (!is_string($roleName) || $roleName === '') {
+                continue;
+            }
+
+            $this->createConfigUser($roleName, (array) ($roleMeta['seed_user'] ?? []));
+        }
+    }
+
+    private function createConfigUser(string $role, array $seedUserConfig = []): void
+    {
+        $legacyUserConfig = (array) config("users.{$role}", []);
+        $userConfig = array_merge($legacyUserConfig, $seedUserConfig);
+
+        if (empty($userConfig['email']) || empty($userConfig['password'])) {
+            return;
+        }
+
+        $firstName = $userConfig['first_name'] ?? ucfirst($role);
+        $lastName = $userConfig['last_name'] ?? 'User';
+        $fullName = trim($firstName . ' ' . $lastName);
+
+        $user = User::firstOrCreate(
+            ['email' => $userConfig['email']],
+            [
+                'name' => $fullName,
+                'email_verified_at' => now(),
+                'remember_token' => Str::random(10),
+                'password' => bcrypt($userConfig['password']),
+            ]
+        );
+
+        $user->assignRole($role);
+    }
+}

@@ -1,0 +1,48 @@
+<?php
+
+namespace Database\Seeders;
+
+use Illuminate\Database\Seeder;
+use Spatie\Permission\Models\Role;
+use Spatie\Permission\Models\Permission;
+use Spatie\Permission\PermissionRegistrar;
+
+class UsimRoleSeeder extends Seeder
+{
+    public function run(): void
+    {
+        app()[PermissionRegistrar::class]->forgetCachedPermissions();
+
+        $rolesConfig = config('users.roles', []);
+        $permissions = collect($rolesConfig)
+            ->pluck('permissions')
+            ->flatten()
+            ->filter(fn ($permission) => is_string($permission) && $permission !== '*' && $permission !== '')
+            ->unique()
+            ->values()
+            ->all();
+
+        foreach ($permissions as $permission) {
+            Permission::firstOrCreate(['name' => $permission]);
+        }
+
+        foreach ($rolesConfig as $roleName => $roleMeta) {
+            if (!is_string($roleName) || $roleName === '') {
+                continue;
+            }
+
+            $role = Role::firstOrCreate(['name' => $roleName]);
+            $rolePermissions = collect($roleMeta['permissions'] ?? [])
+                ->filter(fn ($permission) => is_string($permission) && $permission !== '' && $permission !== '*')
+                ->values()
+                ->all();
+
+            if (in_array('*', $roleMeta['permissions'] ?? [], true)) {
+                $role->syncPermissions(Permission::all());
+                continue;
+            }
+
+            $role->syncPermissions($rolePermissions);
+        }
+    }
+}

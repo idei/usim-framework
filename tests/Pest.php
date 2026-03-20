@@ -1,10 +1,6 @@
 <?php
 
-require_once __DIR__ . '/Support/UiScreenTestHelpers.php';
-require_once __DIR__ . '/Support/UiMemoryRenderer.php';
-require_once __DIR__ . '/Support/UiComponentRef.php';
-require_once __DIR__ . '/Support/UiScenario.php';
-require_once __DIR__ . '/Support/UiPayloadHelpers.php';
+require_once __DIR__ . '/Support/usim_bootstrap.php';
 
 /*
 |--------------------------------------------------------------------------
@@ -50,11 +46,4 @@ expect()->extend('toBeOne', function () {
 function something()
 {
     // ..
-}
-
-if (!function_exists('uiScenario')) {
-    function uiScenario(Tests\TestCase $test, string $screenClass, array $query = []): Tests\Support\UiScenario
-    {
-        return Tests\Support\UiScenario::boot($test, $screenClass, $query);
-    }
 }

@@ -222,11 +222,6 @@ class InstallCommand extends Command
         $this->info('Publishing users config...');
         $this->installUsersConfig();
 
-        // // API Auth routes
-        // $this->newLine();
-        // $this->info('Installing API auth routes...');
-        // $this->installApiAuthRoutes();
-
         // Tests scaffolding
         $this->newLine();
         $this->info('Publishing test stubs...');
@@ -541,34 +536,30 @@ class InstallCommand extends Command
     {
         $seedersPath = \database_path('seeders');
 
-        // RoleSeeder
-        $roleSeederPath = $seedersPath . '/RoleSeeder.php';
-        $stubPath = $this->stubsPath('seeders/RoleSeeder.php.stub');
+        // UsimRoleSeeder
+        $roleSeederPath = $seedersPath . '/UsimRoleSeeder.php';
+        $stubPath = $this->stubsPath('seeders/UsimRoleSeeder.php.stub');
         $this->publishStub($stubPath, $roleSeederPath, []);
-        $this->line('  <fg=green>✓</> RoleSeeder');
+        $this->line('  <fg=green>✓</> UsimRoleSeeder');
 
         // UserSeeder
-        $userSeederPath = $seedersPath . '/UserSeeder.php';
-        $stubPath = $this->stubsPath('seeders/UserSeeder.php.stub');
+        $userSeederPath = "$seedersPath/UsimUserSeeder.php";
+        $stubPath = $this->stubsPath('seeders/UsimUserSeeder.php.stub');
         $this->publishStub($stubPath, $userSeederPath, [
             '{{ userModel }}' => $this->resolveUserModelImport(),
             '{{ userModelClass }}' => $this->resolveUserModelClass(),
         ]);
-        $this->line('  <fg=green>✓</> UserSeeder');
+        $this->line('  <fg=green>✓</> UsimUserSeeder');
 
-        // Suggest adding to DatabaseSeeder
-        $databaseSeederPath = $seedersPath . '/DatabaseSeeder.php';
-        if ($this->files->exists($databaseSeederPath)) {
-            $contents = $this->files->get($databaseSeederPath);
-            if (!str_contains($contents, 'RoleSeeder') && !str_contains($contents, 'UserSeeder')) {
-                $this->newLine();
-                $this->warn('  Add to your DatabaseSeeder::run():');
-                $this->line('    $this->call([');
-                $this->line('        RoleSeeder::class,');
-                $this->line('        UserSeeder::class,');
-                $this->line('    ]);');
-            }
-        }
+        // UsimSeeder
+        $seederPath = $seedersPath . '/UsimSeeder.php';
+        $stubPath = $this->stubsPath('seeders/UsimSeeder.php.stub');
+        $this->publishStub($stubPath, $seederPath, []);
+        $this->line('  <fg=green>✓</> UsimSeeder');
+
+        // Post-install instructions for seeders
+        $this->info('USIM uses its own seeder (UsimSeeder) to preserve the integrity of existing project seeders.');
+        $this->line('Run: php artisan db:seed --class=UsimSeeder');
     }
 
     // =========================================================================
@@ -583,35 +574,6 @@ class InstallCommand extends Command
         $relativePath = str_replace(\base_path() . '/', '', $configPath);
         $this->line("  <fg=green>✓</> {$relativePath}");
     }
-
-    // =========================================================================
-    // API Auth Routes
-    // =========================================================================
-
-    // protected function installApiAuthRoutes(): void
-    // {
-    //     $targetPath = \base_path('routes/api-auth.php');
-    //     $stubPath = $this->stubsPath('routes/api-auth.php.stub');
-
-    //     $this->publishStub($stubPath, $targetPath, [
-    //         '{{ authControllerClass }}' => 'App\\Http\\Controllers\\Api\\AuthController',
-    //     ]);
-    //     $this->line('  <fg=green>✓</> routes/api-auth.php');
-
-    //     // Check if api.php already includes api-auth.php
-    //     $apiRoutesPath = \base_path('routes/api.php');
-    //     if ($this->files->exists($apiRoutesPath)) {
-    //         $contents = $this->files->get($apiRoutesPath);
-    //         $requireStatement = "require __DIR__.'/api-auth.php';";
-
-    //         if (!str_contains($contents, 'api-auth.php')) {
-    //             $this->files->append($apiRoutesPath, "\n\n// USIM Auth Routes\n{$requireStatement}\n");
-    //             $this->line('  <fg=green>✓</> Added require to routes/api.php');
-    //         } else {
-    //             $this->line('  <fg=blue>→</> routes/api.php already includes api-auth.php');
-    //         }
-    //     }
-    // }
 
     // =========================================================================
     // Web Routes (catch-all)
@@ -741,21 +703,6 @@ class InstallCommand extends Command
 
         $steps = [];
 
-        $userModelPath = \app_path('Models/User.php');
-        $databaseSeederPath = \database_path('seeders/DatabaseSeeder.php');
-
-        $steps[] = "Ensure your <href=file://{$userModelPath}>User</> model implements:\n" .
-            "     <fg=yellow>MustVerifyEmail</> and <fg=yellow>CanResetPassword</> interfaces, and uses the <fg=yellow>UsimUser</> trait\n";
-
-        $steps[] = "Add <fg=yellow>RoleSeeder::class</> and <fg=yellow>UserSeeder::class</> to your " .
-            "<href=file://{$databaseSeederPath}>DatabaseSeeder</>:\n" .
-            "     <fg=gray>class DatabaseSeeder extends Seeder {\n" .
-            "         use WithoutModelEvents;\n\n" .
-            "         public function run(): void {\n" .
-            "             \$this->call(RoleSeeder::class);\n" .
-            "             \$this->call(UserSeeder::class);\n" .
-            "         }\n" .
-            "     }</fg=gray>\n";
         $steps[] = "Run <fg=yellow>php artisan usim:discover</> after creating new screens\n";
         $steps[] = "Run <fg=yellow>./start.sh [-r]</> to start the development server.\n" .
             "     <fg=gray>Note: -r option removes database and starts fresh)</fg=gray>";

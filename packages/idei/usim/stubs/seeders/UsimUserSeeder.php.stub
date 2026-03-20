@@ -6,11 +6,11 @@ use {{ userModel }};
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Str;
 
-class UserSeeder extends Seeder
+class UsimUserSeeder extends Seeder
 {
     public function run(): void
     {
-        if ({{ userModelClass }}::count() > 1) {
+        if ({{ userModelClass }}::count() > 0) {
             return;
         }
 
