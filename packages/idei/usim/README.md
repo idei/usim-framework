@@ -47,6 +47,9 @@ A **Server-Driven UI** framework for Laravel. Define your entire user interface 
 | laravel/sanctum | ^3.0 \| ^4.0 |
 | spatie/laravel-permission | ^6.0 |
 | symfony/finder | ^6.0 \| ^7.0 |
+| nikic/php-parser | ^5.7 |
+| symfony/var-dumper | ^6.0 \| ^7.0 |
+| illuminate/contracts | ^10.0 \| ^11.0 \| ^12.0 |
 
 ---
 
@@ -562,8 +565,11 @@ Supporting files:
 - **AuthController** — API endpoints for register, login, logout, verify email, reset password
 - **UsimUser trait** — Custom notification methods for password reset and email verification
 - **UserService** — Full user management: find, get, create, update (with role sync, email validation, notifications)
-- **RoleSeeder / UserSeeder** — Default roles (admin/user/verified) and seed users from `.env`
-- **Migrations** — `temporary_uploads`, `profile_image` column on users table
+- **UsimSeeder / UsimRoleSeeder / UsimUserSeeder** — Default roles (admin/user/verified) and seed users from `.env`
+- **EventServiceProvider** — App-level event/listener registration scaffold
+- **Email view stubs** — Styled Blade views for password reset and email verification emails
+- **Terms view** — Blade view for terms and conditions display
+- **Migrations** — `temporary_uploads`, `profile_image` column, and `terms_accepted_at` column on users table
 
 ### Default Users (via `.env`)
 
@@ -725,10 +731,19 @@ config/
 database/
 ├── migrations/
 │   ├── *_create_temporary_uploads_table.php
-│   └── *_add_profile_image_to_users_table.php
+│   ├── *_add_profile_image_to_users_table.php
+│   └── *_add_terms_accepted_at_to_users_table.php
 └── seeders/
-    ├── RoleSeeder.php
-    └── UserSeeder.php
+    ├── UsimSeeder.php           # Entry point — calls role and user seeders
+    ├── UsimRoleSeeder.php
+    └── UsimUserSeeder.php
+providers/
+└── EventServiceProvider.php
+resources/views/emails/
+├── reset-password.blade.php
+└── verify-email.blade.php
+resources/views/
+└── terms.blade.php
 routes/
 ├── api-auth.php                  # Auth API routes
 └── web.php                       # + catch-all route for screens

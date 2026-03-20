@@ -6,6 +6,29 @@ The format is based on Keep a Changelog, and this project follows Semantic Versi
 
 ## [Unreleased]
 
+## [0.5.0] - 2026-03-20
+
+### Added
+- Email verification and password reset Blade view stubs (`stubs/views/emails/verify-email.blade.php`, `stubs/views/emails/reset-password.blade.php`).
+- Terms and conditions Blade view stub (`stubs/views/terms.blade.php`) with a migration stub `add_terms_accepted_at_to_users_table.php.stub` that adds a nullable `terms_accepted_at` datetime column to the users table.
+- `EventServiceProvider` stub (`stubs/providers/EventServiceProvider.php.stub`) for app-level event/listener registration.
+- `ClassModifier` utility now exposes four new static methods: `addTraitToClass()`, `addInterface()`, `addPropertyArrayValue()`, and `addCast()` — enabling programmatic, AST-based modification of any PHP class during installation.
+- `AbstractUIService` component lookup helpers: `findComponentAs()` and `findRootComponentAs()` for typed retrieval of child components.
+- Test scaffolding stubs: `stubs/tests/Support/usim_bootstrap.php.stub` and `stubs/tests/Traits/UsimTestHelpers.php.stub`.
+- `UsimSeeder` stub (`stubs/seeders/UsimSeeder.php.stub`) to orchestrate `UsimRoleSeeder` and `UsimUserSeeder` in a single seeder call.
+- New required composer dependencies: `nikic/php-parser: ^5.7`, `symfony/var-dumper: ^6.0|^7.0`, `illuminate/contracts: ^10.0|^11.0|^12.0`.
+- `UserService` stub emits email verification and profile update events for UI synchronization.
+- UI renderer (`ui-renderer.js`) now supports comprehensive CSS grid properties (`grid-template-columns/rows/areas`, `grid-auto-columns/rows/flow`) and flex layout properties (`flex-direction`, `flex-wrap`), as well as background image/size/position styling.
+
+### Changed
+- **Breaking:** Seeder stubs renamed from `RoleSeeder` → `UsimRoleSeeder` and `UserSeeder` → `UsimUserSeeder` to avoid class-name collisions in consumer projects.
+- User model stub now uses the `UsimUser` trait for password reset and email verification notifications instead of inline method overrides.
+- User model stub adds `terms_accepted_at` to `$fillable` and `$casts` (as `datetime`).
+- `usim:install` now programmatically modifies the consumer's `User` model (adds traits, interfaces, properties, casts) via `ClassModifier` instead of overwriting the file.
+- `usim:install` post-install guidance improved with clearer migration and seeding instructions.
+- API auth routes installation commented out in `InstallCommand` pending a dedicated auth-routes refactor.
+- `UsimUserSeeder` now only skips seeding when `User::count() > 0` (was `> 1`), so a single existing user prevents re-seeding.
+
 ## [0.4.0] - 2026-03-15
 
 ### Added
