@@ -20,83 +20,74 @@ class Home extends AbstractUIService
             ->alignItems('center')
             ->padding(20);
 
-        $hero = $homeConfig['hero'] ?? [];
         $container->add(
-            UIBuilder::label('welcome')
-                ->text($this->tr($hero['welcome_key'] ?? 'home.hero.welcome'))
-                ->style('h1')
-                ->center()
+            UIBuilder::label('welcome')->h1()->center()->text('home.hero.welcome')
         );
 
         $container->add(
-            UIBuilder::label('subtitle')
-                ->text($this->tr($hero['subtitle_key'] ?? 'home.hero.subtitle'))
-                ->style('h2')
-                ->center()
+            UIBuilder::label('subtitle')->h2()->center()->text('home.hero.subtitle')
         );
 
-        $features = $homeConfig['features'] ?? [];
         $container->add(
-            UIBuilder::label('features_title')
-                ->text($this->tr($features['title_key'] ?? 'home.features.title'))
-                ->style('h3')
-                ->center()
+            UIBuilder::label('features_title')->h3()->center()->text('home.features.title')
         );
 
         $featuresContainer = UIBuilder::container('features')
             ->layout(LayoutType::HORIZONTAL)
             ->padding(20)
-            ->gap((string) ($features['gap'] ?? '20px'))
+            ->gap('20px')
             ->shadow(0)
             ->justifyContent('center')
             ->alignItems('center');
 
-        foreach (($features['cards'] ?? []) as $cardConfig) {
+        $features = $homeConfig['features'] ?? [];
+        $featuresCards = $features['cards'] ?? [];
+
+        foreach ($featuresCards as $cardConfig) {
             $featuresContainer->add($this->buildConfiguredCard($cardConfig));
         }
 
         $container->add($featuresContainer);
 
-        $gettingStarted = $homeConfig['getting_started'] ?? [];
         $container->add(
-            UIBuilder::label('getting_started')
-                ->text($this->tr($gettingStarted['title_key'] ?? 'home.getting_started.title'))
-                ->style('h2')
-                ->center()
+            UIBuilder::label('getting_started')->h2()->center()->text('home.getting_started.title')
         );
 
-        foreach (($gettingStarted['cards'] ?? []) as $cardConfig) {
+        $gettingStarted = $homeConfig['getting_started'] ?? [];
+        $gettingStartedCards = $gettingStarted['cards'] ?? [];
+
+        foreach ($gettingStartedCards as $cardConfig) {
             $container->add($this->buildConfiguredCard($cardConfig));
         }
     }
 
     private function buildConfiguredCard(array $cardConfig)
     {
-        $name = (string) ($cardConfig['name'] ?? 'home_card_' . uniqid());
+        $name = $cardConfig['name'] ?? 'home_card_' . uniqid();
         $card = UIBuilder::card($name)
-            ->title($this->tr((string) ($cardConfig['title_key'] ?? '')))
-            ->description($this->tr((string) ($cardConfig['description_key'] ?? '')))
-            ->theme((string) ($cardConfig['theme'] ?? 'primary'))
-            ->elevation((string) ($cardConfig['elevation'] ?? 'medium'));
+            ->title($cardConfig['title_key'])
+            ->description($cardConfig['description_key'])
+            ->theme($cardConfig['theme'] ?? 'primary')
+            ->shadow(1);
 
         if (!empty($cardConfig['style'])) {
-            $card->style((string) $cardConfig['style']);
+            $card->style($cardConfig['style']);
         }
 
         if (!empty($cardConfig['size'])) {
-            $card->size((string) $cardConfig['size']);
+            $card->size($cardConfig['size']);
         }
 
         if (!empty($cardConfig['image'])) {
             $imageBasePath = (string) config('ui-home.images.base_path', 'vendor/idei/usim/images');
             $imagePosition = (string) ($cardConfig['image_position'] ?? 'top');
-            $imageAlt = $this->tr((string) ($cardConfig['image_alt_key'] ?? $cardConfig['title_key'] ?? ''));
+            $imageAlt = $cardConfig['image_alt_key'] ?? $cardConfig['title_key'] ?? '';
             $card->image(asset(trim($imageBasePath, '/') . '/' . ltrim((string) $cardConfig['image'], '/')), $imagePosition, $imageAlt);
         }
 
         foreach (($cardConfig['actions'] ?? []) as $actionConfig) {
             $card->addAction(
-                $this->tr((string) ($actionConfig['label_key'] ?? '')),
+                $actionConfig['label_key'] ?? '',
                 (string) ($actionConfig['action'] ?? ''),
                 (array) ($actionConfig['parameters'] ?? []),
                 (string) ($actionConfig['style'] ?? 'primary')
@@ -106,67 +97,43 @@ class Home extends AbstractUIService
         return $card;
     }
 
-    private function tr(string $key): string
-    {
-        if ($key === '') {
-            return '';
-        }
-
-        return __($key);
-    }
-
     /**
      * Handler for viewing demos
      */
-    public function onViewDemos(array $params): array
+    public function onViewDemos(array $params): void
     {
-        return [
-            'action' => 'redirect',
-            'url' => '/demo/demo-ui'
-        ];
+        $this->redirect('/demo/demo-ui');
     }
 
     /**
      * Handler for viewing code examples
      */
-    public function onViewCode(array $params): array
+    public function onViewCode(array $params): void
     {
-        return [
-            'action' => 'redirect',
-            'url' => '/demo/form-demo'
-        ];
+        $this->redirect('/demo/form-demo');
     }
 
     /**
      * Handler for customization demo
      */
-    public function onCustomize(array $params): array
+    public function onCustomize(array $params): void
     {
-        return [
-            'action' => 'redirect',
-            'url' => '/demo/button-demo'
-        ];
+        $this->redirect('/demo/button-demo');
     }
 
     /**
      * Handler for viewing all demos
      */
-    public function onViewAllDemos(array $params): array
+    public function onViewAllDemos(array $params): void
     {
-        return [
-            'action' => 'redirect',
-            'url' => '/demo/demo-ui'
-        ];
+        $this->redirect('/demo/demo-ui');
     }
 
     /**
      * Handler for viewing documentation
      */
-    public function onViewDocs(array $params): array
+    public function onViewDocs(array $params): void
     {
-        return [
-            'action' => 'redirect',
-            'url' => '/demo/table-demo'
-        ];
+        $this->redirect('/demo/table-demo');
     }
 }

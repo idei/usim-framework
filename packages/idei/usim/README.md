@@ -73,9 +73,17 @@ Then follow the printed instructions:
 
 ```bash
 php artisan migrate
-php artisan db:seed          # creates default admin/user from .env
-php artisan serve
+php artisan db:seed --class=UsimSeeder        # creates default admin/user from .env
+./start.sh [-r]
 ```
+
+## Starting the Application
+
+The `./start.sh` script uses **RoadRunner** instead of Laravel's `artisan serve` command. This is necessary because `artisan serve` is single-threaded and does not properly support the framework's concurrent execution requirements.
+
+### Usage
+
+Note: 
 
 Visit `http://localhost:8000` — you have a working USIM app.
 
@@ -99,7 +107,7 @@ use Idei\Usim\Services\Enums\LayoutType;
 use Idei\Usim\Services\AbstractUIService;
 use Idei\Usim\Services\Components\UIContainer;
 
-class Dashboard extends AbstractUIService
+class HelloScreen extends AbstractUIService
 {
     protected function buildBaseUI(UIContainer $container, ...$params): void
     {
@@ -114,14 +122,14 @@ class Dashboard extends AbstractUIService
         );
 
         $container->add(
-            UIBuilder::button('refresh')
-                ->label('Refresh Data')
-                ->style('primary')
-                ->action('refresh_data')
+            UIBuilder::button('hello_btn')
+                ->label('Hello USIM!')
+                ->primary()
+                ->action('hello_button_clicked')
         );
     }
 
-    public function onRefreshData(array $params): void
+    public function onHelloButtonClicked(array $params): void
     {
         $this->toast('Data refreshed!', 'success');
     }
@@ -134,7 +142,7 @@ After creating the file, register it:
 php artisan usim:discover
 ```
 
-Then visit `/dashboard` in your browser.
+Then visit `/hello-screen` in your browser.
 
 ### UIBuilder — The Component Factory
 

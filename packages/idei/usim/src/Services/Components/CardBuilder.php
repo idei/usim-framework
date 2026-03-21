@@ -79,7 +79,7 @@ class CardBuilder extends UIComponent
      */
     public function title(string $title): static
     {
-        return $this->setConfig('title', $title);
+        return $this->setConfig('title', __($title));
     }
 
     /**
@@ -90,7 +90,7 @@ class CardBuilder extends UIComponent
      */
     public function subtitle(string $subtitle): static
     {
-        return $this->setConfig('subtitle', $subtitle);
+        return $this->setConfig('subtitle', __($subtitle));
     }
 
     /**
@@ -101,7 +101,7 @@ class CardBuilder extends UIComponent
      */
     public function description(string $description): static
     {
-        return $this->setConfig('description', $description);
+        return $this->setConfig('description', __($description));
     }
 
     /**
@@ -112,7 +112,7 @@ class CardBuilder extends UIComponent
      */
     public function content(string $content): static
     {
-        return $this->setConfig('content', $content);
+        return $this->setConfig('content', __($content));
     }
 
     /**
@@ -150,17 +150,6 @@ class CardBuilder extends UIComponent
     public function size(string $size): static
     {
         return $this->setConfig('size', $size);
-    }
-
-    /**
-     * Set card elevation/shadow
-     *
-     * @param string $elevation Elevation level (none, low, medium, high)
-     * @return static
-     */
-    public function elevation(string $elevation): static
-    {
-        return $this->setConfig('elevation', $elevation);
     }
 
     /**
@@ -239,7 +228,7 @@ class CardBuilder extends UIComponent
 
         $currentActions = $this->config['actions'] ?? [];
         $currentActions[] = [
-            'label' => $label,
+            'label' => __($label),
             'action' => $action,
             'parameters' => $parameters,
             'style' => $style
