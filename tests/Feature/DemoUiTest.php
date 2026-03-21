@@ -6,10 +6,10 @@ it('loads demo ui with expected initial state', function () {
     $ui = uiScenario($this, DemoUi::class, ['reset' => true]);
 
     $ui->component('lbl_welcome')->expect('type')->toBe('label');
-    expect($ui->component('lbl_welcome')->data()['text'] ?? '')->toContain('Estado inicial');
+    expect($ui->component('lbl_welcome')->data()['text'] ?? '')->toContain('Initial State');
 
     $ui->component('btn_test_update')->expect('action')->toBe('test_action');
-    $ui->component('btn_test_add')->expect('action')->toBe('open_settings');
+    $ui->component('btn_test_add')->expect('action')->toBe('add_new_component');
 
     $counter = $ui->component('lbl_counter');
     $counter->expect('text')->toBe('1000');
@@ -25,8 +25,8 @@ it('updates welcome label when test update button is clicked', function () {
     $response->assertOk();
 
     $welcomeText = $ui->component('lbl_welcome')->data()['text'] ?? '';
-    expect($welcomeText)->toContain('Botón presionado');
-    expect($welcomeText)->toContain('Hora actual');
+    expect($welcomeText)->toContain('Pressed button');
+    expect($welcomeText)->toContain('Current time');
     $ui->component('lbl_welcome')->expect('style')->toBe('success');
 
     $ui->assertNoIssues();
@@ -46,15 +46,15 @@ it('increments and decrements interactive counter', function () {
     $ui->assertNoIssues();
 });
 
-it('adds settings label dynamically when open settings action is triggered', function () {
+it('adds a new dynamic button when add action is triggered', function () {
     $ui = uiScenario($this, DemoUi::class, ['reset' => true]);
 
     $response = $ui->click('btn_test_add');
     $response->assertOk();
 
-    $payload = $response->json();
-    expect(uiPayloadContainsText($payload, 'Settings panel opened!'))->toBeTrue();
-    expect(uiPayloadContainsStyle($payload, 'warning'))->toBeTrue();
+    $newButton = $ui->component('btn_new_button_1');
+    $newButton->expect('type')->toBe('button');
+    $newButton->expect('action')->toBe('new_button_action');
 
     $ui->assertNoIssues();
 });

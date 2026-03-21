@@ -24,6 +24,23 @@ it('returns home screen with expected core components', function () {
     $ui->assertNoIssues();
 });
 
+it('builds home cards from ui-home config', function () {
+    $ui = uiScenario($this, Home::class, ['reset' => true]);
+
+    $featureCards = config('ui-home.features.cards', []);
+    $gettingStartedCards = config('ui-home.getting_started.cards', []);
+
+    foreach (array_merge($featureCards, $gettingStartedCards) as $cardConfig) {
+        $name = $cardConfig['name'] ?? null;
+        expect($name)->not->toBeNull();
+
+        $card = $ui->component($name)->data();
+        expect($card['type'] ?? null)->toBe('card');
+    }
+
+    $ui->assertNoIssues();
+});
+
 it('declares expected home card actions', function () {
     $ui = uiScenario($this, Home::class, ['reset' => true]);
 
@@ -37,6 +54,22 @@ it('declares expected home card actions', function () {
     expect(cardHasAction($customCard, 'customize'))->toBeTrue();
     expect(cardHasAction($gettingStartedCard, 'view_all_demos'))->toBeTrue();
     expect(cardHasAction($gettingStartedCard, 'view_docs'))->toBeTrue();
+
+    $ui->assertNoIssues();
+});
+
+it('renders translated home text for spanish locale', function () {
+    app()->setLocale('es');
+
+    $ui = uiScenario($this, Home::class, ['reset' => true]);
+    $welcome = $ui->component('welcome')->data();
+
+    expect($welcome['text'] ?? '')->toContain('Bienvenido a USIM UI Framework');
+
+    $componentsCard = $ui->component('components_card')->data();
+    expect($componentsCard['title'] ?? null)->toBe('🎨 Componentes Modernos');
+
+    app()->setLocale(config('app.locale'));
 
     $ui->assertNoIssues();
 });
