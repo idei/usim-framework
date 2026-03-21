@@ -5,6 +5,11 @@ use App\Http\Controllers\LogViewerController;
 use App\Http\Controllers\TermsController;
 use Illuminate\Support\Facades\Route;
 
+
+Route::get('/', function () {
+    return view('usim-landing');
+})->name('landing');
+
 if (config('app.env') === 'local') {
     // Rutas para el visor de logs - Solo en entorno local
     Route::prefix('logs')->group(function () {

@@ -1,0 +1,1889 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="dark" data-lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>USIM — UI Services Implementation Model</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+/* ─── CSS Variables ─── */
+:root {
+  --bg: #0a0c10;
+  --bg2: #10141c;
+  --bg3: #161b26;
+  --surface: #1c2333;
+  --border: #2a3347;
+  --text: #e8eaf0;
+  --muted: #7a8499;
+  --accent: #00d4aa;
+  --accent2: #0099ff;
+  --accent3: #ff6b35;
+  --code-bg: #0d1117;
+  --code-text: #79c0ff;
+  --green: #3dd68c;
+  --red: #ff5555;
+  --bg-node: #0f1521;
+  --bg-core: #131b29;
+  --border-svg: #3a455c;
+  --accent-svg: #00d4aa;
+  --shadow: 0 8px 40px rgba(0,0,0,0.5);
+  --radius: 12px;
+  --font-display: 'Space Mono', monospace;
+  --font-mono: 'Space Mono', monospace;
+  --font-body: 'DM Sans', sans-serif;
+  --transition: 0.25s cubic-bezier(.4,0,.2,1);
+}
+[data-theme="light"] {
+  --bg: #f0f2f7;
+  --bg2: #e4e8f0;
+  --bg3: #d8dde8;
+  --surface: #ffffff;
+  --border: #c8cfe0;
+  --text: #0f1520;
+  --muted: #5a6580;
+  --code-bg: #1c2333;
+  --bg-node: #f8fbff;
+  --bg-core: #eaf0fa;
+  --border-svg: #7a879f;
+  --accent-svg: #00a885;
+  --shadow: 0 8px 40px rgba(0,0,0,0.12);
+}
+
+/* ─── Reset & Base ─── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; font-size: 16px; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-body);
+  line-height: 1.6;
+  min-height: 100vh;
+  transition: background var(--transition), color var(--transition);
+  overflow-x: hidden;
+}
+a { color: inherit; text-decoration: none; }
+code, pre { font-family: var(--font-mono); }
+
+/* ─── Grid noise texture overlay ─── */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.5;
+}
+
+/* ─── NAV ─── */
+nav {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  z-index: 100;
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  background: rgba(10,12,16,0.85);
+  border-bottom: 1px solid var(--border);
+  transition: background var(--transition);
+}
+[data-theme="light"] nav { background: rgba(240,242,247,0.88); }
+.nav-inner {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 0 2rem;
+  height: 64px;
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+}
+.logo {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 1.25rem;
+  letter-spacing: -0.02em;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-shrink: 0;
+}
+.logo-mark {
+  width: 32px; height: 32px;
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.75rem; color: #000; font-weight: 700;
+}
+.logo-version {
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  padding: 2px 6px;
+  border-radius: 4px;
+  color: var(--accent);
+  margin-left: 0.25rem;
+}
+.nav-links {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  margin-left: auto;
+  flex-wrap: wrap;
+}
+.nav-link {
+  padding: 0.4rem 0.75rem;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--muted);
+  transition: color var(--transition), background var(--transition);
+  white-space: nowrap;
+  cursor: pointer;
+}
+.nav-link:hover { color: var(--text); background: var(--surface); }
+
+/* Dropdown */
+.dropdown { position: relative; }
+.dropdown-toggle { display: flex; align-items: center; gap: 0.25rem; }
+.dropdown-toggle svg { transition: transform var(--transition); }
+.dropdown:hover .dropdown-toggle svg,
+.dropdown.open .dropdown-toggle svg { transform: rotate(180deg); }
+.dropdown-menu {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%) translateY(-6px);
+  opacity: 0;
+  pointer-events: none;
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 0.5rem;
+  min-width: 200px;
+  box-shadow: var(--shadow);
+  transition: opacity 0.2s, transform 0.2s;
+  z-index: 200;
+}
+.dropdown:hover .dropdown-menu,
+.dropdown.open .dropdown-menu {
+  opacity: 1;
+  pointer-events: all;
+  transform: translateX(-50%) translateY(0);
+}
+.dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  color: var(--muted);
+  transition: all var(--transition);
+  cursor: pointer;
+}
+.dropdown-item:hover { background: var(--surface); color: var(--text); }
+.dropdown-item .dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--accent);
+  flex-shrink: 0;
+}
+
+/* User menu */
+.user-btn {
+  display: flex; align-items: center; gap: 0.5rem;
+  padding: 0.35rem 0.75rem 0.35rem 0.35rem;
+  border-radius: 50px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  cursor: pointer;
+  font-size: 0.85rem;
+  transition: all var(--transition);
+}
+.user-btn:hover { border-color: var(--accent); }
+.avatar {
+  width: 28px; height: 28px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.75rem; font-weight: 700; color: #000;
+  flex-shrink: 0;
+}
+.user-dropdown-menu { min-width: 180px; left: auto; right: 0; transform: translateY(-6px); }
+.dropdown:hover .user-dropdown-menu { transform: translateY(0); }
+.divider { height: 1px; background: var(--border); margin: 0.35rem 0.5rem; }
+
+/* Auth button (guest) */
+.btn-auth {
+  padding: 0.4rem 1rem;
+  border-radius: 8px;
+  background: var(--accent);
+  color: #000;
+  font-weight: 600;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: opacity var(--transition);
+  border: none;
+  white-space: nowrap;
+}
+.btn-auth:hover { opacity: 0.85; }
+
+/* Theme & Lang toggles */
+.nav-controls { display: flex; align-items: center; gap: 0.5rem; }
+.icon-btn {
+  width: 36px; height: 36px;
+  border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  background: transparent;
+  border: 1px solid var(--border);
+  cursor: pointer;
+  transition: all var(--transition);
+  color: var(--muted);
+}
+.icon-btn:hover { background: var(--surface); color: var(--text); border-color: var(--accent); }
+.lang-btn {
+  padding: 0 0.75rem;
+  height: 36px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--muted);
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  cursor: pointer;
+  transition: all var(--transition);
+}
+.lang-btn:hover { background: var(--surface); color: var(--text); border-color: var(--accent); }
+
+/* Hamburger */
+.hamburger {
+  display: none;
+  flex-direction: column;
+  gap: 5px;
+  cursor: pointer;
+  padding: 4px;
+  background: none; border: none;
+  color: var(--text);
+}
+.hamburger span { display: block; width: 22px; height: 2px; background: currentColor; border-radius: 2px; transition: all var(--transition); }
+
+/* ─── HERO ─── */
+.hero {
+  position: relative;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  padding: 8rem 2rem 6rem;
+  overflow: hidden;
+}
+.hero-bg {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse 80% 60% at 60% 40%, rgba(0,212,170,0.08) 0%, transparent 60%),
+              radial-gradient(ellipse 50% 40% at 20% 80%, rgba(0,153,255,0.06) 0%, transparent 50%);
+  pointer-events: none;
+}
+.hero-grid {
+  position: absolute;
+  inset: 0;
+  background-image: linear-gradient(var(--border) 1px, transparent 1px), linear-gradient(90deg, var(--border) 1px, transparent 1px);
+  background-size: 60px 60px;
+  opacity: 0.15;
+  pointer-events: none;
+}
+.hero-inner {
+  position: relative;
+  max-width: 1280px;
+  margin: 0 auto;
+  width: 100%;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4rem;
+  align-items: center;
+}
+.hero-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.35rem 0.75rem;
+  border-radius: 50px;
+  border: 1px solid rgba(0,212,170,0.3);
+  background: rgba(0,212,170,0.06);
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  color: var(--accent);
+  margin-bottom: 1.5rem;
+  animation: fadeUp 0.6s both;
+}
+.hero-badge .pulse {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--accent);
+  animation: pulse 2s infinite;
+}
+@keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.5;transform:scale(1.5)} }
+h1 {
+  font-family: var(--font-display);
+  font-size: clamp(1.85rem, 3.8vw, 3.5rem);
+  font-weight: 700;
+  line-height: 1.12;
+  letter-spacing: -0.01em;
+  margin-bottom: 1.5rem;
+  animation: fadeUp 0.6s 0.1s both;
+}
+h1 .accent-word {
+  background: linear-gradient(90deg, var(--accent), var(--accent2));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+.hero-desc {
+  font-size: 1.125rem;
+  color: var(--muted);
+  max-width: 520px;
+  margin-bottom: 2.5rem;
+  line-height: 1.7;
+  animation: fadeUp 0.6s 0.2s both;
+}
+.hero-ctas {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+  animation: fadeUp 0.6s 0.3s both;
+}
+.btn-primary {
+  padding: 0.75rem 1.5rem;
+  border-radius: 10px;
+  background: var(--accent);
+  color: #000;
+  font-weight: 700;
+  font-size: 0.95rem;
+  cursor: pointer;
+  border: none;
+  display: flex; align-items: center; gap: 0.5rem;
+  transition: transform var(--transition), opacity var(--transition);
+}
+.btn-primary:hover { transform: translateY(-2px); opacity: 0.9; }
+.btn-secondary {
+  padding: 0.75rem 1.5rem;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--text);
+  font-weight: 600;
+  font-size: 0.95rem;
+  cursor: pointer;
+  border: 1px solid var(--border);
+  display: flex; align-items: center; gap: 0.5rem;
+  transition: all var(--transition);
+}
+.btn-secondary:hover { border-color: var(--accent); background: var(--surface); }
+.hero-meta {
+  display: flex;
+  gap: 2rem;
+  margin-top: 2.5rem;
+  animation: fadeUp 0.6s 0.4s both;
+}
+.hero-meta-item { display: flex; flex-direction: column; gap: 0.25rem; }
+.hero-meta-value { font-family: var(--font-display); font-size: 1.25rem; font-weight: 700; color: var(--accent); letter-spacing: 0.02em; }
+.hero-meta-label { font-size: 0.8rem; color: var(--muted); }
+
+/* Code card */
+.hero-code {
+  position: relative;
+  animation: fadeLeft 0.8s 0.2s both;
+}
+@keyframes fadeLeft { from { opacity:0; transform: translateX(30px); } to { opacity:1; transform: translateX(0); } }
+@keyframes fadeUp { from { opacity:0; transform: translateY(20px); } to { opacity:1; transform: translateY(0); } }
+.code-card {
+  background: var(--code-bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  box-shadow: var(--shadow), 0 0 0 1px rgba(0,212,170,0.1);
+}
+.code-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  background: var(--bg3);
+  border-bottom: 1px solid var(--border);
+}
+.code-dot { width: 12px; height: 12px; border-radius: 50%; }
+.code-dot.r { background: #ff5f57; }
+.code-dot.y { background: #ffbd2e; }
+.code-dot.g { background: #28c840; }
+.code-filename { font-family: var(--font-mono); font-size: 0.75rem; color: var(--muted); margin-left: auto; }
+.code-body { padding: 1.25rem 1.5rem; font-size: 0.8rem; line-height: 1.8; overflow-x: auto; }
+.kw { color: #ff7b72; }
+.cls { color: #79c0ff; }
+.fn { color: #d2a8ff; }
+.str { color: #a5d6ff; }
+.cm { color: #8b949e; font-style: italic; }
+.ch { color: var(--accent); }
+
+/* ─── SECTIONS COMMON ─── */
+section { padding: 6rem 2rem; position: relative; z-index: 1; }
+.section-inner { max-width: 1280px; margin: 0 auto; }
+.section-tag {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  color: var(--accent);
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  margin-bottom: 1rem;
+  display: flex; align-items: center; gap: 0.5rem;
+}
+.section-tag::before { content: '//'; opacity: 0.5; }
+h2 {
+  font-family: var(--font-display);
+  font-size: clamp(1.4rem, 2.8vw, 2.1rem);
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  margin-bottom: 1rem;
+}
+.section-lead { font-size: 1.1rem; color: var(--muted); max-width: 600px; line-height: 1.7; margin-bottom: 3rem; }
+
+/* ─── INSTALL STRIP ─── */
+.install-strip {
+  background: var(--bg2);
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  padding: 1.5rem 2rem;
+}
+.install-inner {
+  max-width: 1280px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+.install-label { font-size: 0.85rem; color: var(--muted); }
+.install-cmd {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  background: var(--code-bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.6rem 1rem;
+  font-family: var(--font-mono);
+  font-size: 0.9rem;
+  color: var(--accent);
+}
+.copy-btn {
+  background: none; border: none; cursor: pointer; color: var(--muted);
+  display: flex; align-items: center; padding: 0;
+  transition: color var(--transition);
+}
+.copy-btn:hover { color: var(--accent); }
+.mit-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.4rem 0.8rem;
+  border-radius: 50px;
+  background: rgba(61,214,140,0.1);
+  border: 1px solid rgba(61,214,140,0.3);
+  font-size: 0.8rem;
+  color: var(--green);
+  font-weight: 600;
+}
+
+/* ─── FEATURES ─── */
+.features-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1.5rem;
+}
+.feature-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1.75rem;
+  transition: all var(--transition);
+  position: relative;
+  overflow: hidden;
+}
+.feature-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, var(--accent), var(--accent2));
+  transform: scaleX(0);
+  transition: transform var(--transition);
+}
+.feature-card:hover { border-color: rgba(0,212,170,0.3); transform: translateY(-3px); box-shadow: var(--shadow); }
+.feature-card:hover::before { transform: scaleX(1); }
+.feature-icon {
+  width: 44px; height: 44px;
+  border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  margin-bottom: 1.25rem;
+  font-size: 1.25rem;
+}
+.feature-card h3 {
+  font-family: var(--font-display);
+  font-size: 0.95rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+  letter-spacing: -0.01em;
+}
+.feature-card p { font-size: 0.875rem; color: var(--muted); line-height: 1.6; }
+
+/* ─── ARCHITECTURE ─── */
+.arch-section { background: var(--bg2); }
+.arch-diagram-wrap {
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 2rem;
+  overflow-x: auto;
+}
+[data-theme="light"] .arch-diagram-wrap {
+  background: #f6f9ff;
+  border-color: #b9c5da;
+}
+.arch-svg {
+  width: 100%;
+  max-width: 860px;
+  height: auto;
+  display: block;
+  margin: 0 auto;
+}
+
+/* ─── COMPONENTS TABLE ─── */
+.components-section { background: var(--bg2); }
+.comp-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 1rem;
+}
+.comp-item {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 1rem 1.25rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 0.875rem;
+  transition: all var(--transition);
+}
+.comp-item:hover { border-color: var(--accent); background: var(--bg3); }
+.comp-name { font-family: var(--font-mono); color: var(--code-text); font-size: 0.8rem; }
+.comp-label { font-size: 0.8rem; color: var(--muted); margin-top: 0.1rem; }
+
+/* ─── TUTORIALS ─── */
+.tut-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1.5rem;
+}
+.tut-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  cursor: pointer;
+  transition: all var(--transition);
+}
+.tut-card:hover { border-color: var(--accent2); transform: translateY(-4px); box-shadow: var(--shadow); }
+.tut-thumb {
+  height: 140px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 3rem;
+  position: relative;
+}
+.tut-body { padding: 1.25rem; }
+.tut-tag {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  margin-bottom: 0.5rem;
+}
+.tut-card h3 { font-family: var(--font-display); font-size: 0.9rem; font-weight: 700; margin-bottom: 0.4rem; letter-spacing: -0.01em; }
+.tut-card p { font-size: 0.825rem; color: var(--muted); line-height: 1.5; }
+.tut-footer { padding: 0 1.25rem 1.25rem; display: flex; align-items: center; justify-content: space-between; }
+.tut-meta { font-size: 0.75rem; color: var(--muted); }
+
+/* ─── COMMUNITY ─── */
+.community-section { background: var(--bg2); }
+.messages-feed {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  max-width: 640px;
+}
+.message {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1.25rem;
+  display: flex;
+  gap: 1rem;
+  transition: border-color var(--transition);
+}
+.message:hover { border-color: var(--border); }
+.msg-avatar {
+  width: 36px; height: 36px; border-radius: 50%;
+  flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.85rem; font-weight: 700; color: #000;
+}
+.msg-name { font-weight: 600; font-size: 0.875rem; }
+.msg-time { font-family: var(--font-mono); font-size: 0.7rem; color: var(--muted); margin-left: 0.5rem; }
+.msg-text { font-size: 0.875rem; color: var(--muted); margin-top: 0.3rem; line-height: 1.5; }
+.msg-code { font-family: var(--font-mono); font-size: 0.75rem; background: var(--code-bg); padding: 2px 6px; border-radius: 4px; color: var(--code-text); }
+
+.community-cta {
+  margin-top: 2rem;
+  display: flex; gap: 1rem; flex-wrap: wrap;
+}
+
+/* ─── INSTITUTES ─── */
+.institutes-section {
+  border-top: 1px solid var(--border);
+}
+.institutes-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1.5rem;
+}
+.institute-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 2rem;
+  text-align: center;
+  transition: all var(--transition);
+}
+.institute-card:hover { border-color: var(--accent2); }
+.institute-icon {
+  width: 60px; height: 60px;
+  border-radius: 14px;
+  margin: 0 auto 1.25rem;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.75rem;
+}
+.institute-card h3 { font-family: var(--font-display); font-size: 0.9rem; font-weight: 700; margin-bottom: 0.5rem; letter-spacing: -0.01em; }
+.institute-card p { font-size: 0.85rem; color: var(--muted); line-height: 1.5; }
+
+/* ─── FOOTER ─── */
+footer {
+  background: var(--bg2);
+  border-top: 1px solid var(--border);
+  padding: 3rem 2rem;
+}
+.footer-inner {
+  max-width: 1280px;
+  margin: 0 auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1.5rem;
+}
+.footer-copy { font-size: 0.85rem; color: var(--muted); }
+.footer-links { display: flex; gap: 1.5rem; flex-wrap: wrap; }
+.footer-link { font-size: 0.85rem; color: var(--muted); transition: color var(--transition); }
+.footer-link:hover { color: var(--accent); }
+
+/* ─── MODAL ─── */
+.modal-overlay {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.65);
+  backdrop-filter: blur(8px);
+  z-index: 500;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
+.modal-overlay.active { display: flex; }
+.modal {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  padding: 2.5rem;
+  width: 100%;
+  max-width: 440px;
+  box-shadow: var(--shadow);
+  animation: modalIn 0.3s cubic-bezier(.4,0,.2,1);
+  position: relative;
+}
+@keyframes modalIn { from { opacity:0; transform:scale(0.95) translateY(10px); } to { opacity:1; transform:scale(1) translateY(0); } }
+.modal-close {
+  position: absolute; top: 1.25rem; right: 1.25rem;
+  background: var(--surface); border: 1px solid var(--border);
+  width: 32px; height: 32px; border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; color: var(--muted);
+  transition: all var(--transition);
+}
+.modal-close:hover { color: var(--text); border-color: var(--accent); }
+.modal h3 { font-family: var(--font-display); font-size: 1.2rem; font-weight: 700; margin-bottom: 0.5rem; letter-spacing: -0.01em; }
+.modal-sub { font-size: 0.875rem; color: var(--muted); margin-bottom: 1.75rem; }
+.modal-tabs {
+  display: flex;
+  gap: 0.25rem;
+  background: var(--bg3);
+  border-radius: 10px;
+  padding: 0.25rem;
+  margin-bottom: 1.5rem;
+}
+.modal-tab {
+  flex: 1; padding: 0.5rem;
+  border-radius: 8px; border: none;
+  background: transparent; color: var(--muted);
+  font-weight: 600; font-size: 0.875rem;
+  cursor: pointer; transition: all var(--transition);
+  font-family: var(--font-body);
+}
+.modal-tab.active { background: var(--surface); color: var(--text); box-shadow: 0 1px 4px rgba(0,0,0,0.2); }
+.form-group { margin-bottom: 1rem; }
+.form-label { display: block; font-size: 0.8rem; font-weight: 600; margin-bottom: 0.4rem; color: var(--muted); }
+.form-input {
+  width: 100%;
+  padding: 0.65rem 0.875rem;
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text);
+  font-family: var(--font-body);
+  font-size: 0.9rem;
+  transition: border-color var(--transition);
+  outline: none;
+}
+.form-input:focus { border-color: var(--accent); }
+.btn-full { width: 100%; padding: 0.75rem; border-radius: 10px; background: var(--accent); color: #000; font-weight: 700; font-size: 0.95rem; cursor: pointer; border: none; margin-top: 0.5rem; transition: opacity var(--transition); }
+.btn-full:hover { opacity: 0.88; }
+
+/* Profile modal */
+.profile-header {
+  display: flex; align-items: center; gap: 1rem;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid var(--border);
+}
+.profile-avatar {
+  width: 56px; height: 56px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.25rem; font-weight: 800; color: #000;
+}
+.profile-info h4 { font-family: var(--font-display); font-weight: 700; font-size: 1.1rem; }
+.profile-info span { font-size: 0.8rem; color: var(--muted); }
+.btn-danger { background: rgba(255,85,85,0.15); color: var(--red); border: 1px solid rgba(255,85,85,0.3); padding: 0.6rem 1rem; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 0.875rem; transition: all var(--transition); width: 100%; margin-top: 0.5rem; }
+.btn-danger:hover { background: rgba(255,85,85,0.25); }
+
+/* ─── TOAST ─── */
+.toast-container {
+  position: fixed;
+  bottom: 1.5rem; right: 1.5rem;
+  z-index: 1000;
+  display: flex; flex-direction: column; gap: 0.5rem;
+}
+.toast {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 0.75rem 1.25rem;
+  font-size: 0.875rem;
+  box-shadow: var(--shadow);
+  display: flex; align-items: center; gap: 0.5rem;
+  animation: toastIn 0.3s, toastOut 0.3s 2.5s forwards;
+  max-width: 320px;
+}
+@keyframes toastIn { from { opacity:0; transform:translateX(20px); } to { opacity:1; transform:translateX(0); } }
+@keyframes toastOut { to { opacity:0; transform:translateX(20px); } }
+
+/* ─── RESPONSIVE ─── */
+@media (max-width: 900px) {
+  .hero-inner { grid-template-columns: 1fr; gap: 3rem; }
+  .hero-code { order: -1; }
+  h1 { font-size: 2.5rem; }
+  .nav-links { display: none; }
+  .nav-links.open { display: flex; flex-direction: column; align-items: flex-start; position: fixed; top: 64px; left: 0; right: 0; background: var(--bg2); border-bottom: 1px solid var(--border); padding: 1rem; gap: 0.25rem; }
+  .hamburger { display: flex; }
+  .dropdown-menu { left: 0; transform: none; position: static; box-shadow: none; opacity: 1; pointer-events: all; display: none; margin-top: 0.25rem; border-radius: 8px; }
+  .dropdown.open .dropdown-menu { display: block; }
+  .nav-controls { margin-left: auto; }
+}
+@media (max-width: 580px) {
+  section { padding: 4rem 1.25rem; }
+  .hero { padding: 7rem 1.25rem 4rem; }
+  .hero-meta { gap: 1rem; flex-wrap: wrap; }
+  .footer-inner { flex-direction: column; align-items: flex-start; }
+  .install-inner { flex-direction: column; align-items: flex-start; }
+}
+</style>
+</head>
+<body>
+
+<!-- ─── NAV ─── -->
+<nav>
+  <div class="nav-inner">
+    <div class="logo">
+      <div class="logo-mark">U</div>
+      USIM
+      <span class="logo-version">v0.7.0</span>
+    </div>
+
+    <button class="hamburger" id="hamburger" aria-label="Menu">
+      <span></span><span></span><span></span>
+    </button>
+
+    <div class="nav-links" id="nav-links">
+      <!-- Demos dropdown -->
+      <div class="dropdown" id="demos-dropdown">
+        <div class="nav-link dropdown-toggle" onclick="toggleDropdown('demos-dropdown')">
+          <span data-i18n="nav.demos">Demos</span>
+          <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 4l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+        </div>
+        <div class="dropdown-menu">
+          <div class="dropdown-item" onclick="showToast('🚀 Abriendo Demo: Hello Screen')"><span class="dot"></span>Hello Screen</div>
+          <div class="dropdown-item" onclick="showToast('📋 Abriendo Demo: Data Tables')"><span class="dot"></span>Data Tables</div>
+          <div class="dropdown-item" onclick="showToast('📁 Abriendo Demo: File Uploads')"><span class="dot"></span>File Uploads</div>
+          <div class="dropdown-item" onclick="showToast('🔐 Abriendo Demo: Auth Flow')"><span class="dot"></span>Auth Flow</div>
+          <div class="dropdown-item" onclick="showToast('🗂️ Abriendo Demo: Modals & Dialogs')"><span class="dot"></span>Modals & Dialogs</div>
+          <div class="dropdown-item" onclick="showToast('📅 Abriendo Demo: Calendar')"><span class="dot"></span>Calendar</div>
+        </div>
+      </div>
+
+      <a class="nav-link" href="#tutorials" data-i18n="nav.tutorials">Tutoriales</a>
+      <a class="nav-link" href="#community" data-i18n="nav.community">Comunidad</a>
+      <a class="nav-link" href="#components" data-i18n="nav.docs">Documentación</a>
+
+      <!-- User section (guest) -->
+      <div id="guest-section">
+        <div class="nav-link btn-auth" onclick="openModal('auth-modal')" data-i18n="nav.login">Iniciar sesión</div>
+      </div>
+
+      <!-- User section (logged in) -->
+      <div id="user-section" style="display:none;">
+        <div class="dropdown" id="user-dropdown">
+          <div class="user-btn" onclick="toggleDropdown('user-dropdown')">
+            <div class="avatar" id="nav-avatar">JD</div>
+            <span id="nav-username">Juan D.</span>
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 4l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+          </div>
+          <div class="dropdown-menu user-dropdown-menu">
+            <div class="dropdown-item" onclick="openModal('profile-modal'); closeDropdowns()">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+              <span data-i18n="user.profile">Mi perfil</span>
+            </div>
+            <div class="divider"></div>
+            <div class="dropdown-item" style="color:var(--red)" onclick="logout()">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+              <span data-i18n="user.logout">Cerrar sesión</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="nav-controls">
+      <!-- Theme toggle -->
+      <button class="icon-btn" id="theme-btn" aria-label="Toggle theme">
+        <svg id="theme-icon-dark" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" pointer-events="none"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>
+        <svg id="theme-icon-light" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:none" pointer-events="none"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+      </button>
+      <!-- Lang toggle -->
+      <button class="lang-btn" id="lang-btn">EN</button>
+    </div>
+  </div>
+</nav>
+
+<!-- ─── HERO ─── -->
+<section class="hero">
+  <div class="hero-bg"></div>
+  <div class="hero-grid"></div>
+  <div class="hero-inner">
+    <div class="hero-content">
+      <div class="hero-badge">
+        <span class="pulse"></span>
+        <span data-i18n="hero.badge">Server-Driven UI · Laravel · v0.7.0</span>
+      </div>
+      <h1>
+        <span data-i18n="hero.title1">Define tu UI</span><br>
+        <span class="accent-word" data-i18n="hero.title2">en PHP puro.</span><br>
+        <span data-i18n="hero.title3">El resto es automático.</span>
+      </h1>
+      <p class="hero-desc" data-i18n="hero.desc">
+        USIM es un framework Server-Driven UI para Laravel. Define pantallas, formularios, tablas y modals en PHP — el framework se encarga de renderizar, differenciar y actualizar todo en el cliente automáticamente.
+      </p>
+      <div class="hero-ctas">
+        <button class="btn-primary" onclick="document.getElementById('install-strip').scrollIntoView({behavior:'smooth'})">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></svg>
+          <span data-i18n="hero.cta1">Comenzar ahora</span>
+        </button>
+        <button class="btn-secondary" onclick="openModal('auth-modal')">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8"/></svg>
+          <span data-i18n="hero.cta2">Ver demos</span>
+        </button>
+      </div>
+      <div class="hero-meta">
+        <div class="hero-meta-item">
+          <span class="hero-meta-value">v0.7.0</span>
+          <span class="hero-meta-label" data-i18n="hero.meta.version">Versión actual</span>
+        </div>
+        <div class="hero-meta-item">
+          <span class="hero-meta-value">MIT</span>
+          <span class="hero-meta-label" data-i18n="hero.meta.license">Licencia libre</span>
+        </div>
+        <div class="hero-meta-item">
+          <span class="hero-meta-value">PHP 8.2+</span>
+          <span class="hero-meta-label" data-i18n="hero.meta.req">Requerido</span>
+        </div>
+      </div>
+    </div>
+    <div class="hero-code">
+      <div class="code-card">
+        <div class="code-header">
+          <div class="code-dot r"></div>
+          <div class="code-dot y"></div>
+          <div class="code-dot g"></div>
+          <span class="code-filename">HelloScreen.php</span>
+        </div>
+        <div class="code-body">
+<pre><span class="kw">class</span> <span class="cls">HelloScreen</span> <span class="kw">extends</span> <span class="cls">AbstractUIService</span>
+{
+  <span class="kw">protected function</span> <span class="fn">buildBaseUI</span>(
+    <span class="cls">UIContainer</span> <span class="ch">$container</span>
+  ): <span class="kw">void</span> {
+    <span class="ch">$container</span>-><span class="fn">layout</span>(<span class="cls">LayoutType</span>::VERTICAL)
+             -><span class="fn">padding</span>(<span class="str">20</span>);
+
+    <span class="ch">$container</span>-><span class="fn">add</span>(
+      <span class="cls">UIBuilder</span>::<span class="fn">label</span>(<span class="str">'title'</span>)
+        -><span class="fn">text</span>(<span class="str">'Welcome to USIM!'</span>)
+        -><span class="fn">style</span>(<span class="str">'h1'</span>)
+    );
+
+    <span class="ch">$container</span>-><span class="fn">add</span>(
+      <span class="cls">UIBuilder</span>::<span class="fn">button</span>(<span class="str">'hello_btn'</span>)
+        -><span class="fn">label</span>(<span class="str">'Say Hello'</span>)
+        -><span class="fn">primary</span>()
+        -><span class="fn">action</span>(<span class="str">'greet'</span>)
+    );
+  }
+
+  <span class="kw">public function</span> <span class="fn">onGreet</span>(<span class="kw">array</span> <span class="ch">$params</span>): <span class="kw">void</span>
+  {
+    <span class="ch">$this</span>-><span class="fn">toast</span>(<span class="str">'Hello, USIM!'</span>, <span class="str">'success'</span>);
+  }
+}</pre>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ─── INSTALL STRIP ─── -->
+<div class="install-strip" id="install-strip">
+  <div class="install-inner">
+    <span class="install-label" data-i18n="install.label">Instalar via Composer:</span>
+    <div class="install-cmd">
+      <span>composer require idei/usim</span>
+      <button class="copy-btn" onclick="copyCmd(this, 'composer require idei/usim')" title="Copiar">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+      </button>
+    </div>
+    <div class="install-cmd" style="margin-left:1rem;">
+      <span>php artisan usim:install</span>
+      <button class="copy-btn" onclick="copyCmd(this, 'php artisan usim:install')" title="Copiar">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+      </button>
+    </div>
+    <div class="mit-badge">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+      <span data-i18n="install.mit">Gratis · Licencia MIT</span>
+    </div>
+  </div>
+</div>
+
+<!-- ─── FEATURES ─── -->
+<section>
+  <div class="section-inner">
+    <div class="section-tag" data-i18n="features.tag">Características</div>
+    <h2 data-i18n="features.title">¿Por qué USIM?</h2>
+    <p class="section-lead" data-i18n="features.lead">Un nuevo paradigma donde el servidor controla la UI y el cliente sólo renderiza el resultado.</p>
+    <div class="features-grid">
+      <div class="feature-card">
+        <div class="feature-icon" style="background:rgba(0,212,170,0.12)">🖥️</div>
+        <h3 data-i18n="feat.serverui.title">Server-Driven UI</h3>
+        <p data-i18n="feat.serverui.desc">Define toda tu interfaz en PHP. Pantallas, menus, formularios, tablas y modals sin escribir una sola línea de JavaScript.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon" style="background:rgba(0,153,255,0.12)">⚡</div>
+        <h3 data-i18n="feat.delta.title">Actualizaciones Delta</h3>
+        <p data-i18n="feat.delta.desc">El framework calcula la diferencia entre el estado anterior y el nuevo, enviando al cliente sólo los cambios necesarios.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon" style="background:rgba(210,168,255,0.12)">🎯</div>
+        <h3 data-i18n="feat.events.title">Sistema de Eventos</h3>
+        <p data-i18n="feat.events.desc">Manejo de eventos con convención de nombres automática. Botones, formularios y acciones se conectan solos al handler correspondiente.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon" style="background:rgba(255,107,53,0.12)">🔐</div>
+        <h3 data-i18n="feat.auth.title">Auth Completo</h3>
+        <p data-i18n="feat.auth.desc">Login, registro, recuperación de contraseña, perfiles y gestión de roles con Sanctum y Spatie Permission incluidos.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon" style="background:rgba(61,214,140,0.12)">🧪</div>
+        <h3 data-i18n="feat.testing.title">Testing Integrado</h3>
+        <p data-i18n="feat.testing.desc">Guías y helpers para testear screens con patrones claros, assertions por componente y soporte para agentes de IA generadora de tests.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon" style="background:rgba(255,189,46,0.12)">🚀</div>
+        <h3 data-i18n="feat.octane.title">Octane / RoadRunner</h3>
+        <p data-i18n="feat.octane.desc">Compatible con procesos de larga duración. Reset automático del generador de IDs por request, sin configuración extra.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ─── ARCHITECTURE ─── -->
+<section class="arch-section" id="architecture">
+  <div class="section-inner">
+    <div class="section-tag" data-i18n="arch.tag">Arquitectura</div>
+    <h2 data-i18n="arch.title">Client-Agnostic por diseño</h2>
+    <p class="section-lead" data-i18n="arch.lead">El servidor genera un contrato JSON agnóstico. Cualquier cliente — web, React, Android — puede implementar su propio render.</p>
+    <div class="arch-diagram-wrap">
+      <svg class="arch-svg" viewBox="0 0 860 620" xmlns="http://www.w3.org/2000/svg" font-family="'Space Mono', monospace">
+        <defs>
+          <marker id="arr" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+            <path d="M0,0 L0,6 L8,3 z" fill="var(--border-svg)"/>
+          </marker>
+          <marker id="arr-accent" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+            <path d="M0,0 L0,6 L8,3 z" fill="var(--accent-svg)"/>
+          </marker>
+          <marker id="arr-up" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto-start-reverse">
+            <path d="M0,0 L0,6 L8,3 z" fill="var(--border-svg)"/>
+          </marker>
+          <filter id="glow">
+            <feGaussianBlur stdDeviation="3" result="blur"/>
+            <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+          </filter>
+        </defs>
+        <style>
+          .arch-svg .node-rect { fill: var(--surface); stroke: var(--border); stroke-width: 1.5; }
+          .arch-svg .node-rect-accent { fill: var(--surface); stroke: var(--accent); stroke-width: 1.5; }
+          .arch-svg .core-rect { fill: var(--bg3); stroke: var(--accent2); stroke-width: 1.5; }
+          .arch-svg .node-text { fill: var(--text); font-size: 13px; }
+          .arch-svg .node-sub  { fill: var(--muted); font-size: 10.5px; }
+          .arch-svg .label-text { fill: var(--muted); font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; }
+          .arch-svg .conn-line { stroke: var(--border); stroke-width: 1.5; fill: none; marker-end: url(#arr); }
+          .arch-svg .conn-line-bi { stroke: var(--border); stroke-width: 1.5; fill: none; marker-end: url(#arr); marker-start: url(#arr-up); }
+          .arch-svg .conn-accent { stroke: var(--accent); stroke-width: 1.5; fill: none; stroke-dasharray: 5 3; marker-end: url(#arr-accent); }
+          .arch-svg .screen-rect { fill: var(--surface); stroke: var(--border); stroke-width: 1.2; }
+          .arch-svg .tag-pill { fill: rgba(0,212,170,0.12); stroke: rgba(0,212,170,0.35); stroke-width: 1; }
+          .arch-svg .tag-text { fill: var(--accent); font-size: 9px; letter-spacing:0.05em; }
+        </style>
+
+        <!-- ── BROWSER (user) ── -->
+        <g transform="translate(48, 52)">
+          <!-- stick figure -->
+          <circle cx="36" cy="16" r="11" fill="none" stroke="var(--border-svg)" stroke-width="1.5"/>
+          <line x1="36" y1="27" x2="36" y2="58" stroke="var(--border-svg)" stroke-width="1.5"/>
+          <line x1="36" y1="36" x2="18" y2="50" stroke="var(--border-svg)" stroke-width="1.5"/>
+          <line x1="36" y1="36" x2="54" y2="50" stroke="var(--border-svg)" stroke-width="1.5"/>
+          <line x1="36" y1="58" x2="20" y2="76" stroke="var(--border-svg)" stroke-width="1.5"/>
+          <line x1="36" y1="58" x2="52" y2="76" stroke="var(--border-svg)" stroke-width="1.5"/>
+          <text x="36" y="93" text-anchor="middle" class="node-sub">Browser</text>
+        </g>
+
+        <!-- HTTP arrow + label -->
+        <rect x="132" y="76" width="148" height="26" rx="5" fill="var(--bg-node)" stroke="var(--border-svg)" stroke-width="1"/>
+        <text x="206" y="93" text-anchor="middle" class="node-sub" style="font-size:10.5px">http://screen-a</text>
+        <line x1="116" y1="89" x2="132" y2="89" class="conn-line" style="marker-start:url(#arr-up)"/>
+        <line x1="280" y1="89" x2="312" y2="89" class="conn-line"/>
+
+        <!-- ── WEB CLIENT ── -->
+        <g transform="translate(312, 46)">
+          <rect width="200" height="80" rx="10" class="node-rect-accent"/>
+          <rect x="0" y="54" width="200" height="26" rx="0 0 10 10" fill="rgba(0,212,170,0.07)" stroke="none"/>
+          <text x="100" y="28" text-anchor="middle" class="node-text" font-weight="700">Web</text>
+          <text x="100" y="46" text-anchor="middle" class="node-sub">(html, css, js)</text>
+          <rect x="0" y="54" width="200" height="1" fill="var(--border-svg)"/>
+          <text x="100" y="71" text-anchor="middle" class="node-sub" style="fill:#00d4aa">Render</text>
+        </g>
+
+        <!-- any other client note -->
+        <g transform="translate(48, 190)">
+          <rect width="162" height="66" rx="2" fill="var(--bg-node)" stroke="var(--border-svg)" stroke-width="1" stroke-dasharray="4 2"/>
+          <!-- dog-ear -->
+          <polygon points="144,0 162,0 162,18 144,18" fill="var(--bg-core)" stroke="var(--border-svg)" stroke-width="1"/>
+          <polygon points="144,0 162,18 144,18" fill="var(--border-svg)" opacity="0.4"/>
+          <text x="12" y="22" class="node-sub" style="font-size:9.5px">Any other client</text>
+          <text x="12" y="36" class="node-sub" style="font-size:9.5px">(React, Android…)</text>
+          <text x="12" y="50" class="node-sub" style="font-size:9.5px">implementing a render</text>
+        </g>
+        <!-- dashed line from other client to JSON Output -->
+        <path d="M210,223 Q260,223 312,230" class="conn-accent" marker-start="none"/>
+
+        <!-- bi-arrow web ↔ JSON -->
+        <line x1="412" y1="126" x2="412" y2="176" class="conn-line-bi"/>
+
+        <!-- ── JSON OUTPUT ── -->
+        <g transform="translate(312, 176)">
+          <rect width="200" height="66" rx="10" class="node-rect-accent"/>
+          <rect x="6" y="8" width="76" height="18" rx="9" class="tag-pill"/>
+          <text x="44" y="21" text-anchor="middle" class="tag-text">AGNOSTIC</text>
+          <text x="100" y="44" text-anchor="middle" class="node-text" font-weight="700">JSON Output</text>
+          <text x="100" y="59" text-anchor="middle" class="node-sub">(Agnostic contract)</text>
+        </g>
+
+        <!-- bi-arrow JSON ↔ USIM Core -->
+        <line x1="412" y1="242" x2="412" y2="290" class="conn-line-bi"/>
+
+        <!-- ── USIM CORE ── -->
+        <g transform="translate(230, 290)">
+          <rect width="364" height="148" rx="12" class="core-rect"/>
+          <!-- label bottom right -->
+          <text x="184" y="136" text-anchor="middle" class="node-text" font-weight="700" style="font-size:14px; fill:#0099ff">USIM Core</text>
+
+          <!-- ScreenA -->
+          <g transform="translate(18, 18)">
+            <rect width="96" height="80" rx="10" class="screen-rect"/>
+            <text x="48" y="46" text-anchor="middle" class="node-text" font-weight="700" style="font-size:12px">ScreenA</text>
+          </g>
+          <!-- ScreenB -->
+          <g transform="translate(134, 18)">
+            <rect width="96" height="80" rx="10" class="screen-rect"/>
+            <text x="48" y="46" text-anchor="middle" class="node-text" font-weight="700" style="font-size:12px">ScreenB</text>
+          </g>
+          <!-- ScreenX -->
+          <g transform="translate(250, 18)">
+            <rect width="96" height="80" rx="10" class="screen-rect"/>
+            <text x="48" y="46" text-anchor="middle" class="node-text" font-weight="700" style="font-size:12px">ScreenX</text>
+          </g>
+        </g>
+
+        <!-- arrow Core → Service Layer -->
+        <line x1="412" y1="438" x2="412" y2="468" class="conn-line-bi"/>
+
+        <!-- ── SERVICE LAYER ── -->
+        <g transform="translate(230, 468)">
+          <rect width="364" height="44" rx="10" class="node-rect"/>
+          <text x="182" y="27" text-anchor="middle" class="node-text" font-weight="700">Service Layer</text>
+        </g>
+
+        <!-- arrow Service → DB -->
+        <line x1="412" y1="512" x2="412" y2="540" class="conn-line-bi"/>
+
+        <!-- ── DB ── -->
+        <g transform="translate(372, 538)">
+          <!-- cylinder -->
+          <ellipse cx="40" cy="8" rx="40" ry="10" fill="var(--bg-node)" stroke="var(--border-svg)" stroke-width="1.5"/>
+          <rect x="0" y="8" width="80" height="30" fill="var(--bg-node)" stroke="none"/>
+          <line x1="0" y1="8" x2="0" y2="38" stroke="var(--border-svg)" stroke-width="1.5"/>
+          <line x1="80" y1="8" x2="80" y2="38" stroke="var(--border-svg)" stroke-width="1.5"/>
+          <ellipse cx="40" cy="38" rx="40" ry="10" fill="var(--bg-node)" stroke="var(--border-svg)" stroke-width="1.5"/>
+          <!-- inner lines -->
+          <ellipse cx="40" cy="18" rx="40" ry="10" fill="none" stroke="var(--border-svg)" stroke-width="0.8" opacity="0.5"/>
+          <ellipse cx="40" cy="28" rx="40" ry="10" fill="none" stroke="var(--border-svg)" stroke-width="0.8" opacity="0.5"/>
+          <text x="40" y="57" text-anchor="middle" class="node-text" font-weight="700" style="font-size:12px">DB</text>
+        </g>
+
+      </svg>
+    </div>
+  </div>
+</section>
+
+<!-- ─── COMPONENTS ─── -->
+<section class="components-section" id="components">
+  <div class="section-inner">
+    <div class="section-tag" data-i18n="comp.tag">Componentes</div>
+    <h2 data-i18n="comp.title">Biblioteca de Componentes</h2>
+    <p class="section-lead" data-i18n="comp.lead">Todos los builders usan una API fluida y extienden BaseUIBuilder con métodos comunes de estilo y comportamiento.</p>
+    <div class="comp-grid">
+      <div class="comp-item">
+        <span style="font-size:1.25rem">🏷️</span>
+        <div>
+          <div class="comp-name">UIBuilder::label()</div>
+          <div class="comp-label" data-i18n="comp.label">Textos, headings, párrafos</div>
+        </div>
+      </div>
+      <div class="comp-item">
+        <span style="font-size:1.25rem">🔘</span>
+        <div>
+          <div class="comp-name">UIBuilder::button()</div>
+          <div class="comp-label" data-i18n="comp.button">Botones con estilos y acciones</div>
+        </div>
+      </div>
+      <div class="comp-item">
+        <span style="font-size:1.25rem">✏️</span>
+        <div>
+          <div class="comp-name">UIBuilder::input()</div>
+          <div class="comp-label" data-i18n="comp.input">Text, email, password, hidden</div>
+        </div>
+      </div>
+      <div class="comp-item">
+        <span style="font-size:1.25rem">🔽</span>
+        <div>
+          <div class="comp-name">UIBuilder::select()</div>
+          <div class="comp-label" data-i18n="comp.select">Dropdowns y selects</div>
+        </div>
+      </div>
+      <div class="comp-item">
+        <span style="font-size:1.25rem">☑️</span>
+        <div>
+          <div class="comp-name">UIBuilder::checkbox()</div>
+          <div class="comp-label" data-i18n="comp.checkbox">Checkboxes y toggles</div>
+        </div>
+      </div>
+      <div class="comp-item">
+        <span style="font-size:1.25rem">📋</span>
+        <div>
+          <div class="comp-name">UIBuilder::form()</div>
+          <div class="comp-label" data-i18n="comp.form">Agrupación de formularios</div>
+        </div>
+      </div>
+      <div class="comp-item">
+        <span style="font-size:1.25rem">📊</span>
+        <div>
+          <div class="comp-name">UIBuilder::table()</div>
+          <div class="comp-label" data-i18n="comp.table">Tablas con paginación</div>
+        </div>
+      </div>
+      <div class="comp-item">
+        <span style="font-size:1.25rem">🃏</span>
+        <div>
+          <div class="comp-name">UIBuilder::card()</div>
+          <div class="comp-label" data-i18n="comp.card">Cards con título y acciones</div>
+        </div>
+      </div>
+      <div class="comp-item">
+        <span style="font-size:1.25rem">📦</span>
+        <div>
+          <div class="comp-name">UIBuilder::container()</div>
+          <div class="comp-label" data-i18n="comp.container">Layouts vertical/horizontal</div>
+        </div>
+      </div>
+      <div class="comp-item">
+        <span style="font-size:1.25rem">📁</span>
+        <div>
+          <div class="comp-name">UIBuilder::uploader()</div>
+          <div class="comp-label" data-i18n="comp.uploader">Upload con preview y crop</div>
+        </div>
+      </div>
+      <div class="comp-item">
+        <span style="font-size:1.25rem">📅</span>
+        <div>
+          <div class="comp-name">UIBuilder::calendar()</div>
+          <div class="comp-label" data-i18n="comp.calendar">Calendar / date picker</div>
+        </div>
+      </div>
+      <div class="comp-item">
+        <span style="font-size:1.25rem">🎠</span>
+        <div>
+          <div class="comp-name">UIBuilder::carousel()</div>
+          <div class="comp-label" data-i18n="comp.carousel">Carousel de imagen/audio/video</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ─── TUTORIALS ─── -->
+<section id="tutorials">
+  <div class="section-inner">
+    <div class="section-tag" data-i18n="tut.tag">Aprendizaje</div>
+    <h2 data-i18n="tut.title">Tutoriales</h2>
+    <p class="section-lead" data-i18n="tut.lead">Desde cero hasta producción. Aprende USIM con guías paso a paso.</p>
+    <div class="tut-grid">
+      <div class="tut-card" onclick="showToast('📖 Abriendo tutorial...')">
+        <div class="tut-thumb" style="background: linear-gradient(135deg, rgba(0,212,170,0.15), rgba(0,153,255,0.1))">🚀</div>
+        <div class="tut-body">
+          <div class="tut-tag" style="color:var(--accent)" data-i18n="tut.begin">Principiante</div>
+          <h3 data-i18n="tut1.title">Tu primera Screen</h3>
+          <p data-i18n="tut1.desc">Instala USIM, crea tu primer Screen y comprende el ciclo de vida básico del framework.</p>
+        </div>
+        <div class="tut-footer">
+          <span class="tut-meta">15 min · PHP</span>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        </div>
+      </div>
+      <div class="tut-card" onclick="showToast('📖 Abriendo tutorial...')">
+        <div class="tut-thumb" style="background: linear-gradient(135deg, rgba(0,153,255,0.15), rgba(210,168,255,0.1))">📊</div>
+        <div class="tut-body">
+          <div class="tut-tag" style="color:var(--accent2)" data-i18n="tut.inter">Intermedio</div>
+          <h3 data-i18n="tut2.title">Data Tables y Paginación</h3>
+          <p data-i18n="tut2.desc">Crea tablas dinámicas con filtros, ordenamiento y paginación del lado del servidor.</p>
+        </div>
+        <div class="tut-footer">
+          <span class="tut-meta">30 min · Laravel + USIM</span>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--accent2)" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        </div>
+      </div>
+      <div class="tut-card" onclick="showToast('📖 Abriendo tutorial...')">
+        <div class="tut-thumb" style="background: linear-gradient(135deg, rgba(255,107,53,0.12), rgba(255,189,46,0.1))">🔐</div>
+        <div class="tut-body">
+          <div class="tut-tag" style="color:var(--accent3)" data-i18n="tut.inter">Intermedio</div>
+          <h3 data-i18n="tut3.title">Autenticación Completa</h3>
+          <p data-i18n="tut3.desc">Configura login, registro, recuperación de contraseña y gestión de roles con usim:install.</p>
+        </div>
+        <div class="tut-footer">
+          <span class="tut-meta">45 min · Sanctum + Spatie</span>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--accent3)" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        </div>
+      </div>
+      <div class="tut-card" onclick="showToast('📖 Abriendo tutorial...')">
+        <div class="tut-thumb" style="background: linear-gradient(135deg, rgba(61,214,140,0.12), rgba(0,212,170,0.1))">🧪</div>
+        <div class="tut-body">
+          <div class="tut-tag" style="color:var(--green)" data-i18n="tut.adv">Avanzado</div>
+          <h3 data-i18n="tut4.title">Testing de Screens</h3>
+          <p data-i18n="tut4.desc">Aprende los patrones de testing de USIM: uiScenario, assertions de componentes y respuestas JSON.</p>
+        </div>
+        <div class="tut-footer">
+          <span class="tut-meta">60 min · PHPUnit</span>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ─── COMMUNITY ─── -->
+<section class="community-section" id="community">
+  <div class="section-inner" style="display:grid;grid-template-columns:1fr 1fr;gap:4rem;align-items:start">
+    <div>
+      <div class="section-tag" data-i18n="comm.tag">Comunidad</div>
+      <h2 data-i18n="comm.title">Únete a la conversación</h2>
+      <p class="section-lead" data-i18n="comm.lead">Comparte código, hace preguntas y colabora con otros desarrolladores que usan USIM.</p>
+      <div class="community-cta">
+        <button class="btn-primary" onclick="showToast('💬 Unirse a la comunidad...')">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+          <span data-i18n="comm.cta1">Ver mensajes</span>
+        </button>
+        <button class="btn-secondary" onclick="showToast('✍️ Escribir mensaje...')">
+          <span data-i18n="comm.cta2">Escribir mensaje</span>
+        </button>
+      </div>
+    </div>
+    <div class="messages-feed">
+      <div class="message">
+        <div class="msg-avatar" style="background: linear-gradient(135deg,#00d4aa,#0099ff)">MR</div>
+        <div>
+          <div><span class="msg-name">María R.</span><span class="msg-time">hace 2h</span></div>
+          <div class="msg-text">¡Increíble! Con <span class="msg-code">usim:install</span> tuve auth completo en 5 minutos. Nunca había armado un backend tan rápido.</div>
+        </div>
+      </div>
+      <div class="message">
+        <div class="msg-avatar" style="background: linear-gradient(135deg,#ff6b35,#ffbd2e)">CL</div>
+        <div>
+          <div><span class="msg-name">Carlos L.</span><span class="msg-time">hace 5h</span></div>
+          <div class="msg-text">Pregunta: ¿cómo paso parámetros a un Screen desde la URL? Estoy viendo el README pero no encuentro ejemplos con rutas dinámicas.</div>
+        </div>
+      </div>
+      <div class="message">
+        <div class="msg-avatar" style="background: linear-gradient(135deg,#d2a8ff,#79c0ff)">AG</div>
+        <div>
+          <div><span class="msg-name">Ana G.</span><span class="msg-time">hace 1d</span></div>
+          <div class="msg-text">El sistema de eventos con la convención <span class="msg-code">on + PascalCase</span> es elegantísimo. Cero configuración extra.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ─── INSTITUTES ─── -->
+<section class="institutes-section" id="institutes">
+  <div class="section-inner">
+    <div class="section-tag" data-i18n="inst.tag">Respaldo Académico</div>
+    <h2 data-i18n="inst.title">Desarrollado con el apoyo de</h2>
+    <p class="section-lead" data-i18n="inst.lead">USIM es un proyecto surgido del ámbito académico e investigativo de la facultad de Ciencias Exactas, Físicas y Naturales.</p>
+    <div class="institutes-grid">
+      <div class="institute-card">
+        <div class="institute-icon" style="background: linear-gradient(135deg,rgba(0,153,255,0.15),rgba(0,212,170,0.1))">🏛️</div>
+        <h3 data-i18n="inst1.name">Instituto de Informática</h3>
+        <p data-i18n="inst1.desc">Facultad de Ciencias Exactas, Físicas y Naturales. Institución de investigación y desarrollo tecnológico de excelencia.</p>
+      </div>
+      <div class="institute-card">
+        <div class="institute-icon" style="background: linear-gradient(135deg,rgba(255,107,53,0.12),rgba(255,189,46,0.1))">🎮</div>
+        <h3 data-i18n="inst2.name">Laboratorio de Ingeniería de la Gamificación</h3>
+        <p data-i18n="inst2.desc">Investigación aplicada en gamificación, experiencias de usuario orientadas a motivación y aprendizaje.</p>
+      </div>
+      <div class="institute-card">
+        <div class="institute-icon" style="background: linear-gradient(135deg,rgba(61,214,140,0.12),rgba(0,212,170,0.1))">⚖️</div>
+        <h3 data-i18n="inst3.name">Licencia MIT · Software Libre</h3>
+        <p data-i18n="inst3.desc">USIM es completamente gratuito y de código abierto bajo la licencia MIT. Úsalo, modifícalo y distribúyelo libremente.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ─── FOOTER ─── -->
+<footer>
+  <div class="footer-inner">
+    <div>
+      <div class="logo" style="margin-bottom:0.5rem">
+        <div class="logo-mark">U</div>
+        USIM
+        <span class="logo-version">v0.7.0</span>
+      </div>
+      <p class="footer-copy" data-i18n="footer.copy">© 2024 Instituto de Informática · FCEFyN · MIT License</p>
+    </div>
+    <div class="footer-links">
+      <a class="footer-link" href="#" data-i18n="footer.docs">Documentación</a>
+      <a class="footer-link" href="#" data-i18n="footer.github">GitHub</a>
+      <a class="footer-link" href="#" data-i18n="footer.tutorials">Tutoriales</a>
+      <a class="footer-link" href="#" data-i18n="footer.community">Comunidad</a>
+      <a class="footer-link" href="#" data-i18n="footer.license">Licencia MIT</a>
+    </div>
+  </div>
+</footer>
+
+<!-- ─── AUTH MODAL ─── -->
+<div class="modal-overlay" id="auth-modal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('auth-modal')">✕</button>
+    <h3 data-i18n="auth.title">Bienvenido</h3>
+    <p class="modal-sub" data-i18n="auth.sub">Accede a la comunidad y demos de USIM</p>
+    <div class="modal-tabs">
+      <button class="modal-tab active" id="tab-login" onclick="switchTab('login')" data-i18n="auth.tab.login">Iniciar sesión</button>
+      <button class="modal-tab" id="tab-register" onclick="switchTab('register')" data-i18n="auth.tab.register">Registrarse</button>
+    </div>
+    <div id="login-form">
+      <div class="form-group">
+        <label class="form-label" data-i18n="auth.email">Correo electrónico</label>
+        <input class="form-input" type="email" id="login-email" placeholder="tu@ejemplo.com">
+      </div>
+      <div class="form-group">
+        <label class="form-label" data-i18n="auth.password">Contraseña</label>
+        <input class="form-input" type="password" id="login-pass" placeholder="••••••••">
+      </div>
+      <button class="btn-full" onclick="doLogin()" data-i18n="auth.btn.login">Ingresar</button>
+    </div>
+    <div id="register-form" style="display:none">
+      <div class="form-group">
+        <label class="form-label" data-i18n="auth.name">Nombre completo</label>
+        <input class="form-input" type="text" id="reg-name" placeholder="Juan Desarrollador">
+      </div>
+      <div class="form-group">
+        <label class="form-label" data-i18n="auth.email">Correo electrónico</label>
+        <input class="form-input" type="email" id="reg-email" placeholder="tu@ejemplo.com">
+      </div>
+      <div class="form-group">
+        <label class="form-label" data-i18n="auth.password">Contraseña</label>
+        <input class="form-input" type="password" id="reg-pass" placeholder="••••••••">
+      </div>
+      <button class="btn-full" onclick="doRegister()" data-i18n="auth.btn.register">Crear cuenta</button>
+    </div>
+  </div>
+</div>
+
+<!-- ─── PROFILE MODAL ─── -->
+<div class="modal-overlay" id="profile-modal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('profile-modal')">✕</button>
+    <h3 data-i18n="profile.title">Mi perfil</h3>
+    <div class="profile-header" style="margin-top:1.25rem">
+      <div class="profile-avatar" id="profile-avatar">JD</div>
+      <div class="profile-info">
+        <h4 id="profile-name">Juan Desarrollador</h4>
+        <span id="profile-email"><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="4b213e2a250b2e212e263b272465282426">[email&#160;protected]</a></span>
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label" data-i18n="profile.name">Nombre</label>
+      <input class="form-input" type="text" id="edit-name" placeholder="Tu nombre">
+    </div>
+    <div class="form-group">
+      <label class="form-label" data-i18n="profile.pass">Nueva contraseña (opcional)</label>
+      <input class="form-input" type="password" placeholder="••••••••">
+    </div>
+    <button class="btn-full" onclick="saveProfile()" data-i18n="profile.save">Guardar cambios</button>
+    <button class="btn-danger" onclick="logout()" data-i18n="user.logout">Cerrar sesión</button>
+  </div>
+</div>
+
+<!-- ─── TOAST CONTAINER ─── -->
+<div class="toast-container" id="toast-container"></div>
+
+<!-- ─── JS ─── -->
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
+/* ─── State ─── */
+let currentUser = null;
+let currentLang = 'es';
+let currentTheme = 'dark';
+
+/* ─── i18n ─── */
+const i18n = {
+  es: {
+    'nav.demos': 'Demos',
+    'nav.tutorials': 'Tutoriales',
+    'nav.community': 'Comunidad',
+    'nav.docs': 'Documentación',
+    'nav.login': 'Iniciar sesión',
+    'hero.badge': 'Server-Driven UI · Laravel · v0.7.0',
+    'hero.title1': 'Define tu UI',
+    'hero.title2': 'en PHP puro.',
+    'hero.title3': 'El resto es automático.',
+    'hero.desc': 'USIM es un framework Server-Driven UI para Laravel. Define pantallas, formularios, tablas y modals en PHP — el framework se encarga de renderizar, diferenciar y actualizar todo en el cliente automáticamente.',
+    'hero.cta1': 'Comenzar ahora',
+    'hero.cta2': 'Ver demos',
+    'hero.meta.version': 'Versión actual',
+    'hero.meta.license': 'Licencia libre',
+    'hero.meta.req': 'Requerido',
+    'arch.tag': 'Arquitectura',
+    'arch.title': 'Client-Agnostic por diseño',
+    'arch.lead': 'El servidor genera un contrato JSON agnóstico. Cualquier cliente — web, React, Android — puede implementar su propio render.',
+    'install.label': 'Instalar via Composer:',
+    'install.mit': 'Gratis · Licencia MIT',
+    'features.tag': 'Características',
+    'features.title': '¿Por qué USIM?',
+    'features.lead': 'Un nuevo paradigma donde el servidor controla la UI y el cliente sólo renderiza el resultado.',
+    'feat.serverui.title': 'Server-Driven UI',
+    'feat.serverui.desc': 'Define toda tu interfaz en PHP. Pantallas, menus, formularios, tablas y modals sin escribir una sola línea de JavaScript.',
+    'feat.delta.title': 'Actualizaciones Delta',
+    'feat.delta.desc': 'El framework calcula la diferencia entre el estado anterior y el nuevo, enviando al cliente sólo los cambios necesarios.',
+    'feat.events.title': 'Sistema de Eventos',
+    'feat.events.desc': 'Manejo de eventos con convención de nombres automática. Botones, formularios y acciones se conectan solos al handler correspondiente.',
+    'feat.auth.title': 'Auth Completo',
+    'feat.auth.desc': 'Login, registro, recuperación de contraseña, perfiles y gestión de roles con Sanctum y Spatie Permission incluidos.',
+    'feat.testing.title': 'Testing Integrado',
+    'feat.testing.desc': 'Guías y helpers para testear screens con patrones claros, assertions por componente y soporte para agentes de IA.',
+    'feat.octane.title': 'Octane / RoadRunner',
+    'feat.octane.desc': 'Compatible con procesos de larga duración. Reset automático del generador de IDs por request, sin configuración extra.',
+    'comp.tag': 'Componentes',
+    'comp.title': 'Biblioteca de Componentes',
+    'comp.lead': 'Todos los builders usan una API fluida y extienden BaseUIBuilder con métodos comunes de estilo y comportamiento.',
+    'comp.label': 'Textos, headings, párrafos',
+    'comp.button': 'Botones con estilos y acciones',
+    'comp.input': 'Text, email, password, hidden',
+    'comp.select': 'Dropdowns y selects',
+    'comp.checkbox': 'Checkboxes y toggles',
+    'comp.form': 'Agrupación de formularios',
+    'comp.table': 'Tablas con paginación',
+    'comp.card': 'Cards con título y acciones',
+    'comp.container': 'Layouts vertical/horizontal',
+    'comp.uploader': 'Upload con preview y crop',
+    'comp.calendar': 'Calendar / date picker',
+    'comp.carousel': 'Carousel de imagen/audio/video',
+    'tut.tag': 'Aprendizaje',
+    'tut.title': 'Tutoriales',
+    'tut.lead': 'Desde cero hasta producción. Aprende USIM con guías paso a paso.',
+    'tut.begin': 'Principiante',
+    'tut.inter': 'Intermedio',
+    'tut.adv': 'Avanzado',
+    'tut1.title': 'Tu primera Screen',
+    'tut1.desc': 'Instala USIM, crea tu primer Screen y comprende el ciclo de vida básico del framework.',
+    'tut2.title': 'Data Tables y Paginación',
+    'tut2.desc': 'Crea tablas dinámicas con filtros, ordenamiento y paginación del lado del servidor.',
+    'tut3.title': 'Autenticación Completa',
+    'tut3.desc': 'Configura login, registro, recuperación de contraseña y gestión de roles con usim:install.',
+    'tut4.title': 'Testing de Screens',
+    'tut4.desc': 'Aprende los patrones de testing de USIM: uiScenario, assertions de componentes y respuestas JSON.',
+    'comm.tag': 'Comunidad',
+    'comm.title': 'Únete a la conversación',
+    'comm.lead': 'Comparte código, hace preguntas y colabora con otros desarrolladores que usan USIM.',
+    'comm.cta1': 'Ver mensajes',
+    'comm.cta2': 'Escribir mensaje',
+    'inst.tag': 'Respaldo Académico',
+    'inst.title': 'Desarrollado con el apoyo de',
+    'inst.lead': 'USIM es un proyecto surgido del ámbito académico e investigativo de la facultad de Ciencias Exactas, Físicas y Naturales.',
+    'inst1.name': 'Instituto de Informática',
+    'inst1.desc': 'Facultad de Ciencias Exactas, Físicas y Naturales. Institución de investigación y desarrollo tecnológico de excelencia.',
+    'inst2.name': 'Laboratorio de Ingeniería de la Gamificación',
+    'inst2.desc': 'Investigación aplicada en gamificación, interfaces adaptativas y experiencias de usuario orientadas a motivación y aprendizaje.',
+    'inst3.name': 'Licencia MIT · Software Libre',
+    'inst3.desc': 'USIM es completamente gratuito y de código abierto bajo la licencia MIT. Úsalo, modifícalo y distribúyelo libremente.',
+    'footer.copy': '© 2024 Instituto de Informática · FCEFyN · MIT License',
+    'footer.docs': 'Documentación',
+    'footer.github': 'GitHub',
+    'footer.tutorials': 'Tutoriales',
+    'footer.community': 'Comunidad',
+    'footer.license': 'Licencia MIT',
+    'auth.title': 'Bienvenido',
+    'auth.sub': 'Accede a la comunidad y demos de USIM',
+    'auth.tab.login': 'Iniciar sesión',
+    'auth.tab.register': 'Registrarse',
+    'auth.email': 'Correo electrónico',
+    'auth.password': 'Contraseña',
+    'auth.name': 'Nombre completo',
+    'auth.btn.login': 'Ingresar',
+    'auth.btn.register': 'Crear cuenta',
+    'profile.title': 'Mi perfil',
+    'profile.name': 'Nombre',
+    'profile.pass': 'Nueva contraseña (opcional)',
+    'profile.save': 'Guardar cambios',
+    'user.profile': 'Mi perfil',
+    'user.logout': 'Cerrar sesión',
+  },
+  en: {
+    'nav.demos': 'Demos',
+    'nav.tutorials': 'Tutorials',
+    'nav.community': 'Community',
+    'nav.docs': 'Documentation',
+    'nav.login': 'Sign in',
+    'hero.badge': 'Server-Driven UI · Laravel · v0.7.0',
+    'hero.title1': 'Define your UI',
+    'hero.title2': 'in pure PHP.',
+    'hero.title3': 'The rest is automatic.',
+    'hero.desc': 'USIM is a Server-Driven UI framework for Laravel. Define screens, forms, tables and modals in PHP — the framework handles rendering, diffing and updating everything on the client automatically.',
+    'hero.cta1': 'Get started',
+    'hero.cta2': 'View demos',
+    'hero.meta.version': 'Current version',
+    'hero.meta.license': 'Open license',
+    'hero.meta.req': 'Required',
+    'arch.tag': 'Architecture',
+    'arch.title': 'Client-Agnostic by design',
+    'arch.lead': 'The server generates an agnostic JSON contract. Any client — web, React, Android — can implement its own renderer.',
+    'install.label': 'Install via Composer:',
+    'install.mit': 'Free · MIT License',
+    'features.tag': 'Features',
+    'features.title': 'Why USIM?',
+    'features.lead': 'A new paradigm where the server controls the UI and the client only renders the result.',
+    'feat.serverui.title': 'Server-Driven UI',
+    'feat.serverui.desc': 'Define your entire interface in PHP. Screens, menus, forms, tables and modals — no JavaScript required.',
+    'feat.delta.title': 'Delta Updates',
+    'feat.delta.desc': 'The framework diffs old vs new state and sends only the changes to the client — minimal payload, maximum efficiency.',
+    'feat.events.title': 'Event System',
+    'feat.events.desc': 'Automatic naming convention for event handlers. Buttons, forms and actions wire themselves to the correct handler.',
+    'feat.auth.title': 'Full Auth',
+    'feat.auth.desc': 'Login, register, password recovery, profiles and role management with Sanctum and Spatie Permission included.',
+    'feat.testing.title': 'Integrated Testing',
+    'feat.testing.desc': 'Guides and helpers for screen testing with clear patterns, component assertions and AI-agent test generation support.',
+    'feat.octane.title': 'Octane / RoadRunner',
+    'feat.octane.desc': 'Compatible with long-running processes. Automatic ID generator reset per request — no extra config needed.',
+    'comp.tag': 'Components',
+    'comp.title': 'Component Library',
+    'comp.lead': 'All builders use a fluent API and extend BaseUIBuilder with common styling and behavior methods.',
+    'comp.label': 'Text labels, headings, paragraphs',
+    'comp.button': 'Action buttons with styles',
+    'comp.input': 'Text, email, password, hidden',
+    'comp.select': 'Dropdown selects',
+    'comp.checkbox': 'Checkboxes and toggles',
+    'comp.form': 'Form grouping',
+    'comp.table': 'Data tables with pagination',
+    'comp.card': 'Cards with title and actions',
+    'comp.container': 'Vertical/horizontal layouts',
+    'comp.uploader': 'File upload with preview & crop',
+    'comp.calendar': 'Calendar / date picker',
+    'comp.carousel': 'Image/audio/video carousel',
+    'tut.tag': 'Learning',
+    'tut.title': 'Tutorials',
+    'tut.lead': 'From zero to production. Learn USIM with step-by-step guides.',
+    'tut.begin': 'Beginner',
+    'tut.inter': 'Intermediate',
+    'tut.adv': 'Advanced',
+    'tut1.title': 'Your first Screen',
+    'tut1.desc': 'Install USIM, create your first Screen and understand the basic lifecycle of the framework.',
+    'tut2.title': 'Data Tables & Pagination',
+    'tut2.desc': 'Build dynamic tables with server-side filters, sorting and pagination.',
+    'tut3.title': 'Full Authentication',
+    'tut3.desc': 'Set up login, registration, password recovery and role management with usim:install.',
+    'tut4.title': 'Screen Testing',
+    'tut4.desc': 'Learn USIM testing patterns: uiScenario, component assertions and JSON response contracts.',
+    'comm.tag': 'Community',
+    'comm.title': 'Join the conversation',
+    'comm.lead': 'Share code, ask questions and collaborate with other USIM developers.',
+    'comm.cta1': 'View messages',
+    'comm.cta2': 'Write a message',
+    'inst.tag': 'Academic Support',
+    'inst.title': 'Developed with the support of',
+    'inst.lead': 'USIM is a project born from academic and research environments in software engineering.',
+    'inst1.name': 'Institute of Informatics',
+    'inst1.desc': 'Faculty of Exact, Physical and Natural Sciences. Institution of excellence in technological research and development.',
+    'inst2.name': 'Gamification Engineering Laboratory',
+    'inst2.desc': 'Applied research in gamification and user experiences oriented to motivation and learning.',
+    'inst3.name': 'MIT License · Free Software',
+    'inst3.desc': 'USIM is completely free and open source under the MIT license. Use it, modify it and distribute it freely.',
+    'footer.copy': '© 2024 Institute of Informatics · FCEFyN · MIT License',
+    'footer.docs': 'Documentation',
+    'footer.github': 'GitHub',
+    'footer.tutorials': 'Tutorials',
+    'footer.community': 'Community',
+    'footer.license': 'MIT License',
+    'auth.title': 'Welcome',
+    'auth.sub': 'Access the USIM community and demos',
+    'auth.tab.login': 'Sign in',
+    'auth.tab.register': 'Sign up',
+    'auth.email': 'Email address',
+    'auth.password': 'Password',
+    'auth.name': 'Full name',
+    'auth.btn.login': 'Sign in',
+    'auth.btn.register': 'Create account',
+    'profile.title': 'My profile',
+    'profile.name': 'Name',
+    'profile.pass': 'New password (optional)',
+    'profile.save': 'Save changes',
+    'user.profile': 'My profile',
+    'user.logout': 'Sign out',
+  }
+};
+
+function t(key) { return i18n[currentLang][key] || key; }
+
+function applyTranslations() {
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const key = el.getAttribute('data-i18n');
+    el.textContent = t(key);
+  });
+  document.getElementById('lang-btn').textContent = currentLang === 'es' ? 'EN' : 'ES';
+}
+
+/* ─── Theme ─── */
+function toggleTheme() {
+  currentTheme = currentTheme === 'dark' ? 'light' : 'dark';
+  document.documentElement.setAttribute('data-theme', currentTheme);
+  document.getElementById('theme-icon-dark').style.display = currentTheme === 'dark' ? 'block' : 'none';
+  document.getElementById('theme-icon-light').style.display = currentTheme === 'light' ? 'block' : 'none';
+}
+
+/* ─── Lang ─── */
+function toggleLang() {
+  currentLang = currentLang === 'es' ? 'en' : 'es';
+  applyTranslations();
+}
+
+/* ─── Hamburger ─── */
+document.getElementById('hamburger').addEventListener('click', function(e) {
+  e.stopPropagation();
+  document.getElementById('nav-links').classList.toggle('open');
+});
+
+/* ─── Theme ─── */
+document.getElementById('theme-btn').addEventListener('click', function(e) {
+  e.stopPropagation();
+  toggleTheme();
+});
+
+/* ─── Lang ─── */
+document.getElementById('lang-btn').addEventListener('click', function(e) {
+  e.stopPropagation();
+  toggleLang();
+});
+
+/* ─── Dropdowns ─── */
+function toggleDropdown(id) {
+  const dd = document.getElementById(id);
+  dd.classList.toggle('open');
+  document.querySelectorAll('.dropdown').forEach(d => { if (d.id !== id) d.classList.remove('open'); });
+}
+function closeDropdowns() {
+  document.querySelectorAll('.dropdown').forEach(d => d.classList.remove('open'));
+}
+document.addEventListener('click', (e) => {
+  if (!e.target.closest('.dropdown')) closeDropdowns();
+});
+
+/* ─── Modal ─── */
+function openModal(id) {
+  document.getElementById(id).classList.add('active');
+  closeDropdowns();
+}
+function closeModal(id) {
+  document.getElementById(id).classList.remove('active');
+}
+document.querySelectorAll('.modal-overlay').forEach(overlay => {
+  overlay.addEventListener('click', (e) => {
+    if (e.target === overlay) overlay.classList.remove('active');
+  });
+});
+
+/* ─── Auth Tabs ─── */
+function switchTab(tab) {
+  document.getElementById('tab-login').classList.toggle('active', tab === 'login');
+  document.getElementById('tab-register').classList.toggle('active', tab === 'register');
+  document.getElementById('login-form').style.display = tab === 'login' ? 'block' : 'none';
+  document.getElementById('register-form').style.display = tab === 'register' ? 'block' : 'none';
+}
+
+/* ─── Auth Logic ─── */
+function doLogin() {
+  const email = document.getElementById('login-email').value.trim();
+  const pass = document.getElementById('login-pass').value;
+  if (!email || !pass) { showToast('⚠️ Completa todos los campos'); return; }
+  const name = email.split('@')[0].replace('.', ' ').split(' ').map(w => w[0].toUpperCase() + w.slice(1)).join(' ');
+  loginUser({ name, email });
+}
+
+function doRegister() {
+  const name = document.getElementById('reg-name').value.trim();
+  const email = document.getElementById('reg-email').value.trim();
+  const pass = document.getElementById('reg-pass').value;
+  if (!name || !email || !pass) { showToast('⚠️ Completa todos los campos'); return; }
+  loginUser({ name, email });
+}
+
+function loginUser(user) {
+  currentUser = user;
+  closeModal('auth-modal');
+  updateUserUI();
+  showToast(`✅ ¡Bienvenido, ${user.name.split(' ')[0]}!`);
+}
+
+function updateUserUI() {
+  const initials = currentUser ? currentUser.name.split(' ').map(w => w[0]).slice(0, 2).join('').toUpperCase() : 'JD';
+  const shortName = currentUser ? currentUser.name.split(' ')[0] + (currentUser.name.split(' ')[1] ? ' ' + currentUser.name.split(' ')[1][0] + '.' : '') : '';
+
+  if (currentUser) {
+    document.getElementById('guest-section').style.display = 'none';
+    document.getElementById('user-section').style.display = 'block';
+    document.getElementById('nav-avatar').textContent = initials;
+    document.getElementById('nav-username').textContent = shortName;
+    // Profile modal
+    document.getElementById('profile-avatar').textContent = initials;
+    document.getElementById('profile-name').textContent = currentUser.name;
+    document.getElementById('profile-email').textContent = currentUser.email;
+    document.getElementById('edit-name').value = currentUser.name;
+  } else {
+    document.getElementById('guest-section').style.display = 'block';
+    document.getElementById('user-section').style.display = 'none';
+  }
+}
+
+function logout() {
+  currentUser = null;
+  closeModal('profile-modal');
+  closeModal('auth-modal');
+  updateUserUI();
+  showToast('👋 Sesión cerrada');
+}
+
+function saveProfile() {
+  const newName = document.getElementById('edit-name').value.trim();
+  if (!newName) return;
+  currentUser.name = newName;
+  updateUserUI();
+  closeModal('profile-modal');
+  showToast('✅ Perfil actualizado');
+}
+
+/* ─── Copy cmd ─── */
+function copyCmd(btn, text) {
+  navigator.clipboard.writeText(text).then(() => {
+    btn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>';
+    setTimeout(() => {
+      btn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>';
+    }, 1500);
+    showToast('📋 Copiado al portapapeles');
+  });
+}
+
+/* ─── Toast ─── */
+function showToast(msg) {
+  const container = document.getElementById('toast-container');
+  const toast = document.createElement('div');
+  toast.className = 'toast';
+  toast.textContent = msg;
+  container.appendChild(toast);
+  setTimeout(() => toast.remove(), 3000);
+}
+
+/* ─── Init ─── */
+applyTranslations();
+updateUserUI();
+</script>
+</body>
+</html>
