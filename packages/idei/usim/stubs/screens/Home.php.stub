@@ -13,7 +13,7 @@ class Home extends AbstractUIService
     {
         $container
             ->layout(LayoutType::VERTICAL)
-            ->shadow(false)
+            ->shadow(0)
             ->justifyContent('center')
             ->alignItems('center')
             ->padding(20);
@@ -43,7 +43,7 @@ class Home extends AbstractUIService
             ->layout(LayoutType::HORIZONTAL)
             ->padding(20)
             ->gap('20px')
-            ->shadow(false)
+            ->shadow(0)
             ->justifyContent('center')
             ->alignItems('center');
 

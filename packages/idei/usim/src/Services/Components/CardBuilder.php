@@ -75,9 +75,9 @@ class CardBuilder extends UIComponent
      * Set the card title
      *
      * @param string $title Card title
-     * @return self
+     * @return static
      */
-    public function title(string $title): self
+    public function title(string $title): static
     {
         return $this->setConfig('title', $title);
     }
@@ -86,9 +86,9 @@ class CardBuilder extends UIComponent
      * Set the card subtitle
      *
      * @param string $subtitle Card subtitle
-     * @return self
+     * @return static
      */
-    public function subtitle(string $subtitle): self
+    public function subtitle(string $subtitle): static
     {
         return $this->setConfig('subtitle', $subtitle);
     }
@@ -97,9 +97,9 @@ class CardBuilder extends UIComponent
      * Set the card description
      *
      * @param string $description Card description
-     * @return self
+     * @return static
      */
-    public function description(string $description): self
+    public function description(string $description): static
     {
         return $this->setConfig('description', $description);
     }
@@ -108,9 +108,9 @@ class CardBuilder extends UIComponent
      * Set card content (HTML)
      *
      * @param string $content HTML content
-     * @return self
+     * @return static
      */
-    public function content(string $content): self
+    public function content(string $content): static
     {
         return $this->setConfig('content', $content);
     }
@@ -121,9 +121,9 @@ class CardBuilder extends UIComponent
      * @param string $imageUrl Image URL
      * @param string $position Image position (top, bottom, left, right, background)
      * @param string $alt Alt text for accessibility
-     * @return self
+     * @return static
      */
-    public function image(string $imageUrl, string $position = 'top', ?string $alt = null): self
+    public function image(string $imageUrl, string $position = 'top', ?string $alt = null): static
     {
         return $this->setConfig('image', $imageUrl)
                    ->setConfig('image_position', $position)
@@ -134,9 +134,9 @@ class CardBuilder extends UIComponent
      * Set card style
      *
      * @param string $style Style variant (default, outlined, elevated, flat, gradient)
-     * @return self
+     * @return static
      */
-    public function style(string $style): self
+    public function style(string $style): static
     {
         return $this->setConfig('style', $style);
     }
@@ -145,9 +145,9 @@ class CardBuilder extends UIComponent
      * Set card size
      *
      * @param string $size Size variant (small, medium, large)
-     * @return self
+     * @return static
      */
-    public function size(string $size): self
+    public function size(string $size): static
     {
         return $this->setConfig('size', $size);
     }
@@ -156,9 +156,9 @@ class CardBuilder extends UIComponent
      * Set card elevation/shadow
      *
      * @param string $elevation Elevation level (none, low, medium, high)
-     * @return self
+     * @return static
      */
-    public function elevation(string $elevation): self
+    public function elevation(string $elevation): static
     {
         return $this->setConfig('elevation', $elevation);
     }
@@ -167,9 +167,9 @@ class CardBuilder extends UIComponent
      * Set card theme
      *
      * @param string $theme Theme color (primary, secondary, success, warning, danger, info)
-     * @return self
+     * @return static
      */
-    public function theme(string $theme): self
+    public function theme(string $theme): static
     {
         return $this->setConfig('theme', $theme);
     }
@@ -179,9 +179,9 @@ class CardBuilder extends UIComponent
      *
      * @param string $action Action to trigger
      * @param array $parameters Action parameters
-     * @return self
+     * @return static
      */
-    public function action(string $action, array $parameters = []): self
+    public function action(string $action, array $parameters = []): static
     {
         return $this->setConfig('clickable', true)
                    ->setConfig('action', $action)
@@ -193,9 +193,9 @@ class CardBuilder extends UIComponent
      *
      * @param string $url URL to navigate to
      * @param string $target Link target (_self, _blank, etc.)
-     * @return self
+     * @return static
      */
-    public function url(string $url, string $target = '_self'): self
+    public function url(string $url, string $target = '_self'): static
     {
         return $this->setConfig('clickable', true)
                    ->setConfig('url', $url)
@@ -206,9 +206,9 @@ class CardBuilder extends UIComponent
      * Add action buttons to card footer
      *
      * @param array $actions Array of button configurations
-     * @return self
+     * @return static
      */
-    public function actions(array $actions): self
+    public function actions(array $actions): static
     {
         return $this->setConfig('actions', $actions);
     }
@@ -222,7 +222,7 @@ class CardBuilder extends UIComponent
      * @param string $style Button style
      * @return self
      */
-    public function addAction(string $label, string $action, array $parameters = [], string $style = 'primary'): self
+    public function addAction(string $label, string $action, array $parameters = [], string $style = 'primary'): static
     {
         // Inject caller service ID if not already present
         if (!isset($parameters['_caller_service_id'])) {
@@ -298,11 +298,11 @@ class CardBuilder extends UIComponent
     /**
      * Set card badge
      *
-     * @param string $badge Badge text or icon
-     * @param string $position Badge position
-     * @return self
+     * @param string|int $badge Badge text or icon
+     * @param string $position Badge position (top-left, top-right, bottom-left, bottom-right)
+     * @return static
      */
-    public function badge(string $badge, string $position = 'top-right'): self
+    public function badge(string|int $badge, string $position = 'top-right'): static
     {
         return $this->setConfig('badge', $badge)
                    ->setConfig('badge_position', $position);
@@ -311,9 +311,9 @@ class CardBuilder extends UIComponent
     /**
      * Set horizontal orientation
      *
-     * @return self
+     * @return static
      */
-    public function horizontal(): self
+    public function horizontal(): static
     {
         return $this->setConfig('orientation', 'horizontal');
     }
@@ -321,9 +321,9 @@ class CardBuilder extends UIComponent
     /**
      * Set vertical orientation
      *
-     * @return self
+     * @return static
      */
-    public function vertical(): self
+    public function vertical(): static
     {
         return $this->setConfig('orientation', 'vertical');
     }
@@ -332,9 +332,9 @@ class CardBuilder extends UIComponent
      * Enable hover effects
      *
      * @param bool $enabled Whether to enable hover effects
-     * @return self
+     * @return static
      */
-    public function hover(bool $enabled = true): self
+    public function hover(bool $enabled = true): static
     {
         return $this->setConfig('hover_effect', $enabled);
     }
@@ -342,9 +342,9 @@ class CardBuilder extends UIComponent
     /**
      * Set compact variant
      *
-     * @return self
+     * @return static
      */
-    public function compact(): self
+    public function compact(): static
     {
         return $this->setConfig('variant', 'compact')
                    ->setConfig('content_padding', 'small');
@@ -353,11 +353,150 @@ class CardBuilder extends UIComponent
     /**
      * Set expanded variant
      *
-     * @return self
+     * @return static
      */
-    public function expanded(): self
+    public function expanded(): static
     {
         return $this->setConfig('variant', 'expanded')
                    ->setConfig('content_padding', 'large');
+    }
+
+    /**
+     * Show or hide the card header
+     *
+     * @param bool $show Whether to show the header
+     * @return static
+     */
+    public function showHeader(bool $show = true): static
+    {
+        return $this->setConfig('show_header', $show);
+    }
+
+    /**
+     * Show or hide the card footer
+     *
+     * @param bool $show Whether to show the footer
+     * @return static
+     */
+    public function showFooter(bool $show = true): static
+    {
+        return $this->setConfig('show_footer', $show);
+    }
+
+    /**
+     * Set border radius
+     *
+     * @param string $radius Radius level (none, small, medium, large, round)
+     * @return static
+     */
+    public function borderRadius(string $radius): static
+    {
+        return $this->setConfig('border_radius', $radius);
+    }
+
+    /**
+     * Set content padding
+     *
+     * @param string $padding Padding level (none, small, medium, large)
+     * @return static
+     */
+    public function contentPadding(string $padding): static
+    {
+        return $this->setConfig('content_padding', $padding);
+    }
+
+    /**
+     * Set card background color
+     *
+     * @param string $color CSS color value
+     * @return static
+     */
+    public function backgroundColor(string $color): static
+    {
+        return $this->setConfig('background_color', $color);
+    }
+
+    /**
+     * Set card border color
+     *
+     * @param string $color CSS color value
+     * @return static
+     */
+    public function borderColor(string $color): static
+    {
+        return $this->setConfig('border_color', $color);
+    }
+
+    /**
+     * Set card text color
+     *
+     * @param string $color CSS color value
+     * @return static
+     */
+    public function textColor(string $color): static
+    {
+        return $this->setConfig('text_color', $color);
+    }
+
+    /**
+     * Set card status indicator
+     *
+     * @param string $status Status value (success, warning, danger, info, etc.)
+     * @return static
+     */
+    public function status(string $status): static
+    {
+        return $this->setConfig('status', $status);
+    }
+
+    /**
+     * Set HTML role attribute
+     *
+     * @param string $role HTML role (article, button, link, etc.)
+     * @return static
+     */
+    public function role(string $role): static
+    {
+        return $this->setConfig('role', $role);
+    }
+
+    /**
+     * Set image object-fit mode
+     *
+     * @param string $fit Fit mode (cover, contain, fill, scale-down)
+     * @return static
+     */
+    public function imageFit(string $fit): static
+    {
+        return $this->setConfig('image_fit', $fit);
+    }
+
+    /**
+     * Set ARIA label for accessibility
+     *
+     * @param string $label Accessible label text
+     * @return static
+     */
+    public function ariaLabel(string $label): static
+    {
+        return $this->setConfig('aria_label', $label);
+    }
+
+    /**
+     * Set card shadow (maps to elevation levels for CSS-class-based rendering).
+     * Accepts numeric (0-3) or named values compatible with UIContainer::shadow().
+     *
+     * @param string|int $intensity 0/'none', 1/'light', 2/'medium', 3/'heavy' or native 'low'/'high'
+     * @return static
+     */
+    public function shadow(string|int $intensity = 1): static
+    {
+        $map = [
+            0 => 'none',   'none'   => 'none',
+            1 => 'low',    'light'  => 'low',   'low'  => 'low',
+            2 => 'medium', 'medium' => 'medium',
+            3 => 'high',   'heavy'  => 'high',  'high' => 'high',
+        ];
+        return $this->setConfig('elevation', $map[$intensity] ?? 'medium');
     }
 }

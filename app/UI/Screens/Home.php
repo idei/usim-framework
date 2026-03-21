@@ -13,7 +13,7 @@ class Home extends AbstractUIService
     {
         $container
             ->layout(LayoutType::VERTICAL)
-            ->shadow(false)
+            ->shadow(0)
             ->justifyContent('center')
             ->alignItems('center')
             ->padding(20);
@@ -46,7 +46,7 @@ class Home extends AbstractUIService
             ->layout(LayoutType::HORIZONTAL) // Flex row
             ->padding(20)
             ->gap("20px")
-            ->shadow(false)
+            ->shadow(0)
             ->justifyContent('center') // Centra las cards horizontalmente
             ->alignItems('center');    // Centra las cards verticalmente
 
