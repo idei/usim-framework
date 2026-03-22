@@ -287,7 +287,9 @@ class ButtonComponent extends UIComponent {
     render() {
         const button = document.createElement('button');
         button.className = `ui-button ${this.config.style || 'primary'}`;
-        button.textContent = this.config.label || 'Button';
+        if (this.config.no_background) button.classList.add('ui-button-no-background');
+        if (this.config.no_hover) button.classList.add('ui-button-no-hover');
+        this._applyContent(button);
 
         // Handle enabled state (default to true if not specified)
         const isEnabled = this.config.enabled !== undefined ? this.config.enabled : true;
@@ -305,6 +307,50 @@ class ButtonComponent extends UIComponent {
         }
 
         return this.applyCommonAttributes(button);
+    }
+
+    _applyContent(button) {
+        button.innerHTML = '';
+        const { label, icon, icon_position, icon_only, icon_color, icon_size } = this.config;
+        if (icon) {
+            const iconElement = document.createElement(icon_color ? 'span' : 'img');
+            iconElement.className = 'ui-button-icon';
+
+            if (icon_size !== undefined && icon_size !== null && icon_size !== '') {
+                const rawSize = String(icon_size).trim();
+                const normalizedSize = (typeof icon_size === 'number' || /^\d+(\.\d+)?$/.test(rawSize))
+                    ? `${rawSize}px`
+                    : rawSize;
+                iconElement.style.width = normalizedSize;
+                iconElement.style.height = normalizedSize;
+            }
+
+            if (icon_color) {
+                iconElement.classList.add('ui-button-icon-colored');
+                iconElement.style.backgroundColor = icon_color;
+                iconElement.style.webkitMaskImage = `url("${icon}")`;
+                iconElement.style.maskImage = `url("${icon}")`;
+            } else {
+                iconElement.src = icon;
+                iconElement.alt = label || '';
+            }
+
+            if (icon_only) {
+                button.appendChild(iconElement);
+            } else {
+                const position = icon_position || 'left';
+                const textNode = document.createTextNode(label || '');
+                if (position === 'right' || position === 'bottom') {
+                    button.appendChild(textNode);
+                    button.appendChild(iconElement);
+                } else {
+                    button.appendChild(iconElement);
+                    button.appendChild(textNode);
+                }
+            }
+        } else {
+            button.textContent = label || 'Button';
+        }
     }
 
     handleAction(action, parameters = {}) {
@@ -2295,9 +2341,18 @@ class UIRenderer {
                 }
             }
 
-            // Label (buttons)
-            if (changes.label !== undefined) {
-                element.textContent = changes.label;
+            // Label / icon (buttons)
+            if (changes.label !== undefined || changes.icon !== undefined || changes.icon_color !== undefined || changes.icon_size !== undefined) {
+                const btnComponent = componentId ? this.components?.get(String(componentId)) : null;
+                if (btnComponent && typeof btnComponent._applyContent === 'function') {
+                    if (changes.label !== undefined) btnComponent.config.label = changes.label;
+                    if (changes.icon !== undefined) btnComponent.config.icon = changes.icon;
+                    if (changes.icon_color !== undefined) btnComponent.config.icon_color = changes.icon_color;
+                    if (changes.icon_size !== undefined) btnComponent.config.icon_size = changes.icon_size;
+                    btnComponent._applyContent(element);
+                } else {
+                    element.textContent = changes.label ?? element.textContent;
+                }
             }
 
             // Trigger (menudropdown)
@@ -2394,6 +2449,23 @@ class UIRenderer {
             if (changes.style !== undefined) {
                 element.classList.remove('default', 'primary', 'secondary', 'success', 'warning', 'danger', 'info');
                 element.classList.add(changes.style);
+            }
+
+            // Button background/hover behavior
+            if (changes.no_background !== undefined) {
+                if (changes.no_background) {
+                    element.classList.add('ui-button-no-background');
+                } else {
+                    element.classList.remove('ui-button-no-background');
+                }
+            }
+
+            if (changes.no_hover !== undefined) {
+                if (changes.no_hover) {
+                    element.classList.add('ui-button-no-hover');
+                } else {
+                    element.classList.remove('ui-button-no-hover');
+                }
             }
 
             // Visibility

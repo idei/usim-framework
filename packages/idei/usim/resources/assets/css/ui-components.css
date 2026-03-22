@@ -74,6 +74,20 @@ body {
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
+.ui-button.ui-button-no-background {
+    background: transparent !important;
+    box-shadow: none;
+}
+
+.ui-button.ui-button-no-hover:hover:not(:disabled) {
+    transform: none;
+    box-shadow: none;
+}
+
+.ui-button.ui-button-no-background.ui-button-no-hover:hover:not(:disabled) {
+    background: transparent !important;
+}
+
 .ui-button:disabled {
     opacity: 0.5;
     cursor: not-allowed;
@@ -102,6 +116,22 @@ body {
 .ui-button.info {
     background: #17a2b8;
     color: white;
+}
+
+.ui-button-icon {
+    width: 18px;
+    height: 18px;
+    display: inline-block;
+    flex-shrink: 0;
+}
+
+.ui-button-icon-colored {
+    mask-repeat: no-repeat;
+    -webkit-mask-repeat: no-repeat;
+    mask-position: center;
+    -webkit-mask-position: center;
+    mask-size: contain;
+    -webkit-mask-size: contain;
 }
 
 /* Label Styles */

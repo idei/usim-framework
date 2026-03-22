@@ -18,7 +18,9 @@ use App\UI\Screens\Demo\ModalDemo;
 use App\UI\Screens\Demo\SelectDemo;
 use App\UI\Screens\Demo\TableDemo;
 use App\UI\Screens\Demo\UploaderDemo;
+use Idei\Usim\Events\UsimEvent;
 use Idei\Usim\Services\AbstractUIService;
+use Idei\Usim\Services\Components\ButtonBuilder;
 use Idei\Usim\Services\Components\MenuDropdownBuilder;
 use Idei\Usim\Services\Components\UIContainer;
 use Idei\Usim\Services\Enums\AlignItems;
@@ -45,6 +47,8 @@ class Menu extends AbstractUIService
 
     protected MenuDropdownBuilder $main_menu;
     protected MenuDropdownBuilder $user_menu;
+    protected ButtonBuilder $theme_toggle;
+    protected string $store_theme = 'light';
     protected string $store_token = '';
     protected string $store_password = '';
 
@@ -63,11 +67,35 @@ class Menu extends AbstractUIService
         $this->user_menu = $this->buildUserMenu();
 
         $container->add($this->main_menu);
+        $this->theme_toggle = UIBuilder::button('theme_toggle')
+            ->action('toggleTheme')
+            ->plain()
+            ->iconSize(40);
+        $container->add($this->theme_toggle);
         $container->add($this->user_menu);
+        $this->updateThemeButton();
+    }
+
+    private function updateThemeButton(): void
+    {
+        $icon = $this->store_theme === 'light' ? 'theme-icon-light' : 'theme-icon-dark';
+        $this->theme_toggle->icon("/vendor/idei/usim/images/$icon.svg");
+        $this->theme_toggle->iconSize(40);
+        $this->theme_toggle->iconColor($this->store_theme === 'light' ? '#1f2937' : '#f8fafc');
+        $this->theme_toggle->tooltip("Switch to " . ($this->store_theme === 'light' ? 'dark' : 'light') . " theme");
+    }
+
+    public function onToggleTheme(array $params): void
+    {
+        $this->store_theme = $this->store_theme === 'light' ? 'dark' : 'light';
+        $this->updateThemeButton();
+        event(new UsimEvent('theme_changed', ['theme' => $this->store_theme]));
     }
 
     protected function postLoadUI(): void
     {
+        $this->updateThemeButton();
+
         if (Auth::check()) {
             $user = Auth::user();
             $this->updateUserMenuTrigger($user);
