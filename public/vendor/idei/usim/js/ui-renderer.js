@@ -70,6 +70,12 @@ class UIComponent {
         if (this.config.background_color) {
             element.style.backgroundColor = this.config.background_color;
         }
+        if (this.config.text_color) {
+            element.style.color = this.config.text_color;
+        }
+        if (this.config.border_color) {
+            element.style.borderColor = this.config.border_color;
+        }
         if (this.config.background_image) {
             element.style.backgroundImage = `url(${this.config.background_image})`;
         }
@@ -160,6 +166,14 @@ class UIComponent {
         // Apply font size
         if (this.config.font_size) {
             element.style.fontSize = this.config.font_size + 'px';
+        }
+
+        // Apply accessibility attributes
+        if (this.config.aria_label) {
+            element.setAttribute('aria-label', this.config.aria_label);
+        }
+        if (this.config.role) {
+            element.setAttribute('role', this.config.role);
         }
 
         return element;
@@ -1451,6 +1465,7 @@ class CardComponent extends UIComponent {
         if (this.config.variant) classes += ` ui-card-${this.config.variant}`;
         if (this.config.size) classes += ` ui-card-${this.config.size}`;
         if (this.config.elevation) classes += ` ui-card-elevation-${this.config.elevation}`;
+        if (this.config.status) classes += ` ui-card-status-${this.config.status}`;
         if (this.config.theme) classes += ` ui-card-theme-${this.config.theme}`;
         if (this.config.orientation) classes += ` ui-card-${this.config.orientation}`;
         if (this.config.hover_effect !== false) classes += ` ui-card-hover`;
