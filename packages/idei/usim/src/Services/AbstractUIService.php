@@ -766,6 +766,32 @@ abstract class AbstractUIService
         ]);
     }
 
+    /**
+     * Requet to front to change the current theme (e.g., 'light' or 'dark').
+     *
+     * @param string $theme
+     * @return void
+     */
+    protected function changeTheme(string $theme): void
+    {
+        $this->uiChanges()->add([
+            'change_theme' => $theme,
+        ]);
+    }
+
+    /**
+     * Requests to front to change the current language (e.g., 'en' or 'es').
+     *
+     * @param string $language
+     * @return void
+     */
+    protected function changeLanguage(string $language): void
+    {
+        $this->uiChanges()->add([
+            'change_language' => $language,
+        ]);
+    }
+
     protected function updateModal(array $content): void
     {
         $this->uiChanges()->add([

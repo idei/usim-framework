@@ -241,9 +241,9 @@ class MenuDropdownBuilder extends UIComponent
      * Set menu positioning
      *
      * @param string $position 'bottom-left', 'bottom-right', 'top-left', 'top-right'
-     * @return self
+     * @return static
      */
-    public function position(string $position = 'bottom-left'): self
+    public function position(string $position = 'bottom-left'): static
     {
         $this->config['position'] = $position;
         return $this;

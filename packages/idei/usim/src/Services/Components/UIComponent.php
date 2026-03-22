@@ -517,4 +517,86 @@ abstract class UIComponent implements UIElement
     {
         return $this->setConfig('min_height', $height);
     }
+
+    // ========================================================================
+    // POSITIONING METHODS
+    // ========================================================================
+
+    /**
+     * Set component position anchor or CSS position mode.
+     *
+     * Anchor values: TOP_LEFT, TOP_CENTER, TOP_RIGHT,
+     * MIDDLE_LEFT, CENTER, MIDDLE_RIGHT,
+     * BOTTOM_LEFT, BOTTOM_CENTER, BOTTOM_RIGHT.
+     *
+     * Aliases supported: TOP_MIDDLE, LEFT_MIDDLE, RIGHT_MIDDLE,
+     * LEFT_TOP, LEFT_BOTTOM, RIGHT_TOP, RIGHT_BOTTOM.
+     *
+     * CSS values supported for compatibility: static, relative, absolute, fixed, sticky.
+     *
+     * @param string $position Anchor name or CSS position value
+     * @return static For method chaining
+     */
+    public function position(string $position): static
+    {
+        return $this->setConfig('position', $position);
+    }
+
+    /**
+     * Set positioning mode (recommended with anchor-based positioning).
+     *
+     * @param string $mode One of: absolute, fixed, relative, static, sticky
+     * @return static For method chaining
+     */
+    public function positionMode(string $mode = 'absolute'): static
+    {
+        return $this->setConfig('position_mode', strtolower($mode));
+    }
+
+    /**
+     * Set horizontal offset from anchor.
+     *
+     * @param int|string $offset Number (px) or CSS value (e.g. 1rem, 10%)
+     * @return static For method chaining
+     */
+    public function offsetX(int|string $offset): static
+    {
+        return $this->setConfig('position_offset_x', $offset);
+    }
+
+    /**
+     * Set vertical offset from anchor.
+     *
+     * @param int|string $offset Number (px) or CSS value (e.g. 1rem, 10%)
+     * @return static For method chaining
+     */
+    public function offsetY(int|string $offset): static
+    {
+        return $this->setConfig('position_offset_y', $offset);
+    }
+
+    /**
+     * Set both horizontal and vertical offsets from anchor.
+     *
+     * @param int|string $offsetX Horizontal offset
+     * @param int|string $offsetY Vertical offset
+     * @return static For method chaining
+     */
+    public function offsets(int|string $offsetX, int|string $offsetY): static
+    {
+        $this->setConfig('position_offset_x', $offsetX);
+        $this->setConfig('position_offset_y', $offsetY);
+        return $this;
+    }
+
+    /**
+     * Set z-index.
+     *
+     * @param int|string $zIndex Z-index value
+     * @return static For method chaining
+     */
+    public function zIndex(int|string $zIndex): static
+    {
+        return $this->setConfig('z_index', $zIndex);
+    }
 }

@@ -134,6 +134,12 @@ body {
     -webkit-mask-size: contain;
 }
 
+.ui-button-icon-text {
+    width: auto;
+    height: auto;
+    line-height: 1;
+}
+
 /* Label Styles */
 .ui-label {
     display: inline-block;

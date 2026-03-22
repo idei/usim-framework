@@ -24,6 +24,27 @@ class UIComponent {
         // Use internal component ID (_id) for data attribute, not JSON key
         const componentId = this.config._id || this.id;
         const normalizeSizeValue = (value) => typeof value === 'number' ? value + 'px' : value;
+        const normalizeOffset = (value) => {
+            if (value === undefined || value === null || value === '') return '0px';
+            if (typeof value === 'number') return `${value}px`;
+            const trimmed = String(value).trim();
+            return /^\d+(\.\d+)?$/.test(trimmed) ? `${trimmed}px` : trimmed;
+        };
+        const normalizeAnchor = (value) => {
+            if (!value) return null;
+            const raw = String(value).trim().toUpperCase().replace(/-/g, '_');
+            const aliases = {
+                TOP_MIDDLE: 'TOP_CENTER',
+                BOTTOM_MIDDLE: 'BOTTOM_CENTER',
+                LEFT_TOP: 'TOP_LEFT',
+                LEFT_MIDDLE: 'MIDDLE_LEFT',
+                LEFT_BOTTOM: 'BOTTOM_LEFT',
+                RIGHT_TOP: 'TOP_RIGHT',
+                RIGHT_MIDDLE: 'MIDDLE_RIGHT',
+                RIGHT_BOTTOM: 'BOTTOM_RIGHT',
+            };
+            return aliases[raw] || raw;
+        };
         const layout = typeof this.config.layout === 'string'
             ? this.config.layout.toLowerCase()
             : null;
@@ -176,6 +197,93 @@ class UIComponent {
             element.setAttribute('role', this.config.role);
         }
 
+        // Generic positioning for all components (except menu dropdown trigger positioning)
+        const isMenuDropdown = (this.config.type || '').toLowerCase() === 'menudropdown';
+        if (!isMenuDropdown) {
+            const rawPosition = this.config.position;
+            const rawMode = typeof this.config.position_mode === 'string'
+                ? this.config.position_mode.toLowerCase()
+                : null;
+            const cssPositionModes = new Set(['static', 'relative', 'absolute', 'fixed', 'sticky']);
+
+            // Backward compatibility: allow using position as CSS mode.
+            const positionAsMode = typeof rawPosition === 'string' && cssPositionModes.has(rawPosition.toLowerCase())
+                ? rawPosition.toLowerCase()
+                : null;
+
+            const mode = rawMode || positionAsMode;
+            const anchor = normalizeAnchor(rawPosition);
+
+            if (mode && cssPositionModes.has(mode)) {
+                element.style.position = mode;
+            }
+
+            if (this.config.z_index !== undefined && this.config.z_index !== null && this.config.z_index !== '') {
+                element.style.zIndex = String(this.config.z_index);
+            }
+
+            // Anchor positioning applies only when mode supports offsets.
+            const supportsAnchors = (mode === 'absolute' || mode === 'fixed');
+            if (supportsAnchors && anchor) {
+                const x = normalizeOffset(this.config.position_offset_x);
+                const y = normalizeOffset(this.config.position_offset_y);
+
+                // Reset before applying anchor mapping
+                element.style.top = '';
+                element.style.right = '';
+                element.style.bottom = '';
+                element.style.left = '';
+                element.style.translate = '';
+
+                switch (anchor) {
+                    case 'TOP_LEFT':
+                        element.style.top = y;
+                        element.style.left = x;
+                        break;
+                    case 'TOP_CENTER':
+                        element.style.top = y;
+                        element.style.left = '50%';
+                        element.style.translate = '-50% 0';
+                        break;
+                    case 'TOP_RIGHT':
+                        element.style.top = y;
+                        element.style.right = x;
+                        break;
+                    case 'MIDDLE_LEFT':
+                        element.style.top = '50%';
+                        element.style.left = x;
+                        element.style.translate = '0 -50%';
+                        break;
+                    case 'CENTER':
+                        element.style.top = '50%';
+                        element.style.left = '50%';
+                        element.style.translate = '-50% -50%';
+                        break;
+                    case 'MIDDLE_RIGHT':
+                        element.style.top = '50%';
+                        element.style.right = x;
+                        element.style.translate = '0 -50%';
+                        break;
+                    case 'BOTTOM_LEFT':
+                        element.style.bottom = y;
+                        element.style.left = x;
+                        break;
+                    case 'BOTTOM_CENTER':
+                        element.style.bottom = y;
+                        element.style.left = '50%';
+                        element.style.translate = '-50% 0';
+                        break;
+                    case 'BOTTOM_RIGHT':
+                        element.style.bottom = y;
+                        element.style.right = x;
+                        break;
+                    default:
+                        // Unknown anchor: leave as-is
+                        break;
+                }
+            }
+        }
+
         return element;
     }
 
@@ -313,7 +421,33 @@ class ButtonComponent extends UIComponent {
         button.innerHTML = '';
         const { label, icon, icon_position, icon_only, icon_color, icon_size } = this.config;
         if (icon) {
-            const iconElement = document.createElement(icon_color ? 'span' : 'img');
+            const iconValue = String(icon).trim();
+            const hasImageExtension = /\.(svg|png|jpe?g|gif|webp|ico)(\?.*)?$/i.test(iconValue);
+            const isImageSource = (
+                iconValue.startsWith('/') ||
+                iconValue.startsWith('./') ||
+                iconValue.startsWith('../') ||
+                iconValue.startsWith('http://') ||
+                iconValue.startsWith('https://') ||
+                iconValue.startsWith('data:image/') ||
+                hasImageExtension
+            );
+
+            const namedIcons = {
+                settings: '⚙️',
+                refresh: '🔄',
+                star: '⭐',
+                plus: '➕',
+                minus: '➖',
+                check: '✅',
+                close: '✖️',
+                warning: '⚠️',
+                error: '❌',
+                info: 'ℹ️',
+            };
+            const resolvedTextIcon = namedIcons[iconValue.toLowerCase()] || iconValue;
+
+            const iconElement = document.createElement((icon_color && isImageSource) ? 'span' : (isImageSource ? 'img' : 'span'));
             iconElement.className = 'ui-button-icon';
 
             if (icon_size !== undefined && icon_size !== null && icon_size !== '') {
@@ -325,14 +459,20 @@ class ButtonComponent extends UIComponent {
                 iconElement.style.height = normalizedSize;
             }
 
-            if (icon_color) {
+            if (isImageSource && icon_color) {
                 iconElement.classList.add('ui-button-icon-colored');
                 iconElement.style.backgroundColor = icon_color;
-                iconElement.style.webkitMaskImage = `url("${icon}")`;
-                iconElement.style.maskImage = `url("${icon}")`;
-            } else {
-                iconElement.src = icon;
+                iconElement.style.webkitMaskImage = `url("${iconValue}")`;
+                iconElement.style.maskImage = `url("${iconValue}")`;
+            } else if (isImageSource) {
+                iconElement.src = iconValue;
                 iconElement.alt = label || '';
+            } else {
+                iconElement.classList.add('ui-button-icon-text');
+                iconElement.textContent = resolvedTextIcon;
+                if (icon_color) {
+                    iconElement.style.color = icon_color;
+                }
             }
 
             if (icon_only) {
@@ -2465,6 +2605,26 @@ class UIRenderer {
                     element.classList.add('ui-button-no-hover');
                 } else {
                     element.classList.remove('ui-button-no-hover');
+                }
+            }
+
+            // Generic component positioning updates
+            const hasPositioningUpdate = (
+                changes.position !== undefined ||
+                changes.position_mode !== undefined ||
+                changes.position_offset_x !== undefined ||
+                changes.position_offset_y !== undefined ||
+                changes.z_index !== undefined
+            );
+            if (hasPositioningUpdate) {
+                const runtimeComponent = componentId ? this.components?.get(String(componentId)) : null;
+                if (runtimeComponent && runtimeComponent.config) {
+                    if (changes.position !== undefined) runtimeComponent.config.position = changes.position;
+                    if (changes.position_mode !== undefined) runtimeComponent.config.position_mode = changes.position_mode;
+                    if (changes.position_offset_x !== undefined) runtimeComponent.config.position_offset_x = changes.position_offset_x;
+                    if (changes.position_offset_y !== undefined) runtimeComponent.config.position_offset_y = changes.position_offset_y;
+                    if (changes.z_index !== undefined) runtimeComponent.config.z_index = changes.z_index;
+                    runtimeComponent.applyCommonAttributes(element);
                 }
             }
 

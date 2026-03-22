@@ -70,7 +70,7 @@ class Menu extends AbstractUIService
         $this->theme_toggle = UIBuilder::button('theme_toggle')
             ->action('toggleTheme')
             ->plain()
-            ->iconSize(40);
+            ->marginLeft('auto');
         $container->add($this->theme_toggle);
         $container->add($this->user_menu);
         $this->updateThemeButton();
@@ -80,8 +80,8 @@ class Menu extends AbstractUIService
     {
         $icon = $this->store_theme === 'light' ? 'theme-icon-light' : 'theme-icon-dark';
         $this->theme_toggle->icon("/vendor/idei/usim/images/$icon.svg");
-        $this->theme_toggle->iconSize(40);
         $this->theme_toggle->iconColor($this->store_theme === 'light' ? '#1f2937' : '#f8fafc');
+        $this->theme_toggle->iconSize(24);
         $this->theme_toggle->tooltip("Switch to " . ($this->store_theme === 'light' ? 'dark' : 'light') . " theme");
     }
 
@@ -90,6 +90,7 @@ class Menu extends AbstractUIService
         $this->store_theme = $this->store_theme === 'light' ? 'dark' : 'light';
         $this->updateThemeButton();
         event(new UsimEvent('theme_changed', ['theme' => $this->store_theme]));
+        $this->changeTheme($this->store_theme);
     }
 
     protected function postLoadUI(): void

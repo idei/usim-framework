@@ -53,13 +53,13 @@ class ModalDemo extends AbstractUIService
                 UIBuilder::button('btn_open_modal')
                     ->label('Open Confirmation Dialog')
                     ->style('primary')
-                    ->action('open_confirmation', [])
+                    ->action('open_confirmation')
                     ->width('230px')
             )->add(
                 UIBuilder::button('btn_error_dialog')
                     ->label('Open Error Dialog')
                     ->style('danger')
-                    ->action('show_error_dialog', [])
+                    ->action('show_error_dialog')
                     ->width('230px')
             )->add(
                 UIBuilder::button('btn_timeout_dialog')
@@ -71,14 +71,14 @@ class ModalDemo extends AbstractUIService
                 UIBuilder::button('btn_timeout_no_button')
                     ->label('Open Timeout Without button')
                     ->style('warning')
-                    ->action('show_timeout_no_button', [])
+                    ->action('show_timeout_no_button')
                     ->width('230px')
             )->add(
                 UIBuilder::button('btn_show_settings')
                     ->label('Settings')
                     ->style('secondary')
                     ->icon('settings')
-                    ->action('show_settings_confirm', [])
+                    ->action('show_settings_confirm')
                     ->width('230px')
             );
         $container->add($buttonContainer);
