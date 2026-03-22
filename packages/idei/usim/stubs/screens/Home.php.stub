@@ -4,91 +4,10 @@ namespace {{ namespace }};
 
 use Idei\Usim\Services\AbstractUIService;
 use Idei\Usim\Services\Components\UIContainer;
-use Idei\Usim\Services\Enums\LayoutType;
-use Idei\Usim\Services\UIBuilder;
 
-class Home extends AbstractUIService
+class EmptyHome extends AbstractUIService
 {
     protected function buildBaseUI(UIContainer $container, ...$params): void
     {
-        $container
-            ->layout(LayoutType::VERTICAL)
-            ->shadow(0)
-            ->justifyContent('center')
-            ->alignItems('center')
-            ->padding(20);
-
-        $container->add(
-            UIBuilder::label('welcome')
-                ->text('🚀 Welcome to USIM UI Framework')
-                ->style('h1')
-                ->center()
-        );
-
-        $container->add(
-            UIBuilder::label('subtitle')
-                ->text('A modern UI component system for web applications')
-                ->style('h2')
-                ->center()
-        );
-
-        $container->add(
-            UIBuilder::label('features_title')
-                ->text('✨ Key Features')
-                ->style('h3')
-                ->center()
-        );
-
-        $featuresContainer = UIBuilder::container('features')
-            ->layout(LayoutType::HORIZONTAL)
-            ->padding(20)
-            ->gap('20px')
-            ->shadow(0)
-            ->justifyContent('center')
-            ->alignItems('center');
-
-        $featuresContainer->add(
-            UIBuilder::card('components_card')
-                ->title('🎨 Modern Components')
-                ->description('Complete system with buttons, forms, tables, modals, uploaders, and more. Professional and responsive design.')
-                ->image('https://picsum.photos/350/200?random=1', 'top', 'Modern UI components')
-                ->theme('primary')
-                ->elevation('medium')
-        );
-
-        $featuresContainer->add(
-            UIBuilder::card('easy_card')
-                ->title('⚡ Easy to Use')
-                ->description('Fluent API with method chaining. Build complex interfaces with simple, readable PHP code.')
-                ->image('https://picsum.photos/350/200?random=2', 'top', 'Easy to use API')
-                ->theme('success')
-                ->elevation('medium')
-        );
-
-        $featuresContainer->add(
-            UIBuilder::card('custom_card')
-                ->title('🎯 Customizable')
-                ->description('Flexible styles, themes, sizes, and advanced configuration for each component in your app.')
-                ->image('https://picsum.photos/350/200?random=3', 'top', 'Customizable UI components')
-                ->theme('warning')
-                ->elevation('medium')
-        );
-
-        $container->add($featuresContainer);
-
-        $container->add(
-            UIBuilder::label('getting_started')
-                ->text('🚀 Get Started Now!')
-                ->style('h2')
-                ->center()
-        );
-
-        $container->add(
-            UIBuilder::card('getting_started_card')
-                ->title('Your USIM App is Ready')
-                ->description('Start building your screens in app/UI/Screens. Each PHP class becomes a complete UI screen rendered by USIM.')
-                ->style('elevated')
-                ->size('large')
-        );
     }
 }
