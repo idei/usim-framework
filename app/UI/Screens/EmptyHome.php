@@ -1,0 +1,13 @@
+<?php
+
+namespace App\UI\Screens;
+
+use Idei\Usim\Services\AbstractUIService;
+use Idei\Usim\Services\Components\UIContainer;
+
+class EmptyHome extends AbstractUIService
+{
+    protected function buildBaseUI(UIContainer $container, ...$params): void
+    {
+    }
+}
