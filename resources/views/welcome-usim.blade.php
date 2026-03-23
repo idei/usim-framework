@@ -7,7 +7,7 @@
         }
 
         /* ─── CSS Variables ─── */
-        :root {
+        .wf {
             --bg: #0a0c10;
             --bg2: #10141c;
             --bg3: #161b26;
@@ -28,9 +28,11 @@
             --font-mono: 'Space Mono', monospace;
             --font-body: 'DM Sans', sans-serif;
             --transition: 0.25s cubic-bezier(.4, 0, .2, 1);
+            --accent-label: var(--accent);
+            --green-label: var(--green);
         }
 
-        [data-theme="light"] {
+        .wf[data-theme="light"] {
             --bg: #f0f2f7;
             --bg2: #e4e8f0;
             --bg3: #d8dde8;
@@ -43,12 +45,6 @@
             /* Badges/pills: color más oscuro para contraste sobre fondo claro */
             --accent-label: #005a48;
             --green-label: #145e35;
-        }
-
-        /* En modo oscuro las etiquetas usan el acento normal */
-        :root {
-            --accent-label: var(--accent);
-            --green-label: var(--green);
         }
 
         /* ─── Reset & Base ─── */
@@ -65,7 +61,7 @@
             font-size: 16px;
         }
 
-        body {
+        .wf {
             background: var(--bg);
             color: var(--text);
             font-family: var(--font-body);
@@ -73,6 +69,14 @@
             min-height: 100vh;
             transition: background var(--transition), color var(--transition);
             overflow-x: hidden;
+            position: relative;
+            isolation: isolate;
+            width: 100%;
+        }
+
+        .wf > * {
+            position: relative;
+            z-index: 1;
         }
 
         a {
@@ -86,9 +90,9 @@
         }
 
         /* ─── Grid noise texture overlay ─── */
-        body::before {
+        .wf::before {
             content: '';
-            position: fixed;
+            position: absolute;
             inset: 0;
             background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
             pointer-events: none;
@@ -110,7 +114,7 @@
             transition: background var(--transition);
         }
 
-        [data-theme="light"] nav {
+        .wf[data-theme="light"] nav {
             background: rgba(240, 242, 247, 0.88);
         }
 
@@ -439,9 +443,43 @@
             animation: fadeUp 0.6s both;
         }
 
-        [data-theme="light"] .hero-badge {
+        .wf[data-theme="light"] .hero-badge {
             border-color: rgba(0, 90, 72, 0.3);
             background: rgba(0, 90, 72, 0.07);
+            color: #005a48;
+        }
+
+        .wf[data-theme="light"] .hero-meta-value {
+            color: #005a48;
+        }
+
+        .wf[data-theme="light"] h1 .accent-word {
+            background: linear-gradient(90deg, #0077b6, #00a8e8);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .wf[data-theme="light"] .mit-badge {
+            background: rgba(0, 90, 72, 0.08);
+            border-color: rgba(0, 90, 72, 0.25);
+        }
+
+        .wf[data-theme="light"] .section-tag {
+            color: #005a48;
+        }
+
+        .wf[data-theme="light"] .feature-card {
+            background: #ffffff;
+            border-color: #d8dde8;
+        }
+
+        .wf[data-theme="light"] .feature-card h3 {
+            color: #0a0c10;
+        }
+
+        .wf[data-theme="light"] .feature-card p {
+            color: #5a6580;
         }
 
         .hero-badge .pulse {
@@ -850,16 +888,28 @@
         }
 
         .arch-diagram-wrap {
-            background: var(--bg3);
-            border: 1px solid var(--border);
+            background: #161d29;
+            border: 1px solid #2f3a4f;
             border-radius: var(--radius);
-            padding: 2rem;
+            padding: 2.5rem;
             overflow-x: auto;
+            --arch-surface: #1d2636;
+            --arch-border: #32405a;
+            --arch-core: #121925;
+            --arch-node: #182131;
+            --arch-text: #e8eef8;
+            --arch-muted: #94a3bb;
+            --arch-accent: #00d4aa;
+            --arch-accent2: #0099ff;
+            --border-svg: #5b6d8b;
+            --accent-svg: #00d4aa;
+            --bg-node: var(--arch-node);
+            --bg-core: var(--arch-core);
         }
 
         .arch-svg {
             width: 100%;
-            max-width: 860px;
+            max-width: 1080px;
             height: auto;
             display: block;
             margin: 0 auto;
@@ -1676,49 +1726,49 @@
                     </defs>
                     <style>
                         .arch-svg .node-rect {
-                            fill: var(--surface);
-                            stroke: var(--border);
+                            fill: var(--arch-surface);
+                            stroke: var(--arch-border);
                             stroke-width: 1.5;
                         }
 
                         .arch-svg .node-rect-accent {
-                            fill: var(--surface);
-                            stroke: var(--accent);
+                            fill: var(--arch-surface);
+                            stroke: var(--arch-accent);
                             stroke-width: 1.5;
                         }
 
                         .arch-svg .core-rect {
-                            fill: var(--bg3);
-                            stroke: var(--accent2);
+                            fill: var(--arch-core);
+                            stroke: var(--arch-accent2);
                             stroke-width: 1.5;
                         }
 
                         .arch-svg .node-text {
-                            fill: var(--text);
+                            fill: var(--arch-text);
                             font-size: 13px;
                         }
 
                         .arch-svg .node-sub {
-                            fill: var(--muted);
+                            fill: var(--arch-muted);
                             font-size: 10.5px;
                         }
 
                         .arch-svg .label-text {
-                            fill: var(--muted);
+                            fill: var(--arch-muted);
                             font-size: 10px;
                             letter-spacing: 0.08em;
                             text-transform: uppercase;
                         }
 
                         .arch-svg .conn-line {
-                            stroke: var(--border);
+                            stroke: var(--arch-border);
                             stroke-width: 1.5;
                             fill: none;
                             marker-end: url(#arr);
                         }
 
                         .arch-svg .conn-line-bi {
-                            stroke: var(--border);
+                            stroke: var(--arch-border);
                             stroke-width: 1.5;
                             fill: none;
                             marker-end: url(#arr);
@@ -1726,7 +1776,7 @@
                         }
 
                         .arch-svg .conn-accent {
-                            stroke: var(--accent);
+                            stroke: var(--arch-accent);
                             stroke-width: 1.5;
                             fill: none;
                             stroke-dasharray: 5 3;
@@ -1734,8 +1784,8 @@
                         }
 
                         .arch-svg .screen-rect {
-                            fill: var(--surface);
-                            stroke: var(--border);
+                            fill: var(--arch-surface);
+                            stroke: var(--arch-border);
                             stroke-width: 1.2;
                         }
 
@@ -1746,7 +1796,7 @@
                         }
 
                         .arch-svg .tag-text {
-                            fill: var(--accent);
+                            fill: var(--arch-accent);
                             font-size: 9px;
                             letter-spacing: 0.05em;
                         }
@@ -1787,7 +1837,7 @@
                         <text x="100" y="28" text-anchor="middle" class="node-text" font-weight="700">Web</text>
                         <text x="100" y="46" text-anchor="middle" class="node-sub">(html, css, js)</text>
                         <rect x="0" y="54" width="200" height="1" fill="var(--border-svg)" />
-                        <text x="100" y="71" text-anchor="middle" class="node-sub" style="fill:#00d4aa">Render</text>
+                        <text x="100" y="71" text-anchor="middle" class="node-sub" style="fill:var(--arch-accent)">Render</text>
                     </g>
 
                     <!-- any other client note -->
@@ -1826,7 +1876,7 @@
                         <rect width="364" height="148" rx="12" class="core-rect" />
                         <!-- label bottom right -->
                         <text x="184" y="136" text-anchor="middle" class="node-text" font-weight="700"
-                            style="font-size:14px; fill:#0099ff">USIM Core</text>
+                            style="font-size:14px; fill:var(--arch-accent2)">USIM Core</text>
 
                         <!-- ScreenA -->
                         <g transform="translate(18, 18)">
@@ -2178,6 +2228,15 @@
         const wfRoot = document.currentScript?.closest('.wf') || document.querySelector('.wf');
         const wfById = (id) => wfRoot ? wfRoot.querySelector(`#${id}`) : document.getElementById(id);
 
+        // Sincronizar data-theme en .wf cuando USIM cambia el tema
+        window.addEventListener('usim:theme-changed', (event) => {
+            const theme = event.detail?.theme || 'dark';
+            if (wfRoot) {
+                wfRoot.setAttribute('data-theme', theme);
+            }
+            currentTheme = theme;
+        });
+
         /* ─── State ─── */
         let currentUser = null;
         let currentLang = 'es';
@@ -2407,8 +2466,13 @@
         /* ─── Theme ─── */
         function toggleTheme() {
             currentTheme = currentTheme === 'dark' ? 'light' : 'dark';
-            if (wfRoot) {
-                wfRoot.setAttribute('data-theme', currentTheme);
+            // Buscar el .wf dentro del document o usar el wfRoot si existe
+            const target = wfRoot || document.querySelector('.wf');
+            if (target) {
+                target.setAttribute('data-theme', currentTheme);
+                console.log('Theme changed to:', currentTheme, 'on element:', target);
+            } else {
+                console.error('wfRoot not found');
             }
             const darkIcon = wfById('theme-icon-dark');
             const lightIcon = wfById('theme-icon-light');

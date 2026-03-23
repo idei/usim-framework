@@ -1800,6 +1800,24 @@ class ComponentFactory {
     }
 }
 
+const SPECIAL_UI_KEYS = new Set([
+    'action',
+    'redirect',
+    'toast',
+    'storage',
+    'modal',
+    'abort',
+    'update_modal',
+    'clear_uploaders',
+    'set_uploader_existing_file',
+    'change_theme',
+    'change_language'
+]);
+
+function isSpecialUIKey(key) {
+    return SPECIAL_UI_KEYS.has(key);
+}
+
 // ==================== UI Renderer ====================
 class UIRenderer {
     constructor(data) {
@@ -1813,6 +1831,10 @@ class UIRenderer {
         if (this.data.abort || this.data.action === 'abort') {
             this.handleAbort(this.data.abort);
             return;
+        }
+
+        if (this.data.change_theme) {
+            this.handleThemeChange(this.data.change_theme);
         }
 
         // Check for redirect instruction immediately
@@ -1832,7 +1854,7 @@ class UIRenderer {
             const config = this.data[key];
 
             // Skip special keys that are not UI components
-            if (key === 'storage' || key === 'action' || key === 'redirect' || key === 'toast') {
+            if (isSpecialUIKey(key)) {
                 continue;
             }
 
@@ -1845,7 +1867,7 @@ class UIRenderer {
         // Step 2: Create all component instances
         for (const id of componentIds) {
             // Skip special keys that are not UI components
-            if (id === 'storage' || id === 'action' || id === 'redirect' || id === 'toast') {
+            if (isSpecialUIKey(id)) {
                 continue;
             }
 
@@ -1866,7 +1888,7 @@ class UIRenderer {
         const childrenByParent = new Map();
         for (const id of componentIds) {
             // Skip special keys that are not UI components
-            if (id === 'storage' || id === 'action') {
+            if (isSpecialUIKey(id)) {
                 continue;
             }
 
@@ -2116,6 +2138,34 @@ class UIRenderer {
     }
 
     /**
+     * Apply theme change sent by backend and notify embedded fragments.
+     *
+     * @param {string} theme
+     */
+    handleThemeChange(theme) {
+        if (typeof theme !== 'string') {
+            return;
+        }
+
+        const normalizedTheme = theme.trim().toLowerCase();
+        if (!normalizedTheme) {
+            return;
+        }
+
+        document.documentElement.setAttribute('data-theme', normalizedTheme);
+
+        if (document.body) {
+            document.body.setAttribute('data-theme', normalizedTheme);
+        }
+
+        window.dispatchEvent(new CustomEvent('usim:theme-changed', {
+            detail: { theme: normalizedTheme }
+        }));
+
+        console.log('🎨 Theme changed:', normalizedTheme);
+    }
+
+    /**
      * Show toast notification
      *
      * @param {object} toastConfig - Toast configuration
@@ -2227,6 +2277,10 @@ class UIRenderer {
             this.handleStorageUpdate(uiUpdate.storage);
         }
 
+        if (uiUpdate.change_theme) {
+            this.handleThemeChange(uiUpdate.change_theme);
+        }
+
         // Handle abort if present (checks for truthy value OR explicit action)
         if (uiUpdate.abort || uiUpdate.action === 'abort') {
             this.handleAbort(uiUpdate.abort);
@@ -2261,6 +2315,10 @@ class UIRenderer {
         // Check if there are components with parent='modal' - if so, open modal
         let hasModalComponents = false;
         for (const [key, component] of Object.entries(uiUpdate)) {
+            if (isSpecialUIKey(key) || !component || typeof component !== 'object') {
+                continue;
+            }
+
             if (component.parent === 'modal') {
                 hasModalComponents = true;
                 break;
@@ -2294,7 +2352,7 @@ class UIRenderer {
                     // Process UI updates directly from root object
                     for (const [jsonKey, changes] of Object.entries(uiUpdate)) {
                         // Skip special keys
-                        if (jsonKey === 'action' || jsonKey === 'modal' || jsonKey === 'storage') {
+                        if (isSpecialUIKey(jsonKey) || !changes || typeof changes !== 'object') {
                             continue;
                         }
 
@@ -2324,7 +2382,7 @@ class UIRenderer {
         // Handle UI updates (for non-modal actions)
         for (const [jsonKey, changes] of Object.entries(uiUpdate)) {
             // Skip special keys
-            if (jsonKey === 'action' || jsonKey === 'modal' || jsonKey === 'storage') {
+            if (isSpecialUIKey(jsonKey) || !changes || typeof changes !== 'object') {
                 continue;
             }
 
@@ -3641,7 +3699,7 @@ async function loadMenuUI() {
 
             // Sort components by _order field (preserves backend order)
             const entries = Object.entries(uiData)
-                .filter(([id]) => id !== 'storage' && id !== 'action')
+                .filter(([id, config]) => !isSpecialUIKey(id) && config && typeof config === 'object')
                 .sort((a, b) => {
                     const orderA = a[1]._order || 999;
                     const orderB = b[1]._order || 999;
