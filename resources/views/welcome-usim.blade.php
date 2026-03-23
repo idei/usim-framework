@@ -1,11 +1,13 @@
-<div class="wf" data-theme="light">
+<div class="wf" data-theme="dark">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=DM+Sans:wght@300;400;500&display=swap');
 
-        body { padding: 0; }
+        body {
+            padding: 0;
+        }
 
         /* ─── CSS Variables ─── */
-        .wf {
+        :root {
             --bg: #0a0c10;
             --bg2: #10141c;
             --bg3: #161b26;
@@ -20,10 +22,6 @@
             --code-text: #79c0ff;
             --green: #3dd68c;
             --red: #ff5555;
-            --bg-node: #0f1521;
-            --bg-core: #131b29;
-            --border-svg: #3a455c;
-            --accent-svg: #00d4aa;
             --shadow: 0 8px 40px rgba(0, 0, 0, 0.5);
             --radius: 12px;
             --font-display: 'Space Mono', monospace;
@@ -32,7 +30,7 @@
             --transition: 0.25s cubic-bezier(.4, 0, .2, 1);
         }
 
-        .wf[data-theme="light"] {
+        [data-theme="light"] {
             --bg: #f0f2f7;
             --bg2: #e4e8f0;
             --bg3: #d8dde8;
@@ -41,28 +39,33 @@
             --text: #0f1520;
             --muted: #5a6580;
             --code-bg: #1c2333;
-            --bg-node: #f8fbff;
-            --bg-core: #eaf0fa;
-            --border-svg: #7a879f;
-            --accent-svg: #00a885;
             --shadow: 0 8px 40px rgba(0, 0, 0, 0.12);
+            /* Badges/pills: color más oscuro para contraste sobre fondo claro */
+            --accent-label: #005a48;
+            --green-label: #145e35;
+        }
+
+        /* En modo oscuro las etiquetas usan el acento normal */
+        :root {
+            --accent-label: var(--accent);
+            --green-label: var(--green);
         }
 
         /* ─── Reset & Base ─── */
-        .wf *,
-        .wf *::before,
-        .wf *::after {
+        *,
+        *::before,
+        *::after {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
         }
 
-        .wf {
+        html {
             scroll-behavior: smooth;
             font-size: 16px;
         }
 
-        .wf {
+        body {
             background: var(--bg);
             color: var(--text);
             font-family: var(--font-body);
@@ -70,23 +73,22 @@
             min-height: 100vh;
             transition: background var(--transition), color var(--transition);
             overflow-x: hidden;
-            position: relative;
         }
 
-        .wf a {
+        a {
             color: inherit;
             text-decoration: none;
         }
 
-        .wf code,
-        .wf pre {
+        code,
+        pre {
             font-family: var(--font-mono);
         }
 
         /* ─── Grid noise texture overlay ─── */
-        .wf::before {
+        body::before {
             content: '';
-            position: absolute;
+            position: fixed;
             inset: 0;
             background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
             pointer-events: none;
@@ -95,8 +97,8 @@
         }
 
         /* ─── NAV ─── */
-        .wf nav {
-            position: sticky;
+        nav {
+            position: fixed;
             top: 0;
             left: 0;
             right: 0;
@@ -108,7 +110,7 @@
             transition: background var(--transition);
         }
 
-        .wf[data-theme="light"] nav {
+        [data-theme="light"] nav {
             background: rgba(240, 242, 247, 0.88);
         }
 
@@ -432,9 +434,14 @@
             background: rgba(0, 212, 170, 0.06);
             font-family: var(--font-mono);
             font-size: 0.75rem;
-            color: var(--accent);
+            color: var(--accent-label);
             margin-bottom: 1.5rem;
             animation: fadeUp 0.6s both;
+        }
+
+        [data-theme="light"] .hero-badge {
+            border-color: rgba(0, 90, 72, 0.3);
+            background: rgba(0, 90, 72, 0.07);
         }
 
         .hero-badge .pulse {
@@ -459,7 +466,7 @@
             }
         }
 
-        .wf h1 {
+        h1 {
             font-family: var(--font-display);
             font-size: clamp(1.85rem, 3.8vw, 3.5rem);
             font-weight: 700;
@@ -469,7 +476,7 @@
             animation: fadeUp 0.6s 0.1s both;
         }
 
-        .wf h1 .accent-word {
+        h1 .accent-word {
             background: linear-gradient(90deg, var(--accent), var(--accent2));
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
@@ -549,7 +556,7 @@
             font-family: var(--font-display);
             font-size: 1.25rem;
             font-weight: 700;
-            color: var(--accent);
+            color: var(--accent-label);
             letter-spacing: 0.02em;
         }
 
@@ -601,8 +608,8 @@
             align-items: center;
             gap: 0.5rem;
             padding: 0.75rem 1rem;
-            background: var(--bg3);
-            border-bottom: 1px solid var(--border);
+            background: #0d1117;
+            border-bottom: 1px solid #2a3347;
         }
 
         .code-dot {
@@ -626,15 +633,17 @@
         .code-filename {
             font-family: var(--font-mono);
             font-size: 0.75rem;
-            color: var(--muted);
+            color: #7a8499;
             margin-left: auto;
         }
 
+        /* El code-body siempre tiene fondo oscuro — los colores son fijos independientemente del tema */
         .code-body {
             padding: 1.25rem 1.5rem;
             font-size: 0.8rem;
             line-height: 1.8;
             overflow-x: auto;
+            color: #c9d1d9;
         }
 
         .kw {
@@ -659,12 +668,12 @@
         }
 
         .ch {
-            color: var(--accent);
+            color: #00d4aa;
         }
 
         /* ─── SECTIONS COMMON ─── */
-        .wf section {
-            padding: 3rem 1rem;
+        section {
+            padding: 6rem 2rem;
             position: relative;
             z-index: 1;
         }
@@ -677,7 +686,7 @@
         .section-tag {
             font-family: var(--font-mono);
             font-size: 0.7rem;
-            color: var(--accent);
+            color: var(--accent-label);
             text-transform: uppercase;
             letter-spacing: 0.12em;
             margin-bottom: 1rem;
@@ -691,7 +700,7 @@
             opacity: 0.5;
         }
 
-        .wf h2 {
+        h2 {
             font-family: var(--font-display);
             font-size: clamp(1.4rem, 2.8vw, 2.1rem);
             font-weight: 700;
@@ -767,7 +776,7 @@
             background: rgba(61, 214, 140, 0.1);
             border: 1px solid rgba(61, 214, 140, 0.3);
             font-size: 0.8rem;
-            color: var(--green);
+            color: var(--green-label);
             font-weight: 600;
         }
 
@@ -846,11 +855,6 @@
             border-radius: var(--radius);
             padding: 2rem;
             overflow-x: auto;
-        }
-
-        [data-theme="light"] .arch-diagram-wrap {
-            background: #f6f9ff;
-            border-color: #b9c5da;
         }
 
         .arch-svg {
@@ -1094,7 +1098,7 @@
         }
 
         /* ─── FOOTER ─── */
-        .wf footer {
+        footer {
             background: var(--bg2);
             border-top: 1px solid var(--border);
             padding: 3rem 2rem;
@@ -1132,7 +1136,7 @@
         }
 
         /* ─── MODAL ─── */
-        .modal-overlay-wrap {
+        .modal-overlay {
             position: fixed;
             inset: 0;
             background: rgba(0, 0, 0, 0.65);
@@ -1144,7 +1148,7 @@
             padding: 1rem;
         }
 
-        .modal-overlay-wrap.active {
+        .modal-overlay.active {
             display: flex;
         }
 
@@ -1391,7 +1395,7 @@
                 order: -1;
             }
 
-            .wf h1 {
+            h1 {
                 font-size: 2.5rem;
             }
 
@@ -1439,7 +1443,7 @@
         }
 
         @media (max-width: 580px) {
-            .wf section {
+            section {
                 padding: 4rem 1.25rem;
             }
 
@@ -2169,78 +2173,11 @@
         </div>
     </footer>
 
-    <!-- ─── AUTH MODAL ─── -->
-    <div class="modal-overlay-wrap" id="auth-modal">
-        <div class="modal">
-            <button class="modal-close" onclick="closeModal('auth-modal')">✕</button>
-            <h3 data-i18n="auth.title">Bienvenido</h3>
-            <p class="modal-sub" data-i18n="auth.sub">Accede a la comunidad y demos de USIM</p>
-            <div class="modal-tabs">
-                <button class="modal-tab active" id="tab-login" onclick="switchTab('login')"
-                    data-i18n="auth.tab.login">Iniciar sesión</button>
-                <button class="modal-tab" id="tab-register" onclick="switchTab('register')"
-                    data-i18n="auth.tab.register">Registrarse</button>
-            </div>
-            <div id="login-form">
-                <div class="form-group">
-                    <label class="form-label" data-i18n="auth.email">Correo electrónico</label>
-                    <input class="form-input" type="email" id="login-email" placeholder="tu@ejemplo.com">
-                </div>
-                <div class="form-group">
-                    <label class="form-label" data-i18n="auth.password">Contraseña</label>
-                    <input class="form-input" type="password" id="login-pass" placeholder="••••••••">
-                </div>
-                <button class="btn-full" onclick="doLogin()" data-i18n="auth.btn.login">Ingresar</button>
-            </div>
-            <div id="register-form" style="display:none">
-                <div class="form-group">
-                    <label class="form-label" data-i18n="auth.name">Nombre completo</label>
-                    <input class="form-input" type="text" id="reg-name" placeholder="Juan Desarrollador">
-                </div>
-                <div class="form-group">
-                    <label class="form-label" data-i18n="auth.email">Correo electrónico</label>
-                    <input class="form-input" type="email" id="reg-email" placeholder="tu@ejemplo.com">
-                </div>
-                <div class="form-group">
-                    <label class="form-label" data-i18n="auth.password">Contraseña</label>
-                    <input class="form-input" type="password" id="reg-pass" placeholder="••••••••">
-                </div>
-                <button class="btn-full" onclick="doRegister()" data-i18n="auth.btn.register">Crear cuenta</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- ─── PROFILE MODAL ─── -->
-    <div class="modal-overlay-wrap" id="profile-modal">
-        <div class="modal">
-            <button class="modal-close" onclick="closeModal('profile-modal')">✕</button>
-            <h3 data-i18n="profile.title">Mi perfil</h3>
-            <div class="profile-header" style="margin-top:1.25rem">
-                <div class="profile-avatar" id="profile-avatar">JD</div>
-                <div class="profile-info">
-                    <h4 id="profile-name">Juan Desarrollador</h4>
-                    <span id="profile-email"><a href="/cdn-cgi/l/email-protection" class="__cf_email__"
-                            data-cfemail="4b213e2a250b2e212e263b272465282426">[email&#160;protected]</a></span>
-                </div>
-            </div>
-            <div class="form-group">
-                <label class="form-label" data-i18n="profile.name">Nombre</label>
-                <input class="form-input" type="text" id="edit-name" placeholder="Tu nombre">
-            </div>
-            <div class="form-group">
-                <label class="form-label" data-i18n="profile.pass">Nueva contraseña (opcional)</label>
-                <input class="form-input" type="password" placeholder="••••••••">
-            </div>
-            <button class="btn-full" onclick="saveProfile()" data-i18n="profile.save">Guardar cambios</button>
-            <button class="btn-danger" onclick="logout()" data-i18n="user.logout">Cerrar sesión</button>
-        </div>
-    </div>
-
-    <!-- ─── TOAST CONTAINER ─── -->
-    <div class="toast-container" id="toast-container"></div>
-
     <!-- ─── JS ─── -->
     <script>
+        const wfRoot = document.currentScript?.closest('.wf') || document.querySelector('.wf');
+        const wfById = (id) => wfRoot ? wfRoot.querySelector(`#${id}`) : document.getElementById(id);
+
         /* ─── State ─── */
         let currentUser = null;
         let currentLang = 'es';
@@ -2324,10 +2261,10 @@
                 'inst1.name': 'Instituto de Informática',
                 'inst1.desc': 'Facultad de Ciencias Exactas, Físicas y Naturales. Institución de investigación y desarrollo tecnológico de excelencia.',
                 'inst2.name': 'Laboratorio de Ingeniería de la Gamificación',
-                'inst2.desc': 'Investigación aplicada en gamificación, interfaces adaptativas y experiencias de usuario orientadas a motivación y aprendizaje.',
+                'inst2.desc': 'Investigación aplicada en gamificación y experiencias de usuario orientadas a motivación, aprendizaje y salud.',
                 'inst3.name': 'Licencia MIT · Software Libre',
                 'inst3.desc': 'USIM es completamente gratuito y de código abierto bajo la licencia MIT. Úsalo, modifícalo y distribúyelo libremente.',
-                'footer.copy': '© 2024 Instituto de Informática · FCEFyN · MIT License',
+                'footer.copy': '© 2026 Instituto de Informática · FCEFyN · MIT License',
                 'footer.docs': 'Documentación',
                 'footer.github': 'GitHub',
                 'footer.tutorials': 'Tutoriales',
@@ -2428,7 +2365,7 @@
                 'inst2.desc': 'Applied research in gamification and user experiences oriented to motivation and learning.',
                 'inst3.name': 'MIT License · Free Software',
                 'inst3.desc': 'USIM is completely free and open source under the MIT license. Use it, modify it and distribute it freely.',
-                'footer.copy': '© 2024 Institute of Informatics · FCEFyN · MIT License',
+                'footer.copy': '© 2026 Institute of Informatics · FCEFyN · MIT License',
                 'footer.docs': 'Documentation',
                 'footer.github': 'GitHub',
                 'footer.tutorials': 'Tutorials',
@@ -2457,19 +2394,30 @@
         }
 
         function applyTranslations() {
-            document.querySelectorAll('[data-i18n]').forEach(el => {
+            (wfRoot || document).querySelectorAll('[data-i18n]').forEach(el => {
                 const key = el.getAttribute('data-i18n');
                 el.textContent = t(key);
             });
-            document.getElementById('lang-btn').textContent = currentLang === 'es' ? 'EN' : 'ES';
+            const langButton = wfById('lang-btn');
+            if (langButton) {
+                langButton.textContent = currentLang === 'es' ? 'EN' : 'ES';
+            }
         }
 
         /* ─── Theme ─── */
         function toggleTheme() {
             currentTheme = currentTheme === 'dark' ? 'light' : 'dark';
-            document.documentElement.setAttribute('data-theme', currentTheme);
-            document.getElementById('theme-icon-dark').style.display = currentTheme === 'dark' ? 'block' : 'none';
-            document.getElementById('theme-icon-light').style.display = currentTheme === 'light' ? 'block' : 'none';
+            if (wfRoot) {
+                wfRoot.setAttribute('data-theme', currentTheme);
+            }
+            const darkIcon = wfById('theme-icon-dark');
+            const lightIcon = wfById('theme-icon-light');
+            if (darkIcon) {
+                darkIcon.style.display = currentTheme === 'dark' ? 'block' : 'none';
+            }
+            if (lightIcon) {
+                lightIcon.style.display = currentTheme === 'light' ? 'block' : 'none';
+            }
         }
 
         /* ─── Lang ─── */
@@ -2479,34 +2427,47 @@
         }
 
         /* ─── Hamburger ─── */
-        document.getElementById('hamburger').addEventListener('click', function(e) {
-            e.stopPropagation();
-            document.getElementById('nav-links').classList.toggle('open');
-        });
+        const hamburger = wfById('hamburger');
+        const navLinks = wfById('nav-links');
+        if (hamburger && navLinks) {
+            hamburger.addEventListener('click', function(e) {
+                e.stopPropagation();
+                navLinks.classList.toggle('open');
+            });
+        }
 
         /* ─── Theme ─── */
-        document.getElementById('theme-btn').addEventListener('click', function(e) {
-            e.stopPropagation();
-            toggleTheme();
-        });
+        const themeButton = wfById('theme-btn');
+        if (themeButton) {
+            themeButton.addEventListener('click', function(e) {
+                e.stopPropagation();
+                toggleTheme();
+            });
+        }
 
         /* ─── Lang ─── */
-        document.getElementById('lang-btn').addEventListener('click', function(e) {
-            e.stopPropagation();
-            toggleLang();
-        });
+        const langButton = wfById('lang-btn');
+        if (langButton) {
+            langButton.addEventListener('click', function(e) {
+                e.stopPropagation();
+                toggleLang();
+            });
+        }
 
         /* ─── Dropdowns ─── */
         function toggleDropdown(id) {
-            const dd = document.getElementById(id);
+            const dd = wfById(id);
+            if (!dd) {
+                return;
+            }
             dd.classList.toggle('open');
-            document.querySelectorAll('.dropdown').forEach(d => {
+            (wfRoot || document).querySelectorAll('.dropdown').forEach(d => {
                 if (d.id !== id) d.classList.remove('open');
             });
         }
 
         function closeDropdowns() {
-            document.querySelectorAll('.dropdown').forEach(d => d.classList.remove('open'));
+            (wfRoot || document).querySelectorAll('.dropdown').forEach(d => d.classList.remove('open'));
         }
         document.addEventListener('click', (e) => {
             if (!e.target.closest('.dropdown')) closeDropdowns();
@@ -2514,14 +2475,21 @@
 
         /* ─── Modal ─── */
         function openModal(id) {
-            document.getElementById(id).classList.add('active');
+            const modal = wfById(id);
+            if (!modal) {
+                return;
+            }
+            modal.classList.add('active');
             closeDropdowns();
         }
 
         function closeModal(id) {
-            document.getElementById(id).classList.remove('active');
+            const modal = wfById(id);
+            if (modal) {
+                modal.classList.remove('active');
+            }
         }
-        document.querySelectorAll('.modal-overlay-wrap').forEach(overlay => {
+        (wfRoot || document).querySelectorAll('.modal-overlay-wrap').forEach(overlay => {
             overlay.addEventListener('click', (e) => {
                 if (e.target === overlay) overlay.classList.remove('active');
             });
@@ -2529,16 +2497,30 @@
 
         /* ─── Auth Tabs ─── */
         function switchTab(tab) {
-            document.getElementById('tab-login').classList.toggle('active', tab === 'login');
-            document.getElementById('tab-register').classList.toggle('active', tab === 'register');
-            document.getElementById('login-form').style.display = tab === 'login' ? 'block' : 'none';
-            document.getElementById('register-form').style.display = tab === 'register' ? 'block' : 'none';
+            const tabLogin = wfById('tab-login');
+            const tabRegister = wfById('tab-register');
+            const loginForm = wfById('login-form');
+            const registerForm = wfById('register-form');
+            if (tabLogin) {
+                tabLogin.classList.toggle('active', tab === 'login');
+            }
+            if (tabRegister) {
+                tabRegister.classList.toggle('active', tab === 'register');
+            }
+            if (loginForm) {
+                loginForm.style.display = tab === 'login' ? 'block' : 'none';
+            }
+            if (registerForm) {
+                registerForm.style.display = tab === 'register' ? 'block' : 'none';
+            }
         }
 
         /* ─── Auth Logic ─── */
         function doLogin() {
-            const email = document.getElementById('login-email').value.trim();
-            const pass = document.getElementById('login-pass').value;
+            const emailInput = wfById('login-email');
+            const passInput = wfById('login-pass');
+            const email = emailInput ? emailInput.value.trim() : '';
+            const pass = passInput ? passInput.value : '';
             if (!email || !pass) {
                 showToast('⚠️ Completa todos los campos');
                 return;
@@ -2552,9 +2534,12 @@
         }
 
         function doRegister() {
-            const name = document.getElementById('reg-name').value.trim();
-            const email = document.getElementById('reg-email').value.trim();
-            const pass = document.getElementById('reg-pass').value;
+            const nameInput = wfById('reg-name');
+            const emailInput = wfById('reg-email');
+            const passInput = wfById('reg-pass');
+            const name = nameInput ? nameInput.value.trim() : '';
+            const email = emailInput ? emailInput.value.trim() : '';
+            const pass = passInput ? passInput.value : '';
             if (!name || !email || !pass) {
                 showToast('⚠️ Completa todos los campos');
                 return;
@@ -2579,18 +2564,48 @@
                 currentUser.name.split(' ')[1][0] + '.' : '') : '';
 
             if (currentUser) {
-                document.getElementById('guest-section').style.display = 'none';
-                document.getElementById('user-section').style.display = 'block';
-                document.getElementById('nav-avatar').textContent = initials;
-                document.getElementById('nav-username').textContent = shortName;
+                const guestSection = wfById('guest-section');
+                const userSection = wfById('user-section');
+                const navAvatar = wfById('nav-avatar');
+                const navUsername = wfById('nav-username');
+                if (guestSection) {
+                    guestSection.style.display = 'none';
+                }
+                if (userSection) {
+                    userSection.style.display = 'block';
+                }
+                if (navAvatar) {
+                    navAvatar.textContent = initials;
+                }
+                if (navUsername) {
+                    navUsername.textContent = shortName;
+                }
                 // Profile modal
-                document.getElementById('profile-avatar').textContent = initials;
-                document.getElementById('profile-name').textContent = currentUser.name;
-                document.getElementById('profile-email').textContent = currentUser.email;
-                document.getElementById('edit-name').value = currentUser.name;
+                const profileAvatar = wfById('profile-avatar');
+                const profileName = wfById('profile-name');
+                const profileEmail = wfById('profile-email');
+                const editName = wfById('edit-name');
+                if (profileAvatar) {
+                    profileAvatar.textContent = initials;
+                }
+                if (profileName) {
+                    profileName.textContent = currentUser.name;
+                }
+                if (profileEmail) {
+                    profileEmail.textContent = currentUser.email;
+                }
+                if (editName) {
+                    editName.value = currentUser.name;
+                }
             } else {
-                document.getElementById('guest-section').style.display = 'block';
-                document.getElementById('user-section').style.display = 'none';
+                const guestSection = wfById('guest-section');
+                const userSection = wfById('user-section');
+                if (guestSection) {
+                    guestSection.style.display = 'block';
+                }
+                if (userSection) {
+                    userSection.style.display = 'none';
+                }
             }
         }
 
@@ -2603,7 +2618,8 @@
         }
 
         function saveProfile() {
-            const newName = document.getElementById('edit-name').value.trim();
+            const editName = wfById('edit-name');
+            const newName = editName ? editName.value.trim() : '';
             if (!newName) return;
             currentUser.name = newName;
             updateUserUI();
@@ -2626,7 +2642,10 @@
 
         /* ─── Toast ─── */
         function showToast(msg) {
-            const container = document.getElementById('toast-container');
+            const container = wfById('toast-container');
+            if (!container) {
+                return;
+            }
             const toast = document.createElement('div');
             toast.className = 'toast';
             toast.textContent = msg;
