@@ -7,67 +7,43 @@ use App\UI\Screens\Menu;
 it('returns home screen with expected core components', function () {
     $ui = uiScenario($this, Home::class, ['reset' => true]);
 
-    $welcome = $ui->component('welcome');
-    $subtitle = $ui->component('subtitle');
-    $features = $ui->component('features');
-    $componentsCard = $ui->component('components_card');
-    $gettingStartedCard = $ui->component('getting_started_card');
+    $welcomeUsim = $ui->component('welcome_usim');
 
-    $welcome->expect('type')->toBe('label');
-    expect($welcome->data()['text'] ?? '')->toContain('Welcome to USIM UI Framework');
-
-    $subtitle->expect('type')->toBe('label');
-    $features->expect('type')->toBe('container');
-    $componentsCard->expect('type')->toBe('card');
-    $gettingStartedCard->expect('type')->toBe('card');
+    $welcomeUsim->expect('type')->toBe('label');
+    expect($welcomeUsim->data()['html'] ?? null)->not->toBeNull();
 
     $ui->assertNoIssues();
 });
 
-it('builds home cards from ui-home config', function () {
+it('home screen renders the welcome-usim html fragment', function () {
     $ui = uiScenario($this, Home::class, ['reset' => true]);
 
-    $featureCards = config('ui-home.features.cards', []);
-    $gettingStartedCards = config('ui-home.getting_started.cards', []);
+    $data = $ui->component('welcome_usim')->data();
 
-    foreach (array_merge($featureCards, $gettingStartedCards) as $cardConfig) {
-        $name = $cardConfig['name'] ?? null;
-        expect($name)->not->toBeNull();
-
-        $card = $ui->component($name)->data();
-        expect($card['type'] ?? null)->toBe('card');
-    }
+    expect($data['type'] ?? null)->toBe('label');
+    expect($data['html'] ?? '')->toContain('class="wf"');
 
     $ui->assertNoIssues();
 });
 
-it('declares expected home card actions', function () {
+it('home screen fragment contains expected landing sections', function () {
     $ui = uiScenario($this, Home::class, ['reset' => true]);
 
-    $componentsCard = $ui->component('components_card')->data();
-    $easyCard = $ui->component('easy_card')->data();
-    $customCard = $ui->component('custom_card')->data();
-    $gettingStartedCard = $ui->component('getting_started_card')->data();
+    $html = $ui->component('welcome_usim')->data()['html'] ?? '';
 
-    expect(cardHasAction($componentsCard, 'view_demos'))->toBeTrue();
-    expect(cardHasAction($easyCard, 'view_code'))->toBeTrue();
-    expect(cardHasAction($customCard, 'customize'))->toBeTrue();
-    expect(cardHasAction($gettingStartedCard, 'view_all_demos'))->toBeTrue();
-    expect(cardHasAction($gettingStartedCard, 'view_docs'))->toBeTrue();
+    expect($html)->toContain('class="hero"');
+    expect($html)->toContain('class="wf"');
 
     $ui->assertNoIssues();
 });
 
-it('renders translated home text for spanish locale', function () {
+it('home screen fragment is non-empty regardless of locale', function () {
     app()->setLocale('es');
 
     $ui = uiScenario($this, Home::class, ['reset' => true]);
-    $welcome = $ui->component('welcome')->data();
+    $html = $ui->component('welcome_usim')->data()['html'] ?? '';
 
-    expect($welcome['text'] ?? '')->toContain('Bienvenido a USIM UI Framework');
-
-    $componentsCard = $ui->component('components_card')->data();
-    expect($componentsCard['title'] ?? null)->toBe('🎨 Componentes Modernos');
+    expect($html)->not->toBeEmpty();
 
     app()->setLocale(config('app.locale'));
 

@@ -591,26 +591,37 @@ class ButtonComponent extends UIComponent {
 // ==================== Label Component ====================
 class LabelComponent extends UIComponent {
     render() {
-        const label = document.createElement('span');
+        const hasHtml = this.config.html !== undefined && this.config.html !== null;
+        const label = document.createElement(hasHtml ? 'div' : 'span');
 
-        // Apply base class and style
-        let classes = `ui-label ${this.config.style || 'default'}`;
+        let classes = hasHtml
+            ? 'ui-html-view'
+            : `ui-label ${this.config.style || 'default'}`;
 
-        // Apply text alignment class
-        if (this.config.text_align) {
+        if (!hasHtml && this.config.text_align) {
             classes += ` text-${this.config.text_align}`;
         }
 
         label.className = classes;
 
-        // Support line breaks (\n) in text
-        const text = this.config.text || '';
-        if (text.includes('\n')) {
-            // Replace \n with <br> tags and preserve whitespace
-            label.style.whiteSpace = 'pre-line';
-            label.textContent = text;
+        if (hasHtml) {
+            label.innerHTML = String(this.config.html);
+            // Re-execute <script> tags (innerHTML does not execute them)
+            label.querySelectorAll('script').forEach(oldScript => {
+                const newScript = document.createElement('script');
+                [...oldScript.attributes].forEach(attr => newScript.setAttribute(attr.name, attr.value));
+                newScript.textContent = oldScript.textContent;
+                oldScript.parentNode.replaceChild(newScript, oldScript);
+            });
         } else {
-            label.textContent = text;
+            // Support line breaks (\n) in text
+            const text = this.config.text || '';
+            if (text.includes('\n')) {
+                label.style.whiteSpace = 'pre-line';
+                label.textContent = text;
+            } else {
+                label.textContent = text;
+            }
         }
 
         return this.applyCommonAttributes(label);

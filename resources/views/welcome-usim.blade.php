@@ -1,36 +1,11 @@
-<!DOCTYPE html>
-<html lang="es" data-theme="dark" data-lang="es">
-
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <meta name="csrf-token" content="{{ csrf_token() }}">
-
-    {{-- Open Graph (usado por WhatsApp, Facebook, LinkedIn) --}}
-    <meta property="og:title" content="USIM - UI Services Implementation Model" />
-    <meta property="og:description" content="USIM — UI Services Implementation Model" />
-    <meta property="og:image" content="{{ asset('vendor/idei/usim/images/default-image.png') }}" />
-    <meta property="og:url" content="{{ url()->current() }}" />
-    <meta property="og:type" content="website" />
-
-    {{-- Twitter Card (fallback adicional) --}}
-    <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:image" content="{{ asset('vendor/idei/usim/images/default-image.png') }}" />
-
-    <title>USIM - UI Services Implementation Model|</title>
-    <link rel="stylesheet" href="{{ asset('vendor/idei/usim/css/ui-components.css') }}">
-    <link rel="stylesheet" href="{{ asset('vendor/idei/usim/css/uploader-component.css') }}">
-    <link rel="stylesheet" href="{{ asset('vendor/idei/usim/css/carousel-component.css') }}">
-    <link rel="stylesheet" href="{{ asset('vendor/idei/usim/css/image-crop-editor.css') }}">
-
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link
-        href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=DM+Sans:wght@300;400;500&display=swap"
-        rel="stylesheet">
-
+<div class="wf" data-theme="dark">
     <style>
+        @import url('https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=DM+Sans:wght@300;400;500&display=swap');
+
+        body { padding: 0; }
+
         /* ─── CSS Variables ─── */
-        :root {
+        .wf {
             --bg: #0a0c10;
             --bg2: #10141c;
             --bg3: #161b26;
@@ -57,7 +32,7 @@
             --transition: 0.25s cubic-bezier(.4, 0, .2, 1);
         }
 
-        [data-theme="light"] {
+        .wf[data-theme="light"] {
             --bg: #f0f2f7;
             --bg2: #e4e8f0;
             --bg3: #d8dde8;
@@ -74,20 +49,20 @@
         }
 
         /* ─── Reset & Base ─── */
-        *,
-        *::before,
-        *::after {
+        .wf *,
+        .wf *::before,
+        .wf *::after {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
         }
 
-        html {
+        .wf {
             scroll-behavior: smooth;
             font-size: 16px;
         }
 
-        body {
+        .wf {
             background: var(--bg);
             color: var(--text);
             font-family: var(--font-body);
@@ -95,22 +70,23 @@
             min-height: 100vh;
             transition: background var(--transition), color var(--transition);
             overflow-x: hidden;
+            position: relative;
         }
 
-        a {
+        .wf a {
             color: inherit;
             text-decoration: none;
         }
 
-        code,
-        pre {
+        .wf code,
+        .wf pre {
             font-family: var(--font-mono);
         }
 
         /* ─── Grid noise texture overlay ─── */
-        body::before {
+        .wf::before {
             content: '';
-            position: fixed;
+            position: absolute;
             inset: 0;
             background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
             pointer-events: none;
@@ -119,8 +95,8 @@
         }
 
         /* ─── NAV ─── */
-        nav {
-            position: fixed;
+        .wf nav {
+            position: sticky;
             top: 0;
             left: 0;
             right: 0;
@@ -132,7 +108,7 @@
             transition: background var(--transition);
         }
 
-        [data-theme="light"] nav {
+        .wf[data-theme="light"] nav {
             background: rgba(240, 242, 247, 0.88);
         }
 
@@ -483,7 +459,7 @@
             }
         }
 
-        h1 {
+        .wf h1 {
             font-family: var(--font-display);
             font-size: clamp(1.85rem, 3.8vw, 3.5rem);
             font-weight: 700;
@@ -493,7 +469,7 @@
             animation: fadeUp 0.6s 0.1s both;
         }
 
-        h1 .accent-word {
+        .wf h1 .accent-word {
             background: linear-gradient(90deg, var(--accent), var(--accent2));
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
@@ -687,8 +663,8 @@
         }
 
         /* ─── SECTIONS COMMON ─── */
-        section {
-            padding: 6rem 2rem;
+        .wf section {
+            padding: 3rem 1rem;
             position: relative;
             z-index: 1;
         }
@@ -715,7 +691,7 @@
             opacity: 0.5;
         }
 
-        h2 {
+        .wf h2 {
             font-family: var(--font-display);
             font-size: clamp(1.4rem, 2.8vw, 2.1rem);
             font-weight: 700;
@@ -1118,7 +1094,7 @@
         }
 
         /* ─── FOOTER ─── */
-        footer {
+        .wf footer {
             background: var(--bg2);
             border-top: 1px solid var(--border);
             padding: 3rem 2rem;
@@ -1415,7 +1391,7 @@
                 order: -1;
             }
 
-            h1 {
+            .wf h1 {
                 font-size: 2.5rem;
             }
 
@@ -1463,7 +1439,7 @@
         }
 
         @media (max-width: 580px) {
-            section {
+            .wf section {
                 padding: 4rem 1.25rem;
             }
 
@@ -1487,118 +1463,6 @@
             }
         }
     </style>
-</head>
-
-<body>
-
-    <!-- ─── NAV ─── -->
-    <nav>
-        <div class="nav-inner">
-            <div class="logo">
-                <div class="logo-mark">U</div>
-                USIM
-                <span class="logo-version">v0.7.0</span>
-            </div>
-
-            <button class="hamburger" id="hamburger" aria-label="Menu">
-                <span></span><span></span><span></span>
-            </button>
-
-            <div class="nav-links" id="nav-links">
-                <!-- Demos dropdown -->
-                <div class="dropdown" id="demos-dropdown">
-                    <div class="nav-link dropdown-toggle" onclick="toggleDropdown('demos-dropdown')">
-                        <span data-i18n="nav.demos">Demos</span>
-                        <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
-                            <path d="M2 4l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
-                        </svg>
-                    </div>
-                    <div class="dropdown-menu">
-                        <div class="dropdown-item" onclick="showToast('🚀 Abriendo Demo: Hello Screen')"><span
-                                class="dot"></span>Hello Screen</div>
-                        <div class="dropdown-item" onclick="showToast('📋 Abriendo Demo: Data Tables')"><span
-                                class="dot"></span>Data Tables</div>
-                        <div class="dropdown-item" onclick="showToast('📁 Abriendo Demo: File Uploads')"><span
-                                class="dot"></span>File Uploads</div>
-                        <div class="dropdown-item" onclick="showToast('🔐 Abriendo Demo: Auth Flow')"><span
-                                class="dot"></span>Auth Flow</div>
-                        <div class="dropdown-item" onclick="showToast('🗂️ Abriendo Demo: Modals & Dialogs')"><span
-                                class="dot"></span>Modals & Dialogs</div>
-                        <div class="dropdown-item" onclick="showToast('📅 Abriendo Demo: Calendar')"><span
-                                class="dot"></span>Calendar</div>
-                    </div>
-                </div>
-
-                <a class="nav-link" href="#tutorials" data-i18n="nav.tutorials">Tutoriales</a>
-                <a class="nav-link" href="#community" data-i18n="nav.community">Comunidad</a>
-                <a class="nav-link" href="#components" data-i18n="nav.docs">Documentación</a>
-
-                <!-- User section (guest) -->
-                <div id="guest-section">
-                    <div class="nav-link btn-auth" onclick="openModal('auth-modal')" data-i18n="nav.login">Iniciar
-                        sesión</div>
-                </div>
-
-                <!-- User section (logged in) -->
-                <div id="user-section" style="display:none;">
-                    <div class="dropdown" id="user-dropdown">
-                        <div class="user-btn" onclick="toggleDropdown('user-dropdown')">
-                            <div class="avatar" id="nav-avatar">JD</div>
-                            <span id="nav-username">Juan D.</span>
-                            <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
-                                <path d="M2 4l4 4 4-4" stroke="currentColor" stroke-width="1.5"
-                                    stroke-linecap="round" />
-                            </svg>
-                        </div>
-                        <div class="dropdown-menu user-dropdown-menu">
-                            <div class="dropdown-item" onclick="openModal('profile-modal'); closeDropdowns()">
-                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
-                                    stroke="currentColor" stroke-width="2">
-                                    <circle cx="12" cy="8" r="4" />
-                                    <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" />
-                                </svg>
-                                <span data-i18n="user.profile">Mi perfil</span>
-                            </div>
-                            <div class="divider"></div>
-                            <div class="dropdown-item" style="color:var(--red)" onclick="logout()">
-                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
-                                    stroke="currentColor" stroke-width="2">
-                                    <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4" />
-                                    <polyline points="16 17 21 12 16 7" />
-                                    <line x1="21" y1="12" x2="9" y2="12" />
-                                </svg>
-                                <span data-i18n="user.logout">Cerrar sesión</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="nav-controls">
-                <!-- Theme toggle -->
-                <button class="icon-btn" id="theme-btn" aria-label="Toggle theme">
-                    <svg id="theme-icon-dark" width="16" height="16" viewBox="0 0 24 24" fill="none"
-                        stroke="currentColor" stroke-width="2" pointer-events="none">
-                        <path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z" />
-                    </svg>
-                    <svg id="theme-icon-light" width="16" height="16" viewBox="0 0 24 24" fill="none"
-                        stroke="currentColor" stroke-width="2" style="display:none" pointer-events="none">
-                        <circle cx="12" cy="12" r="5" />
-                        <line x1="12" y1="1" x2="12" y2="3" />
-                        <line x1="12" y1="21" x2="12" y2="23" />
-                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" />
-                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78" />
-                        <line x1="1" y1="12" x2="3" y2="12" />
-                        <line x1="21" y1="12" x2="23" y2="12" />
-                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" />
-                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" />
-                    </svg>
-                </button>
-                <!-- Lang toggle -->
-                <button class="lang-btn" id="lang-btn">EN</button>
-            </div>
-        </div>
-    </nav>
 
     <!-- ─── HERO ─── -->
     <section class="hero">
@@ -2774,6 +2638,4 @@
         applyTranslations();
         updateUserUI();
     </script>
-</body>
-
-</html>
+</div>

@@ -84,12 +84,32 @@ class LabelBuilder extends UIComponent
     /**
      * Set HTML content (use with caution)
      *
-     * @param string $html The HTML content
+     * If the first argument matches an existing backend view name,
+     * it renders the view and stores the resulting HTML.
+     *
+     * @param string $htmlOrView Raw HTML string or view name (dot notation)
+     * @param array $data Optional data for the view
      * @return $this For method chaining
      */
-    public function html(string $html): self
+    public function html(string $htmlOrView, array $data = []): self
     {
-        return $this->setConfig('html', $html);
+        $value = trim($htmlOrView);
+
+        if ($value !== '' && $this->isSafeViewName($value) && view()->exists($value)) {
+            return $this->setConfig('html', view($value, $data)->render());
+        }
+
+        return $this->setConfig('html', $htmlOrView);
+    }
+
+    /**
+     * Validate allowed view-name format.
+     *
+     * Accepts dot notation only (e.g. "welcome-usim", "emails.reset-password").
+     */
+    private function isSafeViewName(string $value): bool
+    {
+        return preg_match('/^[A-Za-z0-9._-]+$/', $value) === 1;
     }
 
     /**
