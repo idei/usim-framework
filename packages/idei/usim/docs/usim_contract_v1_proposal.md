@@ -37,7 +37,7 @@ Todas las respuestas de `GET /api/ui...` y `POST /api/ui-event` deben incluir:
   },
   "meta": {
     "storage": {
-      "usim": "opaque-string"
+      "usim": "{\"store_theme\":\"light\",\"store_page\":1}"
     },
     "toast": null,
     "redirect": null,
@@ -103,12 +103,14 @@ Recomendacion v1.1:
 ```json
 {
   "storage": {
-    "usim": "opaque-string"
+    "usim": "{\"store_theme\":\"light\",\"store_token_crypt\":\"<encrypted-value>\"}"
   }
 }
 ```
 
-- `usim` se trata como token opaco.
+- `usim` transporta un JSON serializado con variables `store_*`.
+- Variables `store_*` sin sufijo `_crypt` son legibles por cliente.
+- Variables con sufijo `_crypt` deben tratarse como valores opacos en cliente.
 - Transporte oficial en request: header `X-USIM-Storage`.
 
 ## 5.2 toast
@@ -236,7 +238,7 @@ Body recomendado:
 
 Headers recomendados:
 
-- `X-USIM-Storage: <opaque-storage>`
+- `X-USIM-Storage: <serialized-storage-json-string>`
 - `X-Request-Id: <uuid>`
 
 Eventos soportados:
@@ -326,7 +328,7 @@ Un cliente se considera compatible v1 si pasa:
 
 1. bootstrap `initial`.
 2. eventos `click/input/change/action/timeout`.
-3. preservacion de estado opaco.
+3. preservacion de `storage.usim` serializado y parse opcional de `store_*` no sensibles.
 4. merge correcto de deltas.
 5. manejo de `toast/redirect/abort/modal/update_modal`.
 6. tolerancia a campos desconocidos.

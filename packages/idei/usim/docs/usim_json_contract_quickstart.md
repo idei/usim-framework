@@ -18,7 +18,7 @@ Plantillas de implementacion por plataforma:
 2. Guardar cookie de client id y `storage.usim` si viene.
 3. Renderizar componentes por `type`/`parent`/`name`.
 4. Enviar eventos a `POST /api/ui-event` con `component_id`, `event`, `action`, `parameters`.
-5. Reenviar storage opaco en cada evento.
+5. Reenviar `storage.usim` (JSON serializado) en cada evento.
 6. Aplicar meta-keys y deltas de componentes.
 7. Re-renderizar incrementalmente.
 
@@ -37,7 +37,7 @@ Evento:
 POST /api/ui-event
 Content-Type: application/json
 Cookie: <client-id-cookie>
-X-USIM-Storage: <opaque-storage>
+X-USIM-Storage: <serialized-storage-json-string>
 ```
 
 ```json
@@ -66,7 +66,8 @@ X-USIM-Storage: <opaque-storage>
 
 Interpretacion minima:
 
-- `storage.usim`: token opaco de estado (persistir/reenviar).
+- `storage.usim`: JSON serializado con variables `store_*` (persistir/reenviar).
+- `*_crypt`: valores protegidos por backend; tratarlos como opacos en cliente.
 - `toast`: mensaje UX.
 - `redirect`: navegacion.
 - `abort`: error/flujo abortado.
@@ -82,7 +83,9 @@ Interpretacion minima:
 ## 5. Checklist rapido de compatibilidad
 
 - Persiste cookie de client id.
-- Persiste y reenvia `storage.usim` opaco.
+- Persiste y reenvia `storage.usim` serializado.
+- Puede parsear `storage.usim` para leer `store_*` no sensibles cuando aplique.
+- No intenta desencriptar valores `*_crypt` en cliente.
 - Distingue componentes de meta-keys.
 - Soporta `click`, `input`, `change`, `action`, `timeout`.
 - Aplica merge incremental de deltas.

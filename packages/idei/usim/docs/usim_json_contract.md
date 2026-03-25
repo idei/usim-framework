@@ -88,22 +88,25 @@ USIM depende de estado entre requests. Un cliente debe mantener y reenviar dos c
 - Debe persistirse y enviarse en todas las requests subsecuentes de la misma sesion UI.
 - Si no se conserva, el backend puede perder continuidad de estado/diffs.
 
-## 3.2 Storage opaco (`usim`)
+## 3.2 Storage serializado (`usim`)
 
 En respuestas, puede venir:
 
 ```json
 {
   "storage": {
-    "usim": "<opaque-encrypted-string>"
+    "usim": "{\"store_theme\":\"dark\",\"store_token_crypt\":\"<encrypted-value>\"}"
   }
 }
 ```
 
 Reglas:
 
-- Tratar `storage.usim` como string opaco (no parsear, no modificar).
-- Reenviarlo en eventos siguientes.
+- `storage.usim` es un `JSON string` serializado por backend.
+- El cliente puede parsearlo para leer estado no sensible (`store_*` sin sufijo `_crypt`).
+- Los keys con sufijo `_crypt` contienen datos protegidos por backend y deben tratarse como valores opacos (el cliente no debe intentar desencriptarlos).
+- Reenviar siempre el string actualizado en eventos siguientes.
+- Preservar keys desconocidas para compatibilidad forward.
 - Soportes observados:
   - Header `X-USIM-Storage` (contrato esperado en backend).
   - Fallback en body (observado en tests):
@@ -140,7 +143,7 @@ Ejemplo simplificado:
     "action": "submit_login"
   },
   "storage": {
-    "usim": "ENCRYPTED..."
+    "usim": "{\"store_theme\":\"dark\",\"store_page\":2}"
   },
   "toast": {
     "type": "success",
@@ -174,7 +177,9 @@ Importante:
 
 `storage`
 
-- Contenedor de estado opaco, especialmente `storage.usim`.
+- Contenedor de estado serializado en `storage.usim`.
+- `storage.usim` representa un objeto JSON de variables persistidas `store_*`.
+- `_crypt` indica valor protegido por backend.
 
 `toast`
 
@@ -296,7 +301,7 @@ Comportamiento recomendado:
 `input`
 
 - Evento de tipeo/cambio incremental.
-- En tests se envia storage opaco en body key `storage`.
+- En tests se envia `storage.usim` serializado en body key `storage`.
 
 `change`
 
@@ -359,7 +364,7 @@ Enviar:
     "login_email": "admin@example.com",
     "login_password": "password"
   },
-  "usim": "<opaque-storage>"
+  "usim": "<serialized-storage-json-string>"
 }
 ```
 
@@ -386,6 +391,7 @@ Mantener estructuras:
 - `keyByInternalId: MutableMap<Int, String>`
 - `metaState` para `toast`, `redirect`, `modal`, etc.
 - `rawUsim: String?`
+- `parsedStorage: MutableMap<String, Any?>` (opcional, derivado de `rawUsim`)
 
 Algoritmo:
 
@@ -422,7 +428,9 @@ Algoritmo:
 
 - Puede cargar una screen con `GET /api/ui{route}`.
 - Persiste cookie de client id entre requests.
-- Persiste y reenvia `storage.usim` opaco.
+- Persiste y reenvia `storage.usim` serializado.
+- Puede parsear `storage.usim` para leer `store_*` no sensibles.
+- Trata keys `*_crypt` como valores opacos.
 - Envia eventos con `component_id`, `event`, `action`, `parameters`.
 - Distingue componentes vs meta-keys reservadas.
 - Aplica merge incremental de deltas.
@@ -447,11 +455,16 @@ Caso 2: evento click exitoso
 - Verificar `200`.
 - Verificar que el cliente procesa meta-keys si aparecen.
 
-Caso 3: preservacion de estado opaco
+Caso 3: preservacion de estado serializado
 
 - Disparar dos eventos consecutivos.
 - Validar que en el segundo se reenvia el ultimo `storage.usim` conocido.
 - Verificar que no se pierde continuidad de estado.
+
+Caso 3.1: parse de storage serializado
+
+- Si `storage.usim` contiene JSON valido, parsearlo y exponer valores `store_*` no sensibles.
+- Verificar que valores con sufijo `_crypt` se preservan sin transformacion.
 
 Caso 4: merge de delta parcial
 
