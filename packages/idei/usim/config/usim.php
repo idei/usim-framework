@@ -1,6 +1,17 @@
 <?php
 
 return [
+
+    /*
+    |--------------------------------------------------------------------------
+    | Application ID
+    |--------------------------------------------------------------------------
+    | Un identificador único para esta aplicación, utilizado para diferenciarla
+    | en entornos con múltiples aplicaciones o servicios. Puede ser cualquier slug,
+    | pero se recomienda usar algo descriptivo.
+    */
+    'app_id' => env('APP_ID', 'my-app'),
+
     /*
     |--------------------------------------------------------------------------
     | UI Screens Namespace

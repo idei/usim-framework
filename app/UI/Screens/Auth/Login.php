@@ -9,7 +9,6 @@ use Idei\Usim\Services\Components\UIContainer;
 use Idei\Usim\Services\Enums\JustifyContent;
 use Idei\Usim\Services\Enums\LayoutType;
 use Idei\Usim\Services\UIBuilder;
-// use Illuminate\Support\Facades\Log;
 
 class Login extends AbstractUIService
 {
@@ -51,7 +50,7 @@ class Login extends AbstractUIService
             $email = empty($this->store_email_crypt)
                 ? config('users.roles.admin.seed_user.email')
                 : $this->store_email_crypt;
-            $password = empty($this->store_password)
+            $password = empty($this->store_password_crypt)
                 ? config('users.roles.admin.seed_user.password')
                 : $this->store_password_crypt;
         }
