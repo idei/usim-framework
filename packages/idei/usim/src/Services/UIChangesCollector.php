@@ -25,7 +25,8 @@ class UIChangesCollector
 
     public function all(): array
     {
-        $this->changes['storage'] =['usim' => encrypt(json_encode($this->storage_changes))];
+        // $this->changes['storage'] =['usim' => encrypt(json_encode($this->storage_changes))];
+        $this->changes['storage'] =['usim' => json_encode($this->storage_changes)];
         return $this->changes;
     }
 }

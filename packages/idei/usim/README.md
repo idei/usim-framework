@@ -151,9 +151,16 @@ Then visit `/hello-screen` in your browser.
 ```php
 // Labels
 UIBuilder::label('greeting')->text('Hello World')->style('h2')->center();
+UIBuilder::label('legal_copy')->html('legal.terms-snippet');
 
 // Buttons
 UIBuilder::button('save')->label('Save')->style('primary')->action('save_form');
+UIBuilder::button('floating_help')
+    ->label('Help')
+    ->style('secondary')
+    ->position('BOTTOM_RIGHT')
+    ->offsets(24, 24)
+    ->action('open_help');
 
 // Inputs
 UIBuilder::input('email')->label('Email')->type('email')->required(true)->placeholder('you@example.com');
@@ -189,16 +196,26 @@ Screen state is **server-side**. The framework automatically:
 2. Stores the serialized state
 3. On events, restores state → runs your handler → diffs old vs new → sends only the **delta** to the client
 
-Properties prefixed with `store_` are persisted across requests:
+Properties prefixed with `store_` are persisted across requests and mirrored on the client as part of the USIM storage payload.
+
+Persistence is now plain by default:
+
+- `store_*` values are serialized as regular JSON values so the client can inspect and use them directly.
+- Add the `_crypt` suffix only for sensitive values that must be protected before being sent to client storage.
+- This makes client-side decisions possible for non-sensitive state such as `store_theme`, and also enables finer-grained storage synchronization because the client can apply only the changed keys instead of replacing one fully encrypted blob each time.
 
 ```php
 class MyScreen extends AbstractUIService
 {
-    protected string $store_username = '';   // persisted
-    protected int $store_page = 1;          // persisted
-    protected string $tempValue = '';       // NOT persisted
+    protected string $store_username = '';       // persisted in plain text
+    protected int $store_page = 1;              // persisted in plain text
+    protected string $store_theme = 'light';    // readable by the client
+    protected string $store_token_crypt = '';   // persisted encrypted
+    protected string $tempValue = '';           // NOT persisted
 }
 ```
+
+Use `_crypt` only when the value should not be readable from the client's local storage.
 
 ---
 
@@ -431,6 +448,25 @@ $this->updateModal([
 
 // Show an error page
 $this->abort(404, 'Not found');
+
+// Switch theme on the client
+$this->changeTheme('dark');
+```
+
+Labels can now render raw HTML or an existing Blade view:
+
+```php
+UIBuilder::label('welcome_copy')
+    ->html('emails.verify-email', ['user' => $user]);
+```
+
+Most components also support anchor-based positioning helpers for floating or pinned UI:
+
+```php
+UIBuilder::container('floating_panel')
+    ->position('TOP_RIGHT')
+    ->positionMode('fixed')
+    ->offsets(16, 16);
 ```
 
 ---

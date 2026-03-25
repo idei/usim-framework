@@ -6,6 +6,22 @@ The format is based on Keep a Changelog, and this project follows Semantic Versi
 
 ## [Unreleased]
 
+### Added
+- Theme-switching support in the backend/frontend contract via `AbstractUIService::changeTheme()` and UI renderer handling for light/dark mode updates.
+- Rich label HTML rendering through `LabelBuilder::html()`, including safe rendering of existing backend Blade views into label content.
+- New positioning helpers for components and containers, including anchor-based positioning and offset APIs such as `position()`, `positionMode()`, `offsetX()`, `offsetY()`, and directional helpers like `top()` / `right()` / `bottom()` / `left()`.
+- Card theme variants and theme assets for light/dark UI toggles in the default package UI.
+
+### Changed
+- Default USIM styles now rely more heavily on CSS variables for more consistent theming across renderer components and package-provided screens.
+- Package screen scaffolding was refreshed with simplified layouts, updated button styling, theme toggle support, and richer label rendering for auth and home flows.
+- Storage variables declared with the `store_` prefix are now serialized in plain JSON by default instead of being encrypted as a full opaque payload.
+- Sensitive persisted values must now opt in to protection by using the `_crypt` suffix, for example `store_token_crypt` or `store_password_crypt`.
+- The storage contract now supports finer-grained client synchronization, allowing clients to inspect plain values such as `store_theme` and update local storage using incremental changes instead of replacing the entire encrypted blob on every response.
+
+### Fixed
+- UI styling now accepts numeric shadow values in refreshed screen scaffolding without requiring string-only shadow configuration.
+
 ## [0.5.0] - 2026-03-20
 
 ### Added

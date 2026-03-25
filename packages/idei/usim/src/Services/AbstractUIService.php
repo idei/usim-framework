@@ -23,7 +23,9 @@ use Idei\Usim\Services\Support\UIIdGenerator;
 use Idei\Usim\Services\Support\UIStateManager;
 use Idei\Usim\Services\UIBuilder;
 use Idei\Usim\Services\UIChangesCollector;
+use Illuminate\Contracts\Encryption\DecryptException;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use ReflectionClass;
 use ReflectionProperty;
@@ -88,7 +90,7 @@ abstract class AbstractUIService
         }
 
         // 2. Handle failure based on authentication state
-        if (! Auth::check()) {
+        if (!Auth::check()) {
             return [
                 'allowed' => false,
                 'action' => 'redirect',
@@ -128,7 +130,7 @@ abstract class AbstractUIService
      */
     protected static function requireAuth(): bool
     {
-        if (! Auth::check()) {
+        if (!Auth::check()) {
             return false;
         }
 
@@ -146,24 +148,24 @@ abstract class AbstractUIService
     protected static function requireRole(string|array $roles, ?string $guard = null): bool
     {
         // Implicitly require authentication first
-        if (! self::requireAuth()) {
+        if (!self::requireAuth()) {
             return false;
         }
 
         /** @var mixed $user */
         $user = Auth::guard($guard)->user();
 
-        if (! $user || ! method_exists($user, 'hasAnyRole')) {
+        if (!$user || !method_exists($user, 'hasAnyRole')) {
             // user exists but trait is missing or logic fails
             return false;
         }
 
-        if (! $user->hasAnyRole($roles)) {
-             // user is authenticated but lacks role
-             // Instead of aborting, we return false.
-             // The framework will catch this in authorize() and call failedAuthorization()
-             // where we can gracefully handle the error (toast + redirect).
-             return false;
+        if (!$user->hasAnyRole($roles)) {
+            // user is authenticated but lacks role
+            // Instead of aborting, we return false.
+            // The framework will catch this in authorize() and call failedAuthorization()
+            // where we can gracefully handle the error (toast + redirect).
+            return false;
         }
 
         return true;
@@ -180,19 +182,19 @@ abstract class AbstractUIService
     protected static function requirePermission(string|array $permissions, ?string $guard = null): bool
     {
         // Implicitly require authentication first
-        if (! self::requireAuth()) {
+        if (!self::requireAuth()) {
             return false;
         }
 
         /** @var mixed $user */
         $user = Auth::guard($guard)->user();
 
-        if (! $user || ! method_exists($user, 'hasAnyPermission')) {
+        if (!$user || !method_exists($user, 'hasAnyPermission')) {
             return false;
         }
 
-        if (! $user->hasAnyPermission($permissions)) {
-             return false;
+        if (!$user->hasAnyPermission($permissions)) {
+            return false;
         }
 
         return true;
@@ -281,9 +283,11 @@ abstract class AbstractUIService
      *
      * Uses reflection to find protected properties whose names start with 'store_'.
      * If a matching key exists in the incoming storage array, the value is injected.
+     * Properties ending with '_crypt' are automatically decrypted before injection.
      *
      * Convention: Property name must match storage key
      * Example: protected int $store_user_id; matches storage['store_user_id']
+     * Example: protected string $store_token_crypt; decrypts storage['store_token_crypt'] before injection
      *
      * @param array $incomingStorage Storage data from frontend
      * @return void
@@ -313,12 +317,23 @@ abstract class AbstractUIService
 
             // Check if this key exists in incoming storage
             if (!array_key_exists($propertyName, $incomingStorage)) {
-                 // \Illuminate\Support\Facades\Log::info("Skipping inject $propertyName - Not in storage");
+                // \Illuminate\Support\Facades\Log::info("Skipping inject $propertyName - Not in storage");
                 continue;
             }
 
             $value = $incomingStorage[$propertyName];
             // \Illuminate\Support\Facades\Log::info("Injecting $propertyName = $value");
+
+            // if the propertyName ends with '_crypt' we attempt to decrypt it before injecting
+            if (str_ends_with($propertyName, '_crypt')) {
+                try {
+                    $value = decrypt($value);
+                } catch (DecryptException $e) {
+                    Log::warning("Failed to decrypt storage variable '{$propertyName}': " . $e->getMessage());
+                    continue; // Skip injection if decryption fails
+                }
+            }
+
 
             // Set the value
             $property->setValue($this, $value);
@@ -640,6 +655,7 @@ abstract class AbstractUIService
     /**
      * Uses reflection to scan private and protected properties whose names start with the "store_"
      * prefix and whose type hints are non-nullable primitive types (int, float, string, bool) or array.
+     * Properties ending with "_crypt" are automatically encrypted before storage.
      * It then builds an associative array with the following structure:
      *
      * [
@@ -665,6 +681,9 @@ abstract class AbstractUIService
                     $isPrimitive = in_array($typeName, ['int', 'float', 'string', 'bool', 'array']);
                     if ($isPrimitive) {
                         $value = $property->getValue($this);
+                        if (str_ends_with($propertyName, '_crypt')) {
+                            $value = encrypt($value);
+                        }
                         $storage[$propertyName] = $value;
                     }
                 }

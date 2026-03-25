@@ -2,10 +2,11 @@
 
 namespace Idei\Usim\Http\Middleware;
 
-use Idei\Usim\Services\Support\UIStateManager;
 use Closure;
-use Illuminate\Http\Request;
+use Idei\Usim\Services\Support\UIStateManager;
 use Illuminate\Contracts\Encryption\DecryptException;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 
 /**
  * Middleware PrepareUIContext
@@ -53,13 +54,14 @@ class PrepareUIContext
         if ($encrypted) {
             try {
                 // Desencripta el contenido utilizando la APP_KEY del proyecto
-                $decrypted = decrypt($encrypted);
+                // $decrypted = decrypt($encrypted);
+                $decrypted = $encrypted; // --- IGNORE DECRYPTION ---
                 $decodedStorage = json_decode($decrypted, true);
-                $storage = is_array($decodedStorage) ? $decodedStorage : [];
+                $storage = \is_array($decodedStorage) ? $decodedStorage : [];
 
             } catch (DecryptException $e) {
-                \Illuminate\Support\Facades\Log::warning('UIContext Decrypt Failed: ' . $e->getMessage());
-                // Silently fail - storage will be empty
+                Log::warning('UIContext Decrypt Failed: ' . $e->getMessage());
+                $storage = [];
             }
         }
 
