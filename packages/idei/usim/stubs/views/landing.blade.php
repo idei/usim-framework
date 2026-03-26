@@ -6,7 +6,7 @@
             --surface: #1c2333;
             --border: #2a3347;
             --accent: #00d4aa;
-            min-height: 100vh;
+            min-height: 50vh;
             display: grid;
             place-items: center;
             padding: 0rem;
@@ -29,7 +29,6 @@
             width: 100%;
             display: flex;
             align-items: center;
-            justify-content: space-between;
             gap: 1rem;
             background: var(--surface);
             border: 1px solid var(--border);

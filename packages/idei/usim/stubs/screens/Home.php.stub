@@ -4,11 +4,17 @@ namespace {{ namespace }};
 
 use Idei\Usim\Services\AbstractUIService;
 use Idei\Usim\Services\Components\UIContainer;
+use Idei\Usim\Services\UIBuilder;
 
 class Home extends AbstractUIService
 {
     protected function buildBaseUI(UIContainer $container, ...$params): void
     {
         $container->shadow(0)->padding("0px");
+         $container->add(
+            UIBuilder::label('landing_lbl')
+                ->html('landing', ['title' => env('APP_NAME', 'USIM Framework')])
+                ->width('100%')
+        );
     }
 }
