@@ -4,13 +4,16 @@ All notable changes to this package will be documented in this file.
 
 The format is based on Keep a Changelog, and this project follows Semantic Versioning.
 
-## [Unreleased]
+## [0.6.0] - 2026-03-26
 
 ### Added
 - Theme-switching support in the backend/frontend contract via `AbstractUIService::changeTheme()` and UI renderer handling for light/dark mode updates.
+- Persistent theme tokens and assets for light/dark mode (`resources/assets/css/ui-theme-tokens.css`, `resources/assets/images/theme-icon-*.svg`).
+- New package landing view stub with dynamic theme-aware styling (`stubs/views/landing.blade.php`).
 - Rich label HTML rendering through `LabelBuilder::html()`, including safe rendering of existing backend Blade views into label content.
 - New positioning helpers for components and containers, including anchor-based positioning and offset APIs such as `position()`, `positionMode()`, `offsetX()`, `offsetY()`, and directional helpers like `top()` / `right()` / `bottom()` / `left()`.
 - Card theme variants and theme assets for light/dark UI toggles in the default package UI.
+- New `app_id` package configuration (from `APP_ID`) to scope client storage keys per application.
 
 ### Changed
 - Default USIM styles now rely more heavily on CSS variables for more consistent theming across renderer components and package-provided screens.
@@ -18,6 +21,7 @@ The format is based on Keep a Changelog, and this project follows Semantic Versi
 - Storage variables declared with the `store_` prefix are now serialized in plain JSON by default instead of being encrypted as a full opaque payload.
 - Sensitive persisted values must now opt in to protection by using the `_crypt` suffix, for example `store_token_crypt` or `store_password_crypt`.
 - The storage contract now supports finer-grained client synchronization, allowing clients to inspect plain values such as `store_theme` and update local storage using incremental changes instead of replacing the entire encrypted blob on every response.
+- `PrepareUIContext` and `UIChangesCollector` were aligned with the new storage contract to simplify state handling and incremental updates.
 
 ### Fixed
 - UI styling now accepts numeric shadow values in refreshed screen scaffolding without requiring string-only shadow configuration.

@@ -5,6 +5,7 @@ A **Server-Driven UI** framework for Laravel. Define your entire user interface 
 ## Table of Contents
 
 - [Requirements](#requirements)
+- [What Is New Since 0.5.0](#what-is-new-since-050)
 - [Installation](#installation)
     - [Quick Start](#quick-start)
 - [Core Concepts](#core-concepts)
@@ -50,6 +51,18 @@ A **Server-Driven UI** framework for Laravel. Define your entire user interface 
 | nikic/php-parser | ^5.7 |
 | symfony/var-dumper | `^6.0` / `^7.0` |
 | illuminate/contracts | `^10.0` / `^11.0` / `^12.0` |
+
+---
+
+## What Is New Since 0.5.0
+
+- End-to-end light/dark theming: backend trigger via `$this->changeTheme('dark')`, renderer support, and package theme tokens.
+- New landing-page scaffold with theme-aware styles (`resources/views/landing.blade.php` in installed apps).
+- Storage contract update: `store_*` values are plain JSON by default, and only sensitive values should use `_crypt`.
+- New `APP_ID` / `app_id` config to namespace client storage keys per app.
+- Better UI ergonomics in scaffolding: refreshed home/auth layouts, richer label rendering with `LabelBuilder::html()`, and positioning helpers (`position`, `positionMode`, `offsets`).
+
+For the full release details, see `CHANGELOG.md`.
 
 ---
 
@@ -676,14 +689,17 @@ This creates `config/ui-services.php`:
 
 ```php
 return [
+    'app_id'           => env('APP_ID', 'my-app'),
     'screens_namespace' => 'App\\UI\\Screens',
     'screens_path'      => app_path('UI/Screens'),
     'api_url'           => env('API_BASE_URL', env('APP_URL')),
+    'upload_disk'       => env('UPLOAD_DISK', 'local'),
 ];
 ```
 
 | Key | Description | Default |
 |---|---|---|
+| `app_id` | Unique application identifier used to scope persisted UI storage keys | `my-app` (override via `APP_ID`) |
 | `screens_namespace` | PSR-4 namespace where screens live | `App\UI\Screens` |
 | `screens_path` | Filesystem path to scan for screens | `app/UI/Screens` |
 | `api_url` | Base URL for internal HTTP calls | `APP_URL` |
