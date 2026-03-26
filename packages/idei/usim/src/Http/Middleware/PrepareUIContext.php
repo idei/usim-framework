@@ -46,19 +46,17 @@ class PrepareUIContext
             }
         }
 
-        // 2. Si no hay header válido, intentar desde Input 'usim'
-        if (empty($encrypted) && $request->has('usim')) {
-            $encrypted = $request->input('usim');
+        $storage_key = config('ui-services.app_id');
+
+        // 2. Si no hay header válido, intentar desde Input storage_key
+        if (empty($encrypted) && $request->has($storage_key)) {
+            $encrypted = $request->input($storage_key);
         }
 
         if ($encrypted) {
             try {
-                // Desencripta el contenido utilizando la APP_KEY del proyecto
-                // $decrypted = decrypt($encrypted);
-                $decrypted = $encrypted; // --- IGNORE DECRYPTION ---
-                $decodedStorage = json_decode($decrypted, true);
+                $decodedStorage = json_decode($encrypted, true);
                 $storage = \is_array($decodedStorage) ? $decodedStorage : [];
-
             } catch (DecryptException $e) {
                 Log::warning('UIContext Decrypt Failed: ' . $e->getMessage());
                 $storage = [];
@@ -66,12 +64,17 @@ class PrepareUIContext
         }
 
         $request->merge(['storage' => $storage]);
+        $store_token = null;
 
-        if (!empty($storage['store_token'])) {
-            $store_token = $storage['store_token'];
-            $request->headers->set('Authorization', 'Bearer ' . $store_token);
-            UIStateManager::setAuthToken($store_token);
+        if (!empty($storage['store_token_crypt'])) {
+            try {
+                $store_token = decrypt($storage['store_token_crypt']);
+            } catch (DecryptException $e) {
+                Log::warning('Store Token Decrypt Failed: ' . $e->getMessage());
+            }
         }
+        $request->headers->set('Authorization', "Bearer $store_token");
+        UIStateManager::setAuthToken($store_token);
     }
 
     /**

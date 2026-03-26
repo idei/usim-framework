@@ -24,27 +24,9 @@ class UsimEventDispatcher
             if (method_exists($service, $methodName)) {
                 $service->initializeEventContext($incomingStorage, debug: true);
 
-                $result = [];
-
                 // Invoke handler method
                 $methodResult = $service->$methodName($event->params);
-
-                // if (is_array($methodResult)) {
-                //     $result = $methodResult;
-                // }
-
                 $finalizedResult = $service->finalizeEventContext(debug: true);
-
-                // if (is_array($finalizedResult)) {
-                //     $result += $finalizedResult;
-                // }
-
-                // $storageVariables = $service->getStorageVariables();
-
-                // if (!empty($storageVariables)) {
-                //     $mergedStorage = array_merge($incomingStorage, $storageVariables);
-                //     $result['storage'] = ['usim' => encrypt(json_encode($mergedStorage))];
-                // }
             }
         }
     }

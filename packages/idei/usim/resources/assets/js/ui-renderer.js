@@ -1,3 +1,46 @@
+const DEFAULT_USIM_STORAGE_KEY = 'usim';
+const USIM_STORAGE_KEY_SESSION = '__usim_storage_key__';
+
+function setActiveUsimStorageKey(key) {
+    const normalizedKey = typeof key === 'string' ? key.trim() : '';
+    if (!normalizedKey) {
+        return;
+    }
+
+    window.USIM_STORAGE_KEY = normalizedKey;
+
+    try {
+        sessionStorage.setItem(USIM_STORAGE_KEY_SESSION, normalizedKey);
+    } catch (error) {
+        // Ignore storage access errors (private mode / blocked storage)
+    }
+}
+
+function getActiveUsimStorageKey() {
+    const windowKey = typeof window.USIM_STORAGE_KEY === 'string'
+        ? window.USIM_STORAGE_KEY.trim()
+        : '';
+    if (windowKey) {
+        return windowKey;
+    }
+
+    try {
+        const sessionKey = sessionStorage.getItem(USIM_STORAGE_KEY_SESSION);
+        if (typeof sessionKey === 'string' && sessionKey.trim()) {
+            return sessionKey.trim();
+        }
+    } catch (error) {
+        // Ignore storage access errors (private mode / blocked storage)
+    }
+
+    return DEFAULT_USIM_STORAGE_KEY;
+}
+
+function getUsimStorageValue() {
+    const storageKey = getActiveUsimStorageKey();
+    return localStorage.getItem(storageKey) || '';
+}
+
 // ==================== Base Component Class ====================
 class UIComponent {
     constructor(id, config) {
@@ -304,7 +347,7 @@ class UIComponent {
             const componentId = this.config._id || parseInt(this.id);
 
             // Get USIM storage from localStorage
-            const usimStorage = localStorage.getItem('usim') || '';
+            const usimStorage = getUsimStorageValue();
 
             // console.log('Sending event:', { component_id: componentId, action, csrfToken });
 
@@ -748,7 +791,7 @@ class InputComponent extends UIComponent {
         try {
             const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
             const componentId = this.config._id || parseInt(this.id);
-            const usimStorage = localStorage.getItem('usim') || '';
+            const usimStorage = getUsimStorageValue();
 
             const response = await fetch('/api/ui-event', {
                 method: 'POST',
@@ -875,7 +918,7 @@ class SelectComponent extends UIComponent {
         try {
             const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
             const componentId = this.config._id || parseInt(this.id);
-            const usimStorage = localStorage.getItem('usim') || '';
+            const usimStorage = getUsimStorageValue();
 
             const response = await fetch('/api/ui-event', {
                 method: 'POST',
@@ -1224,7 +1267,7 @@ class TableComponent extends UIComponent {
         try {
             const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
             const componentId = this.config._id || parseInt(this.id);
-            const usimStorage = localStorage.getItem('usim') || '';
+            const usimStorage = getUsimStorageValue();
 
             const response = await fetch('/api/ui-event', {
                 method: 'POST',
@@ -1442,7 +1485,7 @@ class TableCellComponent extends UIComponent {
         try {
             const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
             const componentId = this.config._id || parseInt(this.id);
-            const usimStorage = localStorage.getItem('usim') || '';
+            const usimStorage = getUsimStorageValue();
 
             const response = await fetch('/api/ui-event', {
                 method: 'POST',
@@ -1539,7 +1582,7 @@ class TableHeaderCellComponent extends UIComponent {
         try {
             const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
             const componentId = this.config._id || parseInt(this.id);
-            const usimStorage = localStorage.getItem('usim') || '';
+            const usimStorage = getUsimStorageValue();
 
             const response = await fetch('/api/ui-event', {
                 method: 'POST',
@@ -1820,6 +1863,7 @@ function isSpecialUIKey(key) {
 
 // ==================== UI Renderer ====================
 class UIRenderer {
+
     constructor(data) {
         this.data = data;
         this.components = new Map();
@@ -2124,7 +2168,15 @@ class UIRenderer {
      * @param {object} storageData - Storage variables object
      */
     handleStorageUpdate(storageData) {
-        Object.keys(storageData).forEach(key => {
+        const storageKeys = Object.keys(storageData);
+        if (storageKeys.length > 0) {
+            const currentKey = getActiveUsimStorageKey();
+            const preferredKey = storageKeys.includes(currentKey) ? currentKey : storageKeys[0];
+            setActiveUsimStorageKey(preferredKey);
+        }
+
+        storageKeys.forEach(key => {
+
             const value = storageData[key];
 
             // Store the value in localStorage
@@ -2502,7 +2554,7 @@ class UIRenderer {
                     btn.addEventListener('click', async () => {
                         const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
                         const componentId = element.getAttribute('data-component-id');
-                        const usimStorage = localStorage.getItem('usim') || '';
+                        const usimStorage = getUsimStorageValue();
 
                         try {
                             const response = await fetch('/api/ui-event', {
@@ -3025,7 +3077,7 @@ async function loadScreenUI(screenName = null) {
         // Build final query string (with ? prefix if there are params)
         const queryString = urlParams.toString() ? `?${urlParams.toString()}` : '';
 
-        const usimStorage = localStorage.getItem('usim') || '';
+        const usimStorage = getUsimStorageValue();
         const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
         // Use /api/ui/ prefix to separate UI definitions from Data API
         const response = await fetch(`/api/ui/${screen}${queryString}`, {
@@ -3307,7 +3359,7 @@ async function executeTimeoutAction(action, callerServiceId) {
         // Execute custom action via backend
         try {
             const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
-            const usimStorage = localStorage.getItem('usim') || '';
+            const usimStorage = getUsimStorageValue();
 
             const response = await fetch('/api/ui-event', {
                 method: 'POST',
@@ -3633,11 +3685,15 @@ class StorageComponent extends UIComponent {
 
     storeData() {
         // Iterate over all config properties (except internal ones)
-        Object.keys(this.config).forEach(key => {
-            // Skip internal properties that start with underscore
-            if (key.startsWith('_') || key === 'type') {
-                return;
-            }
+        const storageKeys = Object.keys(this.config).filter(key => !key.startsWith('_') && key !== 'type');
+
+        if (storageKeys.length > 0) {
+            const currentKey = getActiveUsimStorageKey();
+            const preferredKey = storageKeys.includes(currentKey) ? currentKey : storageKeys[0];
+            setActiveUsimStorageKey(preferredKey);
+        }
+
+        storageKeys.forEach(key => {
 
             const value = this.config[key];
 
@@ -3670,7 +3726,7 @@ async function loadMenuUI() {
 
     try {
         const resetQuery = window.RESET_STATE ? 'reset=true' : '';
-        const usimStorage = localStorage.getItem('usim') || '';
+        const usimStorage = getUsimStorageValue();
         const parentElement = 'parent=menu';
 
         // Use /api/ui/ prefix for menu as well

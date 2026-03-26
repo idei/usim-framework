@@ -660,7 +660,7 @@ abstract class AbstractUIService
      *
      * [
      *   'storage' => [
-     *      'usim' => 'encrypted_json_string',
+     *      [app_id] => 'encrypted_json_string',
      *   ]
      * ]
      *

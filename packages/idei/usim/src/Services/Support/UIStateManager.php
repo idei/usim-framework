@@ -192,7 +192,7 @@ class UIStateManager
         return Cache::forget($cacheKey);
     }
 
-    public static function setAuthToken(string $token): bool
+    public static function setAuthToken(string|null $token): bool
     {
         $cacheKey = self::getCacheKey(prefix: 'ui_auth_token');
         Cache::put($cacheKey, $token, self::DEFAULT_TTL);

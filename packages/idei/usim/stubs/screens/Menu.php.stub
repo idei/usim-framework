@@ -30,8 +30,6 @@ class Menu extends AbstractUIService
 
     protected MenuDropdownBuilder $main_menu;
     protected MenuDropdownBuilder $user_menu;
-    protected string $store_token = '';
-    protected string $store_password = '';
 
     protected function buildBaseUI(UIContainer $container, ...$params): void
     {
@@ -154,9 +152,6 @@ class Menu extends AbstractUIService
         }
 
         Auth::logout();
-
-        $this->store_token = '';
-        $this->store_password = '';
 
         $this->user_menu->trigger('⚙️');
         $this->user_menu->clearItems();

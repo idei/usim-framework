@@ -49,8 +49,6 @@ class Menu extends AbstractUIService
     protected MenuDropdownBuilder $user_menu;
     protected ButtonBuilder $theme_toggle;
     protected string $store_theme = 'light';
-    protected string $store_token = '';
-    protected string $store_password = '';
 
     protected function buildBaseUI(UIContainer $container, ...$params): void
     {
@@ -223,10 +221,6 @@ class Menu extends AbstractUIService
             $user->currentAccessToken()->delete();
         }
         Auth::logout();
-
-        // Clear storage variables
-        $this->store_token = '';
-        $this->store_password = '';
 
         $this->user_menu->trigger("⚙️");
 

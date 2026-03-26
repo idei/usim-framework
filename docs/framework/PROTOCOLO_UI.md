@@ -367,7 +367,7 @@ Este header transporta variables de estado persistente encriptadas que el backen
 
 **Flujo:**
 1. Backend genera variables `store_*` y las serializa/encripta
-2. Frontend las almacena en `localStorage` bajo la clave `'usim'`
+2. Frontend las almacena en `localStorage` bajo una clave basada en `APP_ID`
 3. Frontend las reenvía en cada request mediante el header `X-USIM-Storage`
 4. Backend las desencripta e inyecta en las propiedades `protected store_*` del servicio
 
