@@ -17,6 +17,7 @@
     <meta name="twitter:image" content="{{ asset('vendor/idei/usim/images/default-image.png') }}" />
 
     <title>{{ ucfirst(str_replace('-', ' ', $screen)) }}</title>
+    <link rel="stylesheet" href="{{ asset('vendor/idei/usim/css/ui-theme-tokens.css') }}">
     <link rel="stylesheet" href="{{ asset('vendor/idei/usim/css/ui-components.css') }}">
     <link rel="stylesheet" href="{{ asset('vendor/idei/usim/css/uploader-component.css') }}">
     <link rel="stylesheet" href="{{ asset('vendor/idei/usim/css/carousel-component.css') }}">

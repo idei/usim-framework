@@ -1,5 +1,55 @@
 const DEFAULT_USIM_STORAGE_KEY = 'usim';
 const USIM_STORAGE_KEY_SESSION = '__usim_storage_key__';
+const DEFAULT_USIM_THEME = 'dark';
+const SUPPORTED_USIM_THEMES = new Set(['light', 'dark']);
+
+function safeParseJsonObject(rawValue) {
+    if (typeof rawValue !== 'string' || !rawValue.trim()) {
+        return null;
+    }
+
+    try {
+        const parsed = JSON.parse(rawValue);
+        return (parsed && typeof parsed === 'object') ? parsed : null;
+    } catch (error) {
+        return null;
+    }
+}
+
+function detectUsimStorageKeyFromLocalStorage() {
+    try {
+        const keys = Object.keys(localStorage);
+        let fallbackCandidate = '';
+
+        for (const key of keys) {
+            const parsedObject = safeParseJsonObject(localStorage.getItem(key));
+            if (!parsedObject) {
+                continue;
+            }
+
+            const parsedKeys = Object.keys(parsedObject);
+            const hasStoreVariables = parsedKeys.some(parsedKey => parsedKey.startsWith('store_'));
+            if (!hasStoreVariables) {
+                continue;
+            }
+
+            // Strong signal: store_theme exists in this payload.
+            if (Object.prototype.hasOwnProperty.call(parsedObject, 'store_theme')) {
+                return key;
+            }
+
+            // Keep first store_* candidate as fallback.
+            if (!fallbackCandidate) {
+                fallbackCandidate = key;
+            }
+        }
+
+        return fallbackCandidate || '';
+    } catch (error) {
+        // Ignore storage access errors (private mode / blocked storage)
+        return '';
+    }
+}
 
 function setActiveUsimStorageKey(key) {
     const normalizedKey = typeof key === 'string' ? key.trim() : '';
@@ -33,6 +83,12 @@ function getActiveUsimStorageKey() {
         // Ignore storage access errors (private mode / blocked storage)
     }
 
+    const detectedStorageKey = detectUsimStorageKeyFromLocalStorage();
+    if (detectedStorageKey) {
+        setActiveUsimStorageKey(detectedStorageKey);
+        return detectedStorageKey;
+    }
+
     return DEFAULT_USIM_STORAGE_KEY;
 }
 
@@ -43,17 +99,7 @@ function getUsimStorageValue() {
 
 function getUsimStorageObject() {
     const storageRaw = getUsimStorageValue();
-    if (!storageRaw) {
-        return {};
-    }
-
-    try {
-        const parsedStorage = JSON.parse(storageRaw);
-        return (parsedStorage && typeof parsedStorage === 'object') ? parsedStorage : {};
-    } catch (error) {
-        // Ignore invalid storage payloads and fallback to empty object
-        return {};
-    }
+    return safeParseJsonObject(storageRaw) || {};
 }
 
 function getPersistedStoreValue(storeKey) {
@@ -71,37 +117,126 @@ function getPersistedStoreValue(storeKey) {
     return legacyValue !== null ? legacyValue : null;
 }
 
-function applyThemeToDocument(theme, dispatchChangeEvent = false) {
+function persistStoreValue(storeKey, value) {
+    if (typeof storeKey !== 'string' || !storeKey.trim()) {
+        return false;
+    }
+
+    try {
+        const storageKey = getActiveUsimStorageKey();
+        const storageObject = getUsimStorageObject();
+        storageObject[storeKey] = value;
+        localStorage.setItem(storageKey, JSON.stringify(storageObject));
+        return true;
+    } catch (error) {
+        // Ignore storage write errors (private mode / blocked storage)
+        return false;
+    }
+}
+
+function normalizeUsimTheme(theme) {
     if (typeof theme !== 'string') {
-        return;
+        return null;
     }
 
     const normalizedTheme = theme.trim().toLowerCase();
+    if (!SUPPORTED_USIM_THEMES.has(normalizedTheme)) {
+        return null;
+    }
+
+    return normalizedTheme;
+}
+
+function getThemeFromDocument() {
+    const htmlTheme = document.documentElement.getAttribute('data-theme');
+    const bodyTheme = document.body ? document.body.getAttribute('data-theme') : null;
+    return normalizeUsimTheme(htmlTheme) || normalizeUsimTheme(bodyTheme);
+}
+
+function applyThemeToDocument(theme, dispatchChangeEvent = false, source = 'framework') {
+    const normalizedTheme = normalizeUsimTheme(theme);
     if (!normalizedTheme) {
-        return;
+        return false;
     }
 
     document.documentElement.setAttribute('data-theme', normalizedTheme);
+    document.documentElement.style.colorScheme = normalizedTheme;
 
     if (document.body) {
         document.body.setAttribute('data-theme', normalizedTheme);
+        document.body.style.colorScheme = normalizedTheme;
     }
 
     if (dispatchChangeEvent) {
         window.dispatchEvent(new CustomEvent('usim:theme-changed', {
-            detail: { theme: normalizedTheme }
+            detail: { theme: normalizedTheme, source }
         }));
     }
+
+    return true;
 }
 
-function applyPersistedThemeFromStorage(dispatchChangeEvent = false) {
+function setGlobalUsimTheme(theme, source = 'framework-api', dispatchChangeEvent = true, persistTheme = true) {
+    const normalizedTheme = normalizeUsimTheme(theme);
+    if (!normalizedTheme) {
+        return false;
+    }
+
+    applyThemeToDocument(normalizedTheme, false, source);
+
+    if (persistTheme) {
+        persistStoreValue('store_theme', normalizedTheme);
+    }
+
+    if (dispatchChangeEvent) {
+        window.dispatchEvent(new CustomEvent('usim:theme-changed', {
+            detail: { theme: normalizedTheme, source }
+        }));
+    }
+
+    return true;
+}
+
+function applyPersistedThemeFromStorage(dispatchChangeEvent = false, source = 'storage') {
     const persistedTheme = getPersistedStoreValue('store_theme');
-    if (typeof persistedTheme !== 'string') {
+    if (normalizeUsimTheme(persistedTheme)) {
+        return setGlobalUsimTheme(persistedTheme, source, dispatchChangeEvent, false);
+    }
+
+    const documentTheme = getThemeFromDocument();
+    if (documentTheme) {
+        return setGlobalUsimTheme(documentTheme, source, dispatchChangeEvent, false);
+    }
+
+    return setGlobalUsimTheme(DEFAULT_USIM_THEME, source, dispatchChangeEvent, false);
+}
+
+// Apply theme as early as possible so CSS tokens are correct before initial UI render.
+applyPersistedThemeFromStorage(false, 'framework-bootstrap');
+
+window.USIM_THEME = {
+    get() {
+        return getThemeFromDocument() || normalizeUsimTheme(getPersistedStoreValue('store_theme')) || DEFAULT_USIM_THEME;
+    },
+    set(theme, source = 'external') {
+        return setGlobalUsimTheme(theme, source, true, true);
+    }
+};
+
+window.addEventListener('usim:theme-changed', (event) => {
+    const theme = event?.detail?.theme;
+    const source = event?.detail?.source;
+
+    if (typeof source === 'string' && source.startsWith('framework-')) {
         return;
     }
 
-    applyThemeToDocument(persistedTheme, dispatchChangeEvent);
-}
+    if (!normalizeUsimTheme(theme)) {
+        return;
+    }
+
+    setGlobalUsimTheme(theme, 'framework-event-sync', false, true);
+});
 
 // ==================== Base Component Class ====================
 class UIComponent {
@@ -1218,8 +1353,8 @@ class TableComponent extends UIComponent {
                 display: inline-block;
                 width: 16px;
                 height: 16px;
-                border: 2px solid #f3f3f3;
-                border-top: 2px solid #3498db;
+                border: 2px solid var(--usim-pagination-spinner-track, rgba(15, 23, 36, 0.12));
+                border-top: 2px solid var(--usim-pagination-spinner-indicator, var(--usim-color-primary, #3498db));
                 border-radius: 50%;
                 animation: spin 1s linear infinite;
             "></span>
@@ -2251,7 +2386,7 @@ class UIRenderer {
         });
 
         // Ensure screens (e.g. Home) reflect the persisted theme even when backend does not send change_theme.
-        applyPersistedThemeFromStorage(true);
+        applyPersistedThemeFromStorage(true, 'framework-storage-update');
     }
 
     /**
@@ -2269,7 +2404,7 @@ class UIRenderer {
             return;
         }
 
-        applyThemeToDocument(normalizedTheme, true);
+        setGlobalUsimTheme(normalizedTheme, 'framework-backend-change_theme', true, true);
         console.log('🎨 Theme changed:', normalizedTheme);
     }
 
@@ -3108,7 +3243,7 @@ async function loadScreenUI(screenName = null) {
         const screen = screenName || window.SCREEN_NAME || 'home';
 
         // Apply persisted theme before rendering the screen.
-        applyPersistedThemeFromStorage();
+        applyPersistedThemeFromStorage(false, 'framework-initial-load');
 
         // Build query parameters string
         const urlParams = new URLSearchParams();
@@ -3161,7 +3296,7 @@ async function loadScreenUI(screenName = null) {
 
         // Re-apply and broadcast persisted theme after render so embedded fragments
         // (like Home landing blocks) that subscribe to usim:theme-changed can sync.
-        applyPersistedThemeFromStorage(true);
+        applyPersistedThemeFromStorage(true, 'framework-post-render-sync');
 
         // If reset flag was used, clear it after loading
         if (window.RESET_STATE) {

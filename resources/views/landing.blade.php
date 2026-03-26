@@ -1,4 +1,4 @@
-<div class="wf" data-theme="dark">
+<div class="wf">
     <style>
         .wf {
             --bg: #0a0c10;
@@ -16,7 +16,9 @@
             font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
         }
 
-        .wf[data-theme="light"] {
+        .wf[data-theme="light"],
+        html[data-theme="light"] .wf,
+        body[data-theme="light"] .wf {
             --bg: #f3f5f9;
             --text: #0f1520;
             --surface: #ffffff;
@@ -47,28 +49,4 @@
         <h1>{{ $title }}</h1>
     </main>
 
-    <script>
-        const root = document.querySelector('.wf');
-
-        // Keeps this stub synced with an external theme switch that updates html/body data-theme.
-        function applyExternalTheme() {
-            if (!root) {
-                return;
-            }
-
-            const sourceTheme =
-                document.documentElement.getAttribute('data-theme') ||
-                document.body.getAttribute('data-theme');
-
-            if (sourceTheme === 'light' || sourceTheme === 'dark') {
-                root.setAttribute('data-theme', sourceTheme);
-            }
-        }
-
-        applyExternalTheme();
-
-        const observer = new MutationObserver(applyExternalTheme);
-        observer.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
-        observer.observe(document.body, { attributes: true, attributeFilter: ['data-theme'] });
-    </script>
 </div>

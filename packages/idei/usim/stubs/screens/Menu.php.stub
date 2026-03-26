@@ -39,13 +39,16 @@ class Menu extends AbstractUIService
     protected function buildBaseUI(UIContainer $container, ...$params): void
     {
         $container
-            ->parent('menu')
+            ->parent('menu') // Important to set parent!
+            ->backgroundColor('transparent')
+            ->border('none')
             ->shadow(0)
             ->borderRadius(0)
             ->layout(LayoutType::HORIZONTAL)
             ->justifyContent(JustifyContent::SPACE_BETWEEN)
             ->alignItems(AlignItems::CENTER)
-            ->padding(0);
+            ->padding(0)
+            ->marginBottom('0');
 
         $this->main_menu = $this->buildLeftMenu();
         $this->user_menu = $this->buildUserMenu();
@@ -64,7 +67,7 @@ class Menu extends AbstractUIService
     {
         $icon = $this->store_theme === 'light' ? 'theme-icon-light' : 'theme-icon-dark';
         $this->theme_toggle->icon("/vendor/idei/usim/images/$icon.svg");
-        $this->theme_toggle->iconColor($this->store_theme === 'light' ? '#1f2937' : '#f8fafc');
+        $this->theme_toggle->iconColor('var(--usim-menu-trigger-text)');
         $this->theme_toggle->iconSize(24);
         $this->theme_toggle->tooltip("Switch to " . ($this->store_theme === 'light' ? 'dark' : 'light') . " theme");
     }

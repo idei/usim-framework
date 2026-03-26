@@ -1,4 +1,4 @@
-<div class="wf" data-theme="dark">
+<div class="wf">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=DM+Sans:wght@300;400;500&display=swap');
 
@@ -32,7 +32,9 @@
             --green-label: var(--green);
         }
 
-        .wf[data-theme="light"] {
+        .wf[data-theme="light"],
+        html[data-theme="light"] .wf,
+        body[data-theme="light"] .wf {
             --bg: #f0f2f7;
             --bg2: #e4e8f0;
             --bg3: #d8dde8;
@@ -114,7 +116,9 @@
             transition: background var(--transition);
         }
 
-        .wf[data-theme="light"] nav {
+        .wf[data-theme="light"] nav,
+        html[data-theme="light"] .wf nav,
+        body[data-theme="light"] .wf nav {
             background: rgba(240, 242, 247, 0.88);
         }
 
@@ -443,42 +447,58 @@
             animation: fadeUp 0.6s both;
         }
 
-        .wf[data-theme="light"] .hero-badge {
+        .wf[data-theme="light"] .hero-badge,
+        html[data-theme="light"] .wf .hero-badge,
+        body[data-theme="light"] .wf .hero-badge {
             border-color: rgba(0, 90, 72, 0.3);
             background: rgba(0, 90, 72, 0.07);
             color: #005a48;
         }
 
-        .wf[data-theme="light"] .hero-meta-value {
+        .wf[data-theme="light"] .hero-meta-value,
+        html[data-theme="light"] .wf .hero-meta-value,
+        body[data-theme="light"] .wf .hero-meta-value {
             color: #005a48;
         }
 
-        .wf[data-theme="light"] h1 .accent-word {
+        .wf[data-theme="light"] h1 .accent-word,
+        html[data-theme="light"] .wf h1 .accent-word,
+        body[data-theme="light"] .wf h1 .accent-word {
             background: linear-gradient(90deg, #0077b6, #00a8e8);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
         }
 
-        .wf[data-theme="light"] .mit-badge {
+        .wf[data-theme="light"] .mit-badge,
+        html[data-theme="light"] .wf .mit-badge,
+        body[data-theme="light"] .wf .mit-badge {
             background: rgba(0, 90, 72, 0.08);
             border-color: rgba(0, 90, 72, 0.25);
         }
 
-        .wf[data-theme="light"] .section-tag {
+        .wf[data-theme="light"] .section-tag,
+        html[data-theme="light"] .wf .section-tag,
+        body[data-theme="light"] .wf .section-tag {
             color: #005a48;
         }
 
-        .wf[data-theme="light"] .feature-card {
+        .wf[data-theme="light"] .feature-card,
+        html[data-theme="light"] .wf .feature-card,
+        body[data-theme="light"] .wf .feature-card {
             background: #ffffff;
             border-color: #d8dde8;
         }
 
-        .wf[data-theme="light"] .feature-card h3 {
+        .wf[data-theme="light"] .feature-card h3,
+        html[data-theme="light"] .wf .feature-card h3,
+        body[data-theme="light"] .wf .feature-card h3 {
             color: #0a0c10;
         }
 
-        .wf[data-theme="light"] .feature-card p {
+        .wf[data-theme="light"] .feature-card p,
+        html[data-theme="light"] .wf .feature-card p,
+        body[data-theme="light"] .wf .feature-card p {
             color: #5a6580;
         }
 
@@ -2228,19 +2248,34 @@
         const wfRoot = document.currentScript?.closest('.wf') || document.querySelector('.wf');
         const wfById = (id) => wfRoot ? wfRoot.querySelector(`#${id}`) : document.getElementById(id);
 
-        // Sincronizar data-theme en .wf cuando USIM cambia el tema
-        window.addEventListener('usim:theme-changed', (event) => {
-            const theme = event.detail?.theme || 'dark';
-            if (wfRoot) {
-                wfRoot.setAttribute('data-theme', theme);
+        function getGlobalTheme() {
+            const htmlTheme = document.documentElement.getAttribute('data-theme');
+            const bodyTheme = document.body ? document.body.getAttribute('data-theme') : null;
+            const theme = (htmlTheme || bodyTheme || '').toLowerCase();
+            return theme === 'light' ? 'light' : 'dark';
+        }
+
+        function applyThemeIcons() {
+            const darkIcon = wfById('theme-icon-dark');
+            const lightIcon = wfById('theme-icon-light');
+            if (darkIcon) {
+                darkIcon.style.display = currentTheme === 'dark' ? 'block' : 'none';
             }
-            currentTheme = theme;
+            if (lightIcon) {
+                lightIcon.style.display = currentTheme === 'light' ? 'block' : 'none';
+            }
+        }
+
+        window.addEventListener('usim:theme-changed', (event) => {
+            const nextTheme = (event.detail?.theme || '').toLowerCase();
+            currentTheme = nextTheme === 'light' ? 'light' : 'dark';
+            applyThemeIcons();
         });
 
         /* ─── State ─── */
         let currentUser = null;
         let currentLang = 'es';
-        let currentTheme = 'dark';
+        let currentTheme = getGlobalTheme();
 
         /* ─── i18n ─── */
         const i18n = {
@@ -2466,22 +2501,21 @@
         /* ─── Theme ─── */
         function toggleTheme() {
             currentTheme = currentTheme === 'dark' ? 'light' : 'dark';
-            // Buscar el .wf dentro del document o usar el wfRoot si existe
-            const target = wfRoot || document.querySelector('.wf');
-            if (target) {
-                target.setAttribute('data-theme', currentTheme);
-                console.log('Theme changed to:', currentTheme, 'on element:', target);
+
+            if (window.USIM_THEME && typeof window.USIM_THEME.set === 'function') {
+                window.USIM_THEME.set(currentTheme, 'welcome-usim-toggle');
             } else {
-                console.error('wfRoot not found');
+                document.documentElement.setAttribute('data-theme', currentTheme);
+                if (document.body) {
+                    document.body.setAttribute('data-theme', currentTheme);
+                }
+
+                window.dispatchEvent(new CustomEvent('usim:theme-changed', {
+                    detail: { theme: currentTheme, source: 'welcome-usim-toggle' }
+                }));
             }
-            const darkIcon = wfById('theme-icon-dark');
-            const lightIcon = wfById('theme-icon-light');
-            if (darkIcon) {
-                darkIcon.style.display = currentTheme === 'dark' ? 'block' : 'none';
-            }
-            if (lightIcon) {
-                lightIcon.style.display = currentTheme === 'light' ? 'block' : 'none';
-            }
+
+            applyThemeIcons();
         }
 
         /* ─── Lang ─── */
@@ -2508,6 +2542,8 @@
                 toggleTheme();
             });
         }
+
+        applyThemeIcons();
 
         /* ─── Lang ─── */
         const langButton = wfById('lang-btn');

@@ -22,8 +22,6 @@ class DemoUi extends AbstractUIService
             ->title('Demo UI Components')
             ->maxWidth('600px')
             ->centerHorizontal()
-            ->shadow(1)
-            ->backgroundColor('rgba(182, 194, 221, 0.92)')
             ->rounded(false)
             ->padding('10px');
 
@@ -114,8 +112,6 @@ class DemoUi extends AbstractUIService
             ->minHeight('100px')
             ->justifyContent('start')
             ->fullWidth()
-            ->backgroundColor('#f0f0f0')
-            ->border('2px solid #96a0ad')
             ->padding('5px')
             ->gap('5px');
 

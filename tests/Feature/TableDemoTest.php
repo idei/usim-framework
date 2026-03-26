@@ -19,6 +19,7 @@ it('loads table demo with expected table configuration', function () {
     expect($table['pagination']['total_pages'] ?? null)->toBe(2);
     expect($table['pagination']['can_next'] ?? null)->toBeTrue();
     expect($table['pagination']['can_prev'] ?? null)->toBeFalse();
+    expect($table['title'] ?? null)->toBe('Users Table');
 
     $ui->assertNoIssues();
 });
