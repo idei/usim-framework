@@ -120,6 +120,7 @@ class InstallCommand extends Command
             'emails/verify-email.blade.php' => \resource_path('views/emails/verify-email.blade.php'),
             'emails/reset-password.blade.php' => \resource_path('views/emails/reset-password.blade.php'),
             'terms.blade.php' => \resource_path('views/terms.blade.php'),
+            'landing.blade.php' => \resource_path('views/landing.blade.php'),
         ];
 
         foreach ($views as $stub => $target) {

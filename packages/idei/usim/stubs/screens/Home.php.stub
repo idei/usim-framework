@@ -5,9 +5,10 @@ namespace {{ namespace }};
 use Idei\Usim\Services\AbstractUIService;
 use Idei\Usim\Services\Components\UIContainer;
 
-class EmptyHome extends AbstractUIService
+class Home extends AbstractUIService
 {
     protected function buildBaseUI(UIContainer $container, ...$params): void
     {
+        $container->shadow(0)->padding("0px");
     }
 }
