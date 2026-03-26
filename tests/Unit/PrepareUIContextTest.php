@@ -20,8 +20,9 @@ it('always exposes storage as an array when no encrypted state is provided', fun
 
 it('normalizes decrypted non-array storage payloads to an empty array', function () {
     $middleware = new PrepareUIContext();
+    $storage_key = config('ui-services.app_id');
     $request = Request::create('/api/ui/demo/menu', 'GET', [
-        'usim' => encrypt('null'),
+        $storage_key => encrypt('null'),
     ]);
 
     $response = $middleware->handle($request, function (Request $request): JsonResponse {

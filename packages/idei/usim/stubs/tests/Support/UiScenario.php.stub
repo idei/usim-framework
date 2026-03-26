@@ -183,9 +183,10 @@ final class UiScenario
 
         $headers = [];
         $usimStorage = $this->memory->usimStorage();
+        $storage_key = config('ui-services.app_id');
         if ($usimStorage !== '' && $storageMode === self::STORAGE_HEADER) {
             // In test client, encrypted header transport can be unreliable; use body fallback accepted by middleware.
-            $payload['usim'] = $usimStorage;
+            $payload[$storage_key] = $usimStorage;
         }
 
         if ($usimStorage !== '' && $storageMode === self::STORAGE_BODY) {

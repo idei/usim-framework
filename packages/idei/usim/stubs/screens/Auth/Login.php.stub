@@ -18,9 +18,8 @@ class Login extends AbstractUIService
     ) {
     }
 
-    protected string $store_email_crypt = '';
-    protected string $store_password_crypt = '';
-    protected string $store_token_crypt = '';
+    protected string $store_email = '';
+    protected string $store_token = '';
     protected LabelBuilder $lbl_login_result;
 
     public static function authorize(): bool
@@ -47,12 +46,10 @@ class Login extends AbstractUIService
 
         if (config('app.env') === 'local') {
             // Pre-fill credentials in local environment for easier testing
-            $email = empty($this->store_email_crypt)
+            $email = empty($this->store_email)
                 ? config('users.roles.admin.seed_user.email')
-                : $this->store_email_crypt;
-            $password = empty($this->store_password_crypt)
-                ? config('users.roles.admin.seed_user.password')
-                : $this->store_password_crypt;
+                : $this->store_email;
+            $password = config('users.roles.admin.seed_user.password');
         }
 
         $container
@@ -146,9 +143,8 @@ class Login extends AbstractUIService
             return;
         }
 
-        $this->store_token_crypt = $response['data']['token'] ?? '';
-        $this->store_email_crypt = $email;
-        $this->store_password_crypt = $password;
+        $this->store_token = $response['data']['token'] ?? '';
+        $this->store_email = $email;
 
         $user = $response['user'] ?? null;
         if (!$user) {
@@ -156,7 +152,7 @@ class Login extends AbstractUIService
             return;
         }
 
-        $redirectTo = $this->authSessionService->start($user, $this->store_token_crypt);
+        $redirectTo = $this->authSessionService->start($user, $this->store_token);
         $this->redirect($redirectTo);
     }
 }

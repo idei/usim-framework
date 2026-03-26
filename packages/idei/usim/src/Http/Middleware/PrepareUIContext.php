@@ -4,9 +4,7 @@ namespace Idei\Usim\Http\Middleware;
 
 use Closure;
 use Idei\Usim\Services\Support\UIStateManager;
-use Illuminate\Contracts\Encryption\DecryptException;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Log;
 
 /**
  * Middleware PrepareUIContext
@@ -54,25 +52,13 @@ class PrepareUIContext
         }
 
         if ($encrypted) {
-            try {
-                $decodedStorage = json_decode($encrypted, true);
-                $storage = \is_array($decodedStorage) ? $decodedStorage : [];
-            } catch (DecryptException $e) {
-                Log::warning('UIContext Decrypt Failed: ' . $e->getMessage());
-                $storage = [];
-            }
+            $decodedStorage = json_decode($encrypted, true);
+            $storage = \is_array($decodedStorage) ? $decodedStorage : [];
         }
 
         $request->merge(['storage' => $storage]);
-        $store_token = null;
+        $store_token = $storage['store_token'] ?? '';
 
-        if (!empty($storage['store_token_crypt'])) {
-            try {
-                $store_token = decrypt($storage['store_token_crypt']);
-            } catch (DecryptException $e) {
-                Log::warning('Store Token Decrypt Failed: ' . $e->getMessage());
-            }
-        }
         $request->headers->set('Authorization', "Bearer $store_token");
         UIStateManager::setAuthToken($store_token);
     }
