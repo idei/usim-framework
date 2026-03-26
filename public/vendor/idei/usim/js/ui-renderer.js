@@ -41,6 +41,68 @@ function getUsimStorageValue() {
     return localStorage.getItem(storageKey) || '';
 }
 
+function getUsimStorageObject() {
+    const storageRaw = getUsimStorageValue();
+    if (!storageRaw) {
+        return {};
+    }
+
+    try {
+        const parsedStorage = JSON.parse(storageRaw);
+        return (parsedStorage && typeof parsedStorage === 'object') ? parsedStorage : {};
+    } catch (error) {
+        // Ignore invalid storage payloads and fallback to empty object
+        return {};
+    }
+}
+
+function getPersistedStoreValue(storeKey) {
+    if (typeof storeKey !== 'string' || !storeKey.trim()) {
+        return null;
+    }
+
+    const storageObject = getUsimStorageObject();
+    if (Object.prototype.hasOwnProperty.call(storageObject, storeKey)) {
+        return storageObject[storeKey];
+    }
+
+    // Backward compatibility for legacy flat keys in localStorage.
+    const legacyValue = localStorage.getItem(storeKey);
+    return legacyValue !== null ? legacyValue : null;
+}
+
+function applyThemeToDocument(theme, dispatchChangeEvent = false) {
+    if (typeof theme !== 'string') {
+        return;
+    }
+
+    const normalizedTheme = theme.trim().toLowerCase();
+    if (!normalizedTheme) {
+        return;
+    }
+
+    document.documentElement.setAttribute('data-theme', normalizedTheme);
+
+    if (document.body) {
+        document.body.setAttribute('data-theme', normalizedTheme);
+    }
+
+    if (dispatchChangeEvent) {
+        window.dispatchEvent(new CustomEvent('usim:theme-changed', {
+            detail: { theme: normalizedTheme }
+        }));
+    }
+}
+
+function applyPersistedThemeFromStorage(dispatchChangeEvent = false) {
+    const persistedTheme = getPersistedStoreValue('store_theme');
+    if (typeof persistedTheme !== 'string') {
+        return;
+    }
+
+    applyThemeToDocument(persistedTheme, dispatchChangeEvent);
+}
+
 // ==================== Base Component Class ====================
 class UIComponent {
     constructor(id, config) {
@@ -2187,6 +2249,9 @@ class UIRenderer {
                 localStorage.setItem(key, String(value));
             }
         });
+
+        // Ensure screens (e.g. Home) reflect the persisted theme even when backend does not send change_theme.
+        applyPersistedThemeFromStorage(true);
     }
 
     /**
@@ -2204,16 +2269,7 @@ class UIRenderer {
             return;
         }
 
-        document.documentElement.setAttribute('data-theme', normalizedTheme);
-
-        if (document.body) {
-            document.body.setAttribute('data-theme', normalizedTheme);
-        }
-
-        window.dispatchEvent(new CustomEvent('usim:theme-changed', {
-            detail: { theme: normalizedTheme }
-        }));
-
+        applyThemeToDocument(normalizedTheme, true);
         console.log('🎨 Theme changed:', normalizedTheme);
     }
 
@@ -3051,6 +3107,9 @@ async function loadScreenUI(screenName = null) {
         // Use screen name from window global (set by Laravel) or parameter
         const screen = screenName || window.SCREEN_NAME || 'home';
 
+        // Apply persisted theme before rendering the screen.
+        applyPersistedThemeFromStorage();
+
         // Build query parameters string
         const urlParams = new URLSearchParams();
 
@@ -3099,6 +3158,10 @@ async function loadScreenUI(screenName = null) {
         // Create and store global renderer
         globalRenderer = new UIRenderer(uiData);
         globalRenderer.render();
+
+        // Re-apply and broadcast persisted theme after render so embedded fragments
+        // (like Home landing blocks) that subscribe to usim:theme-changed can sync.
+        applyPersistedThemeFromStorage(true);
 
         // If reset flag was used, clear it after loading
         if (window.RESET_STATE) {
