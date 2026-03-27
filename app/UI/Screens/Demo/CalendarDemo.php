@@ -16,7 +16,7 @@ class CalendarDemo extends AbstractUIService
         $container
             ->maxWidth('600px')
             ->centerHorizontal()
-            ->shadow(0)
+            ->plain()
             ->padding('30px');
 
         $this->academic_calendar = UIBuilder::calendar('academic_calendar')

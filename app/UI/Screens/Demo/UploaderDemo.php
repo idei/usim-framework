@@ -35,7 +35,7 @@ class UploaderDemo extends AbstractUIService
             ->title('Uploader Component Demo')
             ->maxWidth('800px')
             ->centerHorizontal()
-            ->shadow(2)
+            ->plain()
             ->padding('30px');
 
         // Instrucciones

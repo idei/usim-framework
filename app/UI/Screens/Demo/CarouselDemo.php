@@ -30,7 +30,7 @@ class CarouselDemo extends AbstractUIService
             ->title('Carousel Component Demo')
             ->maxWidth('980px')
             ->centerHorizontal()
-            ->shadow(2)
+            ->plain()
             ->padding('24px');
 
         $container->add(
