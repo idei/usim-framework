@@ -48,6 +48,7 @@ class Dashboard extends AbstractUIService
             ->maxWidth('1024px')
             ->centerHorizontal()
             ->padding('10px')
+            ->plain()
             ->shadow(0);
 
         $toolbar = UIBuilder::container('users_toolbar')

@@ -46,6 +46,7 @@ class EditUserDialog
         $registerContainer = UIBuilder::container('register_dialog')
             ->parent('modal')
             ->shadow(false)
+            ->plain()
             ->padding('20px');
 
         // Id input (hidden)
@@ -108,6 +109,7 @@ class EditUserDialog
             ->layout(LayoutType::HORIZONTAL)
             ->justifyContent(JustifyContent::SPACE_BETWEEN)
             ->shadow(false)
+            ->plain()
             ->gap('10px')
             ->padding('10px 0 0 0');
 
