@@ -309,24 +309,6 @@
             margin: 0.35rem 0.5rem;
         }
 
-        /* Auth button (guest) */
-        .btn-auth {
-            padding: 0.4rem 1rem;
-            border-radius: 8px;
-            background: var(--accent);
-            color: #000;
-            font-weight: 600;
-            font-size: 0.85rem;
-            cursor: pointer;
-            transition: opacity var(--transition);
-            border: none;
-            white-space: nowrap;
-        }
-
-        .btn-auth:hover {
-            opacity: 0.85;
-        }
-
         /* Theme & Lang toggles */
         .nav-controls {
             display: flex;
@@ -1205,211 +1187,6 @@
             color: var(--accent);
         }
 
-        /* ─── MODAL ─── */
-        .modal-overlay {
-            position: fixed;
-            inset: 0;
-            background: rgba(0, 0, 0, 0.65);
-            backdrop-filter: blur(8px);
-            z-index: 500;
-            display: none;
-            align-items: center;
-            justify-content: center;
-            padding: 1rem;
-        }
-
-        .modal-overlay.active {
-            display: flex;
-        }
-
-        .modal {
-            background: var(--bg2);
-            border: 1px solid var(--border);
-            border-radius: 18px;
-            padding: 2.5rem;
-            width: 100%;
-            max-width: 440px;
-            box-shadow: var(--shadow);
-            animation: modalIn 0.3s cubic-bezier(.4, 0, .2, 1);
-            position: relative;
-        }
-
-        @keyframes modalIn {
-            from {
-                opacity: 0;
-                transform: scale(0.95) translateY(10px);
-            }
-
-            to {
-                opacity: 1;
-                transform: scale(1) translateY(0);
-            }
-        }
-
-        .modal-close {
-            position: absolute;
-            top: 1.25rem;
-            right: 1.25rem;
-            background: var(--surface);
-            border: 1px solid var(--border);
-            width: 32px;
-            height: 32px;
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            color: var(--muted);
-            transition: all var(--transition);
-        }
-
-        .modal-close:hover {
-            color: var(--text);
-            border-color: var(--accent);
-        }
-
-        .modal h3 {
-            font-family: var(--font-display);
-            font-size: 1.2rem;
-            font-weight: 700;
-            margin-bottom: 0.5rem;
-            letter-spacing: -0.01em;
-        }
-
-        .modal-sub {
-            font-size: 0.875rem;
-            color: var(--muted);
-            margin-bottom: 1.75rem;
-        }
-
-        .modal-tabs {
-            display: flex;
-            gap: 0.25rem;
-            background: var(--bg3);
-            border-radius: 10px;
-            padding: 0.25rem;
-            margin-bottom: 1.5rem;
-        }
-
-        .modal-tab {
-            flex: 1;
-            padding: 0.5rem;
-            border-radius: 8px;
-            border: none;
-            background: transparent;
-            color: var(--muted);
-            font-weight: 600;
-            font-size: 0.875rem;
-            cursor: pointer;
-            transition: all var(--transition);
-            font-family: var(--font-body);
-        }
-
-        .modal-tab.active {
-            background: var(--surface);
-            color: var(--text);
-            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
-        }
-
-        .form-group {
-            margin-bottom: 1rem;
-        }
-
-        .form-label {
-            display: block;
-            font-size: 0.8rem;
-            font-weight: 600;
-            margin-bottom: 0.4rem;
-            color: var(--muted);
-        }
-
-        .form-input {
-            width: 100%;
-            padding: 0.65rem 0.875rem;
-            background: var(--bg3);
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            color: var(--text);
-            font-family: var(--font-body);
-            font-size: 0.9rem;
-            transition: border-color var(--transition);
-            outline: none;
-        }
-
-        .form-input:focus {
-            border-color: var(--accent);
-        }
-
-        .btn-full {
-            width: 100%;
-            padding: 0.75rem;
-            border-radius: 10px;
-            background: var(--accent);
-            color: #000;
-            font-weight: 700;
-            font-size: 0.95rem;
-            cursor: pointer;
-            border: none;
-            margin-top: 0.5rem;
-            transition: opacity var(--transition);
-        }
-
-        .btn-full:hover {
-            opacity: 0.88;
-        }
-
-        /* Profile modal */
-        .profile-header {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-            margin-bottom: 1.5rem;
-            padding-bottom: 1.5rem;
-            border-bottom: 1px solid var(--border);
-        }
-
-        .profile-avatar {
-            width: 56px;
-            height: 56px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, var(--accent), var(--accent2));
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.25rem;
-            font-weight: 800;
-            color: #000;
-        }
-
-        .profile-info h4 {
-            font-family: var(--font-display);
-            font-weight: 700;
-            font-size: 1.1rem;
-        }
-
-        .profile-info span {
-            font-size: 0.8rem;
-            color: var(--muted);
-        }
-
-        .btn-danger {
-            background: rgba(255, 85, 85, 0.15);
-            color: var(--red);
-            border: 1px solid rgba(255, 85, 85, 0.3);
-            padding: 0.6rem 1rem;
-            border-radius: 8px;
-            cursor: pointer;
-            font-weight: 600;
-            font-size: 0.875rem;
-            transition: all var(--transition);
-            width: 100%;
-            margin-top: 0.5rem;
-        }
-
-        .btn-danger:hover {
-            background: rgba(255, 85, 85, 0.25);
-        }
-
         /* ─── TOAST ─── */
         .toast-container {
             position: fixed;
@@ -1567,14 +1344,6 @@
                             <line x1="12" y1="19" x2="20" y2="19" />
                         </svg>
                         <span data-i18n="hero.cta1">Comenzar ahora</span>
-                    </button>
-                    <button class="btn-secondary" onclick="openModal('auth-modal')">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                            stroke-width="2">
-                            <circle cx="12" cy="12" r="10" />
-                            <polygon points="10 8 16 12 10 16 10 8" />
-                        </svg>
-                        <span data-i18n="hero.cta2">Ver demos</span>
                     </button>
                 </div>
                 <div class="hero-meta">
@@ -2273,7 +2042,6 @@
         });
 
         /* ─── State ─── */
-        let currentUser = null;
         let currentLang = 'es';
         let currentTheme = getGlobalTheme();
 
@@ -2284,14 +2052,12 @@
                 'nav.tutorials': 'Tutoriales',
                 'nav.community': 'Comunidad',
                 'nav.docs': 'Documentación',
-                'nav.login': 'Iniciar sesión',
                 'hero.badge': 'Server-Driven UI · Laravel · v0.7.0',
                 'hero.title1': 'Define tu UI',
                 'hero.title2': 'en PHP puro.',
                 'hero.title3': 'El resto es automático.',
                 'hero.desc': 'USIM es un framework Server-Driven UI para Laravel. Define pantallas, formularios, tablas y modals en PHP — el framework se encarga de renderizar, diferenciar y actualizar todo en el cliente automáticamente.',
                 'hero.cta1': 'Comenzar ahora',
-                'hero.cta2': 'Ver demos',
                 'hero.meta.version': 'Versión actual',
                 'hero.meta.license': 'Licencia libre',
                 'hero.meta.req': 'Requerido',
@@ -2364,35 +2130,18 @@
                 'footer.tutorials': 'Tutoriales',
                 'footer.community': 'Comunidad',
                 'footer.license': 'Licencia MIT',
-                'auth.title': 'Bienvenido',
-                'auth.sub': 'Accede a la comunidad y demos de USIM',
-                'auth.tab.login': 'Iniciar sesión',
-                'auth.tab.register': 'Registrarse',
-                'auth.email': 'Correo electrónico',
-                'auth.password': 'Contraseña',
-                'auth.name': 'Nombre completo',
-                'auth.btn.login': 'Ingresar',
-                'auth.btn.register': 'Crear cuenta',
-                'profile.title': 'Mi perfil',
-                'profile.name': 'Nombre',
-                'profile.pass': 'Nueva contraseña (opcional)',
-                'profile.save': 'Guardar cambios',
-                'user.profile': 'Mi perfil',
-                'user.logout': 'Cerrar sesión',
             },
             en: {
                 'nav.demos': 'Demos',
                 'nav.tutorials': 'Tutorials',
                 'nav.community': 'Community',
                 'nav.docs': 'Documentation',
-                'nav.login': 'Sign in',
                 'hero.badge': 'Server-Driven UI · Laravel · v0.7.0',
                 'hero.title1': 'Define your UI',
                 'hero.title2': 'in pure PHP.',
                 'hero.title3': 'The rest is automatic.',
                 'hero.desc': 'USIM is a Server-Driven UI framework for Laravel. Define screens, forms, tables and modals in PHP — the framework handles rendering, diffing and updating everything on the client automatically.',
                 'hero.cta1': 'Get started',
-                'hero.cta2': 'View demos',
                 'hero.meta.version': 'Current version',
                 'hero.meta.license': 'Open license',
                 'hero.meta.req': 'Required',
@@ -2465,21 +2214,6 @@
                 'footer.tutorials': 'Tutorials',
                 'footer.community': 'Community',
                 'footer.license': 'MIT License',
-                'auth.title': 'Welcome',
-                'auth.sub': 'Access the USIM community and demos',
-                'auth.tab.login': 'Sign in',
-                'auth.tab.register': 'Sign up',
-                'auth.email': 'Email address',
-                'auth.password': 'Password',
-                'auth.name': 'Full name',
-                'auth.btn.login': 'Sign in',
-                'auth.btn.register': 'Create account',
-                'profile.title': 'My profile',
-                'profile.name': 'Name',
-                'profile.pass': 'New password (optional)',
-                'profile.save': 'Save changes',
-                'user.profile': 'My profile',
-                'user.logout': 'Sign out',
             }
         };
 
@@ -2573,160 +2307,6 @@
             if (!e.target.closest('.dropdown')) closeDropdowns();
         });
 
-        /* ─── Modal ─── */
-        function openModal(id) {
-            const modal = wfById(id);
-            if (!modal) {
-                return;
-            }
-            modal.classList.add('active');
-            closeDropdowns();
-        }
-
-        function closeModal(id) {
-            const modal = wfById(id);
-            if (modal) {
-                modal.classList.remove('active');
-            }
-        }
-        (wfRoot || document).querySelectorAll('.modal-overlay-wrap').forEach(overlay => {
-            overlay.addEventListener('click', (e) => {
-                if (e.target === overlay) overlay.classList.remove('active');
-            });
-        });
-
-        /* ─── Auth Tabs ─── */
-        function switchTab(tab) {
-            const tabLogin = wfById('tab-login');
-            const tabRegister = wfById('tab-register');
-            const loginForm = wfById('login-form');
-            const registerForm = wfById('register-form');
-            if (tabLogin) {
-                tabLogin.classList.toggle('active', tab === 'login');
-            }
-            if (tabRegister) {
-                tabRegister.classList.toggle('active', tab === 'register');
-            }
-            if (loginForm) {
-                loginForm.style.display = tab === 'login' ? 'block' : 'none';
-            }
-            if (registerForm) {
-                registerForm.style.display = tab === 'register' ? 'block' : 'none';
-            }
-        }
-
-        /* ─── Auth Logic ─── */
-        function doLogin() {
-            const emailInput = wfById('login-email');
-            const passInput = wfById('login-pass');
-            const email = emailInput ? emailInput.value.trim() : '';
-            const pass = passInput ? passInput.value : '';
-            if (!email || !pass) {
-                showToast('⚠️ Completa todos los campos');
-                return;
-            }
-            const name = email.split('@')[0].replace('.', ' ').split(' ').map(w => w[0].toUpperCase() + w.slice(1)).join(
-                ' ');
-            loginUser({
-                name,
-                email
-            });
-        }
-
-        function doRegister() {
-            const nameInput = wfById('reg-name');
-            const emailInput = wfById('reg-email');
-            const passInput = wfById('reg-pass');
-            const name = nameInput ? nameInput.value.trim() : '';
-            const email = emailInput ? emailInput.value.trim() : '';
-            const pass = passInput ? passInput.value : '';
-            if (!name || !email || !pass) {
-                showToast('⚠️ Completa todos los campos');
-                return;
-            }
-            loginUser({
-                name,
-                email
-            });
-        }
-
-        function loginUser(user) {
-            currentUser = user;
-            closeModal('auth-modal');
-            updateUserUI();
-            showToast(`✅ ¡Bienvenido, ${user.name.split(' ')[0]}!`);
-        }
-
-        function updateUserUI() {
-            const initials = currentUser ? currentUser.name.split(' ').map(w => w[0]).slice(0, 2).join('').toUpperCase() :
-                'JD';
-            const shortName = currentUser ? currentUser.name.split(' ')[0] + (currentUser.name.split(' ')[1] ? ' ' +
-                currentUser.name.split(' ')[1][0] + '.' : '') : '';
-
-            if (currentUser) {
-                const guestSection = wfById('guest-section');
-                const userSection = wfById('user-section');
-                const navAvatar = wfById('nav-avatar');
-                const navUsername = wfById('nav-username');
-                if (guestSection) {
-                    guestSection.style.display = 'none';
-                }
-                if (userSection) {
-                    userSection.style.display = 'block';
-                }
-                if (navAvatar) {
-                    navAvatar.textContent = initials;
-                }
-                if (navUsername) {
-                    navUsername.textContent = shortName;
-                }
-                // Profile modal
-                const profileAvatar = wfById('profile-avatar');
-                const profileName = wfById('profile-name');
-                const profileEmail = wfById('profile-email');
-                const editName = wfById('edit-name');
-                if (profileAvatar) {
-                    profileAvatar.textContent = initials;
-                }
-                if (profileName) {
-                    profileName.textContent = currentUser.name;
-                }
-                if (profileEmail) {
-                    profileEmail.textContent = currentUser.email;
-                }
-                if (editName) {
-                    editName.value = currentUser.name;
-                }
-            } else {
-                const guestSection = wfById('guest-section');
-                const userSection = wfById('user-section');
-                if (guestSection) {
-                    guestSection.style.display = 'block';
-                }
-                if (userSection) {
-                    userSection.style.display = 'none';
-                }
-            }
-        }
-
-        function logout() {
-            currentUser = null;
-            closeModal('profile-modal');
-            closeModal('auth-modal');
-            updateUserUI();
-            showToast('👋 Sesión cerrada');
-        }
-
-        function saveProfile() {
-            const editName = wfById('edit-name');
-            const newName = editName ? editName.value.trim() : '';
-            if (!newName) return;
-            currentUser.name = newName;
-            updateUserUI();
-            closeModal('profile-modal');
-            showToast('✅ Perfil actualizado');
-        }
-
         /* ─── Copy cmd ─── */
         function copyCmd(btn, text) {
             navigator.clipboard.writeText(text).then(() => {
@@ -2755,6 +2335,5 @@
 
         /* ─── Init ─── */
         applyTranslations();
-        updateUserUI();
     </script>
 </div>

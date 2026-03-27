@@ -90,9 +90,7 @@ class ConfirmDialogService implements UIModal
         $container = UIBuilder::container('confirm_dialog')
             ->parent('modal')
             ->layout(LayoutType::VERTICAL)
-            ->shadow(0)        // No shadow since modal already has shadow
-            ->rounded(4)       // Subtle 4px border radius
-            ->padding(0)       // No padding
+            ->plain()
             ->gap(8)           // Space between elements
             ->centerContent(); // Center content horizontally
 
@@ -128,9 +126,7 @@ class ConfirmDialogService implements UIModal
         // Buttons container (horizontal layout)
         $buttonsContainer = UIBuilder::container('buttons')
             ->layout(LayoutType::HORIZONTAL)
-            ->shadow(0)        // No shadow on buttons container
-            ->rounded(0)       // No border radius on buttons container
-            ->padding(0)       // No padding
+            ->plain()          // No background or borders on buttons container
             ->gap("15px")      // Space between buttons
             ->centerContent(); // Center buttons horizontally
 

@@ -56,6 +56,7 @@ class UIContainer implements UIElement
             'parent' => null,
             'title' => null,
             'root' => false,
+            'appearance' => 'card',
 
             // Flexbox properties
             'flex_direction' => null,
@@ -1341,6 +1342,43 @@ class UIContainer implements UIElement
     // ========================================================================
     // CUSTOM STYLING METHODS
     // ========================================================================
+
+    /**
+     * Add custom CSS class
+     *
+     * @param string $class CSS class name
+     * @return self For method chaining
+     */
+    public function appearance(string $appearance): self
+    {
+        $normalized = strtolower(trim($appearance));
+        $this->config['appearance'] = in_array($normalized, ['card', 'plain'], true)
+            ? $normalized
+            : 'card';
+        return $this;
+    }
+
+    /**
+     * Render container with default card-like chrome.
+     *
+     * @return self For method chaining
+     */
+    public function card(): self
+    {
+        $this->config['appearance'] = 'card';
+        return $this;
+    }
+
+    /**
+     * Render container without default chrome (no bg, border, shadow).
+     *
+     * @return self For method chaining
+     */
+    public function plain(): self
+    {
+        $this->config['appearance'] = 'plain';
+        return $this;
+    }
 
     /**
      * Add custom CSS class

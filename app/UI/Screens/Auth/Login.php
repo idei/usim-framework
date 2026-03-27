@@ -86,6 +86,7 @@ class Login extends AbstractUIService
         $buttonsContainer = UIBuilder::container('login_buttons')
             ->layout(LayoutType::HORIZONTAL)
             ->justifyContent(JustifyContent::SPACE_BETWEEN)
+            ->plain()
             ->gap('10px')
             ->shadow(false)
             ->padding('20px 0 0 0');

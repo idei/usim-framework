@@ -56,6 +56,7 @@ class RegisterDialog
         $registerContainer = UIBuilder::container('register_dialog')
             ->parent('modal')
             ->shadow(false)
+            ->plain()
             ->padding('20px');
 
         // Name input
@@ -145,6 +146,7 @@ class RegisterDialog
             ->layout(LayoutType::HORIZONTAL)
             ->justifyContent(JustifyContent::SPACE_BETWEEN)
             ->shadow(false)
+            ->plain()
             ->gap('10px')
             ->padding('10px 0 0 0');
 

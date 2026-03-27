@@ -83,11 +83,24 @@ class CalendarComponent extends UIComponent {
         style.id = 'calendar-component-styles';
         style.textContent = `
             :root {
-                --calendar-primary-color: #3b5585;
-                --calendar-primary-gradient: linear-gradient(90deg, #3b5585 0%, #566f9e 100%);
-                --calendar-secondary-color: #707070;
-                --calendar-bg-color: #f4f7f6;
-                --calendar-text-color: #333;
+                --calendar-primary-color: var(--usim-color-primary, #3498db);
+                --calendar-primary-gradient: linear-gradient(90deg, var(--calendar-primary-color) 0%, color-mix(in srgb, var(--calendar-primary-color), #ffffff 18%) 100%);
+                --calendar-secondary-color: var(--usim-color-text-muted, #6c757d);
+                --calendar-bg-color: var(--usim-color-bg, #f5f7fa);
+                --calendar-text-color: var(--usim-color-text, #34495e);
+                --calendar-surface-bg: var(--usim-color-surface, #ffffff);
+                --calendar-border-color: var(--usim-color-border, #dcdde1);
+                --calendar-weak-border-color: color-mix(in srgb, var(--calendar-border-color), #ffffff 35%);
+                --calendar-header-text: var(--usim-color-text-inverse, #ffffff);
+                --calendar-header-btn-bg: rgba(255,255,255,0.2);
+                --calendar-header-btn-border: rgba(255,255,255,0.4);
+                --calendar-header-btn-text: var(--usim-color-text-inverse, #ffffff);
+                --calendar-weekdays-bg: var(--usim-color-surface-muted, #f8f9fa);
+                --calendar-weekdays-text: var(--usim-color-text-muted, #7f8c8d);
+                --calendar-day-hover-bg: color-mix(in srgb, var(--calendar-primary-color), #ffffff 88%);
+                --calendar-month-events-text: var(--usim-color-text, #444);
+                --calendar-event-badge-bg: color-mix(in srgb, var(--calendar-primary-color), #ffffff 90%);
+                --calendar-event-badge-border: color-mix(in srgb, var(--calendar-primary-color), #ffffff 76%);
 
                 /* Colores Eventos */
                 --color-feriado: #e74c3c;
@@ -98,28 +111,53 @@ class CalendarComponent extends UIComponent {
                 --color-mensual: #1abc9c;
 
                 /* Estilos */
-                --calendar-weekend-bg: #f8f9fa;
-                --calendar-weekend-text: #ccc;
-                --calendar-other-month-text: #e0e0e0;
+                --calendar-weekend-bg: var(--calendar-weekdays-bg);
+                --calendar-weekend-text: color-mix(in srgb, var(--calendar-weekdays-text), #ffffff 25%);
+                --calendar-other-month-text: color-mix(in srgb, var(--calendar-weekdays-text), #ffffff 38%);
+            }
+
+            html[data-theme="dark"],
+            body[data-theme="dark"] {
+                --calendar-primary-color: #8fa9cd;
+                --calendar-primary-gradient: linear-gradient(90deg, #3a4f74 0%, #2d3f5f 100%);
+                --calendar-secondary-color: #99a9c2;
+                --calendar-bg-color: #0f1724;
+                --calendar-text-color: #d7e0ef;
+                --calendar-surface-bg: #162033;
+                --calendar-border-color: #2f3f5f;
+                --calendar-weak-border-color: #25334d;
+                --calendar-header-text: #eef3ff;
+                --calendar-header-btn-bg: rgba(215,224,239,0.16);
+                --calendar-header-btn-border: rgba(215,224,239,0.3);
+                --calendar-header-btn-text: #eef3ff;
+                --calendar-weekdays-bg: #1b263a;
+                --calendar-weekdays-text: #99a9c2;
+                --calendar-day-hover-bg: rgba(143, 169, 205, 0.16);
+                --calendar-month-events-text: #d7e0ef;
+                --calendar-event-badge-bg: rgba(143, 169, 205, 0.16);
+                --calendar-event-badge-border: rgba(143, 169, 205, 0.28);
+                --calendar-weekend-text: #7f92b2;
+                --calendar-other-month-text: #6d7f9d;
             }
 
             .calendar-wrapper {
-                background: white;
+                background: var(--calendar-surface-bg);
                 border-radius: var(--calendar-border-radius, 12px);
                 box-shadow: none;
-                border: 1px solid #e0e0e0;
+                border: 1px solid var(--calendar-border-color);
                 overflow: hidden; width: 100%; max-width: 700px;
                 display: flex; flex-direction: column; margin-bottom: 20px;
                 font-family: 'Roboto', sans-serif;
+                color: var(--calendar-text-color);
             }
 
             .calendar-header {
                 display: flex; justify-content: space-between; align-items: center;
-                padding: 15px 20px; background: var(--calendar-primary-gradient); color: white;
+                padding: 15px 20px; background: var(--calendar-primary-gradient); color: var(--calendar-header-text);
             }
             .calendar-header button {
-                background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.4);
-                color: white; padding: 5px 12px; border-radius: 4px; cursor: pointer; font-weight: bold;
+                background: var(--calendar-header-btn-bg); border: 1px solid var(--calendar-header-btn-border);
+                color: var(--calendar-header-btn-text); padding: 5px 12px; border-radius: 4px; cursor: pointer; font-weight: bold;
             }
             .current-month { font-size: 1.3rem; font-weight: bold; text-transform: capitalize; }
 
@@ -128,13 +166,13 @@ class CalendarComponent extends UIComponent {
                 justify-content: center; /* Center the grid if it's smaller than container */
             }
             .weekdays {
-                background: #f8f9fa; padding: 8px 0; text-align: center;
-                font-size: 0.9rem; font-weight: bold; color: #7f8c8d; border-bottom: 1px solid #eee;
+                background: var(--calendar-weekdays-bg); padding: 8px 0; text-align: center;
+                font-size: 0.9rem; font-weight: bold; color: var(--calendar-weekdays-text); border-bottom: 1px solid var(--calendar-weak-border-color);
                 align-items: center;
             }
             .weekdays div { display: flex; justify-content: center; align-items: center; width: 100%; }
 
-            .days-grid { padding: 10px; gap: 4px; background: #fff; }
+            .days-grid { padding: 10px; gap: 4px; background: var(--calendar-surface-bg); }
 
             .day {
                 aspect-ratio: 1 / 1;
@@ -142,12 +180,12 @@ class CalendarComponent extends UIComponent {
                 max-height: var(--day-max-height, none);
                 width: var(--day-size, auto);
                 height: var(--day-size, auto);
-                border: 1px solid #f0f0f0; border-radius: var(--event-border-radius, 4px);
-                position: relative; background: white;
+                border: 1px solid var(--calendar-weak-border-color); border-radius: var(--event-border-radius, 4px);
+                position: relative; background: var(--calendar-surface-bg);
                 display: flex; justify-content: center; align-items: center; padding: 1px;
             }
             .day:not(.weekend):not(.other-month):hover {
-                background-color: #ebf5fb; border-color: var(--calendar-primary-color); cursor: pointer; z-index: 10;
+                background-color: var(--calendar-day-hover-bg); border-color: var(--calendar-primary-color); cursor: pointer; z-index: 10;
             }
             .day.other-month { color: var(--calendar-other-month-text); pointer-events: none; }
             .day.weekend { background-color: var(--calendar-weekend-bg); color: var(--calendar-weekend-text); pointer-events: none; }
@@ -156,7 +194,7 @@ class CalendarComponent extends UIComponent {
             .concentric-layer {
                 width: 100%; height: 100%; box-sizing: border-box;
                 display: flex; justify-content: center; align-items: center;
-                border-style: solid; background-color: white;
+                border-style: solid; background-color: var(--calendar-surface-bg);
                 border-width: var(--event-border-width, 7px);
                 /* border-radius se maneja inline en JS para la lógica decreciente */
             }
@@ -164,8 +202,8 @@ class CalendarComponent extends UIComponent {
             .num-circle-web {
                 width: 28px; height: 28px;
                 min-width: 28px; min-height: 28px; /* Prevent shrinking */
-                background: var(--number-bg-color, white);
-                color: var(--number-color, black);
+                background: var(--number-bg-color, var(--calendar-surface-bg));
+                color: var(--number-color, var(--calendar-text-color));
                 border-radius: 50%;
                 display: flex; align-items: center; justify-content: center;
                 font-family: var(--number-font-family, inherit);
@@ -187,17 +225,17 @@ class CalendarComponent extends UIComponent {
 
             /* Lista de Eventos */
             .month-events-list {
-                padding: 12px 15px; border-top: 1px solid #eee; background: #fff;
-                font-size: 0.85rem; color: #444; min-height: 40px;
+                padding: 12px 15px; border-top: 1px solid var(--calendar-weak-border-color); background: var(--calendar-surface-bg);
+                font-size: 0.85rem; color: var(--calendar-month-events-text); min-height: 40px;
             }
             .references-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 8px 20px; }
             .event-item { display: flex; align-items: center; line-height: 1.3; }
             .event-date-badge {
-                background-color: #eff6ff; color: var(--calendar-primary-color);
+                background-color: var(--calendar-event-badge-bg); color: var(--calendar-primary-color);
                 padding: 1px 6px; border-radius: 4px; font-weight: 700; margin-right: 8px;
-                white-space: nowrap; font-size: 0.8rem; border: 1px solid #dbeafe;
+                white-space: nowrap; font-size: 0.8rem; border: 1px solid var(--calendar-event-badge-border);
             }
-            .event-box-icon { width: 10px; height: 10px; display: inline-block; margin-right: 8px; flex-shrink: 0; border: 3px solid; background: white; }
+            .event-box-icon { width: 10px; height: 10px; display: inline-block; margin-right: 8px; flex-shrink: 0; border: 3px solid; background: var(--calendar-surface-bg); }
             .event-title { font-weight: 500; }
 
             /* Clases de fondo para badges/iconos */
