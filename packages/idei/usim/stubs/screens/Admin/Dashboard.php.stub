@@ -1,5 +1,4 @@
 <?php
-
 namespace {{ namespace }};
 
 use App\Services\Auth\RegisterService;
@@ -50,8 +49,7 @@ class Dashboard extends AbstractUIService
             ->maxWidth('1024px')
             ->centerHorizontal()
             ->padding('10px')
-            ->plain()
-            ->shadow(0);
+            ->plain();
 
         $toolbar = UIBuilder::container('users_toolbar')
             ->layout(LayoutType::HORIZONTAL)
@@ -79,7 +77,7 @@ class Dashboard extends AbstractUIService
             ->pagination(7)
             ->sortedBy('name')
             ->dataModel(UserApiTableModel::class)
-            ->rowMinHeight(60);
+            ->rowMinHeight(50);
 
         $container->add($usersTable);
     }
@@ -121,7 +119,30 @@ class Dashboard extends AbstractUIService
             sendVerificationEmail: (bool) ($params['send_verification_email'] ?? true)
         );
 
-        $this->handleMutatingActionResponse($response);
+        $status = $response['status'];
+        $message = $response['message'];
+
+        if ($status === 'success') {
+            $this->toast($message, 'success');
+            $this->users_table->refresh();
+            $this->closeModal();
+        } else {
+            // Update modal inputs with validation errors
+            $errors = $response['errors'] ?? [];
+
+            if (!empty($errors)) {
+                $modalUpdates = [];
+
+                foreach ($errors as $fieldName => $messages) {
+                    // Concatenate all error messages for the field
+                    $modalUpdates[$fieldName] = [
+                        'error' => implode(' ', $messages)
+                    ];
+                }
+
+                $this->updateModal($modalUpdates);
+            }
+        }
     }
 
     public function onEditUser(array $params): void
@@ -158,19 +179,46 @@ class Dashboard extends AbstractUIService
             return;
         }
 
+        // Get the user model
         $user = $this->userService->findUser($userId);
         if (!$user) {
             $this->toast('User not found', 'error');
             return;
         }
 
+        // Prepare data for update
         $updateData = $params;
         if (isset($updateData['roles'])) {
             $updateData['roles'] = (array) $updateData['roles'];
         }
 
         $response = $this->userService->updateUser($user, $updateData);
-        $this->handleMutatingActionResponse($response);
+        $status = $response['status'];
+        $message = $response['message'];
+
+        if ($status === 'success') {
+            $this->toast($message, 'success');
+            $this->users_table->refresh();
+            $this->closeModal();
+        } else {
+            $this->toast($message, 'error');
+
+            // Update modal inputs with validation errors
+            $errors = $response['errors'] ?? [];
+
+            if (!empty($errors)) {
+                $modalUpdates = [];
+
+                foreach ($errors as $fieldName => $messages) {
+                    // Concatenate all error messages for the field
+                    $modalUpdates[$fieldName] = [
+                        'error' => implode(' ', $messages)
+                    ];
+                }
+
+                $this->updateModal($modalUpdates);
+            }
+        }
     }
 
     public function onDeleteUser(array $params): void
@@ -235,37 +283,6 @@ class Dashboard extends AbstractUIService
     public function onSearchUsers(array $params): void
     {
         $search = $params['value'] ?? '';
-
         $this->users_table->setSearchTerm($search);
-        $this->users_table->page(1);
-    }
-
-    private function handleMutatingActionResponse(array $response): void
-    {
-        $status = (string) ($response['status'] ?? 'error');
-        $message = (string) ($response['message'] ?? 'Validation errors');
-
-        if ($status === 'success') {
-            $this->toast($message, 'success');
-            $this->users_table->refresh();
-            $this->closeModal();
-            return;
-        }
-
-        $this->toast($message, 'error');
-
-        $errors = $response['errors'] ?? [];
-        if (empty($errors)) {
-            return;
-        }
-
-        $modalUpdates = [];
-        foreach ($errors as $fieldName => $messages) {
-            $modalUpdates[$fieldName] = [
-                'error' => implode(' ', (array) $messages),
-            ];
-        }
-
-        $this->updateModal($modalUpdates);
     }
 }

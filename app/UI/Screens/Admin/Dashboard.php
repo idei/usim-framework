@@ -23,6 +23,7 @@ class Dashboard extends AbstractUIService
         protected UserService $userService
     ) {
     }
+
     public static function authorize(): bool
     {
         return self::requireRole('admin');
@@ -48,8 +49,7 @@ class Dashboard extends AbstractUIService
             ->maxWidth('1024px')
             ->centerHorizontal()
             ->padding('10px')
-            ->plain()
-            ->shadow(0);
+            ->plain();
 
         $toolbar = UIBuilder::container('users_toolbar')
             ->layout(LayoutType::HORIZONTAL)
@@ -77,7 +77,7 @@ class Dashboard extends AbstractUIService
             ->pagination(7)
             ->sortedBy('name')
             ->dataModel(UserApiTableModel::class)
-            ->rowMinHeight(60);
+            ->rowMinHeight(50);
 
         $container->add($users_table);
     }
@@ -103,6 +103,7 @@ class Dashboard extends AbstractUIService
         if (!$column) {
             return;
         }
+
         $this->users_table->sortedBy($column);
         $this->users_table->page(1);
     }
@@ -126,8 +127,6 @@ class Dashboard extends AbstractUIService
             $this->users_table->refresh();
             $this->closeModal();
         } else {
-            $this->toast($message, 'error');
-
             // Update modal inputs with validation errors
             $errors = $response['errors'] ?? [];
 
@@ -260,7 +259,6 @@ class Dashboard extends AbstractUIService
             return;
         }
 
-        // Get the user
         $user = $this->userService->findUser($userId);
         if (!$user) {
             $this->toast('User not found', 'error');
@@ -285,11 +283,6 @@ class Dashboard extends AbstractUIService
     public function onSearchUsers(array $params): void
     {
         $search = $params['value'] ?? '';
-
-        // Set search term
         $this->users_table->setSearchTerm($search);
-
-        // Reset to page 1 when searching
-        $this->users_table->page(1);
     }
 }

@@ -1002,6 +1002,7 @@ class InputComponent extends UIComponent {
                     'Accept': 'application/json',
                     'X-CSRF-TOKEN': csrfToken,
                     'X-Requested-With': 'XMLHttpRequest',
+                    'X-USIM-Storage': usimStorage,
                 },
                 credentials: 'same-origin',
                 body: JSON.stringify({
@@ -1009,7 +1010,6 @@ class InputComponent extends UIComponent {
                     event: 'input',
                     action: action,
                     parameters: parameters,
-                    storage: usimStorage,
                 }),
             });
 
