@@ -4,6 +4,23 @@ All notable changes to this package will be documented in this file.
 
 The format is based on Keep a Changelog, and this project follows Semantic Versioning.
 
+## [0.7.0] - 2026-03-28
+
+### Added
+- `UIContainer` appearance API: `appearance(string $appearance)`, `card()`, and `plain()` fluent methods to control container visual style; default appearance is `card`.
+- Carousel and calendar components now consume CSS theme tokens for consistent light/dark styling.
+
+### Changed
+- `ConfirmDialogService` and `RegisterDialog` scaffolding updated to use `plain()` container appearance.
+- Admin Dashboard stub significantly refined: improved user feedback handling, clearer table layout, and role management flow.
+- `UserService` stub enhanced with stronger field validation and role management logic.
+- All auth screen stubs (`Login`, `EmailVerified`, `ForgotPassword`, `ResetPassword`) updated to use `plain()` container appearance for a consistent look.
+- `EditUserDialog` and `Admin\Dashboard` stubs updated to use `plain()` appearance.
+
+### Fixed
+- `AbstractUIService` now always persists the container state after `postLoadUI()`, including on `?reset=true` reloads, preventing stale cache snapshots.
+- Checkbox `checked` state now syncs correctly in the UI renderer when the server sends incremental changes.
+
 ## [0.6.0] - 2026-03-26
 
 ### Added

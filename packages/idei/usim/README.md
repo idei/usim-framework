@@ -54,13 +54,12 @@ A **Server-Driven UI** framework for Laravel. Define your entire user interface 
 
 ---
 
-## What Is New Since 0.5.0
+## What Is New Since 0.6.0 (v0.7.0)
 
-- End-to-end light/dark theming: backend trigger via `$this->changeTheme('dark')`, renderer support, and package theme tokens.
-- New landing-page scaffold with theme-aware styles (`resources/views/landing.blade.php` in installed apps).
-- Storage contract update: `store_*` values are plain JSON by default, and only sensitive values should use `_crypt`.
-- New `APP_ID` / `app_id` config to namespace client storage keys per app.
-- Better UI ergonomics in scaffolding: refreshed home/auth layouts, richer label rendering with `LabelBuilder::html()`, and positioning helpers (`position`, `positionMode`, `offsets`).
+- Container appearance API: `->card()` and `->plain()` fluent helpers on `UIContainer` to switch between card and flat visual variants.
+- Carousel and calendar components consume CSS theme tokens for consistent light/dark styling.
+- Bug fix: `AbstractUIService` now always persists state after `postLoadUI()`, fixing stale cache on `?reset=true` reloads.
+- Bug fix: Checkbox `checked` state now syncs correctly from incremental server responses.
 
 For the full release details, see `CHANGELOG.md`.
 
@@ -244,7 +243,7 @@ Use `_crypt` only when the value should not be readable from the client's local 
 | `UIBuilder::form()` | `FormBuilder` | Form grouping |
 | `UIBuilder::table()` | `TableBuilder` | Data tables with pagination |
 | `UIBuilder::card()` | `CardBuilder` | Cards with title, description, actions |
-| `UIBuilder::container()` | `UIContainer` | Layout container (vertical/horizontal) |
+| `UIBuilder::container()` | `UIContainer` | Layout container (vertical/horizontal/grid) with `card()` / `plain()` appearance |
 | `UIBuilder::menuDropdown()` | `MenuDropdownBuilder` | Navigation dropdown menus |
 | `UIBuilder::uploader()` | `UploaderBuilder` | File upload with preview and crop |
 | `UIBuilder::calendar()` | `CalendarBuilder` | Calendar/date picker |
