@@ -23,7 +23,7 @@ class EmailVerified extends AbstractUIService
     {
         $container
             ->layout(LayoutType::VERTICAL)
-            ->shadow(false)
+            ->plain()
             ->justifyContent('start')
             ->alignItems('center')
             ->padding(40)
