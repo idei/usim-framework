@@ -412,10 +412,9 @@ abstract class AbstractUIService
         // Get current user Interface state
         $this->newUI = $this->container->toJson();
 
-        if (!$reload) {
-            // Store updated user Interface
-            $this->storeUI($this->container);
-        }
+        // Persist the final container state for both event diffs and full reloads.
+        // Without this, reload flows such as ?reset=true can leave cache with a pre-postLoad snapshot.
+        $this->storeUI($this->container);
 
         $diff = $this->buildDiffResponse($reload);
         $storageVariables = $this->getStorageVariables();

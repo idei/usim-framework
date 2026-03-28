@@ -24,6 +24,7 @@ class ForgotPassword extends AbstractUIService
         $container
             ->layout(LayoutType::VERTICAL)
             ->justifyContent('start')
+            ->plain()
             ->alignItems('center')
             ->padding(40)
             ->paddingTop('80px')

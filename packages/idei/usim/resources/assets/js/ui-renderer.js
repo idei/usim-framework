@@ -1229,6 +1229,7 @@ class CheckboxComponent extends UIComponent {
         try {
             const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
             const componentId = this.config._id || parseInt(this.id);
+            const usimStorage = getUsimStorageValue();
 
             const response = await fetch('/api/ui-event', {
                 method: 'POST',
@@ -1237,6 +1238,7 @@ class CheckboxComponent extends UIComponent {
                     'Accept': 'application/json',
                     'X-CSRF-TOKEN': csrfToken,
                     'X-Requested-With': 'XMLHttpRequest',
+                    'X-USIM-Storage': usimStorage,
                 },
                 credentials: 'same-origin',
                 body: JSON.stringify({
@@ -3077,6 +3079,11 @@ class UIRenderer {
 
             // Checked (checkboxes)
             if (changes.checked !== undefined) {
+                const component = componentId ? this.components?.get(String(componentId)) : null;
+                if (component && component.config) {
+                    component.config.checked = changes.checked;
+                }
+
                 if (element.type === 'checkbox') {
                     element.checked = changes.checked;
                 } else {

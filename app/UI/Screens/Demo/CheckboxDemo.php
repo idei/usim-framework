@@ -16,9 +16,6 @@ class CheckboxDemo extends AbstractUIService
     protected ButtonBuilder $btn_submit;
     protected LabelBuilder $lbl_result;
 
-    // protected bool $store_js_checked = false;
-    // protected bool $store_py_checked = false;
-
     /**
      * Build the checkbox demo UI
      */
@@ -68,6 +65,13 @@ class CheckboxDemo extends AbstractUIService
                 ->text('Make your selection above')
                 ->style('secondary')
         );
+    }
+
+    public function postLoadUI(): void
+    {
+        $this->chk_javascript->checked(false);
+        $this->chk_python->checked(false);
+        $this->lbl_result->text('Make your selection above')->style('secondary');
     }
 
     /**
@@ -142,9 +146,6 @@ class CheckboxDemo extends AbstractUIService
         // Get checkbox states from frontend parameters (sent by collectContextValues)
         $jsChecked = $params['chk_javascript'] ?? false;
         $pyChecked = $params['chk_python'] ?? false;
-
-        // $this->store_js_checked = $jsChecked;
-        // $this->store_py_checked = $pyChecked;
 
         // Build selections array
         $selections = [];

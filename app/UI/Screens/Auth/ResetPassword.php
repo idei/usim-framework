@@ -30,6 +30,7 @@ class ResetPassword extends AbstractUIService
             ->layout(LayoutType::VERTICAL)
             ->justifyContent('start')
             ->alignItems('center')
+            ->plain()
             ->padding(40)
             ->paddingTop('80px')
             ->minHeight('100vh');
