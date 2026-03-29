@@ -25,6 +25,8 @@ on:
 jobs:
   quality:
     runs-on: ubuntu-latest
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
     strategy:
       fail-fast: false
@@ -33,7 +35,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
@@ -55,6 +57,6 @@ jobs:
           set -e
           for file in $(find stubs -type f -name '*.php.stub'); do
             # Replace template placeholders so the stub can be parsed as valid PHP.
-            sed -E 's/\{\{[[:space:]]*[^}]+[[:space:]]*\}\}/App\\\\StubPlaceholder/g' "$file" > /tmp/usim-lint.php
+            sed -E 's/\{\{[[:space:]]*[^}]+[[:space:]]*\}\}/App\\StubPlaceholder/g' "$file" > /tmp/usim-lint.php
             php -l /tmp/usim-lint.php
           done
