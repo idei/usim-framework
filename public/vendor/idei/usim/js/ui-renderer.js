@@ -263,6 +263,38 @@ class UIComponent {
     applyCommonAttributes(element) {
         // Use internal component ID (_id) for data attribute, not JSON key
         const componentId = this.config._id || this.id;
+        const isTransparentColor = (value) => {
+            if (typeof value !== 'string') {
+                return false;
+            }
+
+            const normalized = value.trim().toLowerCase();
+            if (!normalized) {
+                return false;
+            }
+
+            if (normalized === 'transparent') {
+                return true;
+            }
+
+            const rgbaMatch = normalized.match(/^rgba\([^,]+,[^,]+,[^,]+,\s*([\d.]+)\s*\)$/);
+            if (rgbaMatch) {
+                return Number(rgbaMatch[1]) < 1;
+            }
+
+            const hslaMatch = normalized.match(/^hsla\([^,]+,[^,]+,[^,]+,\s*([\d.]+)\s*\)$/);
+            if (hslaMatch) {
+                return Number(hslaMatch[1]) < 1;
+            }
+
+            const hexAlphaMatch = normalized.match(/^#([0-9a-f]{8})$/);
+            if (hexAlphaMatch) {
+                const alphaHex = hexAlphaMatch[1].slice(6, 8);
+                return parseInt(alphaHex, 16) < 255;
+            }
+
+            return false;
+        };
         const normalizeSizeValue = (value) => typeof value === 'number' ? value + 'px' : value;
         const normalizeOffset = (value) => {
             if (value === undefined || value === null || value === '') return '0px';
@@ -329,7 +361,12 @@ class UIComponent {
 
         // Apply visual styling if specified
         if (this.config.background_color) {
-            element.style.backgroundColor = this.config.background_color;
+            const isTopMenuBar = element.id === 'top-menu-bar' || this.config.name === 'top-menu-bar';
+            if (isTopMenuBar && isTransparentColor(this.config.background_color)) {
+                element.style.backgroundColor = 'var(--usim-menu-bar-bg, var(--ui-surface))';
+            } else {
+                element.style.backgroundColor = this.config.background_color;
+            }
         }
         if (this.config.text_color) {
             element.style.color = this.config.text_color;

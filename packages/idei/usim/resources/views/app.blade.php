@@ -17,11 +17,17 @@
     <meta name="twitter:image" content="{{ asset('vendor/idei/usim/images/default-image.png') }}" />
 
     <title>{{ ucfirst(str_replace('-', ' ', $screen)) }}</title>
-    <link rel="stylesheet" href="{{ asset('vendor/idei/usim/css/ui-theme-tokens.css') }}">
-    <link rel="stylesheet" href="{{ asset('vendor/idei/usim/css/ui-components.css') }}">
-    <link rel="stylesheet" href="{{ asset('vendor/idei/usim/css/uploader-component.css') }}">
-    <link rel="stylesheet" href="{{ asset('vendor/idei/usim/css/carousel-component.css') }}">
-    <link rel="stylesheet" href="{{ asset('vendor/idei/usim/css/image-crop-editor.css') }}">
+    @php
+        $usimAssetVersion = static function (string $relativePath): int {
+            $absolutePath = public_path($relativePath);
+            return file_exists($absolutePath) ? (int) filemtime($absolutePath) : time();
+        };
+    @endphp
+    <link rel="stylesheet" href="{{ asset('vendor/idei/usim/css/ui-theme-tokens.css') }}?v={{ $usimAssetVersion('vendor/idei/usim/css/ui-theme-tokens.css') }}">
+    <link rel="stylesheet" href="{{ asset('vendor/idei/usim/css/ui-components.css') }}?v={{ $usimAssetVersion('vendor/idei/usim/css/ui-components.css') }}">
+    <link rel="stylesheet" href="{{ asset('vendor/idei/usim/css/uploader-component.css') }}?v={{ $usimAssetVersion('vendor/idei/usim/css/uploader-component.css') }}">
+    <link rel="stylesheet" href="{{ asset('vendor/idei/usim/css/carousel-component.css') }}?v={{ $usimAssetVersion('vendor/idei/usim/css/carousel-component.css') }}">
+    <link rel="stylesheet" href="{{ asset('vendor/idei/usim/css/image-crop-editor.css') }}?v={{ $usimAssetVersion('vendor/idei/usim/css/image-crop-editor.css') }}">
 </head>
 <body>
     <header id="top-menu-bar">
@@ -55,10 +61,10 @@
         window.PARAMS = @json($allParams);
         window.QUERY_PARAMS = new URLSearchParams(window.location.search);
     </script>
-    <script src="{{ asset('vendor/idei/usim/js/ui-renderer.js') }}"></script>
-    <script src="{{ asset('vendor/idei/usim/js/image-crop-editor.js') }}"></script>
-    <script src="{{ asset('vendor/idei/usim/js/uploader-component.js') }}"></script>
-    <script src="{{ asset('vendor/idei/usim/js/calendar-component.js') }}"></script>
-    <script src="{{ asset('vendor/idei/usim/js/carousel-component.js') }}"></script>
+    <script src="{{ asset('vendor/idei/usim/js/ui-renderer.js') }}?v={{ $usimAssetVersion('vendor/idei/usim/js/ui-renderer.js') }}"></script>
+    <script src="{{ asset('vendor/idei/usim/js/image-crop-editor.js') }}?v={{ $usimAssetVersion('vendor/idei/usim/js/image-crop-editor.js') }}"></script>
+    <script src="{{ asset('vendor/idei/usim/js/uploader-component.js') }}?v={{ $usimAssetVersion('vendor/idei/usim/js/uploader-component.js') }}"></script>
+    <script src="{{ asset('vendor/idei/usim/js/calendar-component.js') }}?v={{ $usimAssetVersion('vendor/idei/usim/js/calendar-component.js') }}"></script>
+    <script src="{{ asset('vendor/idei/usim/js/carousel-component.js') }}?v={{ $usimAssetVersion('vendor/idei/usim/js/carousel-component.js') }}"></script>
 </body>
 </html>

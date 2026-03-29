@@ -111,7 +111,7 @@
             z-index: 100;
             backdrop-filter: blur(20px);
             -webkit-backdrop-filter: blur(20px);
-            background: rgba(10, 12, 16, 0.85);
+            background: var(--bg);
             border-bottom: 1px solid var(--border);
             transition: background var(--transition);
         }
@@ -119,7 +119,7 @@
         .wf[data-theme="light"] nav,
         html[data-theme="light"] .wf nav,
         body[data-theme="light"] .wf nav {
-            background: rgba(240, 242, 247, 0.88);
+            background: var(--bg);
         }
 
         .nav-inner {
@@ -379,10 +379,10 @@
         /* ─── HERO ─── */
         .hero {
             position: relative;
-            min-height: 100vh;
+            min-height: auto;
             display: flex;
-            align-items: center;
-            padding: 8rem 2rem 6rem;
+            align-items: flex-start;
+            padding: 5.5rem 2rem 5rem;
             overflow: hidden;
         }
 
@@ -412,6 +412,35 @@
             grid-template-columns: 1fr 1fr;
             gap: 4rem;
             align-items: center;
+        }
+
+        .hero-mobile-tabs {
+            display: none;
+            gap: 0.5rem;
+            padding: 0.35rem;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 999px;
+            width: max-content;
+        }
+
+        .hero-mobile-tab {
+            border: 0;
+            background: transparent;
+            color: var(--muted);
+            font-family: var(--font-mono);
+            font-size: 0.72rem;
+            text-transform: lowercase;
+            letter-spacing: 0.08em;
+            border-radius: 999px;
+            padding: 0.45rem 0.9rem;
+            cursor: pointer;
+            transition: all var(--transition);
+        }
+
+        .hero-mobile-tab.active {
+            background: var(--accent);
+            color: #000;
         }
 
         .hero-badge {
@@ -1031,11 +1060,19 @@
             background: var(--bg2);
         }
 
+        .community-layout {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 4rem;
+            align-items: start;
+        }
+
         .messages-feed {
             display: flex;
             flex-direction: column;
             gap: 1rem;
             max-width: 640px;
+            width: 100%;
         }
 
         .message {
@@ -1050,6 +1087,10 @@
 
         .message:hover {
             border-color: var(--border);
+        }
+
+        .message > div {
+            min-width: 0;
         }
 
         .msg-avatar {
@@ -1082,6 +1123,8 @@
             color: var(--muted);
             margin-top: 0.3rem;
             line-height: 1.5;
+            overflow-wrap: anywhere;
+            word-break: break-word;
         }
 
         .msg-code {
@@ -1133,6 +1176,12 @@
             align-items: center;
             justify-content: center;
             font-size: 1.75rem;
+        }
+
+        .institute-icon img {
+            width: 38px;
+            height: 38px;
+            object-fit: contain;
         }
 
         .institute-card h3 {
@@ -1238,8 +1287,48 @@
                 gap: 3rem;
             }
 
+            .community-layout {
+                grid-template-columns: 1fr;
+                gap: 2rem;
+            }
+
+            .messages-feed {
+                max-width: none;
+            }
+
+            .hero-mobile-tabs {
+                display: inline-flex;
+            }
+
+            .hero-content,
             .hero-code {
-                order: -1;
+                display: none;
+            }
+
+            .hero-inner.show-content .hero-content,
+            .hero-inner.show-code .hero-code {
+                display: block;
+            }
+
+            .hero-code {
+                width: 100%;
+            }
+
+            .code-card {
+                width: 100%;
+            }
+
+            .code-body {
+                padding: 1rem 1.1rem;
+                font-size: 0.75rem;
+                line-height: 1.7;
+                overflow-x: hidden;
+            }
+
+            .code-body pre {
+                white-space: pre-wrap;
+                word-break: break-word;
+                overflow-wrap: anywhere;
             }
 
             h1 {
@@ -1295,12 +1384,40 @@
             }
 
             .hero {
-                padding: 7rem 1.25rem 4rem;
+                padding: 5rem 1.25rem 3.5rem;
+            }
+
+            .code-header {
+                padding: 0.65rem 0.85rem;
+            }
+
+            .code-filename {
+                font-size: 0.7rem;
+            }
+
+            .code-body {
+                padding: 0.9rem 0.95rem;
+                font-size: 0.72rem;
+                line-height: 1.62;
             }
 
             .hero-meta {
                 gap: 1rem;
                 flex-wrap: wrap;
+            }
+
+            .message {
+                padding: 1rem;
+                gap: 0.75rem;
+            }
+
+            .msg-name {
+                font-size: 0.84rem;
+            }
+
+            .msg-text {
+                font-size: 0.83rem;
+                line-height: 1.45;
             }
 
             .footer-inner {
@@ -1319,7 +1436,13 @@
     <section class="hero">
         <div class="hero-bg"></div>
         <div class="hero-grid"></div>
-        <div class="hero-inner">
+        <div class="hero-inner show-content" id="hero-inner">
+            <div class="hero-mobile-tabs" role="tablist" aria-label="Hero views">
+                <button class="hero-mobile-tab active" id="hero-tab-content" type="button" data-hero-view="content"
+                    role="tab" aria-selected="true">contenido</button>
+                <button class="hero-mobile-tab" id="hero-tab-code" type="button" data-hero-view="code" role="tab"
+                    aria-selected="false">ejemplo</button>
+            </div>
             <div class="hero-content">
                 <div class="hero-badge">
                     <span class="pulse"></span>
@@ -1908,7 +2031,7 @@
 
     <!-- ─── COMMUNITY ─── -->
     <section class="community-section" id="community">
-        <div class="section-inner" style="display:grid;grid-template-columns:1fr 1fr;gap:4rem;align-items:start">
+        <div class="section-inner community-layout">
             <div>
                 <div class="section-tag" data-i18n="comm.tag">Comunidad</div>
                 <h2 data-i18n="comm.title">Únete a la conversación</h2>
@@ -1966,7 +2089,9 @@
             <div class="institutes-grid">
                 <div class="institute-card">
                     <div class="institute-icon"
-                        style="background: linear-gradient(135deg,rgba(0,153,255,0.15),rgba(0,212,170,0.1))">🏛️</div>
+                        style="background: linear-gradient(135deg,rgba(0,153,255,0.15),rgba(0,212,170,0.1))">
+                        <img src="{{ asset('images/Idei-circular.png') }}" alt="IDEI" loading="lazy">
+                    </div>
                     <h3 data-i18n="inst1.name">Instituto de Informática</h3>
                     <p data-i18n="inst1.desc">Facultad de Ciencias Exactas, Físicas y Naturales. Institución de
                         investigación y desarrollo tecnológico de excelencia.</p>
@@ -2285,6 +2410,30 @@
             langButton.addEventListener('click', function(e) {
                 e.stopPropagation();
                 toggleLang();
+            });
+        }
+
+        /* ─── Hero mobile tabs ─── */
+        const heroInner = wfById('hero-inner');
+        const heroTabButtons = (wfRoot || document).querySelectorAll('[data-hero-view]');
+        if (heroInner && heroTabButtons.length > 0) {
+            const setHeroView = (view) => {
+                heroInner.classList.toggle('show-content', view === 'content');
+                heroInner.classList.toggle('show-code', view === 'code');
+
+                heroTabButtons.forEach((btn) => {
+                    const isActive = btn.getAttribute('data-hero-view') === view;
+                    btn.classList.toggle('active', isActive);
+                    btn.setAttribute('aria-selected', isActive ? 'true' : 'false');
+                });
+            };
+
+            setHeroView('content');
+
+            heroTabButtons.forEach((btn) => {
+                btn.addEventListener('click', () => {
+                    setHeroView(btn.getAttribute('data-hero-view'));
+                });
             });
         }
 

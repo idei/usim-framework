@@ -888,6 +888,7 @@ body.modal-open #menu {
     left: 0;
     width: 100%;
     background: var(--usim-menu-bar-bg, var(--ui-surface));
+    background-color: var(--ui-surface);
     border-bottom: 1px solid var(--usim-menu-bar-border, var(--ui-border));
     box-shadow: var(--usim-menu-bar-shadow, 0 2px 8px rgba(0, 0, 0, 0.15));
     z-index: 1000;
