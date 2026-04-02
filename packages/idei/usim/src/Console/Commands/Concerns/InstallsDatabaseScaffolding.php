@@ -7,16 +7,17 @@ trait InstallsDatabaseScaffolding
     protected function installMigrations(): void
     {
         $migrationStubs = [
-            'create_temporary_uploads_table',
-            'add_profile_image_to_users_table',
-            'add_terms_accepted_at_to_users_table',
-            'create_usim_languages_table',
-            'create_usim_text_keys_table',
-            'create_usim_text_values_table',
+            ['name' => 'create_temporary_uploads_table', 'autoForce' => true],
+            ['name' => 'add_profile_image_to_users_table', 'autoForce' => true],
+            ['name' => 'add_terms_accepted_at_to_users_table', 'autoForce' => true],
+            ['name' => 'create_usim_languages_table', 'autoForce' => true],
+            ['name' => 'create_usim_text_keys_table', 'autoForce' => true],
+            ['name' => 'create_usim_text_values_table', 'autoForce' => true],
         ];
 
         foreach ($migrationStubs as $index => $migrationName) {
-            $this->installStubMigration($migrationName, $index);
+            $autoForce = $migrationName['autoForce'] ?? true;
+            $this->installStubMigration($migrationName['name'], $index, $autoForce);
         }
 
         if (!$this->migrationExists('create_personal_access_tokens_table')) {
@@ -66,13 +67,15 @@ trait InstallsDatabaseScaffolding
             'UsimSeeder.php.stub' => [
                 'target' => 'UsimSeeder.php',
                 'replacements' => [],
+                'autoForce' => true,
             ],
         ];
 
         foreach ($seederStubs as $stub => $definition) {
             $targetPath = $seedersPath . '/' . $definition['target'];
             $stubPath = $this->stubsPath('seeders/' . $stub);
-            $this->publishStub($stubPath, $targetPath, $definition['replacements']);
+            $autoForce = $definition['autoForce'] ?? false;
+            $this->publishStub($stubPath, $targetPath, $autoForce, $definition['replacements']);
             $this->line('  <fg=green>✓</> ' . pathinfo($definition['target'], PATHINFO_FILENAME));
         }
 
@@ -80,7 +83,7 @@ trait InstallsDatabaseScaffolding
         $this->line('Run: php artisan db:seed --class=UsimSeeder');
     }
 
-    protected function installStubMigration(string $migrationName, int $offsetSeconds): void
+    protected function installStubMigration(string $migrationName, int $offsetSeconds, bool $autoForce = true): void
     {
         if ($this->migrationExists($migrationName)) {
             $this->line("  <fg=blue>→</> {$migrationName} already exists");
@@ -92,7 +95,7 @@ trait InstallsDatabaseScaffolding
         $stubPath = $this->stubsPath("migrations/{$migrationName}.php.stub");
         $target = $migrationsPath . "/{$timestamp}_{$migrationName}.php";
 
-        $this->publishStub($stubPath, $target, []);
+        $this->publishStub($stubPath, $target, $autoForce, []);
         $this->line("  <fg=green>✓</> {$migrationName} migration");
     }
 
@@ -106,6 +109,6 @@ trait InstallsDatabaseScaffolding
 
         $files = $this->files->glob($migrationsPath . "/*_{$migrationName}.php");
 
-        return count($files) > 0;
+        return \count($files) > 0;
     }
 }

@@ -128,7 +128,7 @@ class InstallCommand extends Command
 
         foreach ($views as $stub => $target) {
             $stubPath = $this->stubsPath("views/{$stub}");
-            $this->publishStub($stubPath, $target, []);
+            $this->publishStub($stubPath, $target, false, []);
             $relativePath = str_replace(\base_path() . '/', '', $target);
             $this->line("  <fg=green>✓</> {$relativePath}");
         }
@@ -152,7 +152,7 @@ class InstallCommand extends Command
             ? $this->screensNamespace . '\\' . str_replace('/', '\\', $subdirectory)
             : $this->screensNamespace;
 
-        $this->publishStub($stubPath, $targetFile, [
+        $this->publishStub($stubPath, $targetFile, false, [
             '{{ namespace }}' => $namespace,
             '{{ screensNamespace }}' => $this->screensNamespace,
             '{{ componentsNamespace }}' => $this->componentsNamespace,
@@ -250,7 +250,7 @@ class InstallCommand extends Command
             ? $this->componentsNamespace . '\\' . str_replace('/', '\\', $subdirectory)
             : $this->componentsNamespace;
 
-        $this->publishStub($stubPath, $targetFile, [
+        $this->publishStub($stubPath, $targetFile, false, [
             '{{ componentsNamespace }}' => $namespace,
         ]);
 
@@ -281,7 +281,7 @@ class InstallCommand extends Command
             ? 'App\\Services\\' . str_replace('/', '\\', $subdirectory)
             : 'App\\Services';
 
-        $this->publishStub($stubPath, $targetFile, [
+        $this->publishStub($stubPath, $targetFile, false, [
             '{{ namespace }}' => $namespace,
             '{{ userModel }}' => $this->resolveUserModelImport(),
             '{{ userModelClass }}' => $this->resolveUserModelClass(),
@@ -324,7 +324,7 @@ class InstallCommand extends Command
 
         $targetFile = $targetDir . '/' . $targetName;
 
-        $this->publishStub($stubPath, $targetFile, [
+        $this->publishStub($stubPath, $targetFile, false, [
             '{{ userModel }}' => $this->resolveUserModelImport(),
             '{{ userModelClass }}' => $this->resolveUserModelClass(),
         ], $postInstallCallback);
@@ -375,7 +375,7 @@ class InstallCommand extends Command
         $controllerPath = \app_path('Http/Controllers/Api/AuthController.php');
         $stubPath = $this->stubsPath('controllers/AuthController.php.stub');
 
-        $this->publishStub($stubPath, $controllerPath, [
+        $this->publishStub($stubPath, $controllerPath, false, [
             '{{ namespace }}' => 'App\\Http\\Controllers\\Api',
             '{{ userModel }}' => $this->resolveUserModelImport(),
             '{{ userModelClass }}' => $this->resolveUserModelClass(),
@@ -395,7 +395,7 @@ class InstallCommand extends Command
         if (!$this->files->exists($userModelPath)) {
             $stubPath = $this->stubsPath('models/User.php.stub');
 
-            $this->publishStub($stubPath, $userModelPath, [
+            $this->publishStub($stubPath, $userModelPath, false, [
                 '{{ namespace }}' => 'App\\Models',
             ]);
 
@@ -424,7 +424,7 @@ class InstallCommand extends Command
     {
         $targetPath = \app_path('Providers/EventServiceProvider.php');
         $stubPath = $this->stubsPath('providers/EventServiceProvider.php.stub');
-        $this->publishStub($stubPath, $targetPath, []);
+        $this->publishStub($stubPath, $targetPath, false, []);
         $relativePath = str_replace(\base_path() . '/', '', $targetPath);
         $this->line("  <fg=green>✓</> {$relativePath}");
     }
@@ -464,7 +464,7 @@ class InstallCommand extends Command
     {
         $configPath = \config_path('users.php');
         $stubPath = $this->stubsPath('config/users.php.stub');
-        $this->publishStub($stubPath, $configPath, []);
+        $this->publishStub($stubPath, $configPath, false, []);
         $relativePath = str_replace(\base_path() . '/', '', $configPath);
         $this->line("  <fg=green>✓</> {$relativePath}");
     }
@@ -618,9 +618,9 @@ class InstallCommand extends Command
         return dirname(__DIR__, 3) . '/stubs/' . ltrim($path, '/');
     }
 
-    protected function publishStub(string $stubPath, string $targetPath, array $replacements, ?callable $postInstallCallback = null): void
+    protected function publishStub(string $stubPath, string $targetPath, bool $autoForce = false, array $replacements = [], ?callable $postInstallCallback = null): void
     {
-        if ($this->files->exists($targetPath) && !$this->force) {
+        if ($this->files->exists($targetPath) && !$this->force && !$autoForce) {
             if ($postInstallCallback) {
                 $postInstallCallback($targetPath);
             }
