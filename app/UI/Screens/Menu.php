@@ -18,6 +18,7 @@ use App\UI\Screens\Demo\ModalDemo;
 use App\UI\Screens\Demo\SelectDemo;
 use App\UI\Screens\Demo\TableDemo;
 use App\UI\Screens\Demo\UploaderDemo;
+use App\UI\Screens\Admin\TranlateManager;
 use Idei\Usim\Events\UsimEvent;
 use Idei\Usim\Services\AbstractUIService;
 use Idei\Usim\Services\Components\ButtonBuilder;
@@ -146,6 +147,7 @@ class Menu extends AbstractUIService
     {
         $menu->link(t('Home'), '/', '🏠');
         $menu->screen(Dashboard::class);
+        $menu->screen(TranlateManager::class, t('Translate Manager'), '🌐');
         $this->buildDemosMenu($menu);
         $menu->separator();
         $menu->item(t('About'), 'show_about_info', [], 'ℹ️');
