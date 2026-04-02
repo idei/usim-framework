@@ -27,7 +27,7 @@ class CarouselDemo extends AbstractUIService
         $this->store_auto_index = $this->normalizeIndex($this->store_auto_index, count($autoItems));
 
         $container
-            ->title('Carousel Component Demo')
+            ->title(t('Carousel Component Demo'))
             ->maxWidth('980px')
             ->centerHorizontal()
             ->plain()
@@ -35,13 +35,13 @@ class CarouselDemo extends AbstractUIService
 
         $container->add(
             UIBuilder::label('carousel_demo_intro')
-                ->text('Modo manual y auto con timeout dinámico por callback, loop, fullscreen e indicadores.')
+                ->text(t('Supports manual and auto modes with dynamic timeout via callback, loop, fullscreen, and indicators.'))
                 ->style('info')
         );
 
         $container->add(
             UIBuilder::label('manual_title')
-                ->text('Manual (prev/next + loop + cantidad definida)')
+                ->text(t('Manual mode (prev/next + loop + defined count)'))
                 ->style('primary')
         );
 
@@ -63,7 +63,7 @@ class CarouselDemo extends AbstractUIService
 
         $container->add(
             UIBuilder::label('auto_title')
-                ->text('Auto (timeout dinámico, cantidad indefinida y toggle fullscreen)')
+                ->text(t('Auto mode (dynamic timeout, undefined count, and fullscreen toggle)'))
                 ->style('primary')
                 ->marginTop('16px')
         );
@@ -92,14 +92,14 @@ class CarouselDemo extends AbstractUIService
 
         $buttons->add(
             UIBuilder::button('btn_auto_fullscreen')
-                ->label('Toggle Auto Fullscreen')
+                ->label(t('Toggle Auto Fullscreen'))
                 ->style('secondary')
                 ->action('toggle_auto_fullscreen')
         );
 
         $buttons->add(
             UIBuilder::button('btn_reset_carousel_demo')
-                ->label('Reset Demo')
+                ->label(t('Reset Demo'))
                 ->style('warning')
                 ->action('reset_carousel_demo')
         );

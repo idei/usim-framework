@@ -1,0 +1,17 @@
+<?php
+
+namespace Database\Seeders;
+
+use Idei\Usim\Services\Support\TranslationService;
+use Illuminate\Database\Seeder;
+
+class UsimLanguageSeeder extends Seeder
+{
+    public function run(): void
+    {
+        $translationService = app(TranslationService::class);
+
+        $translationService->upsertLanguage('en', 'English', 'English', true, true);
+        $translationService->upsertLanguage('es', 'Spanish', 'Espanol', true, false);
+    }
+}

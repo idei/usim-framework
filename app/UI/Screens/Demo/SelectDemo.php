@@ -113,7 +113,7 @@ class SelectDemo extends AbstractUIService
     protected function buildBaseUI(UIContainer $container, ...$params): void
     {
         $container
-            ->title('Select Component Demo')
+            ->title(t('Select Component Demo'))
             ->maxWidth('600px')
             ->centerHorizontal()
             ->shadow(2)
@@ -122,7 +122,7 @@ class SelectDemo extends AbstractUIService
         // Instruction label
         $container->add(
             UIBuilder::label('lbl_instruction')
-                ->text('🌍 Select a country to see available cities, then select a city to see details')
+                ->text(t('🌍 Select a country to see available cities, then select a city to see details'))
                 ->style('info')
                 ->width('100%')
         );
@@ -130,8 +130,8 @@ class SelectDemo extends AbstractUIService
         // Country select
         $container->add(
             UIBuilder::select('sel_country')
-                ->label('Select Country')
-                ->placeholder('Choose a country...')
+                ->label(t('Select Country'))
+                ->placeholder(t('Choose a country...'))
                 ->options(self::COUNTRIES)
                 ->value(null)
                 ->required(true)
@@ -143,8 +143,8 @@ class SelectDemo extends AbstractUIService
         // City select (initially disabled)
         $container->add(
             UIBuilder::select('sel_city')
-                ->label('Select City')
-                ->placeholder('First select a country')
+                ->label(t('Select City'))
+                ->placeholder(t('First select a country'))
                 ->options([])
                 ->value(null)
                 ->disabled(true)
@@ -156,7 +156,7 @@ class SelectDemo extends AbstractUIService
         // Checkbox to enable multiple language selection
         $container->add(
             UIBuilder::checkbox('chk_enable_multiple')
-                ->label('Enable multiple language selection')
+                ->label(t('Enable multiple language selection'))
                 ->checked(false)
                 ->onChange('toggle_multiple_languages')
                 ->style('default')
@@ -166,11 +166,11 @@ class SelectDemo extends AbstractUIService
         // Languages select (searchable and optionally multiple)
         $container->add(
             UIBuilder::select('sel_languages')
-                ->label('Select Language(s)')
-                ->placeholder('Choose language(s)...')
+                ->label(t('Select Language(s)'))
+                ->placeholder(t('Choose language(s)...'))
                 ->options(self::LANGUAGES)
                 ->value(null)
-                ->searchable(true, 'Search languages...')
+                ->searchable(true, t('Search languages...'))
                 ->multiple(false)
                 ->onChange('language_change')
                 ->style('info')
@@ -180,14 +180,14 @@ class SelectDemo extends AbstractUIService
         // Result label
         $container->add(
             UIBuilder::label('lbl_result')
-                ->text('Select options above to see results')
+                ->text(t('Select options above to see results'))
                 ->style('default')
         );
 
         // Reset button
         $container->add(
             UIBuilder::button('btn_reset')
-                ->label('Reset All')
+                ->label(t('Reset All'))
                 ->action('reset_selections')
                 ->icon('refresh')
                 ->style('secondary')
@@ -211,10 +211,10 @@ class SelectDemo extends AbstractUIService
                 ->options([])
                 ->value(null)
                 ->disabled(true)
-                ->placeholder('First select a country');
+                ->placeholder(t('First select a country'));
 
             $this->lbl_result
-                ->text('Select a country to continue')
+                ->text(t('Select a country to continue'))
                 ->style('default');
         } else {
             // Country selected - enable city select with options
@@ -224,13 +224,13 @@ class SelectDemo extends AbstractUIService
                 ->options($cities)
                 ->value(null)
                 ->disabled(false)
-                ->placeholder('Choose a city...');
+                ->placeholder(t('Choose a city...'));
 
             $countryName = collect(self::COUNTRIES)
                 ->firstWhere('value', $countryCode)['label'] ?? $countryCode;
 
             $this->lbl_result
-                ->text("✅ Country selected: {$countryName}. Now select a city.")
+                ->text(t("✅ Country selected: {$countryName}. Now select a city."))
                 ->style('success');
         }
     }
@@ -248,7 +248,7 @@ class SelectDemo extends AbstractUIService
 
         if (empty($cityCode)) {
             $this->lbl_result
-                ->text('Select a city to see details')
+                ->text(t('Select a city to see details'))
                 ->style('default');
         } else {
             $info = self::CITY_INFO[$cityCode] ?? null;
@@ -257,16 +257,16 @@ class SelectDemo extends AbstractUIService
                 $cityName = collect(array_merge(...array_values(self::CITIES)))
                     ->firstWhere('value', $cityCode)['label'] ?? $cityCode;
 
-                $text = "📍 {$cityName}, {$info['country']}\n";
-                $text .= "👥 Population: {$info['population']}\n";
-                $text .= "🕐 Timezone: {$info['timezone']}";
+                $text = t("📍 {$cityName}, {$info['country']}\n");
+                $text .= t("👥 Population: {$info['population']}\n");
+                $text .= t("🕐 Timezone: {$info['timezone']}");
 
                 $this->lbl_result
                     ->text($text)
                     ->style('success');
             } else {
                 $this->lbl_result
-                    ->text("City information not available")
+                    ->text(t("City information not available"))
                     ->style('warning');
             }
         }
@@ -325,12 +325,12 @@ class SelectDemo extends AbstractUIService
         if ($enableMultiple) {
             $this->sel_languages
                 ->multiple(true, 3) // Allow up to 3 selections
-                ->placeholder('Choose up to 3 languages...')
+                ->placeholder(t('Choose up to 3 languages...'))
                 ->value([]);
         } else {
             $this->sel_languages
                 ->multiple(false)
-                ->placeholder('Choose a language...')
+                ->placeholder(t('Choose a language...'))
                 ->value(null);
         }
     }
@@ -349,17 +349,17 @@ class SelectDemo extends AbstractUIService
             ->options([])
             ->value(null)
             ->disabled(true)
-            ->placeholder('First select a country');
+            ->placeholder(t('First select a country'));
 
         $this->sel_languages
             ->value(null)
             ->multiple(false)
-            ->placeholder('Choose a language...');
+            ->placeholder(t('Choose a language...'));
 
         $this->chk_enable_multiple->checked(false);
 
         $this->lbl_result
-            ->text('All selections have been reset. Start over!')
+            ->text(t('All selections have been reset. Start over!'))
             ->style('info');
     }
 }

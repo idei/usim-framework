@@ -22,7 +22,7 @@ class CheckboxDemo extends AbstractUIService
     protected function buildBaseUI(UIContainer $container, ...$params): void
     {
         $container
-            ->title('Checkbox Component Demo')
+            ->title(t('Checkbox Component Demo'))
             ->maxWidth('500px')
             ->centerHorizontal()
             ->padding('20px')
@@ -31,14 +31,14 @@ class CheckboxDemo extends AbstractUIService
         // Instruction label
         $container->add(
             UIBuilder::label('lbl_instruction')
-                ->text('Select your preferred programming languages:')
+                ->text(t('Select your preferred programming languages:'))
                 ->style('info')
         );
 
         // JavaScript checkbox with onChange handler
         $container->add(
             UIBuilder::checkbox('chk_javascript')
-                ->label('JavaScript')
+                ->label(t('JavaScript'))
                 ->checked(false)
                 ->onChange('try_change_javascript') // ← Handler for validation
         );
@@ -46,7 +46,7 @@ class CheckboxDemo extends AbstractUIService
         // Python checkbox with onChange handler
         $container->add(
             UIBuilder::checkbox('chk_python')
-                ->label('Python')
+                ->label(t('Python'))
                 ->checked(false)
                 ->onChange('try_change_python') // ← Handler for validation
         );
@@ -54,7 +54,7 @@ class CheckboxDemo extends AbstractUIService
         // Submit button
         $container->add(
             UIBuilder::button('btn_submit')
-                ->label('Submit Selection')
+                ->label(t('Submit Selection'))
                 ->action('submit_selection')
                 ->style('primary')
         );
@@ -62,7 +62,7 @@ class CheckboxDemo extends AbstractUIService
         // Result label
         $container->add(
             UIBuilder::label('lbl_result')
-                ->text('Make your selection above')
+                ->text(t('Make your selection above'))
                 ->style('secondary')
         );
     }
@@ -71,7 +71,7 @@ class CheckboxDemo extends AbstractUIService
     {
         $this->chk_javascript->checked(false);
         $this->chk_python->checked(false);
-        $this->lbl_result->text('Make your selection above')->style('secondary');
+        $this->lbl_result->text(t('Make your selection above'))->style('secondary');
     }
 
     /**
@@ -92,11 +92,11 @@ class CheckboxDemo extends AbstractUIService
         // Show feedback
         if ($wantsChecked) {
             $this->lbl_result
-                ->text('✅ JavaScript selected!')
+                ->text(t('✅ JavaScript selected!'))
                 ->style('success');
         } else {
             $this->lbl_result
-                ->text('ℹ️ JavaScript deselected')
+                ->text(t('ℹ️ JavaScript deselected'))
                 ->style('info');
         }
     }
@@ -116,9 +116,9 @@ class CheckboxDemo extends AbstractUIService
                                                // ❌ REJECT: Don't allow Python without JavaScript
             $this->chk_python->checked(false); // Keep it unchecked
             $this->lbl_result
-                ->text('❌ You must select JavaScript first before selecting Python!')
+                ->text(t('❌ You must select JavaScript first before selecting Python!'))
                 ->style('danger');
-            $this->toast('You must select JavaScript first before selecting Python!', type: 'error');
+            $this->toast(t('You must select JavaScript first before selecting Python!'), type: 'error');
             return;
         }
 
@@ -128,11 +128,11 @@ class CheckboxDemo extends AbstractUIService
 
         if ($wantsChecked) {
             $this->lbl_result
-                ->text('✅ Python selected!')
+                ->text(t('✅ Python selected!'))
                 ->style('success');
         } else {
             $this->lbl_result
-                ->text('ℹ️ Python deselected')
+                ->text(t('ℹ️ Python deselected'))
                 ->style('info');
         }
     }
@@ -160,7 +160,7 @@ class CheckboxDemo extends AbstractUIService
         // Validate minimum selection
         if (empty($selections)) {
             $this->lbl_result
-                ->text('❌ Error: You must select at least one language')
+                ->text(t('❌ Error: You must select at least one language'))
                 ->style('danger');
             return;
         }
@@ -168,9 +168,9 @@ class CheckboxDemo extends AbstractUIService
         // Success message
         $languagesList = implode(', ', $selections);
         $this->lbl_result
-            ->text("✅ Submitted! Your selections: {$languagesList}")
+            ->text(t("✅ Submitted! Your selections: {$languagesList}"))
             ->style('success');
 
-        $this->toast("Submitted! Your selections: {$languagesList}", type: 'success');
+        $this->toast(t("Submitted! Your selections: {$languagesList}"), type: 'success');
     }
 }

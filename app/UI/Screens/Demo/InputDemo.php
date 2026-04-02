@@ -28,7 +28,7 @@ class InputDemo extends AbstractUIService
     protected function buildBaseUI(UIContainer $container, ...$params): void
     {
         $container
-            ->title('Input Component Demo')
+            ->title(t('Input Component Demo'))
             ->maxWidth('500px')
             ->centerHorizontal()
             ->shadow(2)
@@ -36,15 +36,15 @@ class InputDemo extends AbstractUIService
 
         $container->add(
             UIBuilder::label('lbl_instruction')
-                ->text('📝 Enter a name with at least 3 characters and click "Validate"')
+                ->text(t('📝 Enter a name with at least 3 characters and click "Validate"'))
                 ->style('info')
                 ->width('100%')
         );
 
         $container->add(
             UIBuilder::input('input_text')
-                ->label('Your Name')
-                ->placeholder('Enter your name here...')
+                ->label(t('Your Name'))
+                ->placeholder(t('Enter your name here...'))
                 ->value('')
                 ->required(true)
                 ->type('text')
@@ -53,14 +53,14 @@ class InputDemo extends AbstractUIService
 
         $container->add(
             UIBuilder::button('btn_get_value')
-                ->label('Validate')
+                ->label(t('Validate'))
                 ->action('get_value')
                 ->style('primary')
         );
 
         $container->add(
             UIBuilder::label('lbl_result')
-                ->text('Result will appear here')
+                ->text(t('Result will appear here'))
                 ->style('default')
                 ->width('100%')
         );
@@ -70,7 +70,7 @@ class InputDemo extends AbstractUIService
     {
         $this->input_text->value('')->error(null);
         $this->lbl_result
-            ->text('Result will appear here')
+            ->text(t('Result will appear here'))
             ->style('default');
     }
 
@@ -91,11 +91,11 @@ class InputDemo extends AbstractUIService
         $this->input_text->error(null);
 
         if (empty($inputValue)) {
-            $this->displayError('Name is required');
+            $this->displayError(t('Name is required'));
         } elseif (\strlen($inputValue) < 3) {
-            $this->displayError('Name must be at least 3 characters');
+            $this->displayError(t('Name must be at least 3 characters'));
         } else {
-            $this->lbl_result->text("✅ Valid name: \"{$inputValue}\"")->style('success');
+            $this->lbl_result->text(t("✅ Valid name: \"{$inputValue}\""))->style('success');
         }
     }
 
@@ -103,6 +103,6 @@ class InputDemo extends AbstractUIService
     {
         $this->input_text->error($message);
         $this->toast($message, 'error');
-        $this->lbl_result->text('❌ Please fix the error above')->style('danger');
+        $this->lbl_result->text(t('❌ Please fix the error above'))->style('danger');
     }
 }

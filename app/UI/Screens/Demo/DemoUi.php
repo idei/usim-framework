@@ -19,7 +19,7 @@ class DemoUi extends AbstractUIService
     protected function buildBaseUI(UIContainer $container, ...$params): void
     {
         $container
-            ->title('Demo UI Components')
+            ->title(t('Demo UI Components'))
             ->maxWidth('600px')
             ->centerHorizontal()
             ->rounded(false)
@@ -32,7 +32,7 @@ class DemoUi extends AbstractUIService
     {
         $container->add(
             UIBuilder::button('reset_button')
-                ->label('🔄 Reset State')
+                ->label(t('🔄 Reset State'))
                 ->action('reset_state')
                 ->icon('refresh')
                 ->style('secondary')
@@ -40,13 +40,13 @@ class DemoUi extends AbstractUIService
         );
         $container->add(
             UIBuilder::label('lbl_welcome')
-                ->text('🔵 Initial State: Press "Test Update" to change this text')
+                ->text(t('🔵 Initial State: Press "Test Update" to change this text'))
                 ->style('info')
         );
 
         $container->add(
             UIBuilder::button('btn_test_update')
-                ->label('🔄 Test Update')
+                ->label(t('🔄 Test Update'))
                 ->action('test_action')
                 ->icon('star')
                 ->style('primary')
@@ -55,7 +55,7 @@ class DemoUi extends AbstractUIService
 
         $container->add(
             UIBuilder::label()
-                ->text('🔢 Counter')
+                ->text(t('🔢 Counter'))
                 ->style('default')
         );
 
@@ -100,7 +100,7 @@ class DemoUi extends AbstractUIService
 
         $container->add(
             UIBuilder::label()
-                ->text('💡 Press "Test Add" to add buttons below.')
+                ->text(t('💡 Press "Test Add" to add buttons below.'))
                 ->style('default')
         );
 
@@ -128,7 +128,7 @@ class DemoUi extends AbstractUIService
         $this->store_counter = 1000;
         $this->store_new_components = 0;
         $this->lbl_welcome
-            ->text('🔵 Initial State: Press "Test Update" to change this text')
+            ->text(t('🔵 Initial State: Press "Test Update" to change this text'))
             ->style('info');
         $this->new_components_container->clear();
         $this->updateCounterLabel($this->lbl_counter, $this->store_counter);
@@ -137,7 +137,7 @@ class DemoUi extends AbstractUIService
     public function onTestAction(array $params): void
     {
         $this->lbl_welcome
-            ->text("✅ Pressed button!\n\nCurrent time: " . now()->toDateTimeString())
+            ->text(t("✅ Pressed button!\n\nCurrent time: " . now()->toDateTimeString()))
             ->style('success');
     }
 

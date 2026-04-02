@@ -7,6 +7,7 @@ use Idei\Usim\Models\UsimTextKey;
 use Idei\Usim\Models\UsimTextValue;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\QueryException;
+use Illuminate\Support\Str;
 
 class TranslationService
 {
@@ -38,14 +39,27 @@ class TranslationService
 
     public function createOrUpdateKey(string $key, array $attributes = []): UsimTextKey
     {
-        return UsimTextKey::query()->updateOrCreate(
-            ['key' => $key],
-            [
-                'group' => $attributes['group'] ?? null,
-                'description' => $attributes['description'] ?? null,
-                'is_active' => (bool) ($attributes['is_active'] ?? true),
-            ]
-        );
+        $textKey = UsimTextKey::query()->firstOrNew(['key' => $key]);
+
+        if (!$textKey->exists) {
+            $textKey->is_active = (bool) ($attributes['is_active'] ?? true);
+        }
+
+        if (array_key_exists('group', $attributes)) {
+            $textKey->group = $attributes['group'];
+        }
+
+        if (array_key_exists('description', $attributes)) {
+            $textKey->description = $attributes['description'];
+        }
+
+        if (array_key_exists('is_active', $attributes)) {
+            $textKey->is_active = (bool) $attributes['is_active'];
+        }
+
+        $textKey->save();
+
+        return $textKey;
     }
 
     public function upsertValue(
@@ -110,7 +124,8 @@ class TranslationService
 
     public function getValue(string $key, array $params = [], ?string $languageCode = null): string
     {
-        $textValue = $this->resolveTextValue($key, $languageCode);
+        $resolvedKey = $this->resolveOrRegisterKey($key);
+        $textValue = $this->resolveTextValue($resolvedKey, $languageCode);
 
         if ($textValue === null || $textValue === '') {
             return $key;
@@ -121,7 +136,8 @@ class TranslationService
 
     public function getEntry(string $key, ?string $languageCode = null): ?array
     {
-        $entry = $this->resolveValueEntry($key, $languageCode);
+        $resolvedKey = $this->resolveOrRegisterKey($key);
+        $entry = $this->resolveValueEntry($resolvedKey, $languageCode);
 
         if (!$entry) {
             return null;
@@ -141,6 +157,246 @@ class TranslationService
         $entry = $this->resolveValueEntry($key, $languageCode);
 
         return $entry?->text_value;
+    }
+
+    protected function resolveOrRegisterKey(string $input): string
+    {
+        if ($this->isSlug($input)) {
+            if (!UsimTextKey::query()->byKey($input)->exists()) {
+                $callerContext = $this->resolveCallerContext();
+                $this->storeFallbackTranslation($input, $this->slugToFallbackText($input), 'To review', $callerContext['group']);
+            }
+
+            return $input;
+        }
+
+        $callerContext = $this->resolveCallerContext();
+        $generatedKey = $this->generateAutoKeyFromText($input, $callerContext['group']);
+        $this->storeFallbackTranslation($generatedKey, $input, 'To review', $callerContext['group']);
+
+        return $generatedKey;
+    }
+
+    protected function isSlug(string $value): bool
+    {
+        if ($value === '') {
+            return false;
+        }
+
+        // ASCII only, separators allowed only in-between segments.
+        return preg_match('/^(?:[A-Za-z0-9]{3,})(?:[._][A-Za-z0-9]{3,})*$/', $value) === 1;
+    }
+
+    protected function storeFallbackTranslation(
+        string $key,
+        string $fallbackText,
+        ?string $description = null,
+        ?string $group = null
+    ): void
+    {
+        if ($description !== null || $group !== null) {
+            $attributes = [];
+
+            if ($description !== null) {
+                $attributes['description'] = $description;
+            }
+
+            if ($group !== null) {
+                $attributes['group'] = $group;
+            }
+
+            $this->createOrUpdateKey($key, $attributes);
+        }
+
+        $fallbackLocale = $this->resolveFallbackLocale();
+        $this->ensureLanguageExists($fallbackLocale);
+        $this->upsertValue($key, $fallbackLocale, $fallbackText);
+    }
+
+    protected function ensureLanguageExists(string $code): void
+    {
+        if (UsimLanguage::query()->byCode($code)->exists()) {
+            return;
+        }
+
+        $hasFallback = UsimLanguage::query()->where('is_fallback', true)->exists();
+        $name = strtoupper($code);
+        $this->upsertLanguage($code, $name, $name, true, !$hasFallback);
+    }
+
+    protected function slugToFallbackText(string $slug): string
+    {
+        $sentence = preg_replace('/[._]+/', ' ', strtolower($slug)) ?? $slug;
+
+        return ucfirst(trim($sentence));
+    }
+
+    protected function generateAutoKeyFromText(string $text, string $group): string
+    {
+        $base = $this->buildTextSlugBase($text);
+
+        $existing = UsimTextKey::query()->byKey($base)->first();
+
+        if (!$existing) {
+            return $base;
+        }
+
+        if ($existing->group === $group) {
+            return $base;
+        }
+
+        for ($attempt = 0; $attempt < 25; $attempt++) {
+            $candidate = $base . '_' . random_int(1000, 9999);
+
+            if (!UsimTextKey::query()->byKey($candidate)->exists()) {
+                return $candidate;
+            }
+        }
+
+        return $base . '_' . (string) time();
+    }
+
+    protected function buildTextSlugBase(string $text): string
+    {
+        $slug = Str::slug($text, '_');
+
+        if ($slug === '') {
+            $slug = 'text_key';
+        }
+
+        return Str::limit($slug, 20, '');
+    }
+
+    protected function resolveCallerContext(): array
+    {
+        $trace = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS);
+        $caller = $this->findTranslationCallerFrame($trace);
+
+        $file = $caller['file'] ?? null;
+        $stackClass = $caller['class'] ?? null;
+        $fileClass = $this->deriveClassFromFilePath($file);
+        $class = $this->selectBestCallerClass($stackClass, $fileClass);
+
+        return [
+            'group' => $this->normalizeGroupFromClassOrFile($class, $file),
+        ];
+    }
+
+    protected function selectBestCallerClass(?string $stackClass, ?string $fileClass): ?string
+    {
+        if (!$stackClass) {
+            return $fileClass;
+        }
+
+        if (!$fileClass) {
+            return $stackClass;
+        }
+
+        $stackCount = count($this->splitClassSegments($stackClass));
+        $fileCount = count($this->splitClassSegments($fileClass));
+
+        return $fileCount > $stackCount ? $fileClass : $stackClass;
+    }
+
+    protected function findTranslationCallerFrame(array $trace): array
+    {
+        $count = count($trace);
+
+        for ($index = 0; $index < $count; $index++) {
+            $function = $trace[$index]['function'] ?? null;
+
+            if ($function === 't' && isset($trace[$index + 1])) {
+                return $trace[$index + 1];
+            }
+        }
+
+        foreach ($trace as $frame) {
+            $class = $frame['class'] ?? null;
+
+            if ($class === self::class || $class === static::class) {
+                continue;
+            }
+
+            if (isset($frame['file']) || isset($frame['class'])) {
+                return $frame;
+            }
+        }
+
+        return [];
+    }
+
+    protected function normalizeGroupFromClassOrFile(?string $class, ?string $file): string
+    {
+        if ($class) {
+            $normalized = preg_replace('/^App\\\\/i', '', $class) ?? $class;
+            $segments = $this->splitClassSegments($normalized);
+
+            if ($segments !== []) {
+                $className = array_pop($segments);
+                $groupParts = array_map(static fn (string $segment): string => strtolower($segment), $segments);
+                $groupParts[] = Str::snake($className);
+
+                return implode('.', array_filter($groupParts, static fn (string $part): bool => $part !== ''));
+            }
+        }
+
+        if ($file) {
+            $filename = pathinfo($file, PATHINFO_FILENAME);
+            $filename = Str::snake($filename);
+
+            if ($filename !== '') {
+                return $filename;
+            }
+        }
+
+        return 'global';
+    }
+
+    protected function splitClassSegments(string $class): array
+    {
+        if (str_contains($class, '\\')) {
+            return array_values(array_filter(explode('\\', $class), static fn (string $segment): bool => $segment !== ''));
+        }
+
+        if (str_contains($class, '/')) {
+            return array_values(array_filter(explode('/', $class), static fn (string $segment): bool => $segment !== ''));
+        }
+
+        if (str_contains($class, '_')) {
+            return array_values(array_filter(explode('_', $class), static fn (string $segment): bool => $segment !== ''));
+        }
+
+        return [$class];
+    }
+
+    protected function deriveClassFromFilePath(?string $file): ?string
+    {
+        if (!$file) {
+            return null;
+        }
+
+        $normalizedPath = str_replace('\\\\', '/', $file);
+        $appMarker = '/app/';
+        $position = stripos($normalizedPath, $appMarker);
+
+        if ($position === false) {
+            return null;
+        }
+
+        $relative = substr($normalizedPath, $position + strlen($appMarker));
+
+        if ($relative === false || $relative === '') {
+            return null;
+        }
+
+        $withoutExtension = preg_replace('/\\.php$/i', '', $relative) ?? $relative;
+        $segments = array_values(array_filter(explode('/', $withoutExtension), static fn (string $segment): bool => $segment !== ''));
+
+        if ($segments === []) {
+            return null;
+        }
+
+        return 'App\\' . implode('\\', $segments);
     }
 
     protected function resolveValueEntry(string $key, ?string $languageCode): ?UsimTextValue

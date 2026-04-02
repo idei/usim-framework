@@ -144,29 +144,29 @@ class Menu extends AbstractUIService
 
     private function populateMainMenu(MenuDropdownBuilder $menu): void
     {
-        $menu->link('Home', '/', '🏠');
+        $menu->link(t('Home'), '/', '🏠');
         $menu->screen(Dashboard::class);
         $this->buildDemosMenu($menu);
         $menu->separator();
-        $menu->item('About', 'show_about_info', [], 'ℹ️');
+        $menu->item(t('About'), 'show_about_info', [], 'ℹ️');
     }
 
     private function buildDemosMenu(MenuDropdownBuilder $menu): void
     {
         $menu->separator();
-        $menu->submenu('Demos', function ($submenu) {
-            $submenu->screen(ButtonDemo::class, "Button Demo", '🖲️');
-            $submenu->screen(TableDemo::class, "Table Demo", '📊');
-            $submenu->screen(ModalDemo::class, "Modal Demo", '🪟');
-            $submenu->item('Abort Error', 'show_error_info', [], '❌');
-            $submenu->screen(FormDemo::class, "Form Demo", '📝');
-            $submenu->screen(DemoUi::class, "Demo UI", '🎨');
-            $submenu->screen(InputDemo::class, "Input Demo", '⌨️');
-            $submenu->screen(SelectDemo::class, "Select Demo", '📋');
-            $submenu->screen(CheckboxDemo::class, "Checkbox Demo", '☑️');
-            $submenu->screen(UploaderDemo::class, "Uploader Demo", '📤');
-            $submenu->screen(CalendarDemo::class, "Calendar Demo", '📅');
-            $submenu->screen(CarouselDemo::class, "Carousel Demo", '🎞️');
+        $menu->submenu(t('Demos'), function ($submenu) {
+            $submenu->screen(ButtonDemo::class, t('Button Demo'), '🖲️');
+            $submenu->screen(TableDemo::class, t('Table Demo'), '📊');
+            $submenu->screen(ModalDemo::class, t('Modal Demo'), '🪟');
+            $submenu->item(t('Abort Error'), 'show_error_info', [], '❌');
+            $submenu->screen(FormDemo::class, t('Form Demo'), '📝');
+            $submenu->screen(DemoUi::class, t('Demo UI'), '🎨');
+            $submenu->screen(InputDemo::class, t('Input Demo'), '⌨️');
+            $submenu->screen(SelectDemo::class, t('Select Demo'), '📋');
+            $submenu->screen(CheckboxDemo::class, t('Checkbox Demo'), '☑️');
+            $submenu->screen(UploaderDemo::class, t('Uploader Demo'), '📤');
+            $submenu->screen(CalendarDemo::class, t('Calendar Demo'), '📅');
+            $submenu->screen(CarouselDemo::class, t('Carousel Demo'), '🎞️');
         }, '🎮');
     }
 
@@ -183,9 +183,9 @@ class Menu extends AbstractUIService
     private function populateUserMenu(MenuDropdownBuilder $menu): void
     {
         $menu->screen(Login::class);
-        $menu->item('Register', 'show_register_form', [], '📝', visible: !Auth::check());
+        $menu->item(t('Register'), 'show_register_form', [], '📝', visible: !Auth::check());
         $menu->screen(Profile::class);
-        $menu->item('Logout', 'confirm_logout', [], '🚪', visible: Auth::check());
+        $menu->item(t('Logout'), 'confirm_logout', [], '🚪', visible: Auth::check());
     }
 
     public function onLoggedUser(array $params): void
@@ -232,7 +232,7 @@ class Menu extends AbstractUIService
         $this->main_menu->clearItems();
         $this->populateMainMenu($this->main_menu);
 
-        $this->toast('You have been logged out successfully.');
+        $this->toast(t('You have been logged out successfully.'));
         $this->redirect();
     }
 
@@ -246,17 +246,17 @@ class Menu extends AbstractUIService
 
         ConfirmDialogService::open(
             type: DialogType::INFO,
-            title: "Acerca de USIM Framework",
-            message: "Sistema de componentes UI v1.0\n
+            title: t("Acerca de USIM Framework"),
+            message: t("Sistema de componentes UI v1.0\n
             Desarrollado con Laravel y componentes modulares.\n
-            Soporta: Tables, Modals, Forms, Menus y más.",
+            Soporta: Tables, Modals, Forms, Menus y más."),
             callerServiceId: $serviceId
         );
     }
 
     public function onShowErrorInfo(array $params): void
     {
-        $this->abort(500, "This is a simulated error for testing error handling.");
+        $this->abort(500, t("This is a simulated error for testing error handling."));
     }
 
     /**
@@ -282,7 +282,7 @@ class Menu extends AbstractUIService
     public function onSubmitRegister(array $params): void
     {
         if ($params['accept_terms'] == false) {
-            $this->toast('You must accept the terms and conditions to register.', type: 'error');
+            $this->toast(t('You must accept the terms and conditions to register.'), type: 'error');
             return;
         }
 
@@ -305,7 +305,7 @@ class Menu extends AbstractUIService
 
     private function handleRegisterSuccess(array $response): void
     {
-        $message = (string) ($response['message'] ?? 'Usuario registrado exitosamente');
+        $message = (string) ($response['message'] ?? t('Usuario registrado exitosamente'));
         $this->toast($message, 'success');
 
         $user = $response['user'] ?? null;
@@ -321,7 +321,7 @@ class Menu extends AbstractUIService
 
     private function handleRegisterError(array $response): void
     {
-        $message = (string) ($response['message'] ?? 'Validation errors');
+        $message = (string) ($response['message'] ?? t('Validation errors'));
         $this->toast($message, 'error');
         $this->updateModalValidationErrors((array) ($response['errors'] ?? []));
     }
@@ -359,8 +359,8 @@ class Menu extends AbstractUIService
 
         ConfirmDialogService::open(
             type: DialogType::CONFIRM,
-            title: "Cerrar Sesión",
-            message: "¿Estás seguro que deseas cerrar sesión?",
+            title: t("Cerrar Sesión"),
+            message: t("¿Estás seguro que deseas cerrar sesión?"),
             confirmAction: 'confirm_logout',
             cancelAction: 'cancel_logout',
             callerServiceId: $serviceId

@@ -31,7 +31,7 @@ class Dashboard extends AbstractUIService
 
     public static function getMenuLabel(): string
     {
-        return 'Dashboard';
+        return t('Dashboard');
     }
 
     public static function getMenuIcon(): ?string
@@ -58,14 +58,14 @@ class Dashboard extends AbstractUIService
             ->gap("12px");
 
         $search = UIBuilder::input('search_users')
-            ->placeholder('Search users...')
+            ->placeholder(t('Search users...'))
             ->width('300px')
             ->autocomplete('off')
             ->onInput('search_users', [])
             ->debounce(500);
 
         $addBtn = UIBuilder::button('add_user_btn')
-            ->label('Add user')
+            ->label(t('Add user'))
             ->style('primary')
             ->action('add_user_clicked')
             ->icon('plus');
@@ -149,7 +149,7 @@ class Dashboard extends AbstractUIService
     {
         $userId = $params['user_id'] ?? null;
         if (!$userId) {
-            $this->toast('User ID is required', 'error');
+            $this->toast(t('User ID is required'), 'error');
             return;
         }
 
@@ -161,7 +161,7 @@ class Dashboard extends AbstractUIService
 
         $user = $response['data'] ?? null;
         if (!$user) {
-            $this->toast('User not found', 'error');
+            $this->toast(t('User not found'), 'error');
             return;
         }
 
@@ -175,14 +175,14 @@ class Dashboard extends AbstractUIService
     {
         $userId = $params['user_id'] ?? null;
         if (!$userId) {
-            $this->toast('User ID is required for update', 'error');
+            $this->toast(t('User ID is required for update'), 'error');
             return;
         }
 
         // Get the user model
         $user = $this->userService->findUser($userId);
         if (!$user) {
-            $this->toast('User not found', 'error');
+            $this->toast(t('User not found'), 'error');
             return;
         }
 
@@ -225,26 +225,26 @@ class Dashboard extends AbstractUIService
     {
         $userId = $params['user_id'] ?? null;
         if (!$userId) {
-            $this->toast('User ID is required', 'error');
+            $this->toast(t('User ID is required'), 'error');
             return;
         }
 
         $response = $this->userService->getUser($userId);
         if ($response['status'] !== 'success') {
-            $this->toast('User not found', 'error');
+            $this->toast(t('User not found'), 'error');
             return;
         }
 
         $user = $response['data'] ?? null;
         if (!$user) {
-            $this->toast('User not found', 'error');
+            $this->toast(t('User not found'), 'error');
             return;
         }
 
         ConfirmDialogService::open(
             type: DialogType::WARNING,
-            title: "Delete User",
-            message: "Are you sure you want to delete user '{$user['name']}'?",
+            title: t("Delete User"),
+            message: t("Are you sure you want to delete user '{$user['name']}'?"),
             confirmAction: 'confirm_delete_user',
             confirmParams: ['user_id' => $params['user_id']],
             callerServiceId: $this->getServiceComponentId()
@@ -255,13 +255,13 @@ class Dashboard extends AbstractUIService
     {
         $userId = $params['user_id'] ?? null;
         if (!$userId) {
-            $this->toast('User ID is required for deletion', 'error');
+            $this->toast(t('User ID is required for deletion'), 'error');
             return;
         }
 
         $user = $this->userService->findUser($userId);
         if (!$user) {
-            $this->toast('User not found', 'error');
+            $this->toast(t('User not found'), 'error');
             return;
         }
 
