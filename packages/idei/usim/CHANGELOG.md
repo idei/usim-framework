@@ -4,6 +4,22 @@ All notable changes to this package will be documented in this file.
 
 The format is based on Keep a Changelog, and this project follows Semantic Versioning.
 
+## [Unreleased]
+
+### Added
+- Database translation architecture based on identifier keys with language-specific values and optional media payload (`usim_languages`, `usim_text_keys`, `usim_text_values`).
+- New package models: `UsimLanguage`, `UsimTextKey`, and `UsimTextValue`.
+- New `TranslationService` with CRUD operations for languages, keys, and text/media values.
+- New global helper `t(string $key, array $params = [], ?string $language = null): string`.
+- New installer stubs: translation migrations and seeders (`UsimLanguageSeeder`, `UsimTranslationSeeder`).
+
+### Changed
+- `usim:install` database scaffolding logic was extracted into a dedicated concern (`InstallsDatabaseScaffolding`) to keep `InstallCommand` smaller and easier to maintain.
+- `UsimSeeder` now orchestrates translation seeders in addition to role/user seeders.
+
+### Fixed
+- Translation resolution now falls back to English by default and then to Laravel's standard translator before returning the key.
+
 ## [0.7.0] - 2026-03-28
 
 ### Added

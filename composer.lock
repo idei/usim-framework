@@ -1242,16 +1242,19 @@
             "dist": {
                 "type": "path",
                 "url": "packages/idei/usim",
-                "reference": "55cbedac265715e9bcdc29b45e8fbd025b60913e"
+                "reference": "5becbb86bd95c722eb345db77b986e524fed8e2d"
             },
             "require": {
                 "illuminate/console": "^10.0|^11.0|^12.0",
+                "illuminate/contracts": "^10.0|^11.0|^12.0",
                 "illuminate/filesystem": "^10.0|^11.0|^12.0",
                 "illuminate/support": "^10.0|^11.0|^12.0",
                 "laravel/sanctum": "^3.0|^4.0",
+                "nikic/php-parser": "^5.7",
                 "php": "^8.2",
                 "spatie/laravel-permission": "^6.0",
-                "symfony/finder": "^6.0|^7.0"
+                "symfony/finder": "^6.0|^7.0",
+                "symfony/var-dumper": "^6.0|^7.0"
             },
             "suggest": {
                 "laravel/octane": "Required to handle state reset in long-running processes."
@@ -1265,6 +1268,9 @@
                 }
             },
             "autoload": {
+                "files": [
+                    "src/Support/helpers.php"
+                ],
                 "psr-4": {
                     "Idei\\Usim\\": "src/"
                 }
@@ -1274,8 +1280,9 @@
             ],
             "authors": [
                 {
-                    "name": "Idei Team",
-                    "email": "dev@idei.cl"
+                    "name": "Instituto de Informática - FCEFyN - UNSJ",
+                    "email": "idei.cefn@gmail.com",
+                    "homepage": "https://idei.unsj.edu.ar"
                 }
             ],
             "description": "UI Services Implementation Model Framework",

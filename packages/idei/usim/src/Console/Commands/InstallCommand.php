@@ -2,6 +2,7 @@
 
 namespace Idei\Usim\Console\Commands;
 
+use Idei\Usim\Console\Commands\Concerns\InstallsDatabaseScaffolding;
 use Idei\Usim\Support\CodeModifier\ClassModifier;
 use Illuminate\Console\Command;
 use Illuminate\Filesystem\Filesystem;
@@ -10,6 +11,8 @@ use Illuminate\Support\Str;
 
 class InstallCommand extends Command
 {
+    use InstallsDatabaseScaffolding;
+
     protected $signature = 'usim:install
                             {--force : Overwrite existing files}';
 
@@ -451,116 +454,6 @@ class InstallCommand extends Command
             $this->files->put($providersPath, $contents);
             $this->line('  <fg=green>✓</> EventServiceProvider registered in bootstrap/providers.php');
         }
-    }
-
-    // =========================================================================
-    // Migrations
-    // =========================================================================
-
-    protected function installMigrations(): void
-    {
-        $migrationsPath = \database_path('migrations');
-
-        // temporary_uploads
-        if (!$this->migrationExists('create_temporary_uploads_table')) {
-            $timestamp = date('Y_m_d_His', time());
-            $stubPath = $this->stubsPath('migrations/create_temporary_uploads_table.php.stub');
-            $target = $migrationsPath . "/{$timestamp}_create_temporary_uploads_table.php";
-            $this->publishStub($stubPath, $target, []);
-            $this->line('  <fg=green>✓</> create_temporary_uploads_table migration');
-        } else {
-            $this->line('  <fg=blue>→</> create_temporary_uploads_table already exists');
-        }
-
-        // profile_image column
-        if (!$this->migrationExists('add_profile_image_to_users_table')) {
-            $timestamp = date('Y_m_d_His', time() + 1);
-            $stubPath = $this->stubsPath('migrations/add_profile_image_to_users_table.php.stub');
-            $target = $migrationsPath . "/{$timestamp}_add_profile_image_to_users_table.php";
-            $this->publishStub($stubPath, $target, []);
-            $this->line('  <fg=green>✓</> add_profile_image_to_users_table migration');
-        } else {
-            $this->line('  <fg=blue>→</> add_profile_image_to_users_table already exists');
-        }
-
-        // terms_accepted_at column
-        if (!$this->migrationExists('add_terms_accepted_at_to_users_table')) {
-            $timestamp = date('Y_m_d_His', time() + 2);
-            $stubPath = $this->stubsPath('migrations/add_terms_accepted_at_to_users_table.php.stub');
-            $target = $migrationsPath . "/{$timestamp}_add_terms_accepted_at_to_users_table.php";
-            $this->publishStub($stubPath, $target, []);
-            $this->line('  <fg=green>✓</> add_terms_accepted_at_to_users_table migration');
-        } else {
-            $this->line('  <fg=blue>→</> add_terms_accepted_at_to_users_table already exists');
-        }
-
-        // personal_access_tokens (Sanctum)
-        if (!$this->migrationExists('create_personal_access_tokens_table')) {
-            $this->callSilently('vendor:publish', [
-                '--tag' => 'sanctum-migrations',
-            ]);
-            $this->line('  <fg=green>✓</> Sanctum migrations published');
-        } else {
-            $this->line('  <fg=blue>→</> Sanctum migrations already exist');
-        }
-
-        // Spatie permission tables
-        if (!$this->migrationExists('create_permission_tables')) {
-            $this->callSilently('vendor:publish', [
-                '--provider' => 'Spatie\\Permission\\PermissionServiceProvider',
-                '--tag' => 'permission-migrations',
-            ]);
-            $this->line('  <fg=green>✓</> Spatie Permission migrations published');
-        } else {
-            $this->line('  <fg=blue>→</> Spatie Permission migrations already exist');
-        }
-    }
-
-    protected function migrationExists(string $migrationName): bool
-    {
-        $migrationsPath = \database_path('migrations');
-
-        if (!$this->files->isDirectory($migrationsPath)) {
-            return false;
-        }
-
-        $files = $this->files->glob($migrationsPath . "/*_{$migrationName}.php");
-
-        return count($files) > 0;
-    }
-
-    // =========================================================================
-    // Seeders
-    // =========================================================================
-
-    protected function installSeeders(): void
-    {
-        $seedersPath = \database_path('seeders');
-
-        // UsimRoleSeeder
-        $roleSeederPath = $seedersPath . '/UsimRoleSeeder.php';
-        $stubPath = $this->stubsPath('seeders/UsimRoleSeeder.php.stub');
-        $this->publishStub($stubPath, $roleSeederPath, []);
-        $this->line('  <fg=green>✓</> UsimRoleSeeder');
-
-        // UserSeeder
-        $userSeederPath = "$seedersPath/UsimUserSeeder.php";
-        $stubPath = $this->stubsPath('seeders/UsimUserSeeder.php.stub');
-        $this->publishStub($stubPath, $userSeederPath, [
-            '{{ userModel }}' => $this->resolveUserModelImport(),
-            '{{ userModelClass }}' => $this->resolveUserModelClass(),
-        ]);
-        $this->line('  <fg=green>✓</> UsimUserSeeder');
-
-        // UsimSeeder
-        $seederPath = $seedersPath . '/UsimSeeder.php';
-        $stubPath = $this->stubsPath('seeders/UsimSeeder.php.stub');
-        $this->publishStub($stubPath, $seederPath, []);
-        $this->line('  <fg=green>✓</> UsimSeeder');
-
-        // Post-install instructions for seeders
-        $this->info('USIM uses its own seeder (UsimSeeder) to preserve the integrity of existing project seeders.');
-        $this->line('Run: php artisan db:seed --class=UsimSeeder');
     }
 
     // =========================================================================

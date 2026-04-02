@@ -55,6 +55,18 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Internationalization (i18n)
+    |--------------------------------------------------------------------------
+    |
+    | Configuracion base para traducciones en base de datos del paquete USIM.
+    */
+    'i18n' => [
+        'default_locale' => env('USIM_DEFAULT_LOCALE', env('APP_LOCALE', 'en')),
+        'fallback_locale' => env('USIM_FALLBACK_LOCALE', 'en'),
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | Registered UI Services
     |--------------------------------------------------------------------------
     */

@@ -38,6 +38,9 @@
         "laravel/octane": "Required to handle state reset in long-running processes."
     },
     "autoload": {
+        "files": [
+            "src/Support/helpers.php"
+        ],
         "psr-4": {
             "Idei\\Usim\\": "src/"
         }

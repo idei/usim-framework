@@ -7,6 +7,7 @@ use Idei\Usim\Services\Support\UIIdGenerator;
 use Illuminate\Contracts\Events\Dispatcher;
 
 use Idei\Usim\Services\UIChangesCollector;
+use Idei\Usim\Services\Support\TranslationService;
 use Idei\Usim\Events\UsimEvent;
 use Idei\Usim\Listeners\UsimEventDispatcher;
 use Idei\Usim\Console\Commands\DiscoverScreensCommand;
@@ -28,6 +29,10 @@ class UsimServiceProvider extends ServiceProvider
 
         $this->app->scoped(UIChangesCollector::class, function ($app) {
             return new UIChangesCollector();
+        });
+
+        $this->app->singleton(TranslationService::class, function ($app) {
+            return new TranslationService();
         });
 
         $this->commands([

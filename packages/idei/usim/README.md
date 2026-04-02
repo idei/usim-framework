@@ -24,6 +24,7 @@ A **Server-Driven UI** framework for Laravel. Define your entire user interface 
   - [Handling Button Actions](#handling-button-actions)
   - [Cross-Service Events](#cross-service-events)
 - [Built-in UI Helpers](#built-in-ui-helpers)
+- [Database Translations](#database-translations)
 - [Modals & Dialogs](#modals--dialogs)
 - [Data Tables](#data-tables)
 - [File Uploads](#file-uploads)
@@ -483,6 +484,35 @@ UIBuilder::container('floating_panel')
 
 ---
 
+## Database Translations
+
+USIM now supports package-level database translations with key-based identifiers and language fallback.
+
+Published migration stubs create these tables:
+
+- `usim_languages`
+- `usim_text_keys`
+- `usim_text_values`
+
+The `TranslationService` manages CRUD for languages, keys, and values (including optional media fields).
+
+Global utility helper:
+
+```php
+t('app.welcome', ['name' => 'Emilio']);
+```
+
+Resolution order:
+
+1. current locale in DB
+2. fallback locale in DB (`en` by default)
+3. Laravel translator (`__()`)
+4. key literal
+
+Translation values support placeholders (`:name`, `:count`, etc.) and optional media metadata (`media_url`, `media_meta`).
+
+---
+
 ## Modals & Dialogs
 
 ### Quick Confirmation Dialogs
@@ -693,6 +723,10 @@ return [
     'screens_path'      => app_path('UI/Screens'),
     'api_url'           => env('API_BASE_URL', env('APP_URL')),
     'upload_disk'       => env('UPLOAD_DISK', 'local'),
+    'i18n'              => [
+        'default_locale'  => env('USIM_DEFAULT_LOCALE', env('APP_LOCALE', 'en')),
+        'fallback_locale' => env('USIM_FALLBACK_LOCALE', 'en'),
+    ],
 ];
 ```
 
@@ -703,6 +737,8 @@ return [
 | `screens_path` | Filesystem path to scan for screens | `app/UI/Screens` |
 | `api_url` | Base URL for internal HTTP calls | `APP_URL` |
 | `upload_disk` | Laravel filesystem disk for uploaded files | `local` (override via `UPLOAD_DISK`) |
+| `i18n.default_locale` | Preferred locale for DB translation lookup | `APP_LOCALE` or `en` |
+| `i18n.fallback_locale` | Fallback locale for DB translations | `en` |
 
 ---
 
