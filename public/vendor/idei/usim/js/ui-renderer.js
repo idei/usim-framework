@@ -1668,7 +1668,13 @@ class TableCellComponent extends UIComponent {
             // Button cell - check first!
             const btn = document.createElement('button');
             btn.className = `ui-button ${this.config.button.style || 'default'}`;
-            btn.textContent = this.config.button.label || 'Action';
+            if (this.config.button.no_background) btn.classList.add('ui-button-no-background');
+            if (this.config.button.no_hover) btn.classList.add('ui-button-no-hover');
+            this.applyTableButtonContent(btn, this.config.button);
+
+            if (this.config.button.tooltip) {
+                btn.title = this.config.button.tooltip;
+            }
 
             // Handle button click
             if (this.config.button.action) {
@@ -1715,6 +1721,49 @@ class TableCellComponent extends UIComponent {
         }
 
         return this.applyCommonAttributes(cell);
+    }
+
+    applyTableButtonContent(button, buttonConfig) {
+        button.innerHTML = '';
+
+        const label = buttonConfig.label || '';
+        const icon = buttonConfig.icon;
+
+        if (!icon) {
+            button.textContent = label || 'Action';
+            return;
+        }
+
+        const iconElement = document.createElement('img');
+        iconElement.className = 'ui-button-icon';
+        iconElement.src = String(icon);
+        iconElement.alt = label;
+
+        if (buttonConfig.icon_size !== undefined && buttonConfig.icon_size !== null && buttonConfig.icon_size !== '') {
+            const rawSize = String(buttonConfig.icon_size).trim();
+            const normalizedSize = (typeof buttonConfig.icon_size === 'number' || /^\d+(\.\d+)?$/.test(rawSize))
+                ? `${rawSize}px`
+                : rawSize;
+            iconElement.style.width = normalizedSize;
+            iconElement.style.height = normalizedSize;
+        }
+
+        if (buttonConfig.icon_only) {
+            button.appendChild(iconElement);
+            return;
+        }
+
+        const textNode = document.createTextNode(label);
+        const iconPosition = buttonConfig.icon_position || 'left';
+
+        if (iconPosition === 'right') {
+            button.appendChild(textNode);
+            button.appendChild(iconElement);
+            return;
+        }
+
+        button.appendChild(iconElement);
+        button.appendChild(textNode);
     }
 
     /**
@@ -2782,7 +2831,41 @@ class UIRenderer {
 
                 const btn = document.createElement('button');
                 btn.className = `ui-button ${changes.button.style || 'default'}`;
-                btn.textContent = changes.button.label || 'Action';
+                if (changes.button.no_background) btn.classList.add('ui-button-no-background');
+                if (changes.button.no_hover) btn.classList.add('ui-button-no-hover');
+
+                btn.innerHTML = '';
+                if (changes.button.icon) {
+                    const iconElement = document.createElement('img');
+                    iconElement.className = 'ui-button-icon';
+                    iconElement.src = String(changes.button.icon);
+                    iconElement.alt = changes.button.label || '';
+
+                    if (changes.button.icon_size !== undefined && changes.button.icon_size !== null && changes.button.icon_size !== '') {
+                        const rawSize = String(changes.button.icon_size).trim();
+                        const normalizedSize = (typeof changes.button.icon_size === 'number' || /^\d+(\.\d+)?$/.test(rawSize))
+                            ? `${rawSize}px`
+                            : rawSize;
+                        iconElement.style.width = normalizedSize;
+                        iconElement.style.height = normalizedSize;
+                    }
+
+                    if (changes.button.icon_only) {
+                        btn.appendChild(iconElement);
+                    } else if ((changes.button.icon_position || 'left') === 'right') {
+                        btn.appendChild(document.createTextNode(changes.button.label || ''));
+                        btn.appendChild(iconElement);
+                    } else {
+                        btn.appendChild(iconElement);
+                        btn.appendChild(document.createTextNode(changes.button.label || ''));
+                    }
+                } else {
+                    btn.textContent = changes.button.label || 'Action';
+                }
+
+                if (changes.button.tooltip) {
+                    btn.title = changes.button.tooltip;
+                }
 
                 // Handle button click
                 if (changes.button.action) {

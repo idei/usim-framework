@@ -2,13 +2,16 @@
 
 namespace App\UI\Screens\Admin;
 
+use App\UI\Components\Modals\EditTranslationDialog;
 use App\UI\Components\DataTable\TranslationKeysTableModel;
 use Idei\Usim\Services\AbstractUIService;
 use Idei\Usim\Services\Components\InputBuilder;
 use Idei\Usim\Services\Components\SelectBuilder;
 use Idei\Usim\Services\Components\TableBuilder;
 use Idei\Usim\Services\Components\UIContainer;
+use Idei\Usim\Services\Enums\DialogType;
 use Idei\Usim\Services\Enums\LayoutType;
+use Idei\Usim\Services\Modals\ConfirmDialogService;
 use Idei\Usim\Services\Support\TranslationService;
 use Idei\Usim\Services\UIBuilder;
 
@@ -37,7 +40,7 @@ class TranlateManager extends AbstractUIService
     protected function buildBaseUI(UIContainer $container, ...$params): void
     {
         $container
-            ->maxWidth('1060px')
+            ->maxWidth('1360px')
             ->centerHorizontal()
             ->padding('10px')
             ->plain();
@@ -46,6 +49,7 @@ class TranlateManager extends AbstractUIService
             ->layout(LayoutType::HORIZONTAL)
             ->fullWidth()
             ->shadow(0)
+            ->width('100%')
             ->gap('12px');
 
         $search = UIBuilder::input('search_translations')
@@ -137,6 +141,100 @@ class TranlateManager extends AbstractUIService
         $this->translations_table->page($page);
     }
 
+    public function onEditTranslation(array $params): void
+    {
+        $key = (string) ($params['key'] ?? '');
+        if ($key === '') {
+            $this->toast(t('Translation key is required'), 'error');
+            return;
+        }
+
+        $languages = $this->resolveEditableLanguages();
+        $fallbackCode = $languages['fallback'];
+        $selectedCode = $languages['selected'];
+
+        /** @var TranslationService $translationService */
+        $translationService = app(TranslationService::class);
+        $fallbackEntry = $translationService->getDirectEntry($key, $fallbackCode);
+        $selectedEntry = $translationService->getDirectEntry($key, $selectedCode);
+
+        EditTranslationDialog::open(
+            key: $key,
+            group: (string) ($params['group'] ?? ''),
+            fallbackLanguageCode: $fallbackCode,
+            selectedLanguageCode: $selectedCode,
+            fallbackText: (string) ($fallbackEntry['text'] ?? ''),
+            selectedText: (string) ($selectedEntry['text'] ?? ''),
+            callerServiceId: $this->getServiceComponentId()
+        );
+    }
+
+    public function onDeleteTranslation(array $params): void
+    {
+        $key = (string) ($params['key'] ?? '');
+        if ($key === '') {
+            $this->toast(t('Translation key is required'), 'error');
+            return;
+        }
+
+        ConfirmDialogService::open(
+            type: DialogType::WARNING,
+            title: t('Delete Translation'),
+            message: t("Are you sure you want to delete translation ':key'?", ['key' => $key]),
+            confirmAction: 'confirm_delete_translation',
+            confirmParams: ['key' => $key],
+            callerServiceId: $this->getServiceComponentId()
+        );
+    }
+
+    public function onConfirmDeleteTranslation(array $params): void
+    {
+        $key = (string) ($params['key'] ?? '');
+        if ($key === '') {
+            $this->toast(t('Translation key is required for deletion'), 'error');
+            return;
+        }
+
+        /** @var TranslationService $translationService */
+        $translationService = app(TranslationService::class);
+        $deleted = $translationService->deleteKey($key);
+
+        if (!$deleted) {
+            $this->toast(t('Translation key not found'), 'error');
+            return;
+        }
+
+        $this->translations_table->refresh();
+        $this->toast(t('Translation deleted successfully'), 'success');
+        $this->closeModal();
+    }
+
+    public function onSubmitUpdateTranslation(array $params): void
+    {
+        $key = (string) ($params['translation_key'] ?? '');
+        $fallbackLanguageCode = (string) ($params['fallback_language_code'] ?? '');
+        $selectedLanguageCode = (string) ($params['selected_language_code'] ?? '');
+
+        if ($key === '' || $fallbackLanguageCode === '' || $selectedLanguageCode === '') {
+            $this->toast(t('Translation update payload is incomplete'), 'error');
+            return;
+        }
+
+        /** @var TranslationService $translationService */
+        $translationService = app(TranslationService::class);
+        $translationService->upsertValue($key, $fallbackLanguageCode, (string) ($params['fallback_text'] ?? ''));
+
+        if ($selectedLanguageCode !== $fallbackLanguageCode) {
+            $translationService->upsertValue($key, $selectedLanguageCode, (string) ($params['selected_text'] ?? ''));
+        }
+
+        $translationService->createOrUpdateKey($key, ['needs_review' => false]);
+
+        $this->translations_table->refresh();
+        $this->toast(t('Translation updated successfully'), 'success');
+        $this->closeModal();
+    }
+
     protected function getLanguageOptions(): array
     {
         /** @var TranslationService $translationService */
@@ -186,5 +284,43 @@ class TranlateManager extends AbstractUIService
         }
 
         return $options;
+    }
+
+    protected function resolveEditableLanguages(): array
+    {
+        /** @var TranslationService $translationService */
+        $translationService = app(TranslationService::class);
+        $dataset = $translationService->listLanguagesDataset();
+
+        $fallbackCode = 'en';
+        $firstActiveNonFallback = null;
+
+        foreach (($dataset['items'] ?? []) as $language) {
+            $code = (string) ($language['code'] ?? '');
+            if ($code === '') {
+                continue;
+            }
+
+            if ((bool) ($language['is_fallback'] ?? false)) {
+                $fallbackCode = $code;
+            }
+
+            if ((bool) ($language['is_active'] ?? false) && !(bool) ($language['is_fallback'] ?? false) && $firstActiveNonFallback === null) {
+                $firstActiveNonFallback = $code;
+            }
+        }
+
+        /** @var TranslationKeysTableModel $model */
+        $model = $this->translations_table->getModel();
+        $selectedCode = $model->getLanguageFilter();
+
+        if ($selectedCode === 'all' || $selectedCode === $fallbackCode) {
+            $selectedCode = $firstActiveNonFallback ?? $fallbackCode;
+        }
+
+        return [
+            'fallback' => $fallbackCode,
+            'selected' => $selectedCode,
+        ];
     }
 }

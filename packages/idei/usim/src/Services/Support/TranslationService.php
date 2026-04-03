@@ -106,6 +106,11 @@ class TranslationService
         return $this->valueResolver->getEntry($resolvedKey, $languageCode);
     }
 
+    public function getDirectEntry(string $key, string $languageCode): ?array
+    {
+        return $this->valueResolver->getDirectEntry($key, $languageCode);
+    }
+
     public function safeGetValue(string $key, array $params = [], ?string $languageCode = null): ?string
     {
         try {

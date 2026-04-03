@@ -18,6 +18,14 @@ class TranslationKeysTableModel extends AbstractDataTableModel
     /** @var array<string, string> */
     protected array $languages = [];
 
+    private const EDIT_ICON_SVG = <<<'SVG'
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z"/></svg>
+SVG;
+
+    private const DELETE_ICON_SVG = <<<'SVG'
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-2 14H7L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+SVG;
+
     public function __construct(TableBuilder $tableBuilder)
     {
         parent::__construct($tableBuilder);
@@ -50,6 +58,9 @@ class TranslationKeysTableModel extends AbstractDataTableModel
                 'width' => [170, 210],
             ];
         }
+
+        $columns['edit'] = ['label' => '', 'width' => [52, 56]];
+        $columns['delete'] = ['label' => '', 'width' => [52, 56]];
 
         return $columns;
     }
@@ -146,6 +157,38 @@ class TranslationKeysTableModel extends AbstractDataTableModel
                 $rowData['lang_' . $code] = $text !== null && $text !== '' ? $text : '—';
             }
 
+            $rowData['edit'] = [
+                'button' => [
+                    'label' => 'Edit',
+                    'icon' => $this->svgDataUri(self::EDIT_ICON_SVG),
+                    'icon_only' => true,
+                    'tooltip' => 'Edit translation',
+                    'icon_size' => 16,
+                    'action' => 'edit_translation',
+                    'style' => 'secondary',
+                    'parameters' => [
+                        'key' => $row->key,
+                        'group' => $row->group,
+                    ],
+                ],
+            ];
+
+            $rowData['delete'] = [
+                'button' => [
+                    'label' => 'Delete',
+                    'icon' => $this->svgDataUri(self::DELETE_ICON_SVG),
+                    'icon_only' => true,
+                    'tooltip' => 'Delete translation',
+                    'icon_size' => 16,
+                    'action' => 'delete_translation',
+                    'style' => 'danger',
+                    'parameters' => [
+                        'key' => $row->key,
+                        'group' => $row->group,
+                    ],
+                ],
+            ];
+
             $formatted[] = $rowData;
         }
 
@@ -182,5 +225,10 @@ class TranslationKeysTableModel extends AbstractDataTableModel
         $normalized = trim((string) $value);
 
         return $normalized === '' ? 'all' : $normalized;
+    }
+
+    protected function svgDataUri(string $svg): string
+    {
+        return 'data:image/svg+xml;utf8,' . rawurlencode($svg);
     }
 }

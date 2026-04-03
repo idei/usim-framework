@@ -6,6 +6,31 @@ use Idei\Usim\Models\UsimTextValue;
 
 class TranslationValueResolver
 {
+    public function getDirectEntry(string $key, string $languageCode): ?array
+    {
+        $entry = UsimTextValue::query()
+            ->whereHas('textKey', function ($query) use ($key): void {
+                $query->where('key', $key)->where('is_active', true);
+            })
+            ->whereHas('language', function ($query) use ($languageCode): void {
+                $query->where('code', $languageCode)->where('is_active', true);
+            })
+            ->with(['language', 'textKey'])
+            ->first();
+
+        if (!$entry) {
+            return null;
+        }
+
+        return [
+            'text' => $entry->text_value,
+            'media_url' => $entry->media_url,
+            'media_meta' => $entry->media_meta,
+            'language_code' => $entry->language?->code,
+            'key' => $entry->textKey?->key,
+        ];
+    }
+
     public function getValue(string $key, array $params = [], ?string $languageCode = null): string
     {
         $textValue = $this->resolveTextValue($key, $languageCode);
