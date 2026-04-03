@@ -156,7 +156,7 @@ class TranlateManager extends AbstractUIService
         /** @var TranslationService $translationService */
         $translationService = app(TranslationService::class);
         $fallbackEntry = $translationService->getDirectEntry($key, $fallbackCode);
-        $selectedEntry = $translationService->getDirectEntry($key, $selectedCode);
+        $selectedEntry = $selectedCode ? $translationService->getDirectEntry($key, $selectedCode) : null;
 
         EditTranslationDialog::open(
             key: $key,
@@ -215,7 +215,7 @@ class TranlateManager extends AbstractUIService
         $fallbackLanguageCode = (string) ($params['fallback_language_code'] ?? '');
         $selectedLanguageCode = (string) ($params['selected_language_code'] ?? '');
 
-        if ($key === '' || $fallbackLanguageCode === '' || $selectedLanguageCode === '') {
+        if ($key === '' || $fallbackLanguageCode === '') {
             $this->toast(t('Translation update payload is incomplete'), 'error');
             return;
         }
@@ -224,7 +224,7 @@ class TranlateManager extends AbstractUIService
         $translationService = app(TranslationService::class);
         $translationService->upsertValue($key, $fallbackLanguageCode, (string) ($params['fallback_text'] ?? ''));
 
-        if ($selectedLanguageCode !== $fallbackLanguageCode) {
+        if ($selectedLanguageCode !== '' && $selectedLanguageCode !== $fallbackLanguageCode) {
             $translationService->upsertValue($key, $selectedLanguageCode, (string) ($params['selected_text'] ?? ''));
         }
 
@@ -242,12 +242,20 @@ class TranlateManager extends AbstractUIService
         $dataset = $translationService->listLanguagesDataset();
 
         $options = [
-            ['value' => 'all', 'label' => t('All languages')],
+            ['value' => 'all', 'label' => t('None')],
         ];
+
+        // Resolve fallback code to exclude it from options
+        $fallbackCode = 'en';
+        foreach (($dataset['items'] ?? []) as $language) {
+            if ((bool) ($language['is_fallback'] ?? false)) {
+                $fallbackCode = (string) ($language['code'] ?? 'en');
+            }
+        }
 
         foreach (($dataset['items'] ?? []) as $language) {
             $code = (string) ($language['code'] ?? '');
-            if ($code === '') {
+            if ($code === '' || $code === $fallbackCode) {
                 continue;
             }
 
@@ -312,11 +320,10 @@ class TranlateManager extends AbstractUIService
 
         /** @var TranslationKeysTableModel $model */
         $model = $this->translations_table->getModel();
-        $selectedCode = $model->getLanguageFilter();
+        $filterCode = $model->getLanguageFilter();
 
-        if ($selectedCode === 'all' || $selectedCode === $fallbackCode) {
-            $selectedCode = $firstActiveNonFallback ?? $fallbackCode;
-        }
+        // Selected is null when no specific language is chosen, or when the filter matches the fallback itself
+        $selectedCode = ($filterCode === 'all' || $filterCode === $fallbackCode) ? null : $filterCode;
 
         return [
             'fallback' => $fallbackCode,

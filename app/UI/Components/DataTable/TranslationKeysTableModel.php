@@ -18,6 +18,8 @@ class TranslationKeysTableModel extends AbstractDataTableModel
     /** @var array<string, string> */
     protected array $languages = [];
 
+    protected string $fallbackCode = 'en';
+
     private const EDIT_ICON_SVG = <<<'SVG'
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z"/></svg>
 SVG;
@@ -41,6 +43,10 @@ SVG;
 
             $name = (string) ($language['native_name'] ?? $language['name'] ?? strtoupper($code));
             $this->languages[$code] = $name;
+
+            if ((bool) ($language['is_fallback'] ?? false)) {
+                $this->fallbackCode = $code;
+            }
         }
     }
 
@@ -52,10 +58,30 @@ SVG;
             'group' => ['label' => 'Group', 'width' => [180, 220]],
         ];
 
-        foreach ($this->languages as $code => $name) {
-            $columns['lang_' . $code] = [
-                'label' => strtoupper($code) . ' (' . $name . ')',
+        // Fallback language column — always visible
+        $fallbackName = $this->languages[$this->fallbackCode] ?? strtoupper($this->fallbackCode);
+        $columns['lang_fallback'] = [
+            'label' => strtoupper($this->fallbackCode) . ' (' . $fallbackName . ')',
+            'width' => [170, 210],
+        ];
+
+        // Selected language column — always present to keep column count stable;
+        // collapsed to width 0 when no non-fallback language is selected.
+        $selectedCode = $this->getLanguageFilter();
+        $hasSelectedLang = $selectedCode !== 'all'
+            && $selectedCode !== $this->fallbackCode
+            && isset($this->languages[$selectedCode]);
+
+        if ($hasSelectedLang) {
+            $selectedName = $this->languages[$selectedCode];
+            $columns['lang_selected'] = [
+                'label' => strtoupper($selectedCode) . ' (' . $selectedName . ')',
                 'width' => [170, 210],
+            ];
+        } else {
+            $columns['lang_selected'] = [
+                'label' => '',
+                'width' => [0, 0],
             ];
         }
 
@@ -152,10 +178,23 @@ SVG;
                 $valuesByCode[$code] = $value->text_value;
             }
 
-            foreach (array_keys($this->languages) as $code) {
-                $text = $valuesByCode[$code] ?? null;
-                $rowData['lang_' . $code] = $text !== null && $text !== '' ? $text : '—';
+            // Fallback column — always present
+            $fallbackText = $valuesByCode[$this->fallbackCode] ?? null;
+            $rowData['lang_fallback'] = $fallbackText !== null && $fallbackText !== '' ? $fallbackText : '—';
+
+            // Selected column — always present in row data to match fixed column count
+            $selectedCode = $this->getLanguageFilter();
+            $hasSelectedLang = $selectedCode !== 'all'
+                && $selectedCode !== $this->fallbackCode
+                && isset($this->languages[$selectedCode]);
+
+            if ($hasSelectedLang) {
+                $selectedText = $valuesByCode[$selectedCode] ?? null;
+                $rowData['lang_selected'] = $selectedText !== null && $selectedText !== '' ? $selectedText : '—';
+            } else {
+                $rowData['lang_selected'] = '';
             }
+
 
             $rowData['edit'] = [
                 'button' => [
@@ -198,18 +237,12 @@ SVG;
     protected function buildBaseQuery()
     {
         $searchTerm = trim((string) ($this->getSearchTerm() ?? ''));
-        $languageFilter = $this->getLanguageFilter();
         $groupFilter = $this->getGroupFilter();
 
         return UsimTextKey::query()
             ->where('is_active', true)
             ->when($groupFilter !== 'all', function ($query) use ($groupFilter): void {
                 $query->where('group', $groupFilter);
-            })
-            ->when($languageFilter !== 'all', function ($query) use ($languageFilter): void {
-                $query->whereHas('values.language', function ($languageQuery) use ($languageFilter): void {
-                    $languageQuery->where('code', $languageFilter);
-                });
             })
             ->when($searchTerm !== '', function ($query) use ($searchTerm): void {
                 $like = '%' . $searchTerm . '%';

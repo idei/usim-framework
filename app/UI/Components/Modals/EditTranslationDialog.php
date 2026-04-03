@@ -20,7 +20,7 @@ class EditTranslationDialog
         string $key,
         string $group,
         string $fallbackLanguageCode,
-        string $selectedLanguageCode,
+        ?string $selectedLanguageCode,
         string $fallbackText = '',
         string $selectedText = '',
         string $submitAction = 'submit_update_translation',
@@ -53,7 +53,7 @@ class EditTranslationDialog
 
         $container->add(UIBuilder::input('translation_key')->type('hidden')->value($key));
         $container->add(UIBuilder::input('fallback_language_code')->type('hidden')->value($fallbackLanguageCode));
-        $container->add(UIBuilder::input('selected_language_code')->type('hidden')->value($selectedLanguageCode));
+        $container->add(UIBuilder::input('selected_language_code')->type('hidden')->value($selectedLanguageCode ?? ''));
 
         $container->add(
             UIBuilder::input('fallback_text')
@@ -64,14 +64,16 @@ class EditTranslationDialog
                 ->width('100%')
         );
 
-        $container->add(
-            UIBuilder::input('selected_text')
-                ->label('Selected (' . strtoupper($selectedLanguageCode) . ')')
-                ->placeholder('Enter selected language translation')
-                ->value($selectedText)
-                ->autocomplete('off')
-                ->width('100%')
-        );
+        if ($selectedLanguageCode !== null && $selectedLanguageCode !== '') {
+            $container->add(
+                UIBuilder::input('selected_text')
+                    ->label('Selected (' . strtoupper($selectedLanguageCode) . ')')
+                    ->placeholder('Enter selected language translation')
+                    ->value($selectedText)
+                    ->autocomplete('off')
+                    ->width('100%')
+            );
+        }
 
         $buttons = UIBuilder::container('edit_translation_buttons')
             ->layout(LayoutType::HORIZONTAL)

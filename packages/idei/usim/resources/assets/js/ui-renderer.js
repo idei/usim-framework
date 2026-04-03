@@ -1709,7 +1709,15 @@ class TableCellComponent extends UIComponent {
 
         // Apply width constraints
         // For table-layout: fixed, we use width instead of min/max
-        if (this.config.min_width || this.config.max_width) {
+        if (this.config.min_width === 0 && this.config.max_width === 0) {
+            // Explicit zero means collapse the column without removing it from the table flow
+            cell.style.width = '0';
+            cell.style.maxWidth = '0';
+            cell.style.minWidth = '0';
+            cell.style.padding = '0';
+            cell.style.overflow = 'hidden';
+            cell.style.border = 'none';
+        } else if (this.config.min_width || this.config.max_width) {
             // Use the minimum width as the actual width for fixed layout
             const targetWidth = this.config.min_width || this.config.max_width;
             cell.style.width = `${targetWidth}px`;
@@ -1854,7 +1862,15 @@ class TableHeaderCellComponent extends UIComponent {
 
         // Apply width constraints
         // For table-layout: fixed, we use width instead of min/max
-        if (this.config.min_width || this.config.max_width) {
+        if (this.config.min_width === 0 && this.config.max_width === 0) {
+            // Explicit zero means collapse the column without removing it from the table flow
+            cell.style.width = '0';
+            cell.style.maxWidth = '0';
+            cell.style.minWidth = '0';
+            cell.style.padding = '0';
+            cell.style.overflow = 'hidden';
+            cell.style.border = 'none';
+        } else if (this.config.min_width || this.config.max_width) {
             // Use the minimum width as the actual width for fixed layout
             const targetWidth = this.config.min_width || this.config.max_width;
             cell.style.width = `${targetWidth}px`;
