@@ -43,17 +43,18 @@ class TranslationService
 
         if (!$textKey->exists) {
             $textKey->is_active = (bool) ($attributes['is_active'] ?? true);
+            $textKey->needs_review = (bool) ($attributes['needs_review'] ?? false);
         }
 
-        if (array_key_exists('group', $attributes)) {
+        if (\array_key_exists('group', $attributes)) {
             $textKey->group = $attributes['group'];
         }
 
-        if (array_key_exists('description', $attributes)) {
-            $textKey->description = $attributes['description'];
+        if (\array_key_exists('needs_review', $attributes)) {
+            $textKey->needs_review = (bool) $attributes['needs_review'];
         }
 
-        if (array_key_exists('is_active', $attributes)) {
+        if (\array_key_exists('is_active', $attributes)) {
             $textKey->is_active = (bool) $attributes['is_active'];
         }
 
@@ -115,8 +116,7 @@ class TranslationService
         return UsimTextKey::query()
             ->when($search, function ($query) use ($search) {
                 $query->where('key', 'like', '%' . $search . '%')
-                    ->orWhere('group', 'like', '%' . $search . '%')
-                    ->orWhere('description', 'like', '%' . $search . '%');
+                    ->orWhere('group', 'like', '%' . $search . '%');
             })
             ->orderBy('key')
             ->paginate($perPage);
@@ -177,7 +177,7 @@ class TranslationService
         int $page = 1
     ): array {
         $language = UsimLanguage::query()->byCode($languageCode)->firstOrFail();
-        $normalizedSortBy = in_array($sortBy, ['key', 'description'], true) ? $sortBy : 'key';
+        $normalizedSortBy = in_array($sortBy, ['key', 'needs_review'], true) ? $sortBy : 'key';
         $normalizedDirection = strtolower($sortDirection) === 'desc' ? 'desc' : 'asc';
         $normalizedPerPage = max(1, min($perPage, 200));
         $normalizedPage = max(1, $page);
@@ -193,7 +193,7 @@ class TranslationService
 
                 $query->where(function ($searchQuery) use ($like): void {
                     $searchQuery->where('key', 'like', $like)
-                        ->orWhere('description', 'like', $like);
+                        ->orWhere('group', 'like', $like);
                 });
             })
             ->with(['values' => function ($query) use ($language): void {
@@ -211,7 +211,7 @@ class TranslationService
                     'id' => $textKey->id,
                     'key' => $textKey->key,
                     'group' => $textKey->group,
-                    'description' => $textKey->description,
+                    'needs_review' => (bool) $textKey->needs_review,
                     'is_active' => (bool) $textKey->is_active,
                     'has_representation' => $hasRepresentation,
                     'missing_representation' => !$hasRepresentation,
@@ -286,7 +286,7 @@ class TranslationService
         if ($this->isSlug($input)) {
             if (!UsimTextKey::query()->byKey($input)->exists()) {
                 $callerContext = $this->resolveCallerContext();
-                $this->storeFallbackTranslation($input, $this->slugToFallbackText($input), 'To review', $callerContext['group']);
+                $this->storeFallbackTranslation($input, $this->slugToFallbackText($input), true, $callerContext['group']);
             }
 
             return $input;
@@ -294,7 +294,7 @@ class TranslationService
 
         $callerContext = $this->resolveCallerContext();
         $generatedKey = $this->generateAutoKeyFromText($input, $callerContext['group']);
-        $this->storeFallbackTranslation($generatedKey, $input, 'To review', $callerContext['group']);
+        $this->storeFallbackTranslation($generatedKey, $input, true, $callerContext['group']);
 
         return $generatedKey;
     }
@@ -305,22 +305,22 @@ class TranslationService
             return false;
         }
 
-        // ASCII only, separators allowed only in-between segments.
-        return preg_match('/^(?:[A-Za-z0-9]{3,})(?:[._][A-Za-z0-9]{3,})*$/', $value) === 1;
+        // ASCII only, lowercase separators allowed only in-between segments.
+        return preg_match('/^(?:[a-z0-9]{3,})(?:[._][a-z0-9]{3,})*$/', $value) === 1;
     }
 
     protected function storeFallbackTranslation(
         string $key,
         string $fallbackText,
-        ?string $description = null,
+        ?bool $needsReview = null,
         ?string $group = null
     ): void
     {
-        if ($description !== null || $group !== null) {
+        if ($needsReview !== null || $group !== null) {
             $attributes = [];
 
-            if ($description !== null) {
-                $attributes['description'] = $description;
+            if ($needsReview !== null) {
+                $attributes['needs_review'] = $needsReview;
             }
 
             if ($group !== null) {

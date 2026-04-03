@@ -50,7 +50,7 @@ class TranlateManager extends AbstractUIService
 
         $search = UIBuilder::input('search_translations')
             ->label(t('Search'))
-            ->placeholder(t('Search keys or description...'))
+            ->placeholder(t('Search keys or groups...'))
             ->width('420px')
             ->autocomplete('off')
             ->onInput('search_translations', [])

@@ -147,7 +147,7 @@ class Menu extends AbstractUIService
     {
         $menu->link(t('Home'), '/', '🏠');
         $menu->screen(Dashboard::class);
-        $menu->screen(TranlateManager::class, t('Translate Manager'), '🌐');
+        $menu->screen(TranlateManager::class);
         $this->buildDemosMenu($menu);
         $menu->separator();
         $menu->item(t('About'), 'show_about_info', [], 'ℹ️');

@@ -40,7 +40,7 @@ class TranslationKeysTableModel extends AbstractDataTableModel
     {
         $columns = [
             'key' => ['label' => 'Key', 'width' => [180, 220], 'sort_by' => 'key'],
-            'description' => ['label' => 'Description', 'width' => [200, 240], 'sort_by' => 'description'],
+            'needs_review' => ['label' => 'Needs Review', 'width' => [130, 150], 'sort_by' => 'needs_review'],
             'group' => ['label' => 'Group', 'width' => [180, 220]],
         ];
 
@@ -105,7 +105,7 @@ class TranslationKeysTableModel extends AbstractDataTableModel
         $sortBy = $this->tableBuilder->getSortColumn();
         $sortDirection = $this->tableBuilder->getSortDirection();
 
-        $allowedSorts = ['key', 'description'];
+        $allowedSorts = ['key', 'needs_review'];
         $sortColumn = in_array($sortBy, $allowedSorts, true) ? $sortBy : 'key';
         $direction = strtolower((string) $sortDirection) === 'desc' ? 'desc' : 'asc';
 
@@ -127,7 +127,7 @@ class TranslationKeysTableModel extends AbstractDataTableModel
         foreach ($rows as $row) {
             $rowData = [
                 'key' => $row->key,
-                'description' => $row->description ?? '-',
+                'needs_review' => $row->needs_review ? 'Yes' : 'No',
                 'group' => $row->group ?? '-',
             ];
 
@@ -172,7 +172,7 @@ class TranslationKeysTableModel extends AbstractDataTableModel
                 $like = '%' . $searchTerm . '%';
                 $query->where(function ($searchQuery) use ($like): void {
                     $searchQuery->where('key', 'like', $like)
-                        ->orWhere('description', 'like', $like);
+                        ->orWhere('group', 'like', $like);
                 });
             });
     }

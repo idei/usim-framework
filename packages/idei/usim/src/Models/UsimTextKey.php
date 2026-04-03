@@ -14,11 +14,12 @@ class UsimTextKey extends Model
     protected $fillable = [
         'key',
         'group',
-        'description',
+        'needs_review',
         'is_active',
     ];
 
     protected $casts = [
+        'needs_review' => 'boolean',
         'is_active' => 'boolean',
     ];
 
