@@ -8,7 +8,6 @@ use Illuminate\Contracts\Events\Dispatcher;
 
 use Idei\Usim\Services\UIChangesCollector;
 use Idei\Usim\Services\Support\Translation\TranslationAutoRegistrar;
-use Idei\Usim\Services\Support\Translation\TranslationContextResolver;
 use Idei\Usim\Services\Support\Translation\TranslationDatasetQuery;
 use Idei\Usim\Services\Support\Translation\TranslationKeyManager;
 use Idei\Usim\Services\Support\Translation\TranslationValueResolver;
