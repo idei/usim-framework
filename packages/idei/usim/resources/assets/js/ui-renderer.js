@@ -3046,6 +3046,23 @@ class UIRenderer {
                 element.classList.add(changes.style);
             }
 
+            // Inline color/border updates (support explicit null to clear stale styles)
+            if (changes.background_color !== undefined) {
+                element.style.backgroundColor = changes.background_color ?? '';
+            }
+
+            if (changes.text_color !== undefined) {
+                element.style.color = changes.text_color ?? '';
+            }
+
+            if (changes.border_color !== undefined) {
+                element.style.borderColor = changes.border_color ?? '';
+            }
+
+            if (changes.align !== undefined) {
+                element.style.textAlign = changes.align ?? '';
+            }
+
             // Button background/hover behavior
             if (changes.no_background !== undefined) {
                 if (changes.no_background) {

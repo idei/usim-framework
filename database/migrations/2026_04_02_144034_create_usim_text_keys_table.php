@@ -12,7 +12,6 @@ return new class extends Migration
             $table->id();
             $table->string('key')->unique();
             $table->string('group')->nullable()->index();
-            $table->boolean('needs_review')->default(false);
             $table->boolean('is_active')->default(true);
             $table->timestamps();
         });

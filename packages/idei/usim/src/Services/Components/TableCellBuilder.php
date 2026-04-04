@@ -58,8 +58,17 @@ class TableCellBuilder extends UIComponent
     public function clearCell(): self
     {
         $this->setConfig('text', '');
+        $this->setConfig('align', null);
         $this->setConfig('url_image', null);
         $this->setConfig('button', null);
+        $this->setConfig('buttons', null);
+        $this->setConfig('alt', null);
+        $this->setConfig('image_width', null);
+        $this->setConfig('image_height', null);
+        $this->setConfig('padding', null);
+        $this->setConfig('background_color', null);
+        $this->setConfig('text_color', null);
+        $this->setConfig('border_color', null);
         $this->child = null;
         return $this;
     }
@@ -104,6 +113,30 @@ class TableCellBuilder extends UIComponent
     {
         $this->setConfig('padding', $padding);
         return $this;
+    }
+
+    /**
+     * Set background color for the cell.
+     */
+    public function backgroundColor(string $color): self
+    {
+        return $this->setConfig('background_color', $color);
+    }
+
+    /**
+     * Set text color for the cell.
+     */
+    public function textColor(string $color): self
+    {
+        return $this->setConfig('text_color', $color);
+    }
+
+    /**
+     * Set border color for the cell.
+     */
+    public function borderColor(string $color): self
+    {
+        return $this->setConfig('border_color', $color);
     }
 
     /**

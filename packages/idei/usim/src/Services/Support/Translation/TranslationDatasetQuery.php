@@ -62,7 +62,7 @@ class TranslationDatasetQuery
         int $page = 1
     ): array {
         $language = UsimLanguage::query()->byCode($languageCode)->firstOrFail();
-        $normalizedSortBy = in_array($sortBy, ['key', 'needs_review'], true) ? $sortBy : 'key';
+        $normalizedSortBy = in_array($sortBy, ['key'], true) ? $sortBy : 'key';
         $normalizedDirection = strtolower($sortDirection) === 'desc' ? 'desc' : 'asc';
         $normalizedPerPage = max(1, min($perPage, 200));
         $normalizedPage = max(1, $page);
@@ -96,7 +96,7 @@ class TranslationDatasetQuery
                     'id' => $textKey->id,
                     'key' => $textKey->key,
                     'group' => $textKey->group,
-                    'needs_review' => (bool) $textKey->needs_review,
+                    'needs_review' => (bool) ($value?->needs_review ?? false),
                     'is_active' => (bool) $textKey->is_active,
                     'has_representation' => $hasRepresentation,
                     'missing_representation' => !$hasRepresentation,

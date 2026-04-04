@@ -165,6 +165,8 @@ class TranlateManager extends AbstractUIService
             selectedLanguageCode: $selectedCode,
             fallbackText: (string) ($fallbackEntry['text'] ?? ''),
             selectedText: (string) ($selectedEntry['text'] ?? ''),
+            fallbackNeedsReview: (bool) ($fallbackEntry['needs_review'] ?? false),
+            selectedNeedsReview: (bool) ($selectedEntry['needs_review'] ?? false),
             callerServiceId: $this->getServiceComponentId()
         );
     }
@@ -222,17 +224,46 @@ class TranlateManager extends AbstractUIService
 
         /** @var TranslationService $translationService */
         $translationService = app(TranslationService::class);
-        $translationService->upsertValue($key, $fallbackLanguageCode, (string) ($params['fallback_text'] ?? ''));
+        $fallbackReviewed = $this->normalizeCheckboxValue($params['fallback_mark_reviewed'] ?? false);
+        $fallbackNeedsReview = !$fallbackReviewed;
+
+        $translationService->upsertValue(
+            $key,
+            $fallbackLanguageCode,
+            (string) ($params['fallback_text'] ?? ''),
+            needsReview: $fallbackNeedsReview
+        );
 
         if ($selectedLanguageCode !== '' && $selectedLanguageCode !== $fallbackLanguageCode) {
-            $translationService->upsertValue($key, $selectedLanguageCode, (string) ($params['selected_text'] ?? ''));
-        }
+            $selectedReviewed = $this->normalizeCheckboxValue($params['selected_mark_reviewed'] ?? false);
+            $selectedNeedsReview = !$selectedReviewed;
 
-        $translationService->createOrUpdateKey($key, ['needs_review' => false]);
+            $translationService->upsertValue(
+                $key,
+                $selectedLanguageCode,
+                (string) ($params['selected_text'] ?? ''),
+                needsReview: $selectedNeedsReview
+            );
+        }
 
         $this->translations_table->refresh();
         $this->toast(t('Translation updated successfully'), 'success');
         $this->closeModal();
+    }
+
+    protected function normalizeCheckboxValue(mixed $value): bool
+    {
+        if (is_bool($value)) {
+            return $value;
+        }
+
+        if (is_int($value) || is_float($value)) {
+            return (int) $value === 1;
+        }
+
+        $normalized = strtolower(trim((string) $value));
+
+        return in_array($normalized, ['1', 'true', 'on', 'yes'], true);
     }
 
     protected function getLanguageOptions(): array

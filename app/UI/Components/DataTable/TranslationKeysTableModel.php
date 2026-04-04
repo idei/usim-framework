@@ -18,6 +18,9 @@ class TranslationKeysTableModel extends AbstractDataTableModel
     /** @var array<string, string> */
     protected array $languages = [];
 
+    /** @var array<int, string> */
+    protected array $languageCodes = [];
+
     protected string $fallbackCode = 'en';
 
     private const EDIT_ICON_SVG = <<<'SVG'
@@ -43,6 +46,7 @@ SVG;
 
             $name = (string) ($language['native_name'] ?? $language['name'] ?? strtoupper($code));
             $this->languages[$code] = $name;
+            $this->languageCodes[] = $code;
 
             if ((bool) ($language['is_fallback'] ?? false)) {
                 $this->fallbackCode = $code;
@@ -53,16 +57,17 @@ SVG;
     public function getColumns(): array
     {
         $columns = [
-            'key' => ['label' => 'Key', 'width' => [180, 220], 'sort_by' => 'key'],
-            'needs_review' => ['label' => 'Needs Review', 'width' => [130, 150], 'sort_by' => 'needs_review'],
-            'group' => ['label' => 'Group', 'width' => [180, 220]],
+            // Fixed width: keep key column stable regardless of content length.
+            'key' => ['label' => 'Key', 'width' => [320, 320], 'sort_by' => 'key'],
+            'completion' => ['label' => 'Completion', 'width' => [120, 140]],
         ];
 
         // Fallback language column — always visible
         $fallbackName = $this->languages[$this->fallbackCode] ?? strtoupper($this->fallbackCode);
         $columns['lang_fallback'] = [
             'label' => strtoupper($this->fallbackCode) . ' (' . $fallbackName . ')',
-            'width' => [170, 210],
+            // Fixed width: keep fallback translation column stable regardless of content length.
+            'width' => [320, 320],
         ];
 
         // Selected language column — always present to keep column count stable;
@@ -142,7 +147,7 @@ SVG;
         $sortBy = $this->tableBuilder->getSortColumn();
         $sortDirection = $this->tableBuilder->getSortDirection();
 
-        $allowedSorts = ['key', 'needs_review'];
+        $allowedSorts = ['key'];
         $sortColumn = in_array($sortBy, $allowedSorts, true) ? $sortBy : 'key';
         $direction = strtolower((string) $sortDirection) === 'desc' ? 'desc' : 'asc';
 
@@ -164,8 +169,6 @@ SVG;
         foreach ($rows as $row) {
             $rowData = [
                 'key' => $row->key,
-                'needs_review' => $row->needs_review ? 'Yes' : 'No',
-                'group' => $row->group ?? '-',
             ];
 
             $valuesByCode = [];
@@ -175,12 +178,17 @@ SVG;
                     continue;
                 }
 
-                $valuesByCode[$code] = $value->text_value;
+                $valuesByCode[$code] = [
+                    'text' => $value->text_value,
+                    'needs_review' => (bool) $value->needs_review,
+                ];
             }
 
+            $rowData['completion'] = $this->buildCompletionCell($valuesByCode);
+
             // Fallback column — always present
-            $fallbackText = $valuesByCode[$this->fallbackCode] ?? null;
-            $rowData['lang_fallback'] = $fallbackText !== null && $fallbackText !== '' ? $fallbackText : '—';
+            $fallbackEntry = $valuesByCode[$this->fallbackCode] ?? null;
+            $rowData['lang_fallback'] = $this->buildTranslationCell($fallbackEntry);
 
             // Selected column — always present in row data to match fixed column count
             $selectedCode = $this->getLanguageFilter();
@@ -189,8 +197,8 @@ SVG;
                 && isset($this->languages[$selectedCode]);
 
             if ($hasSelectedLang) {
-                $selectedText = $valuesByCode[$selectedCode] ?? null;
-                $rowData['lang_selected'] = $selectedText !== null && $selectedText !== '' ? $selectedText : '—';
+                $selectedEntry = $valuesByCode[$selectedCode] ?? null;
+                $rowData['lang_selected'] = $this->buildTranslationCell($selectedEntry);
             } else {
                 $rowData['lang_selected'] = '';
             }
@@ -232,6 +240,97 @@ SVG;
         }
 
         return $formatted;
+    }
+
+    /**
+     * @param array{text?: mixed, needs_review?: bool}|null $entry
+     * @return string|array<string, string>
+     */
+    protected function buildTranslationCell(?array $entry): string|array
+    {
+        $text = trim((string) ($entry['text'] ?? ''));
+        if ($text === '') {
+            return '—';
+        }
+
+        if (!(bool) ($entry['needs_review'] ?? false)) {
+            return $text;
+        }
+
+        return [
+            'text' => $text,
+            'background_color' => 'var(--usim-label-warning-bg, rgba(243, 156, 18, 0.18))',
+            'text_color' => 'var(--usim-label-warning-text, #8a5b12)',
+            'border_color' => 'var(--usim-label-warning-border, rgba(243, 156, 18, 0.35))',
+        ];
+    }
+
+    /**
+     * @param array<string, array{text?: mixed, needs_review?: bool}> $valuesByCode
+     * @return array<string, string>
+     */
+    protected function buildCompletionCell(array $valuesByCode): array
+    {
+        $totalLanguages = count($this->languageCodes);
+        $completedTranslations = 0;
+
+        foreach ($this->languageCodes as $code) {
+            $entry = $valuesByCode[$code] ?? null;
+            $text = trim((string) ($entry['text'] ?? ''));
+            if ($text !== '') {
+                $completedTranslations++;
+            }
+        }
+
+        $percentage = $totalLanguages > 0
+            ? (int) round(($completedTranslations / $totalLanguages) * 100)
+            : 0;
+
+        return [
+            'text' => $percentage . '%',
+            'background_color' => $this->resolveCompletionBackgroundColor($percentage),
+            'text_color' => $this->resolveCompletionTextColor($percentage),
+            'border_color' => $this->resolveCompletionBorderColor($percentage),
+        ];
+    }
+
+    protected function resolveCompletionBackgroundColor(int $percentage): string
+    {
+        if ($percentage >= 100) {
+            return 'var(--usim-label-success-bg, rgba(46, 204, 113, 0.16))';
+        }
+
+        if ($percentage >= 60) {
+            return 'var(--usim-label-warning-bg, rgba(243, 156, 18, 0.18))';
+        }
+
+        return 'rgba(230, 126, 34, 0.16)';
+    }
+
+    protected function resolveCompletionTextColor(int $percentage): string
+    {
+        if ($percentage >= 100) {
+            return 'var(--usim-label-success-text, #1d6f44)';
+        }
+
+        if ($percentage >= 60) {
+            return 'var(--usim-label-warning-text, #8a5b12)';
+        }
+
+        return '#9a5614';
+    }
+
+    protected function resolveCompletionBorderColor(int $percentage): string
+    {
+        if ($percentage >= 100) {
+            return 'var(--usim-label-success-border, rgba(46, 204, 113, 0.35))';
+        }
+
+        if ($percentage >= 60) {
+            return 'var(--usim-label-warning-border, rgba(243, 156, 18, 0.35))';
+        }
+
+        return 'rgba(230, 126, 34, 0.32)';
     }
 
     protected function buildBaseQuery()

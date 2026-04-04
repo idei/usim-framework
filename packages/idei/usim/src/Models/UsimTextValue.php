@@ -14,11 +14,13 @@ class UsimTextValue extends Model
         'text_key_id',
         'language_id',
         'text_value',
+        'needs_review',
         'media_url',
         'media_meta',
     ];
 
     protected $casts = [
+        'needs_review' => 'boolean',
         'media_meta' => 'array',
     ];
 

@@ -707,6 +707,22 @@ body {
     background: var(--usim-table-row-zebra-hover-bg, var(--ui-surface-hover));
 }
 
+.ui-table-row.primary:nth-child(even) {
+    background: var(--usim-table-row-primary-bg, rgba(52, 152, 219, 0.14));
+}
+
+.ui-table-row.success:nth-child(even) {
+    background: var(--usim-table-row-success-bg, rgba(46, 204, 113, 0.12));
+}
+
+.ui-table-row.warning:nth-child(even) {
+    background: var(--usim-table-row-warning-bg, rgba(243, 156, 18, 0.14));
+}
+
+.ui-table-row.danger:nth-child(even) {
+    background: var(--usim-table-row-danger-bg, rgba(231, 76, 60, 0.12));
+}
+
 /* Empty state */
 .ui-table-empty {
     padding: 40px 20px;

@@ -41,15 +41,10 @@ class TranslationKeyManager
 
         if (!$textKey->exists) {
             $textKey->is_active = (bool) ($attributes['is_active'] ?? true);
-            $textKey->needs_review = (bool) ($attributes['needs_review'] ?? false);
         }
 
         if (array_key_exists('group', $attributes)) {
             $textKey->group = $attributes['group'];
-        }
-
-        if (array_key_exists('needs_review', $attributes)) {
-            $textKey->needs_review = (bool) $attributes['needs_review'];
         }
 
         if (array_key_exists('is_active', $attributes)) {
@@ -66,21 +61,28 @@ class TranslationKeyManager
         string $languageCode,
         ?string $text,
         ?string $mediaUrl = null,
-        ?array $mediaMeta = null
+        ?array $mediaMeta = null,
+        ?bool $needsReview = null
     ): UsimTextValue {
         $textKey = $this->createOrUpdateKey($key);
         $language = UsimLanguage::query()->byCode($languageCode)->firstOrFail();
+
+        $payload = [
+            'text_value' => $text,
+            'media_url' => $mediaUrl,
+            'media_meta' => $mediaMeta,
+        ];
+
+        if ($needsReview !== null) {
+            $payload['needs_review'] = $needsReview;
+        }
 
         return UsimTextValue::query()->updateOrCreate(
             [
                 'text_key_id' => $textKey->id,
                 'language_id' => $language->id,
             ],
-            [
-                'text_value' => $text,
-                'media_url' => $mediaUrl,
-                'media_meta' => $mediaMeta,
-            ]
+            $payload
         );
     }
 

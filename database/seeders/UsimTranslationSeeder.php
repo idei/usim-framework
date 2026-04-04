@@ -73,7 +73,6 @@ class UsimTranslationSeeder extends Seeder
         foreach ($translations as $key => $definition) {
             $translationService->createOrUpdateKey($key, [
                 'group' => $definition['group'] ?? null,
-                'needs_review' => false,
                 'is_active' => true,
             ]);
 

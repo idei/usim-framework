@@ -42,9 +42,10 @@ class TranslationService
         string $languageCode,
         ?string $text,
         ?string $mediaUrl = null,
-        ?array $mediaMeta = null
+        ?array $mediaMeta = null,
+        ?bool $needsReview = null
     ): UsimTextValue {
-        return $this->keyManager->upsertValue($key, $languageCode, $text, $mediaUrl, $mediaMeta);
+        return $this->keyManager->upsertValue($key, $languageCode, $text, $mediaUrl, $mediaMeta, $needsReview);
     }
 
     public function deleteKey(string $key): bool

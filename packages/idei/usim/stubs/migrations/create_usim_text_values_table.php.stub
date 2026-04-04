@@ -13,6 +13,7 @@ return new class extends Migration
             $table->foreignId('text_key_id')->constrained('usim_text_keys')->cascadeOnDelete();
             $table->foreignId('language_id')->constrained('usim_languages')->cascadeOnDelete();
             $table->text('text_value')->nullable();
+            $table->boolean('needs_review')->default(false);
             $table->string('media_url')->nullable();
             $table->json('media_meta')->nullable();
             $table->timestamps();

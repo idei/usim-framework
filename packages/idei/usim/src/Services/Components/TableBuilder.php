@@ -166,6 +166,66 @@ class TableBuilder extends UIComponent
     }
 
     /**
+     * Split formatted row data into column values and row-level metadata.
+     *
+     * Reserved keys:
+     * - __row_style: table row semantic style (default, warning, success, etc.)
+     * - __row_selected: boolean selected state
+     *
+     * @param array $rowData
+     * @return array{0: array, 1: array{style: string, selected: bool}}
+     */
+    private function splitFormattedRowData(array $rowData): array
+    {
+        $style = (string) ($rowData['__row_style'] ?? 'default');
+        $selected = (bool) ($rowData['__row_selected'] ?? false);
+
+        unset($rowData['__row_style'], $rowData['__row_selected']);
+
+        return [$rowData, ['style' => $style, 'selected' => $selected]];
+    }
+
+    /**
+     * Apply row-level metadata after the row has been prepared.
+     *
+     * @param int $row
+     * @param array{style: string, selected: bool} $meta
+     * @return void
+     */
+    private function applyRowMetadata(int $row, array $meta): void
+    {
+        if (!isset($this->rowBuilders[$row])) {
+            return;
+        }
+
+        $this->rowBuilders[$row]
+            ->style($meta['style'] !== '' ? $meta['style'] : 'default')
+            ->selected($meta['selected']);
+    }
+
+    /**
+     * Apply inline style metadata declared in a formatted cell array.
+     *
+     * @param TableCellBuilder $cell
+     * @param array $value
+     * @return void
+     */
+    private function applyCellMetadata(TableCellBuilder $cell, array $value): void
+    {
+        if (isset($value['background_color']) && $value['background_color'] !== '') {
+            $cell->backgroundColor((string) $value['background_color']);
+        }
+
+        if (isset($value['text_color']) && $value['text_color'] !== '') {
+            $cell->textColor((string) $value['text_color']);
+        }
+
+        if (isset($value['border_color']) && $value['border_color'] !== '') {
+            $cell->borderColor((string) $value['border_color']);
+        }
+    }
+
+    /**
      * Update table data for the current page
      * Clears existing rows and fills them with data from the current page
      */
@@ -198,8 +258,10 @@ class TableBuilder extends UIComponent
             if ($row >= $this->rows) {
                 break;
             }
+            [$rowData, $rowMeta] = $this->splitFormattedRowData($rowData);
             $rowValues = array_values($rowData);
             $this->fillRow($row, $rowValues);
+            $this->applyRowMetadata($row, $rowMeta);
             $row++;
         }
 
@@ -528,6 +590,9 @@ class TableBuilder extends UIComponent
             $value = $data[$col];
             $cell = $this->cells[$row][$col];
 
+            // Always reset render/content state to avoid stale visual metadata.
+            $cell->clearCell();
+
             // Log::info("Filling cell at ($row, $col) with value: " . json_encode($value));
 
             if (is_string($value) || is_numeric($value)) {
@@ -546,6 +611,8 @@ class TableBuilder extends UIComponent
                         $value['height'] ?? null
                     )->padding(2); // Compact for images
                 }
+
+                $this->applyCellMetadata($cell, $value);
             }
         }
 
@@ -804,9 +871,10 @@ class TableBuilder extends UIComponent
                     break;
                 }
 
-                // Convert associative array to indexed array for fillRow
+                [$rowData, $rowMeta] = $this->splitFormattedRowData($rowData);
                 $rowValues = array_values($rowData);
                 $this->fillRow($row, $rowValues);
+                $this->applyRowMetadata($row, $rowMeta);
                 $row++;
             }
         }

@@ -25,10 +25,31 @@ class TranslationAutoRegistrar
         }
 
         $callerContext = $this->contextResolver->resolveCallerContext();
-        $generatedKey = $this->generateAutoKeyFromText($input, $callerContext['group']);
+        $group = $callerContext['group'];
+        $generatedKey = $this->generateAutoKeyFromText($input, $group);
+
+        // If the generated key already belongs to this group, keep it as-is
+        // and avoid re-inserting/updating fallback translation data.
+        if ($this->keyExistsForGroup($generatedKey, $group)) {
+            return $generatedKey;
+        }
+
         $this->storeFallbackTranslation($generatedKey, $input, true, $callerContext['group']);
 
         return $generatedKey;
+    }
+
+    private function keyExistsForGroup(string $key, ?string $group): bool
+    {
+        $query = UsimTextKey::query()->byKey($key);
+
+        if ($group === null || $group === '') {
+            $query->whereNull('group');
+        } else {
+            $query->where('group', $group);
+        }
+
+        return $query->exists();
     }
 
     private function isSlug(string $value): bool
@@ -46,12 +67,8 @@ class TranslationAutoRegistrar
         ?bool $needsReview = null,
         ?string $group = null
     ): void {
-        if ($needsReview !== null || $group !== null) {
+        if ($group !== null) {
             $attributes = [];
-
-            if ($needsReview !== null) {
-                $attributes['needs_review'] = $needsReview;
-            }
 
             if ($group !== null) {
                 $attributes['group'] = $group;
@@ -62,7 +79,12 @@ class TranslationAutoRegistrar
 
         $fallbackLocale = $this->resolveFallbackLocale();
         $this->keyManager->ensureLanguageExists($fallbackLocale);
-        $this->keyManager->upsertValue($key, $fallbackLocale, $fallbackText);
+        $this->keyManager->upsertValue(
+            $key,
+            $fallbackLocale,
+            $fallbackText,
+            needsReview: $needsReview
+        );
     }
 
     private function resolveFallbackLocale(): string

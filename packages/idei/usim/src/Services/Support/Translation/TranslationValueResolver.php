@@ -24,6 +24,7 @@ class TranslationValueResolver
 
         return [
             'text' => $entry->text_value,
+            'needs_review' => (bool) $entry->needs_review,
             'media_url' => $entry->media_url,
             'media_meta' => $entry->media_meta,
             'language_code' => $entry->language?->code,
@@ -52,6 +53,7 @@ class TranslationValueResolver
 
         return [
             'text' => $entry->text_value,
+            'needs_review' => (bool) $entry->needs_review,
             'media_url' => $entry->media_url,
             'media_meta' => $entry->media_meta,
             'language_code' => $entry->language?->code,

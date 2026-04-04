@@ -23,6 +23,8 @@ class EditTranslationDialog
         ?string $selectedLanguageCode,
         string $fallbackText = '',
         string $selectedText = '',
+        bool $fallbackNeedsReview = false,
+        bool $selectedNeedsReview = false,
         string $submitAction = 'submit_update_translation',
         ?string $cancelAction = 'close_modal',
         ?int $callerServiceId = null
@@ -64,6 +66,12 @@ class EditTranslationDialog
                 ->width('100%')
         );
 
+        $container->add(
+            UIBuilder::checkbox('fallback_mark_reviewed')
+                ->label('Fallback translation reviewed by a human (no longer needs review)')
+                ->checked(!$fallbackNeedsReview)
+        );
+
         if ($selectedLanguageCode !== null && $selectedLanguageCode !== '') {
             $container->add(
                 UIBuilder::input('selected_text')
@@ -72,6 +80,12 @@ class EditTranslationDialog
                     ->value($selectedText)
                     ->autocomplete('off')
                     ->width('100%')
+            );
+
+            $container->add(
+                UIBuilder::checkbox('selected_mark_reviewed')
+                    ->label('Selected translation reviewed by a human (no longer needs review)')
+                    ->checked(!$selectedNeedsReview)
             );
         }
 
