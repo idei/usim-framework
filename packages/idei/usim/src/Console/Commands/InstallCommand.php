@@ -3,6 +3,7 @@
 namespace Idei\Usim\Console\Commands;
 
 use Idei\Usim\Console\Commands\Concerns\InstallsDatabaseScaffolding;
+use Idei\Usim\Console\Commands\Concerns\RegistersPackageHelperAutoload;
 use Idei\Usim\Support\CodeModifier\ClassModifier;
 use Illuminate\Console\Command;
 use Illuminate\Filesystem\Filesystem;
@@ -12,6 +13,7 @@ use Illuminate\Support\Str;
 class InstallCommand extends Command
 {
     use InstallsDatabaseScaffolding;
+    use RegistersPackageHelperAutoload;
 
     protected $signature = 'usim:install
                             {--force : Overwrite existing files}';
@@ -70,10 +72,13 @@ class InstallCommand extends Command
         // === STEP 6: Append .env variables ===
         $this->appendEnvVariables();
 
-        // === STEP 7: Run usim:discover ===
+        // === STEP 7: Register package helpers in composer autoload ===
+        $this->registerPackageHelpersAutoload();
+
+        // === STEP 8: Run usim:discover ===
         $this->call('usim:discover');
 
-        // === STEP 8: Summary ===
+        // === STEP 9: Summary ===
         $this->newLine();
         $this->info('USIM installed successfully!');
         $this->newLine();
@@ -598,6 +603,7 @@ class InstallCommand extends Command
         $steps = [];
 
         $steps[] = "Run <fg=yellow>php artisan usim:discover</> after creating new screens\n";
+        $steps[] = "Run <fg=yellow>composer dump-autoload</> to load package helpers from composer autoload.files\n";
         $steps[] = "Run <fg=yellow>./start.sh [-r]</> to start the development server.\n" .
             "     <fg=gray>Note: -r option removes database and starts fresh)</fg=gray>";
 

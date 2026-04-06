@@ -20,6 +20,7 @@ The format is based on Keep a Changelog, and this project follows Semantic Versi
 ### Fixed
 - Translation resolution now falls back to English by default and then to Laravel's standard translator before returning the key.
 - Table refresh cycles now reset render-affecting cell state (styles, colors, media/button payloads) before hydrating new row data, ensuring incremental diffs are emitted when visual-only cell changes occur.
+- `usim:install` now registers `vendor/idei/usim/src/Support/helpers.php` in the consumer `composer.json` under `autoload.files` when missing.
 
 ## [0.7.0] - 2026-03-28
 
