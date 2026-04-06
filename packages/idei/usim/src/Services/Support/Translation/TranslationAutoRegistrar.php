@@ -39,6 +39,17 @@ class TranslationAutoRegistrar
         return $generatedKey;
     }
 
+    public function deriveKeyCandidate(string $input): string
+    {
+        if ($this->isSlug($input)) {
+            return $input;
+        }
+
+        $callerContext = $this->contextResolver->resolveCallerContext();
+
+        return $this->generateAutoKeyFromText($input, $callerContext['group']);
+    }
+
     private function keyExistsForGroup(string $key, ?string $group): bool
     {
         $query = UsimTextKey::query()->byKey($key);
