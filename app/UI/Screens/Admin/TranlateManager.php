@@ -83,7 +83,7 @@ class TranlateManager extends AbstractUIService
         $container->add($toolbar);
 
         $table = UIBuilder::table('translations_table')
-            ->pagination(10)
+            ->pagination(9)
             ->sortedBy('key')
             ->dataModel(TranslationKeysTableModel::class)
             ->width('100%')
@@ -113,6 +113,7 @@ class TranlateManager extends AbstractUIService
         /** @var TranslationKeysTableModel $model */
         $model = $this->translations_table->getModel();
         $model->setLanguageFilter((string) ($params['value'] ?? 'all'));
+        $this->translations_table->refreshColumns();
         $this->translations_table->page(1);
     }
 

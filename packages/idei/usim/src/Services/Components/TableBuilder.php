@@ -166,6 +166,45 @@ class TableBuilder extends UIComponent
     }
 
     /**
+     * Refresh column definitions (labels and widths) from the data model.
+     *
+     * Call this after any state change that affects column metadata — for example,
+     * when a language filter changes and the selected-language column needs a new
+     * label and/or width without reloading the whole table.
+     *
+     * @return self
+     */
+    public function refreshColumns(): self
+    {
+        $model = $this->getModel();
+        if (!$model) {
+            return $this;
+        }
+
+        $columns = $model->getColumns();
+
+        // Update column widths on all existing cells
+        $columnIndex = 0;
+        foreach ($columns as $column) {
+            if (is_array($column) && isset($column['width'])) {
+                $this->columnWidth($columnIndex, $column['width'][0], $column['width'][1]);
+            }
+            $columnIndex++;
+        }
+
+        // Rebuild header row labels and sort actions
+        $headerData = [];
+        foreach ($columns as $column) {
+            $label  = is_array($column) ? ($column['label']   ?? '') : (string) $column;
+            $sortBy = is_array($column) ? ($column['sort_by'] ?? null) : null;
+            $headerData[] = ['label' => $label, 'sort_by' => $sortBy];
+        }
+        $this->fillHeaderRow($headerData);
+
+        return $this;
+    }
+
+    /**
      * Split formatted row data into column values and row-level metadata.
      *
      * Reserved keys:

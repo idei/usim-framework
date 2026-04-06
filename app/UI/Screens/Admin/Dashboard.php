@@ -76,6 +76,7 @@ class Dashboard extends AbstractUIService
         $users_table = UIBuilder::table('users_table')
             ->pagination(7)
             ->sortedBy('name')
+            ->width('100%')
             ->dataModel(UserApiTableModel::class)
             ->rowMinHeight(50);
 

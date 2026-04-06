@@ -1708,7 +1708,6 @@ class TableCellComponent extends UIComponent {
         }
 
         // Apply width constraints
-        // For table-layout: fixed, we use width instead of min/max
         if (this.config.min_width === 0 && this.config.max_width === 0) {
             // Explicit zero means collapse the column without removing it from the table flow
             cell.style.width = '0';
@@ -1718,13 +1717,18 @@ class TableCellComponent extends UIComponent {
             cell.style.overflow = 'hidden';
             cell.style.border = 'none';
         } else if (this.config.min_width || this.config.max_width) {
-            // Use the minimum width as the actual width for fixed layout
-            const targetWidth = this.config.min_width || this.config.max_width;
-            cell.style.width = `${targetWidth}px`;
+            const minWidth = this.config.min_width ?? this.config.max_width;
+            const maxWidth = this.config.max_width ?? this.config.min_width;
+            const targetWidth = minWidth ?? maxWidth;
 
-            // Still apply max-width to prevent overflow
-            if (this.config.max_width) {
-                cell.style.maxWidth = `${this.config.max_width}px`;
+            if (targetWidth !== undefined && targetWidth !== null) {
+                cell.style.width = `${targetWidth}px`;
+            }
+            if (minWidth !== undefined && minWidth !== null) {
+                cell.style.minWidth = `${minWidth}px`;
+            }
+            if (maxWidth !== undefined && maxWidth !== null) {
+                cell.style.maxWidth = `${maxWidth}px`;
             }
         }
 
@@ -1861,7 +1865,6 @@ class TableHeaderCellComponent extends UIComponent {
         }
 
         // Apply width constraints
-        // For table-layout: fixed, we use width instead of min/max
         if (this.config.min_width === 0 && this.config.max_width === 0) {
             // Explicit zero means collapse the column without removing it from the table flow
             cell.style.width = '0';
@@ -1871,13 +1874,18 @@ class TableHeaderCellComponent extends UIComponent {
             cell.style.overflow = 'hidden';
             cell.style.border = 'none';
         } else if (this.config.min_width || this.config.max_width) {
-            // Use the minimum width as the actual width for fixed layout
-            const targetWidth = this.config.min_width || this.config.max_width;
-            cell.style.width = `${targetWidth}px`;
+            const minWidth = this.config.min_width ?? this.config.max_width;
+            const maxWidth = this.config.max_width ?? this.config.min_width;
+            const targetWidth = minWidth ?? maxWidth;
 
-            // Still apply max-width to prevent overflow
-            if (this.config.max_width) {
-                cell.style.maxWidth = `${this.config.max_width}px`;
+            if (targetWidth !== undefined && targetWidth !== null) {
+                cell.style.width = `${targetWidth}px`;
+            }
+            if (minWidth !== undefined && minWidth !== null) {
+                cell.style.minWidth = `${minWidth}px`;
+            }
+            if (maxWidth !== undefined && maxWidth !== null) {
+                cell.style.maxWidth = `${maxWidth}px`;
             }
         }
 
@@ -3061,6 +3069,35 @@ class UIRenderer {
 
             if (changes.align !== undefined) {
                 element.style.textAlign = changes.align ?? '';
+            }
+
+            // Width constraints (tables) - keep columns stable across incremental updates
+            if (changes.min_width !== undefined || changes.max_width !== undefined) {
+                const minWidth = changes.min_width ?? changes.max_width;
+                const maxWidth = changes.max_width ?? changes.min_width;
+
+                if (changes.min_width === 0 && changes.max_width === 0) {
+                    element.style.width = '0';
+                    element.style.maxWidth = '0';
+                    element.style.minWidth = '0';
+                    element.style.padding = '0';
+                    element.style.overflow = 'hidden';
+                    element.style.border = 'none';
+                } else {
+                    const targetWidth = minWidth ?? maxWidth;
+
+                    if (targetWidth !== undefined && targetWidth !== null) {
+                        element.style.width = `${targetWidth}px`;
+                    }
+
+                    if (minWidth !== undefined && minWidth !== null) {
+                        element.style.minWidth = `${minWidth}px`;
+                    }
+
+                    if (maxWidth !== undefined && maxWidth !== null) {
+                        element.style.maxWidth = `${maxWidth}px`;
+                    }
+                }
             }
 
             // Button background/hover behavior

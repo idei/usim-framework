@@ -59,7 +59,8 @@ SVG;
         $columns = [
             // Fixed width: keep key column stable regardless of content length.
             'key' => ['label' => 'Key', 'width' => [320, 320], 'sort_by' => 'key'],
-            'completion' => ['label' => 'Completion', 'width' => [120, 140]],
+            // Fixed width: avoid visual jumps between pages with different percentages.
+            'completion' => ['label' => 'Completion', 'width' => [140, 140]],
         ];
 
         // Fallback language column — always visible
@@ -81,7 +82,7 @@ SVG;
             $selectedName = $this->languages[$selectedCode];
             $columns['lang_selected'] = [
                 'label' => strtoupper($selectedCode) . ' (' . $selectedName . ')',
-                'width' => [170, 210],
+                'width' => [320, 320],
             ];
         } else {
             $columns['lang_selected'] = [
@@ -90,8 +91,8 @@ SVG;
             ];
         }
 
-        $columns['edit'] = ['label' => '', 'width' => [52, 56]];
-        $columns['delete'] = ['label' => '', 'width' => [52, 56]];
+        $columns['edit'] = ['label' => '', 'width' => [20, 20]];
+        $columns['delete'] = ['label' => '', 'width' => [20, 20]];
 
         return $columns;
     }
