@@ -11,6 +11,7 @@ The format is based on Keep a Changelog, and this project follows Semantic Versi
 - New package models: `UsimLanguage`, `UsimTextKey`, and `UsimTextValue`.
 - New `TranslationService` with CRUD operations for languages, keys, and text/media values.
 - New global helper `t(string $key, array $params = [], ?string $language = null): string`.
+- New i18n autokey suggestion logging when human-readable text is passed to `t(...)`, including generated key plus source file/line/character context.
 - New installer stubs: translation migrations and seeders (`UsimLanguageSeeder`, `UsimTranslationSeeder`).
 
 ### Changed
@@ -19,6 +20,8 @@ The format is based on Keep a Changelog, and this project follows Semantic Versi
 
 ### Fixed
 - Translation resolution now falls back to English by default and then to Laravel's standard translator before returning the key.
+- Auto-generated key length is now configurable (`ui-services.i18n.auto_key_max_length`) with smart truncation that prefers completing the current token up to the next separator.
+- Human-text auto-key generation now normalizes escaped and platform line breaks before deriving keys and storing fallback values.
 - Table refresh cycles now reset render-affecting cell state (styles, colors, media/button payloads) before hydrating new row data, ensuring incremental diffs are emitted when visual-only cell changes occur.
 - `usim:install` now registers `vendor/idei/usim/src/Support/helpers.php` in the consumer `composer.json` under `autoload.files` when missing.
 

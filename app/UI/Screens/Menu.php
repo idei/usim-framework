@@ -1,10 +1,11 @@
 <?php
 namespace App\UI\Screens;
 
-use App\UI\Components\Modals\RegisterDialog;
 use App\Services\Auth\AuthSessionService;
 use App\Services\Auth\RegisterService;
+use App\UI\Components\Modals\RegisterDialog;
 use App\UI\Screens\Admin\Dashboard;
+use App\UI\Screens\Admin\TranlateManager;
 use App\UI\Screens\Auth\Login;
 use App\UI\Screens\Auth\Profile;
 use App\UI\Screens\Demo\ButtonDemo;
@@ -18,7 +19,7 @@ use App\UI\Screens\Demo\ModalDemo;
 use App\UI\Screens\Demo\SelectDemo;
 use App\UI\Screens\Demo\TableDemo;
 use App\UI\Screens\Demo\UploaderDemo;
-use App\UI\Screens\Admin\TranlateManager;
+use Composer\InstalledVersions;
 use Idei\Usim\Events\UsimEvent;
 use Idei\Usim\Services\AbstractUIService;
 use Idei\Usim\Services\Components\ButtonBuilder;
@@ -145,30 +146,30 @@ class Menu extends AbstractUIService
 
     private function populateMainMenu(MenuDropdownBuilder $menu): void
     {
-        $menu->link(t('Home'), '/', '🏠');
+        $menu->link(t('home'), '/', '🏠');
         $menu->screen(Dashboard::class);
         $menu->screen(TranlateManager::class);
         $this->buildDemosMenu($menu);
         $menu->separator();
-        $menu->item(t('About'), 'show_about_info', [], 'ℹ️');
+        $menu->item(t('about'), 'show_about_info', [], 'ℹ️');
     }
 
     private function buildDemosMenu(MenuDropdownBuilder $menu): void
     {
         $menu->separator();
-        $menu->submenu(t('Demos'), function ($submenu) {
-            $submenu->screen(ButtonDemo::class, t('Button Demo'), '🖲️');
-            $submenu->screen(TableDemo::class, t('Table Demo'), '📊');
-            $submenu->screen(ModalDemo::class, t('Modal Demo'), '🪟');
-            $submenu->item(t('Abort Error'), 'show_error_info', [], '❌');
-            $submenu->screen(FormDemo::class, t('Form Demo'), '📝');
-            $submenu->screen(DemoUi::class, t('Demo UI'), '🎨');
-            $submenu->screen(InputDemo::class, t('Input Demo'), '⌨️');
-            $submenu->screen(SelectDemo::class, t('Select Demo'), '📋');
-            $submenu->screen(CheckboxDemo::class, t('Checkbox Demo'), '☑️');
-            $submenu->screen(UploaderDemo::class, t('Uploader Demo'), '📤');
-            $submenu->screen(CalendarDemo::class, t('Calendar Demo'), '📅');
-            $submenu->screen(CarouselDemo::class, t('Carousel Demo'), '🎞️');
+        $menu->submenu(t('demos'), function ($submenu) {
+            $submenu->screen(ButtonDemo::class, t('button_demo'), '🖲️');
+            $submenu->screen(TableDemo::class, t('table_demo'), '📊');
+            $submenu->screen(ModalDemo::class, t('modal_demo'), '🪟');
+            $submenu->item(t('abort_error'), 'show_error_info', [], '❌');
+            $submenu->screen(FormDemo::class, t('form_demo'), '📝');
+            $submenu->screen(DemoUi::class, t('demo_ui'), '🎨');
+            $submenu->screen(InputDemo::class, t('input_demo'), '⌨️');
+            $submenu->screen(SelectDemo::class, t('select_demo'), '📋');
+            $submenu->screen(CheckboxDemo::class, t('checkbox_demo'), '☑️');
+            $submenu->screen(UploaderDemo::class, t('uploader_demo'), '📤');
+            $submenu->screen(CalendarDemo::class, t('calendar_demo'), '📅');
+            $submenu->screen(CarouselDemo::class, t('carousel_demo'), '🎞️');
         }, '🎮');
     }
 
@@ -185,9 +186,9 @@ class Menu extends AbstractUIService
     private function populateUserMenu(MenuDropdownBuilder $menu): void
     {
         $menu->screen(Login::class);
-        $menu->item(t('Register'), 'show_register_form', [], '📝', visible: !Auth::check());
+        $menu->item(t('register'), 'show_register_form', [], '📝', visible: !Auth::check());
         $menu->screen(Profile::class);
-        $menu->item(t('Logout'), 'confirm_logout', [], '🚪', visible: Auth::check());
+        $menu->item(t('logout'), 'confirm_logout', [], '🚪', visible: Auth::check());
     }
 
     public function onLoggedUser(array $params): void
@@ -245,13 +246,14 @@ class Menu extends AbstractUIService
     {
         // Get this service ID to receive the callback
         $serviceId = $this->getServiceComponentId();
+        $version = "0.7.0";
 
         ConfirmDialogService::open(
             type: DialogType::INFO,
-            title: t("Acerca de USIM Framework"),
-            message: t("Sistema de componentes UI v1.0\n
-            Desarrollado con Laravel y componentes modulares.\n
-            Soporta: Tables, Modals, Forms, Menus y más."),
+            title: t("acerca_de_usim_framework"),
+            message: t("sistema_de_componentes", [
+                'version' => $version
+            ]),
             callerServiceId: $serviceId
         );
     }

@@ -31,7 +31,7 @@ class Dashboard extends AbstractUIService
 
     public static function getMenuLabel(): string
     {
-        return t('Dashboard');
+        return t('dashboard');
     }
 
     public static function getMenuIcon(): ?string

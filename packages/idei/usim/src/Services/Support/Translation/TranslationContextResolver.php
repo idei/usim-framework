@@ -18,6 +18,8 @@ class TranslationContextResolver
 
         return [
             'group' => $this->normalizeGroupFromClassOrFile($class, $file),
+            'file' => $file,
+            'line' => isset($caller['line']) ? (int) $caller['line'] : null,
         ];
     }
 

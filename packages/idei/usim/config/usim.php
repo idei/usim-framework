@@ -63,6 +63,9 @@ return [
     'i18n' => [
         'default_locale' => env('USIM_DEFAULT_LOCALE', env('APP_LOCALE', 'en')),
         'fallback_locale' => env('USIM_FALLBACK_LOCALE', 'en'),
+        'auto_key_max_length' => (int) env('USIM_I18N_AUTO_KEY_MAX_LENGTH', 20),
+        'log_channel' => env('USIM_I18N_LOG_CHANNEL', 'i18n'),
+        'log_autokey_suggestions' => env('USIM_I18N_LOG_AUTOKEY_SUGGESTIONS', true),
     ],
 
     /*

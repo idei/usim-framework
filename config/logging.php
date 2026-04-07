@@ -80,6 +80,14 @@ return [
             'replace_placeholders' => true,
         ],
 
+        'i18n' => [
+            'driver' => 'daily',
+            'path' => storage_path('logs/i18n.log'),
+            'level' => env('USIM_I18N_LOG_LEVEL', 'warning'),
+            'days' => env('USIM_I18N_LOG_DAYS', 14),
+            'replace_placeholders' => true,
+        ],
+
         'slack' => [
             'driver' => 'slack',
             'url' => env('LOG_SLACK_WEBHOOK_URL'),

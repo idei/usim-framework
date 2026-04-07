@@ -506,10 +506,22 @@ Resolution order:
 
 1. current locale in DB
 2. fallback locale in DB (`en` by default)
-3. Laravel translator (`__()`)
-4. key literal
+3. key literal
 
 Translation values support placeholders (`:name`, `:count`, etc.) and optional media metadata (`media_url`, `media_meta`).
+
+Auto-key behavior for human-readable text (`t('Some text')`):
+
+- key length limit is configurable via `ui-services.i18n.auto_key_max_length` (env: `USIM_I18N_AUTO_KEY_MAX_LENGTH`, default `20`)
+- when truncation is needed, USIM tries to continue to the next separator so the current word is not cut mid-word
+- escaped and real line breaks are normalized before key generation and fallback text storage
+
+I18n suggestion logging:
+
+- when a key is auto-generated from human-readable text, USIM emits an i18n warning suggesting to replace the literal text with the generated key
+- log context includes generated key, source text, group, file, line, and best-effort character position
+- configure channel with `ui-services.i18n.log_channel` (env: `USIM_I18N_LOG_CHANNEL`, default `i18n`)
+- enable/disable with `ui-services.i18n.log_autokey_suggestions` (env: `USIM_I18N_LOG_AUTOKEY_SUGGESTIONS`, default `true`)
 
 ---
 

@@ -5,7 +5,6 @@ namespace App\UI\Screens\Admin;
 use App\UI\Components\Modals\EditTranslationDialog;
 use App\UI\Components\DataTable\TranslationKeysTableModel;
 use Idei\Usim\Services\AbstractUIService;
-use Idei\Usim\Services\Components\ButtonBuilder;
 use Idei\Usim\Services\Components\InputBuilder;
 use Idei\Usim\Services\Components\SelectBuilder;
 use Idei\Usim\Services\Components\TableBuilder;
@@ -22,7 +21,6 @@ class TranlateManager extends AbstractUIService
     protected InputBuilder $search_translations;
     protected SelectBuilder $language_filter;
     protected SelectBuilder $group_filter;
-    protected ButtonBuilder $publish_to_lang;
 
     public static function authorize(): bool
     {
@@ -31,7 +29,7 @@ class TranlateManager extends AbstractUIService
 
     public static function getMenuLabel(): string
     {
-        return t('Translations');
+        return t('translations');
     }
 
     public static function getMenuIcon(): ?string
@@ -81,14 +79,7 @@ class TranlateManager extends AbstractUIService
             ->style('primary')
             ->width('200px');
 
-        $publishButton = UIBuilder::button('publish_to_lang')
-            ->label(t('Publish to lang'))
-            ->style('secondary')
-            ->action('publish_to_lang')
-            ->width('160px')
-            ->tooltip(t('Write approved translations to lang/ static files'));
-
-        $toolbar->add($search)->add($languageFilter)->add($groupFilter)->add($publishButton);
+        $toolbar->add($search)->add($languageFilter)->add($groupFilter);
         $container->add($toolbar);
 
         $table = UIBuilder::table('translations_table')
@@ -132,41 +123,6 @@ class TranlateManager extends AbstractUIService
         $model = $this->translations_table->getModel();
         $model->setGroupFilter((string) ($params['value'] ?? 'all'));
         $this->translations_table->page(1);
-    }
-
-    public function onPublishToLang(array $params = []): void
-    {
-        $languages = $this->resolveEditableLanguages();
-        $languageCode = (string) ($languages['selected'] ?? $languages['fallback']);
-
-        if ($languageCode === '') {
-            $this->toast(t('No language available to publish'), 'error');
-            return;
-        }
-
-        /** @var TranslationKeysTableModel $model */
-        $model = $this->translations_table->getModel();
-        $group = (string) $model->getGroupFilter();
-        $groupForPublish = ($group !== '' && $group !== 'all') ? $group : null;
-
-        /** @var \App\Services\TranslationPublisher $publisher */
-        $publisher = app(\App\Services\TranslationPublisher::class);
-        $result = $publisher->publish($languageCode, $groupForPublish);
-
-        $fileCount = count($result['files']);
-        $keyCount  = $result['keys'];
-
-        if ($fileCount === 0) {
-            $this->toast(t('No reviewed keys found to publish'), 'warning');
-            return;
-        }
-
-        $fileList = implode(', ', $result['files']);
-        $this->toast(
-            t(':keys keys published to :files', ['keys' => $keyCount, 'files' => $fileList]),
-            'success',
-            6000
-        );
     }
 
     public function onTranslationsTableColumnClicked(array $params): void
