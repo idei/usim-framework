@@ -19,7 +19,6 @@ use App\UI\Screens\Demo\ModalDemo;
 use App\UI\Screens\Demo\SelectDemo;
 use App\UI\Screens\Demo\TableDemo;
 use App\UI\Screens\Demo\UploaderDemo;
-use Composer\InstalledVersions;
 use Idei\Usim\Events\UsimEvent;
 use Idei\Usim\Services\AbstractUIService;
 use Idei\Usim\Services\Components\ButtonBuilder;
