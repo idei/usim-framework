@@ -42,8 +42,8 @@ class EditUserDialog
 
         $container->add(
             UIBuilder::input('name')
-                ->label('Full Name')
-                ->placeholder('Enter your full name')
+                ->label(t('usim.stub.common.full_name'))
+                ->placeholder(t('usim.stub.common.placeholder.enter_full_name'))
                 ->required(true)
                 ->value($name)
                 ->autocomplete('off')
@@ -51,8 +51,8 @@ class EditUserDialog
 
         $container->add(
             UIBuilder::input('email')
-                ->label('Email')
-                ->placeholder('Enter your email')
+                ->label(t('usim.stub.common.email'))
+                ->placeholder(t('usim.stub.auth.login.placeholder.email'))
                 ->required(true)
                 ->value($email)
                 ->autocomplete('off')
@@ -60,10 +60,10 @@ class EditUserDialog
 
         $container->add(
             UIBuilder::select('roles')
-                ->label('Role')
+                ->label(t('usim.stub.common.role'))
                 ->options([
-                    ['value' => 'user', 'label' => 'User'],
-                    ['value' => 'admin', 'label' => 'Admin'],
+                    ['value' => 'user', 'label' => t('usim.stub.common.role_user')],
+                    ['value' => 'admin', 'label' => t('usim.stub.common.role_admin')],
                 ])
                 ->value($role)
                 ->required(true)
@@ -71,14 +71,14 @@ class EditUserDialog
 
         $container->add(
             UIBuilder::checkbox('send_reset_email')
-                ->label('Send password reset email to user')
+                ->label(t('usim.stub.admin.dashboard.edit_user.send_reset_email'))
                 ->checked(false)
         );
 
         if (!$emailVerified) {
             $container->add(
                 UIBuilder::checkbox('send_verification_email')
-                    ->label('Send email verification to user')
+                    ->label(t('usim.stub.admin.dashboard.edit_user.send_verification_email'))
                     ->checked(false)
             );
         }
@@ -94,7 +94,7 @@ class EditUserDialog
         if ($cancelAction) {
             $buttons->add(
                 UIBuilder::button('btn_cancel_register')
-                    ->label('Cancel')
+                    ->label(t('usim.stub.common.cancel'))
                     ->style('secondary')
                     ->action($cancelAction, [
                         '_caller_service_id' => $callerServiceId,
@@ -104,7 +104,7 @@ class EditUserDialog
 
         $buttons->add(
             UIBuilder::button('btn_submit_register')
-                ->label('Update User')
+                ->label(t('usim.stub.admin.dashboard.edit_user.submit'))
                 ->style('primary')
                 ->action($submitAction, [
                     '_caller_service_id' => $callerServiceId,

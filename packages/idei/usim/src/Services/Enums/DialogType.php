@@ -4,7 +4,7 @@ namespace Idei\Usim\Services\Enums;
 
 /**
  * Dialog Type Enum
- * 
+ *
  * Defines the available types of dialogs with their characteristics
  */
 enum DialogType: string
@@ -100,13 +100,13 @@ enum DialogType: string
     public function getDefaultConfirmLabel(): string
     {
         return match($this) {
-            self::INFO => 'OK',
-            self::CONFIRM => 'Confirmar',
-            self::WARNING => 'Continuar',
-            self::ERROR => 'Entendido',
-            self::SUCCESS => 'OK',
-            self::CHOICE => 'Aceptar',
-            self::TIMEOUT => 'Cerrar',
+            self::INFO => t('usim.dialog.button.ok'),
+            self::CONFIRM => t('usim.dialog.button.confirm'),
+            self::WARNING => t('usim.dialog.button.continue'),
+            self::ERROR => t('usim.dialog.button.got_it'),
+            self::SUCCESS => t('usim.dialog.button.ok'),
+            self::CHOICE => t('usim.dialog.button.accept'),
+            self::TIMEOUT => t('usim.dialog.button.close'),
         };
     }
 
@@ -115,6 +115,6 @@ enum DialogType: string
      */
     public function getDefaultCancelLabel(): string
     {
-        return 'Cancelar';
+        return t('usim.dialog.button.cancel');
     }
 }

@@ -17,6 +17,8 @@ The format is based on Keep a Changelog, and this project follows Semantic Versi
 ### Changed
 - `usim:install` database scaffolding logic was extracted into a dedicated concern (`InstallsDatabaseScaffolding`) to keep `InstallCommand` smaller and easier to maintain.
 - `UsimSeeder` now orchestrates translation seeders in addition to role/user seeders.
+- Package defaults and installer stubs now resolve user-facing text via `t('usim...')` keys (dialogs, time units, auth/admin/menu screens, modal scaffolding, and service messages) instead of hardcoded literals.
+- `UsimTranslationSeeder` stub now includes a comprehensive baseline keyset for scaffolded UI and service responses under `usim.component.*`, `usim.dialog.*`, `usim.time_unit.*`, and `usim.stub.*` namespaces.
 
 ### Fixed
 - Translation resolution now falls back to English by default and then to Laravel's standard translator before returning the key.

@@ -26,7 +26,7 @@ class UploaderBuilder extends UIComponent
     protected function getDefaultConfig(): array
     {
         return [
-            'label' => 'Upload Files',
+            'label' => t('usim.component.uploader.label'),
             'allowed_types' => ['*'], // ['image/*', 'application/pdf', etc.]
             'max_size' => 10, // MB
             'max_files' => 5,

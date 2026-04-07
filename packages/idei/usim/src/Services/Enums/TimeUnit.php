@@ -4,7 +4,7 @@ namespace Idei\Usim\Services\Enums;
 
 /**
  * Time Unit Enum
- * 
+ *
  * Defines time units for timeout dialogs
  */
 enum TimeUnit: string
@@ -20,10 +20,10 @@ enum TimeUnit: string
     public function getSingularLabel(): string
     {
         return match($this) {
-            self::SECONDS => 'segundo',
-            self::MINUTES => 'minuto',
-            self::HOURS => 'hora',
-            self::DAYS => 'día',
+            self::SECONDS => t('usim.time_unit.second.singular'),
+            self::MINUTES => t('usim.time_unit.minute.singular'),
+            self::HOURS => t('usim.time_unit.hour.singular'),
+            self::DAYS => t('usim.time_unit.day.singular'),
         };
     }
 
@@ -33,10 +33,10 @@ enum TimeUnit: string
     public function getPluralLabel(): string
     {
         return match($this) {
-            self::SECONDS => 'segundos',
-            self::MINUTES => 'minutos',
-            self::HOURS => 'horas',
-            self::DAYS => 'días',
+            self::SECONDS => t('usim.time_unit.second.plural'),
+            self::MINUTES => t('usim.time_unit.minute.plural'),
+            self::HOURS => t('usim.time_unit.hour.plural'),
+            self::DAYS => t('usim.time_unit.day.plural'),
         };
     }
 

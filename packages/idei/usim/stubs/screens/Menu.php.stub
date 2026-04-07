@@ -66,7 +66,10 @@ class Menu extends AbstractUIService
         $this->theme_toggle->icon("/vendor/idei/usim/images/$icon.svg");
         $this->theme_toggle->iconColor('var(--usim-menu-trigger-text)');
         $this->theme_toggle->iconSize(24);
-        $this->theme_toggle->tooltip("Switch to " . ($this->store_theme === 'light' ? 'dark' : 'light') . " theme");
+        $targetTheme = $this->store_theme === 'light'
+            ? t('usim.stub.menu.theme.dark')
+            : t('usim.stub.menu.theme.light');
+        $this->theme_toggle->tooltip(t('usim.stub.menu.theme.switch_to', ['theme' => $targetTheme]));
     }
 
     public function onToggleTheme(array $params): void
@@ -122,12 +125,12 @@ class Menu extends AbstractUIService
 
     private function populateMainMenu(MenuDropdownBuilder $menu): void
     {
-        $menu->link('Home', '/', '🏠');
+        $menu->link(t('usim.stub.menu.home'), '/', '🏠');
         if (Auth::check()) {
             $menu->screen(Dashboard::class);
         }
         $menu->separator();
-        $menu->item('About', 'show_about_info', [], 'ℹ️');
+        $menu->item(t('usim.stub.menu.about'), 'show_about_info', [], 'ℹ️');
     }
 
     private function buildUserMenu(): MenuDropdownBuilder
@@ -145,9 +148,9 @@ class Menu extends AbstractUIService
     private function populateUserMenu(MenuDropdownBuilder $menu): void
     {
         $menu->screen(Login::class);
-        $menu->item('Register', 'show_register_form', [], '📝', visible: !Auth::check());
+        $menu->item(t('usim.stub.menu.register'), 'show_register_form', [], '📝', visible: !Auth::check());
         $menu->screen(Profile::class);
-        $menu->item('Logout', 'confirm_logout', [], '🚪', visible: Auth::check());
+        $menu->item(t('usim.stub.menu.logout'), 'confirm_logout', [], '🚪', visible: Auth::check());
     }
 
     public function onLoggedUser(array $params): void
@@ -187,7 +190,7 @@ class Menu extends AbstractUIService
         $this->main_menu->clearItems();
         $this->populateMainMenu($this->main_menu);
 
-        $this->toast('You have been logged out successfully.');
+        $this->toast(t('usim.stub.menu.toast.logged_out'));
         $this->redirect();
     }
 
@@ -195,8 +198,8 @@ class Menu extends AbstractUIService
     {
         ConfirmDialogService::open(
             type: DialogType::INFO,
-            title: 'About USIM Framework',
-            message: "USIM UI Component System v1.0\n\nBuilt with Laravel and modular components.\nSupports tables, modals, forms, menus and more.",
+            title: t('usim.stub.menu.about_dialog.title'),
+            message: t('usim.stub.menu.about_dialog.message'),
             callerServiceId: $this->getServiceComponentId(),
         );
     }
@@ -231,7 +234,7 @@ class Menu extends AbstractUIService
 
     private function handleRegisterSuccess(array $response): void
     {
-        $message = (string) ($response['message'] ?? 'User registered successfully');
+        $message = (string) ($response['message'] ?? t('usim.stub.menu.success.user_registered'));
         $this->toast($message, 'success');
 
         $user = $response['user'] ?? null;
@@ -247,7 +250,7 @@ class Menu extends AbstractUIService
 
     private function handleRegisterError(array $response): void
     {
-        $message = (string) ($response['message'] ?? 'Validation errors');
+        $message = (string) ($response['message'] ?? t('usim.stub.menu.error.validation'));
         $this->toast($message, 'error');
         $this->updateModalValidationErrors((array) ($response['errors'] ?? []));
     }
@@ -272,8 +275,8 @@ class Menu extends AbstractUIService
     {
         ConfirmDialogService::open(
             type: DialogType::CONFIRM,
-            title: 'Logout',
-            message: 'Are you sure you want to log out?',
+            title: t('usim.stub.menu.logout_dialog.title'),
+            message: t('usim.stub.menu.logout_dialog.message'),
             confirmAction: 'confirm_logout',
             cancelAction: 'cancel_logout',
             callerServiceId: $this->getServiceComponentId(),

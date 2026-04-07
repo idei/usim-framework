@@ -27,17 +27,17 @@ class LoginDialog
 
         $loginContainer->add(
             UIBuilder::input('login_email')
-                ->label('Email')
-                ->placeholder('Enter your email')
+                ->label(t('usim.stub.common.email'))
+                ->placeholder(t('usim.stub.auth.login.placeholder.email'))
                 ->value($defaultEmail)
                 ->required(true)
         );
 
         $loginContainer->add(
             UIBuilder::input('login_password')
-                ->label('Password')
+                ->label(t('usim.stub.common.password'))
                 ->type('password')
-                ->placeholder('Enter your password')
+                ->placeholder(t('usim.stub.auth.login.placeholder.password'))
                 ->value($defaultPassword)
                 ->required(true)
         );
@@ -52,7 +52,7 @@ class LoginDialog
         if ($cancelAction) {
             $buttonsContainer->add(
                 UIBuilder::button('btn_cancel_login')
-                    ->label('Cancel')
+                    ->label(t('usim.stub.common.cancel'))
                     ->style('secondary')
                     ->action($cancelAction, [
                         '_caller_service_id' => $callerServiceId
@@ -62,7 +62,7 @@ class LoginDialog
 
         $buttonsContainer->add(
             UIBuilder::button('btn_submit_login')
-                ->label('Login')
+                ->label(t('usim.stub.auth.login.menu_label'))
                 ->style('primary')
                 ->action($submitAction, [
                     '_caller_service_id' => $callerServiceId

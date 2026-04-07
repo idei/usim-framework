@@ -31,7 +31,7 @@ class Dashboard extends AbstractUIService
 
     public static function getMenuLabel(): string
     {
-        return 'Dashboard';
+        return t('usim.stub.admin.dashboard.menu_label');
     }
 
     public static function getMenuIcon(): ?string
@@ -58,14 +58,14 @@ class Dashboard extends AbstractUIService
             ->gap('12px');
 
         $search = UIBuilder::input('search_users')
-            ->placeholder('Search users...')
+            ->placeholder(t('usim.stub.admin.dashboard.search_placeholder'))
             ->width('300px')
             ->autocomplete('off')
             ->onInput('search_users', [])
             ->debounce(500);
 
         $addBtn = UIBuilder::button('add_user_btn')
-            ->label('Add user')
+            ->label(t('usim.stub.admin.dashboard.add_user'))
             ->style('primary')
             ->action('add_user_clicked')
             ->icon('plus');
@@ -149,7 +149,7 @@ class Dashboard extends AbstractUIService
     {
         $userId = $params['user_id'] ?? null;
         if (!$userId) {
-            $this->toast('User ID is required', 'error');
+            $this->toast(t('usim.stub.admin.dashboard.error.user_id_required'), 'error');
             return;
         }
 
@@ -161,7 +161,7 @@ class Dashboard extends AbstractUIService
 
         $user = $response['data'] ?? null;
         if (!$user) {
-            $this->toast('User not found', 'error');
+            $this->toast(t('usim.stub.admin.dashboard.error.user_not_found'), 'error');
             return;
         }
 
@@ -175,14 +175,14 @@ class Dashboard extends AbstractUIService
     {
         $userId = $params['user_id'] ?? null;
         if (!$userId) {
-            $this->toast('User ID is required for update', 'error');
+            $this->toast(t('usim.stub.admin.dashboard.error.user_id_required_update'), 'error');
             return;
         }
 
         // Get the user model
         $user = $this->userService->findUser($userId);
         if (!$user) {
-            $this->toast('User not found', 'error');
+            $this->toast(t('usim.stub.admin.dashboard.error.user_not_found'), 'error');
             return;
         }
 
@@ -225,26 +225,26 @@ class Dashboard extends AbstractUIService
     {
         $userId = $params['user_id'] ?? null;
         if (!$userId) {
-            $this->toast('User ID is required', 'error');
+            $this->toast(t('usim.stub.admin.dashboard.error.user_id_required'), 'error');
             return;
         }
 
         $response = $this->userService->getUser($userId);
         if (($response['status'] ?? 'error') !== 'success') {
-            $this->toast('User not found', 'error');
+            $this->toast(t('usim.stub.admin.dashboard.error.user_not_found'), 'error');
             return;
         }
 
         $user = $response['data'] ?? null;
         if (!$user) {
-            $this->toast('User not found', 'error');
+            $this->toast(t('usim.stub.admin.dashboard.error.user_not_found'), 'error');
             return;
         }
 
         ConfirmDialogService::open(
             type: DialogType::WARNING,
-            title: 'Delete User',
-            message: "Are you sure you want to delete user '{$user['name']}'?",
+            title: t('usim.stub.admin.dashboard.delete_user_title'),
+            message: t('usim.stub.admin.dashboard.delete_user_confirm', ['name' => $user['name']]),
             confirmAction: 'confirm_delete_user',
             confirmParams: ['user_id' => $params['user_id']],
             callerServiceId: $this->getServiceComponentId()
@@ -255,19 +255,19 @@ class Dashboard extends AbstractUIService
     {
         $userId = $params['user_id'] ?? null;
         if (!$userId) {
-            $this->toast('User ID is required for deletion', 'error');
+            $this->toast(t('usim.stub.admin.dashboard.error.user_id_required_delete'), 'error');
             return;
         }
 
         $user = $this->userService->findUser($userId);
         if (!$user) {
-            $this->toast('User not found', 'error');
+            $this->toast(t('usim.stub.admin.dashboard.error.user_not_found'), 'error');
             return;
         }
 
         $response = $this->userService->deleteUser($user);
         $status = (string) ($response['status'] ?? 'success');
-        $message = (string) ($response['message'] ?? 'User deleted');
+        $message = (string) ($response['message'] ?? t('usim.stub.admin.dashboard.success.user_deleted'));
 
         $this->toast($message, $status);
         $this->users_table->refresh();

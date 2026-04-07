@@ -65,8 +65,8 @@ class ConfirmDialogService implements UIModal
         }
 
         // Extract parameters with defaults from DialogType
-        $title           = $params['title'] ?? 'Diálogo';
-        $message         = $params['message'] ?? '¿Está seguro?';
+        $title           = $params['title'] ?? t('usim.dialog.default.title');
+        $message         = $params['message'] ?? t('usim.dialog.default.message');
         $icon            = $params['icon'] ?? $type->getDefaultIcon();
         $confirmAction   = $params['confirmAction'] ?? 'close_modal';
         $confirmParams   = $params['confirmParams'] ?? [];

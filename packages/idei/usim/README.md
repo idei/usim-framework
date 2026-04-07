@@ -523,6 +523,16 @@ I18n suggestion logging:
 - configure channel with `ui-services.i18n.log_channel` (env: `USIM_I18N_LOG_CHANNEL`, default `i18n`)
 - enable/disable with `ui-services.i18n.log_autokey_suggestions` (env: `USIM_I18N_LOG_AUTOKEY_SUGGESTIONS`, default `true`)
 
+Recommended key naming for package and scaffolded code:
+
+- `usim.component.*` for reusable package component defaults.
+- `usim.dialog.*` and `usim.time_unit.*` for framework-level dialog and timer labels.
+- `usim.stub.common.*` for shared scaffold labels/placeholders.
+- `usim.stub.auth.*`, `usim.stub.admin.*`, `usim.stub.menu.*` for generated screen/component UI text.
+- `usim.stub.service.*` for scaffolded service response and validation messages.
+
+When adding or changing scaffold text, prefer `t('...')` with one of the namespaces above and include the key in `UsimTranslationSeeder`.
+
 ---
 
 ## Modals & Dialogs

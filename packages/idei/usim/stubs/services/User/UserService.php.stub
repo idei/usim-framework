@@ -37,14 +37,14 @@ class UserService
         if (!$user) {
             return [
                 'status' => 'error',
-                'message' => 'Usuario no encontrado',
-                'errors' => ['user_id' => ['The user does not exist.']],
+                'message' => t('usim.stub.service.user.not_found'),
+                'errors' => ['user_id' => [t('usim.stub.service.user.not_exist')]],
             ];
         }
 
         return [
             'status' => 'success',
-            'message' => "Usuario $user->name recuperado exitosamente",
+            'message' => t('usim.stub.service.user.retrieved_success', ['name' => $user->name]),
             'data' => $user->load('roles')->toArray(),
         ];
     }
@@ -101,7 +101,7 @@ class UserService
 
         return [
             'status' => 'success',
-            'message' => 'Usuario actualizado exitosamente',
+            'message' => t('usim.stub.service.user.updated_success'),
             'data' => $user->fresh()->load('roles')->toArray(),
         ];
     }
@@ -116,22 +116,22 @@ class UserService
     {
         foreach (['name', 'email', 'password'] as $field) {
             if ($this->isNullOrEmpty($data, $field)) {
-                return $this->validationError($field, "The {$field} field cannot be empty.");
+                return $this->validationError($field, t('usim.stub.service.user.validation.field_empty', ['field' => $field]));
             }
         }
 
         if (array_key_exists('password', $data) && $this->isNullOrEmpty($data, 'password_confirmation')) {
-            return $this->validationError('password_confirmation', 'The password confirmation field cannot be empty.');
+            return $this->validationError('password_confirmation', t('usim.stub.service.user.validation.password_confirmation_empty'));
         }
 
         if (array_key_exists('roles', $data)) {
             if ($data['roles'] === null || !is_array($data['roles']) || $data['roles'] === []) {
-                return $this->validationError('roles', 'The roles field must be a non-empty array.');
+                return $this->validationError('roles', t('usim.stub.service.user.validation.roles_non_empty_array'));
             }
 
             foreach ($data['roles'] as $roleName) {
                 if (!is_string($roleName) || trim($roleName) === '') {
-                    return $this->validationError('roles', 'Each role must be a non-empty string.');
+                    return $this->validationError('roles', t('usim.stub.service.user.validation.roles_non_empty_string'));
                 }
             }
         }
@@ -152,14 +152,14 @@ class UserService
 
         if (array_key_exists('name', $data)) {
             if (!is_string($data['name']) || strlen($data['name']) > 255) {
-                return $this->validationError('name', 'The name must be a string with max 255 characters.');
+                return $this->validationError('name', t('usim.stub.service.user.validation.name_max_255'));
             }
             $updateData['name'] = trim($data['name']);
         }
 
         if (array_key_exists('email', $data)) {
             if (!filter_var($data['email'], FILTER_VALIDATE_EMAIL)) {
-                return $this->validationError('email', 'The email must be a valid email address.');
+                return $this->validationError('email', t('usim.stub.service.user.validation.email_invalid'));
             }
 
             $existingUser = {{ userModelClass }}::where('email', $data['email'])
@@ -167,7 +167,7 @@ class UserService
                 ->first();
 
             if ($existingUser) {
-                return $this->validationError('email', 'The email has already been taken.');
+                return $this->validationError('email', t('usim.stub.service.user.validation.email_taken'));
             }
 
             $updateData['email'] = $data['email'];
@@ -175,11 +175,11 @@ class UserService
 
         if (array_key_exists('password', $data)) {
             if (!is_string($data['password']) || strlen($data['password']) < 8) {
-                return $this->validationError('password', 'The password must be at least 8 characters.');
+                return $this->validationError('password', t('usim.stub.service.user.validation.password_min_8'));
             }
 
             if ($data['password'] !== $data['password_confirmation']) {
-                return $this->validationError('password', 'The password confirmation does not match.');
+                return $this->validationError('password', t('usim.stub.service.user.validation.password_confirmation_mismatch'));
             }
 
             $updateData['password'] = Hash::make($data['password']);
@@ -204,8 +204,8 @@ class UserService
         ) {
             return [
                 'status' => 'error',
-                'message' => 'No puedes quitarte tu propio rol de administrador',
-                'errors' => ['roles' => ['No puedes quitarte tu propio rol de administrador.']],
+                'message' => t('usim.stub.service.user.cannot_remove_own_admin_role'),
+                'errors' => ['roles' => [t('usim.stub.service.user.cannot_remove_own_admin_role')]],
             ];
         }
 
@@ -221,7 +221,10 @@ class UserService
         }
 
         if (!empty($invalidRoles)) {
-            return $this->validationError('roles', 'The role ' . implode(', ', $invalidRoles) . ' does not exist.');
+            return $this->validationError(
+                'roles',
+                t('usim.stub.service.user.validation.role_not_exist', ['roles' => implode(', ', $invalidRoles)])
+            );
         }
 
         $user->syncRoles($roles);
@@ -260,7 +263,7 @@ class UserService
     {
         return [
             'status' => 'error',
-            'message' => 'Validation errors',
+            'message' => t('usim.stub.service.validation_errors'),
             'errors' => [$field => [$message]],
         ];
     }
@@ -277,7 +280,7 @@ class UserService
         if (Auth::id() === $user->id) {
             return [
                 'status' => 'error',
-                'message' => 'No se puede eliminar el usuario autenticado actualmente',
+                'message' => t('usim.stub.service.user.cannot_delete_authenticated'),
             ];
         }
 
@@ -286,7 +289,7 @@ class UserService
 
         return [
             'status' => 'success',
-            'message' => "Usuario $userName eliminado exitosamente",
+            'message' => t('usim.stub.service.user.deleted_success', ['name' => $userName]),
         ];
     }
 
@@ -344,7 +347,7 @@ class UserService
 
         return [
             'status' => 'success',
-            'message' => 'Usuarios recuperados exitosamente',
+            'message' => t('usim.stub.service.user.list_retrieved_success'),
             'data' => [
                 'users' => $transformedUsers->toArray(),
                 'pagination' => [
@@ -409,7 +412,7 @@ class UserService
             return [
                 'success' => false,
                 'status' => 'error',
-                'message' => 'Usuario no encontrado.',
+                'message' => t('usim.stub.service.user.not_found'),
             ];
         }
 
@@ -418,7 +421,7 @@ class UserService
             return [
                 'success' => false,
                 'status' => 'invalid',
-                'message' => 'Enlace de verificación inválido.',
+                'message' => t('usim.stub.service.user.invalid_verification_link'),
             ];
         }
 
@@ -427,7 +430,7 @@ class UserService
             return [
                 'success' => true,
                 'status' => 'already_verified',
-                'message' => 'Su email ya ha sido verificado anteriormente.',
+                'message' => t('usim.stub.service.user.already_verified'),
             ];
         }
 
@@ -447,7 +450,7 @@ class UserService
         return [
             'success' => true,
             'status' => 'verified',
-            'message' => 'Su email ha sido verificado satisfactoriamente.',
+            'message' => t('usim.stub.service.user.verified_success'),
         ];
     }
 }
