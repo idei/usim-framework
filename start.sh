@@ -49,7 +49,8 @@ if [[ "$*" == *"-r"* ]]; then
     fi
 
     php artisan migrate --force
-    php artisan db:seed --class=UsimSeeder
+    # Run full application seeding so app-level translations are included.
+    php artisan db:seed --class=DatabaseSeeder --no-interaction
 fi
 
 # Check if port 8000 is already in use (server already running)

@@ -14,10 +14,6 @@ class RoleSeeder extends Seeder
      */
     public function run(): void
     {
-        if (Role::count() > 2) {
-            return;
-        }
-
         // Resetear caché de roles y permisos
         app()[PermissionRegistrar::class]->forgetCachedPermissions();
 
@@ -31,16 +27,16 @@ class RoleSeeder extends Seeder
         ];
 
         foreach ($permissions as $permission) {
-            Permission::create(['name' => $permission]);
+            Permission::firstOrCreate(['name' => $permission, 'guard_name' => 'web']);
         }
 
-        $roleUser = Role::create(['name' => 'user']);
+        $roleUser = Role::firstOrCreate(['name' => 'user', 'guard_name' => 'web']);
         $roleUser->givePermissionTo(['edit-content']);
 
-        $roleVerified = Role::create(['name' => 'verified']);
+        $roleVerified = Role::firstOrCreate(['name' => 'verified', 'guard_name' => 'web']);
         $roleVerified->givePermissionTo(['access-admin-panel']);
 
-        $roleAdmin = Role::create(['name' => 'admin']);
+        $roleAdmin = Role::firstOrCreate(['name' => 'admin', 'guard_name' => 'web']);
         $roleAdmin->givePermissionTo(Permission::all());
     }
 }

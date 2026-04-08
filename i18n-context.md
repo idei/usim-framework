@@ -18,11 +18,11 @@ Migrar textos hardcodeados de package USIM (core + stubs) hacia i18n con keys es
 - usim.component.* para defaults de componentes reutilizables.
 - usim.dialog.* para textos de dialogos framework.
 - usim.time_unit.* para labels de unidades de tiempo.
-- usim.stub.common.* para textos comunes en scaffolding.
-- usim.stub.auth.* para pantallas/modales auth scaffold.
-- usim.stub.admin.* para dashboard/admin scaffold.
-- usim.stub.menu.* para menu scaffold.
-- usim.stub.service.* para mensajes de servicios scaffold (responses/validaciones).
+- usim.common.* para textos comunes en scaffolding.
+- usim.auth.* para pantallas/modales auth scaffold.
+- usim.admin.* para dashboard/admin scaffold.
+- usim.menu.* para menu scaffold.
+- usim.service.* para mensajes de servicios scaffold (responses/validaciones).
 
 ## 4) Archivos modificados
 
@@ -72,7 +72,7 @@ Migrar textos hardcodeados de package USIM (core + stubs) hacia i18n con keys es
 - Resultado: OK.
 
 4. Verificacion de key nueva en BD dev
-- Comando: php artisan tinker --execute="echo \Idei\Usim\Models\UsimTextKey::where('key','usim.stub.auth.login.title')->exists() ? 'KEY_OK' : 'KEY_MISSING';"
+- Comando: php artisan tinker --execute="echo \Idei\Usim\Models\UsimTextKey::where('key','usim.auth.login.title')->exists() ? 'KEY_OK' : 'KEY_MISSING';"
 - Resultado: KEY_OK.
 
 5. Integridad key usage vs seeder
@@ -107,4 +107,4 @@ Migrar textos hardcodeados de package USIM (core + stubs) hacia i18n con keys es
 - Validar flujo de instalacion en app consumidora local.
 
 ## 9) Prompt sugerido para retomar en otra computadora
-Contexto: monorepo Laravel + package local USIM. Ya se migro i18n en core/stubs a t('usim...') y se amplio UsimTranslationSeeder. Quiero que continues con auditoria i18n incremental: detecta nuevos textos hardcodeados user-facing en packages/idei/usim/src y packages/idei/usim/stubs, migralos a keys siguiendo convencion usim.component/usim.dialog/usim.time_unit/usim.stub.*, agrega keys faltantes al seeder, valida install+migrate+seed en /dev, y actualiza docs/changelog si cambian reglas.
+Contexto: monorepo Laravel + package local USIM. Ya se migro i18n en core/stubs a t('usim...') y se amplio UsimTranslationSeeder. Quiero que continues con auditoria i18n incremental: detecta nuevos textos hardcodeados user-facing en packages/idei/usim/src y packages/idei/usim/stubs, migralos a keys siguiendo convencion usim.component/usim.dialog/usim.time_unit/usim.*, agrega keys faltantes al seeder, valida install+migrate+seed en /dev, y actualiza docs/changelog si cambian reglas.

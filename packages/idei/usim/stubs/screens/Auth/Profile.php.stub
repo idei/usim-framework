@@ -25,7 +25,7 @@ class Profile extends AbstractUIService
 
     public static function getMenuLabel(): string
     {
-        return t('usim.stub.auth.profile.menu_label');
+        return t('usim.auth.profile.menu_label');
     }
 
     public static function getMenuIcon(): ?string
@@ -38,7 +38,7 @@ class Profile extends AbstractUIService
         $user = Auth::user();
 
         $container
-            ->title(t('usim.stub.auth.profile.title'))
+            ->title(t('usim.auth.profile.title'))
             ->maxWidth('600px')
             ->centerHorizontal()
             ->shadow(2)
@@ -46,14 +46,14 @@ class Profile extends AbstractUIService
 
         $container->add(
             UIBuilder::label('lbl_title')
-                ->text(t('usim.stub.auth.profile.settings_heading'))
+                ->text(t('usim.auth.profile.settings_heading'))
                 ->style('primary')
                 ->fontSize(20)
                 ->fontWeight('bold')
         );
 
         $this->input_email = UIBuilder::input('input_email')
-            ->label(t('usim.stub.common.email'))
+            ->label(t('usim.common.email'))
             ->type('email')
             ->value($user->email)
             ->disabled(true)
@@ -62,9 +62,9 @@ class Profile extends AbstractUIService
         $container->add($this->input_email);
 
         $this->input_name = UIBuilder::input('input_name')
-            ->label(t('usim.stub.common.full_name'))
+            ->label(t('usim.common.full_name'))
             ->type('text')
-            ->placeholder(t('usim.stub.auth.profile.placeholder.full_name'))
+            ->placeholder(t('usim.auth.profile.placeholder.full_name'))
             ->value($user->name ?? '')
             ->required(true)
             ->width('100%');
@@ -73,7 +73,7 @@ class Profile extends AbstractUIService
 
         $this->uploader_profile = UIBuilder::uploader('uploader_profile')
             ->allowedTypes(['image/*'])
-            ->label(t('usim.stub.auth.profile.profile_photo'))
+            ->label(t('usim.auth.profile.profile_photo'))
             ->maxFiles(1)
             ->maxSize(2)
             ->aspect('1:1')
@@ -83,7 +83,7 @@ class Profile extends AbstractUIService
 
         $container->add(
             UIBuilder::button('btn_save_profile')
-                ->label(t('usim.stub.auth.profile.save_changes'))
+                ->label(t('usim.auth.profile.save_changes'))
                 ->action('save_profile')
                 ->style('primary')
                 ->width('100%')
@@ -91,7 +91,7 @@ class Profile extends AbstractUIService
 
         $container->add(
             UIBuilder::button('btn_change_password')
-                ->label(t('usim.stub.auth.profile.change_password'))
+                ->label(t('usim.auth.profile.change_password'))
                 ->action('change_password')
                 ->style('secondary')
                 ->width('100%')
@@ -106,7 +106,7 @@ class Profile extends AbstractUIService
         $this->input_name->value($user->name ?? '');
 
         if (!$user->email_verified_at) {
-            $this->input_email->error(t('usim.stub.auth.profile.error.email_not_verified'));
+            $this->input_email->error(t('usim.auth.profile.error.email_not_verified'));
         } else {
             $this->input_email->error(null);
         }
@@ -128,7 +128,7 @@ class Profile extends AbstractUIService
             $name = trim($params['input_name'] ?? '');
 
             if (empty($name)) {
-                $this->input_name->error(t('usim.stub.auth.profile.error.name_required'));
+                $this->input_name->error(t('usim.auth.profile.error.name_required'));
                 return;
             }
 
@@ -145,10 +145,10 @@ class Profile extends AbstractUIService
                 'user' => $user
             ]));
 
-            $this->toast(t('usim.stub.auth.profile.success.updated'), 'success');
+            $this->toast(t('usim.auth.profile.success.updated'), 'success');
         } catch (\Throwable $e) {
             \Illuminate\Support\Facades\Log::error('Error saving profile: ' . $e->getMessage() . "\n" . $e->getTraceAsString());
-            $this->toast(t('usim.stub.auth.profile.error.save_prefix') . $e->getMessage(), 'error');
+            $this->toast(t('usim.auth.profile.error.save_prefix') . $e->getMessage(), 'error');
         }
     }
 
@@ -157,12 +157,12 @@ class Profile extends AbstractUIService
         $user = Auth::user();
 
         if ($user->email_verified_at) {
-            $this->toast(t('usim.stub.auth.profile.info.already_verified'), 'info');
+            $this->toast(t('usim.auth.profile.info.already_verified'), 'info');
             return;
         }
 
         $user->sendEmailVerificationNotification();
-        $this->toast(t('usim.stub.auth.profile.success.verification_sent'), 'success');
+        $this->toast(t('usim.auth.profile.success.verification_sent'), 'success');
     }
 
     public function onChangePassword(array $params): void
@@ -174,9 +174,9 @@ class Profile extends AbstractUIService
         ]);
 
         if ($status === Password::RESET_LINK_SENT) {
-            $this->toast(t('usim.stub.auth.profile.success.password_link_sent'), 'success');
+            $this->toast(t('usim.auth.profile.success.password_link_sent'), 'success');
         } else {
-            $this->toast(t('usim.stub.auth.profile.error.password_link_failed'), 'error');
+            $this->toast(t('usim.auth.profile.error.password_link_failed'), 'error');
         }
     }
 }

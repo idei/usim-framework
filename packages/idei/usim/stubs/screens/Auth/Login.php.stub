@@ -31,7 +31,7 @@ class Login extends AbstractUIService
 
     public static function getMenuLabel(): string
     {
-        return t('usim.stub.auth.login.menu_label');
+        return t('usim.auth.login.menu_label');
     }
 
     public static function getMenuIcon(): ?string
@@ -53,7 +53,7 @@ class Login extends AbstractUIService
         }
 
         $container
-            ->title(t('usim.stub.auth.login.title'))
+            ->title(t('usim.auth.login.title'))
             ->maxWidth('450px')
             ->centerHorizontal()
             ->shadow(3)
@@ -61,8 +61,8 @@ class Login extends AbstractUIService
 
         $container->add(
             UIBuilder::input('login_email')
-                ->label(t('usim.stub.common.email'))
-                ->placeholder(t('usim.stub.auth.login.placeholder.email'))
+                ->label(t('usim.common.email'))
+                ->placeholder(t('usim.auth.login.placeholder.email'))
                 ->value($email)
                 ->type('email')
                 ->required(true)
@@ -71,9 +71,9 @@ class Login extends AbstractUIService
 
         $container->add(
             UIBuilder::input('login_password')
-                ->label(t('usim.stub.common.password'))
+                ->label(t('usim.common.password'))
                 ->type('password')
-                ->placeholder(t('usim.stub.auth.login.placeholder.password'))
+                ->placeholder(t('usim.auth.login.placeholder.password'))
                 ->value($password)
                 ->required(true)
                 ->width('100%')
@@ -93,14 +93,14 @@ class Login extends AbstractUIService
 
         $buttonsContainer->add(
             UIBuilder::button('btn_cancel_login')
-                ->label(t('usim.stub.common.cancel'))
+                ->label(t('usim.common.cancel'))
                 ->style('secondary')
                 ->action('close_login_dialog')
         );
 
         $buttonsContainer->add(
             UIBuilder::button('btn_submit_login')
-                ->label(t('usim.stub.auth.login.menu_label'))
+                ->label(t('usim.auth.login.menu_label'))
                 ->style('primary')
                 ->action('submit_login')
         );
@@ -110,7 +110,7 @@ class Login extends AbstractUIService
         // Forgot Password Link left-aligned below the buttons and filled with the full width of the container
         $container->add(
             UIBuilder::button('btn_forgot_password')
-                ->label(t('usim.stub.auth.login.forgot_password'))
+                ->label(t('usim.auth.login.forgot_password'))
                 ->style('link')
                 ->action('navigate_forgot_password')
                 ->width('100%')
@@ -135,7 +135,7 @@ class Login extends AbstractUIService
 
         $response = $this->loginService->login($email, $password, (bool) $remember);
 
-        $message = $response['message'] ?? t('usim.stub.auth.login.error.failed');
+        $message = $response['message'] ?? t('usim.auth.login.error.failed');
         $status = $response['status'] ?? 'error';
         $this->toast($message, $status);
         $this->lbl_login_result->text($message)->style($status);
@@ -149,7 +149,7 @@ class Login extends AbstractUIService
 
         $user = $response['user'] ?? null;
         if (!$user) {
-            $this->toast(t('usim.stub.auth.login.error.user_not_resolved'), 'error');
+            $this->toast(t('usim.auth.login.error.user_not_resolved'), 'error');
             return;
         }
 

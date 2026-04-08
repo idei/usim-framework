@@ -37,14 +37,14 @@ class UserService
         if (!$user) {
             return [
                 'status' => 'error',
-                'message' => t('usim.stub.service.user.not_found'),
-                'errors' => ['user_id' => [t('usim.stub.service.user.not_exist')]],
+                'message' => t('usim.service.user.not_found'),
+                'errors' => ['user_id' => [t('usim.service.user.not_exist')]],
             ];
         }
 
         return [
             'status' => 'success',
-            'message' => t('usim.stub.service.user.retrieved_success', ['name' => $user->name]),
+            'message' => t('usim.service.user.retrieved_success', ['name' => $user->name]),
             'data' => $user->load('roles')->toArray(),
         ];
     }
@@ -101,7 +101,7 @@ class UserService
 
         return [
             'status' => 'success',
-            'message' => t('usim.stub.service.user.updated_success'),
+            'message' => t('usim.service.user.updated_success'),
             'data' => $user->fresh()->load('roles')->toArray(),
         ];
     }
@@ -116,22 +116,22 @@ class UserService
     {
         foreach (['name', 'email', 'password'] as $field) {
             if ($this->isNullOrEmpty($data, $field)) {
-                return $this->validationError($field, t('usim.stub.service.user.validation.field_empty', ['field' => $field]));
+                return $this->validationError($field, t('usim.service.user.validation.field_empty', ['field' => $field]));
             }
         }
 
         if (array_key_exists('password', $data) && $this->isNullOrEmpty($data, 'password_confirmation')) {
-            return $this->validationError('password_confirmation', t('usim.stub.service.user.validation.password_confirmation_empty'));
+            return $this->validationError('password_confirmation', t('usim.service.user.validation.password_confirmation_empty'));
         }
 
         if (array_key_exists('roles', $data)) {
             if ($data['roles'] === null || !is_array($data['roles']) || $data['roles'] === []) {
-                return $this->validationError('roles', t('usim.stub.service.user.validation.roles_non_empty_array'));
+                return $this->validationError('roles', t('usim.service.user.validation.roles_non_empty_array'));
             }
 
             foreach ($data['roles'] as $roleName) {
                 if (!is_string($roleName) || trim($roleName) === '') {
-                    return $this->validationError('roles', t('usim.stub.service.user.validation.roles_non_empty_string'));
+                    return $this->validationError('roles', t('usim.service.user.validation.roles_non_empty_string'));
                 }
             }
         }
@@ -152,14 +152,14 @@ class UserService
 
         if (array_key_exists('name', $data)) {
             if (!is_string($data['name']) || strlen($data['name']) > 255) {
-                return $this->validationError('name', t('usim.stub.service.user.validation.name_max_255'));
+                return $this->validationError('name', t('usim.service.user.validation.name_max_255'));
             }
             $updateData['name'] = trim($data['name']);
         }
 
         if (array_key_exists('email', $data)) {
             if (!filter_var($data['email'], FILTER_VALIDATE_EMAIL)) {
-                return $this->validationError('email', t('usim.stub.service.user.validation.email_invalid'));
+                return $this->validationError('email', t('usim.service.user.validation.email_invalid'));
             }
 
             $existingUser = {{ userModelClass }}::where('email', $data['email'])
@@ -167,7 +167,7 @@ class UserService
                 ->first();
 
             if ($existingUser) {
-                return $this->validationError('email', t('usim.stub.service.user.validation.email_taken'));
+                return $this->validationError('email', t('usim.service.user.validation.email_taken'));
             }
 
             $updateData['email'] = $data['email'];
@@ -175,11 +175,11 @@ class UserService
 
         if (array_key_exists('password', $data)) {
             if (!is_string($data['password']) || strlen($data['password']) < 8) {
-                return $this->validationError('password', t('usim.stub.service.user.validation.password_min_8'));
+                return $this->validationError('password', t('usim.service.user.validation.password_min_8'));
             }
 
             if ($data['password'] !== $data['password_confirmation']) {
-                return $this->validationError('password', t('usim.stub.service.user.validation.password_confirmation_mismatch'));
+                return $this->validationError('password', t('usim.service.user.validation.password_confirmation_mismatch'));
             }
 
             $updateData['password'] = Hash::make($data['password']);
@@ -204,8 +204,8 @@ class UserService
         ) {
             return [
                 'status' => 'error',
-                'message' => t('usim.stub.service.user.cannot_remove_own_admin_role'),
-                'errors' => ['roles' => [t('usim.stub.service.user.cannot_remove_own_admin_role')]],
+                'message' => t('usim.service.user.cannot_remove_own_admin_role'),
+                'errors' => ['roles' => [t('usim.service.user.cannot_remove_own_admin_role')]],
             ];
         }
 
@@ -223,7 +223,7 @@ class UserService
         if (!empty($invalidRoles)) {
             return $this->validationError(
                 'roles',
-                t('usim.stub.service.user.validation.role_not_exist', ['roles' => implode(', ', $invalidRoles)])
+                t('usim.service.user.validation.role_not_exist', ['roles' => implode(', ', $invalidRoles)])
             );
         }
 
@@ -263,7 +263,7 @@ class UserService
     {
         return [
             'status' => 'error',
-            'message' => t('usim.stub.service.validation_errors'),
+            'message' => t('usim.service.validation_errors'),
             'errors' => [$field => [$message]],
         ];
     }
@@ -280,7 +280,7 @@ class UserService
         if (Auth::id() === $user->id) {
             return [
                 'status' => 'error',
-                'message' => t('usim.stub.service.user.cannot_delete_authenticated'),
+                'message' => t('usim.service.user.cannot_delete_authenticated'),
             ];
         }
 
@@ -289,7 +289,7 @@ class UserService
 
         return [
             'status' => 'success',
-            'message' => t('usim.stub.service.user.deleted_success', ['name' => $userName]),
+            'message' => t('usim.service.user.deleted_success', ['name' => $userName]),
         ];
     }
 
@@ -347,7 +347,7 @@ class UserService
 
         return [
             'status' => 'success',
-            'message' => t('usim.stub.service.user.list_retrieved_success'),
+            'message' => t('usim.service.user.list_retrieved_success'),
             'data' => [
                 'users' => $transformedUsers->toArray(),
                 'pagination' => [
@@ -412,7 +412,7 @@ class UserService
             return [
                 'success' => false,
                 'status' => 'error',
-                'message' => t('usim.stub.service.user.not_found'),
+                'message' => t('usim.service.user.not_found'),
             ];
         }
 
@@ -421,7 +421,7 @@ class UserService
             return [
                 'success' => false,
                 'status' => 'invalid',
-                'message' => t('usim.stub.service.user.invalid_verification_link'),
+                'message' => t('usim.service.user.invalid_verification_link'),
             ];
         }
 
@@ -430,7 +430,7 @@ class UserService
             return [
                 'success' => true,
                 'status' => 'already_verified',
-                'message' => t('usim.stub.service.user.already_verified'),
+                'message' => t('usim.service.user.already_verified'),
             ];
         }
 
@@ -450,7 +450,7 @@ class UserService
         return [
             'success' => true,
             'status' => 'verified',
-            'message' => t('usim.stub.service.user.verified_success'),
+            'message' => t('usim.service.user.verified_success'),
         ];
     }
 }

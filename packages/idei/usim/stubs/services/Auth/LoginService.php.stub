@@ -28,7 +28,7 @@ class LoginService
         if ($validator->fails()) {
             return [
                 'status' => 'error',
-                'message' => t('usim.stub.service.validation_errors'),
+                'message' => t('usim.service.validation_errors'),
                 'errors' => $validator->errors()->toArray(),
             ];
         }
@@ -38,8 +38,8 @@ class LoginService
         if (!$user || !Hash::check($password, $user->password)) {
             return [
                 'status' => 'error',
-                'message' => t('usim.stub.service.auth.login.invalid_credentials'),
-                'errors' => ['email' => [t('usim.stub.service.auth.login.credentials_incorrect')]],
+                'message' => t('usim.service.auth.login.invalid_credentials'),
+                'errors' => ['email' => [t('usim.service.auth.login.credentials_incorrect')]],
             ];
         }
 
@@ -47,7 +47,7 @@ class LoginService
 
         return [
             'status' => 'success',
-            'message' => t('usim.stub.service.auth.login.success'),
+            'message' => t('usim.service.auth.login.success'),
             'data' => [
                 'user' => [
                     'id' => $user->id,

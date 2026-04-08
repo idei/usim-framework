@@ -52,8 +52,8 @@ class RegisterDialog
 
         $registerContainer->add(
             UIBuilder::input('name')
-                ->label(t('usim.stub.common.full_name'))
-                ->placeholder(t('usim.stub.common.placeholder.enter_full_name'))
+                ->label(t('usim.common.full_name'))
+                ->placeholder(t('usim.common.placeholder.enter_full_name'))
                 ->required(true)
                 ->value($name)
                 ->autocomplete('off')
@@ -61,8 +61,8 @@ class RegisterDialog
 
         $registerContainer->add(
             UIBuilder::input('email')
-                ->label(t('usim.stub.common.email'))
-                ->placeholder(t('usim.stub.auth.login.placeholder.email'))
+                ->label(t('usim.common.email'))
+                ->placeholder(t('usim.auth.login.placeholder.email'))
                 ->required(true)
                 ->value($email)
                 ->autocomplete('off')
@@ -70,9 +70,9 @@ class RegisterDialog
 
         $registerContainer->add(
             UIBuilder::input('password')
-                ->label(t('usim.stub.common.password'))
+                ->label(t('usim.common.password'))
                 ->type('password')
-                ->placeholder(t('usim.stub.auth.register.placeholder.password_min'))
+                ->placeholder(t('usim.auth.register.placeholder.password_min'))
                 ->required(true)
                 ->value($password)
                 ->autocomplete('new-password')
@@ -80,9 +80,9 @@ class RegisterDialog
 
         $registerContainer->add(
             UIBuilder::input('password_confirmation')
-                ->label(t('usim.stub.common.confirm_password'))
+                ->label(t('usim.common.confirm_password'))
                 ->type('password')
-                ->placeholder(t('usim.stub.auth.register.placeholder.confirm_password'))
+                ->placeholder(t('usim.auth.register.placeholder.confirm_password'))
                 ->required(true)
                 ->value($password_confirmation)
                 ->autocomplete('new-password')
@@ -91,10 +91,10 @@ class RegisterDialog
         if ($askForRole) {
             $registerContainer->add(
                 UIBuilder::select('roles')
-                    ->label(t('usim.stub.common.role'))
+                    ->label(t('usim.common.role'))
                     ->options([
-                        ['value' => 'user', 'label' => t('usim.stub.common.role_user')],
-                        ['value' => 'admin', 'label' => t('usim.stub.common.role_admin')],
+                        ['value' => 'user', 'label' => t('usim.common.role_user')],
+                        ['value' => 'admin', 'label' => t('usim.common.role_admin')],
                     ])
                     ->value($role)
                     ->required(true)
@@ -102,7 +102,7 @@ class RegisterDialog
 
             $registerContainer->add(
                 UIBuilder::checkbox('send_verification_email')
-                    ->label(t('usim.stub.auth.register.send_verification_email'))
+                    ->label(t('usim.auth.register.send_verification_email'))
                     ->checked(true)
             );
         }
@@ -118,7 +118,7 @@ class RegisterDialog
         if ($cancelAction) {
             $buttonsContainer->add(
                 UIBuilder::button('btn_cancel_register')
-                    ->label(t('usim.stub.common.cancel'))
+                    ->label(t('usim.common.cancel'))
                     ->style('secondary')
                     ->action($cancelAction, [
                         '_caller_service_id' => $callerServiceId
@@ -128,7 +128,7 @@ class RegisterDialog
 
         $buttonsContainer->add(
             UIBuilder::button('btn_submit_register')
-                ->label(t('usim.stub.auth.register.submit'))
+                ->label(t('usim.auth.register.submit'))
                 ->style('primary')
                 ->action($submitAction, [
                     '_caller_service_id' => $callerServiceId
