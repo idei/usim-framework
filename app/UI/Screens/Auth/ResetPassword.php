@@ -46,7 +46,7 @@ class ResetPassword extends AbstractUIService
 
         $container->add(
             UIBuilder::label('lbl_title')
-                ->text('Restablecer Contraseña')
+                ->text(t('app.screen.auth.reset_password.title'))
                 ->style('h2')
                 ->center()
                 ->color('#10b981') // Green to match theme
@@ -79,7 +79,7 @@ class ResetPassword extends AbstractUIService
 
         $formCard->add(
             UIBuilder::label('card_title')
-                ->text('Nueva Contraseña')
+                ->text(t('app.screen.auth.reset_password.card_title'))
                 ->style('h3')
                 ->color('#1f2937')
                 ->marginBottom('5px')
@@ -87,7 +87,7 @@ class ResetPassword extends AbstractUIService
 
         $formCard->add(
             UIBuilder::label('lbl_subtitle_card')
-                ->text('Por favor ingresa tu nueva contraseña segura para recuperar el acceso a tu cuenta.')
+                ->text(t('app.screen.auth.reset_password.instruction'))
                 ->style('p')
                 ->color('#6b7280')
                 ->marginBottom('15px')
@@ -103,18 +103,18 @@ class ResetPassword extends AbstractUIService
 
         $formCard->add(
             UIBuilder::input('password')
-                ->label('Nueva Contraseña')
+                ->label(t('app.screen.auth.reset_password.password.label'))
                 ->type('password')
-                ->placeholder('Mínimo 8 caracteres')
+                ->placeholder(t('app.screen.auth.reset_password.password.placeholder'))
                 ->required(true)
                 ->width('100%')
         );
 
         $formCard->add(
             UIBuilder::input('password_confirmation')
-                ->label('Confirmar Contraseña')
+                ->label(t('app.screen.auth.reset_password.confirm.label'))
                 ->type('password')
-                ->placeholder('Repite la contraseña')
+                ->placeholder(t('app.screen.auth.reset_password.confirm.placeholder'))
                 ->required(true)
                 ->width('100%')
         );
@@ -128,7 +128,7 @@ class ResetPassword extends AbstractUIService
 
         $formCard->add(
             UIBuilder::button('btn_reset')
-                ->label('Cambiar Contraseña')
+                ->label(t('app.screen.auth.reset_password.actions.submit'))
                 ->style('success')
                 ->action('reset_password')
                 ->marginTop('10px')
@@ -146,22 +146,22 @@ class ResetPassword extends AbstractUIService
         $passwordConfirmation = $params['password_confirmation'] ?? '';
 
         if (empty($token) || empty($email)) {
-             $this->showError('Enlace inválido o expirado.');
+             $this->showError(t('app.screen.auth.reset_password.errors.invalid_link'));
              return;
         }
 
         if ($expires > 0 && now()->timestamp > $expires) {
-            $this->showError('El enlace de restablecimiento ha expirado. Solicita uno nuevo.');
+            $this->showError(t('app.screen.auth.reset_password.errors.link_expired'));
             return;
         }
 
         if (strlen($password) < 8) {
-            $this->showError('La contraseña debe tener al menos 8 caracteres.');
+            $this->showError(t('app.screen.auth.reset_password.validation.min_length'));
             return;
         }
 
         if ($password !== $passwordConfirmation) {
-            $this->showError('Las contraseñas no coinciden.');
+            $this->showError(t('app.screen.auth.reset_password.validation.mismatch'));
             return;
         }
 
@@ -174,15 +174,15 @@ class ResetPassword extends AbstractUIService
             );
 
             $status = $response['status'] ?? 'error';
-            $message = $response['message'] ?? 'Error desconocido';
+            $message = $response['message'] ?? t('app.screen.auth.reset_password.errors.unknown');
 
             if ($status === 'success') {
                 $this->lbl_result
-                    ->text('¡Contraseña actualizada! Redirigiendo...')
+                    ->text(t('app.screen.auth.reset_password.success.label'))
                     ->style('text-green-600 font-medium')
                     ->visible(true);
 
-                $this->toast('Contraseña actualizada correctamente', 'success');
+                $this->toast(t('app.screen.auth.reset_password.toast.success'), 'success');
 
                 // Redirect to login after short delay (handled by frontend if possible, or immediate)
                 $this->redirect('/auth/login');
@@ -197,7 +197,7 @@ class ResetPassword extends AbstractUIService
             }
 
         } catch (\Exception $e) {
-            $this->showError('Error de conexión: ' . $e->getMessage());
+            $this->showError(t('app.screen.auth.reset_password.errors.connection', ['message' => $e->getMessage()]));
         }
     }
 

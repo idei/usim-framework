@@ -81,7 +81,7 @@ class Menu extends AbstractUIService
         $this->theme_toggle->icon("/vendor/idei/usim/images/$icon.svg");
         $this->theme_toggle->iconColor('var(--usim-menu-trigger-text)');
         $this->theme_toggle->iconSize(24);
-        $this->theme_toggle->tooltip("Switch to " . ($this->store_theme === 'light' ? 'dark' : 'light') . " theme");
+        $this->theme_toggle->tooltip(t('app.screen.menu.theme_switch_to', ['theme' => $this->store_theme === 'light' ? 'dark' : 'light']));
     }
 
     public function onToggleTheme(array $params): void
@@ -234,7 +234,7 @@ class Menu extends AbstractUIService
         $this->main_menu->clearItems();
         $this->populateMainMenu($this->main_menu);
 
-        $this->toast(t('You have been logged out successfully.'));
+        $this->toast(t('app.screen.menu.logout_success'));
         $this->redirect();
     }
 
@@ -259,7 +259,7 @@ class Menu extends AbstractUIService
 
     public function onShowErrorInfo(array $params): void
     {
-        $this->abort(500, t("This is a simulated error for testing error handling."));
+        $this->abort(500, t('app.screen.menu.abort_demo_error'));
     }
 
     /**
@@ -285,7 +285,7 @@ class Menu extends AbstractUIService
     public function onSubmitRegister(array $params): void
     {
         if ($params['accept_terms'] == false) {
-            $this->toast(t('You must accept the terms and conditions to register.'), type: 'error');
+            $this->toast(t('app.screen.menu.register_terms_required'), type: 'error');
             return;
         }
 
@@ -308,7 +308,7 @@ class Menu extends AbstractUIService
 
     private function handleRegisterSuccess(array $response): void
     {
-        $message = (string) ($response['message'] ?? t('Usuario registrado exitosamente'));
+        $message = (string) ($response['message'] ?? t('app.screen.menu.register_success_default'));
         $this->toast($message, 'success');
 
         $user = $response['user'] ?? null;
@@ -324,7 +324,7 @@ class Menu extends AbstractUIService
 
     private function handleRegisterError(array $response): void
     {
-        $message = (string) ($response['message'] ?? t('Validation errors'));
+        $message = (string) ($response['message'] ?? t('app.screen.menu.validation_errors_default'));
         $this->toast($message, 'error');
         $this->updateModalValidationErrors((array) ($response['errors'] ?? []));
     }
@@ -362,8 +362,8 @@ class Menu extends AbstractUIService
 
         ConfirmDialogService::open(
             type: DialogType::CONFIRM,
-            title: t("Cerrar Sesión"),
-            message: t("¿Estás seguro que deseas cerrar sesión?"),
+            title: t('app.screen.menu.logout_confirm.title'),
+            message: t('app.screen.menu.logout_confirm.message'),
             confirmAction: 'confirm_logout',
             cancelAction: 'cancel_logout',
             callerServiceId: $serviceId

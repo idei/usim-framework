@@ -15,12 +15,12 @@ class ButtonDemo extends AbstractUIService
     {
         $container
             ->alignContent('center')->alignItems('center')
-            ->title(t('Button Demo - Click Me!'))
+            ->title(t('app.screen.demo.button_demo.title'))
             ->padding('30px')->maxWidth('400px')
             ->centerHorizontal()->shadow(2)
             ->add(
                 UIBuilder::button('btn_toggle')
-                    ->label(t('Click Me!'))
+                    ->label(t('app.screen.demo.button_demo.cta.default'))
                     ->action('toggle_label')
                     ->style('primary')
             );
@@ -40,9 +40,9 @@ class ButtonDemo extends AbstractUIService
     private function updateButtonState(): void
     {
         if ($this->store_state) {
-            $this->btn_toggle->label(t('Clicked!'))->style('success');
+            $this->btn_toggle->label(t('app.screen.demo.button_demo.cta.clicked'))->style('success');
         } else {
-            $this->btn_toggle->label(t('Click Me!'))->style('primary');
+            $this->btn_toggle->label(t('app.screen.demo.button_demo.cta.default'))->style('primary');
         }
     }
 }

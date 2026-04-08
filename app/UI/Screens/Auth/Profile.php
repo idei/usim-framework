@@ -39,7 +39,7 @@ class Profile extends AbstractUIService
         $user = Auth::user();
 
         $container
-            ->title('Mi Perfil')
+            ->title(t('app.screen.auth.profile.title'))
             ->maxWidth('600px')
             ->centerHorizontal()
             ->shadow(2)
@@ -56,7 +56,7 @@ class Profile extends AbstractUIService
 
         // Email (readonly)
         $this->input_email = UIBuilder::input('input_email')
-            ->label('Email')
+            ->label(t('app.screen.auth.profile.email.label'))
             ->type('email')
             ->value($user->email)
             ->disabled(true)
@@ -66,9 +66,9 @@ class Profile extends AbstractUIService
 
         // Nombre
         $this->input_name = UIBuilder::input('input_name')
-            ->label('Nombre Completo')
+            ->label(t('app.screen.auth.profile.name.label'))
             ->type('text')
-            ->placeholder('Tu nombre completo')
+            ->placeholder(t('app.screen.auth.profile.name.placeholder'))
             ->value($user->name ?? '')
             ->required(true)
             ->width('100%');
@@ -78,7 +78,7 @@ class Profile extends AbstractUIService
         // Foto de perfil
         $this->uploader_profile = UIBuilder::uploader('uploader_profile')
             ->allowedTypes(['image/*'])
-            ->label('Foto de Perfil')
+            ->label(t('app.screen.auth.profile.photo.label'))
             ->maxFiles(1)
             ->maxSize(2)
             ->aspect('1:1')
@@ -89,7 +89,7 @@ class Profile extends AbstractUIService
         // Botones de acción
         $container->add(
             UIBuilder::button('btn_save_profile')
-                ->label('💾 Guardar Cambios')
+                ->label(t('app.screen.auth.profile.actions.save'))
                 ->action('save_profile')
                 ->style('primary')
                 ->width('100%')
@@ -97,7 +97,7 @@ class Profile extends AbstractUIService
 
         $container->add(
             UIBuilder::button('btn_change_password')
-                ->label('🔒 Cambiar Contraseña')
+                ->label(t('app.screen.auth.profile.actions.change_password'))
                 ->action('change_password')
                 ->style('secondary')
                 ->width('100%')
@@ -113,7 +113,7 @@ class Profile extends AbstractUIService
         $this->input_name->value($user->name ?? '');
 
         if (!$user->email_verified_at) {
-            $this->input_email->error('Email no verificado. Por favor verifica tu email.');
+            $this->input_email->error(t('app.screen.auth.profile.email.not_verified'));
         } else {
             $this->input_email->error(null);
         }
@@ -141,7 +141,7 @@ class Profile extends AbstractUIService
             $name = trim($params['input_name'] ?? '');
 
             if (empty($name)) {
-                $this->input_name->error('El nombre es requerido');
+                $this->input_name->error(t('app.screen.auth.profile.validation.name_required'));
                 return;
             }
 
@@ -162,10 +162,10 @@ class Profile extends AbstractUIService
             ]));
 
             // Mostrar éxito
-            $this->toast('Perfil actualizado', 'success');
+            $this->toast(t('app.screen.auth.profile.toast.updated'), 'success');
         } catch (\Throwable $e) {
             \Illuminate\Support\Facades\Log::error('Error saving profile: ' . $e->getMessage() . "\n" . $e->getTraceAsString());
-            $this->toast('Error al guardar el perfil: ' . $e->getMessage(), 'error');
+            $this->toast(t('app.screen.auth.profile.toast.save_error', ['message' => $e->getMessage()]), 'error');
         }
     }
 
@@ -178,14 +178,14 @@ class Profile extends AbstractUIService
         $user = Auth::user();
 
         if ($user->email_verified_at) {
-            $this->toast('Tu email ya está verificado', 'info');
+            $this->toast(t('app.screen.auth.profile.toast.already_verified'), 'info');
             return;
         }
 
         // Enviar notificación de verificación
         $user->sendEmailVerificationNotification();
 
-        $this->toast('Email de verificación enviado. Revisa tu bandeja de entrada', 'success');
+        $this->toast(t('app.screen.auth.profile.toast.verification_sent'), 'success');
     }
 
     /**
@@ -201,9 +201,9 @@ class Profile extends AbstractUIService
         ]);
 
         if ($status === Password::RESET_LINK_SENT) {
-            $this->toast('Enlace para cambiar contraseña enviado a tu email', 'success');
+            $this->toast(t('app.screen.auth.profile.toast.password_link_sent'), 'success');
         } else {
-            $this->toast('Error al enviar el enlace. Intenta nuevamente', 'error');
+            $this->toast(t('app.screen.auth.profile.toast.password_link_error'), 'error');
         }
     }
 }

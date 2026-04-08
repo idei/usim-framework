@@ -26,7 +26,7 @@ class ModalDemo extends AbstractUIService
     protected function buildBaseUI(UIContainer $container, ...$params): void
     {
         $container
-            ->title(t('Modal Component Demo'))
+            ->title(t('app.screen.demo.modal_demo.title'))
             ->maxWidth('600px')
             ->centerHorizontal()
             ->shadow(2)
@@ -34,7 +34,7 @@ class ModalDemo extends AbstractUIService
 
         $container->add(
             UIBuilder::label('lbl_instruction')
-                ->text(t("🔔 Click the button below to open a confirmation dialog:"))
+                ->text(t('app.screen.demo.modal_demo.instruction'))
                 ->style('info')
         );
 
@@ -51,31 +51,31 @@ class ModalDemo extends AbstractUIService
             ->shadow(false)
             ->add(
                 UIBuilder::button('btn_open_modal')
-                    ->label(t('Open Confirmation Dialog'))
+                    ->label(t('app.screen.demo.modal_demo.actions.open_confirmation'))
                     ->style('primary')
                     ->action('open_confirmation')
                     ->width('230px')
             )->add(
                 UIBuilder::button('btn_error_dialog')
-                    ->label(t('Open Error Dialog'))
+                    ->label(t('app.screen.demo.modal_demo.actions.open_error'))
                     ->style('danger')
                     ->action('show_error_dialog')
                     ->width('230px')
             )->add(
                 UIBuilder::button('btn_timeout_dialog')
-                    ->label(t('Open Timeout Dialog (10 seg)'))
+                    ->label(t('app.screen.demo.modal_demo.actions.open_timeout_with_button'))
                     ->style('warning')
                     ->action('show_timeout_dialog', ['duration' => 10])
                     ->width('230px')
             )->add(
                 UIBuilder::button('btn_timeout_no_button')
-                    ->label(t('Open Timeout Without button'))
+                    ->label(t('app.screen.demo.modal_demo.actions.open_timeout_without_button'))
                     ->style('warning')
                     ->action('show_timeout_no_button')
                     ->width('230px')
             )->add(
                 UIBuilder::button('btn_show_settings')
-                    ->label(t('Settings'))
+                    ->label(t('app.screen.demo.modal_demo.actions.settings'))
                     ->style('secondary')
                     ->icon('settings')
                     ->action('show_settings_confirm')
@@ -98,13 +98,13 @@ class ModalDemo extends AbstractUIService
 
         ConfirmDialogService::open(
             type: DialogType::CONFIRM,
-            title: t("Confirm Action"),
-            message: t("Are you sure you want to proceed with this action?"),
+            title: t('app.screen.demo.modal_demo.confirm_dialog.title'),
+            message: t('app.screen.demo.modal_demo.confirm_dialog.message'),
             confirmAction: 'handle_confirm',
             confirmParams: ['action_type' => 'demo_action'],
-            confirmLabel: t('Yes, Proceed'),
+            confirmLabel: t('app.screen.demo.modal_demo.confirm_dialog.confirm_label'),
             cancelAction: 'handle_cancel',
-            cancelLabel: t('No, Cancel'),
+            cancelLabel: t('app.screen.demo.modal_demo.confirm_dialog.cancel_label'),
             callerServiceId: $serviceId
         );
     }
@@ -120,7 +120,7 @@ class ModalDemo extends AbstractUIService
         $actionType = $params['action_type'] ?? 'unknown';
 
         $this->lbl_result
-            ->text(t("✅ Action confirmed! Type: {$actionType}"))
+            ->text(t('app.screen.demo.modal_demo.result.confirmed', ['type' => $actionType]))
             ->style('success');
 
         $this->closeModal();
@@ -135,7 +135,7 @@ class ModalDemo extends AbstractUIService
     public function onHandleCancel(array $params): void
     {
         $this->lbl_result
-            ->text(t("❌ Action cancelled by user"))
+            ->text(t('app.screen.demo.modal_demo.result.cancelled'))
             ->style('warning');
 
         $this->closeModal();
@@ -151,9 +151,8 @@ class ModalDemo extends AbstractUIService
 
         ConfirmDialogService::open(
             type: DialogType::ERROR,
-            title: t("Error de conexión"),
-            message: t("No se pudo conectar con el servidor.\n
-            Por favor, verifica tu conexión a internet e intenta nuevamente."),
+            title: t('app.screen.demo.modal_demo.error_dialog.title'),
+            message: t('app.screen.demo.modal_demo.error_dialog.message'),
             confirmAction: 'close_error_dialog',
             callerServiceId: $serviceId
         );
@@ -174,8 +173,8 @@ class ModalDemo extends AbstractUIService
 
         ConfirmDialogService::open(
             type: DialogType::TIMEOUT,
-            title: t("Notificación Temporal"),
-            message: t("Este mensaje se autodestruirá en:"),
+            title: t('app.screen.demo.modal_demo.timeout_dialog.title'),
+            message: t('app.screen.demo.modal_demo.timeout_dialog.message'),
             timeout: $duration,
             timeUnit: TimeUnit::SECONDS,
             showCountdown: true,
@@ -190,8 +189,8 @@ class ModalDemo extends AbstractUIService
 
         ConfirmDialogService::open(
             type: DialogType::TIMEOUT,
-            title: t("Auto cierre"),
-            message: t("Este diálogo se cerrará automáticamente en:"),
+            title: t('app.screen.demo.modal_demo.auto_close_dialog.title'),
+            message: t('app.screen.demo.modal_demo.auto_close_dialog.message'),
             timeout: 5,
             timeUnit: TimeUnit::SECONDS,
             showCountdown: true,
@@ -215,8 +214,8 @@ class ModalDemo extends AbstractUIService
 
         ConfirmDialogService::open(
             type: DialogType::WARNING,
-            title: t("Configuración"),
-            message: t("¿Quieres resetear la configuración?\nEsta acción no se puede deshacer."),
+            title: t('app.screen.demo.modal_demo.settings_dialog.title'),
+            message: t('app.screen.demo.modal_demo.settings_dialog.message'),
             confirmAction: 'reset_settings',
             confirmParams: [],
             cancelAction: 'cancel_settings',
@@ -242,8 +241,8 @@ class ModalDemo extends AbstractUIService
 
         ConfirmDialogService::open(
             type: DialogType::SUCCESS,
-            title: t("¡Completado!"),
-            message: t("La configuración ha sido reseteada correctamente."),
+            title: t('app.screen.demo.modal_demo.success_dialog.title'),
+            message: t('app.screen.demo.modal_demo.success_dialog.message'),
             confirmAction: 'close_success_dialog',
             callerServiceId: $serviceId
         );

@@ -32,7 +32,7 @@ class UploaderDemo extends AbstractUIService
     protected function buildBaseUI(UIContainer $container, ...$params): void
     {
         $container
-            ->title(t('Uploader Component Demo'))
+            ->title(t('app.screen.demo.uploader_demo.title'))
             ->maxWidth('800px')
             ->centerHorizontal()
             ->plain()
@@ -41,21 +41,21 @@ class UploaderDemo extends AbstractUIService
         // Instrucciones
         $container->add(
             UIBuilder::label('lbl_instructions')
-                ->text(t('📤 Prueba el componente de upload de archivos'))
+                ->text(t('app.screen.demo.uploader_demo.instruction'))
                 ->style('info')
         );
 
         // Uploader de imagen única (perfil)
         $container->add(
             UIBuilder::label('lbl_profile_title')
-                ->text(t('👤 Imagen de Perfil (1:1 - Size 2)'))
+                ->text(t('app.screen.demo.uploader_demo.profile.title'))
                 ->style('primary')
         );
 
         $container->add(
             UIBuilder::uploader('uploader_profile')
                 ->allowedTypes(['image/*'])
-                ->label(t('Foto de perfil cuadrada - 192x192px'))
+                ->label(t('app.screen.demo.uploader_demo.profile.label'))
                 ->maxFiles(1)
                 ->maxSize(2)
                 ->aspect('1:1')
@@ -64,7 +64,7 @@ class UploaderDemo extends AbstractUIService
 
         $container->add(
             UIBuilder::button('btn_confirm_profile')
-                ->label(t('✅ Confirmar Foto de Perfil'))
+                ->label(t('app.screen.demo.uploader_demo.profile.confirm'))
                 ->style('success')
                 ->action('process_profile')
         );
@@ -72,21 +72,21 @@ class UploaderDemo extends AbstractUIService
         // Separador
         $container->add(
             UIBuilder::label('lbl_separator1')
-                ->text(t('───────────────────────────'))
+                ->text(t('app.screen.demo.uploader_demo.separator'))
                 ->style('secondary')
         );
 
         // Uploader de banner (16:9)
         $container->add(
             UIBuilder::label('lbl_banner_title')
-                ->text(t('🖼️ Banner Horizontal (16:9 - Size 3)'))
+                ->text(t('app.screen.demo.uploader_demo.banner.title'))
                 ->style('primary')
         );
 
         $container->add(
             UIBuilder::uploader('uploader_banner')
                 ->allowedTypes(['image/*'])
-                ->label(t('Banner para posts - 256x144px'))
+                ->label(t('app.screen.demo.uploader_demo.banner.label'))
                 ->maxFiles(1)
                 ->maxSize(3)
                 ->aspect('16:9')
@@ -95,7 +95,7 @@ class UploaderDemo extends AbstractUIService
 
         $container->add(
             UIBuilder::button('btn_confirm_banner')
-                ->label(t('✅ Confirmar Banner'))
+                ->label(t('app.screen.demo.uploader_demo.banner.confirm'))
                 ->style('success')
                 ->action('process_banner')
         );
@@ -103,21 +103,21 @@ class UploaderDemo extends AbstractUIService
         // Separador
         $container->add(
             UIBuilder::label('lbl_separator2')
-                ->text(t('───────────────────────────'))
+                ->text(t('app.screen.demo.uploader_demo.separator'))
                 ->style('secondary')
         );
 
         // Uploader de story (9:16)
         $container->add(
             UIBuilder::label('lbl_story_title')
-                ->text(t('📱 Story Vertical (9:16 - Size 2)'))
+                ->text(t('app.screen.demo.uploader_demo.story.title'))
                 ->style('primary')
         );
 
         $container->add(
             UIBuilder::uploader('uploader_story')
                 ->allowedTypes(['image/*'])
-                ->label(t('Imagen para stories - 108x192px'))
+                ->label(t('app.screen.demo.uploader_demo.story.label'))
                 ->maxFiles(1)
                 ->maxSize(3)
                 ->aspect('9:16')
@@ -126,7 +126,7 @@ class UploaderDemo extends AbstractUIService
 
         $container->add(
             UIBuilder::button('btn_confirm_story')
-                ->label(t('✅ Confirmar Story'))
+                ->label(t('app.screen.demo.uploader_demo.story.confirm'))
                 ->style('success')
                 ->action('process_story')
         );
@@ -134,28 +134,28 @@ class UploaderDemo extends AbstractUIService
         // Separador
         $container->add(
             UIBuilder::label('lbl_separator3')
-                ->text(t('───────────────────────────'))
+                ->text(t('app.screen.demo.uploader_demo.separator'))
                 ->style('secondary')
         );
 
         // Uploader de imágenes
         $container->add(
             UIBuilder::label('lbl_images_title')
-                ->text(t('🖼️ Upload Múltiple de Imágenes (sin aspect ratio)'))
+                ->text(t('app.screen.demo.uploader_demo.images.title'))
                 ->style('primary')
         );
 
         $container->add(
             UIBuilder::uploader('uploader_images')
                 ->images()
-                ->label(t('Selecciona múltiples imágenes'))
+                ->label(t('app.screen.demo.uploader_demo.images.label'))
                 ->maxFiles(3)
                 ->maxSize(5)
         );
 
         $container->add(
             UIBuilder::button('btn_confirm_images')
-                ->label(t('✅ Confirmar Imágenes'))
+                ->label(t('app.screen.demo.uploader_demo.images.confirm'))
                 ->style('success')
                 ->action('process_images')
         );
@@ -163,28 +163,28 @@ class UploaderDemo extends AbstractUIService
         // Separador
         $container->add(
             UIBuilder::label('lbl_separator4')
-                ->text(t('───────────────────────────'))
+                ->text(t('app.screen.demo.uploader_demo.separator'))
                 ->style('secondary')
         );
 
         // Uploader de documentos
         $container->add(
             UIBuilder::label('lbl_documents_title')
-                ->text(t('📄 Upload de Documentos'))
+                ->text(t('app.screen.demo.uploader_demo.documents.title'))
                 ->style('primary')
         );
 
         $container->add(
             UIBuilder::uploader('uploader_documents')
                 ->documents()
-                ->label(t('Selecciona documentos (PDF, Word, Excel)'))
+                ->label(t('app.screen.demo.uploader_demo.documents.label'))
                 ->maxFiles(2)
                 ->maxSize(10)
         );
 
         $container->add(
             UIBuilder::button('btn_confirm_documents')
-                ->label(t('✅ Confirmar Documentos'))
+                ->label(t('app.screen.demo.uploader_demo.documents.confirm'))
                 ->style('success')
                 ->action('process_documents')
         );
@@ -192,7 +192,7 @@ class UploaderDemo extends AbstractUIService
         // Resultado
         $container->add(
             UIBuilder::label('lbl_result')
-                ->text(t('Sube archivos para ver el resultado'))
+                ->text(t('app.screen.demo.uploader_demo.result.initial'))
                 ->style('secondary')
         );
     }
@@ -200,7 +200,7 @@ class UploaderDemo extends AbstractUIService
     protected function postLoadUI(): void
     {
         $this->lbl_result
-            ->text(t('Sube archivos para ver el resultado'))
+            ->text(t('app.screen.demo.uploader_demo.result.initial'))
             ->style('secondary');
     }
 
@@ -215,7 +215,7 @@ class UploaderDemo extends AbstractUIService
 
         if (empty($tempIds)) {
             $this->lbl_result
-                ->text(t('❌ No hay foto de perfil para procesar'))
+                ->text(t('app.screen.demo.uploader_demo.errors.no_profile'))
                 ->style('danger');
             return;
         }
@@ -227,7 +227,7 @@ class UploaderDemo extends AbstractUIService
 
         if (!$file) {
             $this->lbl_result
-                ->text(t('❌ Archivo temporal no encontrado'))
+                ->text(t('app.screen.demo.uploader_demo.errors.temp_not_found'))
                 ->style('danger');
             return;
         }
@@ -241,9 +241,12 @@ class UploaderDemo extends AbstractUIService
 
         // Mostrar resultado
         $sizeMB = round($file->size / 1024 / 1024, 2);
-        $result = t("✅ Foto de perfil procesada exitosamente:\n\n");
-        $result .= t("📸 {$file->original_filename} ({$sizeMB}MB)\n");
-        $result .= t("   → {$finalPath}");
+        $result = t('app.screen.demo.uploader_demo.profile.processed_header');
+        $result .= t('app.screen.demo.uploader_demo.result.file_line_photo', [
+            'name' => $file->original_filename,
+            'size' => $sizeMB,
+        ]);
+        $result .= t('app.screen.demo.uploader_demo.result.path_line', ['path' => $finalPath]);
 
         $this->lbl_result
             ->text($result)
@@ -265,7 +268,7 @@ class UploaderDemo extends AbstractUIService
 
         if (empty($tempIds)) {
             $this->lbl_result
-                ->text(t('❌ No hay banner para procesar'))
+                ->text(t('app.screen.demo.uploader_demo.errors.no_banner'))
                 ->style('danger');
             return;
         }
@@ -274,7 +277,7 @@ class UploaderDemo extends AbstractUIService
 
         if (!$file) {
             $this->lbl_result
-                ->text(t('❌ Archivo temporal no encontrado'))
+                ->text(t('app.screen.demo.uploader_demo.errors.temp_not_found'))
                 ->style('danger');
             return;
         }
@@ -284,9 +287,12 @@ class UploaderDemo extends AbstractUIService
         DB::table('temporary_uploads')->where('id', $file->id)->delete();
 
         $sizeMB = round($file->size / 1024 / 1024, 2);
-        $result = t("✅ Banner procesado exitosamente (16:9):\n\n");
-        $result .= t("🖼️ {$file->original_filename} ({$sizeMB}MB)\n");
-        $result .= t("   → {$finalPath}");
+        $result = t('app.screen.demo.uploader_demo.banner.processed_header');
+        $result .= t('app.screen.demo.uploader_demo.result.file_line_banner', [
+            'name' => $file->original_filename,
+            'size' => $sizeMB,
+        ]);
+        $result .= t('app.screen.demo.uploader_demo.result.path_line', ['path' => $finalPath]);
 
         $this->lbl_result
             ->text($result)
@@ -307,7 +313,7 @@ class UploaderDemo extends AbstractUIService
 
         if (empty($tempIds)) {
             $this->lbl_result
-                ->text(t('❌ No hay story para procesar'))
+                ->text(t('app.screen.demo.uploader_demo.errors.no_story'))
                 ->style('danger');
             return;
         }
@@ -316,7 +322,7 @@ class UploaderDemo extends AbstractUIService
 
         if (!$file) {
             $this->lbl_result
-                ->text(t('❌ Archivo temporal no encontrado'))
+                ->text(t('app.screen.demo.uploader_demo.errors.temp_not_found'))
                 ->style('danger');
             return;
         }
@@ -326,9 +332,12 @@ class UploaderDemo extends AbstractUIService
         DB::table('temporary_uploads')->where('id', $file->id)->delete();
 
         $sizeMB = round($file->size / 1024 / 1024, 2);
-        $result = t("✅ Story procesada exitosamente (9:16):\n\n");
-        $result .= t("📱 {$file->original_filename} ({$sizeMB}MB)\n");
-        $result .= t("   → {$finalPath}");
+        $result = t('app.screen.demo.uploader_demo.story.processed_header');
+        $result .= t('app.screen.demo.uploader_demo.result.file_line_story', [
+            'name' => $file->original_filename,
+            'size' => $sizeMB,
+        ]);
+        $result .= t('app.screen.demo.uploader_demo.result.path_line', ['path' => $finalPath]);
 
         $this->lbl_result
             ->text($result)
@@ -350,7 +359,7 @@ class UploaderDemo extends AbstractUIService
 
         if (empty($tempIds)) {
             $this->lbl_result
-                ->text('❌ No hay imágenes para procesar')
+                ->text(t('app.screen.demo.uploader_demo.errors.no_images'))
                 ->style('danger');
             return;
         }
@@ -381,11 +390,14 @@ class UploaderDemo extends AbstractUIService
         }
 
         // Mostrar resultado
-        $result = "✅ Imágenes procesadas exitosamente:\n\n";
+        $result = t('app.screen.demo.uploader_demo.images.processed_header');
         foreach ($processedFiles as $file) {
             $sizeMB = round($file['size'] / 1024 / 1024, 2);
-            $result .= t("📸 {$file['original']} ({$sizeMB}MB)\n");
-            $result .= t("   → {$file['path']}\n\n");
+            $result .= t('app.screen.demo.uploader_demo.result.file_line_photo', [
+                'name' => $file['original'],
+                'size' => $sizeMB,
+            ]);
+            $result .= t('app.screen.demo.uploader_demo.result.path_line_with_spacing', ['path' => $file['path']]);
         }
 
         $this->lbl_result
@@ -409,7 +421,7 @@ class UploaderDemo extends AbstractUIService
 
         if (empty($tempIds)) {
             $this->lbl_result
-                ->text('❌ No hay documentos para procesar')
+                ->text(t('app.screen.demo.uploader_demo.errors.no_documents'))
                 ->style('danger');
             return;
         }
@@ -441,12 +453,16 @@ class UploaderDemo extends AbstractUIService
         }
 
         // Mostrar resultado
-        $result = "✅ Documentos procesados exitosamente:\n\n";
+        $result = t('app.screen.demo.uploader_demo.documents.processed_header');
         foreach ($processedFiles as $file) {
             $sizeMB = round($file['size'] / 1024 / 1024, 2);
             $emoji = $this->getDocumentEmoji($file['original']);
-            $result .= t("{$emoji} {$file['original']} ({$sizeMB}MB)\n");
-            $result .= t("   → {$file['path']}\n\n");
+            $result .= t('app.screen.demo.uploader_demo.result.file_line_document', [
+                'emoji' => $emoji,
+                'name' => $file['original'],
+                'size' => $sizeMB,
+            ]);
+            $result .= t('app.screen.demo.uploader_demo.result.path_line_with_spacing', ['path' => $file['path']]);
         }
 
         $this->lbl_result

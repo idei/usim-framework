@@ -19,7 +19,7 @@ class FormDemo extends AbstractUIService
     protected function buildBaseUI(UIContainer $container, ...$params): void
     {
         $container
-            ->title(t('Form Component Demo'))
+            ->title(t('app.screen.demo.form_demo.title'))
             ->maxWidth('500px')
             ->centerHorizontal()
             ->shadow(2)
@@ -27,14 +27,14 @@ class FormDemo extends AbstractUIService
 
         $container->add(
             UIBuilder::label('lbl_instruction')
-                ->text(t('Fill out the form below (all fields are required):'))
+                ->text(t('app.screen.demo.form_demo.instruction'))
                 ->style('info')
         );
 
         $container->add(
             UIBuilder::input('input_name')
-                ->label(t('Name'))
-                ->placeholder(t('Enter your name'))
+                ->label(t('app.screen.demo.form_demo.name.label'))
+                ->placeholder(t('app.screen.demo.form_demo.name.placeholder'))
                 ->value('')
                 ->required(true)
                 ->type('text')
@@ -43,8 +43,8 @@ class FormDemo extends AbstractUIService
 
         $container->add(
             UIBuilder::input('input_email')
-                ->label(t('Email'))
-                ->placeholder(t('Enter your email'))
+                ->label(t('app.screen.demo.form_demo.email.label'))
+                ->placeholder(t('app.screen.demo.form_demo.email.placeholder'))
                 ->value('')
                 ->required(true)
                 ->type('email')
@@ -53,14 +53,14 @@ class FormDemo extends AbstractUIService
 
         $container->add(
             UIBuilder::button('btn_submit')
-                ->label(t('Submit Form'))
+                ->label(t('app.screen.demo.form_demo.actions.submit'))
                 ->action('submit_form')
                 ->style('primary')
         );
 
         $container->add(
             UIBuilder::label('lbl_result')
-                ->text(t('Fill the form to continue'))
+                ->text(t('app.screen.demo.form_demo.result.initial'))
                 ->style('secondary')
         );
     }
@@ -70,7 +70,7 @@ class FormDemo extends AbstractUIService
         $this->input_name->value("")->error(null);
         $this->input_email->value("")->error(null);
         $this->lbl_result
-            ->text(t('Fill the form to continue'))
+            ->text(t('app.screen.demo.form_demo.result.initial'))
             ->style('secondary');
     }
 
@@ -93,31 +93,31 @@ class FormDemo extends AbstractUIService
 
         // Validate name
         if (empty($name)) {
-            $this->input_name->error(t('Name is required'));
+            $this->input_name->error(t('app.screen.demo.form_demo.validation.name_required'));
             $hasErrors = true;
         } elseif (strlen($name) < 2) {
-            $this->input_name->error(t('Name must be at least 2 characters'));
+            $this->input_name->error(t('app.screen.demo.form_demo.validation.name_min'));
             $hasErrors = true;
         }
 
         // Validate email
         if (empty($email)) {
-            $this->input_email->error(t('Email is required'));
+            $this->input_email->error(t('app.screen.demo.form_demo.validation.email_required'));
             $hasErrors = true;
         } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-            $this->input_email->error(t('Email is invalid'));
+            $this->input_email->error(t('app.screen.demo.form_demo.validation.email_invalid'));
             $hasErrors = true;
         }
 
         // Show result
         if ($hasErrors) {
             $this->lbl_result
-                ->text(t('❌ Please fix the errors above'))
+                ->text(t('app.screen.demo.form_demo.result.errors'))
                 ->style('danger');
-            $this->toast(t('Please correct the errors in the form'), 'error');
+            $this->toast(t('app.screen.demo.form_demo.toast.correct_errors'), 'error');
         } else {
             $this->lbl_result
-                ->text(t("✅ Form submitted successfully!\n\nName: {$name}\nEmail: {$email}"))
+                ->text(t('app.screen.demo.form_demo.result.success', ['name' => $name, 'email' => $email]))
                 ->style('success');
 
             // Clear form inputs after successful submission
