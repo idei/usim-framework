@@ -94,8 +94,7 @@ class TranslationAutoRegistrar
         if ($value === '') {
             return false;
         }
-
-        return preg_match('/^(?:[a-z0-9]{3,})(?:[._][a-z0-9]{3,})*$/', $value) === 1;
+        return preg_match('/^(?:[a-z0-9]{2,})(?:[._][a-z0-9]{2,})*$/', $value) === 1;
     }
 
     private function storeFallbackTranslation(
