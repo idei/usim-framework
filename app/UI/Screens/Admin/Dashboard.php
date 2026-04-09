@@ -65,7 +65,7 @@ class Dashboard extends AbstractUIService
             ->debounce(500);
 
         $addBtn = UIBuilder::button('add_user_btn')
-            ->label(t('Add user'))
+            ->label(t('app.screen.admin.dashboard.add_user'))
             ->style('primary')
             ->action('add_user_clicked')
             ->icon('plus');
