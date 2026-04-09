@@ -58,9 +58,9 @@ SVG;
     {
         $columns = [
             // Fixed width: keep key column stable regardless of content length.
-            'key' => ['label' => 'Key', 'width' => [320, 320], 'sort_by' => 'key'],
+            'key' => ['label' => t('app.datatable.translation_keys.columns.key'), 'width' => [320, 320], 'sort_by' => 'key'],
             // Fixed width: avoid visual jumps between pages with different percentages.
-            'completion' => ['label' => 'Completion', 'width' => [140, 140]],
+            'completion' => ['label' => t('app.datatable.translation_keys.columns.completion'), 'width' => [140, 140]],
         ];
 
         // Fallback language column — always visible
@@ -207,10 +207,10 @@ SVG;
 
             $rowData['edit'] = [
                 'button' => [
-                    'label' => 'Edit',
+                    'label' => t('app.datatable.translation_keys.actions.edit.label'),
                     'icon' => $this->svgDataUri(self::EDIT_ICON_SVG),
                     'icon_only' => true,
-                    'tooltip' => 'Edit translation',
+                    'tooltip' => t('app.datatable.translation_keys.actions.edit.tooltip'),
                     'icon_size' => 16,
                     'action' => 'edit_translation',
                     'style' => 'secondary',
@@ -223,10 +223,10 @@ SVG;
 
             $rowData['delete'] = [
                 'button' => [
-                    'label' => 'Delete',
+                    'label' => t('app.datatable.translation_keys.actions.delete.label'),
                     'icon' => $this->svgDataUri(self::DELETE_ICON_SVG),
                     'icon_only' => true,
-                    'tooltip' => 'Delete translation',
+                    'tooltip' => t('app.datatable.translation_keys.actions.delete.tooltip'),
                     'icon_size' => 16,
                     'action' => 'delete_translation',
                     'style' => 'danger',

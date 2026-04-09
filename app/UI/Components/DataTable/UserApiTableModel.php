@@ -26,11 +26,11 @@ class UserApiTableModel extends AbstractDataTableModel
     public function getColumns(): array
     {
         return [
-            'name' => ['label' => 'Name', 'width' => [250, 250], 'sort_by' => 'name'],
-            'email' => ['label' => 'Email', 'width' => [250, 250], 'sort_by' => 'email'],
-            'email_verified' => ['label' => 'Verified', 'width' => [100, 100], 'sort_by' => 'email_verified_at'],
-            'roles' => ['label' => 'Role', 'width' => [100, 100], 'sort_by' => 'roles'],
-            'updated_at' => ['label' => 'Updated', 'width' => [150, 150], 'sort_by' => 'updated_at'],
+            'name' => ['label' => t('app.datatable.user_api.columns.name'), 'width' => [250, 250], 'sort_by' => 'name'],
+            'email' => ['label' => t('app.datatable.user_api.columns.email'), 'width' => [250, 250], 'sort_by' => 'email'],
+            'email_verified' => ['label' => t('app.datatable.user_api.columns.email_verified'), 'width' => [100, 100], 'sort_by' => 'email_verified_at'],
+            'roles' => ['label' => t('app.datatable.user_api.columns.roles'), 'width' => [100, 100], 'sort_by' => 'roles'],
+            'updated_at' => ['label' => t('app.datatable.user_api.columns.updated_at'), 'width' => [150, 150], 'sort_by' => 'updated_at'],
             'edit' => ['label' => '', 'width' => [20, 20]],
             'delete' => ['label' => '', 'width' => [20, 20]],
         ];

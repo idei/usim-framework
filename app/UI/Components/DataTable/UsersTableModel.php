@@ -31,9 +31,9 @@ class UsersTableModel extends \Idei\Usim\Services\DataTable\AbstractDataTableMod
     {
         return [
             // 'id' => ['label' => 'ID', 'width' => [60, 80]],
-            'name' => ['label' => 'Name', 'width' => [300, 500]],
-            'email' => ['label' => 'Email', 'width' => [250, 350]],
-            'actions' => ['label' => 'Actions', 'width' => [100, 150]],
+            'name' => ['label' => t('app.datatable.users_table.columns.name'), 'width' => [300, 500]],
+            'email' => ['label' => t('app.datatable.users_table.columns.email'), 'width' => [250, 350]],
+            'actions' => ['label' => t('app.datatable.users_table.columns.actions'), 'width' => [100, 150]],
         ];
     }
 

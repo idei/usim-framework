@@ -81,6 +81,11 @@ class TableBuilder extends UIComponent
                 'can_next' => true,
                 'can_prev' => false,
                 'total_pages' => 0,
+                'labels' => [
+                    'previous' => t('usim.table.pagination.previous'),
+                    'next'     => t('usim.table.pagination.next'),
+                    'showing'  => t('usim.table.pagination.showing'),
+                ],
             ],
             'rows' => 0,
             'cols' => 0,

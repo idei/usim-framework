@@ -155,7 +155,7 @@ class Dashboard extends AbstractUIService
 
         $response = $this->userService->getUser($userId);
         if (($response['status'] ?? 'error') !== 'success') {
-            $this->toast((string) ($response['message'] ?? 'User not found'), 'error');
+            $this->toast((string) ($response['message'] ?? t('usim.admin.dashboard.error.user_not_found')), 'error');
             return;
         }
 

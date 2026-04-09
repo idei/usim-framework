@@ -1373,12 +1373,21 @@ class TableComponent extends UIComponent {
         const canNext = pagination.can_next !== undefined ? pagination.can_next : (currentPage < totalPages);
         const canPrev = pagination.can_prev !== undefined ? pagination.can_prev : (currentPage > 1);
 
+        // Labels (provided by backend via t() helper, with JS fallbacks)
+        const labels = pagination.labels || {};
+        const labelPrevious = labels.previous || '\u00ab Previous';
+        const labelNext     = labels.next     || 'Next \u00bb';
+        const labelShowing  = labels.showing  || 'Showing :start-:end of :total items';
+
         // Info text
         const start = (currentPage - 1) * perPage + 1;
         const end = Math.min(currentPage * perPage, totalItems);
         const infoDiv = document.createElement('div');
         infoDiv.className = 'ui-pagination-info';
-        infoDiv.textContent = `Showing ${start}-${end} of ${totalItems} items`;
+        infoDiv.textContent = labelShowing
+            .replace(':start', start)
+            .replace(':end', end)
+            .replace(':total', totalItems);
         paginationDiv.appendChild(infoDiv);
 
         // Controls
@@ -1424,7 +1433,7 @@ class TableComponent extends UIComponent {
         // Previous button
         const prevBtn = document.createElement('button');
         prevBtn.className = 'ui-pagination-button';
-        prevBtn.textContent = '« Previous';
+        prevBtn.textContent = labelPrevious;
         prevBtn.disabled = !canPrev;
         prevBtn.addEventListener('click', () => this.changePage(currentPage - 1, paginationDiv));
         controlsDiv.appendChild(prevBtn);
@@ -1452,7 +1461,7 @@ class TableComponent extends UIComponent {
         // Next button
         const nextBtn = document.createElement('button');
         nextBtn.className = 'ui-pagination-button';
-        nextBtn.textContent = 'Next »';
+        nextBtn.textContent = labelNext;
         nextBtn.disabled = !canNext;
         nextBtn.addEventListener('click', () => this.changePage(currentPage + 1, paginationDiv));
         controlsDiv.appendChild(nextBtn);
@@ -3297,12 +3306,23 @@ class UIRenderer {
                     // Get component reference once for all operations
                     const component = globalRenderer?.components?.get(String(changes._id));
 
+                    // Labels from backend (fall back to component config labels, then English)
+                    const deltaLabels = pagination.labels
+                        || component?.config?.pagination?.labels
+                        || {};
+                    const dLabelPrevious = deltaLabels.previous || '\u00ab Previous';
+                    const dLabelNext     = deltaLabels.next     || 'Next \u00bb';
+                    const dLabelShowing  = deltaLabels.showing  || 'Showing :start-:end of :total items';
+
                     // Update info text
                     const infoDiv = paginationDiv.querySelector('.ui-pagination-info');
                     if (infoDiv) {
                         const start = (currentPage - 1) * perPage + 1;
                         const end = Math.min(currentPage * perPage, totalItems);
-                        infoDiv.textContent = `Showing ${start}-${end} of ${totalItems} items`;
+                        infoDiv.textContent = dLabelShowing
+                            .replace(':start', start)
+                            .replace(':end', end)
+                            .replace(':total', totalItems);
                     }
 
                     // Update controls
@@ -3341,7 +3361,7 @@ class UIRenderer {
                         // Previous button
                         const prevBtn = document.createElement('button');
                         prevBtn.className = 'ui-pagination-button';
-                        prevBtn.textContent = '« Previous';
+                        prevBtn.textContent = dLabelPrevious;
                         prevBtn.disabled = !canPrev;
                         if (component) {
                             prevBtn.addEventListener('click', () => component.changePage(currentPage - 1, paginationDiv));
@@ -3373,7 +3393,7 @@ class UIRenderer {
                         // Next button
                         const nextBtn = document.createElement('button');
                         nextBtn.className = 'ui-pagination-button';
-                        nextBtn.textContent = 'Next »';
+                        nextBtn.textContent = dLabelNext;
                         nextBtn.disabled = !canNext;
                         if (component) {
                             nextBtn.addEventListener('click', () => component.changePage(currentPage + 1, paginationDiv));

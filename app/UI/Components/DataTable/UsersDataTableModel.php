@@ -48,10 +48,10 @@ class UsersDataTableModel extends \Idei\Usim\Services\DataTable\AbstractDataTabl
     public function getColumns(): array
     {
         return [
-            'id' => ['label' => 'Id', 'width' => [50, 80]],
-            'name' => ['label' => 'Name', 'width' => [200, 250]],
-            'country' => ['label' => 'País', 'width' => [200, 250]],
-            'actions' => ['label' => 'Acciones', 'width' => [80, 120]],
+            'id' => ['label' => t('app.datatable.users_data.columns.id'), 'width' => [50, 80]],
+            'name' => ['label' => t('app.datatable.users_data.columns.name'), 'width' => [200, 250]],
+            'country' => ['label' => t('app.datatable.users_data.columns.country'), 'width' => [200, 250]],
+            'actions' => ['label' => t('app.datatable.users_data.columns.actions'), 'width' => [80, 120]],
             'remove' => ['label' => '', 'width' => [80, 120]],
         ];
     }
@@ -77,7 +77,7 @@ class UsersDataTableModel extends \Idei\Usim\Services\DataTable\AbstractDataTabl
                 'country' => $user['country'],
                 'actions' => [
                     'button' => [
-                        'label' => "Edit #{$user['id']}",
+                        'label' => t('app.datatable.users_data.actions.edit', ['id' => $user['id']]),
                         'action' => 'edit_user',
                         'style' => 'primary',
                         'parameters' => [
@@ -88,7 +88,7 @@ class UsersDataTableModel extends \Idei\Usim\Services\DataTable\AbstractDataTabl
                 ],
                 'remove' => [
                     'button' => [
-                        'label' => "Remove #{$user['id']}",
+                        'label' => t('app.datatable.users_data.actions.remove', ['id' => $user['id']]),
                         'action' => 'remove_user',
                         'style' => 'danger',
                         'parameters' => [

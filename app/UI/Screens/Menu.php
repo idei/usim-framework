@@ -145,30 +145,30 @@ class Menu extends AbstractUIService
 
     private function populateMainMenu(MenuDropdownBuilder $menu): void
     {
-        $menu->link(t('home'), '/', '🏠');
+        $menu->link(t('app.screen.menu.items.home'), '/', '🏠');
         $menu->screen(Dashboard::class);
         $menu->screen(TranlateManager::class);
         $this->buildDemosMenu($menu);
         $menu->separator();
-        $menu->item(t('about'), 'show_about_info', [], 'ℹ️');
+        $menu->item(t('app.screen.menu.items.about'), 'show_about_info', [], 'ℹ️');
     }
 
     private function buildDemosMenu(MenuDropdownBuilder $menu): void
     {
         $menu->separator();
-        $menu->submenu(t('demos'), function ($submenu) {
-            $submenu->screen(ButtonDemo::class, t('button_demo'), '🖲️');
-            $submenu->screen(TableDemo::class, t('table_demo'), '📊');
-            $submenu->screen(ModalDemo::class, t('modal_demo'), '🪟');
-            $submenu->item(t('abort_error'), 'show_error_info', [], '❌');
-            $submenu->screen(FormDemo::class, t('form_demo'), '📝');
-            $submenu->screen(DemoUi::class, t('demo_ui'), '🎨');
-            $submenu->screen(InputDemo::class, t('input_demo'), '⌨️');
-            $submenu->screen(SelectDemo::class, t('select_demo'), '📋');
-            $submenu->screen(CheckboxDemo::class, t('checkbox_demo'), '☑️');
-            $submenu->screen(UploaderDemo::class, t('uploader_demo'), '📤');
-            $submenu->screen(CalendarDemo::class, t('calendar_demo'), '📅');
-            $submenu->screen(CarouselDemo::class, t('carousel_demo'), '🎞️');
+        $menu->submenu(t('app.screen.menu.items.demos'), function ($submenu) {
+            $submenu->screen(ButtonDemo::class, t('app.screen.menu.demos.button_demo'), '🖲️');
+            $submenu->screen(TableDemo::class, t('app.screen.menu.demos.table_demo'), '📊');
+            $submenu->screen(ModalDemo::class, t('app.screen.menu.demos.modal_demo'), '🪟');
+            $submenu->item(t('app.screen.menu.demos.abort_error'), 'show_error_info', [], '❌');
+            $submenu->screen(FormDemo::class, t('app.screen.menu.demos.form_demo'), '📝');
+            $submenu->screen(DemoUi::class, t('app.screen.menu.demos.demo_ui'), '🎨');
+            $submenu->screen(InputDemo::class, t('app.screen.menu.demos.input_demo'), '⌨️');
+            $submenu->screen(SelectDemo::class, t('app.screen.menu.demos.select_demo'), '📋');
+            $submenu->screen(CheckboxDemo::class, t('app.screen.menu.demos.checkbox_demo'), '☑️');
+            $submenu->screen(UploaderDemo::class, t('app.screen.menu.demos.uploader_demo'), '📤');
+            $submenu->screen(CalendarDemo::class, t('app.screen.menu.demos.calendar_demo'), '📅');
+            $submenu->screen(CarouselDemo::class, t('app.screen.menu.demos.carousel_demo'), '🎞️');
         }, '🎮');
     }
 
@@ -185,9 +185,9 @@ class Menu extends AbstractUIService
     private function populateUserMenu(MenuDropdownBuilder $menu): void
     {
         $menu->screen(Login::class);
-        $menu->item(t('register'), 'show_register_form', [], '📝', visible: !Auth::check());
+        $menu->item(t('app.screen.menu.items.register'), 'show_register_form', [], '📝', visible: !Auth::check());
         $menu->screen(Profile::class);
-        $menu->item(t('logout'), 'confirm_logout', [], '🚪', visible: Auth::check());
+        $menu->item(t('app.screen.menu.items.logout'), 'confirm_logout', [], '🚪', visible: Auth::check());
     }
 
     public function onLoggedUser(array $params): void
@@ -249,8 +249,8 @@ class Menu extends AbstractUIService
 
         ConfirmDialogService::open(
             type: DialogType::INFO,
-            title: t("acerca_de_usim_framework"),
-            message: t("sistema_de_componentes", [
+            title: t('app.screen.menu.about.title'),
+            message: t('app.screen.menu.about.message', [
                 'version' => $version
             ]),
             callerServiceId: $serviceId
