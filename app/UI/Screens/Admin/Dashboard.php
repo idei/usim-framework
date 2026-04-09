@@ -31,7 +31,7 @@ class Dashboard extends AbstractUIService
 
     public static function getMenuLabel(): string
     {
-        return t('dashboard');
+        return t('usim.admin.dashboard.menu_label');
     }
 
     public static function getMenuIcon(): ?string
@@ -58,7 +58,7 @@ class Dashboard extends AbstractUIService
             ->gap("12px");
 
         $search = UIBuilder::input('search_users')
-            ->placeholder(t('Search users...'))
+            ->placeholder(t('app.screen.admin.dashboard.search_placeholder'))
             ->width('300px')
             ->autocomplete('off')
             ->onInput('search_users', [])

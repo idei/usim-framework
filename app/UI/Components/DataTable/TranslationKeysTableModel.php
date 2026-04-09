@@ -10,6 +10,7 @@ use Idei\Usim\Services\Support\UIStateManager;
 
 class TranslationKeysTableModel extends AbstractDataTableModel
 {
+    protected const MAX_CELL_STRING_LENGTH = 47;
     protected TranslationService $translationService;
     protected const SEARCH_KEY = 'translation_table_search';
     protected const LANGUAGE_FILTER_KEY = 'translation_table_language_filter';
@@ -169,7 +170,7 @@ SVG;
 
         foreach ($rows as $row) {
             $rowData = [
-                'key' => $row->key,
+                'key' => $this->truncateCellString((string) $row->key),
             ];
 
             $valuesByCode = [];
@@ -254,16 +255,25 @@ SVG;
             return '—';
         }
 
+        $display = $this->truncateCellString($text);
+
         if (!(bool) ($entry['needs_review'] ?? false)) {
-            return $text;
+            return $display;
         }
 
         return [
-            'text' => $text,
+            'text' => $display,
             'background_color' => 'var(--usim-label-warning-bg, rgba(243, 156, 18, 0.18))',
             'text_color' => 'var(--usim-label-warning-text, #8a5b12)',
             'border_color' => 'var(--usim-label-warning-border, rgba(243, 156, 18, 0.35))',
         ];
+    }
+
+    protected function truncateCellString(string $text): string
+    {
+        return mb_strlen($text) > self::MAX_CELL_STRING_LENGTH
+            ? mb_strimwidth($text, 0, self::MAX_CELL_STRING_LENGTH, '...')
+            : $text;
     }
 
     /**

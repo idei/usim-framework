@@ -45,14 +45,6 @@ class UsimTranslationSeeder extends Seeder
                     'es' => 'Ingresa tus credenciales para continuar.',
                 ],
             ],
-            'ui.empty_state' => [
-                'group' => 'ui',
-                'description' => 'Generic empty state label',
-                'values' => [
-                    'en' => 'No records found',
-                    'es' => 'No se encontraron registros',
-                ],
-            ],
             'media.logo' => [
                 'group' => 'media',
                 'description' => 'Example media key with optional URL and metadata',
