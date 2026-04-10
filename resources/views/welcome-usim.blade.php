@@ -76,7 +76,7 @@
             width: 100%;
         }
 
-        .wf > * {
+        .wf>* {
             position: relative;
             z-index: 1;
         }
@@ -1089,7 +1089,7 @@
             border-color: var(--border);
         }
 
-        .message > div {
+        .message>div {
             min-width: 0;
         }
 
@@ -1437,27 +1437,23 @@
         <div class="hero-bg"></div>
         <div class="hero-grid"></div>
         <div class="hero-inner show-content" id="hero-inner">
-            <div class="hero-mobile-tabs" role="tablist" aria-label="Hero views">
+            <div class="hero-mobile-tabs" role="tablist" aria-label="{{ t('app.welcome.ui.hero_views') }}">
                 <button class="hero-mobile-tab active" id="hero-tab-content" type="button" data-hero-view="content"
-                    role="tab" aria-selected="true">contenido</button>
+                    role="tab" aria-selected="true">{{ t('app.welcome.ui.tab_content') }}</button>
                 <button class="hero-mobile-tab" id="hero-tab-code" type="button" data-hero-view="code" role="tab"
-                    aria-selected="false">ejemplo</button>
+                    aria-selected="false">{{ t('app.welcome.ui.tab_example') }}</button>
             </div>
             <div class="hero-content">
                 <div class="hero-badge">
                     <span class="pulse"></span>
-                    <span data-i18n="hero.badge">Server-Driven UI · Laravel · v0.7.0</span>
+                    <span>{{ t('app.welcome.hero.badge') }}</span>
                 </div>
                 <h1>
-                    <span data-i18n="hero.title1">Define tu UI</span><br>
-                    <span class="accent-word" data-i18n="hero.title2">en PHP puro.</span><br>
-                    <span data-i18n="hero.title3">El resto es automático.</span>
+                    <span>{{ t('app.welcome.hero.title1') }}</span><br>
+                    <span class="accent-word">{{ t('app.welcome.hero.title2') }}</span><br>
+                    <span>{{ t('app.welcome.hero.title3') }}</span>
                 </h1>
-                <p class="hero-desc" data-i18n="hero.desc">
-                    USIM es un framework Server-Driven UI para Laravel. Define pantallas, formularios, tablas y modals
-                    en PHP — el framework se encarga de renderizar, differenciar y actualizar todo en el cliente
-                    automáticamente.
-                </p>
+                <p class="hero-desc">{{ t('app.welcome.hero.desc') }}</p>
                 <div class="hero-ctas">
                     <button class="btn-primary"
                         onclick="document.getElementById('install-strip').scrollIntoView({behavior:'smooth'})">
@@ -1466,21 +1462,21 @@
                             <polyline points="4 17 10 11 4 5" />
                             <line x1="12" y1="19" x2="20" y2="19" />
                         </svg>
-                        <span data-i18n="hero.cta1">Comenzar ahora</span>
+                        <span>{{ t('app.welcome.hero.cta1') }}</span>
                     </button>
                 </div>
                 <div class="hero-meta">
                     <div class="hero-meta-item">
                         <span class="hero-meta-value">v0.7.0</span>
-                        <span class="hero-meta-label" data-i18n="hero.meta.version">Versión actual</span>
+                        <span class="hero-meta-label">{{ t('app.welcome.hero.meta.version') }}</span>
                     </div>
                     <div class="hero-meta-item">
                         <span class="hero-meta-value">MIT</span>
-                        <span class="hero-meta-label" data-i18n="hero.meta.license">Licencia libre</span>
+                        <span class="hero-meta-label">{{ t('app.welcome.hero.meta.license') }}</span>
                     </div>
                     <div class="hero-meta-item">
                         <span class="hero-meta-value">PHP 8.2+</span>
-                        <span class="hero-meta-label" data-i18n="hero.meta.req">Requerido</span>
+                        <span class="hero-meta-label">{{ t('app.welcome.hero.meta.req') }}</span>
                     </div>
                 </div>
             </div>
@@ -1529,10 +1525,10 @@
     <!-- ─── INSTALL STRIP ─── -->
     <div class="install-strip" id="install-strip">
         <div class="install-inner">
-            <span class="install-label" data-i18n="install.label">Instalar via Composer:</span>
+            <span class="install-label">{{ t('app.welcome.install.label') }}</span>
             <div class="install-cmd">
                 <span>composer require idei/usim</span>
-                <button class="copy-btn" onclick="copyCmd(this, 'composer require idei/usim')" title="Copiar">
+                <button class="copy-btn" onclick="copyCmd(this, 'composer require idei/usim')" title="{{ t('app.welcome.ui.copy') }}">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                         stroke-width="2">
                         <rect x="9" y="9" width="13" height="13" rx="2" />
@@ -1542,7 +1538,7 @@
             </div>
             <div class="install-cmd" style="margin-left:1rem;">
                 <span>php artisan usim:install</span>
-                <button class="copy-btn" onclick="copyCmd(this, 'php artisan usim:install')" title="Copiar">
+                <button class="copy-btn" onclick="copyCmd(this, 'php artisan usim:install')" title="{{ t('app.welcome.ui.copy') }}">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                         stroke-width="2">
                         <rect x="9" y="9" width="13" height="13" rx="2" />
@@ -1555,7 +1551,7 @@
                     stroke-width="2">
                     <polyline points="20 6 9 17 4 12" />
                 </svg>
-                <span data-i18n="install.mit">Gratis · Licencia MIT</span>
+                <span>{{ t('app.welcome.install.mit') }}</span>
             </div>
         </div>
     </div>
@@ -1563,46 +1559,39 @@
     <!-- ─── FEATURES ─── -->
     <section>
         <div class="section-inner">
-            <div class="section-tag" data-i18n="features.tag">Características</div>
-            <h2 data-i18n="features.title">¿Por qué USIM?</h2>
-            <p class="section-lead" data-i18n="features.lead">Un nuevo paradigma donde el servidor controla la UI y el
-                cliente sólo renderiza el resultado.</p>
+            <div class="section-tag">{{ t('app.welcome.features.tag') }}</div>
+            <h2>{{ t('app.welcome.features.title') }}</h2>
+            <p class="section-lead">{{ t('app.welcome.features.lead') }}</p>
             <div class="features-grid">
                 <div class="feature-card">
                     <div class="feature-icon" style="background:rgba(0,212,170,0.12)">🖥️</div>
-                    <h3 data-i18n="feat.serverui.title">Server-Driven UI</h3>
-                    <p data-i18n="feat.serverui.desc">Define toda tu interfaz en PHP. Pantallas, menus, formularios,
-                        tablas y modals sin escribir una sola línea de JavaScript.</p>
+                    <h3>{{ t('app.welcome.feat.serverui.title') }}</h3>
+                    <p>{{ t('app.welcome.feat.serverui.desc') }}</p>
                 </div>
                 <div class="feature-card">
                     <div class="feature-icon" style="background:rgba(0,153,255,0.12)">⚡</div>
-                    <h3 data-i18n="feat.delta.title">Actualizaciones Delta</h3>
-                    <p data-i18n="feat.delta.desc">El framework calcula la diferencia entre el estado anterior y el
-                        nuevo, enviando al cliente sólo los cambios necesarios.</p>
+                    <h3>{{ t('app.welcome.feat.delta.title') }}</h3>
+                    <p>{{ t('app.welcome.feat.delta.desc') }}</p>
                 </div>
                 <div class="feature-card">
                     <div class="feature-icon" style="background:rgba(210,168,255,0.12)">🎯</div>
-                    <h3 data-i18n="feat.events.title">Sistema de Eventos</h3>
-                    <p data-i18n="feat.events.desc">Manejo de eventos con convención de nombres automática. Botones,
-                        formularios y acciones se conectan solos al handler correspondiente.</p>
+                    <h3>{{ t('app.welcome.feat.events.title') }}</h3>
+                    <p>{{ t('app.welcome.feat.events.desc') }}</p>
                 </div>
                 <div class="feature-card">
                     <div class="feature-icon" style="background:rgba(255,107,53,0.12)">🔐</div>
-                    <h3 data-i18n="feat.auth.title">Auth Completo</h3>
-                    <p data-i18n="feat.auth.desc">Login, registro, recuperación de contraseña, perfiles y gestión de
-                        roles con Sanctum y Spatie Permission incluidos.</p>
+                    <h3>{{ t('app.welcome.feat.auth.title') }}</h3>
+                    <p>{{ t('app.welcome.feat.auth.desc') }}</p>
                 </div>
                 <div class="feature-card">
                     <div class="feature-icon" style="background:rgba(61,214,140,0.12)">🧪</div>
-                    <h3 data-i18n="feat.testing.title">Testing Integrado</h3>
-                    <p data-i18n="feat.testing.desc">Guías y helpers para testear screens con patrones claros,
-                        assertions por componente y soporte para agentes de IA generadora de tests.</p>
+                    <h3>{{ t('app.welcome.feat.testing.title') }}</h3>
+                    <p>{{ t('app.welcome.feat.testing.desc') }}</p>
                 </div>
                 <div class="feature-card">
                     <div class="feature-icon" style="background:rgba(255,189,46,0.12)">🚀</div>
-                    <h3 data-i18n="feat.octane.title">Octane / RoadRunner</h3>
-                    <p data-i18n="feat.octane.desc">Compatible con procesos de larga duración. Reset automático del
-                        generador de IDs por request, sin configuración extra.</p>
+                    <h3>{{ t('app.welcome.feat.octane.title') }}</h3>
+                    <p>{{ t('app.welcome.feat.octane.desc') }}</p>
                 </div>
             </div>
         </div>
@@ -1611,10 +1600,9 @@
     <!-- ─── ARCHITECTURE ─── -->
     <section class="arch-section" id="architecture">
         <div class="section-inner">
-            <div class="section-tag" data-i18n="arch.tag">Arquitectura</div>
-            <h2 data-i18n="arch.title">Client-Agnostic por diseño</h2>
-            <p class="section-lead" data-i18n="arch.lead">El servidor genera un contrato JSON agnóstico. Cualquier
-                cliente — web, React, Android — puede implementar su propio render.</p>
+            <div class="section-tag">{{ t('app.welcome.arch.tag') }}</div>
+            <h2>{{ t('app.welcome.arch.title') }}</h2>
+            <p class="section-lead">{{ t('app.welcome.arch.lead') }}</p>
             <div class="arch-diagram-wrap">
                 <svg class="arch-svg" viewBox="0 0 860 620" xmlns="http://www.w3.org/2000/svg"
                     font-family="'Space Mono', monospace">
@@ -1749,7 +1737,8 @@
                         <text x="100" y="28" text-anchor="middle" class="node-text" font-weight="700">Web</text>
                         <text x="100" y="46" text-anchor="middle" class="node-sub">(html, css, js)</text>
                         <rect x="0" y="54" width="200" height="1" fill="var(--border-svg)" />
-                        <text x="100" y="71" text-anchor="middle" class="node-sub" style="fill:var(--arch-accent)">Render</text>
+                        <text x="100" y="71" text-anchor="middle" class="node-sub"
+                            style="fill:var(--arch-accent)">Render</text>
                     </g>
 
                     <!-- any other client note -->
@@ -1852,93 +1841,93 @@
     <!-- ─── COMPONENTS ─── -->
     <section class="components-section" id="components">
         <div class="section-inner">
-            <div class="section-tag" data-i18n="comp.tag">Componentes</div>
-            <h2 data-i18n="comp.title">Biblioteca de Componentes</h2>
-            <p class="section-lead" data-i18n="comp.lead">Todos los builders usan una API fluida y extienden
-                BaseUIBuilder con métodos comunes de estilo y comportamiento.</p>
+            <div class="section-tag">{{ t('app.welcome.comp.tag') }}</div>
+            <h2>{{ t('app.welcome.comp.title') }}</h2>
+            <p class="section-lead">{{ t('app.welcome.comp.lead') }}</p>
             <div class="comp-grid">
                 <div class="comp-item">
                     <span style="font-size:1.25rem">🏷️</span>
                     <div>
                         <div class="comp-name">UIBuilder::label()</div>
-                        <div class="comp-label" data-i18n="comp.label">Textos, headings, párrafos</div>
+                        <div class="comp-label">{{ t('app.welcome.comp.label') }}</div>
                     </div>
                 </div>
                 <div class="comp-item">
                     <span style="font-size:1.25rem">🔘</span>
                     <div>
                         <div class="comp-name">UIBuilder::button()</div>
-                        <div class="comp-label" data-i18n="comp.button">Botones con estilos y acciones</div>
+                        <div class="comp-label">{{ t('app.welcome.comp.button') }}</div>
                     </div>
                 </div>
                 <div class="comp-item">
                     <span style="font-size:1.25rem">✏️</span>
                     <div>
                         <div class="comp-name">UIBuilder::input()</div>
-                        <div class="comp-label" data-i18n="comp.input">Text, email, password, hidden</div>
+                        <div class="comp-label">{{ t('app.welcome.comp.input') }}</div>
                     </div>
                 </div>
                 <div class="comp-item">
                     <span style="font-size:1.25rem">🔽</span>
                     <div>
                         <div class="comp-name">UIBuilder::select()</div>
-                        <div class="comp-label" data-i18n="comp.select">Dropdowns y selects</div>
+                        <div class="comp-label">{{ t('app.welcome.comp.select') }}</div>
                     </div>
                 </div>
                 <div class="comp-item">
                     <span style="font-size:1.25rem">☑️</span>
                     <div>
                         <div class="comp-name">UIBuilder::checkbox()</div>
-                        <div class="comp-label" data-i18n="comp.checkbox">Checkboxes y toggles</div>
+                        <div class="comp-label">{{ t('app.welcome.comp.checkbox') }}</div>
                     </div>
                 </div>
                 <div class="comp-item">
                     <span style="font-size:1.25rem">📋</span>
                     <div>
                         <div class="comp-name">UIBuilder::form()</div>
-                        <div class="comp-label" data-i18n="comp.form">Agrupación de formularios</div>
+                        <div class="comp-label">{{ t('app.welcome.comp.form') }}</div>
                     </div>
                 </div>
                 <div class="comp-item">
                     <span style="font-size:1.25rem">📊</span>
                     <div>
                         <div class="comp-name">UIBuilder::table()</div>
-                        <div class="comp-label" data-i18n="comp.table">Tablas con paginación</div>
+                        <div class="comp-label">{{ t('app.welcome.comp.table') }}</div>
                     </div>
                 </div>
                 <div class="comp-item">
                     <span style="font-size:1.25rem">🃏</span>
                     <div>
                         <div class="comp-name">UIBuilder::card()</div>
-                        <div class="comp-label" data-i18n="comp.card">Cards con título y acciones</div>
+                        <div class="comp-label">{{ t('app.welcome.comp.card') }}</div>
                     </div>
                 </div>
                 <div class="comp-item">
                     <span style="font-size:1.25rem">📦</span>
                     <div>
                         <div class="comp-name">UIBuilder::container()</div>
-                        <div class="comp-label" data-i18n="comp.container">Layouts vertical/horizontal</div>
+                        <div class="comp-label">{{ t('app.welcome.comp.container') }}
+                        </div>
                     </div>
                 </div>
                 <div class="comp-item">
                     <span style="font-size:1.25rem">📁</span>
                     <div>
                         <div class="comp-name">UIBuilder::uploader()</div>
-                        <div class="comp-label" data-i18n="comp.uploader">Upload con preview y crop</div>
+                        <div class="comp-label">{{ t('app.welcome.comp.uploader') }}</div>
                     </div>
                 </div>
                 <div class="comp-item">
                     <span style="font-size:1.25rem">📅</span>
                     <div>
                         <div class="comp-name">UIBuilder::calendar()</div>
-                        <div class="comp-label" data-i18n="comp.calendar">Calendar / date picker</div>
+                        <div class="comp-label">{{ t('app.welcome.comp.calendar') }}</div>
                     </div>
                 </div>
                 <div class="comp-item">
                     <span style="font-size:1.25rem">🎠</span>
                     <div>
                         <div class="comp-name">UIBuilder::carousel()</div>
-                        <div class="comp-label" data-i18n="comp.carousel">Carousel de imagen/audio/video</div>
+                        <div class="comp-label">{{ t('app.welcome.comp.carousel') }}</div>
                     </div>
                 </div>
             </div>
@@ -1948,20 +1937,18 @@
     <!-- ─── TUTORIALS ─── -->
     <section id="tutorials">
         <div class="section-inner">
-            <div class="section-tag" data-i18n="tut.tag">Aprendizaje</div>
-            <h2 data-i18n="tut.title">Tutoriales</h2>
-            <p class="section-lead" data-i18n="tut.lead">Desde cero hasta producción. Aprende USIM con guías paso a
-                paso.</p>
+            <div class="section-tag">{{ t('app.welcome.tut.tag') }}</div>
+            <h2>{{ t('app.welcome.tut.title') }}</h2>
+            <p class="section-lead">{{ t('app.welcome.tut.lead') }}</p>
             <div class="tut-grid">
-                <div class="tut-card" onclick="showToast('📖 Abriendo tutorial...')">
+                <div class="tut-card" onclick="showToast('{{ t('app.welcome.ui.toast_open_tutorial') }}')">
                     <div class="tut-thumb"
                         style="background: linear-gradient(135deg, rgba(0,212,170,0.15), rgba(0,153,255,0.1))">🚀</div>
                     <div class="tut-body">
-                        <div class="tut-tag" style="color:var(--accent)" data-i18n="tut.begin">Principiante</div>
-                        <h3 data-i18n="tut1.title">Tu primera Screen</h3>
-                        <p data-i18n="tut1.desc">Instala USIM, crea tu primer Screen y comprende el ciclo de vida
-                            básico
-                            del framework.</p>
+                        <div class="tut-tag" style="color:var(--accent)">
+                            {{ t('app.welcome.tut.begin') }}</div>
+                        <h3>{{ t('app.welcome.tut1.title') }}</h3>
+                        <p>{{ t('app.welcome.tut1.desc') }}</p>
                     </div>
                     <div class="tut-footer">
                         <span class="tut-meta">15 min · PHP</span>
@@ -1971,15 +1958,15 @@
                         </svg>
                     </div>
                 </div>
-                <div class="tut-card" onclick="showToast('📖 Abriendo tutorial...')">
+                <div class="tut-card" onclick="showToast('{{ t('app.welcome.ui.toast_open_tutorial') }}')">
                     <div class="tut-thumb"
                         style="background: linear-gradient(135deg, rgba(0,153,255,0.15), rgba(210,168,255,0.1))">📊
                     </div>
                     <div class="tut-body">
-                        <div class="tut-tag" style="color:var(--accent2)" data-i18n="tut.inter">Intermedio</div>
-                        <h3 data-i18n="tut2.title">Data Tables y Paginación</h3>
-                        <p data-i18n="tut2.desc">Crea tablas dinámicas con filtros, ordenamiento y paginación del lado
-                            del servidor.</p>
+                        <div class="tut-tag" style="color:var(--accent2)">
+                            {{ t('app.welcome.tut.inter') }}</div>
+                        <h3>{{ t('app.welcome.tut2.title') }}</h3>
+                        <p>{{ t('app.welcome.tut2.desc') }}</p>
                     </div>
                     <div class="tut-footer">
                         <span class="tut-meta">30 min · Laravel + USIM</span>
@@ -1989,15 +1976,15 @@
                         </svg>
                     </div>
                 </div>
-                <div class="tut-card" onclick="showToast('📖 Abriendo tutorial...')">
+                <div class="tut-card" onclick="showToast('{{ t('app.welcome.ui.toast_open_tutorial') }}')">
                     <div class="tut-thumb"
                         style="background: linear-gradient(135deg, rgba(255,107,53,0.12), rgba(255,189,46,0.1))">🔐
                     </div>
                     <div class="tut-body">
-                        <div class="tut-tag" style="color:var(--accent3)" data-i18n="tut.inter">Intermedio</div>
-                        <h3 data-i18n="tut3.title">Autenticación Completa</h3>
-                        <p data-i18n="tut3.desc">Configura login, registro, recuperación de contraseña y gestión de
-                            roles con usim:install.</p>
+                        <div class="tut-tag" style="color:var(--accent3)">
+                            {{ t('app.welcome.tut.inter') }}</div>
+                        <h3>{{ t('app.welcome.tut3.title') }}</h3>
+                        <p>{{ t('app.welcome.tut3.desc') }}</p>
                     </div>
                     <div class="tut-footer">
                         <span class="tut-meta">45 min · Sanctum + Spatie</span>
@@ -2007,15 +1994,15 @@
                         </svg>
                     </div>
                 </div>
-                <div class="tut-card" onclick="showToast('📖 Abriendo tutorial...')">
+                <div class="tut-card" onclick="showToast('{{ t('app.welcome.ui.toast_open_tutorial') }}')">
                     <div class="tut-thumb"
                         style="background: linear-gradient(135deg, rgba(61,214,140,0.12), rgba(0,212,170,0.1))">🧪
                     </div>
                     <div class="tut-body">
-                        <div class="tut-tag" style="color:var(--green)" data-i18n="tut.adv">Avanzado</div>
-                        <h3 data-i18n="tut4.title">Testing de Screens</h3>
-                        <p data-i18n="tut4.desc">Aprende los patrones de testing de USIM: uiScenario, assertions de
-                            componentes y respuestas JSON.</p>
+                        <div class="tut-tag" style="color:var(--green)">
+                            {{ t('app.welcome.tut.adv') }}</div>
+                        <h3>{{ t('app.welcome.tut4.title') }}</h3>
+                        <p>{{ t('app.welcome.tut4.desc') }}</p>
                     </div>
                     <div class="tut-footer">
                         <span class="tut-meta">60 min · PHPUnit</span>
@@ -2033,20 +2020,19 @@
     <section class="community-section" id="community">
         <div class="section-inner community-layout">
             <div>
-                <div class="section-tag" data-i18n="comm.tag">Comunidad</div>
-                <h2 data-i18n="comm.title">Únete a la conversación</h2>
-                <p class="section-lead" data-i18n="comm.lead">Comparte código, hace preguntas y colabora con otros
-                    desarrolladores que usan USIM.</p>
+                <div class="section-tag">{{ t('app.welcome.comm.tag') }}</div>
+                <h2>{{ t('app.welcome.comm.title') }}</h2>
+                <p class="section-lead">{{ t('app.welcome.comm.lead') }}</p>
                 <div class="community-cta">
-                    <button class="btn-primary" onclick="showToast('💬 Unirse a la comunidad...')">
+                    <button class="btn-primary" onclick="showToast('{{ t('app.welcome.ui.toast_join_community') }}')">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                             stroke-width="2">
                             <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" />
                         </svg>
-                        <span data-i18n="comm.cta1">Ver mensajes</span>
+                        <span>{{ t('app.welcome.comm.cta1') }}</span>
                     </button>
-                    <button class="btn-secondary" onclick="showToast('✍️ Escribir mensaje...')">
-                        <span data-i18n="comm.cta2">Escribir mensaje</span>
+                    <button class="btn-secondary" onclick="showToast('{{ t('app.welcome.ui.toast_write_message') }}')">
+                        <span>{{ t('app.welcome.comm.cta2') }}</span>
                     </button>
                 </div>
             </div>
@@ -2054,25 +2040,27 @@
                 <div class="message">
                     <div class="msg-avatar" style="background: linear-gradient(135deg,#00d4aa,#0099ff)">MR</div>
                     <div>
-                        <div><span class="msg-name">María R.</span><span class="msg-time">hace 2h</span></div>
-                        <div class="msg-text">¡Increíble! Con <span class="msg-code">usim:install</span> tuve auth
-                            completo en 5 minutos. Nunca había armado un backend tan rápido.</div>
+                        <div><span class="msg-name">{{ t('app.welcome.comm.msg1.name') }}</span><span
+                            class="msg-time">{{ t('app.welcome.comm.msg1.time') }}</span></div>
+                        <div class="msg-text">{{ t('app.welcome.comm.msg1.text_before') }} <span
+                            class="msg-code">usim:install</span> {{ t('app.welcome.comm.msg1.text_after') }}</div>
                     </div>
                 </div>
                 <div class="message">
                     <div class="msg-avatar" style="background: linear-gradient(135deg,#ff6b35,#ffbd2e)">CL</div>
                     <div>
-                        <div><span class="msg-name">Carlos L.</span><span class="msg-time">hace 5h</span></div>
-                        <div class="msg-text">Pregunta: ¿cómo paso parámetros a un Screen desde la URL? Estoy viendo el
-                            README pero no encuentro ejemplos con rutas dinámicas.</div>
+                        <div><span class="msg-name">{{ t('app.welcome.comm.msg2.name') }}</span><span
+                            class="msg-time">{{ t('app.welcome.comm.msg2.time') }}</span></div>
+                        <div class="msg-text">{{ t('app.welcome.comm.msg2.text') }}</div>
                     </div>
                 </div>
                 <div class="message">
                     <div class="msg-avatar" style="background: linear-gradient(135deg,#d2a8ff,#79c0ff)">AG</div>
                     <div>
-                        <div><span class="msg-name">Ana G.</span><span class="msg-time">hace 1d</span></div>
-                        <div class="msg-text">El sistema de eventos con la convención <span class="msg-code">on +
-                                PascalCase</span> es elegantísimo. Cero configuración extra.</div>
+                        <div><span class="msg-name">{{ t('app.welcome.comm.msg3.name') }}</span><span
+                            class="msg-time">{{ t('app.welcome.comm.msg3.time') }}</span></div>
+                        <div class="msg-text">{{ t('app.welcome.comm.msg3.text_before') }} <span class="msg-code">on +
+                            PascalCase</span> {{ t('app.welcome.comm.msg3.text_after') }}</div>
                     </div>
                 </div>
             </div>
@@ -2082,34 +2070,29 @@
     <!-- ─── INSTITUTES ─── -->
     <section class="institutes-section" id="institutes">
         <div class="section-inner">
-            <div class="section-tag" data-i18n="inst.tag">Respaldo Académico</div>
-            <h2 data-i18n="inst.title">Desarrollado con el apoyo de</h2>
-            <p class="section-lead" data-i18n="inst.lead">USIM es un proyecto surgido del ámbito académico e
-                investigativo de la facultad de Ciencias Exactas, Físicas y Naturales.</p>
+            <div class="section-tag">{{ t('app.welcome.inst.tag') }}</div>
+            <h2>{{ t('app.welcome.inst.title') }}</h2>
+            <p class="section-lead">{{ t('app.welcome.inst.lead') }}</p>
             <div class="institutes-grid">
                 <div class="institute-card">
                     <div class="institute-icon"
                         style="background: linear-gradient(135deg,rgba(0,153,255,0.15),rgba(0,212,170,0.1))">
                         <img src="{{ asset('images/Idei-circular.png') }}" alt="IDEI" loading="lazy">
                     </div>
-                    <h3 data-i18n="inst1.name">Instituto de Informática</h3>
-                    <p data-i18n="inst1.desc">Facultad de Ciencias Exactas, Físicas y Naturales. Institución de
-                        investigación y desarrollo tecnológico de excelencia.</p>
+                    <h3>{{ t('app.welcome.inst1.name') }}</h3>
+                    <p>{{ t('app.welcome.inst1.desc') }}</p>
                 </div>
                 <div class="institute-card">
                     <div class="institute-icon"
                         style="background: linear-gradient(135deg,rgba(255,107,53,0.12),rgba(255,189,46,0.1))">🎮</div>
-                    <h3 data-i18n="inst2.name">Laboratorio de Ingeniería de la Gamificación</h3>
-                    <p data-i18n="inst2.desc">Investigación aplicada en gamificación, experiencias de usuario
-                        orientadas
-                        a motivación y aprendizaje.</p>
+                    <h3>{{ t('app.welcome.inst2.name') }}</h3>
+                    <p>{{ t('app.welcome.inst2.desc') }}</p>
                 </div>
                 <div class="institute-card">
                     <div class="institute-icon"
                         style="background: linear-gradient(135deg,rgba(61,214,140,0.12),rgba(0,212,170,0.1))">⚖️</div>
-                    <h3 data-i18n="inst3.name">Licencia MIT · Software Libre</h3>
-                    <p data-i18n="inst3.desc">USIM es completamente gratuito y de código abierto bajo la licencia MIT.
-                        Úsalo, modifícalo y distribúyelo libremente.</p>
+                    <h3>{{ t('app.welcome.inst3.name') }}</h3>
+                    <p>{{ t('app.welcome.inst3.desc') }}</p>
                 </div>
             </div>
         </div>
@@ -2124,15 +2107,14 @@
                     USIM
                     <span class="logo-version">v0.7.0</span>
                 </div>
-                <p class="footer-copy" data-i18n="footer.copy">© 2024 Instituto de Informática · FCEFyN · MIT License
-                </p>
+                <p class="footer-copy">{{ t('app.welcome.footer.copy') }}</p>
             </div>
             <div class="footer-links">
-                <a class="footer-link" href="#" data-i18n="footer.docs">Documentación</a>
-                <a class="footer-link" href="#" data-i18n="footer.github">GitHub</a>
-                <a class="footer-link" href="#" data-i18n="footer.tutorials">Tutoriales</a>
-                <a class="footer-link" href="#" data-i18n="footer.community">Comunidad</a>
-                <a class="footer-link" href="#" data-i18n="footer.license">Licencia MIT</a>
+                <a class="footer-link" href="#">{{ t('app.welcome.footer.docs') }}</a>
+                <a class="footer-link" href="#">{{ t('app.welcome.footer.github') }}</a>
+                <a class="footer-link" href="#">{{ t('app.welcome.footer.tutorials') }}</a>
+                <a class="footer-link" href="#">{{ t('app.welcome.footer.community') }}</a>
+                <a class="footer-link" href="#">{{ t('app.welcome.footer.license') }}</a>
             </div>
         </div>
     </footer>
@@ -2167,195 +2149,7 @@
         });
 
         /* ─── State ─── */
-        let currentLang = 'es';
         let currentTheme = getGlobalTheme();
-
-        /* ─── i18n ─── */
-        const i18n = {
-            es: {
-                'nav.demos': 'Demos',
-                'nav.tutorials': 'Tutoriales',
-                'nav.community': 'Comunidad',
-                'nav.docs': 'Documentación',
-                'hero.badge': 'Server-Driven UI · Laravel · v0.7.0',
-                'hero.title1': 'Define tu UI',
-                'hero.title2': 'en PHP puro.',
-                'hero.title3': 'El resto es automático.',
-                'hero.desc': 'USIM es un framework Server-Driven UI para Laravel. Define pantallas, formularios, tablas y modals en PHP — el framework se encarga de renderizar, diferenciar y actualizar todo en el cliente automáticamente.',
-                'hero.cta1': 'Comenzar ahora',
-                'hero.meta.version': 'Versión actual',
-                'hero.meta.license': 'Licencia libre',
-                'hero.meta.req': 'Requerido',
-                'arch.tag': 'Arquitectura',
-                'arch.title': 'Client-Agnostic por diseño',
-                'arch.lead': 'El servidor genera un contrato JSON agnóstico. Cualquier cliente — web, React, Android — puede implementar su propio render.',
-                'install.label': 'Instalar via Composer:',
-                'install.mit': 'Gratis · Licencia MIT',
-                'features.tag': 'Características',
-                'features.title': '¿Por qué USIM?',
-                'features.lead': 'Un nuevo paradigma donde el servidor controla la UI y el cliente sólo renderiza el resultado.',
-                'feat.serverui.title': 'Server-Driven UI',
-                'feat.serverui.desc': 'Define toda tu interfaz en PHP. Pantallas, menus, formularios, tablas y modals sin escribir una sola línea de JavaScript.',
-                'feat.delta.title': 'Actualizaciones Delta',
-                'feat.delta.desc': 'El framework calcula la diferencia entre el estado anterior y el nuevo, enviando al cliente sólo los cambios necesarios.',
-                'feat.events.title': 'Sistema de Eventos',
-                'feat.events.desc': 'Manejo de eventos con convención de nombres automática. Botones, formularios y acciones se conectan solos al handler correspondiente.',
-                'feat.auth.title': 'Auth Completo',
-                'feat.auth.desc': 'Login, registro, recuperación de contraseña, perfiles y gestión de roles con Sanctum y Spatie Permission incluidos.',
-                'feat.testing.title': 'Testing Integrado',
-                'feat.testing.desc': 'Guías y helpers para testear screens con patrones claros, assertions por componente y soporte para agentes de IA.',
-                'feat.octane.title': 'Octane / RoadRunner',
-                'feat.octane.desc': 'Compatible con procesos de larga duración. Reset automático del generador de IDs por request, sin configuración extra.',
-                'comp.tag': 'Componentes',
-                'comp.title': 'Biblioteca de Componentes',
-                'comp.lead': 'Todos los builders usan una API fluida y extienden BaseUIBuilder con métodos comunes de estilo y comportamiento.',
-                'comp.label': 'Textos, headings, párrafos',
-                'comp.button': 'Botones con estilos y acciones',
-                'comp.input': 'Text, email, password, hidden',
-                'comp.select': 'Dropdowns y selects',
-                'comp.checkbox': 'Checkboxes y toggles',
-                'comp.form': 'Agrupación de formularios',
-                'comp.table': 'Tablas con paginación',
-                'comp.card': 'Cards con título y acciones',
-                'comp.container': 'Layouts vertical/horizontal',
-                'comp.uploader': 'Upload con preview y crop',
-                'comp.calendar': 'Calendar / date picker',
-                'comp.carousel': 'Carousel de imagen/audio/video',
-                'tut.tag': 'Aprendizaje',
-                'tut.title': 'Tutoriales',
-                'tut.lead': 'Desde cero hasta producción. Aprende USIM con guías paso a paso.',
-                'tut.begin': 'Principiante',
-                'tut.inter': 'Intermedio',
-                'tut.adv': 'Avanzado',
-                'tut1.title': 'Tu primera Screen',
-                'tut1.desc': 'Instala USIM, crea tu primer Screen y comprende el ciclo de vida básico del framework.',
-                'tut2.title': 'Data Tables y Paginación',
-                'tut2.desc': 'Crea tablas dinámicas con filtros, ordenamiento y paginación del lado del servidor.',
-                'tut3.title': 'Autenticación Completa',
-                'tut3.desc': 'Configura login, registro, recuperación de contraseña y gestión de roles con usim:install.',
-                'tut4.title': 'Testing de Screens',
-                'tut4.desc': 'Aprende los patrones de testing de USIM: uiScenario, assertions de componentes y respuestas JSON.',
-                'comm.tag': 'Comunidad',
-                'comm.title': 'Únete a la conversación',
-                'comm.lead': 'Comparte código, hace preguntas y colabora con otros desarrolladores que usan USIM.',
-                'comm.cta1': 'Ver mensajes',
-                'comm.cta2': 'Escribir mensaje',
-                'inst.tag': 'Respaldo Académico',
-                'inst.title': 'Desarrollado con el apoyo de',
-                'inst.lead': 'USIM es un proyecto surgido del ámbito académico e investigativo de la facultad de Ciencias Exactas, Físicas y Naturales.',
-                'inst1.name': 'Instituto de Informática',
-                'inst1.desc': 'Facultad de Ciencias Exactas, Físicas y Naturales. Institución de investigación y desarrollo tecnológico de excelencia.',
-                'inst2.name': 'Laboratorio de Ingeniería de la Gamificación',
-                'inst2.desc': 'Investigación aplicada en gamificación y experiencias de usuario orientadas a motivación, aprendizaje y salud.',
-                'inst3.name': 'Licencia MIT · Software Libre',
-                'inst3.desc': 'USIM es completamente gratuito y de código abierto bajo la licencia MIT. Úsalo, modifícalo y distribúyelo libremente.',
-                'footer.copy': '© 2026 Instituto de Informática · FCEFyN · MIT License',
-                'footer.docs': 'Documentación',
-                'footer.github': 'GitHub',
-                'footer.tutorials': 'Tutoriales',
-                'footer.community': 'Comunidad',
-                'footer.license': 'Licencia MIT',
-            },
-            en: {
-                'nav.demos': 'Demos',
-                'nav.tutorials': 'Tutorials',
-                'nav.community': 'Community',
-                'nav.docs': 'Documentation',
-                'hero.badge': 'Server-Driven UI · Laravel · v0.7.0',
-                'hero.title1': 'Define your UI',
-                'hero.title2': 'in pure PHP.',
-                'hero.title3': 'The rest is automatic.',
-                'hero.desc': 'USIM is a Server-Driven UI framework for Laravel. Define screens, forms, tables and modals in PHP — the framework handles rendering, diffing and updating everything on the client automatically.',
-                'hero.cta1': 'Get started',
-                'hero.meta.version': 'Current version',
-                'hero.meta.license': 'Open license',
-                'hero.meta.req': 'Required',
-                'arch.tag': 'Architecture',
-                'arch.title': 'Client-Agnostic by design',
-                'arch.lead': 'The server generates an agnostic JSON contract. Any client — web, React, Android — can implement its own renderer.',
-                'install.label': 'Install via Composer:',
-                'install.mit': 'Free · MIT License',
-                'features.tag': 'Features',
-                'features.title': 'Why USIM?',
-                'features.lead': 'A new paradigm where the server controls the UI and the client only renders the result.',
-                'feat.serverui.title': 'Server-Driven UI',
-                'feat.serverui.desc': 'Define your entire interface in PHP. Screens, menus, forms, tables and modals — no JavaScript required.',
-                'feat.delta.title': 'Delta Updates',
-                'feat.delta.desc': 'The framework diffs old vs new state and sends only the changes to the client — minimal payload, maximum efficiency.',
-                'feat.events.title': 'Event System',
-                'feat.events.desc': 'Automatic naming convention for event handlers. Buttons, forms and actions wire themselves to the correct handler.',
-                'feat.auth.title': 'Full Auth',
-                'feat.auth.desc': 'Login, register, password recovery, profiles and role management with Sanctum and Spatie Permission included.',
-                'feat.testing.title': 'Integrated Testing',
-                'feat.testing.desc': 'Guides and helpers for screen testing with clear patterns, component assertions and AI-agent test generation support.',
-                'feat.octane.title': 'Octane / RoadRunner',
-                'feat.octane.desc': 'Compatible with long-running processes. Automatic ID generator reset per request — no extra config needed.',
-                'comp.tag': 'Components',
-                'comp.title': 'Component Library',
-                'comp.lead': 'All builders use a fluent API and extend BaseUIBuilder with common styling and behavior methods.',
-                'comp.label': 'Text labels, headings, paragraphs',
-                'comp.button': 'Action buttons with styles',
-                'comp.input': 'Text, email, password, hidden',
-                'comp.select': 'Dropdown selects',
-                'comp.checkbox': 'Checkboxes and toggles',
-                'comp.form': 'Form grouping',
-                'comp.table': 'Data tables with pagination',
-                'comp.card': 'Cards with title and actions',
-                'comp.container': 'Vertical/horizontal layouts',
-                'comp.uploader': 'File upload with preview & crop',
-                'comp.calendar': 'Calendar / date picker',
-                'comp.carousel': 'Image/audio/video carousel',
-                'tut.tag': 'Learning',
-                'tut.title': 'Tutorials',
-                'tut.lead': 'From zero to production. Learn USIM with step-by-step guides.',
-                'tut.begin': 'Beginner',
-                'tut.inter': 'Intermediate',
-                'tut.adv': 'Advanced',
-                'tut1.title': 'Your first Screen',
-                'tut1.desc': 'Install USIM, create your first Screen and understand the basic lifecycle of the framework.',
-                'tut2.title': 'Data Tables & Pagination',
-                'tut2.desc': 'Build dynamic tables with server-side filters, sorting and pagination.',
-                'tut3.title': 'Full Authentication',
-                'tut3.desc': 'Set up login, registration, password recovery and role management with usim:install.',
-                'tut4.title': 'Screen Testing',
-                'tut4.desc': 'Learn USIM testing patterns: uiScenario, component assertions and JSON response contracts.',
-                'comm.tag': 'Community',
-                'comm.title': 'Join the conversation',
-                'comm.lead': 'Share code, ask questions and collaborate with other USIM developers.',
-                'comm.cta1': 'View messages',
-                'comm.cta2': 'Write a message',
-                'inst.tag': 'Academic Support',
-                'inst.title': 'Developed with the support of',
-                'inst.lead': 'USIM is a project born from academic and research environments in software engineering.',
-                'inst1.name': 'Institute of Informatics',
-                'inst1.desc': 'Faculty of Exact, Physical and Natural Sciences. Institution of excellence in technological research and development.',
-                'inst2.name': 'Gamification Engineering Laboratory',
-                'inst2.desc': 'Applied research in gamification and user experiences oriented to motivation and learning.',
-                'inst3.name': 'MIT License · Free Software',
-                'inst3.desc': 'USIM is completely free and open source under the MIT license. Use it, modify it and distribute it freely.',
-                'footer.copy': '© 2026 Institute of Informatics · FCEFyN · MIT License',
-                'footer.docs': 'Documentation',
-                'footer.github': 'GitHub',
-                'footer.tutorials': 'Tutorials',
-                'footer.community': 'Community',
-                'footer.license': 'MIT License',
-            }
-        };
-
-        function t(key) {
-            return i18n[currentLang][key] || key;
-        }
-
-        function applyTranslations() {
-            (wfRoot || document).querySelectorAll('[data-i18n]').forEach(el => {
-                const key = el.getAttribute('data-i18n');
-                el.textContent = t(key);
-            });
-            const langButton = wfById('lang-btn');
-            if (langButton) {
-                langButton.textContent = currentLang === 'es' ? 'EN' : 'ES';
-            }
-        }
 
         /* ─── Theme ─── */
         function toggleTheme() {
@@ -2370,17 +2164,14 @@
                 }
 
                 window.dispatchEvent(new CustomEvent('usim:theme-changed', {
-                    detail: { theme: currentTheme, source: 'welcome-usim-toggle' }
+                    detail: {
+                        theme: currentTheme,
+                        source: 'welcome-usim-toggle'
+                    }
                 }));
             }
 
             applyThemeIcons();
-        }
-
-        /* ─── Lang ─── */
-        function toggleLang() {
-            currentLang = currentLang === 'es' ? 'en' : 'es';
-            applyTranslations();
         }
 
         /* ─── Hamburger ─── */
@@ -2403,15 +2194,6 @@
         }
 
         applyThemeIcons();
-
-        /* ─── Lang ─── */
-        const langButton = wfById('lang-btn');
-        if (langButton) {
-            langButton.addEventListener('click', function(e) {
-                e.stopPropagation();
-                toggleLang();
-            });
-        }
 
         /* ─── Hero mobile tabs ─── */
         const heroInner = wfById('hero-inner');
@@ -2465,7 +2247,7 @@
                     btn.innerHTML =
                         '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>';
                 }, 1500);
-                showToast('📋 Copiado al portapapeles');
+                showToast('{{ t('app.welcome.ui.toast_copied') }}');
             });
         }
 
@@ -2483,6 +2265,5 @@
         }
 
         /* ─── Init ─── */
-        applyTranslations();
     </script>
 </div>
