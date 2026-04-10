@@ -5,7 +5,6 @@ namespace Idei\Usim\Services\Support;
 use Idei\Usim\Models\UsimLanguage;
 use Idei\Usim\Models\UsimTextKey;
 use Idei\Usim\Models\UsimTextValue;
-use Idei\Usim\Services\Support\Translation\TranslationAutoRegistrar;
 use Idei\Usim\Services\Support\Translation\TranslationDatasetQuery;
 use Idei\Usim\Services\Support\Translation\TranslationKeyManager;
 use Idei\Usim\Services\Support\Translation\TranslationValueResolver;
@@ -17,7 +16,6 @@ class TranslationService
     public function __construct(
         private readonly TranslationKeyManager $keyManager,
         private readonly TranslationDatasetQuery $datasetQuery,
-        private readonly TranslationAutoRegistrar $autoRegistrar,
         private readonly TranslationValueResolver $valueResolver
     ) {
     }
@@ -95,16 +93,12 @@ class TranslationService
 
     public function getValue(string $key, array $params = [], ?string $languageCode = null): string
     {
-        $resolvedKey = $this->autoRegistrar->resolveOrRegisterKey($key);
-
-        return $this->valueResolver->getValue($resolvedKey, $params, $languageCode);
+        return $this->valueResolver->getValue($key, $params, $languageCode);
     }
 
     public function getEntry(string $key, ?string $languageCode = null): ?array
     {
-        $resolvedKey = $this->autoRegistrar->resolveOrRegisterKey($key);
-
-        return $this->valueResolver->getEntry($resolvedKey, $languageCode);
+        return $this->valueResolver->getEntry($key, $languageCode);
     }
 
     public function getDirectEntry(string $key, string $languageCode): ?array

@@ -7,7 +7,6 @@ use Idei\Usim\Services\Support\UIIdGenerator;
 use Illuminate\Contracts\Events\Dispatcher;
 
 use Idei\Usim\Services\UIChangesCollector;
-use Idei\Usim\Services\Support\Translation\TranslationAutoRegistrar;
 use Idei\Usim\Services\Support\Translation\TranslationDatasetQuery;
 use Idei\Usim\Services\Support\Translation\TranslationKeyManager;
 use Idei\Usim\Services\Support\Translation\TranslationValueResolver;
@@ -39,7 +38,6 @@ class UsimServiceProvider extends ServiceProvider
             return new TranslationService(
                 $app->make(TranslationKeyManager::class),
                 $app->make(TranslationDatasetQuery::class),
-                $app->make(TranslationAutoRegistrar::class),
                 $app->make(TranslationValueResolver::class)
             );
         });
