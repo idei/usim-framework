@@ -2535,6 +2535,20 @@ class UIRenderer {
     }
 
     /**
+     * Persist language change sent by backend.
+     * The actual locale is applied server-side on the next request via PrepareUIContext middleware.
+     *
+     * @param {string} lang
+     */
+    handleLanguageChange(lang) {
+        if (typeof lang !== 'string' || !lang.trim()) {
+            return;
+        }
+
+        persistStoreValue('store_lang', lang.trim().toLowerCase());
+    }
+
+    /**
      * Show toast notification
      *
      * @param {object} toastConfig - Toast configuration
@@ -2648,6 +2662,10 @@ class UIRenderer {
 
         if (uiUpdate.change_theme) {
             this.handleThemeChange(uiUpdate.change_theme);
+        }
+
+        if (uiUpdate.change_language) {
+            this.handleLanguageChange(uiUpdate.change_language);
         }
 
         // Handle abort if present (checks for truthy value OR explicit action)
@@ -3459,7 +3477,7 @@ class UIRenderer {
 let globalRenderer = null;
 
 // ==================== Main Application ====================
-async function loadScreenUI(screenName = null) {
+async function loadScreenUI(screenName = null, forceReset = null) {
     try {
         // Use screen name from window global (set by Laravel) or parameter
         const screen = screenName || window.SCREEN_NAME || 'home';
@@ -3471,7 +3489,8 @@ async function loadScreenUI(screenName = null) {
         const urlParams = new URLSearchParams();
 
         // Add reset parameter if needed
-        if (window.RESET_STATE) {
+        const shouldReset = forceReset === null ? Boolean(window.RESET_STATE) : Boolean(forceReset);
+        if (shouldReset) {
             urlParams.append('reset', 'true');
         }
 
@@ -3519,12 +3538,6 @@ async function loadScreenUI(screenName = null) {
         // Re-apply and broadcast persisted theme after render so embedded fragments
         // (like Home landing blocks) that subscribe to usim:theme-changed can sync.
         applyPersistedThemeFromStorage(true, 'framework-post-render-sync');
-
-        // If reset flag was used, clear it after loading
-        if (window.RESET_STATE) {
-            window.history.replaceState({}, document.title, window.location.pathname);
-            window.RESET_STATE = false;
-        }
 
         console.log('✅ Screen UI loaded successfully');
 
@@ -4138,14 +4151,15 @@ class StorageComponent extends UIComponent {
 /**
  * Load menu UI
  */
-async function loadMenuUI() {
+async function loadMenuUI(forceReset = null) {
     if (!window.MENU_SERVICE) {
         console.log('ℹ️ No MENU_SERVICE defined, skipping menu load');
         return;
     }
 
     try {
-        const resetQuery = window.RESET_STATE ? 'reset=true' : '';
+        const shouldReset = forceReset === null ? Boolean(window.RESET_STATE) : Boolean(forceReset);
+        const resetQuery = shouldReset ? 'reset=true' : '';
         const usimStorage = getUsimStorageValue();
         const parentElement = 'parent=menu';
 
@@ -4231,8 +4245,16 @@ async function loadMenuUI() {
 
 // Load UI on page load
 document.addEventListener('DOMContentLoaded', async () => {
-    await loadScreenUI();  // Load main UI first to create globalRenderer
-    await loadMenuUI();  // Then load menu and merge into globalRenderer
+    const initialResetState = Boolean(window.RESET_STATE);
+
+    await loadScreenUI(null, initialResetState);  // Load main UI first to create globalRenderer
+    await loadMenuUI(initialResetState);  // Then load menu and merge into globalRenderer
+
+    // Clear reset flag after both screen and menu consumed it.
+    if (initialResetState) {
+        window.history.replaceState({}, document.title, window.location.pathname);
+        window.RESET_STATE = false;
+    }
 
     // Check for pending toast after page load
     const pendingToast = sessionStorage.getItem('pendingToast');

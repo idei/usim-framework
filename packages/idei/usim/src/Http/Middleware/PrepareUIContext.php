@@ -57,6 +57,12 @@ class PrepareUIContext
         }
 
         $request->merge(['storage' => $storage]);
+
+        // Apply locale from store_lang so all t() calls in this request use the user's selected language
+        if (!empty($storage['store_lang'])) {
+            app()->setLocale($storage['store_lang']);
+        }
+
         $store_token = $storage['store_token'] ?? '';
 
         $request->headers->set('Authorization', "Bearer $store_token");
