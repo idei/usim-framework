@@ -19,7 +19,7 @@
     "app.datatable.translation_keys.actions.delete.tooltip": "Delete translation",
     "app.datatable.translation_keys.actions.edit.label": "Edit",
     "app.datatable.translation_keys.actions.edit.tooltip": "Edit translation",
-    "app.datatable.translation_keys.columns.completion": "Completion",
+    "app.datatable.translation_keys.columns.completion": "%",
     "app.datatable.translation_keys.columns.key": "Key",
     "app.datatable.user_api.columns.email": "Email",
     "app.datatable.user_api.columns.email_verified": "Verified",

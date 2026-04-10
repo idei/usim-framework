@@ -60,8 +60,8 @@ SVG;
         $columns = [
             // Fixed width: keep key column stable regardless of content length.
             'key' => ['label' => t('app.datatable.translation_keys.columns.key'), 'width' => [320, 320], 'sort_by' => 'key'],
-            // Fixed width: avoid visual jumps between pages with different percentages.
-            'completion' => ['label' => t('app.datatable.translation_keys.columns.completion'), 'width' => [140, 140]],
+            // Fixed width: narrow column showing only the percentage value.
+            'completion' => ['label' => t('app.datatable.translation_keys.columns.completion'), 'width' => [52, 52]],
         ];
 
         // Fallback language column — always visible

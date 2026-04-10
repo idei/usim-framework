@@ -798,7 +798,7 @@ class TableBuilder extends UIComponent
         // Apply to all data row cells in this column
         for ($row = 0; $row < $this->rows; $row++) {
             if (isset($this->cells[$row][$col])) {
-                $this->cells[$row][$col]->width($minWidth, $maxWidth);
+                $this->cells[$row][$col]->widthConstraints($minWidth, $maxWidth);
             }
         }
 
