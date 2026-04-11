@@ -329,7 +329,7 @@
     "app.screen.demo.uploader_demo.story.title": "Story vertical (9:16 - Tamaño 2)",
     "app.screen.demo.uploader_demo.title": "Demo de Componente Uploader",
     "app.screen.menu.abort_demo_error": "Este es un error simulado para probar el manejo de errores.",
-    "app.screen.menu.about.message": "USIM Framework es un sistema de componentes de interfaz dinamica construido con Laravel y PHP.\\n\\nVersion actual: :version\\n\\nDesarrollado por: IDEI SA",
+    "app.screen.menu.about.message": "USIM Framework es un sistema de componentes de interfaz dinamica construido con Laravel y PHP.\\n\\nVersion actual: :version\\n\\nDesarrollado por: IDEI Instituto de Informatica, FCEFyN, UNSJ",
     "app.screen.menu.about.title": "Acerca de USIM Framework",
     "app.screen.menu.demos.abort_error": "Error Abortado",
     "app.screen.menu.demos.button_demo": "Demo Boton",
