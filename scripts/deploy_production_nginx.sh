@@ -21,38 +21,32 @@ show_help() {
 Usage: scripts/deploy_production_nginx.sh [options]
 
 Options:
-  -b <branch>          Branch to deploy (default: main)
-  -r <remote>          Git remote (default: origin)
-  -p <php_fpm_service> PHP-FPM service to reload (default: php8.2-fpm)
-  -n                   Reload nginx at the end
-  -m                   Run migrations with --force
-  -u                   Publish usim-config with --force
-  -s                   Skip composer install
-  -h                   Show help
+    -d                   Run seeders using DatabaseSeeder
+    -c <seeder_class>    Run a specific seeder class (implies -d)
+    -s                   Skip composer install
+    -h                   Show help
 
 Examples:
   scripts/deploy_production_nginx.sh
-  scripts/deploy_production_nginx.sh -b main -m -u -n
-  scripts/deploy_production_nginx.sh -p php8.3-fpm -m
+    scripts/deploy_production_nginx.sh -d
+    scripts/deploy_production_nginx.sh -c UsimLanguageSeeder
 EOF
 }
 
 BRANCH='main'
 REMOTE='origin'
-PHP_FPM_SERVICE='php8.2-fpm'
-RUN_MIGRATIONS=false
-PUBLISH_USIM_CONFIG=false
-RELOAD_NGINX=false
+PHP_FPM_SERVICE='php8.3-fpm'
+RUN_SEEDERS=false
+SEEDER_CLASS='DatabaseSeeder'
 SKIP_COMPOSER=false
 
-while getopts 'b:r:p:nmush' opt; do
+while getopts 'dc:sh' opt; do
     case "$opt" in
-        b) BRANCH="$OPTARG" ;;
-        r) REMOTE="$OPTARG" ;;
-        p) PHP_FPM_SERVICE="$OPTARG" ;;
-        n) RELOAD_NGINX=true ;;
-        m) RUN_MIGRATIONS=true ;;
-        u) PUBLISH_USIM_CONFIG=true ;;
+        d) RUN_SEEDERS=true ;;
+        c)
+            RUN_SEEDERS=true
+            SEEDER_CLASS="$OPTARG"
+            ;;
         s) SKIP_COMPOSER=true ;;
         h)
             show_help
@@ -73,13 +67,13 @@ fi
 ROOT_DIR=$(git rev-parse --show-toplevel)
 cd "$ROOT_DIR"
 
-print_color "Deploying branch '$BRANCH' from remote '$REMOTE'..." "$CYAN"
+print_color "Deploying '$REMOTE/$BRANCH'..." "$CYAN"
 
 print_color 'Fetching latest changes...' "$CYAN"
 git fetch "$REMOTE" --prune
 
 git checkout "$BRANCH"
-git pull "$REMOTE" "$BRANCH"
+git reset --hard "$REMOTE/$BRANCH"
 
 if [[ "$SKIP_COMPOSER" == false ]]; then
     print_color 'Installing PHP dependencies...' "$CYAN"
@@ -94,14 +88,15 @@ php artisan package:discover --ansi
 print_color 'Publishing USIM assets...' "$CYAN"
 php artisan vendor:publish --tag=usim-assets --force
 
-if [[ "$PUBLISH_USIM_CONFIG" == true ]]; then
-    print_color 'Publishing USIM config...' "$CYAN"
-    php artisan vendor:publish --tag=usim-config --force
-fi
+print_color 'Publishing USIM config...' "$CYAN"
+php artisan vendor:publish --tag=usim-config --force
 
-if [[ "$RUN_MIGRATIONS" == true ]]; then
-    print_color 'Running migrations...' "$CYAN"
-    php artisan migrate --force
+print_color 'Running migrations...' "$CYAN"
+php artisan migrate --force
+
+if [[ "$RUN_SEEDERS" == true ]]; then
+    print_color "Running seeders with class: $SEEDER_CLASS" "$CYAN"
+    php artisan db:seed --class="$SEEDER_CLASS" --force --no-interaction
 fi
 
 print_color 'Refreshing USIM manifest...' "$CYAN"
@@ -116,9 +111,7 @@ php artisan view:cache
 print_color "Reloading PHP-FPM service: $PHP_FPM_SERVICE" "$CYAN"
 sudo systemctl reload "$PHP_FPM_SERVICE"
 
-if [[ "$RELOAD_NGINX" == true ]]; then
-    print_color 'Reloading nginx...' "$CYAN"
-    sudo systemctl reload nginx
-fi
+print_color 'Reloading nginx...' "$CYAN"
+sudo systemctl reload nginx
 
 print_color 'Deployment completed successfully.' "$GREEN"
