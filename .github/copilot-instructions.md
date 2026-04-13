@@ -308,4 +308,4 @@ Sigue `packages/idei/usim/docs/package-update-and-consumer-upgrade-guide.md`:
 
 ## General
 
-Al final de cada respuesta dime "Listo Emilio" para que sepa que terminaste de responder.
+Al final de cada respuesta dime "Ready!" para que sepa que terminaste de responder.
