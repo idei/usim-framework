@@ -6,7 +6,7 @@ La aplicación USIM utiliza un sistema i18n (internacionalización) basado en la
 
 ## Convención de Nombres de Slugs
 
-Los slugs de traducción siguen el patrón: `app.<contexto>.<subsistema>.<elemento>.<propiedad>`
+Los slugs de traducción siguen el patrón: `<contexto>.<subsistema>.<elemento>.<propiedad>`
 
 ### Contextos Principales
 
@@ -131,14 +131,14 @@ Edita los archivos en `/database/translations/`:
 **en.json:**
 ```json
 {
-  "app.new_feature.title": "New Feature"
+  "new_feature.title": "New Feature"
 }
 ```
 
 **es.json:**
 ```json
 {
-  "app.new_feature.title": "Nueva Característica"
+  "new_feature.title": "Nueva Característica"
 }
 ```
 
@@ -168,9 +168,9 @@ php artisan tinker
 
 El seeder extrae el **grupo** automáticamente de la primera parte del slug:
 
-- `screen.*` → grupo: `app.screen`
-- `service.*` → grupo: `app.service`
-- `controller.*` → grupo: `app.controller`
+- `screen.*` → grupo: `screen`
+- `service.*` → grupo: `service`
+- `controller.*` → grupo: `controller`
 
 Esto facilita la gestión y búsqueda de traducciones en la UI de administración.
 
@@ -218,7 +218,7 @@ grep -r "->placeholder(" app/
 ### Paso 2: Crear Slugs y Traducciones
 
 Para cada texto encontrado:
-1. Define un slug siguiendo la convención (`app.<contexto>.<subsistema>.<elemento>.<prop>`)
+1. Define un slug siguiendo la convención (`<contexto>.<subsistema>.<elemento>.<prop>`)
 2. Agrega el texto en `en.json` y su traducción en `es.json`
 3. Actualiza el código a usar `t('slug')`
 
@@ -256,7 +256,7 @@ php artisan tinker
 ## Checklist para Agregar Nueva Feature i18n
 
 - [ ] Identificar todos los textos visibles del usuario
-- [ ] Diseñar slugs seguiendo `app.<contexto>.<subsistema>.<elemento>.<prop>`
+- [ ] Diseñar slugs seguiendo `<contexto>.<subsistema>.<elemento>.<prop>`
 - [ ] Agregar claves en `en.json` (versión original/fallback)
 - [ ] Agregar claves en `es.json` (traducción)
 - [ ] Actualizar código en screens/services/controllers a usar `t('slug')`

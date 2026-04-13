@@ -3,7 +3,7 @@
 ## Suma: Convención de Slugs
 
 ```
-app.<tipo>.<subsistema>.<elemento>.<propiedad>
+<tipo>.<subsistema>.<elemento>.<propiedad>
     ↓        ↓            ↓         ↓
   screen   auth        login      title
 ```
