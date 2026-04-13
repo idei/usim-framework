@@ -59,7 +59,7 @@ class EmailVerified extends AbstractUIService
         $hash = request('hash');
 
         if (!$id || !$hash) {
-            $this->errorMessage = t('app.screen.auth.email_verified.errors.invalid_params');
+            $this->errorMessage = t('screen.auth.email_verified.errors.invalid_params');
             $this->verificationStatus = 'error';
             $this->container->clear();
             $this->buildBaseUI($this->container);
@@ -69,7 +69,7 @@ class EmailVerified extends AbstractUIService
         // Enforce link expiration using signed URL expires timestamp.
         $expires = (int) request('expires', 0);
         if ($expires > 0 && now()->timestamp > $expires) {
-            $this->errorMessage = t('app.screen.auth.email_verified.errors.expired');
+            $this->errorMessage = t('screen.auth.email_verified.errors.expired');
             $this->verificationStatus = 'error';
             $this->container->clear();
             $this->buildBaseUI($this->container);
@@ -92,7 +92,7 @@ class EmailVerified extends AbstractUIService
                 'message' => $e->getMessage(),
                 'exception' => get_class($e),
             ]);
-            $this->errorMessage = t('app.screen.auth.email_verified.errors.generic');
+            $this->errorMessage = t('screen.auth.email_verified.errors.generic');
             $this->verificationStatus = 'error';
         }
 
@@ -108,7 +108,7 @@ class EmailVerified extends AbstractUIService
     {
         $container->add(
             UIBuilder::label('loading_message')
-                ->text(t('app.screen.auth.email_verified.loading'))
+                ->text(t('screen.auth.email_verified.loading'))
                 ->style('h2')
                 ->center()
                 ->color('#666')
@@ -130,7 +130,7 @@ class EmailVerified extends AbstractUIService
 
         $container->add(
             UIBuilder::label('verified_message')
-                ->text(t('app.screen.auth.email_verified.verified.message'))
+                ->text(t('screen.auth.email_verified.verified.message'))
                 ->style('h2')
                 ->center()
                 ->color('#4CAF50')
@@ -138,7 +138,7 @@ class EmailVerified extends AbstractUIService
 
         $container->add(
             UIBuilder::label('verified_subtitle')
-                ->text(t('app.screen.auth.email_verified.verified.subtitle'))
+                ->text(t('screen.auth.email_verified.verified.subtitle'))
                 ->style('p')
                 ->center()
                 ->color('#666')
@@ -147,13 +147,13 @@ class EmailVerified extends AbstractUIService
 
         $container->add(
             UIBuilder::card('success_card')
-                ->title(t('app.screen.auth.email_verified.verified.card_title'))
-                ->description(t('app.screen.auth.email_verified.verified.card_description'))
+                ->title(t('screen.auth.email_verified.verified.card_title'))
+                ->description(t('screen.auth.email_verified.verified.card_description'))
                 ->theme('success')
                 ->maxWidth('600px')
                 ->marginTop('30px')
-                ->addAction(t('app.screen.auth.email_verified.actions.go_to_login'), 'go_to_login', [], 'success')
-                ->addAction(t('app.screen.auth.email_verified.actions.go_to_home'), 'go_to_home', [], 'outline')
+                ->addAction(t('screen.auth.email_verified.actions.go_to_login'), 'go_to_login', [], 'success')
+                ->addAction(t('screen.auth.email_verified.actions.go_to_home'), 'go_to_home', [], 'outline')
         );
     }
 
@@ -172,7 +172,7 @@ class EmailVerified extends AbstractUIService
 
         $container->add(
             UIBuilder::label('already_verified_message')
-                ->text(t('app.screen.auth.email_verified.already_verified.message'))
+                ->text(t('screen.auth.email_verified.already_verified.message'))
                 ->style('h2')
                 ->center()
                 ->color('#2196F3')
@@ -180,13 +180,13 @@ class EmailVerified extends AbstractUIService
 
         $container->add(
             UIBuilder::card('info_card')
-                ->title(t('app.screen.auth.email_verified.already_verified.card_title'))
-                ->description(t('app.screen.auth.email_verified.already_verified.card_description'))
+                ->title(t('screen.auth.email_verified.already_verified.card_title'))
+                ->description(t('screen.auth.email_verified.already_verified.card_description'))
                 ->theme('info')
                 ->maxWidth('600px')
                 ->marginTop('30px')
-                ->addAction(t('app.screen.auth.email_verified.actions.go_to_login'), 'go_to_login', [], 'primary')
-                ->addAction(t('app.screen.auth.email_verified.actions.go_to_home'), 'go_to_home', [], 'outline')
+                ->addAction(t('screen.auth.email_verified.actions.go_to_login'), 'go_to_login', [], 'primary')
+                ->addAction(t('screen.auth.email_verified.actions.go_to_home'), 'go_to_home', [], 'outline')
         );
     }
 
@@ -205,7 +205,7 @@ class EmailVerified extends AbstractUIService
 
         $container->add(
             UIBuilder::label('error_message')
-                ->text(t('app.screen.auth.email_verified.error.message'))
+                ->text(t('screen.auth.email_verified.error.message'))
                 ->style('h2')
                 ->center()
                 ->color('#f44336')
@@ -222,13 +222,13 @@ class EmailVerified extends AbstractUIService
 
         $container->add(
             UIBuilder::card('error_card')
-                ->title(t('app.screen.auth.email_verified.error.card_title'))
-                ->description(t('app.screen.auth.email_verified.error.card_description'))
+                ->title(t('screen.auth.email_verified.error.card_title'))
+                ->description(t('screen.auth.email_verified.error.card_description'))
                 ->theme('danger')
                 ->maxWidth('600px')
                 ->marginTop('30px')
-                ->addAction(t('app.screen.auth.email_verified.actions.resend'), 'resend_verification', [], 'danger')
-                ->addAction(t('app.screen.auth.email_verified.actions.go_to_home'), 'go_to_home', [], 'outline')
+                ->addAction(t('screen.auth.email_verified.actions.resend'), 'resend_verification', [], 'danger')
+                ->addAction(t('screen.auth.email_verified.actions.go_to_home'), 'go_to_home', [], 'outline')
         );
     }
 
@@ -253,7 +253,7 @@ class EmailVerified extends AbstractUIService
      */
     public function onResendVerification(array $params): void
     {
-        $this->toast(t('app.screen.auth.email_verified.toast.redirect_to_login'), 'info');
+        $this->toast(t('screen.auth.email_verified.toast.redirect_to_login'), 'info');
         $this->redirect('/auth/login');
     }
 }

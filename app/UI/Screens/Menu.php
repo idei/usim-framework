@@ -90,7 +90,7 @@ class Menu extends AbstractUIService
         $this->theme_toggle->icon("/vendor/idei/usim/images/$icon.svg");
         $this->theme_toggle->iconColor('var(--usim-menu-trigger-text)');
         $this->theme_toggle->iconSize(24);
-        $this->theme_toggle->tooltip(t('app.screen.menu.theme_switch_to', ['theme' => $this->store_theme === 'light' ? 'dark' : 'light']));
+        $this->theme_toggle->tooltip(t('screen.menu.theme_switch_to', ['theme' => $this->store_theme === 'light' ? 'dark' : 'light']));
     }
 
     public function onToggleTheme(array $params): void
@@ -222,30 +222,30 @@ class Menu extends AbstractUIService
 
     private function populateMainMenu(MenuDropdownBuilder $menu): void
     {
-        $menu->link(t('app.screen.menu.items.home'), '/', '🏠');
+        $menu->link(t('screen.menu.items.home'), '/', '🏠');
         $menu->screen(Dashboard::class);
         $menu->screen(TranlateManager::class);
         $this->buildDemosMenu($menu);
         $menu->separator();
-        $menu->item(t('app.screen.menu.items.about'), 'show_about_info', [], 'ℹ️');
+        $menu->item(t('screen.menu.items.about'), 'show_about_info', [], 'ℹ️');
     }
 
     private function buildDemosMenu(MenuDropdownBuilder $menu): void
     {
         $menu->separator();
-        $menu->submenu(t('app.screen.menu.items.demos'), function ($submenu) {
-            $submenu->screen(ButtonDemo::class, t('app.screen.menu.demos.button_demo'), '🖲️');
-            $submenu->screen(TableDemo::class, t('app.screen.menu.demos.table_demo'), '📊');
-            $submenu->screen(ModalDemo::class, t('app.screen.menu.demos.modal_demo'), '🪟');
-            $submenu->item(t('app.screen.menu.demos.abort_error'), 'show_error_info', [], '❌');
-            $submenu->screen(FormDemo::class, t('app.screen.menu.demos.form_demo'), '📝');
-            $submenu->screen(DemoUi::class, t('app.screen.menu.demos.demo_ui'), '🎨');
-            $submenu->screen(InputDemo::class, t('app.screen.menu.demos.input_demo'), '⌨️');
-            $submenu->screen(SelectDemo::class, t('app.screen.menu.demos.select_demo'), '📋');
-            $submenu->screen(CheckboxDemo::class, t('app.screen.menu.demos.checkbox_demo'), '☑️');
-            $submenu->screen(UploaderDemo::class, t('app.screen.menu.demos.uploader_demo'), '📤');
-            $submenu->screen(CalendarDemo::class, t('app.screen.menu.demos.calendar_demo'), '📅');
-            $submenu->screen(CarouselDemo::class, t('app.screen.menu.demos.carousel_demo'), '🎞️');
+        $menu->submenu(t('screen.menu.items.demos'), function ($submenu) {
+            $submenu->screen(ButtonDemo::class, t('screen.menu.demos.button_demo'), '🖲️');
+            $submenu->screen(TableDemo::class, t('screen.menu.demos.table_demo'), '📊');
+            $submenu->screen(ModalDemo::class, t('screen.menu.demos.modal_demo'), '🪟');
+            $submenu->item(t('screen.menu.demos.abort_error'), 'show_error_info', [], '❌');
+            $submenu->screen(FormDemo::class, t('screen.menu.demos.form_demo'), '📝');
+            $submenu->screen(DemoUi::class, t('screen.menu.demos.demo_ui'), '🎨');
+            $submenu->screen(InputDemo::class, t('screen.menu.demos.input_demo'), '⌨️');
+            $submenu->screen(SelectDemo::class, t('screen.menu.demos.select_demo'), '📋');
+            $submenu->screen(CheckboxDemo::class, t('screen.menu.demos.checkbox_demo'), '☑️');
+            $submenu->screen(UploaderDemo::class, t('screen.menu.demos.uploader_demo'), '📤');
+            $submenu->screen(CalendarDemo::class, t('screen.menu.demos.calendar_demo'), '📅');
+            $submenu->screen(CarouselDemo::class, t('screen.menu.demos.carousel_demo'), '🎞️');
         }, '🎮');
     }
 
@@ -262,9 +262,9 @@ class Menu extends AbstractUIService
     private function populateUserMenu(MenuDropdownBuilder $menu): void
     {
         $menu->screen(Login::class);
-        $menu->item(t('app.screen.menu.items.register'), 'show_register_form', [], '📝', visible: !Auth::check());
+        $menu->item(t('screen.menu.items.register'), 'show_register_form', [], '📝', visible: !Auth::check());
         $menu->screen(Profile::class);
-        $menu->item(t('app.screen.menu.items.logout'), 'confirm_logout', [], '🚪', visible: Auth::check());
+        $menu->item(t('screen.menu.items.logout'), 'confirm_logout', [], '🚪', visible: Auth::check());
     }
 
     public function onLoggedUser(array $params): void
@@ -311,7 +311,7 @@ class Menu extends AbstractUIService
         $this->main_menu->clearItems();
         $this->populateMainMenu($this->main_menu);
 
-        $this->toast(t('app.screen.menu.logout_success'));
+        $this->toast(t('screen.menu.logout_success'));
         $this->redirect();
     }
 
@@ -326,8 +326,8 @@ class Menu extends AbstractUIService
 
         ConfirmDialogService::open(
             type: DialogType::INFO,
-            title: t('app.screen.menu.about.title'),
-            message: t('app.screen.menu.about.message', [
+            title: t('screen.menu.about.title'),
+            message: t('screen.menu.about.message', [
                 'version' => $version
             ]),
             callerServiceId: $serviceId
@@ -336,7 +336,7 @@ class Menu extends AbstractUIService
 
     public function onShowErrorInfo(array $params): void
     {
-        $this->abort(500, t('app.screen.menu.abort_demo_error'));
+        $this->abort(500, t('screen.menu.abort_demo_error'));
     }
 
     /**
@@ -362,7 +362,7 @@ class Menu extends AbstractUIService
     public function onSubmitRegister(array $params): void
     {
         if ($params['accept_terms'] == false) {
-            $this->toast(t('app.screen.menu.register_terms_required'), type: 'error');
+            $this->toast(t('screen.menu.register_terms_required'), type: 'error');
             return;
         }
 
@@ -385,7 +385,7 @@ class Menu extends AbstractUIService
 
     private function handleRegisterSuccess(array $response): void
     {
-        $message = (string) ($response['message'] ?? t('app.screen.menu.register_success_default'));
+        $message = (string) ($response['message'] ?? t('screen.menu.register_success_default'));
         $this->toast($message, 'success');
 
         $user = $response['user'] ?? null;
@@ -401,7 +401,7 @@ class Menu extends AbstractUIService
 
     private function handleRegisterError(array $response): void
     {
-        $message = (string) ($response['message'] ?? t('app.screen.menu.validation_errors_default'));
+        $message = (string) ($response['message'] ?? t('screen.menu.validation_errors_default'));
         $this->toast($message, 'error');
         $this->updateModalValidationErrors((array) ($response['errors'] ?? []));
     }
@@ -439,8 +439,8 @@ class Menu extends AbstractUIService
 
         ConfirmDialogService::open(
             type: DialogType::CONFIRM,
-            title: t('app.screen.menu.logout_confirm.title'),
-            message: t('app.screen.menu.logout_confirm.message'),
+            title: t('screen.menu.logout_confirm.title'),
+            message: t('screen.menu.logout_confirm.message'),
             confirmAction: 'confirm_logout',
             cancelAction: 'cancel_logout',
             callerServiceId: $serviceId

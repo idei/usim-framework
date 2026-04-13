@@ -26,7 +26,7 @@ class PasswordService
         if ($validator->fails()) {
             return [
                 'status' => 'error',
-                'message' => t('app.service.auth.password.validation_errors'),
+                'message' => t('service.auth.password.validation_errors'),
                 'errors' => $validator->errors()->toArray(),
             ];
         }
@@ -37,8 +37,8 @@ class PasswordService
         if (!$user) {
             return [
                 'status' => 'error',
-                'message' => t('app.service.auth.password.user_not_found'),
-                'errors' => ['email' => [t('app.service.auth.password.user_not_found')]],
+                'message' => t('service.auth.password.user_not_found'),
+                'errors' => ['email' => [t('service.auth.password.user_not_found')]],
             ];
         }
 
@@ -48,14 +48,14 @@ class PasswordService
             return [
                 'status' => 'success',
                 'data' => null,
-                'message' => t('app.service.auth.password.reset_link_sent'),
+                'message' => t('service.auth.password.reset_link_sent'),
             ];
         }
 
         return [
             'status' => 'error',
-            'message' => t('app.service.auth.password.reset_link_failed'),
-            'errors' => ['email' => [t('app.service.auth.password.reset_link_failed')]],
+            'message' => t('service.auth.password.reset_link_failed'),
+            'errors' => ['email' => [t('service.auth.password.reset_link_failed')]],
         ];
     }
 
@@ -88,7 +88,7 @@ class PasswordService
         if ($validator->fails()) {
             return [
                 'status' => 'error',
-                'message' => t('app.service.auth.password.validation_errors'),
+                'message' => t('service.auth.password.validation_errors'),
                 'errors' => $validator->errors()->toArray(),
             ];
         }
@@ -115,13 +115,13 @@ class PasswordService
             return [
                 'status' => 'success',
                 'data' => null,
-                'message' => t('app.service.auth.password.reset_success'),
+                'message' => t('service.auth.password.reset_success'),
             ];
         }
 
         return [
             'status' => 'error',
-            'message' => t('app.service.auth.password.reset_failed'),
+            'message' => t('service.auth.password.reset_failed'),
             'errors' => ['email' => [__($status)]],
         ];
     }

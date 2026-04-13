@@ -19,7 +19,7 @@ class DemoUi extends AbstractUIService
     protected function buildBaseUI(UIContainer $container, ...$params): void
     {
         $container
-            ->title(t('app.screen.demo.demo_ui.title'))
+            ->title(t('screen.demo.demo_ui.title'))
             ->maxWidth('600px')
             ->centerHorizontal()
             ->rounded(false)
@@ -32,7 +32,7 @@ class DemoUi extends AbstractUIService
     {
         $container->add(
             UIBuilder::button('reset_button')
-                ->label(t('app.screen.demo.demo_ui.actions.reset_state'))
+                ->label(t('screen.demo.demo_ui.actions.reset_state'))
                 ->action('reset_state')
                 ->icon('refresh')
                 ->style('secondary')
@@ -40,13 +40,13 @@ class DemoUi extends AbstractUIService
         );
         $container->add(
             UIBuilder::label('lbl_welcome')
-                ->text(t('app.screen.demo.demo_ui.welcome.initial'))
+                ->text(t('screen.demo.demo_ui.welcome.initial'))
                 ->style('info')
         );
 
         $container->add(
             UIBuilder::button('btn_test_update')
-                ->label(t('app.screen.demo.demo_ui.actions.test_update'))
+                ->label(t('screen.demo.demo_ui.actions.test_update'))
                 ->action('test_action')
                 ->icon('star')
                 ->style('primary')
@@ -55,7 +55,7 @@ class DemoUi extends AbstractUIService
 
         $container->add(
             UIBuilder::label()
-                ->text(t('app.screen.demo.demo_ui.counter.label'))
+                ->text(t('screen.demo.demo_ui.counter.label'))
                 ->style('default')
         );
 
@@ -67,7 +67,7 @@ class DemoUi extends AbstractUIService
 
         $counterContainer->add(
             UIBuilder::button('btn_decrement')
-                ->label(t('app.screen.demo.demo_ui.actions.decrement'))
+                ->label(t('screen.demo.demo_ui.actions.decrement'))
                 ->action('decrement_counter')
                 ->style('danger')
                 ->variant('filled')
@@ -81,7 +81,7 @@ class DemoUi extends AbstractUIService
 
         $counterContainer->add(
             UIBuilder::button('btn_increment')
-                ->label(t('app.screen.demo.demo_ui.actions.increment'))
+                ->label(t('screen.demo.demo_ui.actions.increment'))
                 ->action('increment_counter')
                 ->style('success')
                 ->variant('filled')
@@ -91,7 +91,7 @@ class DemoUi extends AbstractUIService
 
         $container->add(
             UIBuilder::button('btn_test_add')
-                ->label(t('app.screen.demo.demo_ui.actions.test_add'))
+                ->label(t('screen.demo.demo_ui.actions.test_add'))
                 ->action('add_new_component')
                 ->icon('settings')
                 ->style('warning')
@@ -100,7 +100,7 @@ class DemoUi extends AbstractUIService
 
         $container->add(
             UIBuilder::label()
-                ->text(t('app.screen.demo.demo_ui.hint.add_buttons'))
+                ->text(t('screen.demo.demo_ui.hint.add_buttons'))
                 ->style('default')
         );
 
@@ -128,7 +128,7 @@ class DemoUi extends AbstractUIService
         $this->store_counter = 1000;
         $this->store_new_components = 0;
         $this->lbl_welcome
-            ->text(t('app.screen.demo.demo_ui.welcome.initial'))
+            ->text(t('screen.demo.demo_ui.welcome.initial'))
             ->style('info');
         $this->new_components_container->clear();
         $this->updateCounterLabel($this->lbl_counter, $this->store_counter);
@@ -137,7 +137,7 @@ class DemoUi extends AbstractUIService
     public function onTestAction(array $params): void
     {
         $this->lbl_welcome
-            ->text(t('app.screen.demo.demo_ui.welcome.updated', ['time' => now()->toDateTimeString()]))
+            ->text(t('screen.demo.demo_ui.welcome.updated', ['time' => now()->toDateTimeString()]))
             ->style('success');
     }
 
@@ -172,7 +172,7 @@ class DemoUi extends AbstractUIService
         $added = false;
         $button_number = $this->store_new_components + 1;
         $new_button = UIBuilder::button("btn_new_button_$button_number")
-            ->label(t('app.screen.demo.demo_ui.dynamic.button_label', ['number' => $button_number]))
+            ->label(t('screen.demo.demo_ui.dynamic.button_label', ['number' => $button_number]))
             ->style('info');
 
         $new_button->action('new_button_action', [

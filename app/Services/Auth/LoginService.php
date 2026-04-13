@@ -29,7 +29,7 @@ class LoginService
         if ($validator->fails()) {
             return [
                 'status' => 'error',
-                'message' => t('app.service.auth.login.validation_errors'),
+                'message' => t('service.auth.login.validation_errors'),
                 'errors' => $validator->errors()->toArray(),
             ];
         }
@@ -39,8 +39,8 @@ class LoginService
         if (!$user || !Hash::check($password, $user->password)) {
             return [
                 'status' => 'error',
-                'message' => t('app.service.auth.login.invalid_credentials'),
-                'errors' => ['email' => [t('app.service.auth.login.invalid_credentials_detail')]],
+                'message' => t('service.auth.login.invalid_credentials'),
+                'errors' => ['email' => [t('service.auth.login.invalid_credentials_detail')]],
             ];
         }
 
@@ -51,7 +51,7 @@ class LoginService
 
         return [
             'status' => 'success',
-            'message' => t('app.service.auth.login.success'),
+            'message' => t('service.auth.login.success'),
             'data' => [
                 'user' => [
                     'id' => $user->id,

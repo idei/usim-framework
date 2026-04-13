@@ -48,7 +48,7 @@ class RegisterService
         if ($validator->fails()) {
             return [
                 'status' => 'error',
-                'message' => t('app.service.auth.register.validation_errors'),
+                'message' => t('service.auth.register.validation_errors'),
                 'errors' => $validator->errors()->toArray(),
             ];
         }
@@ -76,7 +76,7 @@ class RegisterService
 
         return [
             'status' => 'success',
-            'message' => t('app.service.auth.register.success'),
+            'message' => t('service.auth.register.success'),
             'data' => [
                 'user' => [
                     'id' => $user->id,

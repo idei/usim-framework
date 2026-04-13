@@ -12,17 +12,17 @@ Los slugs de traducción siguen el patrón: `app.<contexto>.<subsistema>.<elemen
 
 | Contexto | Descripción | Ejemplo |
 |----------|-------------|---------|
-| `app.screen.*` | Pantallas de la aplicación (screens) | `app.screen.auth.login.title` |
-| `app.service.*` | Mensajes de servicios de negocio | `app.service.auth.login.success` |
-| `app.controller.*` | Respuestas de controladores HTTP | `app.controller.file.processing_error` |
-| `app.component.*` | Componentes específicos de la app | `app.component.user_card.title` |
-| `app.toast.*` | Notificaciones breves (toasts) | `app.toast.success.saved` |
-| `app.validation.*` | Mensajes de validación de formularios | `app.validation.email.required` |
-| `app.modal.*` | Diálogos/modales específicos de app | `app.modal.confirm_delete.title` |
-| `app.table.*` | Tablas y columnas de datos | `app.table.users.column_name` |
-| `app.menu.*` | Elementos de menú | `app.menu.sidebar.dashboard` |
+| `screen.*` | Pantallas de la aplicación (screens) | `screen.auth.login.title` |
+| `service.*` | Mensajes de servicios de negocio | `service.auth.login.success` |
+| `controller.*` | Respuestas de controladores HTTP | `controller.file.processing_error` |
+| `component.*` | Componentes específicos de la app | `component.user_card.title` |
+| `toast.*` | Notificaciones breves (toasts) | `toast.success.saved` |
+| `validation.*` | Mensajes de validación de formularios | `validation.email.required` |
+| `modal.*` | Diálogos/modales específicos de app | `modal.confirm_delete.title` |
+| `table.*` | Tablas y columnas de datos | `table.users.column_name` |
+| `menu.*` | Elementos de menú | `menu.sidebar.dashboard` |
 
-### Subsistemas Comunes (en `app.screen.*`)
+### Subsistemas Comunes (en `screen.*`)
 
 - `auth` - Pantallas de autenticación
 - `admin` - Pantallas de administración
@@ -33,12 +33,12 @@ Los slugs de traducción siguen el patrón: `app.<contexto>.<subsistema>.<elemen
 ### Estructura Completa de Ejemplo
 
 ```
-app.screen.auth.login.title                    → "User Login" (en) / "Iniciar Sesión" (es)
-app.screen.auth.login.email_label              → "Email" / "Correo"
-app.screen.auth.login.email_placeholder        → "Enter your email" / "Ingresa tu correo"
-app.screen.auth.login.password_label           → "Password" / "Contraseña"
-app.screen.auth.login.button_login             → "Login" / "Iniciar Sesión"
-app.screen.auth.login.authenticated_error      → "Unable to resolve authenticated user." / ...
+screen.auth.login.title                    → "User Login" (en) / "Iniciar Sesión" (es)
+screen.auth.login.email_label              → "Email" / "Correo"
+screen.auth.login.email_placeholder        → "Enter your email" / "Ingresa tu correo"
+screen.auth.login.password_label           → "Password" / "Contraseña"
+screen.auth.login.button_login             → "Login" / "Iniciar Sesión"
+screen.auth.login.authenticated_error      → "Unable to resolve authenticated user." / ...
 ```
 
 ## Archivos de Traducción
@@ -59,11 +59,11 @@ database/
 
 ```json
 {
-  "app.screen.auth.login.title": "User Login",
-  "app.screen.auth.login.email_label": "Email",
-  "app.screen.auth.login.email_placeholder": "Enter your email",
-  "app.screen.auth.login.password_label": "Password",
-  "app.screen.auth.login.button_login": "Login"
+  "screen.auth.login.title": "User Login",
+  "screen.auth.login.email_label": "Email",
+  "screen.auth.login.email_placeholder": "Enter your email",
+  "screen.auth.login.password_label": "Password",
+  "screen.auth.login.button_login": "Login"
 }
 ```
 
@@ -79,10 +79,10 @@ $input->placeholder('Tu nombre completo');
 $this->toast('Perfil actualizado', 'success');
 
 // ✅ Después (i18n)
-$container->title(t('app.screen.auth.profile.title'));
-$input->label(t('app.screen.auth.profile.email_label'));
-$input->placeholder(t('app.screen.auth.profile.name_placeholder'));
-$this->toast(t('app.screen.auth.profile.save_success'), 'success');
+$container->title(t('screen.auth.profile.title'));
+$input->label(t('screen.auth.profile.email_label'));
+$input->placeholder(t('screen.auth.profile.name_placeholder'));
+$this->toast(t('screen.auth.profile.save_success'), 'success');
 ```
 
 ### En Servicios (Business Logic)
@@ -98,8 +98,8 @@ return [
 // ✅ Después
 return [
     'status' => 'error',
-    'message' => t('app.service.auth.login.invalid_credentials'),
-    'errors' => ['email' => [t('app.service.auth.login.credentials_incorrect')]],
+    'message' => t('service.auth.login.invalid_credentials'),
+    'errors' => ['email' => [t('service.auth.login.credentials_incorrect')]],
 ];
 ```
 
@@ -107,10 +107,10 @@ return [
 
 ```php
 // Usando placeholders (Laravel style)
-t('app.screen.auth.profile.save_error', ['error' => $exception->getMessage()])
+t('screen.auth.profile.save_error', ['error' => $exception->getMessage()])
 
 // En JSON:
-"app.screen.auth.profile.save_error": "Error al guardar el perfil: :error"
+"screen.auth.profile.save_error": "Error al guardar el perfil: :error"
 ```
 
 ### En Controllers
@@ -118,7 +118,7 @@ t('app.screen.auth.profile.save_error', ['error' => $exception->getMessage()])
 ```php
 return [
     'success' => false,
-    'error' => t('app.controller.file.processing_error'),
+    'error' => t('controller.file.processing_error'),
 ];
 ```
 
@@ -158,19 +158,19 @@ php artisan migrate:fresh --seed
 php artisan tinker
 
 # Listar claves registradas
->>> app('Idei\Usim\Services\Support\TranslationService')->getTextKey('app.screen.auth.profile.title')
+>>> app('Idei\Usim\Services\Support\TranslationService')->getTextKey('screen.auth.profile.title')
 
 # Obtener valor en idioma específico
->>> t('app.screen.auth.profile.title', locale: 'es')
+>>> t('screen.auth.profile.title', locale: 'es')
 ```
 
 ## Grupos Automáticos
 
 El seeder extrae el **grupo** automáticamente de la primera parte del slug:
 
-- `app.screen.*` → grupo: `app.screen`
-- `app.service.*` → grupo: `app.service`
-- `app.controller.*` → grupo: `app.controller`
+- `screen.*` → grupo: `app.screen`
+- `service.*` → grupo: `app.service`
+- `controller.*` → grupo: `app.controller`
 
 Esto facilita la gestión y búsqueda de traducciones en la UI de administración.
 
@@ -183,7 +183,7 @@ Si una traducción no existe para el idioma solicitado, el sistema usa el fallba
 'translation_fallback_language' => 'en',  // Fallback por defecto
 ```
 
-Entonces si solicitas `t('app.screen.auth.login.title', locale: 'fr')` y 'fr' no existe, devolverá la versión en 'en'.
+Entonces si solicitas `t('screen.auth.login.title', locale: 'fr')` y 'fr' no existe, devolverá la versión en 'en'.
 
 ## Validación de Slugs
 
@@ -194,7 +194,7 @@ El sistema autodetecta si un slug está pre-registrado o es auto-generado:
 // RegEx: /^(?:[a-z0-9]{2,})(?:[._][a-z0-9]{2,})*$/
 
 // ✅ Válido (slug pre-registrado)
-$value = 'app.screen.auth.login.title'   // Coincide patrón
+$value = 'screen.auth.login.title'   // Coincide patrón
 
 // ⚠️ Auto-generado (no-matchea patrón exacto o valores arbitrarios)
 $value = 'Some arbitrary text from user'  // No coincide
@@ -230,8 +230,8 @@ php artisan db:seed --class=AppTranslationSeeder
 
 # Verificar en desarrollo
 php artisan tinker
->>> t('app.screen.auth.login.title', locale: 'en')
->>> t('app.screen.auth.login.title', locale: 'es')
+>>> t('screen.auth.login.title', locale: 'en')
+>>> t('screen.auth.login.title', locale: 'es')
 ```
 
 ## Recomendaciones

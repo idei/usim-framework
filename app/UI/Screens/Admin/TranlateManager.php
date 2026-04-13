@@ -29,7 +29,7 @@ class TranlateManager extends AbstractUIService
 
     public static function getMenuLabel(): string
     {
-        return t('app.screen.admin.translate_manager.title');
+        return t('screen.admin.translate_manager.title');
     }
 
     public static function getMenuIcon(): ?string
@@ -53,16 +53,16 @@ class TranlateManager extends AbstractUIService
             ->gap('12px');
 
         $search = UIBuilder::input('search_translations')
-            ->label(t('app.screen.admin.translate_manager.search.label'))
-            ->placeholder(t('app.screen.admin.translate_manager.search.placeholder'))
+            ->label(t('screen.admin.translate_manager.search.label'))
+            ->placeholder(t('screen.admin.translate_manager.search.placeholder'))
             ->width('420px')
             ->autocomplete('off')
             ->onInput('search_translations', [])
             ->debounce(500);
 
         $languageFilter = UIBuilder::select('language_filter')
-            ->label(t('app.screen.admin.translate_manager.language.label'))
-            ->placeholder(t('app.screen.admin.translate_manager.language.placeholder'))
+            ->label(t('screen.admin.translate_manager.language.label'))
+            ->placeholder(t('screen.admin.translate_manager.language.placeholder'))
             ->options($this->getLanguageOptions())
             ->value('all')
             ->onChange('language_filter_change')
@@ -70,11 +70,11 @@ class TranlateManager extends AbstractUIService
             ->width('200px');
 
         $groupFilter = UIBuilder::select('group_filter')
-            ->label(t('app.screen.admin.translate_manager.group.label'))
-            ->placeholder(t('app.screen.admin.translate_manager.group.placeholder'))
+            ->label(t('screen.admin.translate_manager.group.label'))
+            ->placeholder(t('screen.admin.translate_manager.group.placeholder'))
             ->options($this->getGroupOptions())
             ->value('all')
-            ->searchable(true, t('app.screen.admin.translate_manager.group.search_placeholder'))
+            ->searchable(true, t('screen.admin.translate_manager.group.search_placeholder'))
             ->onChange('group_filter_change')
             ->style('primary')
             ->width('200px');
@@ -146,7 +146,7 @@ class TranlateManager extends AbstractUIService
     {
         $key = (string) ($params['key'] ?? '');
         if ($key === '') {
-            $this->toast(t('app.screen.admin.translate_manager.errors.key_required'), 'error');
+            $this->toast(t('screen.admin.translate_manager.errors.key_required'), 'error');
             return;
         }
 
@@ -176,14 +176,14 @@ class TranlateManager extends AbstractUIService
     {
         $key = (string) ($params['key'] ?? '');
         if ($key === '') {
-            $this->toast(t('app.screen.admin.translate_manager.errors.key_required'), 'error');
+            $this->toast(t('screen.admin.translate_manager.errors.key_required'), 'error');
             return;
         }
 
         ConfirmDialogService::open(
             type: DialogType::WARNING,
-            title: t('app.screen.admin.translate_manager.delete.title'),
-            message: t('app.screen.admin.translate_manager.delete.confirm', ['key' => $key]),
+            title: t('screen.admin.translate_manager.delete.title'),
+            message: t('screen.admin.translate_manager.delete.confirm', ['key' => $key]),
             confirmAction: 'confirm_delete_translation',
             confirmParams: ['key' => $key],
             callerServiceId: $this->getServiceComponentId()
@@ -194,7 +194,7 @@ class TranlateManager extends AbstractUIService
     {
         $key = (string) ($params['key'] ?? '');
         if ($key === '') {
-            $this->toast(t('app.screen.admin.translate_manager.errors.key_required_for_deletion'), 'error');
+            $this->toast(t('screen.admin.translate_manager.errors.key_required_for_deletion'), 'error');
             return;
         }
 
@@ -203,12 +203,12 @@ class TranlateManager extends AbstractUIService
         $deleted = $translationService->deleteKey($key);
 
         if (!$deleted) {
-            $this->toast(t('app.screen.admin.translate_manager.errors.key_not_found'), 'error');
+            $this->toast(t('screen.admin.translate_manager.errors.key_not_found'), 'error');
             return;
         }
 
         $this->translations_table->refresh();
-        $this->toast(t('app.screen.admin.translate_manager.delete.success'), 'success');
+        $this->toast(t('screen.admin.translate_manager.delete.success'), 'success');
         $this->closeModal();
     }
 
@@ -219,7 +219,7 @@ class TranlateManager extends AbstractUIService
         $selectedLanguageCode = (string) ($params['selected_language_code'] ?? '');
 
         if ($key === '' || $fallbackLanguageCode === '') {
-            $this->toast(t('app.screen.admin.translate_manager.errors.update_payload_incomplete'), 'error');
+            $this->toast(t('screen.admin.translate_manager.errors.update_payload_incomplete'), 'error');
             return;
         }
 
@@ -248,7 +248,7 @@ class TranlateManager extends AbstractUIService
         }
 
         $this->translations_table->refresh();
-        $this->toast(t('app.screen.admin.translate_manager.update.success'), 'success');
+        $this->toast(t('screen.admin.translate_manager.update.success'), 'success');
         $this->closeModal();
     }
 
@@ -274,7 +274,7 @@ class TranlateManager extends AbstractUIService
         $dataset = $translationService->listLanguagesDataset();
 
         $options = [
-            ['value' => 'all', 'label' => t('app.screen.admin.translate_manager.language.option_none')],
+            ['value' => 'all', 'label' => t('screen.admin.translate_manager.language.option_none')],
         ];
 
         // Resolve fallback code to exclude it from options
@@ -308,7 +308,7 @@ class TranlateManager extends AbstractUIService
         $dataset = $translationService->listKeyGroupsDataset();
 
         $options = [
-            ['value' => 'all', 'label' => t('app.screen.admin.translate_manager.group.option_all')],
+            ['value' => 'all', 'label' => t('screen.admin.translate_manager.group.option_all')],
         ];
 
         foreach (($dataset['items'] ?? []) as $group) {

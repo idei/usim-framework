@@ -1437,23 +1437,23 @@
         <div class="hero-bg"></div>
         <div class="hero-grid"></div>
         <div class="hero-inner show-content" id="hero-inner">
-            <div class="hero-mobile-tabs" role="tablist" aria-label="{{ t('app.welcome.ui.hero_views') }}">
+            <div class="hero-mobile-tabs" role="tablist" aria-label="{{ t('welcome.ui.hero_views') }}">
                 <button class="hero-mobile-tab active" id="hero-tab-content" type="button" data-hero-view="content"
-                    role="tab" aria-selected="true">{{ t('app.welcome.ui.tab_content') }}</button>
+                    role="tab" aria-selected="true">{{ t('welcome.ui.tab_content') }}</button>
                 <button class="hero-mobile-tab" id="hero-tab-code" type="button" data-hero-view="code" role="tab"
-                    aria-selected="false">{{ t('app.welcome.ui.tab_example') }}</button>
+                    aria-selected="false">{{ t('welcome.ui.tab_example') }}</button>
             </div>
             <div class="hero-content">
                 <div class="hero-badge">
                     <span class="pulse"></span>
-                    <span>{{ t('app.welcome.hero.badge') }}</span>
+                    <span>{{ t('welcome.hero.badge') }}</span>
                 </div>
                 <h1>
-                    <span>{{ t('app.welcome.hero.title1') }}</span><br>
-                    <span class="accent-word">{{ t('app.welcome.hero.title2') }}</span><br>
-                    <span>{{ t('app.welcome.hero.title3') }}</span>
+                    <span>{{ t('welcome.hero.title1') }}</span><br>
+                    <span class="accent-word">{{ t('welcome.hero.title2') }}</span><br>
+                    <span>{{ t('welcome.hero.title3') }}</span>
                 </h1>
-                <p class="hero-desc">{{ t('app.welcome.hero.desc') }}</p>
+                <p class="hero-desc">{{ t('welcome.hero.desc') }}</p>
                 <div class="hero-ctas">
                     <button class="btn-primary"
                         onclick="document.getElementById('install-strip').scrollIntoView({behavior:'smooth'})">
@@ -1462,21 +1462,21 @@
                             <polyline points="4 17 10 11 4 5" />
                             <line x1="12" y1="19" x2="20" y2="19" />
                         </svg>
-                        <span>{{ t('app.welcome.hero.cta1') }}</span>
+                        <span>{{ t('welcome.hero.cta1') }}</span>
                     </button>
                 </div>
                 <div class="hero-meta">
                     <div class="hero-meta-item">
                         <span class="hero-meta-value">v0.7.0</span>
-                        <span class="hero-meta-label">{{ t('app.welcome.hero.meta.version') }}</span>
+                        <span class="hero-meta-label">{{ t('welcome.hero.meta.version') }}</span>
                     </div>
                     <div class="hero-meta-item">
                         <span class="hero-meta-value">MIT</span>
-                        <span class="hero-meta-label">{{ t('app.welcome.hero.meta.license') }}</span>
+                        <span class="hero-meta-label">{{ t('welcome.hero.meta.license') }}</span>
                     </div>
                     <div class="hero-meta-item">
                         <span class="hero-meta-value">PHP 8.2+</span>
-                        <span class="hero-meta-label">{{ t('app.welcome.hero.meta.req') }}</span>
+                        <span class="hero-meta-label">{{ t('welcome.hero.meta.req') }}</span>
                     </div>
                 </div>
             </div>
@@ -1525,10 +1525,10 @@
     <!-- ─── INSTALL STRIP ─── -->
     <div class="install-strip" id="install-strip">
         <div class="install-inner">
-            <span class="install-label">{{ t('app.welcome.install.label') }}</span>
+            <span class="install-label">{{ t('welcome.install.label') }}</span>
             <div class="install-cmd">
                 <span>composer require idei/usim</span>
-                <button class="copy-btn" onclick="copyCmd(this, 'composer require idei/usim')" title="{{ t('app.welcome.ui.copy') }}">
+                <button class="copy-btn" onclick="copyCmd(this, 'composer require idei/usim')" title="{{ t('welcome.ui.copy') }}">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                         stroke-width="2">
                         <rect x="9" y="9" width="13" height="13" rx="2" />
@@ -1538,7 +1538,7 @@
             </div>
             <div class="install-cmd" style="margin-left:1rem;">
                 <span>php artisan usim:install</span>
-                <button class="copy-btn" onclick="copyCmd(this, 'php artisan usim:install')" title="{{ t('app.welcome.ui.copy') }}">
+                <button class="copy-btn" onclick="copyCmd(this, 'php artisan usim:install')" title="{{ t('welcome.ui.copy') }}">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                         stroke-width="2">
                         <rect x="9" y="9" width="13" height="13" rx="2" />
@@ -1551,7 +1551,7 @@
                     stroke-width="2">
                     <polyline points="20 6 9 17 4 12" />
                 </svg>
-                <span>{{ t('app.welcome.install.mit') }}</span>
+                <span>{{ t('welcome.install.mit') }}</span>
             </div>
         </div>
     </div>
@@ -1559,39 +1559,39 @@
     <!-- ─── FEATURES ─── -->
     <section>
         <div class="section-inner">
-            <div class="section-tag">{{ t('app.welcome.features.tag') }}</div>
-            <h2>{{ t('app.welcome.features.title') }}</h2>
-            <p class="section-lead">{{ t('app.welcome.features.lead') }}</p>
+            <div class="section-tag">{{ t('welcome.features.tag') }}</div>
+            <h2>{{ t('welcome.features.title') }}</h2>
+            <p class="section-lead">{{ t('welcome.features.lead') }}</p>
             <div class="features-grid">
                 <div class="feature-card">
                     <div class="feature-icon" style="background:rgba(0,212,170,0.12)">🖥️</div>
-                    <h3>{{ t('app.welcome.feat.serverui.title') }}</h3>
-                    <p>{{ t('app.welcome.feat.serverui.desc') }}</p>
+                    <h3>{{ t('welcome.feat.serverui.title') }}</h3>
+                    <p>{{ t('welcome.feat.serverui.desc') }}</p>
                 </div>
                 <div class="feature-card">
                     <div class="feature-icon" style="background:rgba(0,153,255,0.12)">⚡</div>
-                    <h3>{{ t('app.welcome.feat.delta.title') }}</h3>
-                    <p>{{ t('app.welcome.feat.delta.desc') }}</p>
+                    <h3>{{ t('welcome.feat.delta.title') }}</h3>
+                    <p>{{ t('welcome.feat.delta.desc') }}</p>
                 </div>
                 <div class="feature-card">
                     <div class="feature-icon" style="background:rgba(210,168,255,0.12)">🎯</div>
-                    <h3>{{ t('app.welcome.feat.events.title') }}</h3>
-                    <p>{{ t('app.welcome.feat.events.desc') }}</p>
+                    <h3>{{ t('welcome.feat.events.title') }}</h3>
+                    <p>{{ t('welcome.feat.events.desc') }}</p>
                 </div>
                 <div class="feature-card">
                     <div class="feature-icon" style="background:rgba(255,107,53,0.12)">🔐</div>
-                    <h3>{{ t('app.welcome.feat.auth.title') }}</h3>
-                    <p>{{ t('app.welcome.feat.auth.desc') }}</p>
+                    <h3>{{ t('welcome.feat.auth.title') }}</h3>
+                    <p>{{ t('welcome.feat.auth.desc') }}</p>
                 </div>
                 <div class="feature-card">
                     <div class="feature-icon" style="background:rgba(61,214,140,0.12)">🧪</div>
-                    <h3>{{ t('app.welcome.feat.testing.title') }}</h3>
-                    <p>{{ t('app.welcome.feat.testing.desc') }}</p>
+                    <h3>{{ t('welcome.feat.testing.title') }}</h3>
+                    <p>{{ t('welcome.feat.testing.desc') }}</p>
                 </div>
                 <div class="feature-card">
                     <div class="feature-icon" style="background:rgba(255,189,46,0.12)">🚀</div>
-                    <h3>{{ t('app.welcome.feat.octane.title') }}</h3>
-                    <p>{{ t('app.welcome.feat.octane.desc') }}</p>
+                    <h3>{{ t('welcome.feat.octane.title') }}</h3>
+                    <p>{{ t('welcome.feat.octane.desc') }}</p>
                 </div>
             </div>
         </div>
@@ -1600,9 +1600,9 @@
     <!-- ─── ARCHITECTURE ─── -->
     <section class="arch-section" id="architecture">
         <div class="section-inner">
-            <div class="section-tag">{{ t('app.welcome.arch.tag') }}</div>
-            <h2>{{ t('app.welcome.arch.title') }}</h2>
-            <p class="section-lead">{{ t('app.welcome.arch.lead') }}</p>
+            <div class="section-tag">{{ t('welcome.arch.tag') }}</div>
+            <h2>{{ t('welcome.arch.title') }}</h2>
+            <p class="section-lead">{{ t('welcome.arch.lead') }}</p>
             <div class="arch-diagram-wrap">
                 <svg class="arch-svg" viewBox="0 0 860 620" xmlns="http://www.w3.org/2000/svg"
                     font-family="'Space Mono', monospace">
@@ -1841,71 +1841,71 @@
     <!-- ─── COMPONENTS ─── -->
     <section class="components-section" id="components">
         <div class="section-inner">
-            <div class="section-tag">{{ t('app.welcome.comp.tag') }}</div>
-            <h2>{{ t('app.welcome.comp.title') }}</h2>
-            <p class="section-lead">{{ t('app.welcome.comp.lead') }}</p>
+            <div class="section-tag">{{ t('welcome.comp.tag') }}</div>
+            <h2>{{ t('welcome.comp.title') }}</h2>
+            <p class="section-lead">{{ t('welcome.comp.lead') }}</p>
             <div class="comp-grid">
                 <div class="comp-item">
                     <span style="font-size:1.25rem">🏷️</span>
                     <div>
                         <div class="comp-name">UIBuilder::label()</div>
-                        <div class="comp-label">{{ t('app.welcome.comp.label') }}</div>
+                        <div class="comp-label">{{ t('welcome.comp.label') }}</div>
                     </div>
                 </div>
                 <div class="comp-item">
                     <span style="font-size:1.25rem">🔘</span>
                     <div>
                         <div class="comp-name">UIBuilder::button()</div>
-                        <div class="comp-label">{{ t('app.welcome.comp.button') }}</div>
+                        <div class="comp-label">{{ t('welcome.comp.button') }}</div>
                     </div>
                 </div>
                 <div class="comp-item">
                     <span style="font-size:1.25rem">✏️</span>
                     <div>
                         <div class="comp-name">UIBuilder::input()</div>
-                        <div class="comp-label">{{ t('app.welcome.comp.input') }}</div>
+                        <div class="comp-label">{{ t('welcome.comp.input') }}</div>
                     </div>
                 </div>
                 <div class="comp-item">
                     <span style="font-size:1.25rem">🔽</span>
                     <div>
                         <div class="comp-name">UIBuilder::select()</div>
-                        <div class="comp-label">{{ t('app.welcome.comp.select') }}</div>
+                        <div class="comp-label">{{ t('welcome.comp.select') }}</div>
                     </div>
                 </div>
                 <div class="comp-item">
                     <span style="font-size:1.25rem">☑️</span>
                     <div>
                         <div class="comp-name">UIBuilder::checkbox()</div>
-                        <div class="comp-label">{{ t('app.welcome.comp.checkbox') }}</div>
+                        <div class="comp-label">{{ t('welcome.comp.checkbox') }}</div>
                     </div>
                 </div>
                 <div class="comp-item">
                     <span style="font-size:1.25rem">📋</span>
                     <div>
                         <div class="comp-name">UIBuilder::form()</div>
-                        <div class="comp-label">{{ t('app.welcome.comp.form') }}</div>
+                        <div class="comp-label">{{ t('welcome.comp.form') }}</div>
                     </div>
                 </div>
                 <div class="comp-item">
                     <span style="font-size:1.25rem">📊</span>
                     <div>
                         <div class="comp-name">UIBuilder::table()</div>
-                        <div class="comp-label">{{ t('app.welcome.comp.table') }}</div>
+                        <div class="comp-label">{{ t('welcome.comp.table') }}</div>
                     </div>
                 </div>
                 <div class="comp-item">
                     <span style="font-size:1.25rem">🃏</span>
                     <div>
                         <div class="comp-name">UIBuilder::card()</div>
-                        <div class="comp-label">{{ t('app.welcome.comp.card') }}</div>
+                        <div class="comp-label">{{ t('welcome.comp.card') }}</div>
                     </div>
                 </div>
                 <div class="comp-item">
                     <span style="font-size:1.25rem">📦</span>
                     <div>
                         <div class="comp-name">UIBuilder::container()</div>
-                        <div class="comp-label">{{ t('app.welcome.comp.container') }}
+                        <div class="comp-label">{{ t('welcome.comp.container') }}
                         </div>
                     </div>
                 </div>
@@ -1913,21 +1913,21 @@
                     <span style="font-size:1.25rem">📁</span>
                     <div>
                         <div class="comp-name">UIBuilder::uploader()</div>
-                        <div class="comp-label">{{ t('app.welcome.comp.uploader') }}</div>
+                        <div class="comp-label">{{ t('welcome.comp.uploader') }}</div>
                     </div>
                 </div>
                 <div class="comp-item">
                     <span style="font-size:1.25rem">📅</span>
                     <div>
                         <div class="comp-name">UIBuilder::calendar()</div>
-                        <div class="comp-label">{{ t('app.welcome.comp.calendar') }}</div>
+                        <div class="comp-label">{{ t('welcome.comp.calendar') }}</div>
                     </div>
                 </div>
                 <div class="comp-item">
                     <span style="font-size:1.25rem">🎠</span>
                     <div>
                         <div class="comp-name">UIBuilder::carousel()</div>
-                        <div class="comp-label">{{ t('app.welcome.comp.carousel') }}</div>
+                        <div class="comp-label">{{ t('welcome.comp.carousel') }}</div>
                     </div>
                 </div>
             </div>
@@ -1937,18 +1937,18 @@
     <!-- ─── TUTORIALS ─── -->
     <section id="tutorials">
         <div class="section-inner">
-            <div class="section-tag">{{ t('app.welcome.tut.tag') }}</div>
-            <h2>{{ t('app.welcome.tut.title') }}</h2>
-            <p class="section-lead">{{ t('app.welcome.tut.lead') }}</p>
+            <div class="section-tag">{{ t('welcome.tut.tag') }}</div>
+            <h2>{{ t('welcome.tut.title') }}</h2>
+            <p class="section-lead">{{ t('welcome.tut.lead') }}</p>
             <div class="tut-grid">
-                <div class="tut-card" onclick="showToast('{{ t('app.welcome.ui.toast_open_tutorial') }}')">
+                <div class="tut-card" onclick="showToast('{{ t('welcome.ui.toast_open_tutorial') }}')">
                     <div class="tut-thumb"
                         style="background: linear-gradient(135deg, rgba(0,212,170,0.15), rgba(0,153,255,0.1))">🚀</div>
                     <div class="tut-body">
                         <div class="tut-tag" style="color:var(--accent)">
-                            {{ t('app.welcome.tut.begin') }}</div>
-                        <h3>{{ t('app.welcome.tut1.title') }}</h3>
-                        <p>{{ t('app.welcome.tut1.desc') }}</p>
+                            {{ t('welcome.tut.begin') }}</div>
+                        <h3>{{ t('welcome.tut1.title') }}</h3>
+                        <p>{{ t('welcome.tut1.desc') }}</p>
                     </div>
                     <div class="tut-footer">
                         <span class="tut-meta">15 min · PHP</span>
@@ -1958,15 +1958,15 @@
                         </svg>
                     </div>
                 </div>
-                <div class="tut-card" onclick="showToast('{{ t('app.welcome.ui.toast_open_tutorial') }}')">
+                <div class="tut-card" onclick="showToast('{{ t('welcome.ui.toast_open_tutorial') }}')">
                     <div class="tut-thumb"
                         style="background: linear-gradient(135deg, rgba(0,153,255,0.15), rgba(210,168,255,0.1))">📊
                     </div>
                     <div class="tut-body">
                         <div class="tut-tag" style="color:var(--accent2)">
-                            {{ t('app.welcome.tut.inter') }}</div>
-                        <h3>{{ t('app.welcome.tut2.title') }}</h3>
-                        <p>{{ t('app.welcome.tut2.desc') }}</p>
+                            {{ t('welcome.tut.inter') }}</div>
+                        <h3>{{ t('welcome.tut2.title') }}</h3>
+                        <p>{{ t('welcome.tut2.desc') }}</p>
                     </div>
                     <div class="tut-footer">
                         <span class="tut-meta">30 min · Laravel + USIM</span>
@@ -1976,15 +1976,15 @@
                         </svg>
                     </div>
                 </div>
-                <div class="tut-card" onclick="showToast('{{ t('app.welcome.ui.toast_open_tutorial') }}')">
+                <div class="tut-card" onclick="showToast('{{ t('welcome.ui.toast_open_tutorial') }}')">
                     <div class="tut-thumb"
                         style="background: linear-gradient(135deg, rgba(255,107,53,0.12), rgba(255,189,46,0.1))">🔐
                     </div>
                     <div class="tut-body">
                         <div class="tut-tag" style="color:var(--accent3)">
-                            {{ t('app.welcome.tut.inter') }}</div>
-                        <h3>{{ t('app.welcome.tut3.title') }}</h3>
-                        <p>{{ t('app.welcome.tut3.desc') }}</p>
+                            {{ t('welcome.tut.inter') }}</div>
+                        <h3>{{ t('welcome.tut3.title') }}</h3>
+                        <p>{{ t('welcome.tut3.desc') }}</p>
                     </div>
                     <div class="tut-footer">
                         <span class="tut-meta">45 min · Sanctum + Spatie</span>
@@ -1994,15 +1994,15 @@
                         </svg>
                     </div>
                 </div>
-                <div class="tut-card" onclick="showToast('{{ t('app.welcome.ui.toast_open_tutorial') }}')">
+                <div class="tut-card" onclick="showToast('{{ t('welcome.ui.toast_open_tutorial') }}')">
                     <div class="tut-thumb"
                         style="background: linear-gradient(135deg, rgba(61,214,140,0.12), rgba(0,212,170,0.1))">🧪
                     </div>
                     <div class="tut-body">
                         <div class="tut-tag" style="color:var(--green)">
-                            {{ t('app.welcome.tut.adv') }}</div>
-                        <h3>{{ t('app.welcome.tut4.title') }}</h3>
-                        <p>{{ t('app.welcome.tut4.desc') }}</p>
+                            {{ t('welcome.tut.adv') }}</div>
+                        <h3>{{ t('welcome.tut4.title') }}</h3>
+                        <p>{{ t('welcome.tut4.desc') }}</p>
                     </div>
                     <div class="tut-footer">
                         <span class="tut-meta">60 min · PHPUnit</span>
@@ -2020,19 +2020,19 @@
     <section class="community-section" id="community">
         <div class="section-inner community-layout">
             <div>
-                <div class="section-tag">{{ t('app.welcome.comm.tag') }}</div>
-                <h2>{{ t('app.welcome.comm.title') }}</h2>
-                <p class="section-lead">{{ t('app.welcome.comm.lead') }}</p>
+                <div class="section-tag">{{ t('welcome.comm.tag') }}</div>
+                <h2>{{ t('welcome.comm.title') }}</h2>
+                <p class="section-lead">{{ t('welcome.comm.lead') }}</p>
                 <div class="community-cta">
-                    <button class="btn-primary" onclick="showToast('{{ t('app.welcome.ui.toast_join_community') }}')">
+                    <button class="btn-primary" onclick="showToast('{{ t('welcome.ui.toast_join_community') }}')">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                             stroke-width="2">
                             <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" />
                         </svg>
-                        <span>{{ t('app.welcome.comm.cta1') }}</span>
+                        <span>{{ t('welcome.comm.cta1') }}</span>
                     </button>
-                    <button class="btn-secondary" onclick="showToast('{{ t('app.welcome.ui.toast_write_message') }}')">
-                        <span>{{ t('app.welcome.comm.cta2') }}</span>
+                    <button class="btn-secondary" onclick="showToast('{{ t('welcome.ui.toast_write_message') }}')">
+                        <span>{{ t('welcome.comm.cta2') }}</span>
                     </button>
                 </div>
             </div>
@@ -2040,27 +2040,27 @@
                 <div class="message">
                     <div class="msg-avatar" style="background: linear-gradient(135deg,#00d4aa,#0099ff)">MR</div>
                     <div>
-                        <div><span class="msg-name">{{ t('app.welcome.comm.msg1.name') }}</span><span
-                            class="msg-time">{{ t('app.welcome.comm.msg1.time') }}</span></div>
-                        <div class="msg-text">{{ t('app.welcome.comm.msg1.text_before') }} <span
-                            class="msg-code">usim:install</span> {{ t('app.welcome.comm.msg1.text_after') }}</div>
+                        <div><span class="msg-name">{{ t('welcome.comm.msg1.name') }}</span><span
+                            class="msg-time">{{ t('welcome.comm.msg1.time') }}</span></div>
+                        <div class="msg-text">{{ t('welcome.comm.msg1.text_before') }} <span
+                            class="msg-code">usim:install</span> {{ t('welcome.comm.msg1.text_after') }}</div>
                     </div>
                 </div>
                 <div class="message">
                     <div class="msg-avatar" style="background: linear-gradient(135deg,#ff6b35,#ffbd2e)">CL</div>
                     <div>
-                        <div><span class="msg-name">{{ t('app.welcome.comm.msg2.name') }}</span><span
-                            class="msg-time">{{ t('app.welcome.comm.msg2.time') }}</span></div>
-                        <div class="msg-text">{{ t('app.welcome.comm.msg2.text') }}</div>
+                        <div><span class="msg-name">{{ t('welcome.comm.msg2.name') }}</span><span
+                            class="msg-time">{{ t('welcome.comm.msg2.time') }}</span></div>
+                        <div class="msg-text">{{ t('welcome.comm.msg2.text') }}</div>
                     </div>
                 </div>
                 <div class="message">
                     <div class="msg-avatar" style="background: linear-gradient(135deg,#d2a8ff,#79c0ff)">AG</div>
                     <div>
-                        <div><span class="msg-name">{{ t('app.welcome.comm.msg3.name') }}</span><span
-                            class="msg-time">{{ t('app.welcome.comm.msg3.time') }}</span></div>
-                        <div class="msg-text">{{ t('app.welcome.comm.msg3.text_before') }} <span class="msg-code">on +
-                            PascalCase</span> {{ t('app.welcome.comm.msg3.text_after') }}</div>
+                        <div><span class="msg-name">{{ t('welcome.comm.msg3.name') }}</span><span
+                            class="msg-time">{{ t('welcome.comm.msg3.time') }}</span></div>
+                        <div class="msg-text">{{ t('welcome.comm.msg3.text_before') }} <span class="msg-code">on +
+                            PascalCase</span> {{ t('welcome.comm.msg3.text_after') }}</div>
                     </div>
                 </div>
             </div>
@@ -2070,29 +2070,29 @@
     <!-- ─── INSTITUTES ─── -->
     <section class="institutes-section" id="institutes">
         <div class="section-inner">
-            <div class="section-tag">{{ t('app.welcome.inst.tag') }}</div>
-            <h2>{{ t('app.welcome.inst.title') }}</h2>
-            <p class="section-lead">{{ t('app.welcome.inst.lead') }}</p>
+            <div class="section-tag">{{ t('welcome.inst.tag') }}</div>
+            <h2>{{ t('welcome.inst.title') }}</h2>
+            <p class="section-lead">{{ t('welcome.inst.lead') }}</p>
             <div class="institutes-grid">
                 <div class="institute-card">
                     <div class="institute-icon"
                         style="background: linear-gradient(135deg,rgba(0,153,255,0.15),rgba(0,212,170,0.1))">
                         <img src="{{ asset('images/Idei-circular.png') }}" alt="IDEI" loading="lazy">
                     </div>
-                    <h3>{{ t('app.welcome.inst1.name') }}</h3>
-                    <p>{{ t('app.welcome.inst1.desc') }}</p>
+                    <h3>{{ t('welcome.inst1.name') }}</h3>
+                    <p>{{ t('welcome.inst1.desc') }}</p>
                 </div>
                 <div class="institute-card">
                     <div class="institute-icon"
                         style="background: linear-gradient(135deg,rgba(255,107,53,0.12),rgba(255,189,46,0.1))">🎮</div>
-                    <h3>{{ t('app.welcome.inst2.name') }}</h3>
-                    <p>{{ t('app.welcome.inst2.desc') }}</p>
+                    <h3>{{ t('welcome.inst2.name') }}</h3>
+                    <p>{{ t('welcome.inst2.desc') }}</p>
                 </div>
                 <div class="institute-card">
                     <div class="institute-icon"
                         style="background: linear-gradient(135deg,rgba(61,214,140,0.12),rgba(0,212,170,0.1))">⚖️</div>
-                    <h3>{{ t('app.welcome.inst3.name') }}</h3>
-                    <p>{{ t('app.welcome.inst3.desc') }}</p>
+                    <h3>{{ t('welcome.inst3.name') }}</h3>
+                    <p>{{ t('welcome.inst3.desc') }}</p>
                 </div>
             </div>
         </div>
@@ -2107,14 +2107,14 @@
                     USIM
                     <span class="logo-version">v0.7.0</span>
                 </div>
-                <p class="footer-copy">{{ t('app.welcome.footer.copy') }}</p>
+                <p class="footer-copy">{{ t('welcome.footer.copy') }}</p>
             </div>
             <div class="footer-links">
-                <a class="footer-link" href="#">{{ t('app.welcome.footer.docs') }}</a>
-                <a class="footer-link" href="#">{{ t('app.welcome.footer.github') }}</a>
-                <a class="footer-link" href="#">{{ t('app.welcome.footer.tutorials') }}</a>
-                <a class="footer-link" href="#">{{ t('app.welcome.footer.community') }}</a>
-                <a class="footer-link" href="#">{{ t('app.welcome.footer.license') }}</a>
+                <a class="footer-link" href="#">{{ t('welcome.footer.docs') }}</a>
+                <a class="footer-link" href="#">{{ t('welcome.footer.github') }}</a>
+                <a class="footer-link" href="#">{{ t('welcome.footer.tutorials') }}</a>
+                <a class="footer-link" href="#">{{ t('welcome.footer.community') }}</a>
+                <a class="footer-link" href="#">{{ t('welcome.footer.license') }}</a>
             </div>
         </div>
     </footer>
@@ -2247,7 +2247,7 @@
                     btn.innerHTML =
                         '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>';
                 }, 1500);
-                showToast('{{ t('app.welcome.ui.toast_copied') }}');
+                showToast('{{ t('welcome.ui.toast_copied') }}');
             });
         }
 

@@ -58,14 +58,14 @@ class Dashboard extends AbstractUIService
             ->gap("12px");
 
         $search = UIBuilder::input('search_users')
-            ->placeholder(t('app.screen.admin.dashboard.search_placeholder'))
+            ->placeholder(t('screen.admin.dashboard.search_placeholder'))
             ->width('300px')
             ->autocomplete('off')
             ->onInput('search_users', [])
             ->debounce(500);
 
         $addBtn = UIBuilder::button('add_user_btn')
-            ->label(t('app.screen.admin.dashboard.add_user'))
+            ->label(t('screen.admin.dashboard.add_user'))
             ->style('primary')
             ->action('add_user_clicked')
             ->icon('plus');

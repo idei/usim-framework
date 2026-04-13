@@ -28,7 +28,7 @@ class InputDemo extends AbstractUIService
     protected function buildBaseUI(UIContainer $container, ...$params): void
     {
         $container
-            ->title(t('app.screen.demo.input_demo.title'))
+            ->title(t('screen.demo.input_demo.title'))
             ->maxWidth('500px')
             ->centerHorizontal()
             ->shadow(2)
@@ -36,15 +36,15 @@ class InputDemo extends AbstractUIService
 
         $container->add(
             UIBuilder::label('lbl_instruction')
-                ->text(t('app.screen.demo.input_demo.instruction'))
+                ->text(t('screen.demo.input_demo.instruction'))
                 ->style('info')
                 ->width('100%')
         );
 
         $container->add(
             UIBuilder::input('input_text')
-                ->label(t('app.screen.demo.input_demo.name.label'))
-                ->placeholder(t('app.screen.demo.input_demo.name.placeholder'))
+                ->label(t('screen.demo.input_demo.name.label'))
+                ->placeholder(t('screen.demo.input_demo.name.placeholder'))
                 ->value('')
                 ->required(true)
                 ->type('text')
@@ -53,14 +53,14 @@ class InputDemo extends AbstractUIService
 
         $container->add(
             UIBuilder::button('btn_get_value')
-                ->label(t('app.screen.demo.input_demo.actions.validate'))
+                ->label(t('screen.demo.input_demo.actions.validate'))
                 ->action('get_value')
                 ->style('primary')
         );
 
         $container->add(
             UIBuilder::label('lbl_result')
-                ->text(t('app.screen.demo.input_demo.result.initial'))
+                ->text(t('screen.demo.input_demo.result.initial'))
                 ->style('default')
                 ->width('100%')
         );
@@ -70,7 +70,7 @@ class InputDemo extends AbstractUIService
     {
         $this->input_text->value('')->error(null);
         $this->lbl_result
-            ->text(t('app.screen.demo.input_demo.result.initial'))
+            ->text(t('screen.demo.input_demo.result.initial'))
             ->style('default');
     }
 
@@ -91,11 +91,11 @@ class InputDemo extends AbstractUIService
         $this->input_text->error(null);
 
         if (empty($inputValue)) {
-            $this->displayError(t('app.screen.demo.input_demo.validation.name_required'));
+            $this->displayError(t('screen.demo.input_demo.validation.name_required'));
         } elseif (\strlen($inputValue) < 3) {
-            $this->displayError(t('app.screen.demo.input_demo.validation.name_min'));
+            $this->displayError(t('screen.demo.input_demo.validation.name_min'));
         } else {
-            $this->lbl_result->text(t('app.screen.demo.input_demo.result.valid_name', ['name' => $inputValue]))->style('success');
+            $this->lbl_result->text(t('screen.demo.input_demo.result.valid_name', ['name' => $inputValue]))->style('success');
         }
     }
 
@@ -103,6 +103,6 @@ class InputDemo extends AbstractUIService
     {
         $this->input_text->error($message);
         $this->toast($message, 'error');
-        $this->lbl_result->text(t('app.screen.demo.input_demo.result.fix_error'))->style('danger');
+        $this->lbl_result->text(t('screen.demo.input_demo.result.fix_error'))->style('danger');
     }
 }

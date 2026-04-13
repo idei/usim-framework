@@ -29,10 +29,10 @@ class TableDemo extends AbstractUIService
      */
     protected function buildBaseUI(UIContainer $container, ...$params): void
     {
-        $container->title(t('app.screen.demo.table_demo.title'));
+        $container->title(t('screen.demo.table_demo.title'));
 
         $table = UIBuilder::table('users_table')
-            ->title(t('app.screen.demo.table_demo.users_table_title'))
+            ->title(t('screen.demo.table_demo.users_table_title'))
             ->pagination(10)
             ->dataModel(UsersTableModel::class)
             ->align('center')

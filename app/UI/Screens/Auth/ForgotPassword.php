@@ -41,7 +41,7 @@ class ForgotPassword extends AbstractUIService
 
         $container->add(
             UIBuilder::label('lbl_title')
-                ->text(t('app.screen.auth.forgot_password.title'))
+                ->text(t('screen.auth.forgot_password.title'))
                 ->style('h2')
                 ->center()
                 ->color('#3b82f6') // Blue to match theme
@@ -74,7 +74,7 @@ class ForgotPassword extends AbstractUIService
 
         $formCard->add(
             UIBuilder::label('card_title')
-                ->text(t('app.screen.auth.forgot_password.card_title'))
+                ->text(t('screen.auth.forgot_password.card_title'))
                 ->style('h3')
                 ->color('#1f2937')
                 ->marginBottom('5px')
@@ -82,7 +82,7 @@ class ForgotPassword extends AbstractUIService
 
         $formCard->add(
             UIBuilder::label('lbl_instruction')
-                ->text(t('app.screen.auth.forgot_password.instruction'))
+                ->text(t('screen.auth.forgot_password.instruction'))
                 ->style('p')
                 ->color('#6b7280')
                 ->marginBottom('15px')
@@ -90,9 +90,9 @@ class ForgotPassword extends AbstractUIService
 
         $formCard->add(
             UIBuilder::input('email')
-                ->label(t('app.screen.auth.forgot_password.email.label'))
+                ->label(t('screen.auth.forgot_password.email.label'))
                 ->type('email')
-                ->placeholder(t('app.screen.auth.forgot_password.email.placeholder'))
+                ->placeholder(t('screen.auth.forgot_password.email.placeholder'))
                 ->width('100%')
         );
 
@@ -111,14 +111,14 @@ class ForgotPassword extends AbstractUIService
 
         $buttons->add(
             UIBuilder::button('btn_send')
-                ->label(t('app.screen.auth.forgot_password.actions.send'))
+                ->label(t('screen.auth.forgot_password.actions.send'))
                 ->style('primary')
                 ->action('send_link')
         );
 
         $buttons->add(
             UIBuilder::button('btn_back')
-                ->label(t('app.screen.auth.forgot_password.actions.back'))
+                ->label(t('screen.auth.forgot_password.actions.back'))
                 ->style('outline')
                 ->action('navigate_to_login')
         );
@@ -139,7 +139,7 @@ class ForgotPassword extends AbstractUIService
 
         if (empty($email)) {
             if (isset($this->lbl_result)) {
-                $this->lbl_result->text(t('app.screen.auth.forgot_password.validation.email_required'))->style('error')->visible(true);
+                $this->lbl_result->text(t('screen.auth.forgot_password.validation.email_required'))->style('error')->visible(true);
             }
             return;
         }
@@ -150,8 +150,8 @@ class ForgotPassword extends AbstractUIService
             $message = $result['message'] ?? 'No se pudo enviar el enlace de recuperación.';
 
             if ($status === 'success') {
-                $this->lbl_result->text(t('app.screen.auth.forgot_password.success'))->style('success')->visible(true);
-                $this->toast(t('app.screen.auth.forgot_password.toast.sent'), 'success');
+                $this->lbl_result->text(t('screen.auth.forgot_password.success'))->style('success')->visible(true);
+                $this->toast(t('screen.auth.forgot_password.toast.sent'), 'success');
                 $this->email->value('');
             } else {
                 $this->lbl_result->text($message)->style('error')->visible(true);
@@ -159,7 +159,7 @@ class ForgotPassword extends AbstractUIService
             }
 
         } catch (\Exception $e) {
-            $this->lbl_result->text(t('app.screen.auth.forgot_password.errors.connection', ['message' => $e->getMessage()]))->style('error')->visible(true);
+            $this->lbl_result->text(t('screen.auth.forgot_password.errors.connection', ['message' => $e->getMessage()]))->style('error')->visible(true);
         }
     }
 }

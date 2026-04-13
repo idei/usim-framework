@@ -22,7 +22,7 @@ class CheckboxDemo extends AbstractUIService
     protected function buildBaseUI(UIContainer $container, ...$params): void
     {
         $container
-            ->title(t('app.screen.demo.checkbox_demo.title'))
+            ->title(t('screen.demo.checkbox_demo.title'))
             ->maxWidth('500px')
             ->centerHorizontal()
             ->padding('20px')
@@ -31,14 +31,14 @@ class CheckboxDemo extends AbstractUIService
         // Instruction label
         $container->add(
             UIBuilder::label('lbl_instruction')
-                ->text(t('app.screen.demo.checkbox_demo.instruction'))
+                ->text(t('screen.demo.checkbox_demo.instruction'))
                 ->style('info')
         );
 
         // JavaScript checkbox with onChange handler
         $container->add(
             UIBuilder::checkbox('chk_javascript')
-                ->label(t('app.screen.demo.checkbox_demo.options.javascript'))
+                ->label(t('screen.demo.checkbox_demo.options.javascript'))
                 ->checked(false)
                 ->onChange('try_change_javascript') // ← Handler for validation
         );
@@ -46,7 +46,7 @@ class CheckboxDemo extends AbstractUIService
         // Python checkbox with onChange handler
         $container->add(
             UIBuilder::checkbox('chk_python')
-                ->label(t('app.screen.demo.checkbox_demo.options.python'))
+                ->label(t('screen.demo.checkbox_demo.options.python'))
                 ->checked(false)
                 ->onChange('try_change_python') // ← Handler for validation
         );
@@ -54,7 +54,7 @@ class CheckboxDemo extends AbstractUIService
         // Submit button
         $container->add(
             UIBuilder::button('btn_submit')
-                ->label(t('app.screen.demo.checkbox_demo.actions.submit'))
+                ->label(t('screen.demo.checkbox_demo.actions.submit'))
                 ->action('submit_selection')
                 ->style('primary')
         );
@@ -62,7 +62,7 @@ class CheckboxDemo extends AbstractUIService
         // Result label
         $container->add(
             UIBuilder::label('lbl_result')
-                ->text(t('app.screen.demo.checkbox_demo.result.initial'))
+                ->text(t('screen.demo.checkbox_demo.result.initial'))
                 ->style('secondary')
         );
     }
@@ -71,7 +71,7 @@ class CheckboxDemo extends AbstractUIService
     {
         $this->chk_javascript->checked(false);
         $this->chk_python->checked(false);
-        $this->lbl_result->text(t('app.screen.demo.checkbox_demo.result.initial'))->style('secondary');
+        $this->lbl_result->text(t('screen.demo.checkbox_demo.result.initial'))->style('secondary');
     }
 
     /**
@@ -92,11 +92,11 @@ class CheckboxDemo extends AbstractUIService
         // Show feedback
         if ($wantsChecked) {
             $this->lbl_result
-                ->text(t('app.screen.demo.checkbox_demo.result.javascript_selected'))
+                ->text(t('screen.demo.checkbox_demo.result.javascript_selected'))
                 ->style('success');
         } else {
             $this->lbl_result
-                ->text(t('app.screen.demo.checkbox_demo.result.javascript_deselected'))
+                ->text(t('screen.demo.checkbox_demo.result.javascript_deselected'))
                 ->style('info');
         }
     }
@@ -116,9 +116,9 @@ class CheckboxDemo extends AbstractUIService
                                                // ❌ REJECT: Don't allow Python without JavaScript
             $this->chk_python->checked(false); // Keep it unchecked
             $this->lbl_result
-                ->text(t('app.screen.demo.checkbox_demo.validation.python_requires_javascript'))
+                ->text(t('screen.demo.checkbox_demo.validation.python_requires_javascript'))
                 ->style('danger');
-            $this->toast(t('app.screen.demo.checkbox_demo.validation.python_requires_javascript'), type: 'error');
+            $this->toast(t('screen.demo.checkbox_demo.validation.python_requires_javascript'), type: 'error');
             return;
         }
 
@@ -128,11 +128,11 @@ class CheckboxDemo extends AbstractUIService
 
         if ($wantsChecked) {
             $this->lbl_result
-                ->text(t('app.screen.demo.checkbox_demo.result.python_selected'))
+                ->text(t('screen.demo.checkbox_demo.result.python_selected'))
                 ->style('success');
         } else {
             $this->lbl_result
-                ->text(t('app.screen.demo.checkbox_demo.result.python_deselected'))
+                ->text(t('screen.demo.checkbox_demo.result.python_deselected'))
                 ->style('info');
         }
     }
@@ -151,16 +151,16 @@ class CheckboxDemo extends AbstractUIService
         $selections = [];
 
         if ($jsChecked) {
-            $selections[] = t('app.screen.demo.checkbox_demo.options.javascript');
+            $selections[] = t('screen.demo.checkbox_demo.options.javascript');
         }
         if ($pyChecked) {
-            $selections[] = t('app.screen.demo.checkbox_demo.options.python');
+            $selections[] = t('screen.demo.checkbox_demo.options.python');
         }
 
         // Validate minimum selection
         if (empty($selections)) {
             $this->lbl_result
-                ->text(t('app.screen.demo.checkbox_demo.validation.minimum_one'))
+                ->text(t('screen.demo.checkbox_demo.validation.minimum_one'))
                 ->style('danger');
             return;
         }
@@ -168,9 +168,9 @@ class CheckboxDemo extends AbstractUIService
         // Success message
         $languagesList = implode(', ', $selections);
         $this->lbl_result
-            ->text(t('app.screen.demo.checkbox_demo.result.submitted', ['languages' => $languagesList]))
+            ->text(t('screen.demo.checkbox_demo.result.submitted', ['languages' => $languagesList]))
             ->style('success');
 
-        $this->toast(t('app.screen.demo.checkbox_demo.result.submitted_toast', ['languages' => $languagesList]), type: 'success');
+        $this->toast(t('screen.demo.checkbox_demo.result.submitted_toast', ['languages' => $languagesList]), type: 'success');
     }
 }

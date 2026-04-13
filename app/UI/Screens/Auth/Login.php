@@ -53,7 +53,7 @@ class Login extends AbstractUIService
         }
 
         $container
-            ->title(t('app.screen.auth.login.title'))
+            ->title(t('screen.auth.login.title'))
             ->maxWidth('450px')
             ->centerHorizontal()
             ->shadow(3)
@@ -61,8 +61,8 @@ class Login extends AbstractUIService
 
         $container->add(
             UIBuilder::input('login_email')
-                ->label(t('app.screen.auth.login.email.label'))
-                ->placeholder(t('app.screen.auth.login.email.placeholder'))
+                ->label(t('screen.auth.login.email.label'))
+                ->placeholder(t('screen.auth.login.email.placeholder'))
                 ->value($email)
                 ->type('email')
                 ->required(true)
@@ -71,9 +71,9 @@ class Login extends AbstractUIService
 
         $container->add(
             UIBuilder::input('login_password')
-                ->label(t('app.screen.auth.login.password.label'))
+                ->label(t('screen.auth.login.password.label'))
                 ->type('password')
-                ->placeholder(t('app.screen.auth.login.password.placeholder'))
+                ->placeholder(t('screen.auth.login.password.placeholder'))
                 ->value($password)
                 ->required(true)
                 ->width('100%')
@@ -93,14 +93,14 @@ class Login extends AbstractUIService
 
         $buttonsContainer->add(
             UIBuilder::button('btn_cancel_login')
-                ->label(t('app.screen.auth.login.actions.cancel'))
+                ->label(t('screen.auth.login.actions.cancel'))
                 ->style('secondary')
                 ->action('close_login_dialog')
         );
 
         $buttonsContainer->add(
             UIBuilder::button('btn_submit_login')
-                ->label(t('app.screen.auth.login.actions.submit'))
+                ->label(t('screen.auth.login.actions.submit'))
                 ->style('primary')
                 ->action('submit_login')
         );
@@ -110,7 +110,7 @@ class Login extends AbstractUIService
         // Forgot Password Link left-aligned below the buttons and filled with the full width of the container
         $container->add(
             UIBuilder::button('btn_forgot_password')
-                ->label(t('app.screen.auth.login.actions.forgot_password'))
+                ->label(t('screen.auth.login.actions.forgot_password'))
                 ->style('link')
                 ->action('navigate_forgot_password')
                 ->width('100%')
@@ -149,7 +149,7 @@ class Login extends AbstractUIService
 
         $user = $response['user'] ?? null;
         if (!$user) {
-            $this->toast(t('app.screen.auth.login.errors.resolve_user'), 'error');
+            $this->toast(t('screen.auth.login.errors.resolve_user'), 'error');
             return;
         }
 
