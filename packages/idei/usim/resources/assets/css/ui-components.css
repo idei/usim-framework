@@ -854,6 +854,11 @@ body {
     min-width: 400px;
 }
 
+/* Prevent background page scroll while modal is open */
+body.modal-open {
+    overflow: hidden;
+}
+
 /* Disable interaction on main when modal is open */
 body.modal-open #main {
     pointer-events: none;
@@ -863,6 +868,44 @@ body.modal-open #main {
 body.modal-open #menu {
     pointer-events: none;
     filter: brightness(0.7);
+}
+
+/* HTML content inside labels (used by server-rendered markdown views) */
+.ui-html-view {
+    color: var(--ui-text);
+    white-space: normal;
+    line-height: 1.55;
+}
+
+.ui-html-view .usim-markdown-content h1,
+.ui-html-view .usim-markdown-content h2,
+.ui-html-view .usim-markdown-content h3,
+.ui-html-view .usim-markdown-content h4,
+.ui-html-view .usim-markdown-content h5,
+.ui-html-view .usim-markdown-content h6 {
+    color: var(--ui-text-strong);
+    margin: 0 0 12px 0;
+    line-height: 1.25;
+}
+
+.ui-html-view .usim-markdown-content p {
+    margin: 0 0 12px 0;
+}
+
+.ui-html-view .usim-markdown-content ul,
+.ui-html-view .usim-markdown-content ol {
+    margin: 0 0 12px 0;
+    padding-left: 24px;
+}
+
+.ui-html-view .usim-markdown-content li {
+    margin: 0 0 6px 0;
+}
+
+.ui-html-view .usim-markdown-content hr {
+    border: 0;
+    border-top: 1px solid var(--ui-border);
+    margin: 16px 0;
 }
 
 /* Modal animations */

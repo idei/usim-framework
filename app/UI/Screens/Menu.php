@@ -4,6 +4,7 @@ namespace App\UI\Screens;
 use App\Services\Auth\AuthSessionService;
 use App\Services\Auth\RegisterService;
 use App\UI\Components\Modals\RegisterDialog;
+use App\UI\Components\Modals\TermsDialog;
 use App\UI\Screens\Admin\Dashboard;
 use App\UI\Screens\Admin\TranlateManager;
 use App\UI\Screens\Auth\Login;
@@ -355,7 +356,9 @@ class Menu extends AbstractUIService
 
     public function onOpenTermsAndConditions(array $params): void
     {
-        $this->redirect('terms');
+        TermsDialog::open(
+            callerServiceId: $this->getServiceComponentId()
+        );
     }
 
     /**
