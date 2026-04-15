@@ -3638,42 +3638,146 @@ window.addEventListener('ui-action', (event) => {
 
 // ==================== Modal Functions ====================
 
+const MODAL_ROOT_ID = 'modal-root';
+const MODAL_BASE_Z_INDEX = 1400;
+const modalOverlayPool = [];
+const modalOverlayStack = [];
+const modalTimeouts = new Map();
+let modalOverlayCounter = 0;
+
+function ensureModalRoot() {
+    let root = document.getElementById(MODAL_ROOT_ID);
+    if (!root) {
+        root = document.createElement('div');
+        root.id = MODAL_ROOT_ID;
+        document.body.appendChild(root);
+    }
+    return root;
+}
+
+function createModalLayer() {
+    const root = ensureModalRoot();
+    const overlayIndex = ++modalOverlayCounter;
+
+    const overlay = document.createElement('div');
+    overlay.className = 'modal-overlay hidden';
+    overlay.dataset.modalOverlay = '1';
+    overlay.dataset.overlayIndex = String(overlayIndex);
+
+    const container = document.createElement('div');
+    container.className = 'modal-container';
+    container.dataset.modalContainer = '1';
+
+    overlay.appendChild(container);
+    root.appendChild(overlay);
+
+    return { overlayIndex, overlay, container };
+}
+
+function getTopModalLayer() {
+    return modalOverlayStack[modalOverlayStack.length - 1] || null;
+}
+
+function getTopModalContainer() {
+    const topLayer = getTopModalLayer();
+    return topLayer?.container || null;
+}
+
+function setBodyModalState() {
+    if (modalOverlayStack.length > 0) {
+        document.body.classList.add('modal-open');
+    } else {
+        document.body.classList.remove('modal-open');
+    }
+}
+
+function clearLayerTimer(layerOrIndex) {
+    const overlayIndex = typeof layerOrIndex === 'number'
+        ? layerOrIndex
+        : layerOrIndex?.overlayIndex;
+
+    if (!overlayIndex || !modalTimeouts.has(overlayIndex)) {
+        return;
+    }
+
+    const timer = modalTimeouts.get(overlayIndex);
+    if (timer.kind === 'interval') {
+        clearInterval(timer.handle);
+    } else {
+        clearTimeout(timer.handle);
+    }
+    modalTimeouts.delete(overlayIndex);
+}
+
+function setLayerTimer(layer, handle, kind) {
+    clearLayerTimer(layer);
+    modalTimeouts.set(layer.overlayIndex, { handle, kind });
+}
+
+function acquireModalLayer() {
+    if (modalOverlayPool.length === 0) {
+        return createModalLayer();
+    }
+
+    let selectedIndex = 0;
+    for (let i = 1; i < modalOverlayPool.length; i++) {
+        if (modalOverlayPool[i].overlayIndex < modalOverlayPool[selectedIndex].overlayIndex) {
+            selectedIndex = i;
+        }
+    }
+
+    return modalOverlayPool.splice(selectedIndex, 1)[0];
+}
+
+function releaseModalLayer(layer) {
+    clearLayerTimer(layer);
+    layer.container.removeAttribute('id');
+    layer.container.innerHTML = '';
+    layer.overlay.classList.add('hidden');
+    layer.overlay.style.pointerEvents = 'none';
+
+    if (!modalOverlayPool.some((entry) => entry.overlayIndex === layer.overlayIndex)) {
+        modalOverlayPool.push(layer);
+    }
+}
+
 /**
  * Open a modal with UI content
  * @param {Object} uiData - UI configuration for modal content (should have parent='modal')
  */
 function openModal(uiData) {
-    const overlay = document.getElementById('modal-overlay');
-    const modalContainer = document.getElementById('modal');
-
-    if (!overlay || !modalContainer) {
-        console.error('Modal containers not found in DOM');
+    if (!uiData || typeof uiData !== 'object') {
+        console.error('Invalid modal payload');
         return;
     }
 
-    // Clear previous content and any existing timers
-    modalContainer.innerHTML = '';
-    if (window.modalTimeoutId) {
-        clearInterval(window.modalTimeoutId);
-        window.modalTimeoutId = null;
+    const previousTop = getTopModalLayer();
+    if (previousTop) {
+        previousTop.container.removeAttribute('id');
+        previousTop.overlay.style.pointerEvents = 'none';
     }
 
-    // Add ui-container class to modal container so collectContextValues() can find inputs
-    // This ensures that buttons inside modals can collect form values correctly
-    if (!modalContainer.classList.contains('ui-container')) {
-        modalContainer.classList.add('ui-container');
+    const layer = acquireModalLayer();
+    layer.container.innerHTML = '';
+    layer.container.id = 'modal';
+    layer.overlay.style.zIndex = String(MODAL_BASE_Z_INDEX + modalOverlayStack.length);
+    layer.overlay.style.pointerEvents = 'auto';
+
+    // Add ui-container class to modal container so collectContextValues() can find inputs.
+    if (!layer.container.classList.contains('ui-container')) {
+        layer.container.classList.add('ui-container');
     }
 
-    // Render modal content using UIRenderer
-    // The uiData should already have parent='modal' from the backend
     const modalRenderer = new UIRenderer(uiData);
     modalRenderer.render();
 
-    // Check if this is a timeout dialog
-    // Look for the container with parent='modal' that has timeout metadata
+    layer.overlay.classList.remove('hidden');
+    modalOverlayStack.push(layer);
+    setBodyModalState();
+
     let timeoutConfig = null;
 
-    for (const [key, component] of Object.entries(uiData)) {
+    for (const [, component] of Object.entries(uiData)) {
         if (component.parent === 'modal' && component._timeout && component._timeout_ms) {
             timeoutConfig = component;
             break;
@@ -3688,18 +3792,14 @@ function openModal(uiData) {
         const timeUnitLabel = timeoutConfig._time_unit_label || 'segundos';
 
         if (showCountdown) {
-            startModalCountdown(timeoutMs, timeoutConfig._timeout, timeoutConfig._time_unit, timeUnitLabel, timeoutAction, callerServiceId);
+            startModalCountdown(layer, timeoutMs, timeoutConfig._timeout, timeoutConfig._time_unit, timeUnitLabel, timeoutAction, callerServiceId);
         } else {
-            // Just set the timeout without showing countdown
-            window.modalTimeoutId = setTimeout(() => {
+            const timeoutHandle = setTimeout(() => {
                 executeTimeoutAction(timeoutAction, callerServiceId);
             }, timeoutMs);
+            setLayerTimer(layer, timeoutHandle, 'timeout');
         }
     }
-
-    // Show modal
-    overlay.classList.remove('hidden');
-    document.body.classList.add('modal-open');
 
     console.log('✅ Modal opened');
 }
@@ -3708,25 +3808,21 @@ function openModal(uiData) {
  * Close the modal
  */
 function closeModal() {
-    const overlay = document.getElementById('modal-overlay');
-    const modalContainer = document.getElementById('modal');
-
-    if (!overlay || !modalContainer) {
+    const closingLayer = modalOverlayStack.pop();
+    if (!closingLayer) {
         return;
     }
 
-    // Clear any active timeout
-    if (window.modalTimeoutId) {
-        clearInterval(window.modalTimeoutId);
-        window.modalTimeoutId = null;
+    releaseModalLayer(closingLayer);
+
+    const topLayer = getTopModalLayer();
+    if (topLayer) {
+        topLayer.container.id = 'modal';
+        topLayer.overlay.style.pointerEvents = 'auto';
+        topLayer.overlay.style.zIndex = String(MODAL_BASE_Z_INDEX + modalOverlayStack.length - 1);
     }
 
-    // Clear content
-    modalContainer.innerHTML = '';
-
-    // Hide modal
-    overlay.classList.add('hidden');
-    document.body.classList.remove('modal-open');
+    setBodyModalState();
 
     console.log('✅ Modal closed');
 }
@@ -3736,7 +3832,7 @@ function closeModal() {
  * @param {Object} updates - Object with component names as keys and their updates as values
  */
 function updateModalComponents(updates) {
-    const modalContainer = document.getElementById('modal');
+    const modalContainer = getTopModalContainer();
 
     if (!modalContainer) {
         console.error('❌ Modal container not found');
@@ -3782,22 +3878,21 @@ function updateModalComponents(updates) {
 /**
  * Start countdown timer for modal
  */
-function startModalCountdown(totalMs, initialValue, timeUnit, timeUnitLabel, timeoutAction, callerServiceId) {
+function startModalCountdown(layer, totalMs, initialValue, timeUnit, timeUnitLabel, timeoutAction, callerServiceId) {
 
-    // Wait a bit for the DOM to be fully rendered
-    setTimeout(() => {
+    const delayedStartHandle = setTimeout(() => {
         // Try to find countdown label by ID (name property creates id attribute)
-        let countdownLabel = document.getElementById('countdown');
+        let countdownLabel = layer.container.querySelector('#countdown');
 
         if (!countdownLabel) {
             // Fallback: Try by querySelector
-            countdownLabel = document.querySelector('#modal .ui-label.h2');
+            countdownLabel = layer.container.querySelector('.ui-label.h2');
             console.log('⚠️ Countdown not found by ID, using fallback selector');
         }
 
         if (!countdownLabel) {
             console.error('❌ Countdown label not found!');
-            console.log('📋 Modal HTML:', document.querySelector('#modal')?.innerHTML || 'Modal not found');
+            console.log('📋 Modal HTML:', layer.container?.innerHTML || 'Modal not found');
             return;
         }
 
@@ -3807,13 +3902,12 @@ function startModalCountdown(totalMs, initialValue, timeUnit, timeUnitLabel, tim
         let updateCount = 0;
 
         // Update countdown every 100ms for smooth updates
-        window.modalTimeoutId = setInterval(() => {
+        const intervalHandle = setInterval(() => {
             const remaining = endTime - Date.now();
             updateCount++;
 
             if (remaining <= 0) {
-                clearInterval(window.modalTimeoutId);
-                window.modalTimeoutId = null;
+                clearLayerTimer(layer);
                 // console.log(`⏱️ Timeout completed after ${updateCount} updates`);
                 // console.log('🎬 Executing action:', timeoutAction);
                 executeTimeoutAction(timeoutAction, callerServiceId);
@@ -3828,8 +3922,12 @@ function startModalCountdown(totalMs, initialValue, timeUnit, timeUnitLabel, tim
             }
         }, 100);
 
+        setLayerTimer(layer, intervalHandle, 'interval');
+
         console.log('✅ Countdown timer started successfully!');
     }, 150); // Wait 150ms for DOM rendering
+
+    setLayerTimer(layer, delayedStartHandle, 'timeout');
 }
 
 /**
@@ -3902,15 +4000,29 @@ async function executeTimeoutAction(action, callerServiceId) {
 
 // Close modal when clicking on overlay background
 document.addEventListener('DOMContentLoaded', () => {
-    const overlay = document.getElementById('modal-overlay');
-    if (overlay) {
-        overlay.addEventListener('click', (e) => {
-            // Only close if clicking directly on overlay, not on modal content
-            if (e.target === overlay) {
-                closeModal();
-            }
-        });
-    }
+    // Ensure modal root is available even if template did not include it.
+    ensureModalRoot();
+
+    document.addEventListener('click', (e) => {
+        const overlay = e.target;
+        if (!(overlay instanceof HTMLElement)) {
+            return;
+        }
+
+        if (!overlay.classList.contains('modal-overlay')) {
+            return;
+        }
+
+        const topLayer = getTopModalLayer();
+        if (!topLayer) {
+            return;
+        }
+
+        // Only close if clicking directly on the top overlay background.
+        if (overlay === topLayer.overlay) {
+            closeModal();
+        }
+    });
 });
 
 // Make modal functions globally available

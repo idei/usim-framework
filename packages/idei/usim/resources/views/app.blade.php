@@ -34,9 +34,7 @@
         <div id="menu"></div>
     </header>
     <main id="main"></main>
-    <div id="modal-overlay" class="modal-overlay hidden">
-        <div id="modal" class="modal-container"></div>
-    </div>
+    <div id="modal-root"></div>
     {{-- <button id="reset-btn" onclick="location.href='?reset=true'">Reset</button> --}}
 
     @php

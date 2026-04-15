@@ -19,6 +19,7 @@ The format is based on Keep a Changelog, and this project follows Semantic Versi
 - `UsimSeeder` now orchestrates translation seeders in addition to role/user seeders.
 - Package defaults and installer stubs now resolve user-facing text via `t('usim...')` keys (dialogs, time units, auth/admin/menu screens, modal scaffolding, and service messages) instead of hardcoded literals.
 - `UsimTranslationSeeder` stub now includes a comprehensive baseline keyset for scaffolded UI and service responses under `usim.component.*`, `usim.dialog.*`, `usim.time_unit.*`, and `usim.*` namespaces.
+- Frontend modal handling now uses an automatic overlay stack with reusable layers (first free overlay on open, top overlay on close), allowing nested dialogs without replacing previous modal content.
 
 ### Fixed
 - Translation resolution now falls back to English by default and then to Laravel's standard translator before returning the key.

@@ -823,6 +823,11 @@ body {
 
 /* ==================== Modal Styles ==================== */
 
+#modal-root {
+    position: relative;
+    z-index: 1200;
+}
+
 .modal-overlay {
     position: fixed;
     top: 0;
