@@ -276,9 +276,9 @@ class UIContainer implements UIElement
     }
 
     /**
-     * Set the title for this container
+     * Set the name for this container
      *
-     * @param string|null $title The container title
+     * @param string|null $name The container name
      * @return self For method chaining
      */
     public function setName(string|null $name): self
@@ -1346,7 +1346,7 @@ class UIContainer implements UIElement
     /**
      * Add custom CSS class
      *
-     * @param string $class CSS class name
+     * @param string $appearance CSS class name
      * @return self For method chaining
      */
     public function appearance(string $appearance): self
