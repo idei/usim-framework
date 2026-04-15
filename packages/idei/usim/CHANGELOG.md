@@ -26,6 +26,7 @@ The format is based on Keep a Changelog, and this project follows Semantic Versi
 - Human-text auto-key generation now normalizes escaped and platform line breaks before deriving keys and storing fallback values.
 - Table refresh cycles now reset render-affecting cell state (styles, colors, media/button payloads) before hydrating new row data, ensuring incremental diffs are emitted when visual-only cell changes occur.
 - `usim:install` now registers `vendor/idei/usim/src/Support/helpers.php` in the consumer `composer.json` under `autoload.files` when missing.
+- Confirm dialog messages now render escaped `\\n` as real line breaks in the frontend and support markdown-to-HTML formatting through `LabelBuilder::markdown()`.
 
 ## [0.7.0] - 2026-03-28
 

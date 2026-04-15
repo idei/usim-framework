@@ -211,6 +211,73 @@ function applyPersistedThemeFromStorage(dispatchChangeEvent = false, source = 's
     return setGlobalUsimTheme(DEFAULT_USIM_THEME, source, dispatchChangeEvent, false);
 }
 
+function normalizeTextLineBreaks(value) {
+    const text = value === undefined || value === null ? '' : String(value);
+    return text.replace(/\r\n?/g, '\n').replace(/\\n/g, '\n');
+}
+
+function escapeHtml(text) {
+    return String(text)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+}
+
+function sanitizeMarkdownUrl(rawUrl) {
+    const value = String(rawUrl || '').trim();
+    if (!value) {
+        return '#';
+    }
+
+    if (value.startsWith('/')) {
+        return value;
+    }
+
+    const lowered = value.toLowerCase();
+    const allowedProtocols = ['http://', 'https://', 'mailto:', 'tel:'];
+    if (allowedProtocols.some(protocol => lowered.startsWith(protocol))) {
+        return value;
+    }
+
+    return '#';
+}
+
+function renderSimpleMarkdownToSafeHtml(value) {
+    const normalizedText = normalizeTextLineBreaks(value);
+    let html = escapeHtml(normalizedText);
+
+    // Inline code first to prevent other markdown replacements from changing code snippets.
+    html = html.replace(/`([^`]+)`/g, '<code>$1</code>');
+
+    // Links: [label](https://example.com)
+    html = html.replace(/\[([^\]]+)\]\(([^)]+)\)/g, (_match, label, url) => {
+        const safeUrl = escapeHtml(sanitizeMarkdownUrl(url));
+        return `<a href="${safeUrl}" target="_blank" rel="noopener noreferrer">${label}</a>`;
+    });
+
+    // Basic emphasis support.
+    html = html.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+    html = html.replace(/__([^_]+)__/g, '<strong>$1</strong>');
+    html = html.replace(/\*([^*]+)\*/g, '<em>$1</em>');
+    html = html.replace(/_([^_]+)_/g, '<em>$1</em>');
+    html = html.replace(/~~([^~]+)~~/g, '<del>$1</del>');
+
+    // Headings (single-line).
+    html = html.replace(/^######\s+(.+)$/gm, '<h6>$1</h6>');
+    html = html.replace(/^#####\s+(.+)$/gm, '<h5>$1</h5>');
+    html = html.replace(/^####\s+(.+)$/gm, '<h4>$1</h4>');
+    html = html.replace(/^###\s+(.+)$/gm, '<h3>$1</h3>');
+    html = html.replace(/^##\s+(.+)$/gm, '<h2>$1</h2>');
+    html = html.replace(/^#\s+(.+)$/gm, '<h1>$1</h1>');
+
+    // Preserve line breaks from plain text and escaped "\\n" payloads.
+    html = html.replace(/\n/g, '<br>');
+
+    return html;
+}
+
 // Apply theme as early as possible so CSS tokens are correct before initial UI render.
 applyPersistedThemeFromStorage(false, 'framework-bootstrap');
 
@@ -874,7 +941,8 @@ class ButtonComponent extends UIComponent {
 class LabelComponent extends UIComponent {
     render() {
         const hasHtml = this.config.html !== undefined && this.config.html !== null;
-        const label = document.createElement(hasHtml ? 'div' : 'span');
+        const markdownEnabled = this.config.markdown === true;
+        const label = document.createElement(hasHtml || markdownEnabled ? 'div' : 'span');
 
         let classes = hasHtml
             ? 'ui-html-view'
@@ -895,9 +963,13 @@ class LabelComponent extends UIComponent {
                 newScript.textContent = oldScript.textContent;
                 oldScript.parentNode.replaceChild(newScript, oldScript);
             });
+        } else if (markdownEnabled) {
+            const text = normalizeTextLineBreaks(this.config.text || '');
+            label.setAttribute('data-markdown', '1');
+            label.innerHTML = renderSimpleMarkdownToSafeHtml(text);
         } else {
             // Support line breaks (\n) in text
-            const text = this.config.text || '';
+            const text = normalizeTextLineBreaks(this.config.text || '');
             if (text.includes('\n')) {
                 label.style.whiteSpace = 'pre-line';
                 label.textContent = text;
@@ -2961,12 +3033,16 @@ class UIRenderer {
 
             // Text (labels)
             if (changes.text !== undefined) {
-                const text = changes.text;
-                if (text.includes('\n')) {
+                const text = normalizeTextLineBreaks(changes.text);
+                if (element.getAttribute('data-markdown') === '1') {
+                    element.style.whiteSpace = 'normal';
+                    element.innerHTML = renderSimpleMarkdownToSafeHtml(text);
+                } else if (text.includes('\n')) {
                     // Support line breaks
                     element.style.whiteSpace = 'pre-line';
                     element.textContent = text;
                 } else {
+                    element.style.whiteSpace = '';
                     element.textContent = text;
                 }
             }

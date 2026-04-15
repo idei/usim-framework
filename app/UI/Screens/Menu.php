@@ -323,13 +323,15 @@ class Menu extends AbstractUIService
         // Get this service ID to receive the callback
         $serviceId = $this->getServiceComponentId();
         $version = "0.7.0";
+        // This i18n message may include escaped "\\n" and markdown; the dialog renderer handles both.
+        $aboutMessage = t('screen.menu.about.message', [
+            'version' => $version,
+        ]);
 
         ConfirmDialogService::open(
             type: DialogType::INFO,
             title: t('screen.menu.about.title'),
-            message: t('screen.menu.about.message', [
-                'version' => $version
-            ]),
+            message: $aboutMessage,
             callerServiceId: $serviceId
         );
     }

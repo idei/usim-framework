@@ -112,6 +112,7 @@ class ConfirmDialogService implements UIModal
         $container->add(
             UIBuilder::label('message')
                 ->text($message)
+                ->markdown()
         );
 
         // Countdown label (only for TIMEOUT type with showCountdown enabled)

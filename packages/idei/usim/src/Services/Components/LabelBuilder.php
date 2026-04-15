@@ -16,6 +16,7 @@ class LabelBuilder extends UIComponent
             // Core content
             'text' => '',
             'html' => null, // Allow HTML content if needed
+            'markdown' => false, // Render text using markdown formatting
 
             // Style and appearance
             'style' => 'default', // default, primary, secondary, success, danger, warning, info, muted
@@ -100,6 +101,16 @@ class LabelBuilder extends UIComponent
         }
 
         return $this->setConfig('html', $htmlOrView);
+    }
+
+    /**
+     * Enable markdown rendering for text content.
+     *
+     * The renderer sanitizes text before converting markdown to HTML.
+     */
+    public function markdown(bool $enabled = true): self
+    {
+        return $this->setConfig('markdown', $enabled);
     }
 
     /**
