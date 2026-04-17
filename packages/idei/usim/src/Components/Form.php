@@ -2,88 +2,14 @@
 
 namespace Idei\Usim\Components;
 
-use Idei\Usim\Contracts\UIElement;
-
 /**
- * Builder for Form UI components
+ * Form UI component builder
  *
- * Modern form component that extends UIContainer with form-specific features:
- * - Form actions (submit, reset, cancel)
- * - Validation rules and error handling
- * - Field grouping and sections
- * - Submit behavior (AJAX, standard, custom)
- * - Progress indication
- * - Auto-save functionality
- * - Multiple submission methods (POST, GET, PUT, PATCH, DELETE)
- * - CSRF protection
- * - File upload support
- * - Form state management (pristine, dirty, submitting, submitted)
- *
- * @method self action(?string $action) Set form action URL
- * @method self method(string $method) Set form method (GET, POST, PUT, PATCH, DELETE)
- * @method self ajax(bool $ajax = true) Enable/disable AJAX submission
- * @method self validate(bool $validate = true) Enable/disable client-side validation
- * @method self autocomplete(bool $autocomplete = true) Enable/disable autocomplete
- * @method self encoding(string $encoding) Set form encoding type
- * @method self submitButton(string $label, array $config = []) Add submit button
- * @method self resetButton(string $label, array $config = []) Add reset button
- * @method self cancelButton(string $label, array $config = []) Add cancel button
- * @method self fieldset(string $legend, callable $callback) Add fieldset group
- * @method self section(string $title, callable $callback) Add form section
- * @method self horizontalLayout() Set horizontal form layout
- * @method self verticalLayout() Set vertical form layout
- * @method self inlineLayout() Set inline form layout
- * @method self labelWidth(string $width) Set label width for horizontal forms
- * @method self fieldWidth(string $width) Set field width for horizontal forms
- * @method self showRequiredIndicator(bool $show = true) Show asterisk for required fields
- * @method self showOptionalIndicator(bool $show = true) Show (optional) for optional fields
- * @method self validationMode(string $mode) Set validation mode (onSubmit, onChange, onBlur)
- * @method self errorDisplay(string $display) Set error display mode (inline, summary, toast)
- * @method self errorSummaryTitle(string $title) Set error summary title
- * @method self autoSave(bool $autoSave = true, int $delay = 3000) Enable auto-save with delay
- * @method self onSubmit(string $handler) Set submit event handler
- * @method self onReset(string $handler) Set reset event handler
- * @method self onValidate(string $handler) Set validation event handler
- * @method self onChange(string $handler) Set change event handler
- * @method self beforeSubmit(string $handler) Set before-submit event handler
- * @method self afterSubmit(string $handler) Set after-submit event handler
- * @method self confirmBeforeSubmit(string $message) Show confirmation dialog before submit
- * @method self preventMultipleSubmit(bool $prevent = true) Prevent multiple submissions
- * @method self showProgress(bool $show = true) Show progress indicator during submission
- * @method self loadingMessage(string $message) Set loading message during submission
- * @method self successMessage(string $message) Set success message after submission
- * @method self errorMessage(string $message) Set error message on submission failure
- * @method self redirectOnSuccess(string $url) Redirect after successful submission
- * @method self resetOnSuccess(bool $reset = true) Reset form after successful submission
- * @method self focusOnError(bool $focus = true) Focus first field with error
- * @method self scrollToError(bool $scroll = true) Scroll to first error
- * @method self csrfToken(string $token) Set CSRF token
- * @method self csrfField(string $fieldName = '_token') Set CSRF field name
- * @method self honeypot(bool $honeypot = true, string $fieldName = '_gotcha') Add honeypot field
- * @method self maxFileSize(int $bytes) Set max file upload size
- * @method self allowedFileTypes(array $types) Set allowed file types for upload
- * @method self multipart(bool $multipart = true) Enable multipart/form-data encoding
- * @method self fieldSpacing(string $spacing) Set spacing between fields (xs, small, medium, large, xl)
- * @method self sectionSpacing(string $spacing) Set spacing between sections
- * @method self submitPosition(string $position) Set submit button position (left, center, right)
- * @method self submitStyle(string $style) Set submit button style
- * @method self submitSize(string $size) Set submit button size
- * @method self fullWidthButtons(bool $fullWidth = true) Make buttons full width
- * @method self condensed(bool $condensed = true) Use condensed form spacing
- * @method self bordered(bool $bordered = true) Add border around form
- * @method self shadow(bool $shadow = true) Add shadow to form
- * @method self rounded(bool $rounded = true) Add rounded corners to form
- * @method self padding(string $padding) Set form padding (xs, small, medium, large, xl)
- * @method self backgroundColor(string $color) Set form background color
- * @method self customClass(string $class) Add custom CSS class
- * @method self customStyle(string $style) Add custom inline style
- * @method self dataAttributes(array $attributes) Add custom data attributes
- * @method self ariaLabel(string $label) Set ARIA label for accessibility
- * @method self ariaDescribedBy(string $id) Set ARIA described-by for accessibility
- * @method self disabled(bool $disabled = true) Disable entire form
- * @method self readonly(bool $readonly = true) Make entire form read-only
+ * Extends UIContainer with form-specific features: actions (submit, reset, cancel),
+ * validation, field grouping, AJAX/standard submission, progress indication, auto-save,
+ * multiple HTTP methods, CSRF protection, file uploads, and state management.
  */
-class FormBuilder extends UIContainer
+class Form extends UIContainer
 {
     protected string $type = 'form';
 
@@ -949,10 +875,10 @@ class FormBuilder extends UIContainer
      * Add rounded corners to form
      * Uses parent UIContainer rounded method
      *
-     * @param string|int $radius Radius value (default: 8)
+     * @param string|int|bool $radius Radius value (default: 8)
      * @return self For method chaining
      */
-    public function rounded(string|int $radius = 8): self
+    public function rounded(string|int|bool $radius = 8): self
     {
         // Call parent method which sets border_radius in config
         parent::rounded($radius);
@@ -1201,9 +1127,6 @@ class FormBuilder extends UIContainer
         return $this->hasFileUploads || $this->config['encoding'] === 'multipart/form-data';
     }
 
-    /**
-     * {@inheritDoc}
-     */
     /**
      * {@inheritDoc}
      */

@@ -4,7 +4,7 @@ namespace Idei\Usim;
 use Idei\Usim\Components\Button;
 use Idei\Usim\Components\Card;
 use Idei\Usim\Components\Checkbox;
-use Idei\Usim\Components\FormBuilder;
+use Idei\Usim\Components\Form;
 use Idei\Usim\Components\InputBuilder;
 use Idei\Usim\Components\LabelBuilder;
 use Idei\Usim\Components\MenuDropdownBuilder;
@@ -586,7 +586,7 @@ abstract class Screen
             'tablerow' => TableRowBuilder::class,
             'tablecell' => TableCellBuilder::class,
             'tableheadercell' => TableHeaderCellBuilder::class,
-            'form' => FormBuilder::class,
+            'form' => Form::class,
             'tableheaderrow' => TableHeaderRowBuilder::class,
             'menudropdown' => MenuDropdownBuilder::class,
             'uploader' => UploaderBuilder::class,

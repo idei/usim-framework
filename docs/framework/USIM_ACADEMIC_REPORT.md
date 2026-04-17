@@ -42,7 +42,7 @@ app/Services/UI/
 ├── Screen.php          # Clase base para servicios de UI
 ├── Components/                     # 16 builders de componentes
 │   ├── Button.php
-│   ├── FormBuilder.php
+│   ├── Form.php
 │   ├── InputBuilder.php
 │   ├── TableBuilder.php
 │   ├── UploaderBuilder.php
@@ -393,7 +393,7 @@ public function onDeleteUser($params)
 
 ```php
 // Mismo builder genera UI idéntica en toda la app
-protected function createUserForm(FormBuilder $form, ?User $user = null)
+protected function createUserForm(Form $form, ?User $user = null)
 {
     $form->input()
         ->id('input_email')

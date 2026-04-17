@@ -10,7 +10,7 @@ use Idei\Usim\Components\TableRowBuilder;
 use Idei\Usim\Components\InputBuilder;
 use Idei\Usim\Components\SelectBuilder;
 use Idei\Usim\Components\Checkbox;
-use Idei\Usim\Components\FormBuilder;
+use Idei\Usim\Components\Form;
 use Idei\Usim\Components\MenuDropdownBuilder;
 use Idei\Usim\Components\Card;
 use Idei\Usim\Components\UploaderBuilder;
@@ -109,11 +109,11 @@ class UIBuilder
      * Create a new form component
      *
      * @param string|null $name The optional semantic name for the form
-     * @return FormBuilder
+     * @return Form
      */
-    public static function form(?string $name = null): FormBuilder
+    public static function form(?string $name = null): Form
     {
-        return new FormBuilder($name);
+        return new Form($name);
     }
 
     /**
