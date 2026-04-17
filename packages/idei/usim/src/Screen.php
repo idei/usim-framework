@@ -7,7 +7,7 @@ use Idei\Usim\Components\Checkbox;
 use Idei\Usim\Components\Form;
 use Idei\Usim\Components\Input;
 use Idei\Usim\Components\Label;
-use Idei\Usim\Components\MenuDropdownBuilder;
+use Idei\Usim\Components\MenuDropdown;
 use Idei\Usim\Components\SelectBuilder;
 use Idei\Usim\Components\TableBuilder;
 use Idei\Usim\Components\TableCellBuilder;
@@ -588,7 +588,7 @@ abstract class Screen
             'tableheadercell' => TableHeaderCellBuilder::class,
             'form' => Form::class,
             'tableheaderrow' => TableHeaderRowBuilder::class,
-            'menudropdown' => MenuDropdownBuilder::class,
+            'menudropdown' => MenuDropdown::class,
             'uploader' => UploaderBuilder::class,
             'calendar' => \Idei\Usim\Components\Calendar::class,
             'carousel' => \Idei\Usim\Components\Carousel::class,

@@ -87,9 +87,9 @@ Now we must solve "Phase 2: Menu Visibility Automation".
 
 2.  **Menu Visibility Automation** [NEXT STEP]
     *   **Goal:** The Menu Builder is currently sending ALL items to the frontend (insecure info disclosure). We must filter this *Server Side*.
-    *   **Status:** The current agent has analyzed `MenuDropdownBuilder.php` and `DemoMenu.php`.
-    *   **The Plan (Ready to Execute via `MenuDropdownBuilder::toJson`):**
-        1.  Modify `toJson` in `MenuDropdownBuilder`.
+    *   **Status:** The current agent has analyzed `MenuDropdown.php` and `DemoMenu.php`.
+    *   **The Plan (Ready to Execute via `MenuDropdown::toJson`):**
+        1.  Modify `toJson` in `MenuDropdown`.
         2.  Implement logic to filter `$this->items` based on comparing `$item['permission']` vs `$this->config['permissions']`.
         3.  Recursive filtering for submenus.
         4.  This ensures that if a user lacks the 'auth' tag, the "Admin Dashboard" item is physically removed from the JSON payload *before* it leaves the server.

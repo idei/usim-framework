@@ -167,7 +167,7 @@ packages/idei/usim/
 |  |     |- UploaderBuilder.php
 |  |     |- Calendar.php
 |  |     |- Carousel.php
-|  |     \- MenuDropdownBuilder.php
+|  |     \- MenuDropdown.php
 |  |- Support/
 |  \- Traits/
 |- stubs/

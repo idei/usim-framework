@@ -11,7 +11,7 @@ use Idei\Usim\Components\Input;
 use Idei\Usim\Components\SelectBuilder;
 use Idei\Usim\Components\Checkbox;
 use Idei\Usim\Components\Form;
-use Idei\Usim\Components\MenuDropdownBuilder;
+use Idei\Usim\Components\MenuDropdown;
 use Idei\Usim\Components\Card;
 use Idei\Usim\Components\UploaderBuilder;
 use Idei\Usim\Components\Calendar;
@@ -131,11 +131,11 @@ class UIBuilder
      * Create a new menu dropdown component
      *
      * @param string $name The semantic name for the menu
-     * @return MenuDropdownBuilder
+     * @return MenuDropdown
      */
-    public static function menuDropdown(string $name): MenuDropdownBuilder
+    public static function menuDropdown(string $name): MenuDropdown
     {
-        return new MenuDropdownBuilder($name);
+        return new MenuDropdown($name);
     }
 
     /**

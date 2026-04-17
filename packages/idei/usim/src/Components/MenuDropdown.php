@@ -4,9 +4,16 @@ namespace Idei\Usim\Components;
 /**
  * Menu Dropdown Builder
  *
- * Builds dropdown menu structures with support for nested submenus
+ * Builds dropdown menu structures with support for nested submenus.
+ *
+ * This component provides a fluent interface for constructing dropdown menus
+ * with support for multiple levels of nesting, custom styling, and event handlers.
+ * It generates semantic HTML markup with proper accessibility attributes and
+ * integrates with the component lifecycle for dynamic menu management.
+ *
+ * @package idei\usim\Components
  */
-class MenuDropdownBuilder extends UIComponent
+class MenuDropdown extends UIComponent
 {
     private array $items = [];
 
@@ -46,7 +53,7 @@ class MenuDropdownBuilder extends UIComponent
      */
     public static function deserialize(int $id, array $config): self
     {
-        /** @var MenuDropdownBuilder $component */
+        /** @var MenuDropdown $component */
         $component = parent::deserialize($id, $config);
         if (isset($config['items']) && is_array($config['items'])) {
             $component->items = $config['items'];

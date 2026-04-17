@@ -23,7 +23,7 @@ use App\UI\Screens\Demo\UploaderDemo;
 use Idei\Usim\Events\UsimEvent;
 use Idei\Usim\Screen;
 use Idei\Usim\Components\Button;
-use Idei\Usim\Components\MenuDropdownBuilder;
+use Idei\Usim\Components\MenuDropdown;
 use Idei\Usim\Components\UIContainer;
 use Idei\Usim\Enums\AlignItems;
 use Idei\Usim\Enums\DialogType;
@@ -48,9 +48,9 @@ class Menu extends Screen
     ) {
     }
 
-    protected MenuDropdownBuilder $main_menu;
-    protected MenuDropdownBuilder $user_menu;
-    protected MenuDropdownBuilder $lang_menu;
+    protected MenuDropdown $main_menu;
+    protected MenuDropdown $user_menu;
+    protected MenuDropdown $lang_menu;
     protected Button $theme_toggle;
     protected string $store_theme = 'light';
     protected string $store_lang = '';
@@ -134,7 +134,7 @@ class Menu extends Screen
         $this->redirect($target);
     }
 
-    private function buildLangMenu(): MenuDropdownBuilder
+    private function buildLangMenu(): MenuDropdown
     {
         $lang_menu = UIBuilder::menuDropdown('lang_menu')
             ->trigger(strtoupper($this->store_lang))
@@ -146,7 +146,7 @@ class Menu extends Screen
         return $lang_menu;
     }
 
-    private function populateLangMenu(MenuDropdownBuilder $menu): void
+    private function populateLangMenu(MenuDropdown $menu): void
     {
         $menu->clearItems();
         $languages = UsimLanguage::where('is_active', true)->orderBy('name')->get();
@@ -209,7 +209,7 @@ class Menu extends Screen
         }
     }
 
-    private function buildLeftMenu(): MenuDropdownBuilder
+    private function buildLeftMenu(): MenuDropdown
     {
         $main_menu = UIBuilder::menuDropdown('main_menu')
             ->trigger()
@@ -221,7 +221,7 @@ class Menu extends Screen
         return $main_menu;
     }
 
-    private function populateMainMenu(MenuDropdownBuilder $menu): void
+    private function populateMainMenu(MenuDropdown $menu): void
     {
         $menu->link(t('screen.menu.items.home'), '/', '🏠');
         $menu->screen(Dashboard::class);
@@ -231,7 +231,7 @@ class Menu extends Screen
         $menu->item(t('screen.menu.items.about'), 'show_about_info', [], 'ℹ️');
     }
 
-    private function buildDemosMenu(MenuDropdownBuilder $menu): void
+    private function buildDemosMenu(MenuDropdown $menu): void
     {
         $menu->separator();
         $menu->submenu(t('screen.menu.items.demos'), function ($submenu) {
@@ -250,7 +250,7 @@ class Menu extends Screen
         }, '🎮');
     }
 
-    private function buildUserMenu(): MenuDropdownBuilder
+    private function buildUserMenu(): MenuDropdown
     {
         $user_menu = UIBuilder::menuDropdown('user_menu')
             ->position('bottom-right')
@@ -260,7 +260,7 @@ class Menu extends Screen
         return $user_menu;
     }
 
-    private function populateUserMenu(MenuDropdownBuilder $menu): void
+    private function populateUserMenu(MenuDropdown $menu): void
     {
         $menu->screen(Login::class);
         $menu->item(t('screen.menu.items.register'), 'show_register_form', [], '📝', visible: !Auth::check());

@@ -16,8 +16,8 @@ Por favor lee detenidamente el archivo **`docs/usim-laravel-package-refactoring.
 **TUS INSTRUCCIONES ESTRICTAS:**
 1.  **NO HAGAS COMMITS AUTOMÁTICOS.** Espérame siempre.
 2.  Analiza la sección **"IMMEDIATE PRIORITY: Security Architecture (Phase 2)"** del documento.
-3.  Tu tarea inmediata es implementar el **Server-Side Filtering** en `MenuDropdownBuilder`.
-    *   Revisa `packages/idei/usim/src/Services/Components/MenuDropdownBuilder.php`.
+3.  Tu tarea inmediata es implementar el **Server-Side Filtering** en `MenuDropdown`.
+    *   Revisa `packages/idei/usim/src/Services/Components/MenuDropdown.php`.
     *   Modifica el método `toJson()` para que filtre los items basándose en la lista de permisos configurada, antes de generar el array final.
 4.  No escribas código todavía. Confirma que entiendes el plan de "Server-Side Filtering" antes de proceder.
 

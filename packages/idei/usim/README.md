@@ -245,7 +245,7 @@ Use `_crypt` only when the value should not be readable from the client's local 
 | `UIBuilder::table()` | `TableBuilder` | Data tables with pagination |
 | `UIBuilder::card()` | `Card` | Cards with title, description, actions |
 | `UIBuilder::container()` | `UIContainer` | Layout container (vertical/horizontal/grid) with `card()` / `plain()` appearance |
-| `UIBuilder::menuDropdown()` | `MenuDropdownBuilder` | Navigation dropdown menus |
+| `UIBuilder::menuDropdown()` | `MenuDropdown` | Navigation dropdown menus |
 | `UIBuilder::uploader()` | `UploaderBuilder` | File upload with preview and crop |
 | `UIBuilder::calendar()` | `Calendar` | Calendar/date picker |
 | `UIBuilder::carousel()` | `Carousel` | Media carousel for image/audio/video with manual/auto modes |
