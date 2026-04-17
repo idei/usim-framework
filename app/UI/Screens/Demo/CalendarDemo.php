@@ -5,11 +5,11 @@ namespace App\UI\Screens\Demo;
 use Idei\Usim\UIBuilder;
 use Idei\Usim\Screen;
 use Idei\Usim\Components\UIContainer;
-use Idei\Usim\Components\CalendarBuilder;
+use Idei\Usim\Components\Calendar;
 
 class CalendarDemo extends Screen
 {
-    protected CalendarBuilder $academic_calendar;
+    protected Calendar $academic_calendar;
 
     protected function buildBaseUI(UIContainer $container, ...$params): void
     {

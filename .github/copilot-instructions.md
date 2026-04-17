@@ -165,7 +165,7 @@ packages/idei/usim/
 |  |     |- Card.php
 |  |     |- TableBuilder.php y builders relacionados
 |  |     |- UploaderBuilder.php
-|  |     |- CalendarBuilder.php
+|  |     |- Calendar.php
 |  |     |- Carousel.php
 |  |     \- MenuDropdownBuilder.php
 |  |- Support/

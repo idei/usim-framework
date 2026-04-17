@@ -247,7 +247,7 @@ Use `_crypt` only when the value should not be readable from the client's local 
 | `UIBuilder::container()` | `UIContainer` | Layout container (vertical/horizontal/grid) with `card()` / `plain()` appearance |
 | `UIBuilder::menuDropdown()` | `MenuDropdownBuilder` | Navigation dropdown menus |
 | `UIBuilder::uploader()` | `UploaderBuilder` | File upload with preview and crop |
-| `UIBuilder::calendar()` | `CalendarBuilder` | Calendar/date picker |
+| `UIBuilder::calendar()` | `Calendar` | Calendar/date picker |
 | `UIBuilder::carousel()` | `Carousel` | Media carousel for image/audio/video with manual/auto modes |
 
 Builders share a fluent API across `UIComponent` and `UIContainer` with common methods like:

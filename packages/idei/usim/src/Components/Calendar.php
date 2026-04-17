@@ -4,8 +4,14 @@ namespace Idei\Usim\Components;
 
 /**
  * Builder for Calendar UI component
+ *
+ * This class provides a fluent interface for constructing and configuring
+ * Calendar UI components. It allows developers to create calendar instances
+ * with customizable options such as date range, display format, and event handling.
+ *
+ * @package idei\usim\Components
  */
-class CalendarBuilder extends UIComponent
+class Calendar extends UIComponent
 {
     protected function getDefaultConfig(): array
     {

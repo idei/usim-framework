@@ -14,7 +14,7 @@ use Idei\Usim\Components\Form;
 use Idei\Usim\Components\MenuDropdownBuilder;
 use Idei\Usim\Components\Card;
 use Idei\Usim\Components\UploaderBuilder;
-use Idei\Usim\Components\CalendarBuilder;
+use Idei\Usim\Components\Calendar;
 use Idei\Usim\Components\Carousel;
 
 /**
@@ -164,11 +164,11 @@ class UIBuilder
      * Create a new calendar component
      *
      * @param string|null $name The optional semantic name for the calendar
-     * @return CalendarBuilder
+     * @return Calendar
      */
-    public static function calendar(?string $name = null): CalendarBuilder
+    public static function calendar(?string $name = null): Calendar
     {
-        return new CalendarBuilder($name);
+        return new Calendar($name);
     }
 
     /**

@@ -590,7 +590,7 @@ abstract class Screen
             'tableheaderrow' => TableHeaderRowBuilder::class,
             'menudropdown' => MenuDropdownBuilder::class,
             'uploader' => UploaderBuilder::class,
-            'calendar' => \Idei\Usim\Components\CalendarBuilder::class,
+            'calendar' => \Idei\Usim\Components\Calendar::class,
             'carousel' => \Idei\Usim\Components\Carousel::class,
             'default' => null,
         };
