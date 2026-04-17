@@ -6,7 +6,7 @@ use App\Services\User\UserService;
 use Idei\Usim\Screen;
 use Idei\Usim\Components\Button;
 use Idei\Usim\Components\Input;
-use Idei\Usim\Components\TableBuilder;
+use Idei\Usim\Components\Table;
 use Idei\Usim\Components\UIContainer;
 use Idei\Usim\Enums\DialogType;
 use Idei\Usim\Enums\LayoutType;
@@ -39,7 +39,7 @@ class Dashboard extends Screen
         return '🛠️';
     }
 
-    protected TableBuilder $users_table;
+    protected Table $users_table;
     protected Input $search_users;
     protected Button $add_user_btn;
 

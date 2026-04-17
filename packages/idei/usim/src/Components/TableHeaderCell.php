@@ -2,6 +2,7 @@
 
 namespace Idei\Usim\Components;
 
+use Idei\Usim\Components\TableHeaderRow;
 use Idei\Usim\Enums\Align;
 use Idei\Usim\Enums\FontWeight;
 
@@ -11,18 +12,18 @@ use Idei\Usim\Enums\FontWeight;
  * Represents a header cell in a table header row. This component must be associated with a TableHeaderRow.
  * Header cells can be sortable and trigger actions for sorting.
  */
-class TableHeaderCellBuilder extends UIComponent
+class TableHeaderCell extends UIComponent
 {
-    /** @var TableHeaderRowBuilder|null The parent header row */
-    private ?TableHeaderRowBuilder $headerRow;
+    /** @var TableHeaderRow|null The parent header row */
+    private ?TableHeaderRow $headerRow;
 
     /**
      * Create a new table header cell
      *
-     * @param TableHeaderRowBuilder|null $headerRow The parent header row this cell belongs to
+     * @param TableHeaderRow|null $headerRow The parent header row this cell belongs to
      * @param string|null $name Optional name for the cell
      */
-    public function __construct(?TableHeaderRowBuilder $headerRow = null, ?string $name = null)
+    public function __construct(?TableHeaderRow $headerRow = null, ?string $name = null)
     {
         $this->headerRow = $headerRow;
         parent::__construct($name);
@@ -208,9 +209,9 @@ class TableHeaderCellBuilder extends UIComponent
     /**
      * Get the parent header row
      *
-     * @return TableHeaderRowBuilder
+     * @return TableHeaderRow
      */
-    public function getHeaderRow(): TableHeaderRowBuilder
+    public function getHeaderRow(): TableHeaderRow
     {
         return $this->headerRow;
     }

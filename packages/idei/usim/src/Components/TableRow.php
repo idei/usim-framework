@@ -2,30 +2,29 @@
 
 namespace Idei\Usim\Components;
 
-use Illuminate\Support\Facades\Log;
 use Idei\Usim\Contracts\UIElement;
 
 /**
  * Builder for Table Row UI components
- * 
+ *
  * Represents a row in a table. This component must be associated with a Table
  * and will be automatically added to the table's rows container.
  */
-class TableRowBuilder extends UIComponent
+class TableRow extends UIComponent
 {
-    /** @var TableBuilder|null The parent table */
-    private ?TableBuilder $table;
+    /** @var Table|null The parent table */
+    private ?Table $table;
 
-    /** @var array<TableCellBuilder> Array of cells in this row */
+    /** @var array<TableCell> Array of cells in this row */
     private array $cellComponents = [];
 
     /**
      * Create a new table row
-     * 
-     * @param TableBuilder|null $table The parent table this row belongs to
+     *
+     * @param Table|null $table The parent table this row belongs to
      * @param string|null $name Optional name for the row
      */
-    public function __construct(?TableBuilder $table = null, ?string $name = null)
+    public function __construct(?Table $table = null, ?string $name = null)
     {
         $this->table = $table;
         parent::__construct($name);
@@ -45,14 +44,14 @@ class TableRowBuilder extends UIComponent
 
     public function connectChild(UIElement $element): void
     {
-        if ($element instanceof TableCellBuilder) {
+        if ($element instanceof TableCell) {
             $this->addCell($element);
         }
     }
 
     /**
      * Set the row index (for ordering)
-     * 
+     *
      * @param int $row Row index (0-based)
      * @return self
      */
@@ -64,7 +63,7 @@ class TableRowBuilder extends UIComponent
 
     /**
      * Set minimum height for the row
-     * 
+     *
      * @param int|string $height Minimum height in pixels or with units
      * @return self
      */
@@ -76,7 +75,7 @@ class TableRowBuilder extends UIComponent
 
     /**
      * Get the row configuration (public accessor for cells)
-     * 
+     *
      * @return array The row configuration
      */
     public function getRowConfig(): array
@@ -86,13 +85,13 @@ class TableRowBuilder extends UIComponent
 
     /**
      * Create and add a new cell to this row
-     * 
+     *
      * @param string|null $name Optional name for the cell
-     * @return TableCellBuilder The created cell
+     * @return TableCell The created cell
      */
-    public function createCell(?string $name = null): TableCellBuilder
+    public function createCell(?string $name = null): TableCell
     {
-        $cell = new TableCellBuilder($this, $name);
+        $cell = new TableCell($this, $name);
         $cell->setParent($this->id);
         $this->cellComponents[] = $cell;
         return $cell;
@@ -100,11 +99,11 @@ class TableRowBuilder extends UIComponent
 
     /**
      * Add an existing cell to this row
-     * 
-     * @param TableCellBuilder $cell The cell to add
+     *
+     * @param TableCell $cell The cell to add
      * @return self For method chaining
      */
-    public function addCell(TableCellBuilder $cell): self
+    public function addCell(TableCell $cell): self
     {
         $cell->setParent($this->id);
         $this->cellComponents[] = $cell;
@@ -113,8 +112,8 @@ class TableRowBuilder extends UIComponent
 
     /**
      * Get all cell components
-     * 
-     * @return array<TableCellBuilder>
+     *
+     * @return array<TableCell>
      */
     public function getCells(): array
     {
@@ -123,8 +122,8 @@ class TableRowBuilder extends UIComponent
 
     /**
      * Set the cells data for this row
-     * Creates TableCellBuilder components automatically from the array
-     * 
+     * Creates TableCell components automatically from the array
+     *
      * @param array $cells Array of cell values (strings, numbers, arrays, or UIComponent instances)
      * @return self For method chaining
      */
@@ -132,11 +131,11 @@ class TableRowBuilder extends UIComponent
     {
         // Store the raw data for backward compatibility
         $this->setConfig('cells', $cells);
-        
-        // Auto-create TableCellBuilder components from the array
+
+        // Auto-create TableCell components from the array
         foreach ($cells as $index => $value) {
             $cell = $this->createCell("cell_$index");
-            
+
             if ($value instanceof UIComponent && !($value instanceof UIContainer)) {
                 // If it's a leaf component (not a container), add it as a child
                 $cell->addChild($value);
@@ -150,13 +149,13 @@ class TableRowBuilder extends UIComponent
                 $cell->text($value);
             }
         }
-        
+
         return $this;
     }
 
     /**
      * Set a specific cell value by index
-     * 
+     *
      * @param int $index The cell index (0-based)
      * @param mixed $value The cell value
      * @return self For method chaining
@@ -169,7 +168,7 @@ class TableRowBuilder extends UIComponent
 
     /**
      * Mark this row as selected
-     * 
+     *
      * @param bool $selected True to select, false otherwise
      * @return self For method chaining
      */
@@ -180,7 +179,7 @@ class TableRowBuilder extends UIComponent
 
     /**
      * Set the row style
-     * 
+     *
      * @param string $style The style name (default, primary, success, warning, danger, etc.)
      * @return self For method chaining
      */
@@ -192,7 +191,7 @@ class TableRowBuilder extends UIComponent
     /**
      * Mark this row as empty
      * Useful for placeholder rows or rows filled to meet minRows requirement
-     * 
+     *
      * @param bool $empty True if the row is empty, false otherwise
      * @return self For method chaining
      */
@@ -203,17 +202,17 @@ class TableRowBuilder extends UIComponent
 
     /**
      * Get the parent table
-     * 
-     * @return TableBuilder
+     *
+     * @return Table
      */
-    public function getTable(): TableBuilder
+    public function getTable(): Table
     {
         return $this->table;
     }
 
     /**
      * {@inheritDoc}
-     * 
+     *
      * Includes all cell components in the flat JSON structure
      */
     /**
@@ -252,7 +251,7 @@ class TableRowBuilder extends UIComponent
 
     /**
      * Exclude 'name' and 'cells' from JSON output
-     * 
+     *
      * @return array List of keys to exclude
      */
     protected function getExcludedJsonKeys(): array

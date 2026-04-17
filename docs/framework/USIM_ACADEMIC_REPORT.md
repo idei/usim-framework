@@ -44,7 +44,7 @@ app/Services/UI/
 │   ├── Button.php
 │   ├── Form.php
 │   ├── Input.php
-│   ├── TableBuilder.php
+│   ├── Table.php
 │   ├── UploaderBuilder.php
 │   └── ...
 ├── Support/                        # Utilidades del framework
@@ -413,7 +413,7 @@ protected function createUserForm(Form $form, ?User $user = null)
 // Desarrollo lineal sin context switching
 class UsersService extends Screen
 {
-    protected TableBuilder $table_users;
+    protected Table $table_users;
 
     // 1. Definir UI
     protected function buildBaseUI(UIContainer $container): void

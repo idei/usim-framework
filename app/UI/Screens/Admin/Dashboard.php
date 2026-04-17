@@ -9,7 +9,7 @@ use Idei\Usim\Enums\LayoutType;
 use Idei\Usim\Screen;
 use Idei\Usim\Components\UIContainer;
 use Idei\Usim\Components\Input;
-use Idei\Usim\Components\TableBuilder;
+use Idei\Usim\Components\Table;
 use Idei\Usim\Components\Button;
 use App\UI\Components\DataTable\UserApiTableModel;
 use App\UI\Components\Modals\EditUserDialog;
@@ -39,7 +39,7 @@ class Dashboard extends Screen
         return '🛠️';
     }
 
-    protected TableBuilder $users_table;
+    protected Table $users_table;
     protected Input $search_users;
     protected Button $add_user_btn;
 

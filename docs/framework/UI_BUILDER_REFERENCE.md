@@ -145,7 +145,7 @@ UIElement (interface)
 ├── UIComponent (abstract) - Elementos hoja
 │   ├── Button
 │   ├── Label
-│   └── TableBuilder
+│   └── Table
 └── UIContainer (composite) - Contenedores
     └── Métodos: add, remove, update, find, etc.
 ```

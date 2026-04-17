@@ -2,30 +2,29 @@
 
 namespace Idei\Usim\Components;
 
-use Illuminate\Support\Facades\Log;
 use Idei\Usim\Contracts\UIElement;
 
 /**
  * Builder for Table Header Row UI components
- * 
- * Represents a header row in a table. This component must be associated with a TableBuilder
- * and contains TableHeaderCellBuilder components.
+ *
+ * Represents a header row in a table. This component must be associated with a Table
+ * and contains TableHeaderCell components.
  */
-class TableHeaderRowBuilder extends UIComponent
+class TableHeaderRow extends UIComponent
 {
-    /** @var TableBuilder|null The parent table */
-    private ?TableBuilder $table;
+    /** @var Table|null The parent table */
+    private ?Table $table;
 
-    /** @var array<TableHeaderCellBuilder> Array of header cells in this row */
+    /** @var array<TableHeaderCell> Array of header cells in this row */
     private array $cellComponents = [];
 
     /**
      * Create a new table header row
-     * 
-     * @param TableBuilder $table The parent table this header row belongs to
+     *
+     * @param Table $table The parent table this header row belongs to
      * @param string|null $name Optional name for the header row
      */
-    public function __construct(?TableBuilder $table = null, ?string $name = null)
+    public function __construct(?Table $table = null, ?string $name = null)
     {
         $this->table = $table;
         parent::__construct($name);
@@ -38,20 +37,20 @@ class TableHeaderRowBuilder extends UIComponent
 
     public function connectChild(UIElement $element): void
     {
-        if ($element instanceof TableHeaderCellBuilder) {
+        if ($element instanceof TableHeaderCell) {
             $this->addCell($element);
         }
     }
 
     /**
      * Create and add a new header cell to this row
-     * 
+     *
      * @param string|null $name Optional name for the cell
-     * @return TableHeaderCellBuilder The created header cell
+     * @return TableHeaderCell The created header cell
      */
-    public function createCell(?string $name = null): TableHeaderCellBuilder
+    public function createCell(?string $name = null): TableHeaderCell
     {
-        $cell = new TableHeaderCellBuilder($this, $name);
+        $cell = new TableHeaderCell($this, $name);
         $cell->setParent($this->id);
         $this->cellComponents[] = $cell;
         return $cell;
@@ -59,11 +58,11 @@ class TableHeaderRowBuilder extends UIComponent
 
     /**
      * Add an existing header cell to this row
-     * 
-     * @param TableHeaderCellBuilder $cell The header cell to add
+     *
+     * @param TableHeaderCell $cell The header cell to add
      * @return self For method chaining
      */
-    public function addCell(TableHeaderCellBuilder $cell): self
+    public function addCell(TableHeaderCell $cell): self
     {
         $cell->setParent($this->id);
         $this->cellComponents[] = $cell;
@@ -72,8 +71,8 @@ class TableHeaderRowBuilder extends UIComponent
 
     /**
      * Get all header cell components
-     * 
-     * @return array<TableHeaderCellBuilder>
+     *
+     * @return array<TableHeaderCell>
      */
     public function getCells(): array
     {
@@ -82,17 +81,17 @@ class TableHeaderRowBuilder extends UIComponent
 
     /**
      * Get the parent table
-     * 
-     * @return TableBuilder
+     *
+     * @return Table
      */
-    public function getTable(): TableBuilder
+    public function getTable(): Table
     {
         return $this->table;
     }
 
     /**
      * {@inheritDoc}
-     * 
+     *
      * Includes all header cell components in the flat JSON structure
      */
     /**
@@ -131,7 +130,7 @@ class TableHeaderRowBuilder extends UIComponent
 
     /**
      * Exclude 'name' from JSON output
-     * 
+     *
      * @return array List of keys to exclude
      */
     protected function getExcludedJsonKeys(): array

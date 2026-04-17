@@ -6,7 +6,7 @@ use App\Models\User;
 use Idei\Usim\UIBuilder;
 use Idei\Usim\Screen;
 use Idei\Usim\Components\UIContainer;
-use Idei\Usim\Components\TableBuilder;
+use Idei\Usim\Components\Table;
 use App\UI\Components\DataTable\UsersTableModel;
 
 /**
@@ -22,7 +22,7 @@ use App\UI\Components\DataTable\UsersTableModel;
  */
 class TableDemo extends Screen
 {
-    protected TableBuilder $users_table;
+    protected Table $users_table;
 
     /**
      * Build the table demo UI

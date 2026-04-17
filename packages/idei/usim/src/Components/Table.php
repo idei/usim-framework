@@ -2,6 +2,7 @@
 
 namespace Idei\Usim\Components;
 
+use Idei\Usim\Components\TableRow;
 use Idei\Usim\Contracts\UIElement;
 use Idei\Usim\DataTable\AbstractDataTableModel;
 
@@ -14,13 +15,13 @@ use Idei\Usim\DataTable\AbstractDataTableModel;
  * - Cells are identified by (row, col) coordinates
  * - Cell names follow pattern: "{row}_{col}"
  */
-class TableBuilder extends UIComponent
+class Table extends UIComponent
 {
     /** @var UIContainer The rows container */
     private UIContainer $rowsContainer;
 
-    /** @var TableHeaderRowBuilder|null The header row (optional) */
-    private ?TableHeaderRowBuilder $headerRow = null;
+    /** @var TableHeaderRow|null The header row (optional) */
+    private ?TableHeaderRow $headerRow = null;
 
     /** @var AbstractDataTableModel|null The data model instance */
     private ?AbstractDataTableModel $model = null;
@@ -250,11 +251,11 @@ class TableBuilder extends UIComponent
     /**
      * Apply inline style metadata declared in a formatted cell array.
      *
-     * @param TableCellBuilder $cell
+     * @param TableCell $cell
      * @param array $value
      * @return void
      */
-    private function applyCellMetadata(TableCellBuilder $cell, array $value): void
+    private function applyCellMetadata(TableCell $cell, array $value): void
     {
         if (isset($value['background_color']) && $value['background_color'] !== '') {
             $cell->backgroundColor((string) $value['background_color']);
@@ -375,13 +376,13 @@ class TableBuilder extends UIComponent
             return;
         }
 
-        if ($element instanceof TableHeaderRowBuilder) {
+        if ($element instanceof TableHeaderRow) {
             $this->headerRow = $element;
             $this->config['header_row'] = $element->getId();
             return;
         }
 
-        if ($element instanceof TableRowBuilder) {
+        if ($element instanceof TableRow) {
             $this->addRow($element);
             return;
         }
@@ -419,8 +420,8 @@ class TableBuilder extends UIComponent
         $children = $this->rowsContainer->getChildren();
 
         foreach ($children as $child) {
-            // Only process TableRowBuilder instances
-            if ($child instanceof TableRowBuilder) {
+            // Only process TableRow instances
+            if ($child instanceof TableRow) {
                 $this->rowBuilders[$rowIndex] = $child;
                 $rowIndex++;
             }
@@ -468,15 +469,15 @@ class TableBuilder extends UIComponent
      * Only one header row is allowed per table
      *
      * @param string|null $name Optional name for the header row
-     * @return TableHeaderRowBuilder The header row builder
+     * @return TableHeaderRow The header row builder
      */
-    public function createHeaderRow(?string $name = null): TableHeaderRowBuilder
+    public function createHeaderRow(?string $name = null): TableHeaderRow
     {
         if ($this->headerRow !== null) {
             throw new \LogicException("Table already has a header row. Only one header row is allowed per table.");
         }
 
-        $this->headerRow = new TableHeaderRowBuilder($this, $name ?? 'header');
+        $this->headerRow = new TableHeaderRow($this, $name ?? 'header');
         $this->headerRow->setParent($this->id);
         $this->config['header_row'] = $this->headerRow->getId();
 
@@ -486,9 +487,9 @@ class TableBuilder extends UIComponent
     /**
      * Get the header row if it exists
      *
-     * @return TableHeaderRowBuilder|null
+     * @return TableHeaderRow|null
      */
-    public function getHeaderRow(): ?TableHeaderRowBuilder
+    public function getHeaderRow(): ?TableHeaderRow
     {
         return $this->headerRow;
     }
@@ -498,11 +499,11 @@ class TableBuilder extends UIComponent
      * Automatically adds the row to the table
      *
      * @param string|null $name Optional name for the row
-     * @return TableRowBuilder The new row builder
+     * @return TableRow The new row builder
      */
-    public function createRow(?string $name = null): TableRowBuilder
+    public function createRow(?string $name = null): TableRow
     {
-        $row = new TableRowBuilder($this, $name);
+        $row = new TableRow($this, $name);
         $this->addRow($row);
         return $row;
     }
@@ -510,10 +511,10 @@ class TableBuilder extends UIComponent
     /**
      * Add a row component to this table
      *
-     * @param TableRowBuilder $row The row to add
+     * @param TableRow $row The row to add
      * @return self For method chaining
      */
-    public function addRow(TableRowBuilder $row): self
+    public function addRow(TableRow $row): self
     {
         // Add the row to the rows container
         $this->rowsContainer->add($row);
@@ -691,9 +692,9 @@ class TableBuilder extends UIComponent
      *
      * @param int $row Row index (0-based)
      * @param int $col Column index (0-based)
-     * @return TableCellBuilder
+     * @return TableCell
      */
-    public function getCell(int $row, int $col): TableCellBuilder
+    public function getCell(int $row, int $col): TableCell
     {
         // Log::debug("Getting cell at ($row, $col) {$this->rows}x{$this->cols}");
         if ($row < 0 || $row >= $this->rows) {

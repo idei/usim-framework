@@ -9,11 +9,11 @@ use Idei\Usim\Components\Input;
 use Idei\Usim\Components\Label;
 use Idei\Usim\Components\MenuDropdown;
 use Idei\Usim\Components\Select;
-use Idei\Usim\Components\TableBuilder;
-use Idei\Usim\Components\TableCellBuilder;
-use Idei\Usim\Components\TableHeaderCellBuilder;
-use Idei\Usim\Components\TableHeaderRowBuilder;
-use Idei\Usim\Components\TableRowBuilder;
+use Idei\Usim\Components\Table;
+use Idei\Usim\Components\TableCell;
+use Idei\Usim\Components\TableHeaderCell;
+use Idei\Usim\Components\TableHeaderRow;
+use Idei\Usim\Components\TableRow;
 use Idei\Usim\Components\UIContainer;
 use Idei\Usim\Components\UploaderBuilder;
 use Idei\Usim\Contracts\UIElement;
@@ -581,13 +581,13 @@ abstract class Screen
             'select' => Select::class,
             'checkbox' => Checkbox::class,
             'card' => Card::class,
-            'table' => TableBuilder::class,
+            'table' => Table::class,
             'container' => UIContainer::class,
-            'tablerow' => TableRowBuilder::class,
-            'tablecell' => TableCellBuilder::class,
-            'tableheadercell' => TableHeaderCellBuilder::class,
+            'tablerow' => TableRow::class,
+            'tablecell' => TableCell::class,
+            'tableheadercell' => TableHeaderCell::class,
             'form' => Form::class,
-            'tableheaderrow' => TableHeaderRowBuilder::class,
+            'tableheaderrow' => TableHeaderRow::class,
             'menudropdown' => MenuDropdown::class,
             'uploader' => UploaderBuilder::class,
             'calendar' => \Idei\Usim\Components\Calendar::class,

@@ -5,7 +5,7 @@ namespace App\UI\Components\DataTable;
 use App\Services\User\UserService;
 use Idei\Usim\Support\UIStateManager;
 use Idei\Usim\DataTable\AbstractDataTableModel;
-use Idei\Usim\Components\TableBuilder;
+use Idei\Usim\Components\Table;
 
 /**
  * User API Table Model
@@ -16,11 +16,11 @@ class UserApiTableModel extends AbstractDataTableModel
 {
     protected UserService $userService;
 
-    public function __construct(TableBuilder $tableBuilder)
+    public function __construct(Table $tableBuilder)
     {
         parent::__construct($tableBuilder);
 
-        // Resolve UserService from container since TableBuilder doesn't support DI
+        // Resolve UserService from container since Table doesn't support DI
         $this->userService = app(UserService::class);
     }
     public function getColumns(): array

@@ -2,7 +2,7 @@
 
 namespace Idei\Usim\DataTable;
 
-use Idei\Usim\Components\TableBuilder;
+use Idei\Usim\Components\Table;
 
 /**
  * Abstract Data Table Model
@@ -12,9 +12,9 @@ use Idei\Usim\Components\TableBuilder;
  */
 abstract class AbstractDataTableModel
 {
-    protected TableBuilder $tableBuilder;
+    protected Table $tableBuilder;
 
-    public function __construct(TableBuilder $tableBuilder)
+    public function __construct(Table $tableBuilder)
     {
         $this->tableBuilder = $tableBuilder;
     }
@@ -53,7 +53,7 @@ abstract class AbstractDataTableModel
     }
 
     /**
-     * Get pagination data from the TableBuilder
+     * Get pagination data from the Table
      *
      * @return array
      */

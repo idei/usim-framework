@@ -151,7 +151,7 @@ The format is based on Keep a Changelog, and this project follows Semantic Versi
 - `UIEventController` now extends `Illuminate\Routing\Controller` to avoid app-level namespace coupling.
 - Installer `.env` handling now appends only missing keys to avoid duplicated environment variables.
 - Demo mode handling now relies on environment configuration for local testing.
-- Table pagination and loading-state behavior were improved in `TableBuilder` and the UI renderer.
+- Table pagination and loading-state behavior were improved in `Table` and the UI renderer.
 - Package metadata, dependencies, and public release structure were updated for Packagist distribution.
 
 ### Fixed

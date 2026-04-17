@@ -163,7 +163,7 @@ packages/idei/usim/
 |  |     |- Checkbox.php
 |  |     |- Form.php
 |  |     |- Card.php
-|  |     |- TableBuilder.php y builders relacionados
+|  |     |- Table.php y builders relacionados
 |  |     |- UploaderBuilder.php
 |  |     |- Calendar.php
 |  |     |- Carousel.php

@@ -7,7 +7,7 @@ use App\UI\Components\DataTable\TranslationKeysTableModel;
 use Idei\Usim\Screen;
 use Idei\Usim\Components\Input;
 use Idei\Usim\Components\Select;
-use Idei\Usim\Components\TableBuilder;
+use Idei\Usim\Components\Table;
 use Idei\Usim\Components\UIContainer;
 use Idei\Usim\Enums\DialogType;
 use Idei\Usim\Enums\LayoutType;
@@ -17,7 +17,7 @@ use Idei\Usim\UIBuilder;
 
 class TranlateManager extends Screen
 {
-    protected TableBuilder $translations_table;
+    protected Table $translations_table;
     protected Input $search_translations;
     protected Select $language_filter;
     protected Select $group_filter;

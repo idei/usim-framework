@@ -3,7 +3,7 @@
 namespace {{ componentsNamespace }};
 
 use App\Services\User\UserService;
-use Idei\Usim\Components\TableBuilder;
+use Idei\Usim\Components\Table;
 use Idei\Usim\DataTable\AbstractDataTableModel;
 use Idei\Usim\Support\UIStateManager;
 
@@ -11,7 +11,7 @@ class UserApiTableModel extends AbstractDataTableModel
 {
     protected UserService $userService;
 
-    public function __construct(TableBuilder $tableBuilder)
+    public function __construct(Table $tableBuilder)
     {
         parent::__construct($tableBuilder);
         $this->userService = app(UserService::class);

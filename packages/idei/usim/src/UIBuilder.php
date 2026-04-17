@@ -5,8 +5,8 @@ namespace Idei\Usim;
 use Idei\Usim\Components\Button;
 use Idei\Usim\Components\Label;
 use Idei\Usim\Components\UIContainer;
-use Idei\Usim\Components\TableBuilder;
-use Idei\Usim\Components\TableRowBuilder;
+use Idei\Usim\Components\Table;
+use Idei\Usim\Components\TableRow;
 use Idei\Usim\Components\Input;
 use Idei\Usim\Components\Select;
 use Idei\Usim\Components\Checkbox;
@@ -53,23 +53,23 @@ class UIBuilder
      * @param string|null $name The optional semantic name for the table
      * @param int $rows Number of data rows (0 for dynamic table)
      * @param int $cols Number of columns (0 for dynamic table)
-     * @return TableBuilder
+     * @return Table
      */
-    public static function table(?string $name = null, int $rows = 0, int $cols = 0): TableBuilder
+    public static function table(?string $name = null, int $rows = 0, int $cols = 0): Table
     {
-        return new TableBuilder($name, $rows, $cols);
+        return new Table($name, $rows, $cols);
     }
 
     /**
      * Create a new table row component
      *
-     * @param TableBuilder $table The parent table this row belongs to
+     * @param Table $table The parent table this row belongs to
      * @param string|null $name The optional semantic name for the row
-     * @return TableRowBuilder
+     * @return TableRow
      */
-    public static function tableRow(TableBuilder $table, ?string $name = null): TableRowBuilder
+    public static function tableRow(Table $table, ?string $name = null): TableRow
     {
-        return new TableRowBuilder($table, $name);
+        return new TableRow($table, $name);
     }
 
     /**

@@ -10,10 +10,10 @@ use Idei\Usim\Enums\Align;
  * Represents a cell in a table row. This component must be associated with a TableRow
  * and can contain either simple text or a single child component.
  */
-class TableCellBuilder extends UIComponent
+class TableCell extends UIComponent
 {
-    /** @var TableRowBuilder|null The parent row */
-    private ?TableRowBuilder $row;
+    /** @var TableRow|null The parent row */
+    private ?TableRow $row;
 
     /** @var UIComponent|null Optional child component */
     private ?UIComponent $child = null;
@@ -21,10 +21,10 @@ class TableCellBuilder extends UIComponent
     /**
      * Create a new table cell
      *
-     * @param TableRowBuilder $row The parent row this cell belongs to
+     * @param TableRow $row The parent row this cell belongs to
      * @param string|null $name Optional name for the cell
      */
-    public function __construct(?TableRowBuilder $row = null, ?string $name = null)
+    public function __construct(?TableRow $row = null, ?string $name = null)
     {
         $this->row = $row;
         parent::__construct($name);
@@ -243,9 +243,9 @@ class TableCellBuilder extends UIComponent
     /**
      * Get the parent row
      *
-     * @return TableRowBuilder
+     * @return TableRow
      */
-    public function getRow(): TableRowBuilder
+    public function getRow(): TableRow
     {
         return $this->row;
     }
