@@ -1,8 +1,10 @@
 <?php
 
 use App\Models\User;
+use App\UI\Screens\Admin\Dashboard;
 use App\UI\Screens\Home;
 use App\UI\Screens\Menu;
+use App\UI\Screens\Auth\Profile;
 
 it('returns home screen with expected core components', function () {
     $ui = uiScenario($this, Home::class, ['reset' => true]);
@@ -51,6 +53,7 @@ it('home fragment theme follows global document theme contract', function () {
 });
 
 it('home screen fragment is non-empty regardless of locale', function () {
+    $originalLocale = app()->getLocale();
     app()->setLocale('es');
 
     $ui = uiScenario($this, Home::class, ['reset' => true]);
@@ -58,52 +61,68 @@ it('home screen fragment is non-empty regardless of locale', function () {
 
     expect($html)->not->toBeEmpty();
 
-    app()->setLocale(config('app.locale'));
+    app()->setLocale($originalLocale);
 
     $ui->assertNoIssues();
 });
 
 it('returns menu screen for guests with settings trigger and register option', function () {
-    $ui = uiScenario($this, Menu::class, ['parent' => 'menu']);
+    $originalLocale = app()->getLocale();
 
-    $mainMenu = $ui->component('main_menu')->data();
-    $userMenu = $ui->component('user_menu')->data();
-    $themeToggle = $ui->component('theme_toggle')->data();
+    foreach (['en', 'es'] as $locale) {
+        app()->setLocale($locale);
 
-    expect($mainMenu['type'] ?? null)->toBe('menudropdown');
-    expect(menuItemsContainLabel($mainMenu['items'] ?? [], 'Home'))->toBeTrue();
-    expect(menuItemsContainLabel($mainMenu['items'] ?? [], 'About'))->toBeTrue();
+        $ui = uiScenario($this, Menu::class, ['parent' => 'menu']);
 
-    expect($userMenu['type'] ?? null)->toBe('menudropdown');
-    expect($userMenu['trigger']['label'] ?? null)->toBe('⚙️');
-    expect(menuItemsContainLabel($userMenu['items'] ?? [], 'Register'))->toBeTrue();
-    expect(menuItemsContainLabel($userMenu['items'] ?? [], 'Logout'))->toBeFalse();
-    expect($themeToggle['icon_color'] ?? null)->toBe('var(--usim-menu-trigger-text)');
+        $mainMenu = $ui->component('main_menu')->data();
+        $userMenu = $ui->component('user_menu')->data();
+        $themeToggle = $ui->component('theme_toggle')->data();
 
-    $ui->assertNoIssues();
+        expect($mainMenu['type'] ?? null)->toBe('menudropdown');
+        expect(menuItemsContainLabel($mainMenu['items'] ?? [], t('screen.menu.items.home')))->toBeTrue();
+        expect(menuItemsContainLabel($mainMenu['items'] ?? [], t('screen.menu.items.about')))->toBeTrue();
+
+        expect($userMenu['type'] ?? null)->toBe('menudropdown');
+        expect($userMenu['trigger']['label'] ?? null)->toBe('⚙️');
+        expect(menuItemsContainLabel($userMenu['items'] ?? [], t('screen.menu.items.register')))->toBeTrue();
+        expect(menuItemsContainLabel($userMenu['items'] ?? [], t('screen.menu.items.logout')))->toBeFalse();
+        expect($themeToggle['icon_color'] ?? null)->toBe('var(--usim-menu-trigger-text)');
+
+        $ui->assertNoIssues();
+    }
+
+    app()->setLocale($originalLocale);
 });
 
 it('returns menu screen for authenticated users with user trigger and logout option', function () {
-    /** @var \Tests\TestCase $this */
-    /** @var User $user */
-    $user = User::factory()->create([
-        'name' => 'Menu Tester',
-    ]);
+    $originalLocale = app()->getLocale();
 
-    $this->actingAs($user);
+    foreach (['en', 'es'] as $locale) {
+        app()->setLocale($locale);
 
-    $ui = uiScenario($this, Menu::class, ['parent' => 'menu']);
-    $userMenu = $ui->component('user_menu')->data();
+        /** @var \Tests\TestCase $this */
+        /** @var User $user */
+        $user = User::factory()->create([
+            'name' => 'Menu Tester',
+        ]);
 
-    expect($userMenu['type'] ?? null)->toBe('menudropdown');
+        $this->actingAs($user);
 
-    $triggerLabel = (string) ($userMenu['trigger']['label'] ?? '');
-    expect($triggerLabel)->toContain('Menu Tester');
+        $ui = uiScenario($this, Menu::class, ['parent' => 'menu']);
+        $userMenu = $ui->component('user_menu')->data();
 
-    expect(menuItemsContainLabel($userMenu['items'] ?? [], 'Logout'))->toBeTrue();
-    expect(menuItemsContainLabel($userMenu['items'] ?? [], 'Register'))->toBeFalse();
+        expect($userMenu['type'] ?? null)->toBe('menudropdown');
 
-    $ui->assertNoIssues();
+        $triggerLabel = (string) ($userMenu['trigger']['label'] ?? '');
+        expect($triggerLabel)->toContain('Menu Tester');
+
+        expect(menuItemsContainLabel($userMenu['items'] ?? [], t('screen.menu.items.logout')))->toBeTrue();
+        expect(menuItemsContainLabel($userMenu['items'] ?? [], t('screen.menu.items.register')))->toBeFalse();
+
+        $ui->assertNoIssues();
+    }
+
+    app()->setLocale($originalLocale);
 });
 
 it('shows profile, logout and admin dashboard items after admin login', function () {
@@ -114,9 +133,9 @@ it('shows profile, logout and admin dashboard items after admin login', function
     $mainMenu = $ui->component('main_menu')->data();
     $userMenu = $ui->component('user_menu')->data();
 
-    expect(menuItemsContainLabel($mainMenu['items'] ?? [], 'Dashboard'))->toBeTrue();
-    expect(menuItemsContainLabel($userMenu['items'] ?? [], 'Profile'))->toBeTrue();
-    expect(menuItemsContainLabel($userMenu['items'] ?? [], 'Logout'))->toBeTrue();
+    expect(menuItemsContainLabel($mainMenu['items'] ?? [], Dashboard::getMenuLabel()))->toBeTrue();
+    expect(menuItemsContainLabel($userMenu['items'] ?? [], Profile::getMenuLabel()))->toBeTrue();
+    expect(menuItemsContainLabel($userMenu['items'] ?? [], t('screen.menu.items.logout')))->toBeTrue();
 
     $ui->assertNoIssues();
 });
@@ -129,9 +148,9 @@ it('shows profile/logout and hides admin dashboard after regular user login', fu
     $mainMenu = $ui->component('main_menu')->data();
     $userMenu = $ui->component('user_menu')->data();
 
-    expect(menuItemsContainLabel($mainMenu['items'] ?? [], 'Dashboard'))->toBeFalse();
-    expect(menuItemsContainLabel($userMenu['items'] ?? [], 'Profile'))->toBeTrue();
-    expect(menuItemsContainLabel($userMenu['items'] ?? [], 'Logout'))->toBeTrue();
+    expect(menuItemsContainLabel($mainMenu['items'] ?? [], Dashboard::getMenuLabel()))->toBeFalse();
+    expect(menuItemsContainLabel($userMenu['items'] ?? [], Profile::getMenuLabel()))->toBeTrue();
+    expect(menuItemsContainLabel($userMenu['items'] ?? [], t('screen.menu.items.logout')))->toBeTrue();
 
     $ui->assertNoIssues();
 });

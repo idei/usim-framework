@@ -3,93 +3,126 @@
 use App\UI\Screens\Demo\FormDemo;
 
 it('loads form demo with expected defaults', function () {
-    $ui = uiScenario($this, FormDemo::class, ['reset' => true]);
+    $originalLocale = app()->getLocale();
 
-    $name = $ui->component('input_name');
-    $email = $ui->component('input_email');
-    $submit = $ui->component('btn_submit');
-    $result = $ui->component('lbl_result');
+    foreach (['en', 'es'] as $locale) {
+        app()->setLocale($locale);
 
-    $name->expect('type')->toBe('input');
-    $name->expect('required')->toBeTrue();
-    $name->expect('value')->toBe('');
-    $name->expect('error')->toBeNull();
+        $ui = uiScenario($this, FormDemo::class, ['reset' => true]);
 
-    $email->expect('type')->toBe('input');
-    $email->expect('required')->toBeTrue();
-    $email->expect('input_type')->toBe('email');
-    $email->expect('value')->toBe('');
-    $email->expect('error')->toBeNull();
+        $name = $ui->component('input_name');
+        $email = $ui->component('input_email');
+        $submit = $ui->component('btn_submit');
+        $result = $ui->component('lbl_result');
 
-    $submit->expect('type')->toBe('button');
-    $submit->expect('action')->toBe('submit_form');
+        $name->expect('type')->toBe('input');
+        $name->expect('required')->toBeTrue();
+        $name->expect('value')->toBe('');
+        $name->expect('error')->toBeNull();
 
-    $result->expect('text')->toBe('Fill the form to continue');
-    $result->expect('style')->toBe('secondary');
+        $email->expect('type')->toBe('input');
+        $email->expect('required')->toBeTrue();
+        $email->expect('input_type')->toBe('email');
+        $email->expect('value')->toBe('');
+        $email->expect('error')->toBeNull();
 
-    $ui->assertNoIssues();
+        $submit->expect('type')->toBe('button');
+        $submit->expect('action')->toBe('submit_form');
+
+        $result->expect('text')->toBe(t('screen.demo.form_demo.result.initial'));
+        $result->expect('style')->toBe('secondary');
+
+        $ui->assertNoIssues();
+    }
+
+    app()->setLocale($originalLocale);
 });
 
 it('shows required errors when submitting empty form', function () {
-    $ui = uiScenario($this, FormDemo::class, ['reset' => true]);
+    $originalLocale = app()->getLocale();
 
-    $response = $ui->click('btn_submit', [
-        'input_name' => '',
-        'input_email' => '',
-    ]);
+    foreach (['en', 'es'] as $locale) {
+        app()->setLocale($locale);
 
-    $response->assertOk();
+        $ui = uiScenario($this, FormDemo::class, ['reset' => true]);
 
-    $ui->component('input_name')->expect('error')->toBe('Name is required');
-    $ui->component('input_email')->expect('error')->toBe('Email is required');
+        $response = $ui->click('btn_submit', [
+            'input_name' => '',
+            'input_email' => '',
+        ]);
 
-    $result = $ui->component('lbl_result');
-    $result->expect('text')->toBe('❌ Please fix the errors above');
-    $result->expect('style')->toBe('danger');
+        $response->assertOk();
 
-    $ui->assertNoIssues();
+        $ui->component('input_name')->expect('error')->toBe(t('screen.demo.form_demo.validation.name_required'));
+        $ui->component('input_email')->expect('error')->toBe(t('screen.demo.form_demo.validation.email_required'));
+
+        $result = $ui->component('lbl_result');
+        $result->expect('text')->toBe(t('screen.demo.form_demo.result.errors'));
+        $result->expect('style')->toBe('danger');
+
+        $ui->assertNoIssues();
+    }
+
+    app()->setLocale($originalLocale);
 });
 
 it('shows format and min-length errors for invalid values', function () {
-    $ui = uiScenario($this, FormDemo::class, ['reset' => true]);
+    $originalLocale = app()->getLocale();
 
-    $response = $ui->click('btn_submit', [
-        'input_name' => 'A',
-        'input_email' => 'not-an-email',
-    ]);
+    foreach (['en', 'es'] as $locale) {
+        app()->setLocale($locale);
 
-    $response->assertOk();
+        $ui = uiScenario($this, FormDemo::class, ['reset' => true]);
 
-    $ui->component('input_name')->expect('error')->toBe('Name must be at least 2 characters');
-    $ui->component('input_email')->expect('error')->toBe('Email is invalid');
+        $response = $ui->click('btn_submit', [
+            'input_name' => 'A',
+            'input_email' => 'not-an-email',
+        ]);
 
-    $result = $ui->component('lbl_result');
-    $result->expect('text')->toBe('❌ Please fix the errors above');
-    $result->expect('style')->toBe('danger');
+        $response->assertOk();
 
-    $ui->assertNoIssues();
+        $ui->component('input_name')->expect('error')->toBe(t('screen.demo.form_demo.validation.name_min'));
+        $ui->component('input_email')->expect('error')->toBe(t('screen.demo.form_demo.validation.email_invalid'));
+
+        $result = $ui->component('lbl_result');
+        $result->expect('text')->toBe(t('screen.demo.form_demo.result.errors'));
+        $result->expect('style')->toBe('danger');
+
+        $ui->assertNoIssues();
+    }
+
+    app()->setLocale($originalLocale);
 });
 
 it('submits successfully and clears inputs for valid values', function () {
-    $ui = uiScenario($this, FormDemo::class, ['reset' => true]);
+    $originalLocale = app()->getLocale();
 
-    $response = $ui->click('btn_submit', [
-        'input_name' => 'Alice',
-        'input_email' => 'alice@example.com',
-    ]);
+    foreach (['en', 'es'] as $locale) {
+        app()->setLocale($locale);
 
-    $response->assertOk();
+        $ui = uiScenario($this, FormDemo::class, ['reset' => true]);
 
-    $resultText = $ui->component('lbl_result')->data()['text'] ?? '';
-    expect($resultText)->toContain('Form submitted successfully!');
-    expect($resultText)->toContain('Name: Alice');
-    expect($resultText)->toContain('Email: alice@example.com');
+        $response = $ui->click('btn_submit', [
+            'input_name' => 'Alice',
+            'input_email' => 'alice@example.com',
+        ]);
 
-    $ui->component('lbl_result')->expect('style')->toBe('success');
-    $ui->component('input_name')->expect('error')->toBeNull();
-    $ui->component('input_email')->expect('error')->toBeNull();
-    $ui->component('input_name')->expect('value')->toBe('');
-    $ui->component('input_email')->expect('value')->toBe('');
+        $response->assertOk();
 
-    $ui->assertNoIssues();
+        $resultText = $ui->component('lbl_result')->data()['text'] ?? '';
+        expect($resultText)->toBe(t('screen.demo.form_demo.result.success', [
+            'name' => 'Alice',
+            'email' => 'alice@example.com',
+        ]));
+
+        $ui->component('lbl_result')->expect('style')->toBe('success');
+        $ui->component('input_name')->expect('error')->toBeNull();
+        $ui->component('input_email')->expect('error')->toBeNull();
+        $ui->component('input_name')->expect('value')->toBe('');
+        $ui->component('input_email')->expect('value')->toBe('');
+
+        $ui->assertNoIssues();
+    }
+
+    app()->setLocale($originalLocale);
 });

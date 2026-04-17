@@ -3,90 +3,132 @@
 use App\UI\Screens\Demo\CheckboxDemo;
 
 it('loads checkbox demo with expected defaults', function () {
-    $ui = uiScenario($this, CheckboxDemo::class, ['reset' => true]);
+    $originalLocale = app()->getLocale();
 
-    $chkJavascript = $ui->component('chk_javascript');
-    $chkPython = $ui->component('chk_python');
-    $btnSubmit = $ui->component('btn_submit');
-    $lblResult = $ui->component('lbl_result');
+    foreach (['en', 'es'] as $locale) {
+        app()->setLocale($locale);
 
-    $chkJavascript->expect('type')->toBe('checkbox');
-    $chkJavascript->expect('checked')->toBeFalse();
+        $ui = uiScenario($this, CheckboxDemo::class, ['reset' => true]);
 
-    $chkPython->expect('type')->toBe('checkbox');
-    $chkPython->expect('checked')->toBeFalse();
+        $chkJavascript = $ui->component('chk_javascript');
+        $chkPython = $ui->component('chk_python');
+        $btnSubmit = $ui->component('btn_submit');
+        $lblResult = $ui->component('lbl_result');
 
-    $btnSubmit->expect('type')->toBe('button');
-    $btnSubmit->expect('action')->toBe('submit_selection');
+        $chkJavascript->expect('type')->toBe('checkbox');
+        $chkJavascript->expect('checked')->toBeFalse();
 
-    $lblResult->expect('text')->toBe('Make your selection above');
-    $lblResult->expect('style')->toBe('secondary');
+        $chkPython->expect('type')->toBe('checkbox');
+        $chkPython->expect('checked')->toBeFalse();
 
-    $ui->assertNoIssues();
+        $btnSubmit->expect('type')->toBe('button');
+        $btnSubmit->expect('action')->toBe('submit_selection');
+
+        $lblResult->expect('text')->toBe(t('screen.demo.checkbox_demo.result.initial'));
+        $lblResult->expect('style')->toBe('secondary');
+
+        $ui->assertNoIssues();
+    }
+
+    app()->setLocale($originalLocale);
 });
 
 it('rejects selecting python when javascript is not selected', function () {
-    $ui = uiScenario($this, CheckboxDemo::class, ['reset' => true]);
+    $originalLocale = app()->getLocale();
 
-    $response = $ui->change(
-        componentName: 'chk_python',
-        action: 'try_change_python',
-        parameters: ['checked' => true, 'name' => 'chk_python'],
-        includeStorageHeader: false
-    );
+    foreach (['en', 'es'] as $locale) {
+        app()->setLocale($locale);
 
-    $response->assertOk();
-    expect($response->json('toast.type'))->toBe('error');
-    expect($response->json('toast.message'))->toBe('You must select JavaScript first before selecting Python!');
+        $ui = uiScenario($this, CheckboxDemo::class, ['reset' => true]);
 
-    $ui->component('chk_python')->expect('checked')->toBeFalse();
-    $ui->component('lbl_result')->expect('text')->toBe('❌ You must select JavaScript first before selecting Python!');
-    $ui->component('lbl_result')->expect('style')->toBe('danger');
+        $response = $ui->change(
+            componentName: 'chk_python',
+            action: 'try_change_python',
+            parameters: ['checked' => true, 'name' => 'chk_python'],
+            includeStorageHeader: false
+        );
 
-    $ui->assertNoIssues();
+        $response->assertOk();
+        expect($response->json('toast.type'))->toBe('error');
+        expect($response->json('toast.message'))->toBe(t('screen.demo.checkbox_demo.validation.python_requires_javascript'));
+
+        $ui->component('chk_python')->expect('checked')->toBeFalse();
+        $ui->component('lbl_result')->expect('text')->toBe(t('screen.demo.checkbox_demo.validation.python_requires_javascript'));
+        $ui->component('lbl_result')->expect('style')->toBe('danger');
+
+        $ui->assertNoIssues();
+    }
+
+    app()->setLocale($originalLocale);
 });
 
 it('allows selecting python after javascript is selected', function () {
-    $ui = uiScenario($this, CheckboxDemo::class, ['reset' => true]);
+    $originalLocale = app()->getLocale();
 
-    $responseJs = $ui->change(
-        componentName: 'chk_javascript',
-        action: 'try_change_javascript',
-        parameters: ['checked' => true, 'name' => 'chk_javascript'],
-        includeStorageHeader: false
-    );
-    $responseJs->assertOk();
+    foreach (['en', 'es'] as $locale) {
+        app()->setLocale($locale);
 
-    $responsePy = $ui->change(
-        componentName: 'chk_python',
-        action: 'try_change_python',
-        parameters: ['checked' => true, 'name' => 'chk_python'],
-        includeStorageHeader: false
-    );
-    $responsePy->assertOk();
+        $ui = uiScenario($this, CheckboxDemo::class, ['reset' => true]);
 
-    $ui->component('chk_javascript')->expect('checked')->toBeTrue();
-    $ui->component('chk_python')->expect('checked')->toBeTrue();
-    $ui->component('lbl_result')->expect('text')->toBe('✅ Python selected!');
-    $ui->component('lbl_result')->expect('style')->toBe('success');
+        $responseJs = $ui->change(
+            componentName: 'chk_javascript',
+            action: 'try_change_javascript',
+            parameters: ['checked' => true, 'name' => 'chk_javascript'],
+            includeStorageHeader: false
+        );
+        $responseJs->assertOk();
 
-    $ui->assertNoIssues();
+        $responsePy = $ui->change(
+            componentName: 'chk_python',
+            action: 'try_change_python',
+            parameters: ['checked' => true, 'name' => 'chk_python'],
+            includeStorageHeader: false
+        );
+        $responsePy->assertOk();
+
+        $ui->component('chk_javascript')->expect('checked')->toBeTrue();
+        $ui->component('chk_python')->expect('checked')->toBeTrue();
+        $ui->component('lbl_result')->expect('text')->toBe(t('screen.demo.checkbox_demo.result.python_selected'));
+        $ui->component('lbl_result')->expect('style')->toBe('success');
+
+        $ui->assertNoIssues();
+    }
+
+    app()->setLocale($originalLocale);
 });
 
 it('submits selected languages and shows success feedback', function () {
-    $ui = uiScenario($this, CheckboxDemo::class, ['reset' => true]);
+    $originalLocale = app()->getLocale();
 
-    $response = $ui->click('btn_submit', [
-        'chk_javascript' => true,
-        'chk_python' => true,
-    ]);
+    foreach (['en', 'es'] as $locale) {
+        app()->setLocale($locale);
 
-    $response->assertOk();
-    expect($response->json('toast.type'))->toBe('success');
-    expect($response->json('toast.message'))->toBe('Submitted! Your selections: JavaScript, Python');
+        $ui = uiScenario($this, CheckboxDemo::class, ['reset' => true]);
 
-    $ui->component('lbl_result')->expect('text')->toBe('✅ Submitted! Your selections: JavaScript, Python');
-    $ui->component('lbl_result')->expect('style')->toBe('success');
+        $response = $ui->click('btn_submit', [
+            'chk_javascript' => true,
+            'chk_python' => true,
+        ]);
 
-    $ui->assertNoIssues();
+        $response->assertOk();
+        expect($response->json('toast.type'))->toBe('success');
+
+        $languages = implode(', ', [
+            t('screen.demo.checkbox_demo.options.javascript'),
+            t('screen.demo.checkbox_demo.options.python'),
+        ]);
+
+        expect($response->json('toast.message'))->toBe(
+            t('screen.demo.checkbox_demo.result.submitted_toast', ['languages' => $languages])
+        );
+
+        $ui->component('lbl_result')->expect('text')->toBe(
+            t('screen.demo.checkbox_demo.result.submitted', ['languages' => $languages])
+        );
+        $ui->component('lbl_result')->expect('style')->toBe('success');
+
+        $ui->assertNoIssues();
+    }
+
+    app()->setLocale($originalLocale);
 });

@@ -6,124 +6,153 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
 it('loads uploader demo with expected base components', function () {
-    $ui = uiScenario($this, UploaderDemo::class, ['reset' => true]);
+    $originalLocale = app()->getLocale();
 
-    $ui->component('uploader_profile')->expect('type')->toBe('uploader');
-    $ui->component('uploader_profile')->expect('max_files')->toBe(1);
-    $ui->component('uploader_profile')->expect('aspect_ratio')->toBe('1:1');
+    foreach (['en', 'es'] as $locale) {
+        app()->setLocale($locale);
 
-    $ui->component('uploader_images')->expect('type')->toBe('uploader');
-    $ui->component('uploader_images')->expect('max_files')->toBe(3);
+        $ui = uiScenario($this, UploaderDemo::class, ['reset' => true]);
 
-    $ui->component('uploader_documents')->expect('type')->toBe('uploader');
-    $ui->component('uploader_documents')->expect('max_files')->toBe(2);
+        $ui->component('uploader_profile')->expect('type')->toBe('uploader');
+        $ui->component('uploader_profile')->expect('max_files')->toBe(1);
+        $ui->component('uploader_profile')->expect('aspect_ratio')->toBe('1:1');
 
-    $ui->component('btn_confirm_profile')->expect('action')->toBe('process_profile');
-    $ui->component('btn_confirm_documents')->expect('action')->toBe('process_documents');
+        $ui->component('uploader_images')->expect('type')->toBe('uploader');
+        $ui->component('uploader_images')->expect('max_files')->toBe(3);
 
-    $ui->component('lbl_result')->expect('text')->toBe('Sube archivos para ver el resultado');
-    $ui->component('lbl_result')->expect('style')->toBe('secondary');
+        $ui->component('uploader_documents')->expect('type')->toBe('uploader');
+        $ui->component('uploader_documents')->expect('max_files')->toBe(2);
 
-    $ui->assertNoIssues();
+        $ui->component('btn_confirm_profile')->expect('action')->toBe('process_profile');
+        $ui->component('btn_confirm_documents')->expect('action')->toBe('process_documents');
+
+        $ui->component('lbl_result')->expect('text')->toBe(t('screen.demo.uploader_demo.result.initial'));
+        $ui->component('lbl_result')->expect('style')->toBe('secondary');
+
+        $ui->assertNoIssues();
+    }
+
+    app()->setLocale($originalLocale);
 });
 
 it('shows validation error when processing profile without uploaded file', function () {
-    $ui = uiScenario($this, UploaderDemo::class, ['reset' => true]);
+    $originalLocale = app()->getLocale();
 
-    $response = $ui->click('btn_confirm_profile', [
-        'uploader_profile_temp_ids' => '[]',
-    ]);
+    foreach (['en', 'es'] as $locale) {
+        app()->setLocale($locale);
 
-    $response->assertOk();
+        $ui = uiScenario($this, UploaderDemo::class, ['reset' => true]);
 
-    $ui->component('lbl_result')->expect('text')->toBe('❌ No hay foto de perfil para procesar');
-    $ui->component('lbl_result')->expect('style')->toBe('danger');
-    expect($response->json('clear_uploaders'))->toBeNull();
+        $response = $ui->click('btn_confirm_profile', [
+            'uploader_profile_temp_ids' => '[]',
+        ]);
 
-    $ui->assertNoIssues();
+        $response->assertOk();
+
+        $ui->component('lbl_result')->expect('text')->toBe(t('screen.demo.uploader_demo.errors.no_profile'));
+        $ui->component('lbl_result')->expect('style')->toBe('danger');
+        expect($response->json('clear_uploaders'))->toBeNull();
+
+        $ui->assertNoIssues();
+    }
+
+    app()->setLocale($originalLocale);
 });
 
 it('processes profile upload, moves file, clears temporary row and requests uploader clear', function () {
-    Storage::fake('local');
+    $originalLocale = app()->getLocale();
 
-    $ui = uiScenario($this, UploaderDemo::class, ['reset' => true]);
+    foreach (['en', 'es'] as $locale) {
+        app()->setLocale($locale);
+        Storage::fake('local');
 
-    $tempId = createTemporaryUploadRecord(
-        componentId: (string) ($ui->component('uploader_profile')->data()['_id'] ?? 'uploader_profile'),
-        originalFilename: 'avatar.jpg',
-        storedFilename: 'avatar-temp.jpg',
-        type: 'image',
-        mimeType: 'image/jpeg'
-    );
+        $ui = uiScenario($this, UploaderDemo::class, ['reset' => true]);
 
-    $response = $ui->click('btn_confirm_profile', [
-        'uploader_profile_temp_ids' => json_encode([$tempId]),
-    ]);
+        $tempId = createTemporaryUploadRecord(
+            componentId: (string) ($ui->component('uploader_profile')->data()['_id'] ?? 'uploader_profile'),
+            originalFilename: 'avatar.jpg',
+            storedFilename: 'avatar-temp.jpg',
+            type: 'image',
+            mimeType: 'image/jpeg'
+        );
 
-    $response->assertOk();
+        $response = $ui->click('btn_confirm_profile', [
+            'uploader_profile_temp_ids' => json_encode([$tempId]),
+        ]);
 
-    $resultText = $ui->component('lbl_result')->data()['text'] ?? '';
-    expect($resultText)->toContain('Foto de perfil procesada exitosamente');
-    expect($resultText)->toContain('avatar.jpg');
-    $ui->component('lbl_result')->expect('style')->toBe('success');
+        $response->assertOk();
 
-    $uploaderProfileId = $ui->component('uploader_profile')->data()['_id'] ?? null;
-    expect($response->json('clear_uploaders'))->toBe([$uploaderProfileId]);
+        $resultText = $ui->component('lbl_result')->data()['text'] ?? '';
+        expect($resultText)->toContain(t('screen.demo.uploader_demo.profile.processed_header'));
+        expect($resultText)->not->toBe('');
+        $ui->component('lbl_result')->expect('style')->toBe('success');
 
-    expect(DB::table('temporary_uploads')->where('id', $tempId)->exists())->toBeFalse();
-    expect(Storage::disk('local')->exists('temp/avatar-temp.jpg'))->toBeFalse();
-    expect(Storage::disk('local')->exists('uploads/images/avatar-temp.jpg'))->toBeTrue();
+        $uploaderProfileId = $ui->component('uploader_profile')->data()['_id'] ?? null;
+        expect($response->json('clear_uploaders'))->toBe([$uploaderProfileId]);
 
-    $ui->assertNoIssues();
+        expect(DB::table('temporary_uploads')->where('id', $tempId)->exists())->toBeFalse();
+        expect(Storage::disk('local')->exists('temp/avatar-temp.jpg'))->toBeFalse();
+        expect(Storage::disk('local')->exists('uploads/images/avatar-temp.jpg'))->toBeTrue();
+
+        $ui->assertNoIssues();
+    }
+
+    app()->setLocale($originalLocale);
 });
 
 it('processes multiple documents and clears document uploader', function () {
-    Storage::fake('local');
+    $originalLocale = app()->getLocale();
 
-    $ui = uiScenario($this, UploaderDemo::class, ['reset' => true]);
+    foreach (['en', 'es'] as $locale) {
+        app()->setLocale($locale);
+        Storage::fake('local');
 
-    $componentId = (string) ($ui->component('uploader_documents')->data()['_id'] ?? 'uploader_documents');
+        $ui = uiScenario($this, UploaderDemo::class, ['reset' => true]);
 
-    $firstId = createTemporaryUploadRecord(
-        componentId: $componentId,
-        originalFilename: 'manual.pdf',
-        storedFilename: 'manual-temp.pdf',
-        type: 'document',
-        mimeType: 'application/pdf'
-    );
+        $componentId = (string) ($ui->component('uploader_documents')->data()['_id'] ?? 'uploader_documents');
 
-    $secondId = createTemporaryUploadRecord(
-        componentId: $componentId,
-        originalFilename: 'budget.xlsx',
-        storedFilename: 'budget-temp.xlsx',
-        type: 'document',
-        mimeType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-    );
+        $firstId = createTemporaryUploadRecord(
+            componentId: $componentId,
+            originalFilename: 'manual.pdf',
+            storedFilename: 'manual-temp.pdf',
+            type: 'document',
+            mimeType: 'application/pdf'
+        );
 
-    $response = $ui->click('btn_confirm_documents', [
-        'uploader_documents_temp_ids' => json_encode([$firstId, $secondId]),
-    ]);
+        $secondId = createTemporaryUploadRecord(
+            componentId: $componentId,
+            originalFilename: 'budget.xlsx',
+            storedFilename: 'budget-temp.xlsx',
+            type: 'document',
+            mimeType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        );
 
-    $response->assertOk();
+        $response = $ui->click('btn_confirm_documents', [
+            'uploader_documents_temp_ids' => json_encode([$firstId, $secondId]),
+        ]);
 
-    $resultText = $ui->component('lbl_result')->data()['text'] ?? '';
-    expect($resultText)->toContain('Documentos procesados exitosamente');
-    expect($resultText)->toContain('manual.pdf');
-    expect($resultText)->toContain('budget.xlsx');
-    $ui->component('lbl_result')->expect('style')->toBe('success');
+        $response->assertOk();
 
-    $uploaderDocumentsId = $ui->component('uploader_documents')->data()['_id'] ?? null;
-    expect($response->json('clear_uploaders'))->toBe([$uploaderDocumentsId]);
+        $resultText = $ui->component('lbl_result')->data()['text'] ?? '';
+        expect($resultText)->toContain(t('screen.demo.uploader_demo.documents.processed_header'));
+        expect($resultText)->not->toBe('');
+        $ui->component('lbl_result')->expect('style')->toBe('success');
 
-    expect(DB::table('temporary_uploads')->where('id', $firstId)->exists())->toBeFalse();
-    expect(DB::table('temporary_uploads')->where('id', $secondId)->exists())->toBeFalse();
+        $uploaderDocumentsId = $ui->component('uploader_documents')->data()['_id'] ?? null;
+        expect($response->json('clear_uploaders'))->toBe([$uploaderDocumentsId]);
 
-    expect(Storage::disk('local')->exists('temp/manual-temp.pdf'))->toBeFalse();
-    expect(Storage::disk('local')->exists('temp/budget-temp.xlsx'))->toBeFalse();
-    expect(Storage::disk('local')->exists('uploads/documents/manual-temp.pdf'))->toBeTrue();
-    expect(Storage::disk('local')->exists('uploads/documents/budget-temp.xlsx'))->toBeTrue();
+        expect(DB::table('temporary_uploads')->where('id', $firstId)->exists())->toBeFalse();
+        expect(DB::table('temporary_uploads')->where('id', $secondId)->exists())->toBeFalse();
 
-    $ui->assertNoIssues();
+        expect(Storage::disk('local')->exists('temp/manual-temp.pdf'))->toBeFalse();
+        expect(Storage::disk('local')->exists('temp/budget-temp.xlsx'))->toBeFalse();
+        expect(Storage::disk('local')->exists('uploads/documents/manual-temp.pdf'))->toBeTrue();
+        expect(Storage::disk('local')->exists('uploads/documents/budget-temp.xlsx'))->toBeTrue();
+
+        $ui->assertNoIssues();
+    }
+
+    app()->setLocale($originalLocale);
 });
 
 if (!function_exists('createTemporaryUploadRecord')) {

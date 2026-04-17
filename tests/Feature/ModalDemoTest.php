@@ -3,85 +3,117 @@
 use App\UI\Screens\Demo\ModalDemo;
 
 it('loads modal demo with expected base components', function () {
-    $ui = uiScenario($this, ModalDemo::class, ['reset' => true]);
+    $originalLocale = app()->getLocale();
 
-    $ui->component('lbl_instruction')->expect('type')->toBe('label');
-    $ui->component('lbl_result')->expect('type')->toBe('label');
-    $ui->component('lbl_result')->expect('text')->toBe('');
+    foreach (['en', 'es'] as $locale) {
+        app()->setLocale($locale);
 
-    $ui->component('btn_open_modal')->expect('type')->toBe('button');
-    $ui->component('btn_open_modal')->expect('action')->toBe('open_confirmation');
+        $ui = uiScenario($this, ModalDemo::class, ['reset' => true]);
 
-    $ui->component('btn_error_dialog')->expect('action')->toBe('show_error_dialog');
-    $ui->component('btn_timeout_dialog')->expect('action')->toBe('show_timeout_dialog');
-    $ui->component('btn_timeout_no_button')->expect('action')->toBe('show_timeout_no_button');
-    $ui->component('btn_show_settings')->expect('action')->toBe('show_settings_confirm');
+        $ui->component('lbl_instruction')->expect('type')->toBe('label');
+        $ui->component('lbl_result')->expect('type')->toBe('label');
+        $ui->component('lbl_result')->expect('text')->toBe('');
 
-    $ui->assertNoIssues();
+        $ui->component('btn_open_modal')->expect('type')->toBe('button');
+        $ui->component('btn_open_modal')->expect('action')->toBe('open_confirmation');
+
+        $ui->component('btn_error_dialog')->expect('action')->toBe('show_error_dialog');
+        $ui->component('btn_timeout_dialog')->expect('action')->toBe('show_timeout_dialog');
+        $ui->component('btn_timeout_no_button')->expect('action')->toBe('show_timeout_no_button');
+        $ui->component('btn_show_settings')->expect('action')->toBe('show_settings_confirm');
+
+        $ui->assertNoIssues();
+    }
+
+    app()->setLocale($originalLocale);
 });
 
 it('opens confirmation modal and handles confirm action', function () {
-    $ui = uiScenario($this, ModalDemo::class, ['reset' => true]);
+    $originalLocale = app()->getLocale();
 
-    $openResponse = $ui->click('btn_open_modal');
-    $openResponse->assertOk();
+    foreach (['en', 'es'] as $locale) {
+        app()->setLocale($locale);
 
-    // Modal content is returned as regular UI entries with parent="modal".
-    expect(hasModalComponents($openResponse->json()))->toBeTrue();
+        $ui = uiScenario($this, ModalDemo::class, ['reset' => true]);
 
-    $confirmData = $ui->component('btn_confirm')->data();
-    $confirmParams = $confirmData['parameters'] ?? [];
+        $openResponse = $ui->click('btn_open_modal');
+        $openResponse->assertOk();
 
-    $confirmResponse = $ui->click('btn_confirm', $confirmParams);
-    $confirmResponse->assertOk();
-    expect($confirmResponse->json('action'))->toBe('close_modal');
+        // Modal content is returned as regular UI entries with parent="modal".
+        expect(hasModalComponents($openResponse->json()))->toBeTrue();
 
-    $result = $ui->component('lbl_result');
-    expect($result->data()['text'] ?? '')->toContain('Action confirmed');
-    $result->expect('style')->toBe('success');
+        $confirmData = $ui->component('btn_confirm')->data();
+        $confirmParams = $confirmData['parameters'] ?? [];
 
-    $ui->assertNoIssues();
+        $confirmResponse = $ui->click('btn_confirm', $confirmParams);
+        $confirmResponse->assertOk();
+        expect($confirmResponse->json('action'))->toBe('close_modal');
+
+        $result = $ui->component('lbl_result');
+        $result->expect('text')->toBe(t('screen.demo.modal_demo.result.confirmed', ['type' => 'demo_action']));
+        $result->expect('style')->toBe('success');
+
+        $ui->assertNoIssues();
+    }
+
+    app()->setLocale($originalLocale);
 });
 
 it('opens confirmation modal and handles cancel action', function () {
-    $ui = uiScenario($this, ModalDemo::class, ['reset' => true]);
+    $originalLocale = app()->getLocale();
 
-    $openResponse = $ui->click('btn_open_modal');
-    $openResponse->assertOk();
-    expect(hasModalComponents($openResponse->json()))->toBeTrue();
+    foreach (['en', 'es'] as $locale) {
+        app()->setLocale($locale);
 
-    $cancelData = $ui->component('btn_cancel')->data();
-    $cancelParams = $cancelData['parameters'] ?? [];
+        $ui = uiScenario($this, ModalDemo::class, ['reset' => true]);
 
-    $cancelResponse = $ui->click('btn_cancel', $cancelParams);
-    $cancelResponse->assertOk();
-    expect($cancelResponse->json('action'))->toBe('close_modal');
+        $openResponse = $ui->click('btn_open_modal');
+        $openResponse->assertOk();
+        expect(hasModalComponents($openResponse->json()))->toBeTrue();
 
-    $result = $ui->component('lbl_result');
-    expect($result->data()['text'] ?? '')->toContain('Action cancelled');
-    $result->expect('style')->toBe('warning');
+        $cancelData = $ui->component('btn_cancel')->data();
+        $cancelParams = $cancelData['parameters'] ?? [];
 
-    $ui->assertNoIssues();
+        $cancelResponse = $ui->click('btn_cancel', $cancelParams);
+        $cancelResponse->assertOk();
+        expect($cancelResponse->json('action'))->toBe('close_modal');
+
+        $result = $ui->component('lbl_result');
+        $result->expect('text')->toBe(t('screen.demo.modal_demo.result.cancelled'));
+        $result->expect('style')->toBe('warning');
+
+        $ui->assertNoIssues();
+    }
+
+    app()->setLocale($originalLocale);
 });
 
 it('opens timeout modal without close button and exposes timeout metadata', function () {
-    $ui = uiScenario($this, ModalDemo::class, ['reset' => true]);
+    $originalLocale = app()->getLocale();
 
-    $response = $ui->click('btn_timeout_no_button');
-    $response->assertOk();
+    foreach (['en', 'es'] as $locale) {
+        app()->setLocale($locale);
 
-    $payload = $response->json();
-    expect(hasModalComponents($payload))->toBeTrue();
+        $ui = uiScenario($this, ModalDemo::class, ['reset' => true]);
 
-    $modalRoot = firstTimeoutModalComponent($payload);
-    expect($modalRoot)->not->toBeNull();
-    expect($modalRoot['_timeout'] ?? null)->toBe(5);
-    expect($modalRoot['_time_unit'] ?? null)->toBe('seconds');
-    expect($modalRoot['_timeout_action'] ?? null)->toBe('close_modal');
+        $response = $ui->click('btn_timeout_no_button');
+        $response->assertOk();
 
-    // Timeout dialog configured without close button should not include modal confirm/cancel buttons.
-    expect(modalPayloadHasNamedComponent($payload, 'btn_confirm'))->toBeFalse();
-    expect(modalPayloadHasNamedComponent($payload, 'btn_cancel'))->toBeFalse();
+        $payload = $response->json();
+        expect(hasModalComponents($payload))->toBeTrue();
 
-    $ui->assertNoIssues();
+        $modalRoot = firstTimeoutModalComponent($payload);
+        expect($modalRoot)->not->toBeNull();
+        expect($modalRoot['_timeout'] ?? null)->toBe(5);
+        expect($modalRoot['_time_unit'] ?? null)->toBe('seconds');
+        expect($modalRoot['_timeout_action'] ?? null)->toBe('close_modal');
+
+        // Timeout dialog configured without close button should not include modal confirm/cancel buttons.
+        expect(modalPayloadHasNamedComponent($payload, 'btn_confirm'))->toBeFalse();
+        expect(modalPayloadHasNamedComponent($payload, 'btn_cancel'))->toBeFalse();
+
+        $ui->assertNoIssues();
+    }
+
+    app()->setLocale($originalLocale);
 });

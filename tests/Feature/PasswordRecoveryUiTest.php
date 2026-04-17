@@ -9,129 +9,151 @@ use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\URL;
 
 it('sends reset-password email from forgot-password screen', function () {
-    /** @var \Tests\TestCase $this */
-    Notification::fake();
+    $originalLocale = app()->getLocale();
 
-    $user = User::factory()->create([
-        'email' => 'forgot.ui@example.com',
-    ]);
+    foreach (['en', 'es'] as $locale) {
+        app()->setLocale($locale);
+        Notification::fake();
 
-    $ui = uiScenario($this, ForgotPassword::class, ['reset' => true]);
+        $user = User::factory()->create([
+            'email' => "forgot.ui.{$locale}@example.com",
+        ]);
 
-    $response = $ui->click('btn_send', [
-        'email' => $user->email,
-    ]);
+        $ui = uiScenario($this, ForgotPassword::class, ['reset' => true]);
 
-    $response->assertOk();
-    expect($response->json('toast.type'))->toBe('success');
+        $response = $ui->click('btn_send', [
+            'email' => $user->email,
+        ]);
 
-    Notification::assertSentTo($user, ResetPasswordNotification::class);
-    $ui->assertNoIssues();
+        $response->assertOk();
+        expect($response->json('toast.type'))->toBe('success');
+
+        Notification::assertSentTo($user, ResetPasswordNotification::class);
+        $ui->assertNoIssues();
+    }
+
+    app()->setLocale($originalLocale);
 });
 
 it('resets password from the link received by email after validations pass', function () {
-    /** @var \Tests\TestCase $this */
-    Notification::fake();
+    $originalLocale = app()->getLocale();
 
-    $user = User::factory()->create([
-        'email' => 'reset.ui@example.com',
-        'password' => bcrypt('old-password-123'),
-    ]);
+    foreach (['en', 'es'] as $locale) {
+        app()->setLocale($locale);
+        Notification::fake();
 
-    // Request reset link from UI.
-    uiScenario($this, ForgotPassword::class, ['reset' => true])
-        ->click('btn_send', ['email' => $user->email])
-        ->assertOk();
+        $user = User::factory()->create([
+            'email' => "reset.ui.{$locale}@example.com",
+            'password' => bcrypt('old-password-123'),
+        ]);
 
-    $resetUrl = null;
+        // Request reset link from UI.
+        uiScenario($this, ForgotPassword::class, ['reset' => true])
+            ->click('btn_send', ['email' => $user->email])
+            ->assertOk();
 
-    Notification::assertSentTo(
-        $user,
-        ResetPasswordNotification::class,
-        function (ResetPasswordNotification $notification) use ($user, &$resetUrl): bool {
-            $mailMessage = $notification->toMail($user);
-            $url = $mailMessage->viewData['resetUrl'] ?? null;
+        $resetUrl = null;
 
-            if (!is_string($url) || $url === '') {
-                return false;
+        Notification::assertSentTo(
+            $user,
+            ResetPasswordNotification::class,
+            function (ResetPasswordNotification $notification) use ($user, &$resetUrl): bool {
+                $mailMessage = $notification->toMail($user);
+                $url = $mailMessage->viewData['resetUrl'] ?? null;
+
+                if (!is_string($url) || $url === '') {
+                    return false;
+                }
+
+                $resetUrl = $url;
+                return true;
             }
+        );
 
-            $resetUrl = $url;
-            return true;
-        }
-    );
+        expect($resetUrl)->toStartWith('http');
 
-    expect($resetUrl)->toStartWith('http');
+        $parsedUrl = parse_url((string) $resetUrl);
+        $query = [];
+        parse_str($parsedUrl['query'] ?? '', $query);
 
-    $parsedUrl = parse_url((string) $resetUrl);
-    $query = [];
-    parse_str($parsedUrl['query'] ?? '', $query);
+        $resetUi = uiScenario($this, ResetPassword::class, array_merge($query, ['reset' => true]));
 
-    $resetUi = uiScenario($this, ResetPassword::class, array_merge($query, ['reset' => true]));
+        // Ensure client-side validation blocks invalid payload first.
+        $mismatchResponse = $resetUi->click('btn_reset', array_merge($query, [
+            'reset_token' => (string) ($query['token'] ?? ''),
+            'reset_email' => (string) ($query['email'] ?? ''),
+            'password' => 'new-password-123',
+            'password_confirmation' => 'different-password',
+        ]));
 
-    // Ensure client-side validation blocks invalid payload first.
-    $mismatchResponse = $resetUi->click('btn_reset', array_merge($query, [
-        'reset_token' => (string) ($query['token'] ?? ''),
-        'reset_email' => (string) ($query['email'] ?? ''),
-        'password' => 'new-password-123',
-        'password_confirmation' => 'different-password',
-    ]));
+        $mismatchResponse->assertOk();
+        expect($mismatchResponse->json('toast.type'))->toBe('error');
+        expect($mismatchResponse->json('toast.message'))->toBe(t('screen.auth.reset_password.validation.mismatch'));
 
-    $mismatchResponse->assertOk();
-    expect($mismatchResponse->json('toast.type'))->toBe('error');
+        // Submit valid data and verify password update.
+        $validResponse = $resetUi->click('btn_reset', array_merge($query, [
+            'reset_token' => (string) ($query['token'] ?? ''),
+            'reset_email' => (string) ($query['email'] ?? ''),
+            'password' => 'new-password-123',
+            'password_confirmation' => 'new-password-123',
+        ]));
 
-    // Submit valid data and verify password update.
-    $validResponse = $resetUi->click('btn_reset', array_merge($query, [
-        'reset_token' => (string) ($query['token'] ?? ''),
-        'reset_email' => (string) ($query['email'] ?? ''),
-        'password' => 'new-password-123',
-        'password_confirmation' => 'new-password-123',
-    ]));
+        $validResponse->assertOk();
+        expect($validResponse->json('toast.type'))->toBe('success');
+        expect($validResponse->json('toast.message'))->toBe(t('screen.auth.reset_password.toast.success'));
+        expect($validResponse->json('redirect'))->toBe('/auth/login');
 
-    $validResponse->assertOk();
-    expect($validResponse->json('toast.type'))->toBe('success');
-    expect($validResponse->json('redirect'))->toBe('/auth/login');
+        $user->refresh();
+        expect(Hash::check('new-password-123', (string) $user->password))->toBeTrue();
+        expect(Hash::check('old-password-123', (string) $user->password))->toBeFalse();
 
-    $user->refresh();
-    expect(Hash::check('new-password-123', (string) $user->password))->toBeTrue();
-    expect(Hash::check('old-password-123', (string) $user->password))->toBeFalse();
+        $resetUi->assertNoIssues();
+    }
 
-    $resetUi->assertNoIssues();
+    app()->setLocale($originalLocale);
 });
 
 it('rejects expired reset links in reset-password screen', function () {
-    /** @var \Tests\TestCase $this */
-    $user = User::factory()->create([
-        'email' => 'expired.reset@example.com',
-    ]);
+    $originalLocale = app()->getLocale();
 
-    $expiredUrl = URL::temporarySignedRoute('ui.catchall', now()->subMinute(), [
-        'screen' => 'auth/reset-password',
-        'token' => 'expired-token',
-        'email' => $user->email,
-    ]);
+    foreach (['en', 'es'] as $locale) {
+        app()->setLocale($locale);
 
-    $parsedUrl = parse_url($expiredUrl);
-    $query = [];
-    parse_str($parsedUrl['query'] ?? '', $query);
+        $user = User::factory()->create([
+            'email' => "expired.reset.{$locale}@example.com",
+        ]);
 
-    $resetUi = uiScenario($this, ResetPassword::class, array_merge($query, ['reset' => true]));
+        $expiredUrl = URL::temporarySignedRoute('ui.catchall', now()->subMinute(), [
+            'screen' => 'auth/reset-password',
+            'token' => 'expired-token',
+            'email' => $user->email,
+        ]);
 
-    $response = $resetUi->click('btn_reset', array_merge($query, [
-        'reset_token' => (string) ($query['token'] ?? ''),
-        'reset_email' => (string) ($query['email'] ?? ''),
-        'password' => 'new-password-123',
-        'password_confirmation' => 'new-password-123',
-    ]));
+        $parsedUrl = parse_url($expiredUrl);
+        $query = [];
+        parse_str($parsedUrl['query'] ?? '', $query);
 
-    $response->assertOk();
-    expect($response->json('toast.type'))->toBe('error');
+        $resetUi = uiScenario($this, ResetPassword::class, array_merge($query, ['reset' => true]));
 
-    $result = $resetUi->component('lbl_result')->data();
-    expect((string) ($result['text'] ?? ''))->toContain('ha expirado');
+        $response = $resetUi->click('btn_reset', array_merge($query, [
+            'reset_token' => (string) ($query['token'] ?? ''),
+            'reset_email' => (string) ($query['email'] ?? ''),
+            'password' => 'new-password-123',
+            'password_confirmation' => 'new-password-123',
+        ]));
 
-    $user->refresh();
-    expect(Hash::check('new-password-123', (string) $user->password))->toBeFalse();
+        $response->assertOk();
+        expect($response->json('toast.type'))->toBe('error');
+        expect($response->json('toast.message'))->toBe(t('screen.auth.reset_password.errors.link_expired'));
 
-    $resetUi->assertNoIssues();
+        $result = $resetUi->component('lbl_result')->data();
+        expect((string) ($result['text'] ?? ''))->toBe(t('screen.auth.reset_password.errors.link_expired'));
+
+        $user->refresh();
+        expect(Hash::check('new-password-123', (string) $user->password))->toBeFalse();
+
+        $resetUi->assertNoIssues();
+    }
+
+    app()->setLocale($originalLocale);
 });
