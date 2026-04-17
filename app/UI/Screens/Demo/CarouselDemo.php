@@ -6,7 +6,7 @@ use Idei\Usim\Screen;
 use Idei\Usim\Components\Carousel;
 use Idei\Usim\Components\Container;
 use Idei\Usim\Enums\LayoutType;
-use Idei\Usim\UIBuilder;
+use Idei\Usim\UI;
 
 class CarouselDemo extends Screen
 {
@@ -34,19 +34,19 @@ class CarouselDemo extends Screen
             ->padding('24px');
 
         $container->add(
-            UIBuilder::label('carousel_demo_intro')
+            UI::label('carousel_demo_intro')
                 ->text(t('screen.demo.carousel_demo.intro'))
                 ->style('info')
         );
 
         $container->add(
-            UIBuilder::label('manual_title')
+            UI::label('manual_title')
                 ->text(t('screen.demo.carousel_demo.manual_mode'))
                 ->style('primary')
         );
 
         $container->add(
-            UIBuilder::carousel('manual_carousel')
+            UI::carousel('manual_carousel')
                 ->modeManual()
                 ->loop(true)
                 ->fullscreen(false)
@@ -62,14 +62,14 @@ class CarouselDemo extends Screen
         );
 
         $container->add(
-            UIBuilder::label('auto_title')
+            UI::label('auto_title')
                 ->text(t('screen.demo.carousel_demo.auto_mode'))
                 ->style('primary')
                 ->marginTop('16px')
         );
 
         $container->add(
-            UIBuilder::carousel('auto_carousel')
+            UI::carousel('auto_carousel')
                 ->modeAuto()
                 ->autoplay(true)
                 ->autoAction('carousel_tick')
@@ -84,21 +84,21 @@ class CarouselDemo extends Screen
                 ->hideIndicators()
         );
 
-        $buttons = UIBuilder::container('carousel_demo_buttons')
+        $buttons = UI::container('carousel_demo_buttons')
             ->layout(LayoutType::HORIZONTAL)
             ->gap('10px')
             ->marginTop('16px')
             ->shadow(0);
 
         $buttons->add(
-            UIBuilder::button('btn_auto_fullscreen')
+            UI::button('btn_auto_fullscreen')
                 ->label(t('screen.demo.carousel_demo.actions.toggle_auto_fullscreen'))
                 ->style('secondary')
                 ->action('toggle_auto_fullscreen')
         );
 
         $buttons->add(
-            UIBuilder::button('btn_reset_carousel_demo')
+            UI::button('btn_reset_carousel_demo')
                 ->label(t('screen.demo.carousel_demo.actions.reset'))
                 ->style('warning')
                 ->action('reset_carousel_demo')

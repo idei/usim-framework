@@ -11,7 +11,7 @@ Treat this as a **server-driven UI** framework where the backend defines UI stru
 
 USIM is backend-driven:
 
-- UI is declared in PHP using builders (`UIBuilder::*`).
+- UI is declared in PHP using builders (`UI::*`).
 - Screens are classes (services) that extend `Screen`.
 - Client (JS renderer) is generic and applies JSON UI trees + JSON diffs.
 - User interactions are sent to `/api/ui-event`.
@@ -29,16 +29,16 @@ Do not assume React/Vue component architecture. The source of truth is the backe
 
 ### UI components
 Created with fluent builders, for example:
-- `UIBuilder::container(...)`
-- `UIBuilder::label(...)`
-- `UIBuilder::button(...)`
-- `UIBuilder::input(...)`
-- `UIBuilder::select(...)`
-- `UIBuilder::checkbox(...)`
-- `UIBuilder::table(...)`
-- `UIBuilder::uploader(...)`
-- `UIBuilder::menuDropdown(...)`
-- `UIBuilder::carousel(...)`
+- `UI::container(...)`
+- `UI::label(...)`
+- `UI::button(...)`
+- `UI::input(...)`
+- `UI::select(...)`
+- `UI::checkbox(...)`
+- `UI::table(...)`
+- `UI::uploader(...)`
+- `UI::menuDropdown(...)`
+- `UI::carousel(...)`
 
 ### Event handling
 - Components expose actions (`->action('save_item')`).

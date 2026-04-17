@@ -13,7 +13,7 @@ use Idei\Usim\Enums\DialogType;
 use Idei\Usim\Enums\LayoutType;
 use Idei\Usim\Modals\ConfirmDialogService;
 use Idei\Usim\Support\TranslationService;
-use Idei\Usim\UIBuilder;
+use Idei\Usim\UI;
 
 class TranlateManager extends Screen
 {
@@ -45,14 +45,14 @@ class TranlateManager extends Screen
             ->padding('10px')
             ->plain();
 
-        $toolbar = UIBuilder::container('translations_toolbar')
+        $toolbar = UI::container('translations_toolbar')
             ->layout(LayoutType::HORIZONTAL)
             ->fullWidth()
             ->shadow(0)
             ->width('100%')
             ->gap('12px');
 
-        $search = UIBuilder::input('search_translations')
+        $search = UI::input('search_translations')
             ->label(t('screen.admin.translate_manager.search.label'))
             ->placeholder(t('screen.admin.translate_manager.search.placeholder'))
             ->width('420px')
@@ -60,7 +60,7 @@ class TranlateManager extends Screen
             ->onInput('search_translations', [])
             ->debounce(500);
 
-        $languageFilter = UIBuilder::select('language_filter')
+        $languageFilter = UI::select('language_filter')
             ->label(t('screen.admin.translate_manager.language.label'))
             ->placeholder(t('screen.admin.translate_manager.language.placeholder'))
             ->options($this->getLanguageOptions())
@@ -69,7 +69,7 @@ class TranlateManager extends Screen
             ->style('primary')
             ->width('200px');
 
-        $groupFilter = UIBuilder::select('group_filter')
+        $groupFilter = UI::select('group_filter')
             ->label(t('screen.admin.translate_manager.group.label'))
             ->placeholder(t('screen.admin.translate_manager.group.placeholder'))
             ->options($this->getGroupOptions())
@@ -82,7 +82,7 @@ class TranlateManager extends Screen
         $toolbar->add($search)->add($languageFilter)->add($groupFilter);
         $container->add($toolbar);
 
-        $table = UIBuilder::table('translations_table')
+        $table = UI::table('translations_table')
             ->pagination(10)
             ->sortedBy('key')
             ->dataModel(TranslationKeysTableModel::class)

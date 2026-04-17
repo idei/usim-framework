@@ -3,7 +3,7 @@
 namespace {{ namespace }};
 
 use Idei\Usim\Events\UsimEvent;
-use Idei\Usim\UIBuilder;
+use Idei\Usim\UI;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Password;
 use Idei\Usim\Screen;
@@ -45,14 +45,14 @@ class Profile extends Screen
             ->padding('30px');
 
         $container->add(
-            UIBuilder::label('lbl_title')
+            UI::label('lbl_title')
                 ->text(t('usim.auth.profile.settings_heading'))
                 ->style('primary')
                 ->fontSize(20)
                 ->fontWeight('bold')
         );
 
-        $this->input_email = UIBuilder::input('input_email')
+        $this->input_email = UI::input('input_email')
             ->label(t('usim.common.email'))
             ->type('email')
             ->value($user->email)
@@ -61,7 +61,7 @@ class Profile extends Screen
 
         $container->add($this->input_email);
 
-        $this->input_name = UIBuilder::input('input_name')
+        $this->input_name = UI::input('input_name')
             ->label(t('usim.common.full_name'))
             ->type('text')
             ->placeholder(t('usim.auth.profile.placeholder.full_name'))
@@ -71,7 +71,7 @@ class Profile extends Screen
 
         $container->add($this->input_name);
 
-        $this->uploader_profile = UIBuilder::uploader('uploader_profile')
+        $this->uploader_profile = UI::uploader('uploader_profile')
             ->allowedTypes(['image/*'])
             ->label(t('usim.auth.profile.profile_photo'))
             ->maxFiles(1)
@@ -82,7 +82,7 @@ class Profile extends Screen
         $container->add($this->uploader_profile);
 
         $container->add(
-            UIBuilder::button('btn_save_profile')
+            UI::button('btn_save_profile')
                 ->label(t('usim.auth.profile.save_changes'))
                 ->action('save_profile')
                 ->style('primary')
@@ -90,7 +90,7 @@ class Profile extends Screen
         );
 
         $container->add(
-            UIBuilder::button('btn_change_password')
+            UI::button('btn_change_password')
                 ->label(t('usim.auth.profile.change_password'))
                 ->action('change_password')
                 ->style('secondary')

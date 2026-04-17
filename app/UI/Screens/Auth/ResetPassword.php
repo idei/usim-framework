@@ -3,7 +3,7 @@
 namespace App\UI\Screens\Auth;
 
 use App\Services\Auth\PasswordService;
-use Idei\Usim\UIBuilder;
+use Idei\Usim\UI;
 use Idei\Usim\Enums\LayoutType;
 use Idei\Usim\Screen;
 use Idei\Usim\Components\Container;
@@ -37,7 +37,7 @@ class ResetPassword extends Screen
 
         // Icono superior
         $container->add(
-            UIBuilder::label('key_icon')
+            UI::label('key_icon')
                 ->text('🔑')
                 ->style('h1')
                 ->center()
@@ -45,7 +45,7 @@ class ResetPassword extends Screen
         );
 
         $container->add(
-            UIBuilder::label('lbl_title')
+            UI::label('lbl_title')
                 ->text(t('screen.auth.reset_password.title'))
                 ->style('h2')
                 ->center()
@@ -55,7 +55,7 @@ class ResetPassword extends Screen
         // Subtitle moved inside card
         /*
         $container->add(
-            UIBuilder::label('lbl_subtitle')
+            UI::label('lbl_subtitle')
                 ->text('Por favor ingresa tu nueva contraseña segura.')
                 ->style('p')
                 ->center()
@@ -65,7 +65,7 @@ class ResetPassword extends Screen
         */
 
         // Card Container
-        $formCard = UIBuilder::container('reset_password_card')
+        $formCard = UI::container('reset_password_card')
             ->layout(LayoutType::VERTICAL)
             ->shadow(true)
             ->maxWidth('600px')
@@ -78,7 +78,7 @@ class ResetPassword extends Screen
             ->customStyle('border-left: 5px solid #10b981; overflow: hidden;');
 
         $formCard->add(
-            UIBuilder::label('card_title')
+            UI::label('card_title')
                 ->text(t('screen.auth.reset_password.card_title'))
                 ->style('h3')
                 ->color('#1f2937')
@@ -86,7 +86,7 @@ class ResetPassword extends Screen
         );
 
         $formCard->add(
-            UIBuilder::label('lbl_subtitle_card')
+            UI::label('lbl_subtitle_card')
                 ->text(t('screen.auth.reset_password.instruction'))
                 ->style('p')
                 ->color('#6b7280')
@@ -95,14 +95,14 @@ class ResetPassword extends Screen
 
         // Hidden fields for token and email
         $formCard->add(
-             UIBuilder::input('reset_token')->type('hidden')->value($token ?? '')
+             UI::input('reset_token')->type('hidden')->value($token ?? '')
         );
         $formCard->add(
-             UIBuilder::input('reset_email')->type('hidden')->value($email ?? '')
+             UI::input('reset_email')->type('hidden')->value($email ?? '')
         );
 
         $formCard->add(
-            UIBuilder::input('password')
+            UI::input('password')
                 ->label(t('screen.auth.reset_password.password.label'))
                 ->type('password')
                 ->placeholder(t('screen.auth.reset_password.password.placeholder'))
@@ -111,7 +111,7 @@ class ResetPassword extends Screen
         );
 
         $formCard->add(
-            UIBuilder::input('password_confirmation')
+            UI::input('password_confirmation')
                 ->label(t('screen.auth.reset_password.confirm.label'))
                 ->type('password')
                 ->placeholder(t('screen.auth.reset_password.confirm.placeholder'))
@@ -120,14 +120,14 @@ class ResetPassword extends Screen
         );
 
         $formCard->add(
-            UIBuilder::label('lbl_result')
+            UI::label('lbl_result')
                 ->text('')
                 ->visible(false)
                 ->center()
         );
 
         $formCard->add(
-            UIBuilder::button('btn_reset')
+            UI::button('btn_reset')
                 ->label(t('screen.auth.reset_password.actions.submit'))
                 ->style('success')
                 ->action('reset_password')

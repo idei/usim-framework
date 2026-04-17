@@ -2,7 +2,7 @@
 
 namespace App\UI\Components\Modals;
 
-use Idei\Usim\UIBuilder;
+use Idei\Usim\UI;
 use Idei\Usim\Enums\LayoutType;
 use Idei\Usim\Enums\JustifyContent;
 use Idei\Usim\UIChangesCollector;
@@ -53,7 +53,7 @@ class RegisterDialog
             $role = $userData['role'];
         }
         // Main container for the modal
-        $registerContainer = UIBuilder::container('register_dialog')
+        $registerContainer = UI::container('register_dialog')
             ->parent('modal')
             ->shadow(false)
             ->plain()
@@ -61,7 +61,7 @@ class RegisterDialog
 
         // Name input
         $registerContainer->add(
-            UIBuilder::input('name')
+            UI::input('name')
                 ->label(t('modal.register_dialog.name.label'))
                 ->placeholder(t('modal.register_dialog.name.placeholder'))
                 ->required(true)
@@ -71,7 +71,7 @@ class RegisterDialog
 
         // Email input
         $registerContainer->add(
-            UIBuilder::input('email')
+            UI::input('email')
                 ->label(t('modal.register_dialog.email.label'))
                 ->placeholder(t('modal.register_dialog.email.placeholder'))
                 ->required(true)
@@ -81,7 +81,7 @@ class RegisterDialog
 
         // Password input
         $registerContainer->add(
-            UIBuilder::input('password')
+            UI::input('password')
                 ->label(t('modal.register_dialog.password.label'))
                 ->type('password')
                 ->placeholder(t('modal.register_dialog.password.placeholder'))
@@ -92,7 +92,7 @@ class RegisterDialog
 
         // Password confirmation
         $registerContainer->add(
-            UIBuilder::input('password_confirmation')
+            UI::input('password_confirmation')
                 ->label(t('modal.register_dialog.confirm_password.label'))
                 ->type('password')
                 ->placeholder(t('modal.register_dialog.confirm_password.placeholder'))
@@ -105,7 +105,7 @@ class RegisterDialog
 
             // Role select
             $registerContainer->add(
-                UIBuilder::select('roles')
+                UI::select('roles')
                     ->label(t('modal.register_dialog.role.label'))
                     ->options([
                         ['value' => 'user', 'label' => t('modal.register_dialog.role.user')],
@@ -117,7 +117,7 @@ class RegisterDialog
 
             // Checkbox for sending verification email
             $registerContainer->add(
-                UIBuilder::checkbox('send_verification_email')
+                UI::checkbox('send_verification_email')
                     ->label(t('modal.register_dialog.send_verification_email'))
                     ->checked(true)
             );
@@ -126,7 +126,7 @@ class RegisterDialog
 
             // Add Checkbox for accepting terms and conditions
             $registerContainer->add(
-                UIBuilder::checkbox('accept_terms')
+                UI::checkbox('accept_terms')
                     ->label(t('modal.register_dialog.accept_terms'))
                     ->checked(false)
                     ->required(true)
@@ -134,7 +134,7 @@ class RegisterDialog
 
             // The link to the page with terms and conditions (a button with link style)
             $registerContainer->add(
-                UIBuilder::button('btn_terms')
+                UI::button('btn_terms')
                     ->label(t('modal.register_dialog.read_terms'))
                     ->style('link')
                     ->action('open_terms_and_conditions')
@@ -142,7 +142,7 @@ class RegisterDialog
         }
 
         // Buttons container
-        $buttonsContainer = UIBuilder::container('register_buttons')
+        $buttonsContainer = UI::container('register_buttons')
             ->layout(LayoutType::HORIZONTAL)
             ->justifyContent(JustifyContent::SPACE_BETWEEN)
             ->shadow(false)
@@ -153,7 +153,7 @@ class RegisterDialog
         // Cancel button
         if ($cancelAction) {
             $buttonsContainer->add(
-                UIBuilder::button('btn_cancel_register')
+                UI::button('btn_cancel_register')
                     ->label(t('modal.register_dialog.cancel'))
                     ->style('secondary')
                     ->action($cancelAction, [
@@ -164,7 +164,7 @@ class RegisterDialog
 
         // Submit button
         $buttonsContainer->add(
-            UIBuilder::button('btn_submit_register')
+            UI::button('btn_submit_register')
                 ->label(t('modal.register_dialog.submit'))
                 ->style('primary')
                 ->action($submitAction, [

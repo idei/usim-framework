@@ -18,7 +18,7 @@ use Idei\Usim\Enums\DialogType;
 use Idei\Usim\Enums\JustifyContent;
 use Idei\Usim\Enums\LayoutType;
 use Idei\Usim\Modals\ConfirmDialogService;
-use Idei\Usim\UIBuilder;
+use Idei\Usim\UI;
 use Idei\Usim\Upload\UploadService;
 use Illuminate\Support\Facades\Auth;
 
@@ -51,7 +51,7 @@ class Menu extends Screen
         $this->user_menu = $this->buildUserMenu();
 
         $container->add($this->main_menu);
-        $this->theme_toggle = UIBuilder::button('theme_toggle')
+        $this->theme_toggle = UI::button('theme_toggle')
             ->action('toggleTheme')
             ->plain()
             ->marginLeft('auto');
@@ -113,7 +113,7 @@ class Menu extends Screen
 
     private function buildLeftMenu(): MenuDropdown
     {
-        $mainMenu = UIBuilder::menuDropdown('main_menu')
+        $mainMenu = UI::menuDropdown('main_menu')
             ->trigger()
             ->position('bottom-left')
             ->width(200);
@@ -135,7 +135,7 @@ class Menu extends Screen
 
     private function buildUserMenu(): MenuDropdown
     {
-        $userMenu = UIBuilder::menuDropdown('user_menu')
+        $userMenu = UI::menuDropdown('user_menu')
             ->position('bottom-right')
             ->width(180);
 

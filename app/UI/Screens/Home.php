@@ -2,7 +2,7 @@
 
 namespace App\UI\Screens;
 
-use Idei\Usim\UIBuilder;
+use Idei\Usim\UI;
 use Idei\Usim\Screen;
 use Idei\Usim\Components\Container;
 
@@ -12,7 +12,7 @@ class Home extends Screen
     {
         $container->shadow(0)->padding("0px");
         $container->add(
-            UIBuilder::label('welcome_usim')
+            UI::label('welcome_usim')
                 ->html('welcome-usim')
                 ->width('100%')
         );

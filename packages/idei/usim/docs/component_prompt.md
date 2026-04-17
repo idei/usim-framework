@@ -39,7 +39,7 @@ Implement all required pieces end-to-end:
 - Create builder class in:
   - `packages/idei/usim/src/Services/Components/<ComponentName>Builder.php`
 - Register factory method in:
-  - `packages/idei/usim/src/Services/UIBuilder.php` as `UIBuilder::<factoryMethod>()`
+  - `packages/idei/usim/src/Services/UI.php` as `UI::<factoryMethod>()`
 - Register backend deserialization mapping in:
   - `packages/idei/usim/src/Services/Screen.php` inside `mapTypeToClass()`
 

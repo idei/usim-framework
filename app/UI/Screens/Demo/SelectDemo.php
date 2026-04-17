@@ -1,7 +1,7 @@
 <?php
 namespace App\UI\Screens\Demo;
 
-use Idei\Usim\UIBuilder;
+use Idei\Usim\UI;
 use Idei\Usim\Screen;
 use Idei\Usim\Components\Container;
 use Idei\Usim\Components\Label;
@@ -121,7 +121,7 @@ class SelectDemo extends Screen
 
         // Instruction label
         $container->add(
-            UIBuilder::label('lbl_instruction')
+            UI::label('lbl_instruction')
                 ->text(t('screen.demo.select_demo.instruction'))
                 ->style('info')
                 ->width('100%')
@@ -129,7 +129,7 @@ class SelectDemo extends Screen
 
         // Country select
         $container->add(
-            UIBuilder::select('sel_country')
+            UI::select('sel_country')
                 ->label(t('screen.demo.select_demo.country.label'))
                 ->placeholder(t('screen.demo.select_demo.country.placeholder'))
                 ->options(self::COUNTRIES)
@@ -142,7 +142,7 @@ class SelectDemo extends Screen
 
         // City select (initially disabled)
         $container->add(
-            UIBuilder::select('sel_city')
+            UI::select('sel_city')
                 ->label(t('screen.demo.select_demo.city.label'))
                 ->placeholder(t('screen.demo.select_demo.city.placeholder.select_country_first'))
                 ->options([])
@@ -155,7 +155,7 @@ class SelectDemo extends Screen
 
         // Checkbox to enable multiple language selection
         $container->add(
-            UIBuilder::checkbox('chk_enable_multiple')
+            UI::checkbox('chk_enable_multiple')
                 ->label(t('screen.demo.select_demo.languages.enable_multiple'))
                 ->checked(false)
                 ->onChange('toggle_multiple_languages')
@@ -165,7 +165,7 @@ class SelectDemo extends Screen
 
         // Languages select (searchable and optionally multiple)
         $container->add(
-            UIBuilder::select('sel_languages')
+            UI::select('sel_languages')
                 ->label(t('screen.demo.select_demo.languages.label'))
                 ->placeholder(t('screen.demo.select_demo.languages.placeholder.multiple'))
                 ->options(self::LANGUAGES)
@@ -179,14 +179,14 @@ class SelectDemo extends Screen
 
         // Result label
         $container->add(
-            UIBuilder::label('lbl_result')
+            UI::label('lbl_result')
                 ->text(t('screen.demo.select_demo.result.initial'))
                 ->style('default')
         );
 
         // Reset button
         $container->add(
-            UIBuilder::button('btn_reset')
+            UI::button('btn_reset')
                 ->label(t('screen.demo.select_demo.actions.reset_all'))
                 ->action('reset_selections')
                 ->icon('refresh')

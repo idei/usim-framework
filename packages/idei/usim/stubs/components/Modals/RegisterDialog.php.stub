@@ -2,7 +2,7 @@
 
 namespace {{ componentsNamespace }};
 
-use Idei\Usim\UIBuilder;
+use Idei\Usim\UI;
 use Idei\Usim\Enums\LayoutType;
 use Idei\Usim\Enums\JustifyContent;
 use Idei\Usim\UIChangesCollector;
@@ -44,14 +44,14 @@ class RegisterDialog
             $role = $userData['role'];
         }
 
-        $registerContainer = UIBuilder::container('register_dialog')
+        $registerContainer = UI::container('register_dialog')
             ->parent('modal')
             ->shadow(false)
             ->plain()
             ->padding('20px');
 
         $registerContainer->add(
-            UIBuilder::input('name')
+            UI::input('name')
                 ->label(t('usim.common.full_name'))
                 ->placeholder(t('usim.common.placeholder.enter_full_name'))
                 ->required(true)
@@ -60,7 +60,7 @@ class RegisterDialog
         );
 
         $registerContainer->add(
-            UIBuilder::input('email')
+            UI::input('email')
                 ->label(t('usim.common.email'))
                 ->placeholder(t('usim.auth.login.placeholder.email'))
                 ->required(true)
@@ -69,7 +69,7 @@ class RegisterDialog
         );
 
         $registerContainer->add(
-            UIBuilder::input('password')
+            UI::input('password')
                 ->label(t('usim.common.password'))
                 ->type('password')
                 ->placeholder(t('usim.auth.register.placeholder.password_min'))
@@ -79,7 +79,7 @@ class RegisterDialog
         );
 
         $registerContainer->add(
-            UIBuilder::input('password_confirmation')
+            UI::input('password_confirmation')
                 ->label(t('usim.common.confirm_password'))
                 ->type('password')
                 ->placeholder(t('usim.auth.register.placeholder.confirm_password'))
@@ -90,7 +90,7 @@ class RegisterDialog
 
         if ($askForRole) {
             $registerContainer->add(
-                UIBuilder::select('roles')
+                UI::select('roles')
                     ->label(t('usim.common.role'))
                     ->options([
                         ['value' => 'user', 'label' => t('usim.common.role_user')],
@@ -101,13 +101,13 @@ class RegisterDialog
             );
 
             $registerContainer->add(
-                UIBuilder::checkbox('send_verification_email')
+                UI::checkbox('send_verification_email')
                     ->label(t('usim.auth.register.send_verification_email'))
                     ->checked(true)
             );
         }
 
-        $buttonsContainer = UIBuilder::container('register_buttons')
+        $buttonsContainer = UI::container('register_buttons')
             ->layout(LayoutType::HORIZONTAL)
             ->justifyContent(JustifyContent::SPACE_BETWEEN)
             ->shadow(false)
@@ -117,7 +117,7 @@ class RegisterDialog
 
         if ($cancelAction) {
             $buttonsContainer->add(
-                UIBuilder::button('btn_cancel_register')
+                UI::button('btn_cancel_register')
                     ->label(t('usim.common.cancel'))
                     ->style('secondary')
                     ->action($cancelAction, [
@@ -127,7 +127,7 @@ class RegisterDialog
         }
 
         $buttonsContainer->add(
-            UIBuilder::button('btn_submit_register')
+            UI::button('btn_submit_register')
                 ->label(t('usim.auth.register.submit'))
                 ->style('primary')
                 ->action($submitAction, [

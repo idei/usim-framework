@@ -2,7 +2,7 @@
 
 namespace App\UI\Components\Modals;
 
-use Idei\Usim\UIBuilder;
+use Idei\Usim\UI;
 use Idei\Usim\Enums\LayoutType;
 use Idei\Usim\Enums\JustifyContent;
 
@@ -29,14 +29,14 @@ class LoginDialog
         string $defaultPassword = ''
     ): array {
         // Main container for the modal
-        $loginContainer = UIBuilder::container('login_dialog')
+        $loginContainer = UI::container('login_dialog')
             ->parent('modal')
             ->shadow(false)
             ->padding('30px');
 
         // Email input
         $loginContainer->add(
-            UIBuilder::input('login_email')
+            UI::input('login_email')
                 ->label('Email')
                 ->placeholder('Enter your email')
                 ->value($defaultEmail)
@@ -45,7 +45,7 @@ class LoginDialog
 
         // Password input
         $loginContainer->add(
-            UIBuilder::input('login_password')
+            UI::input('login_password')
                 ->label('Password')
                 ->type('password')
                 ->placeholder('Enter your password')
@@ -54,7 +54,7 @@ class LoginDialog
         );
 
         // Buttons container
-        $buttonsContainer = UIBuilder::container('login_buttons')
+        $buttonsContainer = UI::container('login_buttons')
             ->layout(LayoutType::HORIZONTAL)
             ->justifyContent(JustifyContent::SPACE_BETWEEN)
             ->gap('10px')
@@ -64,7 +64,7 @@ class LoginDialog
         // Cancel button
         if ($cancelAction) {
             $buttonsContainer->add(
-                UIBuilder::button('btn_cancel_login')
+                UI::button('btn_cancel_login')
                     ->label('Cancel')
                     ->style('secondary')
                     ->action($cancelAction, [
@@ -75,7 +75,7 @@ class LoginDialog
 
         // Submit button
         $buttonsContainer->add(
-            UIBuilder::button('btn_submit_login')
+            UI::button('btn_submit_login')
                 ->label('Login')
                 ->style('primary')
                 ->action($submitAction, [

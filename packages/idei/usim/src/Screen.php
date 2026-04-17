@@ -21,7 +21,7 @@ use Idei\Usim\Enums\LayoutType;
 use Idei\Usim\Support\UIDiffer;
 use Idei\Usim\Support\UIIdGenerator;
 use Idei\Usim\Support\UIStateManager;
-use Idei\Usim\UIBuilder;
+use Idei\Usim\UI;
 use Idei\Usim\UIChangesCollector;
 use Illuminate\Contracts\Encryption\DecryptException;
 use Illuminate\Support\Facades\Auth;
@@ -480,7 +480,7 @@ abstract class Screen
 
         $current_class = static::class;
         $current_class_slug = strtolower(str_replace('\\', '_', $current_class));
-        $container = UIBuilder::container($current_class_slug, $current_class)
+        $container = UI::container($current_class_slug, $current_class)
             ->parent($parent)
             ->padding(30)
             ->layout(LayoutType::VERTICAL)

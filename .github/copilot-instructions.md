@@ -144,7 +144,7 @@ packages/idei/usim/
 |  |- Notifications/
 |  |- Services/
 |  |  |- Screen.php
-|  |  |- UIBuilder.php
+|  |  |- UI.php
 |  |  |- UIChangesCollector.php
 |  |  |- Contracts/
 |  |  |- DataTable/
@@ -241,7 +241,7 @@ Segun `packages/idei/usim/CHANGELOG.md` y `packages/idei/usim/README.md`, el con
 
 ## Convenciones tecnicas USIM
 
-- Usa `Screen` para screens y `UIBuilder::*` para crear componentes.
+- Usa `Screen` para screens y `UI::*` para crear componentes.
 - Los handlers siguen la convencion `on<ActionName>` en PascalCase a partir del action snake_case.
 - Piensa siempre en IDs deterministas, diffs incrementales y reconstruccion correcta del estado.
 - Las propiedades `store_*` son persistidas entre requests; usa `_crypt` solo para valores sensibles.
@@ -254,7 +254,7 @@ Sigue el flujo definido por `packages/idei/usim/docs/component_prompt.md`:
 
 1. Backend del paquete:
 	- crear builder en `packages/idei/usim/src/Services/Components/`
-	- registrar factory method en `packages/idei/usim/src/Services/UIBuilder.php`
+	- registrar factory method en `packages/idei/usim/src/Services/UI.php`
 	- registrar mapping de tipo en `packages/idei/usim/src/Services/Screen.php`
 2. Frontend del paquete:
 	- crear JS en `packages/idei/usim/resources/assets/js/`

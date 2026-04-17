@@ -8,7 +8,7 @@ use Idei\Usim\Components\Label;
 use Idei\Usim\Components\Container;
 use Idei\Usim\Enums\JustifyContent;
 use Idei\Usim\Enums\LayoutType;
-use Idei\Usim\UIBuilder;
+use Idei\Usim\UI;
 
 class Login extends Screen
 {
@@ -60,7 +60,7 @@ class Login extends Screen
             ->padding('30px');
 
         $container->add(
-            UIBuilder::input('login_email')
+            UI::input('login_email')
                 ->label(t('usim.common.email'))
                 ->placeholder(t('usim.auth.login.placeholder.email'))
                 ->value($email)
@@ -70,7 +70,7 @@ class Login extends Screen
         );
 
         $container->add(
-            UIBuilder::input('login_password')
+            UI::input('login_password')
                 ->label(t('usim.common.password'))
                 ->type('password')
                 ->placeholder(t('usim.auth.login.placeholder.password'))
@@ -80,10 +80,10 @@ class Login extends Screen
         );
 
         $container->add(
-            UIBuilder::label('lbl_login_result')->text('')
+            UI::label('lbl_login_result')->text('')
         );
 
-        $buttonsContainer = UIBuilder::container('login_buttons')
+        $buttonsContainer = UI::container('login_buttons')
             ->layout(LayoutType::HORIZONTAL)
             ->justifyContent(JustifyContent::SPACE_BETWEEN)
             ->plain()
@@ -92,14 +92,14 @@ class Login extends Screen
             ->padding('20px 0 0 0');
 
         $buttonsContainer->add(
-            UIBuilder::button('btn_cancel_login')
+            UI::button('btn_cancel_login')
                 ->label(t('usim.common.cancel'))
                 ->style('secondary')
                 ->action('close_login_dialog')
         );
 
         $buttonsContainer->add(
-            UIBuilder::button('btn_submit_login')
+            UI::button('btn_submit_login')
                 ->label(t('usim.auth.login.menu_label'))
                 ->style('primary')
                 ->action('submit_login')
@@ -109,7 +109,7 @@ class Login extends Screen
 
         // Forgot Password Link left-aligned below the buttons and filled with the full width of the container
         $container->add(
-            UIBuilder::button('btn_forgot_password')
+            UI::button('btn_forgot_password')
                 ->label(t('usim.auth.login.forgot_password'))
                 ->style('link')
                 ->action('navigate_forgot_password')

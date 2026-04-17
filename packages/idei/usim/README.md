@@ -10,7 +10,7 @@ A **Server-Driven UI** framework for Laravel. Define your entire user interface 
     - [Quick Start](#quick-start)
 - [Core Concepts](#core-concepts)
   - [Screens](#screens)
-  - [UIBuilder — The Component Factory](#uibuilder--the-component-factory)
+  - [UI — The Component Factory](#uibuilder--the-component-factory)
   - [Event Handlers](#event-handlers)
   - [State Management](#state-management)
 - [Available Components](#available-components)
@@ -115,7 +115,7 @@ A **Screen** is a PHP class that defines a full page. Each screen extends `Scree
 
 namespace App\UI\Screens;
 
-use Idei\Usim\UIBuilder;
+use Idei\Usim\UI;
 use Idei\Usim\Enums\LayoutType;
 use Idei\Usim\Screen;
 use Idei\Usim\Components\Container;
@@ -129,13 +129,13 @@ class HelloScreen extends Screen
             ->padding(20);
 
         $container->add(
-            UIBuilder::label('title')
+            UI::label('title')
                 ->text('Welcome to the Dashboard')
                 ->style('h1')
         );
 
         $container->add(
-            UIBuilder::button('hello_btn')
+            UI::button('hello_btn')
                 ->label('Hello USIM!')
                 ->primary()
                 ->action('hello_button_clicked')
@@ -157,18 +157,18 @@ php artisan usim:discover
 
 Then visit `/hello-screen` in your browser.
 
-### UIBuilder — The Component Factory
+### UI — The Component Factory
 
-`UIBuilder` is a static factory that creates component builders. Every builder uses a **fluent API**:
+`UI` is a static factory that creates component builders. Every builder uses a **fluent API**:
 
 ```php
 // Labels
-UIBuilder::label('greeting')->text('Hello World')->style('h2')->center();
-UIBuilder::label('legal_copy')->html('legal.terms-snippet');
+UI::label('greeting')->text('Hello World')->style('h2')->center();
+UI::label('legal_copy')->html('legal.terms-snippet');
 
 // Buttons
-UIBuilder::button('save')->label('Save')->style('primary')->action('save_form');
-UIBuilder::button('floating_help')
+UI::button('save')->label('Save')->style('primary')->action('save_form');
+UI::button('floating_help')
     ->label('Help')
     ->style('secondary')
     ->position('BOTTOM_RIGHT')
@@ -176,15 +176,15 @@ UIBuilder::button('floating_help')
     ->action('open_help');
 
 // Inputs
-UIBuilder::input('email')->label('Email')->type('email')->required(true)->placeholder('you@example.com');
+UI::input('email')->label('Email')->type('email')->required(true)->placeholder('you@example.com');
 
 // Containers (layouts)
-$row = UIBuilder::container('toolbar')
+$row = UI::container('toolbar')
     ->layout(LayoutType::HORIZONTAL)
     ->gap('10px');
 
-$row->add(UIBuilder::button('btn_a')->label('A'));
-$row->add(UIBuilder::button('btn_b')->label('B'));
+$row->add(UI::button('btn_a')->label('A'));
+$row->add(UI::button('btn_b')->label('B'));
 
 $container->add($row);
 ```
@@ -236,19 +236,19 @@ Use `_crypt` only when the value should not be readable from the client's local 
 
 | Factory Method | Builder Class | Description |
 |---|---|---|
-| `UIBuilder::label()` | `Label` | Text labels, headings, paragraphs |
-| `UIBuilder::button()` | `Button` | Action buttons with styles |
-| `UIBuilder::input()` | `Input` | Text, email, password, hidden inputs |
-| `UIBuilder::select()` | `Select` | Dropdown selects |
-| `UIBuilder::checkbox()` | `Checkbox` | Checkboxes and toggles |
-| `UIBuilder::form()` | `Form` | Form grouping |
-| `UIBuilder::table()` | `Table` | Data tables with pagination |
-| `UIBuilder::card()` | `Card` | Cards with title, description, actions |
-| `UIBuilder::container()` | `Container` | Layout container (vertical/horizontal/grid) with `card()` / `plain()` appearance |
-| `UIBuilder::menuDropdown()` | `MenuDropdown` | Navigation dropdown menus |
-| `UIBuilder::uploader()` | `Uploader` | File upload with preview and crop |
-| `UIBuilder::calendar()` | `Calendar` | Calendar/date picker |
-| `UIBuilder::carousel()` | `Carousel` | Media carousel for image/audio/video with manual/auto modes |
+| `UI::label()` | `Label` | Text labels, headings, paragraphs |
+| `UI::button()` | `Button` | Action buttons with styles |
+| `UI::input()` | `Input` | Text, email, password, hidden inputs |
+| `UI::select()` | `Select` | Dropdown selects |
+| `UI::checkbox()` | `Checkbox` | Checkboxes and toggles |
+| `UI::form()` | `Form` | Form grouping |
+| `UI::table()` | `Table` | Data tables with pagination |
+| `UI::card()` | `Card` | Cards with title, description, actions |
+| `UI::container()` | `Container` | Layout container (vertical/horizontal/grid) with `card()` / `plain()` appearance |
+| `UI::menuDropdown()` | `MenuDropdown` | Navigation dropdown menus |
+| `UI::uploader()` | `Uploader` | File upload with preview and crop |
+| `UI::calendar()` | `Calendar` | Calendar/date picker |
+| `UI::carousel()` | `Carousel` | Media carousel for image/audio/video with manual/auto modes |
 
 Builders share a fluent API across `UIComponent` and `Container` with common methods like:
 
@@ -274,14 +274,14 @@ namespace App\UI\Screens\Products;
 
 use Idei\Usim\Screen;
 use Idei\Usim\Components\Container;
-use Idei\Usim\UIBuilder;
+use Idei\Usim\UI;
 
 class List extends Screen
 {
     protected function buildBaseUI(Container $container, ...$params): void
     {
         $container->add(
-            UIBuilder::label('title')->text('Products')->style('h1')
+            UI::label('title')->text('Products')->style('h1')
         );
 
         // Add your table, filters, etc.
@@ -387,7 +387,7 @@ protected function postLoadUI(): void
 }
 ```
 
-> Component auto-injection: If you declare a typed property with the same name as a component ID, USIM automatically injects the builder instance. For example, `protected Input $input_name;` will be populated with the input created as `UIBuilder::input('input_name')`.
+> Component auto-injection: If you declare a typed property with the same name as a component ID, USIM automatically injects the builder instance. For example, `protected Input $input_name;` will be populated with the input created as `UI::input('input_name')`.
 
 ---
 
@@ -398,7 +398,7 @@ protected function postLoadUI(): void
 ```php
 // In buildBaseUI:
 $container->add(
-    UIBuilder::button('btn_save')
+    UI::button('btn_save')
         ->label('Save')
         ->action('save_item')    // → calls onSaveItem()
 );
@@ -469,14 +469,14 @@ $this->changeTheme('dark');
 Labels can now render raw HTML or an existing Blade view:
 
 ```php
-UIBuilder::label('welcome_copy')
+UI::label('welcome_copy')
     ->html('emails.verify-email', ['user' => $user]);
 ```
 
 Most components also support anchor-based positioning helpers for floating or pinned UI:
 
 ```php
-UIBuilder::container('floating_panel')
+UI::container('floating_panel')
     ->position('TOP_RIGHT')
     ->positionMode('fixed')
     ->offsets(16, 16);
@@ -572,13 +572,13 @@ Dialog types: `INFO`, `CONFIRM`, `WARNING`, `ERROR`, `SUCCESS`, `CHOICE`, `TIMEO
 Build custom modal content using any component and set `->parent('modal')`:
 
 ```php
-$modal = UIBuilder::container('my_modal')
+$modal = UI::container('my_modal')
     ->parent('modal')
     ->padding('20px');
 
-$modal->add(UIBuilder::input('field_a')->label('Name'));
+$modal->add(UI::input('field_a')->label('Name'));
 $modal->add(
-    UIBuilder::button('btn_submit')
+    UI::button('btn_submit')
         ->label('Submit')
         ->action('submit_modal')
 );
@@ -615,7 +615,7 @@ class ProductsTable extends AbstractDataTableModel
 Then use it in your screen:
 
 ```php
-$table = UIBuilder::table('products_table');
+$table = UI::table('products_table');
 $dataModel = new ProductsTable($table);
 // configure columns, pagination, etc.
 $container->add($table);
@@ -628,7 +628,7 @@ $container->add($table);
 Use the `Uploader` for file uploads with temporary storage, preview, and image cropping:
 
 ```php
-$uploader = UIBuilder::uploader('avatar')
+$uploader = UI::uploader('avatar')
     ->label('Profile Photo')
     ->allowedTypes(['image/*'])
     ->maxFiles(1)

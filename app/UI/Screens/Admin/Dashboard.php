@@ -3,7 +3,7 @@ namespace App\UI\Screens\Admin;
 
 use App\Services\Auth\RegisterService;
 use App\Services\User\UserService;
-use Idei\Usim\UIBuilder;
+use Idei\Usim\UI;
 use Idei\Usim\Enums\DialogType;
 use Idei\Usim\Enums\LayoutType;
 use Idei\Usim\Screen;
@@ -51,20 +51,20 @@ class Dashboard extends Screen
             ->padding('10px')
             ->plain();
 
-        $toolbar = UIBuilder::container('users_toolbar')
+        $toolbar = UI::container('users_toolbar')
             ->layout(LayoutType::HORIZONTAL)
             ->fullWidth()
             ->shadow(0)
             ->gap("12px");
 
-        $search = UIBuilder::input('search_users')
+        $search = UI::input('search_users')
             ->placeholder(t('screen.admin.dashboard.search_placeholder'))
             ->width('300px')
             ->autocomplete('off')
             ->onInput('search_users', [])
             ->debounce(500);
 
-        $addBtn = UIBuilder::button('add_user_btn')
+        $addBtn = UI::button('add_user_btn')
             ->label(t('screen.admin.dashboard.add_user'))
             ->style('primary')
             ->action('add_user_clicked')
@@ -73,7 +73,7 @@ class Dashboard extends Screen
         $toolbar->add($search)->add($addBtn);
         $container->add($toolbar);
 
-        $users_table = UIBuilder::table('users_table')
+        $users_table = UI::table('users_table')
             ->pagination(7)
             ->sortedBy('name')
             ->width('100%')

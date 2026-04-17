@@ -31,7 +31,7 @@ use Idei\Usim\Enums\JustifyContent;
 use Idei\Usim\Enums\LayoutType;
 use Idei\Usim\Modals\ConfirmDialogService;
 use Idei\Usim\Models\UsimLanguage;
-use Idei\Usim\UIBuilder;
+use Idei\Usim\UI;
 use Idei\Usim\Upload\UploadService;
 use Illuminate\Support\Facades\Auth;
 
@@ -75,7 +75,7 @@ class Menu extends Screen
         $this->lang_menu = $this->buildLangMenu();
 
         $container->add($this->main_menu);
-        $this->theme_toggle = UIBuilder::button('theme_toggle')
+        $this->theme_toggle = UI::button('theme_toggle')
             ->action('toggleTheme')
             ->plain()
             ->marginLeft('auto');
@@ -136,7 +136,7 @@ class Menu extends Screen
 
     private function buildLangMenu(): MenuDropdown
     {
-        $lang_menu = UIBuilder::menuDropdown('lang_menu')
+        $lang_menu = UI::menuDropdown('lang_menu')
             ->trigger(strtoupper($this->store_lang))
             ->position('bottom-right')
             ->width(160);
@@ -211,7 +211,7 @@ class Menu extends Screen
 
     private function buildLeftMenu(): MenuDropdown
     {
-        $main_menu = UIBuilder::menuDropdown('main_menu')
+        $main_menu = UI::menuDropdown('main_menu')
             ->trigger()
             ->position('bottom-left')
             ->width(200);
@@ -252,7 +252,7 @@ class Menu extends Screen
 
     private function buildUserMenu(): MenuDropdown
     {
-        $user_menu = UIBuilder::menuDropdown('user_menu')
+        $user_menu = UI::menuDropdown('user_menu')
             ->position('bottom-right')
             ->width(180);
         $user_menu->trigger("⚙️");

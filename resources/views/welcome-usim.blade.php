@@ -1498,13 +1498,13 @@
              -><span class="fn">padding</span>(<span class="str">20</span>);
 
     <span class="ch">$container</span>-><span class="fn">add</span>(
-      <span class="cls">UIBuilder</span>::<span class="fn">label</span>(<span class="str">'title'</span>)
+      <span class="cls">UI</span>::<span class="fn">label</span>(<span class="str">'title'</span>)
         -><span class="fn">text</span>(<span class="str">'Welcome to USIM!'</span>)
         -><span class="fn">style</span>(<span class="str">'h1'</span>)
     );
 
     <span class="ch">$container</span>-><span class="fn">add</span>(
-      <span class="cls">UIBuilder</span>::<span class="fn">button</span>(<span class="str">'hello_btn'</span>)
+      <span class="cls">UI</span>::<span class="fn">button</span>(<span class="str">'hello_btn'</span>)
         -><span class="fn">label</span>(<span class="str">'Say Hello'</span>)
         -><span class="fn">primary</span>()
         -><span class="fn">action</span>(<span class="str">'greet'</span>)
@@ -1848,63 +1848,63 @@
                 <div class="comp-item">
                     <span style="font-size:1.25rem">🏷️</span>
                     <div>
-                        <div class="comp-name">UIBuilder::label()</div>
+                        <div class="comp-name">UI::label()</div>
                         <div class="comp-label">{{ t('welcome.comp.label') }}</div>
                     </div>
                 </div>
                 <div class="comp-item">
                     <span style="font-size:1.25rem">🔘</span>
                     <div>
-                        <div class="comp-name">UIBuilder::button()</div>
+                        <div class="comp-name">UI::button()</div>
                         <div class="comp-label">{{ t('welcome.comp.button') }}</div>
                     </div>
                 </div>
                 <div class="comp-item">
                     <span style="font-size:1.25rem">✏️</span>
                     <div>
-                        <div class="comp-name">UIBuilder::input()</div>
+                        <div class="comp-name">UI::input()</div>
                         <div class="comp-label">{{ t('welcome.comp.input') }}</div>
                     </div>
                 </div>
                 <div class="comp-item">
                     <span style="font-size:1.25rem">🔽</span>
                     <div>
-                        <div class="comp-name">UIBuilder::select()</div>
+                        <div class="comp-name">UI::select()</div>
                         <div class="comp-label">{{ t('welcome.comp.select') }}</div>
                     </div>
                 </div>
                 <div class="comp-item">
                     <span style="font-size:1.25rem">☑️</span>
                     <div>
-                        <div class="comp-name">UIBuilder::checkbox()</div>
+                        <div class="comp-name">UI::checkbox()</div>
                         <div class="comp-label">{{ t('welcome.comp.checkbox') }}</div>
                     </div>
                 </div>
                 <div class="comp-item">
                     <span style="font-size:1.25rem">📋</span>
                     <div>
-                        <div class="comp-name">UIBuilder::form()</div>
+                        <div class="comp-name">UI::form()</div>
                         <div class="comp-label">{{ t('welcome.comp.form') }}</div>
                     </div>
                 </div>
                 <div class="comp-item">
                     <span style="font-size:1.25rem">📊</span>
                     <div>
-                        <div class="comp-name">UIBuilder::table()</div>
+                        <div class="comp-name">UI::table()</div>
                         <div class="comp-label">{{ t('welcome.comp.table') }}</div>
                     </div>
                 </div>
                 <div class="comp-item">
                     <span style="font-size:1.25rem">🃏</span>
                     <div>
-                        <div class="comp-name">UIBuilder::card()</div>
+                        <div class="comp-name">UI::card()</div>
                         <div class="comp-label">{{ t('welcome.comp.card') }}</div>
                     </div>
                 </div>
                 <div class="comp-item">
                     <span style="font-size:1.25rem">📦</span>
                     <div>
-                        <div class="comp-name">UIBuilder::container()</div>
+                        <div class="comp-name">UI::container()</div>
                         <div class="comp-label">{{ t('welcome.comp.container') }}
                         </div>
                     </div>
@@ -1912,21 +1912,21 @@
                 <div class="comp-item">
                     <span style="font-size:1.25rem">📁</span>
                     <div>
-                        <div class="comp-name">UIBuilder::uploader()</div>
+                        <div class="comp-name">UI::uploader()</div>
                         <div class="comp-label">{{ t('welcome.comp.uploader') }}</div>
                     </div>
                 </div>
                 <div class="comp-item">
                     <span style="font-size:1.25rem">📅</span>
                     <div>
-                        <div class="comp-name">UIBuilder::calendar()</div>
+                        <div class="comp-name">UI::calendar()</div>
                         <div class="comp-label">{{ t('welcome.comp.calendar') }}</div>
                     </div>
                 </div>
                 <div class="comp-item">
                     <span style="font-size:1.25rem">🎠</span>
                     <div>
-                        <div class="comp-name">UIBuilder::carousel()</div>
+                        <div class="comp-name">UI::carousel()</div>
                         <div class="comp-label">{{ t('welcome.comp.carousel') }}</div>
                     </div>
                 </div>

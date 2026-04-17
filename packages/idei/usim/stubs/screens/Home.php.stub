@@ -4,7 +4,7 @@ namespace {{ namespace }};
 
 use Idei\Usim\Screen;
 use Idei\Usim\Components\Container;
-use Idei\Usim\UIBuilder;
+use Idei\Usim\UI;
 
 class Home extends Screen
 {
@@ -12,7 +12,7 @@ class Home extends Screen
     {
         $container->shadow(0)->padding("0px");
          $container->add(
-            UIBuilder::label('landing_lbl')
+            UI::label('landing_lbl')
                 ->html('landing', ['title' => env('APP_NAME', 'USIM Framework')])
                 ->width('100%')
         );

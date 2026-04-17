@@ -1,7 +1,7 @@
 <?php
 namespace App\UI\Screens\Demo;
 
-use Idei\Usim\UIBuilder;
+use Idei\Usim\UI;
 use Idei\Usim\Screen;
 use Idei\Usim\Components\Container;
 use Idei\Usim\Components\Input;
@@ -35,14 +35,14 @@ class InputDemo extends Screen
             ->padding('30px');
 
         $container->add(
-            UIBuilder::label('lbl_instruction')
+            UI::label('lbl_instruction')
                 ->text(t('screen.demo.input_demo.instruction'))
                 ->style('info')
                 ->width('100%')
         );
 
         $container->add(
-            UIBuilder::input('input_text')
+            UI::input('input_text')
                 ->label(t('screen.demo.input_demo.name.label'))
                 ->placeholder(t('screen.demo.input_demo.name.placeholder'))
                 ->value('')
@@ -52,14 +52,14 @@ class InputDemo extends Screen
         );
 
         $container->add(
-            UIBuilder::button('btn_get_value')
+            UI::button('btn_get_value')
                 ->label(t('screen.demo.input_demo.actions.validate'))
                 ->action('get_value')
                 ->style('primary')
         );
 
         $container->add(
-            UIBuilder::label('lbl_result')
+            UI::label('lbl_result')
                 ->text(t('screen.demo.input_demo.result.initial'))
                 ->style('default')
                 ->width('100%')

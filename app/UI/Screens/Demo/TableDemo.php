@@ -3,7 +3,7 @@
 namespace App\UI\Screens\Demo;
 
 use App\Models\User;
-use Idei\Usim\UIBuilder;
+use Idei\Usim\UI;
 use Idei\Usim\Screen;
 use Idei\Usim\Components\Container;
 use Idei\Usim\Components\Table;
@@ -31,7 +31,7 @@ class TableDemo extends Screen
     {
         $container->title(t('screen.demo.table_demo.title'));
 
-        $table = UIBuilder::table('users_table')
+        $table = UI::table('users_table')
             ->title(t('screen.demo.table_demo.users_table_title'))
             ->pagination(10)
             ->dataModel(UsersTableModel::class)

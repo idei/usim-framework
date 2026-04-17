@@ -3,7 +3,7 @@
 namespace App\UI\Screens\Auth;
 
 use Idei\Usim\Events\UsimEvent;
-use Idei\Usim\UIBuilder;
+use Idei\Usim\UI;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Password;
 use Idei\Usim\Screen;
@@ -47,7 +47,7 @@ class Profile extends Screen
 
         // Título
         $container->add(
-            UIBuilder::label('lbl_title')
+            UI::label('lbl_title')
                 ->text("👤 Configuración de Perfil")
                 ->style('primary')
                 ->fontSize(20)
@@ -55,7 +55,7 @@ class Profile extends Screen
         );
 
         // Email (readonly)
-        $this->input_email = UIBuilder::input('input_email')
+        $this->input_email = UI::input('input_email')
             ->label(t('screen.auth.profile.email.label'))
             ->type('email')
             ->value($user->email)
@@ -65,7 +65,7 @@ class Profile extends Screen
         $container->add($this->input_email);
 
         // Nombre
-        $this->input_name = UIBuilder::input('input_name')
+        $this->input_name = UI::input('input_name')
             ->label(t('screen.auth.profile.name.label'))
             ->type('text')
             ->placeholder(t('screen.auth.profile.name.placeholder'))
@@ -76,7 +76,7 @@ class Profile extends Screen
         $container->add($this->input_name);
 
         // Foto de perfil
-        $this->uploader_profile = UIBuilder::uploader('uploader_profile')
+        $this->uploader_profile = UI::uploader('uploader_profile')
             ->allowedTypes(['image/*'])
             ->label(t('screen.auth.profile.photo.label'))
             ->maxFiles(1)
@@ -88,7 +88,7 @@ class Profile extends Screen
 
         // Botones de acción
         $container->add(
-            UIBuilder::button('btn_save_profile')
+            UI::button('btn_save_profile')
                 ->label(t('screen.auth.profile.actions.save'))
                 ->action('save_profile')
                 ->style('primary')
@@ -96,7 +96,7 @@ class Profile extends Screen
         );
 
         $container->add(
-            UIBuilder::button('btn_change_password')
+            UI::button('btn_change_password')
                 ->label(t('screen.auth.profile.actions.change_password'))
                 ->action('change_password')
                 ->style('secondary')

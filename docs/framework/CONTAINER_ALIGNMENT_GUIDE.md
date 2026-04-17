@@ -32,7 +32,7 @@ AlignItems::STRETCH    // Items se estiran para llenar el contenedor - DEFAULT
 
 ### 1. Items juntos al inicio (por defecto)
 ```php
-$container = UIBuilder::container('my_container')
+$container = UI::container('my_container')
     ->layout(LayoutType::HORIZONTAL);
     // No se especifica justifyContent, usa START por defecto
 ```
@@ -48,7 +48,7 @@ $container = UIBuilder::container('my_container')
 **Perfecto para: Headers, Navigation bars, Toolbars**
 
 ```php
-$container = UIBuilder::container('menu_header')
+$container = UI::container('menu_header')
     ->layout(LayoutType::HORIZONTAL)
     ->justifyContent(JustifyContent::SPACE_BETWEEN)
     ->alignItems(AlignItems::CENTER);
@@ -65,7 +65,7 @@ $container = UIBuilder::container('menu_header')
 **Perfecto para: Botones de acción, Controles centrados**
 
 ```php
-$container = UIBuilder::container('centered_controls')
+$container = UI::container('centered_controls')
     ->layout(LayoutType::HORIZONTAL)
     ->justifyContent(JustifyContent::CENTER)
     ->alignItems(AlignItems::CENTER)
@@ -83,7 +83,7 @@ $container = UIBuilder::container('centered_controls')
 **Perfecto para: Cards horizontales, Galería de items**
 
 ```php
-$container = UIBuilder::container('gallery')
+$container = UI::container('gallery')
     ->layout(LayoutType::HORIZONTAL)
     ->justifyContent(JustifyContent::SPACE_EVENLY)
     ->alignItems(AlignItems::CENTER);
@@ -104,7 +104,7 @@ use App\Services\UI\Enums\AlignItems;
 
 protected function buildBaseUI(...$params): Container
 {
-    $menu_placeholder = UIBuilder::container('_menu_placeholder')
+    $menu_placeholder = UI::container('_menu_placeholder')
         ->parent('menu')
         ->layout(LayoutType::HORIZONTAL)
         ->justifyContent(JustifyContent::SPACE_BETWEEN)  // Menú izq, User der

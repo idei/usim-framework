@@ -216,7 +216,7 @@ sudo systemctl start php8.3-fpm
 Verifica el límite en tu código (`Uploader`):
 ```php
 // En ProfileService.php
-$uploaderProfile = UIBuilder::uploader('uploader_profile')
+$uploaderProfile = UI::uploader('uploader_profile')
     ->maxSize(2)  // ← Este valor debe ser menor que el límite del servidor
     ->aspect('1:1');
 ```

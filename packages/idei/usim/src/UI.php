@@ -18,12 +18,12 @@ use Idei\Usim\Components\Calendar;
 use Idei\Usim\Components\Carousel;
 
 /**
- * Factory class for creating UI components
+ * UI component factory
  *
- * Provides static methods to create various UI component builders.
- * These builders use a fluent API for configuring components.
+ * Provides static factory methods to instantiate UI component builders.
+ * Each builder supports a fluent API for configuration and composition.
  */
-class UIBuilder
+class UI
 {
     /**
      * Create a new button component

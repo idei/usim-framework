@@ -4,7 +4,7 @@ namespace App\UI\Components\Modals;
 
 use Idei\Usim\Enums\JustifyContent;
 use Idei\Usim\Enums\LayoutType;
-use Idei\Usim\UIBuilder;
+use Idei\Usim\UI;
 use Idei\Usim\UIChangesCollector;
 use Illuminate\Support\Str;
 
@@ -33,7 +33,7 @@ class TermsDialog
             . $markdownHtml
             . '</div>';
 
-        $container = UIBuilder::container('terms_dialog')
+        $container = UI::container('terms_dialog')
             ->parent('modal')
             ->layout(LayoutType::VERTICAL)
             ->plain()
@@ -44,20 +44,20 @@ class TermsDialog
             ->maxWidth('92vw');
 
         $container->add(
-            UIBuilder::label('terms_dialog_title')
+            UI::label('terms_dialog_title')
                 ->text(t('modal.terms.title'))
                 ->style('h3')
                 ->inline(false)
         );
 
         $container->add(
-            UIBuilder::label('terms_dialog_document')
+            UI::label('terms_dialog_document')
                 ->html($scrollableDocumentHtml)
                 ->inline(false)
                 ->width('100%')
         );
 
-        $buttons = UIBuilder::container('terms_dialog_buttons')
+        $buttons = UI::container('terms_dialog_buttons')
             ->layout(LayoutType::HORIZONTAL)
             ->justifyContent(JustifyContent::END)
             ->plain()
@@ -66,7 +66,7 @@ class TermsDialog
 
         if ($cancelAction) {
             $buttons->add(
-                UIBuilder::button('btn_close_terms')
+                UI::button('btn_close_terms')
                     ->label(t('modal.terms.close'))
                     ->style('secondary')
                     ->action($cancelAction, [

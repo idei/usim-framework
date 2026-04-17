@@ -2,7 +2,7 @@
 
 namespace App\UI\Screens\Demo;
 
-use Idei\Usim\UIBuilder;
+use Idei\Usim\UI;
 use Idei\Usim\Screen;
 use Idei\Usim\Components\Container;
 use Idei\Usim\Components\Calendar;
@@ -19,7 +19,7 @@ class CalendarDemo extends Screen
             ->plain()
             ->padding('30px');
 
-        $this->academic_calendar = UIBuilder::calendar('academic_calendar')
+        $this->academic_calendar = UI::calendar('academic_calendar')
             ->year(2026)
             ->month(date('n'))
             ->showSaturdayInfo(false)

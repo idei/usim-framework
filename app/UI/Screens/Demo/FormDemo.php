@@ -1,7 +1,7 @@
 <?php
 namespace App\UI\Screens\Demo;
 
-use Idei\Usim\UIBuilder;
+use Idei\Usim\UI;
 use Idei\Usim\Screen;
 use Idei\Usim\Components\Container;
 use Idei\Usim\Components\Input;
@@ -26,13 +26,13 @@ class FormDemo extends Screen
             ->padding('30px');
 
         $container->add(
-            UIBuilder::label('lbl_instruction')
+            UI::label('lbl_instruction')
                 ->text(t('screen.demo.form_demo.instruction'))
                 ->style('info')
         );
 
         $container->add(
-            UIBuilder::input('input_name')
+            UI::input('input_name')
                 ->label(t('screen.demo.form_demo.name.label'))
                 ->placeholder(t('screen.demo.form_demo.name.placeholder'))
                 ->value('')
@@ -42,7 +42,7 @@ class FormDemo extends Screen
         );
 
         $container->add(
-            UIBuilder::input('input_email')
+            UI::input('input_email')
                 ->label(t('screen.demo.form_demo.email.label'))
                 ->placeholder(t('screen.demo.form_demo.email.placeholder'))
                 ->value('')
@@ -52,14 +52,14 @@ class FormDemo extends Screen
         );
 
         $container->add(
-            UIBuilder::button('btn_submit')
+            UI::button('btn_submit')
                 ->label(t('screen.demo.form_demo.actions.submit'))
                 ->action('submit_form')
                 ->style('primary')
         );
 
         $container->add(
-            UIBuilder::label('lbl_result')
+            UI::label('lbl_result')
                 ->text(t('screen.demo.form_demo.result.initial'))
                 ->style('secondary')
         );

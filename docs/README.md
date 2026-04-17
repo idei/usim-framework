@@ -10,7 +10,7 @@ docs/
 │
 ├── framework/                         # Framework USIM
 │   ├── USIM_ACADEMIC_REPORT.md       # ⭐ Documentación principal
-│   ├── UI_BUILDER_REFERENCE.md       # Referencia de UIBuilder API
+│   ├── UI_BUILDER_REFERENCE.md       # Referencia de UI API
 │   ├── CONTAINER_ALIGNMENT_GUIDE.md  # Guía de alineación de contenedores
 │   └── TECHNICAL_COMPONENTS_README.md# Sistema CSS y componentes técnicos
 │
@@ -36,7 +36,7 @@ docs/
 | Documento | Descripción | Tamaño |
 |-----------|-------------|--------|
 | **[USIM_ACADEMIC_REPORT.md](framework/USIM_ACADEMIC_REPORT.md)** ⭐ | Documentación académica completa del framework. Arquitectura, características, ejemplos de servicios reales y comparativas con stack tradicional | 41K |
-| **[UI_BUILDER_REFERENCE.md](framework/UI_BUILDER_REFERENCE.md)** | Referencia técnica de UIBuilder. Patrón Composite, manipulación de árbol, todos los componentes disponibles | 13K |
+| **[UI_BUILDER_REFERENCE.md](framework/UI_BUILDER_REFERENCE.md)** | Referencia técnica de UI. Patrón Composite, manipulación de árbol, todos los componentes disponibles | 13K |
 | **[CONTAINER_ALIGNMENT_GUIDE.md](framework/CONTAINER_ALIGNMENT_GUIDE.md)** | Guía específica de alineación de contenedores horizontales con ejemplos | 5.2K |
 | **[TECHNICAL_COMPONENTS_README.md](framework/TECHNICAL_COMPONENTS_README.md)** | Sistema CSS modular, variables, temas y personalización | 13K |
 
@@ -87,7 +87,7 @@ docs/
 
 ### 🎨 Para Desarrollo de UI:
 1. [framework/USIM_ACADEMIC_REPORT.md](framework/USIM_ACADEMIC_REPORT.md) - Framework completo
-2. [framework/UI_BUILDER_REFERENCE.md](framework/UI_BUILDER_REFERENCE.md) - API de UIBuilder
+2. [framework/UI_BUILDER_REFERENCE.md](framework/UI_BUILDER_REFERENCE.md) - API de UI
 3. [framework/CONTAINER_ALIGNMENT_GUIDE.md](framework/CONTAINER_ALIGNMENT_GUIDE.md) - Layouts específicos
 4. [framework/TECHNICAL_COMPONENTS_README.md](framework/TECHNICAL_COMPONENTS_README.md) - CSS y estilos
 

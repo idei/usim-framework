@@ -6,7 +6,7 @@ use App\Services\User\UserService;
 use Idei\Usim\Screen;
 use Idei\Usim\Components\Container;
 use Idei\Usim\Enums\LayoutType;
-use Idei\Usim\UIBuilder;
+use Idei\Usim\UI;
 
 class EmailVerified extends Screen
 {
@@ -107,7 +107,7 @@ class EmailVerified extends Screen
     private function buildLoadingUI(Container $container): void
     {
         $container->add(
-            UIBuilder::label('loading_message')
+            UI::label('loading_message')
                 ->text(t('screen.auth.email_verified.loading'))
                 ->style('h2')
                 ->center()
@@ -121,7 +121,7 @@ class EmailVerified extends Screen
     private function buildSuccessUI(Container $container): void
     {
         $container->add(
-            UIBuilder::label('success_icon')
+            UI::label('success_icon')
                 ->text('✅')
                 ->style('h1')
                 ->center()
@@ -129,7 +129,7 @@ class EmailVerified extends Screen
         );
 
         $container->add(
-            UIBuilder::label('verified_message')
+            UI::label('verified_message')
                 ->text(t('screen.auth.email_verified.verified.message'))
                 ->style('h2')
                 ->center()
@@ -137,7 +137,7 @@ class EmailVerified extends Screen
         );
 
         $container->add(
-            UIBuilder::label('verified_subtitle')
+            UI::label('verified_subtitle')
                 ->text(t('screen.auth.email_verified.verified.subtitle'))
                 ->style('p')
                 ->center()
@@ -146,7 +146,7 @@ class EmailVerified extends Screen
         );
 
         $container->add(
-            UIBuilder::card('success_card')
+            UI::card('success_card')
                 ->title(t('screen.auth.email_verified.verified.card_title'))
                 ->description(t('screen.auth.email_verified.verified.card_description'))
                 ->theme('success')
@@ -163,7 +163,7 @@ class EmailVerified extends Screen
     private function buildAlreadyVerifiedUI(Container $container): void
     {
         $container->add(
-            UIBuilder::label('info_icon')
+            UI::label('info_icon')
                 ->text('ℹ️')
                 ->style('h1')
                 ->center()
@@ -171,7 +171,7 @@ class EmailVerified extends Screen
         );
 
         $container->add(
-            UIBuilder::label('already_verified_message')
+            UI::label('already_verified_message')
                 ->text(t('screen.auth.email_verified.already_verified.message'))
                 ->style('h2')
                 ->center()
@@ -179,7 +179,7 @@ class EmailVerified extends Screen
         );
 
         $container->add(
-            UIBuilder::card('info_card')
+            UI::card('info_card')
                 ->title(t('screen.auth.email_verified.already_verified.card_title'))
                 ->description(t('screen.auth.email_verified.already_verified.card_description'))
                 ->theme('info')
@@ -196,7 +196,7 @@ class EmailVerified extends Screen
     private function buildErrorUI(Container $container): void
     {
         $container->add(
-            UIBuilder::label('error_icon')
+            UI::label('error_icon')
                 ->text('❌')
                 ->style('h1')
                 ->center()
@@ -204,7 +204,7 @@ class EmailVerified extends Screen
         );
 
         $container->add(
-            UIBuilder::label('error_message')
+            UI::label('error_message')
                 ->text(t('screen.auth.email_verified.error.message'))
                 ->style('h2')
                 ->center()
@@ -212,7 +212,7 @@ class EmailVerified extends Screen
         );
 
         $container->add(
-            UIBuilder::label('error_detail')
+            UI::label('error_detail')
                 ->text($this->errorMessage)
                 ->style('p')
                 ->center()
@@ -221,7 +221,7 @@ class EmailVerified extends Screen
         );
 
         $container->add(
-            UIBuilder::card('error_card')
+            UI::card('error_card')
                 ->title(t('screen.auth.email_verified.error.card_title'))
                 ->description(t('screen.auth.email_verified.error.card_description'))
                 ->theme('danger')

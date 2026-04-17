@@ -2,7 +2,7 @@
 
 namespace App\UI\Components\Modals;
 
-use Idei\Usim\UIBuilder;
+use Idei\Usim\UI;
 use Idei\Usim\Enums\LayoutType;
 use Idei\Usim\Enums\JustifyContent;
 use Idei\Usim\UIChangesCollector;
@@ -43,7 +43,7 @@ class EditUserDialog
         $emailVerified = $user ? $user['email_verified_at'] !== null : false;
 
         // Main container for the modal
-        $registerContainer = UIBuilder::container('register_dialog')
+        $registerContainer = UI::container('register_dialog')
             ->parent('modal')
             ->shadow(false)
             ->plain()
@@ -51,14 +51,14 @@ class EditUserDialog
 
         // Id input (hidden)
         $registerContainer->add(
-            UIBuilder::input('user_id')
+            UI::input('user_id')
                 ->type('hidden')
                 ->value($user ? $user['id'] : '')
         );
 
         // Name input
         $registerContainer->add(
-            UIBuilder::input('name')
+            UI::input('name')
                 ->label('Full Name')
                 ->placeholder('Enter your full name')
                 ->required(true)
@@ -68,7 +68,7 @@ class EditUserDialog
 
         // Email input
         $registerContainer->add(
-            UIBuilder::input('email')
+            UI::input('email')
                 ->label('Email')
                 ->placeholder('Enter your email')
                 ->required(true)
@@ -78,7 +78,7 @@ class EditUserDialog
 
         // Role select
         $registerContainer->add(
-            UIBuilder::select('roles')
+            UI::select('roles')
                 ->label('Role')
                 ->options([
                     ['value' => 'user', 'label' => 'User'],
@@ -90,7 +90,7 @@ class EditUserDialog
 
         // Checkbox for sending reset password email
         $registerContainer->add(
-            UIBuilder::checkbox('send_reset_email')
+            UI::checkbox('send_reset_email')
                 ->label('Send password reset email to user')
                 ->checked(false)
         );
@@ -98,14 +98,14 @@ class EditUserDialog
         // If the email is not verified, checkbox to send verification email
         if (!$emailVerified) {
             $registerContainer->add(
-                UIBuilder::checkbox('send_verification_email')
+                UI::checkbox('send_verification_email')
                     ->label('Send email verification to user')
                     ->checked(false)
             );
         }
 
         // Buttons container
-        $buttonsContainer = UIBuilder::container('register_buttons')
+        $buttonsContainer = UI::container('register_buttons')
             ->layout(LayoutType::HORIZONTAL)
             ->justifyContent(JustifyContent::SPACE_BETWEEN)
             ->shadow(false)
@@ -116,7 +116,7 @@ class EditUserDialog
         // Cancel button
         if ($cancelAction) {
             $buttonsContainer->add(
-                UIBuilder::button('btn_cancel_register')
+                UI::button('btn_cancel_register')
                     ->label('Cancel')
                     ->style('secondary')
                     ->action($cancelAction, [
@@ -127,7 +127,7 @@ class EditUserDialog
 
         // Submit button
         $buttonsContainer->add(
-            UIBuilder::button('btn_submit_register')
+            UI::button('btn_submit_register')
                 ->label('Update User')
                 ->style('primary')
                 ->action($submitAction, [

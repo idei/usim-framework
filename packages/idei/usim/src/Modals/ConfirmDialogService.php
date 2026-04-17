@@ -1,7 +1,7 @@
 <?php
 namespace Idei\Usim\Modals;
 
-use Idei\Usim\UIBuilder;
+use Idei\Usim\UI;
 use Idei\Usim\Enums\TimeUnit;
 use Idei\Usim\Enums\DialogType;
 use Idei\Usim\Enums\LayoutType;
@@ -87,7 +87,7 @@ class ConfirmDialogService implements UIModal
         $timeoutAction   = $params['timeoutAction'] ?? 'close_modal';
 
         // Build container - use 'modal' as parent to indicate it should be rendered in the modal overlay
-        $container = UIBuilder::container('confirm_dialog')
+        $container = UI::container('confirm_dialog')
             ->parent('modal')
             ->layout(LayoutType::VERTICAL)
             ->plain()
@@ -96,21 +96,21 @@ class ConfirmDialogService implements UIModal
 
         // Icon
         $container->add(
-            UIBuilder::label('icon')
+            UI::label('icon')
                 ->text($icon)
                 ->fontSize(48) // Large emoji (48px)
         );
 
         // Title
         $container->add(
-            UIBuilder::label('title')
+            UI::label('title')
                 ->text($title)
                 ->style('h3')
         );
 
         // Message
         $container->add(
-            UIBuilder::label('message')
+            UI::label('message')
                 ->text($message)
                 ->markdown()
         );
@@ -118,14 +118,14 @@ class ConfirmDialogService implements UIModal
         // Countdown label (only for TIMEOUT type with showCountdown enabled)
         if ($type === DialogType::TIMEOUT && $showCountdown && $timeout !== null) {
             $container->add(
-                UIBuilder::label('countdown')
+                UI::label('countdown')
                     ->text($this->formatCountdown($timeout, $timeUnit))
                     ->style('h2')
             );
         }
 
         // Buttons container (horizontal layout)
-        $buttonsContainer = UIBuilder::container('buttons')
+        $buttonsContainer = UI::container('buttons')
             ->layout(LayoutType::HORIZONTAL)
             ->plain()          // No background or borders on buttons container
             ->gap("15px")      // Space between buttons
@@ -136,7 +136,7 @@ class ConfirmDialogService implements UIModal
             // Custom buttons for CHOICE type
             foreach ($customButtons as $button) {
                 $buttonsContainer->add(
-                    UIBuilder::button('btn_' . strtolower(str_replace(' ', '_', $button['label'])))
+                    UI::button('btn_' . strtolower(str_replace(' ', '_', $button['label'])))
                         ->label($button['label'])
                         ->style($button['style'] ?? 'secondary')
                         ->action($button['action'], array_merge($button['params'] ?? [], [
@@ -153,7 +153,7 @@ class ConfirmDialogService implements UIModal
             // Cancel button (if type requires it)
             if ($type->hasCancelButton()) {
                 $buttonsContainer->add(
-                    UIBuilder::button('btn_cancel')
+                    UI::button('btn_cancel')
                         ->label($cancelLabel)
                         ->style('secondary')
                         ->action($cancelAction, [
@@ -164,7 +164,7 @@ class ConfirmDialogService implements UIModal
 
             // Confirm/Primary button
             $buttonsContainer->add(
-                UIBuilder::button('btn_confirm')
+                UI::button('btn_confirm')
                     ->label($confirmLabel)
                     ->style($type->getConfirmButtonStyle())
                     ->action($confirmAction, array_merge($confirmParams, [

@@ -1,7 +1,7 @@
 <?php
 namespace App\UI\Screens\Demo;
 
-use Idei\Usim\UIBuilder;
+use Idei\Usim\UI;
 use Idei\Usim\Screen;
 use Idei\Usim\Components\Container;
 use Idei\Usim\Components\Label;
@@ -30,14 +30,14 @@ class CheckboxDemo extends Screen
 
         // Instruction label
         $container->add(
-            UIBuilder::label('lbl_instruction')
+            UI::label('lbl_instruction')
                 ->text(t('screen.demo.checkbox_demo.instruction'))
                 ->style('info')
         );
 
         // JavaScript checkbox with onChange handler
         $container->add(
-            UIBuilder::checkbox('chk_javascript')
+            UI::checkbox('chk_javascript')
                 ->label(t('screen.demo.checkbox_demo.options.javascript'))
                 ->checked(false)
                 ->onChange('try_change_javascript') // ← Handler for validation
@@ -45,7 +45,7 @@ class CheckboxDemo extends Screen
 
         // Python checkbox with onChange handler
         $container->add(
-            UIBuilder::checkbox('chk_python')
+            UI::checkbox('chk_python')
                 ->label(t('screen.demo.checkbox_demo.options.python'))
                 ->checked(false)
                 ->onChange('try_change_python') // ← Handler for validation
@@ -53,7 +53,7 @@ class CheckboxDemo extends Screen
 
         // Submit button
         $container->add(
-            UIBuilder::button('btn_submit')
+            UI::button('btn_submit')
                 ->label(t('screen.demo.checkbox_demo.actions.submit'))
                 ->action('submit_selection')
                 ->style('primary')
@@ -61,7 +61,7 @@ class CheckboxDemo extends Screen
 
         // Result label
         $container->add(
-            UIBuilder::label('lbl_result')
+            UI::label('lbl_result')
                 ->text(t('screen.demo.checkbox_demo.result.initial'))
                 ->style('secondary')
         );

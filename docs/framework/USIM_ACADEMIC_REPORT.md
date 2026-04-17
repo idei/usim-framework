@@ -103,7 +103,7 @@ USIM implementa un sistema de IDs dual:
 ```php
 // Backend
 $container->add(
-    UIBuilder::input('input_email')
+    UI::input('input_email')
         ->label('Email')
         ->value($user->email)
 );
@@ -143,9 +143,9 @@ protected function buildBaseUI(Container $container, ...$params): void
         ->shadow(2)
         ->padding('30px');
 
-    // Componentes se agregan al container con UIBuilder
+    // Componentes se agregan al container con UI
     $container->add(
-        UIBuilder::label('lbl_title')
+        UI::label('lbl_title')
             ->text('👤 Configuración de Perfil')
             ->style('primary')
             ->fontSize(20)
@@ -153,7 +153,7 @@ protected function buildBaseUI(Container $container, ...$params): void
 
     // Input de email (deshabilitado)
     $container->add(
-        UIBuilder::input('input_email')
+        UI::input('input_email')
             ->label('Email')
             ->type('email')
             ->value($user->email)
@@ -163,7 +163,7 @@ protected function buildBaseUI(Container $container, ...$params): void
 
     // Input de nombre
     $container->add(
-        UIBuilder::input('input_name')
+        UI::input('input_name')
             ->label('Nombre Completo')
             ->placeholder('Tu nombre completo')
             ->value($user->name ?? '')
@@ -173,7 +173,7 @@ protected function buildBaseUI(Container $container, ...$params): void
 
     // Uploader de foto de perfil
     $container->add(
-        UIBuilder::uploader('uploader_profile')
+        UI::uploader('uploader_profile')
             ->allowedTypes(['image/*'])
             ->label('Foto de Perfil')
             ->maxFiles(1)
@@ -183,7 +183,7 @@ protected function buildBaseUI(Container $container, ...$params): void
 
     // Botón guardar con action
     $container->add(
-        UIBuilder::button('btn_save_profile')
+        UI::button('btn_save_profile')
             ->label('💾 Guardar Cambios')
             ->action('save_profile')
             ->style('primary')
@@ -419,7 +419,7 @@ class UsersService extends Screen
     protected function buildBaseUI(Container $container): void
     {
         $container->add(
-            UIBuilder::table('table_users')
+            UI::table('table_users')
                 ->headers(['Nombre', 'Email', 'Rol', 'Acciones'])
                 ->data(User::with('roles')->get())
         );
@@ -948,7 +948,7 @@ namespace App\Services\Screens;
 use App\Services\UI\Screen;
 use App\Services\UI\Components\Button;
 use App\Services\UI\Components\Container;
-use App\Services\UI\UIBuilder;
+use App\Services\UI\UI;
 
 class ButtonDemoService extends Screen
 {
@@ -963,7 +963,7 @@ class ButtonDemoService extends Screen
             ->padding('30px')->maxWidth('400px')
             ->centerHorizontal()->shadow(2)
             ->add(
-                UIBuilder::button('btn_toggle')
+                UI::button('btn_toggle')
                     ->label('Click Me!')
                     ->action('toggle_label')
                     ->style('primary')
@@ -1007,7 +1007,7 @@ class ButtonDemoService extends Screen
 namespace App\Services\Screens;
 
 use App\Events\UsimEvent;
-use App\Services\UI\UIBuilder;
+use App\Services\UI\UI;
 use Illuminate\Support\Facades\Auth;
 use App\Services\UI\Screen;
 use App\Services\Upload\UploadService;
@@ -1034,7 +1034,7 @@ class ProfileService extends Screen
 
         // Título
         $container->add(
-            UIBuilder::label('lbl_title')
+            UI::label('lbl_title')
                 ->text("👤 Configuración de Perfil")
                 ->style('primary')
                 ->fontSize(20)
@@ -1043,7 +1043,7 @@ class ProfileService extends Screen
 
         // Email (readonly)
         $container->add(
-            UIBuilder::input('input_email')
+            UI::input('input_email')
                 ->label('Email')
                 ->type('email')
                 ->value($user->email)
@@ -1053,7 +1053,7 @@ class ProfileService extends Screen
 
         // Nombre
         $container->add(
-            UIBuilder::input('input_name')
+            UI::input('input_name')
                 ->label('Nombre Completo')
                 ->type('text')
                 ->placeholder('Tu nombre completo')
@@ -1064,7 +1064,7 @@ class ProfileService extends Screen
 
         // Uploader de foto de perfil
         $container->add(
-            UIBuilder::uploader('uploader_profile')
+            UI::uploader('uploader_profile')
                 ->allowedTypes(['image/*'])
                 ->label('Foto de Perfil')
                 ->maxFiles(1)
@@ -1075,7 +1075,7 @@ class ProfileService extends Screen
 
         // Botones
         $container->add(
-            UIBuilder::button('btn_save_profile')
+            UI::button('btn_save_profile')
                 ->label('💾 Guardar Cambios')
                 ->action('save_profile')
                 ->style('primary')
@@ -1083,7 +1083,7 @@ class ProfileService extends Screen
         );
 
         $container->add(
-            UIBuilder::button('btn_change_password')
+            UI::button('btn_change_password')
                 ->label('🔒 Cambiar Contraseña')
                 ->action('change_password')
                 ->style('secondary')
@@ -1182,7 +1182,7 @@ use App\Services\UI\Components\Label;
 use App\Services\UI\Components\Container;
 use App\Services\UI\Enums\DialogType;
 use App\Services\UI\Modals\ConfirmDialogService;
-use App\Services\UI\UIBuilder;
+use App\Services\UI\UI;
 
 class ModalDemoService extends Screen
 {
@@ -1196,13 +1196,13 @@ class ModalDemoService extends Screen
             ->centerHorizontal();
 
         $container->add(
-            UIBuilder::label('lbl_result')
+            UI::label('lbl_result')
                 ->text('Presiona un botón para abrir un modal')
                 ->style('info')
         );
 
         $container->add(
-            UIBuilder::button('btn_confirm')
+            UI::button('btn_confirm')
                 ->label('Abrir Confirmación')
                 ->action('open_confirmation')
                 ->style('primary')

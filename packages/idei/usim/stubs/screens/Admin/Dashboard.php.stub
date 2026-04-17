@@ -11,7 +11,7 @@ use Idei\Usim\Components\Container;
 use Idei\Usim\Enums\DialogType;
 use Idei\Usim\Enums\LayoutType;
 use Idei\Usim\Modals\ConfirmDialogService;
-use Idei\Usim\UIBuilder;
+use Idei\Usim\UI;
 use {{ componentsNamespace }}\DataTable\UserApiTableModel;
 use {{ componentsNamespace }}\Modals\EditUserDialog;
 use {{ componentsNamespace }}\Modals\RegisterDialog;
@@ -51,20 +51,20 @@ class Dashboard extends Screen
             ->padding('10px')
             ->plain();
 
-        $toolbar = UIBuilder::container('users_toolbar')
+        $toolbar = UI::container('users_toolbar')
             ->layout(LayoutType::HORIZONTAL)
             ->fullWidth()
             ->shadow(0)
             ->gap('12px');
 
-        $search = UIBuilder::input('search_users')
+        $search = UI::input('search_users')
             ->placeholder(t('usim.admin.dashboard.search_placeholder'))
             ->width('300px')
             ->autocomplete('off')
             ->onInput('search_users', [])
             ->debounce(500);
 
-        $addBtn = UIBuilder::button('add_user_btn')
+        $addBtn = UI::button('add_user_btn')
             ->label(t('usim.admin.dashboard.add_user'))
             ->style('primary')
             ->action('add_user_clicked')
@@ -73,7 +73,7 @@ class Dashboard extends Screen
         $toolbar->add($search)->add($addBtn);
         $container->add($toolbar);
 
-        $usersTable = UIBuilder::table('users_table')
+        $usersTable = UI::table('users_table')
             ->pagination(7)
             ->sortedBy('name')
             ->dataModel(UserApiTableModel::class)

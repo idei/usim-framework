@@ -5,24 +5,24 @@ Sistema de construcción de interfaces de usuario basado en el **Patrón Composi
 ## 🚀 Quick Start
 
 ```php
-use App\Services\UI\UIBuilder;
+use App\Services\UI\UI;
 use App\Services\UI\Enums\LayoutType;
 
 // Crear un contenedor
-$screen = UIBuilder::container('my_screen')
+$screen = UI::container('my_screen')
     ->slot('canvas')
     ->title('My Application');
 
 // Agregar elementos
 $screen->add(
-    UIBuilder::button('submit')
+    UI::button('submit')
         ->label('Submit')
         ->action('submit_form')
         ->style('primary')
 );
 
 $screen->add(
-    UIBuilder::label('info')
+    UI::label('info')
         ->text('Fill out the form')
         ->style('info')
 );
@@ -35,7 +35,7 @@ $json = $screen->build();
 
 ### Container
 ```php
-UIBuilder::container('id')
+UI::container('id')
     ->slot('canvas')
     ->layout(LayoutType::VERTICAL) // or HORIZONTAL
     ->title('Title')
@@ -45,7 +45,7 @@ UIBuilder::container('id')
 
 ### Button
 ```php
-UIBuilder::button('id')
+UI::button('id')
     ->label('Click Me')
     ->action('my_action', ['param' => 'value'])
     ->icon('check')
@@ -57,7 +57,7 @@ UIBuilder::button('id')
 
 ### Label
 ```php
-UIBuilder::label('id')
+UI::label('id')
     ->text('Text content')
     ->style('default') // default, info, warning, error, success
     ->visible(true)
@@ -66,7 +66,7 @@ UIBuilder::label('id')
 
 ### Table
 ```php
-UIBuilder::table('id')
+UI::table('id')
     ->title('Table Title')
     ->addHeader('Column 1')
     ->addHeader('Column 2', 'col2', width: '200px')
@@ -82,15 +82,15 @@ UIBuilder::table('id')
 
 ### Agregar Elementos
 ```php
-$container = UIBuilder::container('parent')->getContainer();
+$container = UI::container('parent')->getContainer();
 
 // Agregar un elemento
-$container->add(UIBuilder::button('btn1'));
+$container->add(UI::button('btn1'));
 
 // Agregar múltiples elementos
 $container->addMany([
-    UIBuilder::button('btn1'),
-    UIBuilder::label('lbl1')
+    UI::button('btn1'),
+    UI::label('lbl1')
 ]);
 ```
 
@@ -107,7 +107,7 @@ $removed = $container->tryRemove('btn1:button');
 ```php
 $container->update(
     'btn1:button',
-    UIBuilder::button('btn1')->label('Updated Label')
+    UI::button('btn1')->label('Updated Label')
 );
 ```
 
@@ -154,18 +154,18 @@ UIElement (interface)
 
 ### Ejemplo 1: UI Simple
 ```php
-$ui = UIBuilder::container('simple')
+$ui = UI::container('simple')
     ->slot('canvas')
     ->title('Simple UI');
 
 $ui->add(
-    UIBuilder::button('submit')
+    UI::button('submit')
         ->label('Submit')
         ->style('primary')
 );
 
 $ui->add(
-    UIBuilder::label('info')
+    UI::label('info')
         ->text('Click to submit')
 );
 
@@ -174,22 +174,22 @@ return $ui->build();
 
 ### Ejemplo 2: Contenedores Anidados
 ```php
-$root = UIBuilder::container('root')->getContainer();
+$root = UI::container('root')->getContainer();
 
 // Header
 $header = new Container('header');
 $header->layout(LayoutType::HORIZONTAL);
-$header->add(UIBuilder::label('logo')->text('Logo'));
-$header->add(UIBuilder::label('title')->text('Title'));
+$header->add(UI::label('logo')->text('Logo'));
+$header->add(UI::label('title')->text('Title'));
 
 // Content
 $content = new Container('content');
-$content->add(UIBuilder::button('btn1')->label('Action 1'));
-$content->add(UIBuilder::button('btn2')->label('Action 2'));
+$content->add(UI::button('btn1')->label('Action 1'));
+$content->add(UI::button('btn2')->label('Action 2'));
 
 // Footer
 $footer = new Container('footer');
-$footer->add(UIBuilder::label('copyright')->text('© 2025'));
+$footer->add(UI::label('copyright')->text('© 2025'));
 
 // Ensamblar
 $root->add($header);
@@ -201,7 +201,7 @@ return $root->toJson();
 
 ### Ejemplo 3: Tabla con Acciones
 ```php
-$table = UIBuilder::table('games')
+$table = UI::table('games')
     ->title('My Games')
     ->addHeader('Name')
     ->addHeader('Status')
@@ -209,18 +209,18 @@ $table = UIBuilder::table('games')
 
 $rows = [];
 foreach ($games as $game) {
-    $actions = UIBuilder::container("actions_{$game['id']}")
+    $actions = UI::container("actions_{$game['id']}")
         ->layout(LayoutType::HORIZONTAL);
     
     $actions->add(
-        UIBuilder::button("play_{$game['id']}")
+        UI::button("play_{$game['id']}")
             ->label('Play')
             ->icon('play')
             ->action('play_game', ['game_id' => $game['id']])
     );
     
     $actions->add(
-        UIBuilder::button("delete_{$game['id']}")
+        UI::button("delete_{$game['id']}")
             ->label('Delete')
             ->icon('trash')
             ->action('delete_game', ['game_id' => $game['id']])
@@ -238,11 +238,11 @@ $table->rows($rows);
 
 ### Ejemplo 4: Modificación Dinámica
 ```php
-$container = UIBuilder::container('dynamic')->getContainer();
+$container = UI::container('dynamic')->getContainer();
 
 // Agregar elementos
-$container->add(UIBuilder::button('btn1')->label('Button 1'));
-$container->add(UIBuilder::button('btn2')->label('Button 2'));
+$container->add(UI::button('btn1')->label('Button 1'));
+$container->add(UI::button('btn2')->label('Button 2'));
 
 // Remover elemento
 $container->remove('btn2:button');
@@ -250,7 +250,7 @@ $container->remove('btn2:button');
 // Actualizar elemento
 $container->update(
     'btn1:button',
-    UIBuilder::button('btn1')->label('Updated')->enabled(false)
+    UI::button('btn1')->label('Updated')->enabled(false)
 );
 
 // Buscar y modificar
@@ -310,13 +310,13 @@ $json = $container->toJson();
 
 ```php
 use App\Services\UI\Components\Container;
-use App\Services\UI\UIBuilder;
+use App\Services\UI\UI;
 
 test('can manipulate UI tree', function () {
     $container = new Container('test');
     
     // Add
-    $container->add(UIBuilder::button('btn1'));
+    $container->add(UI::button('btn1'));
     expect($container->count())->toBe(1);
     
     // Remove
@@ -324,7 +324,7 @@ test('can manipulate UI tree', function () {
     expect($container->count())->toBe(0);
     
     // Find
-    $container->add(UIBuilder::button('btn2'));
+    $container->add(UI::button('btn2'));
     $found = $container->find('btn2:button');
     expect($found)->not->toBeNull();
 });
@@ -344,8 +344,8 @@ test('can manipulate UI tree', function () {
 private function buildUI(): array
 {
     $elements = [];
-    $elements += UIBuilder::button('btn1')->build();
-    $elements += UIBuilder::label('lbl1')->build();
+    $elements += UI::button('btn1')->build();
+    $elements += UI::label('lbl1')->build();
     return $elements;
 }
 ```
@@ -354,12 +354,12 @@ private function buildUI(): array
 ```php
 private function buildUI($container): void
 {
-    $container->add(UIBuilder::button('btn1'));
-    $container->add(UIBuilder::label('lbl1'));
+    $container->add(UI::button('btn1'));
+    $container->add(UI::label('lbl1'));
 }
 
 // Uso:
-$container = UIBuilder::container('ui');
+$container = UI::container('ui');
 $this->buildUI($container);
 return $container->build();
 ```
@@ -368,16 +368,16 @@ return $container->build();
 
 1. **Usar `getContainer()`** cuando necesites manipulación avanzada:
    ```php
-   $container = UIBuilder::container('id')->getContainer();
+   $container = UI::container('id')->getContainer();
    ```
 
 2. **No llamar `.build()` en elementos intermedios**:
    ```php
    // ❌ Mal
-   $container->add(UIBuilder::button('btn')->build());
+   $container->add(UI::button('btn')->build());
    
    // ✅ Bien
-   $container->add(UIBuilder::button('btn'));
+   $container->add(UI::button('btn'));
    ```
 
 3. **Usar búsqueda recursiva** para elementos anidados:
@@ -398,12 +398,12 @@ return $container->build();
 **Problema**: Excepción "Element already exists"
 ```php
 // Causa: Intentar agregar elemento con ID duplicado
-$container->add(UIBuilder::button('btn1'));
-$container->add(UIBuilder::button('btn1')); // ❌ Error
+$container->add(UI::button('btn1'));
+$container->add(UI::button('btn1')); // ❌ Error
 
 // Solución: Usar tryRemove o IDs únicos
 $container->tryRemove('btn1:button');
-$container->add(UIBuilder::button('btn1')); // ✅ Ok
+$container->add(UI::button('btn1')); // ✅ Ok
 ```
 
 **Problema**: Elemento no encontrado con `find()`

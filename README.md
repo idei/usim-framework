@@ -297,7 +297,7 @@ use App\Services\UI\Screen;
 use App\Services\UI\Components\Button;
 use App\Services\UI\Components\Label;
 use App\Services\UI\Components\Container;
-use App\Services\UI\UIBuilder;
+use App\Services\UI\UI;
 
 class HelloWorldService extends Screen
 {
@@ -312,13 +312,13 @@ class HelloWorldService extends Screen
             ->centerHorizontal();
         
         $container->add(
-            UIBuilder::label('lbl_message')
+            UI::label('lbl_message')
                 ->text('Hello, World!')
                 ->style('info')
         );
         
         $container->add(
-            UIBuilder::button('btn_click')
+            UI::button('btn_click')
                 ->label('Click Me')
                 ->action('handle_click')
                 ->style('primary')
@@ -342,7 +342,7 @@ El proyecto incluye documentación completa organizada por categorías:
 
 ### 🚀 Framework USIM
 - **[docs/framework/USIM_ACADEMIC_REPORT.md](docs/framework/USIM_ACADEMIC_REPORT.md)** ⭐ - Documentación principal
-- **[docs/framework/UI_BUILDER_REFERENCE.md](docs/framework/UI_BUILDER_REFERENCE.md)** - Referencia UIBuilder API
+- **[docs/framework/UI_BUILDER_REFERENCE.md](docs/framework/UI_BUILDER_REFERENCE.md)** - Referencia UI API
 - **[docs/framework/CONTAINER_ALIGNMENT_GUIDE.md](docs/framework/CONTAINER_ALIGNMENT_GUIDE.md)** - Guía de layouts
 - **[docs/framework/TECHNICAL_COMPONENTS_README.md](docs/framework/TECHNICAL_COMPONENTS_README.md)** - Sistema CSS
 

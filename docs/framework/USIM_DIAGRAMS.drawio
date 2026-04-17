@@ -150,7 +150,7 @@
                 <mxCell id="abstract" value="Screen&#xa;• Gestión de estado (cache)&#xa;• Lifecycle de eventos&#xa;• Diff automático&#xa;• Inyección de componentes" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#666666;align=left;spacingLeft=30;fontSize=10;spacingTop=0;spacingBottom=10;verticalAlign=top;" parent="BIjn1Z4AEju04GT3t9Pa-5" vertex="1">
                     <mxGeometry x="55" y="40" width="250" height="80" as="geometry"/>
                 </mxCell>
-                <mxCell id="uibuilder" value="UIBuilder (Factory)&#xa;button() • label() • input() • select()&#xa;checkbox() • table() • uploader() • modal()" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#666666;align=center;fontSize=10;spacingTop=0;spacingBottom=10;verticalAlign=top;" parent="BIjn1Z4AEju04GT3t9Pa-5" vertex="1">
+                <mxCell id="uibuilder" value="UI (Factory)&#xa;button() • label() • input() • select()&#xa;checkbox() • table() • uploader() • modal()" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#666666;align=center;fontSize=10;spacingTop=0;spacingBottom=10;verticalAlign=top;" parent="BIjn1Z4AEju04GT3t9Pa-5" vertex="1">
                     <mxGeometry x="55" y="140" width="250" height="70" as="geometry"/>
                 </mxCell>
                 <mxCell id="component_builders" value="Componentes (Button, Input, Table...)&#xa;• Configuración fluida&#xa;• Serialización a JSON&#xa;• IDs determinísticos" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#666666;align=center;fontSize=10;spacingTop=0;spacingBottom=10;verticalAlign=top;" parent="BIjn1Z4AEju04GT3t9Pa-5" vertex="1">

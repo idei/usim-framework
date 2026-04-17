@@ -13,12 +13,12 @@ use Idei\Usim\Components\UIComponent;
  *
  * @example
  * // Simple checkbox
- * UIBuilder::checkbox('terms')
+ * UI::checkbox('terms')
  *     ->label('I agree to the terms and conditions')
  *     ->required();
  *
  * // Checkbox group with grid layout
- * UIBuilder::checkbox('interests')
+ * UI::checkbox('interests')
  *     ->label('Select your interests')
  *     ->options([
  *         ['value' => 'sports', 'label' => 'Sports'],
@@ -31,12 +31,12 @@ use Idei\Usim\Components\UIComponent;
  *     ->maxSelections(2);
  *
  * // Switch variant
- * UIBuilder::checkbox('notifications')
+ * UI::checkbox('notifications')
  *     ->label('Enable notifications')
  *     ->asSwitch('right');
  *
  * // Button variant with multiple options
- * UIBuilder::checkbox('theme')
+ * UI::checkbox('theme')
  *     ->options([
  *         ['value' => 'light', 'label' => 'Light', 'icon' => 'sun'],
  *         ['value' => 'dark', 'label' => 'Dark', 'icon' => 'moon']

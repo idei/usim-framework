@@ -6,7 +6,7 @@ use Idei\Usim\Screen;
 use Idei\Usim\Components\Label;
 use Idei\Usim\Components\Container;
 use Idei\Usim\Components\Uploader;
-use Idei\Usim\UIBuilder;
+use Idei\Usim\UI;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 
@@ -40,20 +40,20 @@ class UploaderDemo extends Screen
 
         // Instrucciones
         $container->add(
-            UIBuilder::label('lbl_instructions')
+            UI::label('lbl_instructions')
                 ->text(t('screen.demo.uploader_demo.instruction'))
                 ->style('info')
         );
 
         // Uploader de imagen única (perfil)
         $container->add(
-            UIBuilder::label('lbl_profile_title')
+            UI::label('lbl_profile_title')
                 ->text(t('screen.demo.uploader_demo.profile.title'))
                 ->style('primary')
         );
 
         $container->add(
-            UIBuilder::uploader('uploader_profile')
+            UI::uploader('uploader_profile')
                 ->allowedTypes(['image/*'])
                 ->label(t('screen.demo.uploader_demo.profile.label'))
                 ->maxFiles(1)
@@ -63,7 +63,7 @@ class UploaderDemo extends Screen
         );
 
         $container->add(
-            UIBuilder::button('btn_confirm_profile')
+            UI::button('btn_confirm_profile')
                 ->label(t('screen.demo.uploader_demo.profile.confirm'))
                 ->style('success')
                 ->action('process_profile')
@@ -71,20 +71,20 @@ class UploaderDemo extends Screen
 
         // Separador
         $container->add(
-            UIBuilder::label('lbl_separator1')
+            UI::label('lbl_separator1')
                 ->text(t('screen.demo.uploader_demo.separator'))
                 ->style('secondary')
         );
 
         // Uploader de banner (16:9)
         $container->add(
-            UIBuilder::label('lbl_banner_title')
+            UI::label('lbl_banner_title')
                 ->text(t('screen.demo.uploader_demo.banner.title'))
                 ->style('primary')
         );
 
         $container->add(
-            UIBuilder::uploader('uploader_banner')
+            UI::uploader('uploader_banner')
                 ->allowedTypes(['image/*'])
                 ->label(t('screen.demo.uploader_demo.banner.label'))
                 ->maxFiles(1)
@@ -94,7 +94,7 @@ class UploaderDemo extends Screen
         );
 
         $container->add(
-            UIBuilder::button('btn_confirm_banner')
+            UI::button('btn_confirm_banner')
                 ->label(t('screen.demo.uploader_demo.banner.confirm'))
                 ->style('success')
                 ->action('process_banner')
@@ -102,20 +102,20 @@ class UploaderDemo extends Screen
 
         // Separador
         $container->add(
-            UIBuilder::label('lbl_separator2')
+            UI::label('lbl_separator2')
                 ->text(t('screen.demo.uploader_demo.separator'))
                 ->style('secondary')
         );
 
         // Uploader de story (9:16)
         $container->add(
-            UIBuilder::label('lbl_story_title')
+            UI::label('lbl_story_title')
                 ->text(t('screen.demo.uploader_demo.story.title'))
                 ->style('primary')
         );
 
         $container->add(
-            UIBuilder::uploader('uploader_story')
+            UI::uploader('uploader_story')
                 ->allowedTypes(['image/*'])
                 ->label(t('screen.demo.uploader_demo.story.label'))
                 ->maxFiles(1)
@@ -125,7 +125,7 @@ class UploaderDemo extends Screen
         );
 
         $container->add(
-            UIBuilder::button('btn_confirm_story')
+            UI::button('btn_confirm_story')
                 ->label(t('screen.demo.uploader_demo.story.confirm'))
                 ->style('success')
                 ->action('process_story')
@@ -133,20 +133,20 @@ class UploaderDemo extends Screen
 
         // Separador
         $container->add(
-            UIBuilder::label('lbl_separator3')
+            UI::label('lbl_separator3')
                 ->text(t('screen.demo.uploader_demo.separator'))
                 ->style('secondary')
         );
 
         // Uploader de imágenes
         $container->add(
-            UIBuilder::label('lbl_images_title')
+            UI::label('lbl_images_title')
                 ->text(t('screen.demo.uploader_demo.images.title'))
                 ->style('primary')
         );
 
         $container->add(
-            UIBuilder::uploader('uploader_images')
+            UI::uploader('uploader_images')
                 ->images()
                 ->label(t('screen.demo.uploader_demo.images.label'))
                 ->maxFiles(3)
@@ -154,7 +154,7 @@ class UploaderDemo extends Screen
         );
 
         $container->add(
-            UIBuilder::button('btn_confirm_images')
+            UI::button('btn_confirm_images')
                 ->label(t('screen.demo.uploader_demo.images.confirm'))
                 ->style('success')
                 ->action('process_images')
@@ -162,20 +162,20 @@ class UploaderDemo extends Screen
 
         // Separador
         $container->add(
-            UIBuilder::label('lbl_separator4')
+            UI::label('lbl_separator4')
                 ->text(t('screen.demo.uploader_demo.separator'))
                 ->style('secondary')
         );
 
         // Uploader de documentos
         $container->add(
-            UIBuilder::label('lbl_documents_title')
+            UI::label('lbl_documents_title')
                 ->text(t('screen.demo.uploader_demo.documents.title'))
                 ->style('primary')
         );
 
         $container->add(
-            UIBuilder::uploader('uploader_documents')
+            UI::uploader('uploader_documents')
                 ->documents()
                 ->label(t('screen.demo.uploader_demo.documents.label'))
                 ->maxFiles(2)
@@ -183,7 +183,7 @@ class UploaderDemo extends Screen
         );
 
         $container->add(
-            UIBuilder::button('btn_confirm_documents')
+            UI::button('btn_confirm_documents')
                 ->label(t('screen.demo.uploader_demo.documents.confirm'))
                 ->style('success')
                 ->action('process_documents')
@@ -191,7 +191,7 @@ class UploaderDemo extends Screen
 
         // Resultado
         $container->add(
-            UIBuilder::label('lbl_result')
+            UI::label('lbl_result')
                 ->text(t('screen.demo.uploader_demo.result.initial'))
                 ->style('secondary')
         );

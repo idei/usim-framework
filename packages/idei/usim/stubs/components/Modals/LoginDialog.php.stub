@@ -2,7 +2,7 @@
 
 namespace {{ componentsNamespace }};
 
-use Idei\Usim\UIBuilder;
+use Idei\Usim\UI;
 use Idei\Usim\Enums\LayoutType;
 use Idei\Usim\Enums\JustifyContent;
 
@@ -20,13 +20,13 @@ class LoginDialog
         string $defaultEmail = '',
         string $defaultPassword = ''
     ): array {
-        $loginContainer = UIBuilder::container('login_dialog')
+        $loginContainer = UI::container('login_dialog')
             ->parent('modal')
             ->shadow(false)
             ->padding('30px');
 
         $loginContainer->add(
-            UIBuilder::input('login_email')
+            UI::input('login_email')
                 ->label(t('usim.common.email'))
                 ->placeholder(t('usim.auth.login.placeholder.email'))
                 ->value($defaultEmail)
@@ -34,7 +34,7 @@ class LoginDialog
         );
 
         $loginContainer->add(
-            UIBuilder::input('login_password')
+            UI::input('login_password')
                 ->label(t('usim.common.password'))
                 ->type('password')
                 ->placeholder(t('usim.auth.login.placeholder.password'))
@@ -42,7 +42,7 @@ class LoginDialog
                 ->required(true)
         );
 
-        $buttonsContainer = UIBuilder::container('login_buttons')
+        $buttonsContainer = UI::container('login_buttons')
             ->layout(LayoutType::HORIZONTAL)
             ->justifyContent(JustifyContent::SPACE_BETWEEN)
             ->gap('10px')
@@ -51,7 +51,7 @@ class LoginDialog
 
         if ($cancelAction) {
             $buttonsContainer->add(
-                UIBuilder::button('btn_cancel_login')
+                UI::button('btn_cancel_login')
                     ->label(t('usim.common.cancel'))
                     ->style('secondary')
                     ->action($cancelAction, [
@@ -61,7 +61,7 @@ class LoginDialog
         }
 
         $buttonsContainer->add(
-            UIBuilder::button('btn_submit_login')
+            UI::button('btn_submit_login')
                 ->label(t('usim.auth.login.menu_label'))
                 ->style('primary')
                 ->action($submitAction, [

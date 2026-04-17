@@ -1,7 +1,7 @@
 <?php
 namespace App\UI\Screens\Demo;
 
-use Idei\Usim\UIBuilder;
+use Idei\Usim\UI;
 use Idei\Usim\Screen;
 use Idei\Usim\Components\Container;
 use Idei\Usim\Components\Button;
@@ -19,7 +19,7 @@ class ButtonDemo extends Screen
             ->padding('30px')->maxWidth('400px')
             ->centerHorizontal()->shadow(2)
             ->add(
-                UIBuilder::button('btn_toggle')
+                UI::button('btn_toggle')
                     ->label(t('screen.demo.button_demo.default'))
                     ->action('toggle_label')
                     ->style('primary')
