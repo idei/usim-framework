@@ -5,11 +5,11 @@ namespace App\UI\Screens\Auth;
 use App\Services\Auth\PasswordService;
 use Idei\Usim\Services\UIBuilder;
 use Idei\Usim\Services\Enums\LayoutType;
-use Idei\Usim\Services\AbstractUIService;
+use Idei\Usim\Services\Screen;
 use Idei\Usim\Services\Components\UIContainer;
 use Idei\Usim\Services\Components\LabelBuilder;
 
-class ForgotPassword extends AbstractUIService
+class ForgotPassword extends Screen
 {
     public function __construct(
         protected PasswordService $passwordService

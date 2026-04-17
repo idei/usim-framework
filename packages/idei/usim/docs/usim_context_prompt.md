@@ -12,7 +12,7 @@ Treat this as a **server-driven UI** framework where the backend defines UI stru
 USIM is backend-driven:
 
 - UI is declared in PHP using builders (`UIBuilder::*`).
-- Screens are classes (services) that extend `AbstractUIService`.
+- Screens are classes (services) that extend `Screen`.
 - Client (JS renderer) is generic and applies JSON UI trees + JSON diffs.
 - User interactions are sent to `/api/ui-event`.
 - Backend restores screen state, executes event handlers, computes diffs, and returns only changes.

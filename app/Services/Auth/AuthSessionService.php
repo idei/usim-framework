@@ -4,7 +4,7 @@ namespace App\Services\Auth;
 
 use App\Models\User;
 use Idei\Usim\Events\UsimEvent;
-use Idei\Usim\Services\AbstractUIService;
+use Idei\Usim\Services\Screen;
 use Idei\Usim\Services\Support\UIStateManager;
 use Illuminate\Support\Facades\Auth;
 
@@ -45,7 +45,7 @@ class AuthSessionService
             if (
                 is_string($screenClass)
                 && class_exists($screenClass)
-                && is_subclass_of($screenClass, AbstractUIService::class)
+                && is_subclass_of($screenClass, Screen::class)
             ) {
                 return $screenClass::getRoutePath();
             }

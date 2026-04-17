@@ -3,10 +3,10 @@
 namespace App\UI\Screens;
 
 use Idei\Usim\Services\UIBuilder;
-use Idei\Usim\Services\AbstractUIService;
+use Idei\Usim\Services\Screen;
 use Idei\Usim\Services\Components\UIContainer;
 
-class Home extends AbstractUIService
+class Home extends Screen
 {
     protected function buildBaseUI(UIContainer $container, ...$params): void
     {

@@ -4,7 +4,7 @@ namespace App\UI\Screens\Demo;
 
 use App\Models\User;
 use Idei\Usim\Services\UIBuilder;
-use Idei\Usim\Services\AbstractUIService;
+use Idei\Usim\Services\Screen;
 use Idei\Usim\Services\Components\UIContainer;
 use Idei\Usim\Services\Components\TableBuilder;
 use App\UI\Components\DataTable\UsersTableModel;
@@ -20,7 +20,7 @@ use App\UI\Components\DataTable\UsersTableModel;
  *
  * Version: 2.0 (with DataTableModel abstraction)
  */
-class TableDemo extends AbstractUIService
+class TableDemo extends Screen
 {
     protected TableBuilder $users_table;
 

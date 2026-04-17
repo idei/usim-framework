@@ -16,7 +16,7 @@ A critical previous step was the physical extraction of the framework core logic
 ### A. The Framework Core (`packages/idei/usim`)
 *   **Namespace:** `Idei\Usim`
 *   **Status:** This is the reusable engine. It contains:
-    *   **Core Logic:** Builders (`TableBuilder`, `UIContainer`), Base Classes (`AbstractUIService`), and Trait logic.
+    *   **Core Logic:** Builders (`TableBuilder`, `UIContainer`), Base Classes (`Screen`), and Trait logic.
     *   **Routing:** `UIController` (formerly `UIDemoController`) handles all generic UI endpoints via dynamic routing. The controller itself is part of the package, eliminating the need for boilerplate controllers in the user's app.
     *   **Service Provider:** `UsimServiceProvider` which binds the package to Laravel.
 *   **Goal:** This folder will eventually be a separate Git repository.
@@ -69,7 +69,7 @@ The framework uses `debug_backtrace` to auto-wire components. We modified the co
 
 ## 4. Current System State
 *   **Repo Status:** Changes committed locally (Refactor `App\Services` -> `App\UI`).
-    *   **Completed:** `AbstractUIService` now enforces `authorize()` via controllers.
+    *   **Completed:** `Screen` now enforces `authorize()` via controllers.
 *   **Code Integrity:** No static analysis errors in main services (`AdminDashboard`, `DemoMenu`, etc.).
 *   **Location of Demos:** Currently, `DemoUi`, `DemoMenu`, etc., reside in `App\UI\Screens`.
     *   *Context:* These currently act as "User Land" code.
@@ -82,7 +82,7 @@ The user has completed "Phase 1: Authorization Gate" (Server-side checks are liv
 Now we must solve "Phase 2: Menu Visibility Automation".
 
 1.  **Authorization Gate (`authorize(): bool`)** [COMPLETED]
-    *   Added `authorize()` and `failedAuthorization()` to `AbstractUIService`.
+    *   Added `authorize()` and `failedAuthorization()` to `Screen`.
     *   Updated `UIController` and `UIEventController` to block unauthorized access (403 or Redirect).
 
 2.  **Menu Visibility Automation** [NEXT STEP]

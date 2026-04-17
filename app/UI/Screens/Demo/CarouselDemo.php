@@ -2,13 +2,13 @@
 
 namespace App\UI\Screens\Demo;
 
-use Idei\Usim\Services\AbstractUIService;
+use Idei\Usim\Services\Screen;
 use Idei\Usim\Services\Components\CarouselBuilder;
 use Idei\Usim\Services\Components\UIContainer;
 use Idei\Usim\Services\Enums\LayoutType;
 use Idei\Usim\Services\UIBuilder;
 
-class CarouselDemo extends AbstractUIService
+class CarouselDemo extends Screen
 {
     protected CarouselBuilder $manual_carousel;
     protected CarouselBuilder $auto_carousel;

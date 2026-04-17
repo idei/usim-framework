@@ -3,12 +3,12 @@
 namespace App\UI\Screens\Auth;
 
 use App\Services\User\UserService;
-use Idei\Usim\Services\AbstractUIService;
+use Idei\Usim\Services\Screen;
 use Idei\Usim\Services\Components\UIContainer;
 use Idei\Usim\Services\Enums\LayoutType;
 use Idei\Usim\Services\UIBuilder;
 
-class EmailVerified extends AbstractUIService
+class EmailVerified extends Screen
 {
     public function __construct(
         protected UserService $userService

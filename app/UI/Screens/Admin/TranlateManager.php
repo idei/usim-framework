@@ -4,7 +4,7 @@ namespace App\UI\Screens\Admin;
 
 use App\UI\Components\Modals\EditTranslationDialog;
 use App\UI\Components\DataTable\TranslationKeysTableModel;
-use Idei\Usim\Services\AbstractUIService;
+use Idei\Usim\Services\Screen;
 use Idei\Usim\Services\Components\InputBuilder;
 use Idei\Usim\Services\Components\SelectBuilder;
 use Idei\Usim\Services\Components\TableBuilder;
@@ -15,7 +15,7 @@ use Idei\Usim\Services\Modals\ConfirmDialogService;
 use Idei\Usim\Services\Support\TranslationService;
 use Idei\Usim\Services\UIBuilder;
 
-class TranlateManager extends AbstractUIService
+class TranlateManager extends Screen
 {
     protected TableBuilder $translations_table;
     protected InputBuilder $search_translations;

@@ -293,13 +293,13 @@ Ver [docs/api/API_COMPLETE_DOCUMENTATION.md](docs/api/API_COMPLETE_DOCUMENTATION
 <?php
 namespace App\Services\Screens;
 
-use App\Services\UI\AbstractUIService;
+use App\Services\UI\Screen;
 use App\Services\UI\Components\ButtonBuilder;
 use App\Services\UI\Components\LabelBuilder;
 use App\Services\UI\Components\UIContainer;
 use App\Services\UI\UIBuilder;
 
-class HelloWorldService extends AbstractUIService
+class HelloWorldService extends Screen
 {
     protected LabelBuilder $lbl_message;
     protected ButtonBuilder $btn_click;

@@ -43,13 +43,13 @@ The format is based on Keep a Changelog, and this project follows Semantic Versi
 - `EditUserDialog` and `Admin\Dashboard` stubs updated to use `plain()` appearance.
 
 ### Fixed
-- `AbstractUIService` now always persists the container state after `postLoadUI()`, including on `?reset=true` reloads, preventing stale cache snapshots.
+- `Screen` now always persists the container state after `postLoadUI()`, including on `?reset=true` reloads, preventing stale cache snapshots.
 - Checkbox `checked` state now syncs correctly in the UI renderer when the server sends incremental changes.
 
 ## [0.6.0] - 2026-03-26
 
 ### Added
-- Theme-switching support in the backend/frontend contract via `AbstractUIService::changeTheme()` and UI renderer handling for light/dark mode updates.
+- Theme-switching support in the backend/frontend contract via `Screen::changeTheme()` and UI renderer handling for light/dark mode updates.
 - Persistent theme tokens and assets for light/dark mode (`resources/assets/css/ui-theme-tokens.css`, `resources/assets/images/theme-icon-*.svg`).
 - New package landing view stub with dynamic theme-aware styling (`stubs/views/landing.blade.php`).
 - Rich label HTML rendering through `LabelBuilder::html()`, including safe rendering of existing backend Blade views into label content.
@@ -75,7 +75,7 @@ The format is based on Keep a Changelog, and this project follows Semantic Versi
 - Terms and conditions Blade view stub (`stubs/views/terms.blade.php`) with a migration stub `add_terms_accepted_at_to_users_table.php.stub` that adds a nullable `terms_accepted_at` datetime column to the users table.
 - `EventServiceProvider` stub (`stubs/providers/EventServiceProvider.php.stub`) for app-level event/listener registration.
 - `ClassModifier` utility now exposes four new static methods: `addTraitToClass()`, `addInterface()`, `addPropertyArrayValue()`, and `addCast()` — enabling programmatic, AST-based modification of any PHP class during installation.
-- `AbstractUIService` component lookup helpers: `findComponentAs()` and `findRootComponentAs()` for typed retrieval of child components.
+- `Screen` component lookup helpers: `findComponentAs()` and `findRootComponentAs()` for typed retrieval of child components.
 - Test scaffolding stubs: `stubs/tests/Support/usim_bootstrap.php.stub` and `stubs/tests/Traits/UsimTestHelpers.php.stub`.
 - `UsimSeeder` stub (`stubs/seeders/UsimSeeder.php.stub`) to orchestrate `UsimRoleSeeder` and `UsimUserSeeder` in a single seeder call.
 - New required composer dependencies: `nikic/php-parser: ^5.7`, `symfony/var-dumper: ^6.0|^7.0`, `illuminate/contracts: ^10.0|^11.0|^12.0`.

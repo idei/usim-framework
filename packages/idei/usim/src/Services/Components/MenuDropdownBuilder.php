@@ -114,7 +114,7 @@ class MenuDropdownBuilder extends UIComponent
      */
     public function screen(string $screenClass, ?string $label = null, ?string $icon = null): self
     {
-        if (!class_exists($screenClass) || !is_subclass_of($screenClass, \Idei\Usim\Services\AbstractUIService::class)) {
+        if (!class_exists($screenClass) || !is_subclass_of($screenClass, \Idei\Usim\Services\Screen::class)) {
             return $this;
         }
 

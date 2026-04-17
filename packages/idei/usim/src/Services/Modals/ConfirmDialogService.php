@@ -13,7 +13,7 @@ use Idei\Usim\Services\UIChangesCollector;
  *
  * Helper service to generate different types of modal dialogs.
  * Supports: info, confirm, warning, error, success, choice, and timeout dialogs.
- * Does not inherit from AbstractUIService as it's a utility service.
+ * Does not inherit from Screen as it's a utility service.
  */
 class ConfirmDialogService implements UIModal
 {

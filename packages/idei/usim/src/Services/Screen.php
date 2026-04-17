@@ -49,7 +49,7 @@ use RuntimeException;
  * - onEventHandler($params) - Your event handler
  * - finalizeEventContext() - Called after event handler, returns formatted response
  */
-abstract class AbstractUIService
+abstract class Screen
 {
     /**
      * Current container instance
@@ -303,7 +303,7 @@ abstract class AbstractUIService
         $injected = [];
 
         foreach ($reflection->getProperties(ReflectionProperty::IS_PROTECTED) as $property) {
-            // Skip properties declared in AbstractUIService itself
+            // Skip properties declared in Screen itself
             if ($property->getDeclaringClass()->getName() === self::class) {
                 continue;
             }
@@ -360,7 +360,7 @@ abstract class AbstractUIService
         $injected = [];
 
         foreach ($reflection->getProperties(ReflectionProperty::IS_PROTECTED) as $property) {
-            // Skip properties declared in AbstractUIService itself
+            // Skip properties declared in Screen itself
             if ($property->getDeclaringClass()->getName() === self::class) {
                 continue;
             }

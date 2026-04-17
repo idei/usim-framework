@@ -5,7 +5,7 @@ use Idei\Usim\Services\UIBuilder;
 use Idei\Usim\Services\Enums\TimeUnit;
 use Idei\Usim\Services\Enums\DialogType;
 use Idei\Usim\Services\Enums\LayoutType;
-use Idei\Usim\Services\AbstractUIService;
+use Idei\Usim\Services\Screen;
 use Idei\Usim\Services\Components\UIContainer;
 use Idei\Usim\Services\Components\LabelBuilder;
 use Idei\Usim\Services\Modals\ConfirmDialogService;
@@ -18,7 +18,7 @@ use Idei\Usim\Services\Modals\ConfirmDialogService;
  * - Handling user responses from modals
  * - Modal lifecycle (open → user action → close)
  */
-class ModalDemo extends AbstractUIService
+class ModalDemo extends Screen
 {
     protected LabelBuilder $lbl_result;
     protected LabelBuilder $lbl_instruction;

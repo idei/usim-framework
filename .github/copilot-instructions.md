@@ -143,7 +143,7 @@ packages/idei/usim/
 |  |- Listeners/
 |  |- Notifications/
 |  |- Services/
-|  |  |- AbstractUIService.php
+|  |  |- Screen.php
 |  |  |- UIBuilder.php
 |  |  |- UIChangesCollector.php
 |  |  |- Contracts/
@@ -226,7 +226,7 @@ Segun `packages/idei/usim/CHANGELOG.md` y `packages/idei/usim/README.md`, el con
 - Version actual documentada: `0.7.0`.
 - `UIContainer` tiene API de apariencia con `appearance()`, `card()` y `plain()`.
 - Calendar y Carousel usan CSS theme tokens para consistencia light/dark.
-- `AbstractUIService` persiste el estado final luego de `postLoadUI()`, incluyendo recargas con `?reset=true`.
+- `Screen` persiste el estado final luego de `postLoadUI()`, incluyendo recargas con `?reset=true`.
 - Los checkboxes sincronizan correctamente su estado incremental desde el backend.
 - El contrato de storage cambio: `store_*` ahora se serializa plain por defecto y solo valores sensibles deben usar sufijo `_crypt`.
 - El framework soporta cambio de tema y usa `ui-theme-tokens.css` para light/dark mode.
@@ -241,7 +241,7 @@ Segun `packages/idei/usim/CHANGELOG.md` y `packages/idei/usim/README.md`, el con
 
 ## Convenciones tecnicas USIM
 
-- Usa `AbstractUIService` para screens y `UIBuilder::*` para crear componentes.
+- Usa `Screen` para screens y `UIBuilder::*` para crear componentes.
 - Los handlers siguen la convencion `on<ActionName>` en PascalCase a partir del action snake_case.
 - Piensa siempre en IDs deterministas, diffs incrementales y reconstruccion correcta del estado.
 - Las propiedades `store_*` son persistidas entre requests; usa `_crypt` solo para valores sensibles.
@@ -255,7 +255,7 @@ Sigue el flujo definido por `packages/idei/usim/docs/component_prompt.md`:
 1. Backend del paquete:
 	- crear builder en `packages/idei/usim/src/Services/Components/`
 	- registrar factory method en `packages/idei/usim/src/Services/UIBuilder.php`
-	- registrar mapping de tipo en `packages/idei/usim/src/Services/AbstractUIService.php`
+	- registrar mapping de tipo en `packages/idei/usim/src/Services/Screen.php`
 2. Frontend del paquete:
 	- crear JS en `packages/idei/usim/resources/assets/js/`
 	- crear CSS si aplica en `packages/idei/usim/resources/assets/css/`

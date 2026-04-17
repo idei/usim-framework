@@ -41,7 +41,7 @@ Implement all required pieces end-to-end:
 - Register factory method in:
   - `packages/idei/usim/src/Services/UIBuilder.php` as `UIBuilder::<factoryMethod>()`
 - Register backend deserialization mapping in:
-  - `packages/idei/usim/src/Services/AbstractUIService.php` inside `mapTypeToClass()`
+  - `packages/idei/usim/src/Services/Screen.php` inside `mapTypeToClass()`
 
 2. **Package frontend (JS/CSS)**
 - Create JS component in:

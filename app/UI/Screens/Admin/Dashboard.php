@@ -6,7 +6,7 @@ use App\Services\User\UserService;
 use Idei\Usim\Services\UIBuilder;
 use Idei\Usim\Services\Enums\DialogType;
 use Idei\Usim\Services\Enums\LayoutType;
-use Idei\Usim\Services\AbstractUIService;
+use Idei\Usim\Services\Screen;
 use Idei\Usim\Services\Components\UIContainer;
 use Idei\Usim\Services\Components\InputBuilder;
 use Idei\Usim\Services\Components\TableBuilder;
@@ -16,7 +16,7 @@ use App\UI\Components\Modals\EditUserDialog;
 use App\UI\Components\Modals\RegisterDialog;
 use Idei\Usim\Services\Modals\ConfirmDialogService;
 
-class Dashboard extends AbstractUIService
+class Dashboard extends Screen
 {
     public function __construct(
         protected RegisterService $registerService,

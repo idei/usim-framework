@@ -21,7 +21,7 @@ use App\UI\Screens\Demo\SelectDemo;
 use App\UI\Screens\Demo\TableDemo;
 use App\UI\Screens\Demo\UploaderDemo;
 use Idei\Usim\Events\UsimEvent;
-use Idei\Usim\Services\AbstractUIService;
+use Idei\Usim\Services\Screen;
 use Idei\Usim\Services\Components\ButtonBuilder;
 use Idei\Usim\Services\Components\MenuDropdownBuilder;
 use Idei\Usim\Services\Components\UIContainer;
@@ -40,7 +40,7 @@ use Illuminate\Support\Facades\Auth;
  *
  * Builds the main navigation menu for screens
  */
-class Menu extends AbstractUIService
+class Menu extends Screen
 {
     public function __construct(
         protected RegisterService $registerService,

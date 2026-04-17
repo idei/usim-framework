@@ -21,7 +21,7 @@
                         </Array>
                     </mxGeometry>
                 </mxCell>
-                <mxCell id="service1" value="AbstractUIService.buildBaseUI()&lt;br&gt;↓&lt;br&gt;UIStateManager (cache session)" style="rounded=1;html=1;fillColor=#fff2cc;strokeColor=#d6b656;align=left;fontFamily=Courier New;spacingLeft=10;fontSize=10;fontColor=default;whiteSpace=wrap;" parent="1" vertex="1">
+                <mxCell id="service1" value="Screen.buildBaseUI()&lt;br&gt;↓&lt;br&gt;UIStateManager (cache session)" style="rounded=1;html=1;fillColor=#fff2cc;strokeColor=#d6b656;align=left;fontFamily=Courier New;spacingLeft=10;fontSize=10;fontColor=default;whiteSpace=wrap;" parent="1" vertex="1">
                     <mxGeometry x="340" y="140" width="230" height="80" as="geometry"/>
                 </mxCell>
                 <mxCell id="arrow2" value="JSON UI" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;dashed=1;" parent="1" source="service1" target="client1" edge="1">
@@ -147,7 +147,7 @@
                 <mxCell id="services_label" value="SERVICIOS Y BUILDERS" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=top;whiteSpace=wrap;rounded=0;fontSize=14;fontStyle=1" parent="BIjn1Z4AEju04GT3t9Pa-5" vertex="1">
                     <mxGeometry x="70" y="4" width="220" height="20" as="geometry"/>
                 </mxCell>
-                <mxCell id="abstract" value="AbstractUIService&#xa;• Gestión de estado (cache)&#xa;• Lifecycle de eventos&#xa;• Diff automático&#xa;• Inyección de componentes" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#666666;align=left;spacingLeft=30;fontSize=10;spacingTop=0;spacingBottom=10;verticalAlign=top;" parent="BIjn1Z4AEju04GT3t9Pa-5" vertex="1">
+                <mxCell id="abstract" value="Screen&#xa;• Gestión de estado (cache)&#xa;• Lifecycle de eventos&#xa;• Diff automático&#xa;• Inyección de componentes" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#666666;align=left;spacingLeft=30;fontSize=10;spacingTop=0;spacingBottom=10;verticalAlign=top;" parent="BIjn1Z4AEju04GT3t9Pa-5" vertex="1">
                     <mxGeometry x="55" y="40" width="250" height="80" as="geometry"/>
                 </mxCell>
                 <mxCell id="uibuilder" value="UIBuilder (Factory)&#xa;button() • label() • input() • select()&#xa;checkbox() • table() • uploader() • modal()" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#666666;align=center;fontSize=10;spacingTop=0;spacingBottom=10;verticalAlign=top;" parent="BIjn1Z4AEju04GT3t9Pa-5" vertex="1">
@@ -277,7 +277,7 @@
                 <mxCell id="col_controller" value="CONTROLLER&#xa;(UIEventController)" style="text;html=1;strokeColor=#d6b656;fillColor=#fff2cc;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=1;fontSize=14;fontStyle=1" parent="1" vertex="1">
                     <mxGeometry x="640" y="80" width="200" height="50" as="geometry"/>
                 </mxCell>
-                <mxCell id="col_abstract" value="AbstractUIService" style="text;html=1;strokeColor=#82b366;fillColor=#d5e8d4;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=1;fontSize=14;fontStyle=1" parent="1" vertex="1">
+                <mxCell id="col_abstract" value="Screen" style="text;html=1;strokeColor=#82b366;fillColor=#d5e8d4;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=1;fontSize=14;fontStyle=1" parent="1" vertex="1">
                     <mxGeometry x="900" y="80" width="250" height="50" as="geometry"/>
                 </mxCell>
                 <mxCell id="col_buttondemo" value="ButtonDemoService" style="text;html=1;strokeColor=#82b366;fillColor=#d5e8d4;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=1;fontSize=14;fontStyle=1" parent="1" vertex="1">

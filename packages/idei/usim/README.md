@@ -59,7 +59,7 @@ A **Server-Driven UI** framework for Laravel. Define your entire user interface 
 
 - Container appearance API: `->card()` and `->plain()` fluent helpers on `UIContainer` to switch between card and flat visual variants.
 - Carousel and calendar components consume CSS theme tokens for consistent light/dark styling.
-- Bug fix: `AbstractUIService` now always persists state after `postLoadUI()`, fixing stale cache on `?reset=true` reloads.
+- Bug fix: `Screen` now always persists state after `postLoadUI()`, fixing stale cache on `?reset=true` reloads.
 - Bug fix: Checkbox `checked` state now syncs correctly from incremental server responses.
 
 For the full release details, see `CHANGELOG.md`.
@@ -108,7 +108,7 @@ Visit `http://localhost:8000` — you have a working USIM app.
 
 ### Screens
 
-A **Screen** is a PHP class that defines a full page. Each screen extends `AbstractUIService` and builds its UI inside `buildBaseUI()`:
+A **Screen** is a PHP class that defines a full page. Each screen extends `Screen` and builds its UI inside `buildBaseUI()`:
 
 ```php
 <?php
@@ -117,10 +117,10 @@ namespace App\UI\Screens;
 
 use Idei\Usim\Services\UIBuilder;
 use Idei\Usim\Services\Enums\LayoutType;
-use Idei\Usim\Services\AbstractUIService;
+use Idei\Usim\Services\Screen;
 use Idei\Usim\Services\Components\UIContainer;
 
-class HelloScreen extends AbstractUIService
+class HelloScreen extends Screen
 {
     protected function buildBaseUI(UIContainer $container, ...$params): void
     {
@@ -218,7 +218,7 @@ Persistence is now plain by default:
 - This makes client-side decisions possible for non-sensitive state such as `store_theme`, and also enables finer-grained storage synchronization because the client can apply only the changed keys instead of replacing one fully encrypted blob each time.
 
 ```php
-class MyScreen extends AbstractUIService
+class MyScreen extends Screen
 {
     protected string $store_username = '';       // persisted in plain text
     protected int $store_page = 1;              // persisted in plain text
@@ -272,11 +272,11 @@ All builders extend `BaseUIBuilder` and share common methods:
 // app/UI/Screens/Products/List.php
 namespace App\UI\Screens\Products;
 
-use Idei\Usim\Services\AbstractUIService;
+use Idei\Usim\Services\Screen;
 use Idei\Usim\Services\Components\UIContainer;
 use Idei\Usim\Services\UIBuilder;
 
-class List extends AbstractUIService
+class List extends Screen
 {
     protected function buildBaseUI(UIContainer $container, ...$params): void
     {
@@ -441,7 +441,7 @@ public function onUserLoggedIn(array $params): void
 
 ## Built-in UI Helpers
 
-Available inside any `AbstractUIService` handler:
+Available inside any `Screen` handler:
 
 ```php
 // Show a toast notification

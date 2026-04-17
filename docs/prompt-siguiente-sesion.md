@@ -10,7 +10,7 @@ Actualmente estoy ubicado en la rama `refactor/extract-usim-incremental`.
 Por favor lee detenidamente el archivo **`docs/usim-laravel-package-refactoring.md`**.
 
 **ESTADO ACTUAL:**
-1.  Hemos completado la **Fase 1 de Seguridad**: `authorize()` ya está implementado en `AbstractUIService` y protegido por los controladores `UIController` y `UIEventController`.
+1.  Hemos completado la **Fase 1 de Seguridad**: `authorize()` ya está implementado en `Screen` y protegido por los controladores `UIController` y `UIEventController`.
 2.  El sistema funciona y es seguro a nivel de acceso, pero ahora debemos asegurar la **visibilidad**.
 
 **TUS INSTRUCCIONES ESTRICTAS:**

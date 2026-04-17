@@ -1489,7 +1489,7 @@
                         <span class="code-filename">HelloScreen.php</span>
                     </div>
                     <div class="code-body">
-                        <pre><span class="kw">class</span> <span class="cls">HelloScreen</span> <span class="kw">extends</span> <span class="cls">AbstractUIService</span>
+                        <pre><span class="kw">class</span> <span class="cls">HelloScreen</span> <span class="kw">extends</span> <span class="cls">Screen</span>
 {
   <span class="kw">protected function</span> <span class="fn">buildBaseUI</span>(
     <span class="cls">UIContainer</span> <span class="ch">$container</span>

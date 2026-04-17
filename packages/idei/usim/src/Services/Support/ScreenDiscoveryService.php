@@ -4,7 +4,7 @@ namespace Idei\Usim\Services\Support;
 
 use Symfony\Component\Finder\Finder;
 use Symfony\Component\Finder\SplFileInfo;
-use Idei\Usim\Services\AbstractUIService;
+use Idei\Usim\Services\Screen;
 
 class ScreenDiscoveryService
 {
@@ -106,6 +106,6 @@ class ScreenDiscoveryService
         }
 
         $reflection = new \ReflectionClass($className);
-        return $reflection->isSubclassOf(AbstractUIService::class) && !$reflection->isAbstract();
+        return $reflection->isSubclassOf(Screen::class) && !$reflection->isAbstract();
     }
 }

@@ -39,7 +39,7 @@ USIM propone un cambio de paradigma: **la UI como un servicio del backend**. El 
 
 ```
 app/Services/UI/
-├── AbstractUIService.php          # Clase base para servicios de UI
+├── Screen.php          # Clase base para servicios de UI
 ├── Components/                     # 16 builders de componentes
 │   ├── ButtonBuilder.php
 │   ├── FormBuilder.php
@@ -306,7 +306,7 @@ Para definir que la variable tendrá persistencia en el localStorage del navegad
 
 ```php
 // Usar propiedades protegidas para mantener estado entre eventos
-class UsersService extends AbstractUIService
+class UsersService extends Screen
 {
     protected int|null $store_UserId = null;
     protected array $filters = [];
@@ -411,7 +411,7 @@ protected function createUserForm(FormBuilder $form, ?User $user = null)
 
 ```php
 // Desarrollo lineal sin context switching
-class UsersService extends AbstractUIService
+class UsersService extends Screen
 {
     protected TableBuilder $table_users;
 
@@ -945,12 +945,12 @@ class UsimDevTools {
 <?php
 namespace App\Services\Screens;
 
-use App\Services\UI\AbstractUIService;
+use App\Services\UI\Screen;
 use App\Services\UI\Components\ButtonBuilder;
 use App\Services\UI\Components\UIContainer;
 use App\Services\UI\UIBuilder;
 
-class ButtonDemoService extends AbstractUIService
+class ButtonDemoService extends Screen
 {
     protected ButtonBuilder $btn_toggle;
     protected bool $store_state = false;
@@ -1009,13 +1009,13 @@ namespace App\Services\Screens;
 use App\Events\UsimEvent;
 use App\Services\UI\UIBuilder;
 use Illuminate\Support\Facades\Auth;
-use App\Services\UI\AbstractUIService;
+use App\Services\UI\Screen;
 use App\Services\Upload\UploadService;
 use App\Services\UI\Components\UIContainer;
 use App\Services\UI\Components\InputBuilder;
 use App\Services\UI\Components\UploaderBuilder;
 
-class ProfileService extends AbstractUIService
+class ProfileService extends Screen
 {
     protected InputBuilder $input_email;
     protected InputBuilder $input_name;
@@ -1177,14 +1177,14 @@ class ProfileService extends AbstractUIService
 <?php
 namespace App\Services\Screens;
 
-use App\Services\UI\AbstractUIService;
+use App\Services\UI\Screen;
 use App\Services\UI\Components\LabelBuilder;
 use App\Services\UI\Components\UIContainer;
 use App\Services\UI\Enums\DialogType;
 use App\Services\UI\Modals\ConfirmDialogService;
 use App\Services\UI\UIBuilder;
 
-class ModalDemoService extends AbstractUIService
+class ModalDemoService extends Screen
 {
     protected LabelBuilder $lbl_result;
 

@@ -2,13 +2,13 @@
 namespace App\UI\Screens\Demo;
 
 use Idei\Usim\Services\UIBuilder;
-use Idei\Usim\Services\AbstractUIService;
+use Idei\Usim\Services\Screen;
 use Idei\Usim\Services\Components\UIContainer;
 use Idei\Usim\Services\Components\InputBuilder;
 use Idei\Usim\Services\Components\LabelBuilder;
 use Idei\Usim\Services\Components\ButtonBuilder;
 
-class FormDemo extends AbstractUIService
+class FormDemo extends Screen
 {
     protected LabelBuilder $lbl_instruction;
     protected InputBuilder $input_name;

@@ -69,7 +69,7 @@ database/
 
 ## Cómo Usar en Código
 
-### En Screens (AbstractUIService)
+### En Screens (Screen)
 
 ```php
 // ❌ Antes (hardcoded)

@@ -3,14 +3,14 @@ namespace {{ namespace }};
 
 use App\Services\Auth\AuthSessionService;
 use App\Services\Auth\LoginService;
-use Idei\Usim\Services\AbstractUIService;
+use Idei\Usim\Services\Screen;
 use Idei\Usim\Services\Components\LabelBuilder;
 use Idei\Usim\Services\Components\UIContainer;
 use Idei\Usim\Services\Enums\JustifyContent;
 use Idei\Usim\Services\Enums\LayoutType;
 use Idei\Usim\Services\UIBuilder;
 
-class Login extends AbstractUIService
+class Login extends Screen
 {
     public function __construct(
         protected LoginService $loginService,

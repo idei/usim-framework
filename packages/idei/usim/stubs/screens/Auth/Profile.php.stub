@@ -6,13 +6,13 @@ use Idei\Usim\Events\UsimEvent;
 use Idei\Usim\Services\UIBuilder;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Password;
-use Idei\Usim\Services\AbstractUIService;
+use Idei\Usim\Services\Screen;
 use Idei\Usim\Services\Upload\UploadService;
 use Idei\Usim\Services\Components\UIContainer;
 use Idei\Usim\Services\Components\InputBuilder;
 use Idei\Usim\Services\Components\UploaderBuilder;
 
-class Profile extends AbstractUIService
+class Profile extends Screen
 {
     protected InputBuilder $input_email;
     protected InputBuilder $input_name;

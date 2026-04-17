@@ -2,7 +2,7 @@
 namespace App\UI\Screens\Demo;
 
 use Idei\Usim\Services\UIBuilder;
-use Idei\Usim\Services\AbstractUIService;
+use Idei\Usim\Services\Screen;
 use Idei\Usim\Services\Components\UIContainer;
 use Idei\Usim\Services\Components\InputBuilder;
 use Idei\Usim\Services\Components\LabelBuilder;
@@ -17,10 +17,10 @@ use Idei\Usim\Services\Components\LabelBuilder;
  * - Label updates based on input
  * - Error state with tooltip
  *
- * Uses AbstractUIService for automatic event lifecycle management.
+ * Uses Screen for automatic event lifecycle management.
  * Event handlers only need to modify components, no return needed.
  */
-class InputDemo extends AbstractUIService
+class InputDemo extends Screen
 {
     protected InputBuilder $input_text;
     protected LabelBuilder $lbl_result;
@@ -78,7 +78,7 @@ class InputDemo extends AbstractUIService
      * Handle "Validate" button click
      *
      * Validates the input and shows errors using the error() method with tooltip.
-     * No return needed - AbstractUIService handles diff calculation and response.
+     * No return needed - Screen handles diff calculation and response.
      *
      * @param array $params Event parameters (should include 'input_text' from input)
      * @return void

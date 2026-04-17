@@ -247,7 +247,7 @@ class CardBuilder extends UIComponent
 
         foreach ($trace as $frame) {
             if (isset($frame['class']) &&
-                is_subclass_of($frame['class'], \Idei\Usim\Services\AbstractUIService::class)) {
+                is_subclass_of($frame['class'], \Idei\Usim\Services\Screen::class)) {
                 return $frame['class'];
             }
         }

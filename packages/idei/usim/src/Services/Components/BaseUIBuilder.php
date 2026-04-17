@@ -54,7 +54,7 @@ abstract class BaseUIBuilder
                 !str_starts_with($frame['class'], 'App\\UI\\Components\\') &&
                 !str_starts_with($frame['class'], 'Idei\\Usim\\Services\\Components\\') &&
                 !str_starts_with($frame['class'], 'Idei\\Usim\\Http\\') &&
-                $frame['class'] !== 'Idei\\Usim\\Services\\AbstractUIService' &&
+                $frame['class'] !== 'Idei\\Usim\\Services\\Screen' &&
                 $frame['class'] !== 'Idei\\Usim\\Services\\UIBuilder'
             ) {
                 \Illuminate\Support\Facades\Log::info("UI Context Detected: " . $frame['class']);
