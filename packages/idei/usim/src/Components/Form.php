@@ -3,6 +3,7 @@
 namespace Idei\Usim\Components;
 
 use Idei\Usim\Components\Input;
+use Idei\Usim\Components\Select;
 
 /**
  * Form UI component builder
@@ -1064,11 +1065,11 @@ class Form extends UIContainer
      *
      * @param string $name Field name
      * @param string|null $label Field label
-     * @return SelectBuilder For method chaining
+     * @return Select For method chaining
      */
-    public function select(string $name, ?string $label = null): SelectBuilder
+    public function select(string $name, ?string $label = null): Select
     {
-        $select = new SelectBuilder($name);
+        $select = new Select($name);
 
         if ($label !== null) {
             $select->label($label);

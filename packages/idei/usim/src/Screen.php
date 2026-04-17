@@ -8,7 +8,7 @@ use Idei\Usim\Components\Form;
 use Idei\Usim\Components\Input;
 use Idei\Usim\Components\Label;
 use Idei\Usim\Components\MenuDropdown;
-use Idei\Usim\Components\SelectBuilder;
+use Idei\Usim\Components\Select;
 use Idei\Usim\Components\TableBuilder;
 use Idei\Usim\Components\TableCellBuilder;
 use Idei\Usim\Components\TableHeaderCellBuilder;
@@ -578,7 +578,7 @@ abstract class Screen
             'label' => Label::class,
             'button' => Button::class,
             'input' => Input::class,
-            'select' => SelectBuilder::class,
+            'select' => Select::class,
             'checkbox' => Checkbox::class,
             'card' => Card::class,
             'table' => TableBuilder::class,

@@ -8,7 +8,7 @@ use Idei\Usim\Components\UIContainer;
 use Idei\Usim\Components\TableBuilder;
 use Idei\Usim\Components\TableRowBuilder;
 use Idei\Usim\Components\Input;
-use Idei\Usim\Components\SelectBuilder;
+use Idei\Usim\Components\Select;
 use Idei\Usim\Components\Checkbox;
 use Idei\Usim\Components\Form;
 use Idei\Usim\Components\MenuDropdown;
@@ -87,11 +87,11 @@ class UIBuilder
      * Create a new select component
      *
      * @param string|null $name The optional semantic name for the select
-     * @return SelectBuilder
+     * @return Select
      */
-    public static function select(?string $name = null): SelectBuilder
+    public static function select(?string $name = null): Select
     {
-        return new SelectBuilder($name);
+        return new Select($name);
     }
 
     /**

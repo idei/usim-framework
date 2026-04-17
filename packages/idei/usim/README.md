@@ -239,7 +239,7 @@ Use `_crypt` only when the value should not be readable from the client's local 
 | `UIBuilder::label()` | `Label` | Text labels, headings, paragraphs |
 | `UIBuilder::button()` | `Button` | Action buttons with styles |
 | `UIBuilder::input()` | `Input` | Text, email, password, hidden inputs |
-| `UIBuilder::select()` | `SelectBuilder` | Dropdown selects |
+| `UIBuilder::select()` | `Select` | Dropdown selects |
 | `UIBuilder::checkbox()` | `Checkbox` | Checkboxes and toggles |
 | `UIBuilder::form()` | `Form` | Form grouping |
 | `UIBuilder::table()` | `TableBuilder` | Data tables with pagination |

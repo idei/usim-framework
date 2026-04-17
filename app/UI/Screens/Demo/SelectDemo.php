@@ -6,7 +6,7 @@ use Idei\Usim\Screen;
 use Idei\Usim\Components\UIContainer;
 use Idei\Usim\Components\Label;
 use Idei\Usim\Components\Button;
-use Idei\Usim\Components\SelectBuilder;
+use Idei\Usim\Components\Select;
 use Idei\Usim\Components\Checkbox;
 
 /**
@@ -25,9 +25,9 @@ use Idei\Usim\Components\Checkbox;
  */
 class SelectDemo extends Screen
 {
-    protected SelectBuilder $sel_country;
-    protected SelectBuilder $sel_city;
-    protected SelectBuilder $sel_languages;
+    protected Select $sel_country;
+    protected Select $sel_city;
+    protected Select $sel_languages;
     protected Label $lbl_result;
     protected Checkbox $chk_enable_multiple;
     protected Button $btn_reset;

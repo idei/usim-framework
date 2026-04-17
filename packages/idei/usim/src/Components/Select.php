@@ -13,7 +13,7 @@ namespace Idei\Usim\Components;
  * - Validation and states
  * - Accessibility support
  */
-class SelectBuilder extends UIComponent
+class Select extends UIComponent
 {
     protected function getDefaultConfig(): array
     {
