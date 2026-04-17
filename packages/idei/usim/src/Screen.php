@@ -591,7 +591,7 @@ abstract class Screen
             'menudropdown' => MenuDropdownBuilder::class,
             'uploader' => UploaderBuilder::class,
             'calendar' => \Idei\Usim\Components\CalendarBuilder::class,
-            'carousel' => \Idei\Usim\Components\CarouselBuilder::class,
+            'carousel' => \Idei\Usim\Components\Carousel::class,
             'default' => null,
         };
     }

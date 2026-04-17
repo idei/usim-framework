@@ -3,15 +3,15 @@
 namespace App\UI\Screens\Demo;
 
 use Idei\Usim\Screen;
-use Idei\Usim\Components\CarouselBuilder;
+use Idei\Usim\Components\Carousel;
 use Idei\Usim\Components\UIContainer;
 use Idei\Usim\Enums\LayoutType;
 use Idei\Usim\UIBuilder;
 
 class CarouselDemo extends Screen
 {
-    protected CarouselBuilder $manual_carousel;
-    protected CarouselBuilder $auto_carousel;
+    protected Carousel $manual_carousel;
+    protected Carousel $auto_carousel;
 
     protected int $store_manual_index = 0;
     protected int $store_auto_index = 0;

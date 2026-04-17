@@ -4,8 +4,11 @@ namespace Idei\Usim\Components;
 
 /**
  * Builder for Carousel UI component.
+ * 
+ * Provides a fluent interface for constructing and configuring carousel components
+ * with support for customizable slides, navigation, and display options.
  */
-class CarouselBuilder extends UIComponent
+class Carousel extends UIComponent
 {
     protected function getDefaultConfig(): array
     {
