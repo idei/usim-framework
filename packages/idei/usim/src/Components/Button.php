@@ -3,10 +3,17 @@
 namespace Idei\Usim\Components;
 
 /**
- * Builder for Button UI components
+ * Button UI Component Builder
  *
- * Modern and powerful button component with comprehensive styling,
- * states, loading indicators, confirmations, and accessibility features.
+ * Fluent builder for creating interactive buttons with support for:
+ * - Multiple styles (primary, secondary, success, danger, etc.)
+ * - Visual variants (solid, outline, ghost, link)
+ * - Icons with customizable position, size, and color
+ * - Loading states with custom text and icons
+ * - Confirmation dialogs before action execution
+ * - Accessibility features (ARIA labels, keyboard shortcuts)
+ * - Advanced styling (shapes, sizes, animations, ripple effects)
+ * - State management (enabled, active, badge notifications)
  */
 class Button extends UIComponent
 {
@@ -392,17 +399,5 @@ class Button extends UIComponent
     public function ripple(bool $ripple = true): self
     {
         return $this->setConfig('ripple_effect', $ripple);
-    }
-
-    /**
-     * Legacy build method for backward compatibility
-     * Returns array format instead of object
-     *
-     * @return array
-     * @deprecated Use toJson() instead
-     */
-    public function build(): array
-    {
-        return $this->toJson();
     }
 }
