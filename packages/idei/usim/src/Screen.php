@@ -1,7 +1,7 @@
 <?php
 namespace Idei\Usim;
 
-use Idei\Usim\Components\ButtonBuilder;
+use Idei\Usim\Components\Button;
 use Idei\Usim\Components\CardBuilder;
 use Idei\Usim\Components\CheckboxBuilder;
 use Idei\Usim\Components\FormBuilder;
@@ -576,7 +576,7 @@ abstract class Screen
     {
         return match ($type) {
             'label' => LabelBuilder::class,
-            'button' => ButtonBuilder::class,
+            'button' => Button::class,
             'input' => InputBuilder::class,
             'select' => SelectBuilder::class,
             'checkbox' => CheckboxBuilder::class,

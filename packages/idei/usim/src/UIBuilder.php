@@ -2,7 +2,7 @@
 
 namespace Idei\Usim;
 
-use Idei\Usim\Components\ButtonBuilder;
+use Idei\Usim\Components\Button;
 use Idei\Usim\Components\LabelBuilder;
 use Idei\Usim\Components\UIContainer;
 use Idei\Usim\Components\TableBuilder;
@@ -29,11 +29,11 @@ class UIBuilder
      * Create a new button component
      *
      * @param string|null $name an optional semantic name for the button
-     * @return ButtonBuilder
+     * @return Button
      */
-    public static function button(?string $name = null): ButtonBuilder
+    public static function button(?string $name = null): Button
     {
-        return new ButtonBuilder($name);
+        return new Button($name);
     }
 
     /**

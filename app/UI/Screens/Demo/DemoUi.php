@@ -2,7 +2,7 @@
 namespace App\UI\Screens\Demo;
 
 use Idei\Usim\Screen;
-use Idei\Usim\Components\ButtonBuilder;
+use Idei\Usim\Components\Button;
 use Idei\Usim\Components\LabelBuilder;
 use Idei\Usim\Components\UIContainer;
 use Idei\Usim\Enums\LayoutType;
@@ -189,7 +189,7 @@ class DemoUi extends Screen
 
     public function onNewButtonAction(array $params): void
     {
-        $button = $this->findRootComponentAs($params['id'] ?? null, ButtonBuilder::class);
+        $button = $this->findRootComponentAs($params['id'] ?? null, Button::class);
 
         if (!$button) {
             return;

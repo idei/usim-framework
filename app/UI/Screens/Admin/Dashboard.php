@@ -10,7 +10,7 @@ use Idei\Usim\Screen;
 use Idei\Usim\Components\UIContainer;
 use Idei\Usim\Components\InputBuilder;
 use Idei\Usim\Components\TableBuilder;
-use Idei\Usim\Components\ButtonBuilder;
+use Idei\Usim\Components\Button;
 use App\UI\Components\DataTable\UserApiTableModel;
 use App\UI\Components\Modals\EditUserDialog;
 use App\UI\Components\Modals\RegisterDialog;
@@ -41,7 +41,7 @@ class Dashboard extends Screen
 
     protected TableBuilder $users_table;
     protected InputBuilder $search_users;
-    protected ButtonBuilder $add_user_btn;
+    protected Button $add_user_btn;
 
     protected function buildBaseUI(UIContainer $container, ...$params): void
     {

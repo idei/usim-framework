@@ -294,7 +294,7 @@ Ver [docs/api/API_COMPLETE_DOCUMENTATION.md](docs/api/API_COMPLETE_DOCUMENTATION
 namespace App\Services\Screens;
 
 use App\Services\UI\Screen;
-use App\Services\UI\Components\ButtonBuilder;
+use App\Services\UI\Components\Button;
 use App\Services\UI\Components\LabelBuilder;
 use App\Services\UI\Components\UIContainer;
 use App\Services\UI\UIBuilder;
@@ -302,7 +302,7 @@ use App\Services\UI\UIBuilder;
 class HelloWorldService extends Screen
 {
     protected LabelBuilder $lbl_message;
-    protected ButtonBuilder $btn_click;
+    protected Button $btn_click;
     
     protected function buildBaseUI(UIContainer $container, ...$params): void
     {

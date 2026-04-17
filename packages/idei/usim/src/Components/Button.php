@@ -8,7 +8,7 @@ namespace Idei\Usim\Components;
  * Modern and powerful button component with comprehensive styling,
  * states, loading indicators, confirmations, and accessibility features.
  */
-class ButtonBuilder extends UIComponent
+class Button extends UIComponent
 {
     protected function getDefaultConfig(): array
     {

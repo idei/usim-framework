@@ -4,11 +4,11 @@ namespace App\UI\Screens\Demo;
 use Idei\Usim\UIBuilder;
 use Idei\Usim\Screen;
 use Idei\Usim\Components\UIContainer;
-use Idei\Usim\Components\ButtonBuilder;
+use Idei\Usim\Components\Button;
 
 class ButtonDemo extends Screen
 {
-    protected ButtonBuilder $btn_toggle;
+    protected Button $btn_toggle;
     protected bool $store_state = false;
 
     protected function buildBaseUI(UIContainer $container, ...$params): void
@@ -20,7 +20,7 @@ class ButtonDemo extends Screen
             ->centerHorizontal()->shadow(2)
             ->add(
                 UIBuilder::button('btn_toggle')
-                    ->label(t('screen.demo.button_demo.cta.default'))
+                    ->label(t('screen.demo.button_demo.default'))
                     ->action('toggle_label')
                     ->style('primary')
             );
@@ -40,9 +40,9 @@ class ButtonDemo extends Screen
     private function updateButtonState(): void
     {
         if ($this->store_state) {
-            $this->btn_toggle->label(t('screen.demo.button_demo.cta.clicked'))->style('success');
+            $this->btn_toggle->label(t('screen.demo.button_demo.clicked'))->style('success');
         } else {
-            $this->btn_toggle->label(t('screen.demo.button_demo.cta.default'))->style('primary');
+            $this->btn_toggle->label(t('screen.demo.button_demo.default'))->style('primary');
         }
     }
 }

@@ -22,7 +22,7 @@ use App\UI\Screens\Demo\TableDemo;
 use App\UI\Screens\Demo\UploaderDemo;
 use Idei\Usim\Events\UsimEvent;
 use Idei\Usim\Screen;
-use Idei\Usim\Components\ButtonBuilder;
+use Idei\Usim\Components\Button;
 use Idei\Usim\Components\MenuDropdownBuilder;
 use Idei\Usim\Components\UIContainer;
 use Idei\Usim\Enums\AlignItems;
@@ -51,7 +51,7 @@ class Menu extends Screen
     protected MenuDropdownBuilder $main_menu;
     protected MenuDropdownBuilder $user_menu;
     protected MenuDropdownBuilder $lang_menu;
-    protected ButtonBuilder $theme_toggle;
+    protected Button $theme_toggle;
     protected string $store_theme = 'light';
     protected string $store_lang = '';
 

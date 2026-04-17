@@ -41,7 +41,7 @@ USIM propone un cambio de paradigma: **la UI como un servicio del backend**. El 
 app/Services/UI/
 ├── Screen.php          # Clase base para servicios de UI
 ├── Components/                     # 16 builders de componentes
-│   ├── ButtonBuilder.php
+│   ├── Button.php
 │   ├── FormBuilder.php
 │   ├── InputBuilder.php
 │   ├── TableBuilder.php
@@ -528,9 +528,9 @@ test('profile update changes avatar URL', function () {
 // Cambio de diseño global
 class UIConfig
 {
-    public static function primaryButton(): ButtonBuilder
+    public static function primaryButton(): Button
     {
-        return (new ButtonBuilder())
+        return (new Button())
             ->style(ButtonStyle::PRIMARY)
             ->borderRadius('8px')
             ->padding('12px 24px');
@@ -946,13 +946,13 @@ class UsimDevTools {
 namespace App\Services\Screens;
 
 use App\Services\UI\Screen;
-use App\Services\UI\Components\ButtonBuilder;
+use App\Services\UI\Components\Button;
 use App\Services\UI\Components\UIContainer;
 use App\Services\UI\UIBuilder;
 
 class ButtonDemoService extends Screen
 {
-    protected ButtonBuilder $btn_toggle;
+    protected Button $btn_toggle;
     protected bool $store_state = false;
 
     protected function buildBaseUI(UIContainer $container, ...$params): void

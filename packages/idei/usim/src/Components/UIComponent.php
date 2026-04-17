@@ -171,7 +171,7 @@ abstract class UIComponent implements UIElement
 
     /**
      * Extract the component type from the class name
-     * Example: "ButtonBuilder" -> "button"
+     * Example: "Button" -> "button"
      */
     private function getTypeFromClassName(): string
     {

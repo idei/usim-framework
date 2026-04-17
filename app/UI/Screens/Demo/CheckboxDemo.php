@@ -5,7 +5,7 @@ use Idei\Usim\UIBuilder;
 use Idei\Usim\Screen;
 use Idei\Usim\Components\UIContainer;
 use Idei\Usim\Components\LabelBuilder;
-use Idei\Usim\Components\ButtonBuilder;
+use Idei\Usim\Components\Button;
 use Idei\Usim\Components\CheckboxBuilder;
 
 class CheckboxDemo extends Screen
@@ -13,7 +13,7 @@ class CheckboxDemo extends Screen
     protected LabelBuilder $lbl_instruction;
     protected CheckboxBuilder $chk_javascript;
     protected CheckboxBuilder $chk_python;
-    protected ButtonBuilder $btn_submit;
+    protected Button $btn_submit;
     protected LabelBuilder $lbl_result;
 
     /**

@@ -143,7 +143,7 @@ $container->clear();
 ```
 UIElement (interface)
 ├── UIComponent (abstract) - Elementos hoja
-│   ├── ButtonBuilder
+│   ├── Button
 │   ├── LabelBuilder
 │   └── TableBuilder
 └── UIContainer (composite) - Contenedores

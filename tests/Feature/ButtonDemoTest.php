@@ -11,11 +11,11 @@ it('toggles button label on click', function () {
         $ui = uiScenario($this, ButtonDemo::class, ['reset' => true]);
         $btnToggle = $ui->component('btn_toggle');
 
-        $btnToggle->expect('label')->toBe(t('screen.demo.button_demo.cta.default'));
+        $btnToggle->expect('label')->toBe(t('screen.demo.button_demo.default'));
         $btnToggle->click();
-        $btnToggle->expect('label')->toBe(t('screen.demo.button_demo.cta.clicked'));
+        $btnToggle->expect('label')->toBe(t('screen.demo.button_demo.clicked'));
         $btnToggle->click();
-        $btnToggle->expect('label')->toBe(t('screen.demo.button_demo.cta.default'));
+        $btnToggle->expect('label')->toBe(t('screen.demo.button_demo.default'));
         $ui->assertNoIssues();
     }
 
