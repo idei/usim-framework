@@ -3,10 +3,10 @@
 namespace App\UI\Components\DataTable;
 
 use Idei\Usim\Models\UsimTextKey;
-use Idei\Usim\Services\Components\TableBuilder;
-use Idei\Usim\Services\DataTable\AbstractDataTableModel;
-use Idei\Usim\Services\Support\TranslationService;
-use Idei\Usim\Services\Support\UIStateManager;
+use Idei\Usim\Components\TableBuilder;
+use Idei\Usim\DataTable\AbstractDataTableModel;
+use Idei\Usim\Support\TranslationService;
+use Idei\Usim\Support\UIStateManager;
 
 class TranslationKeysTableModel extends AbstractDataTableModel
 {

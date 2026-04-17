@@ -1,6 +1,6 @@
 <?php
 
-use Idei\Usim\Services\Support\TranslationService;
+use Idei\Usim\Support\TranslationService;
 
 if (!function_exists('t')) {
     /**

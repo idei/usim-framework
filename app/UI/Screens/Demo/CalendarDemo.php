@@ -2,10 +2,10 @@
 
 namespace App\UI\Screens\Demo;
 
-use Idei\Usim\Services\UIBuilder;
-use Idei\Usim\Services\Screen;
-use Idei\Usim\Services\Components\UIContainer;
-use Idei\Usim\Services\Components\CalendarBuilder;
+use Idei\Usim\UIBuilder;
+use Idei\Usim\Screen;
+use Idei\Usim\Components\UIContainer;
+use Idei\Usim\Components\CalendarBuilder;
 
 class CalendarDemo extends Screen
 {

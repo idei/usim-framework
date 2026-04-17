@@ -2,7 +2,7 @@
 
 namespace Tests\Support;
 
-use Idei\Usim\Services\Support\UIStateManager;
+use Idei\Usim\Support\UIStateManager;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Str;
 use Illuminate\Testing\TestResponse;

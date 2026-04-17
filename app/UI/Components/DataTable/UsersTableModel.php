@@ -3,14 +3,14 @@
 namespace App\UI\Components\DataTable;
 
 use App\Models\User;
-use Idei\Usim\Services\DataTable\AbstractDataTableModel;
+use Idei\Usim\DataTable\AbstractDataTableModel;
 
 /**
  * Users Table Model
  *
  * Implementation for real User model from database
  */
-class UsersTableModel extends \Idei\Usim\Services\DataTable\AbstractDataTableModel
+class UsersTableModel extends \Idei\Usim\DataTable\AbstractDataTableModel
 {
     /**
      * Get all users data from database

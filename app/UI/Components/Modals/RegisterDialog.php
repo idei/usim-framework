@@ -2,11 +2,11 @@
 
 namespace App\UI\Components\Modals;
 
-use Idei\Usim\Services\UIBuilder;
-use Idei\Usim\Services\Enums\LayoutType;
-use Idei\Usim\Services\Enums\JustifyContent;
-use Idei\Usim\Services\UIChangesCollector;
-use Idei\Usim\Services\Support\FakeDataHelper;
+use Idei\Usim\UIBuilder;
+use Idei\Usim\Enums\LayoutType;
+use Idei\Usim\Enums\JustifyContent;
+use Idei\Usim\UIChangesCollector;
+use Idei\Usim\Support\FakeDataHelper;
 
 /**
  * Register Dialog Service

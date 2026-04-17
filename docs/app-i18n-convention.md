@@ -158,7 +158,7 @@ php artisan migrate:fresh --seed
 php artisan tinker
 
 # Listar claves registradas
->>> app('Idei\Usim\Services\Support\TranslationService')->getTextKey('screen.auth.profile.title')
+>>> app('Idei\Usim\Support\TranslationService')->getTextKey('screen.auth.profile.title')
 
 # Obtener valor en idioma específico
 >>> t('screen.auth.profile.title', locale: 'es')

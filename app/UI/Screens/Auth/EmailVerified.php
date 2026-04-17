@@ -3,10 +3,10 @@
 namespace App\UI\Screens\Auth;
 
 use App\Services\User\UserService;
-use Idei\Usim\Services\Screen;
-use Idei\Usim\Services\Components\UIContainer;
-use Idei\Usim\Services\Enums\LayoutType;
-use Idei\Usim\Services\UIBuilder;
+use Idei\Usim\Screen;
+use Idei\Usim\Components\UIContainer;
+use Idei\Usim\Enums\LayoutType;
+use Idei\Usim\UIBuilder;
 
 class EmailVerified extends Screen
 {

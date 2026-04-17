@@ -3,9 +3,9 @@
 namespace App\UI\Components\DataTable;
 
 use App\Services\User\UserService;
-use Idei\Usim\Services\Support\UIStateManager;
-use Idei\Usim\Services\DataTable\AbstractDataTableModel;
-use Idei\Usim\Services\Components\TableBuilder;
+use Idei\Usim\Support\UIStateManager;
+use Idei\Usim\DataTable\AbstractDataTableModel;
+use Idei\Usim\Components\TableBuilder;
 
 /**
  * User API Table Model

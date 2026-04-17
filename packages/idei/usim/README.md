@@ -115,10 +115,10 @@ A **Screen** is a PHP class that defines a full page. Each screen extends `Scree
 
 namespace App\UI\Screens;
 
-use Idei\Usim\Services\UIBuilder;
-use Idei\Usim\Services\Enums\LayoutType;
-use Idei\Usim\Services\Screen;
-use Idei\Usim\Services\Components\UIContainer;
+use Idei\Usim\UIBuilder;
+use Idei\Usim\Enums\LayoutType;
+use Idei\Usim\Screen;
+use Idei\Usim\Components\UIContainer;
 
 class HelloScreen extends Screen
 {
@@ -272,9 +272,9 @@ Builders share a fluent API across `UIComponent` and `UIContainer` with common m
 // app/UI/Screens/Products/List.php
 namespace App\UI\Screens\Products;
 
-use Idei\Usim\Services\Screen;
-use Idei\Usim\Services\Components\UIContainer;
-use Idei\Usim\Services\UIBuilder;
+use Idei\Usim\Screen;
+use Idei\Usim\Components\UIContainer;
+use Idei\Usim\UIBuilder;
 
 class List extends Screen
 {
@@ -542,8 +542,8 @@ When adding or changing scaffold text, prefer `t('...')` with one of the namespa
 Use `ConfirmDialogService` for standard dialogs:
 
 ```php
-use Idei\Usim\Services\Modals\ConfirmDialogService;
-use Idei\Usim\Services\Enums\DialogType;
+use Idei\Usim\Modals\ConfirmDialogService;
+use Idei\Usim\Enums\DialogType;
 
 public function onDeleteItem(array $params): void
 {
@@ -591,7 +591,7 @@ $modal->add(
 For paginated server-side data tables, extend `AbstractDataTableModel`:
 
 ```php
-use Idei\Usim\Services\DataTable\AbstractDataTableModel;
+use Idei\Usim\DataTable\AbstractDataTableModel;
 
 class ProductsTable extends AbstractDataTableModel
 {

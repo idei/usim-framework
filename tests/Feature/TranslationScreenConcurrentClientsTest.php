@@ -1,7 +1,7 @@
 <?php
 
 use App\UI\Screens\Admin\TranlateManager;
-use Idei\Usim\Services\Support\UIStateManager;
+use Idei\Usim\Support\UIStateManager;
 use Illuminate\Support\Str;
 use Tests\TestCase;
 

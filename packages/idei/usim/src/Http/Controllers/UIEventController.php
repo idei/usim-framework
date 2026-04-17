@@ -5,8 +5,8 @@ namespace Idei\Usim\Http\Controllers;
 use Illuminate\Routing\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
-use Idei\Usim\Services\UIChangesCollector;
-use Idei\Usim\Services\Support\UIIdGenerator;
+use Idei\Usim\UIChangesCollector;
+use Idei\Usim\Support\UIIdGenerator;
 
 /**
  * UI Event Controller

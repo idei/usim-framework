@@ -3,14 +3,14 @@
 namespace Idei\Usim;
 
 use Illuminate\Support\ServiceProvider;
-use Idei\Usim\Services\Support\UIIdGenerator;
+use Idei\Usim\Support\UIIdGenerator;
 use Illuminate\Contracts\Events\Dispatcher;
 
-use Idei\Usim\Services\UIChangesCollector;
-use Idei\Usim\Services\Support\Translation\TranslationDatasetQuery;
-use Idei\Usim\Services\Support\Translation\TranslationKeyManager;
-use Idei\Usim\Services\Support\Translation\TranslationValueResolver;
-use Idei\Usim\Services\Support\TranslationService;
+use Idei\Usim\UIChangesCollector;
+use Idei\Usim\Support\Translation\TranslationDatasetQuery;
+use Idei\Usim\Support\Translation\TranslationKeyManager;
+use Idei\Usim\Support\Translation\TranslationValueResolver;
+use Idei\Usim\Support\TranslationService;
 use Idei\Usim\Events\UsimEvent;
 use Idei\Usim\Listeners\UsimEventDispatcher;
 use Idei\Usim\Console\Commands\DiscoverScreensCommand;

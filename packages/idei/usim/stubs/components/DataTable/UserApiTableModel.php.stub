@@ -3,9 +3,9 @@
 namespace {{ componentsNamespace }};
 
 use App\Services\User\UserService;
-use Idei\Usim\Services\Components\TableBuilder;
-use Idei\Usim\Services\DataTable\AbstractDataTableModel;
-use Idei\Usim\Services\Support\UIStateManager;
+use Idei\Usim\Components\TableBuilder;
+use Idei\Usim\DataTable\AbstractDataTableModel;
+use Idei\Usim\Support\UIStateManager;
 
 class UserApiTableModel extends AbstractDataTableModel
 {

@@ -3,7 +3,7 @@
 namespace Idei\Usim\Http\Middleware;
 
 use Closure;
-use Idei\Usim\Services\Support\UIStateManager;
+use Idei\Usim\Support\UIStateManager;
 use Illuminate\Http\Request;
 
 /**

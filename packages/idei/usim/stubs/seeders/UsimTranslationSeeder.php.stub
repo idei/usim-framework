@@ -2,7 +2,7 @@
 
 namespace Database\Seeders;
 
-use Idei\Usim\Services\Support\TranslationService;
+use Idei\Usim\Support\TranslationService;
 use Illuminate\Database\Seeder;
 
 class UsimTranslationSeeder extends Seeder

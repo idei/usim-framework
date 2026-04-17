@@ -4,16 +4,16 @@ namespace App\UI\Screens\Admin;
 
 use App\UI\Components\Modals\EditTranslationDialog;
 use App\UI\Components\DataTable\TranslationKeysTableModel;
-use Idei\Usim\Services\Screen;
-use Idei\Usim\Services\Components\InputBuilder;
-use Idei\Usim\Services\Components\SelectBuilder;
-use Idei\Usim\Services\Components\TableBuilder;
-use Idei\Usim\Services\Components\UIContainer;
-use Idei\Usim\Services\Enums\DialogType;
-use Idei\Usim\Services\Enums\LayoutType;
-use Idei\Usim\Services\Modals\ConfirmDialogService;
-use Idei\Usim\Services\Support\TranslationService;
-use Idei\Usim\Services\UIBuilder;
+use Idei\Usim\Screen;
+use Idei\Usim\Components\InputBuilder;
+use Idei\Usim\Components\SelectBuilder;
+use Idei\Usim\Components\TableBuilder;
+use Idei\Usim\Components\UIContainer;
+use Idei\Usim\Enums\DialogType;
+use Idei\Usim\Enums\LayoutType;
+use Idei\Usim\Modals\ConfirmDialogService;
+use Idei\Usim\Support\TranslationService;
+use Idei\Usim\UIBuilder;
 
 class TranlateManager extends Screen
 {

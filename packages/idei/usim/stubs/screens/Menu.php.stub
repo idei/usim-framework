@@ -9,17 +9,17 @@ use {{ screensNamespace }}\Admin\Dashboard;
 use {{ screensNamespace }}\Auth\Login;
 use {{ screensNamespace }}\Auth\Profile;
 use Idei\Usim\Events\UsimEvent;
-use Idei\Usim\Services\Screen;
-use Idei\Usim\Services\Components\ButtonBuilder;
-use Idei\Usim\Services\Components\MenuDropdownBuilder;
-use Idei\Usim\Services\Components\UIContainer;
-use Idei\Usim\Services\Enums\AlignItems;
-use Idei\Usim\Services\Enums\DialogType;
-use Idei\Usim\Services\Enums\JustifyContent;
-use Idei\Usim\Services\Enums\LayoutType;
-use Idei\Usim\Services\Modals\ConfirmDialogService;
-use Idei\Usim\Services\UIBuilder;
-use Idei\Usim\Services\Upload\UploadService;
+use Idei\Usim\Screen;
+use Idei\Usim\Components\ButtonBuilder;
+use Idei\Usim\Components\MenuDropdownBuilder;
+use Idei\Usim\Components\UIContainer;
+use Idei\Usim\Enums\AlignItems;
+use Idei\Usim\Enums\DialogType;
+use Idei\Usim\Enums\JustifyContent;
+use Idei\Usim\Enums\LayoutType;
+use Idei\Usim\Modals\ConfirmDialogService;
+use Idei\Usim\UIBuilder;
+use Idei\Usim\Upload\UploadService;
 use Illuminate\Support\Facades\Auth;
 
 class Menu extends Screen

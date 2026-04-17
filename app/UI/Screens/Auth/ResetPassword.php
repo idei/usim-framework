@@ -3,12 +3,12 @@
 namespace App\UI\Screens\Auth;
 
 use App\Services\Auth\PasswordService;
-use Idei\Usim\Services\UIBuilder;
-use Idei\Usim\Services\Enums\LayoutType;
-use Idei\Usim\Services\Screen;
-use Idei\Usim\Services\Components\UIContainer;
-use Idei\Usim\Services\Components\InputBuilder;
-use Idei\Usim\Services\Components\LabelBuilder;
+use Idei\Usim\UIBuilder;
+use Idei\Usim\Enums\LayoutType;
+use Idei\Usim\Screen;
+use Idei\Usim\Components\UIContainer;
+use Idei\Usim\Components\InputBuilder;
+use Idei\Usim\Components\LabelBuilder;
 
 class ResetPassword extends Screen
 {

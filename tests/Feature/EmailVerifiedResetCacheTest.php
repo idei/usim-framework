@@ -1,7 +1,7 @@
 <?php
 
 use App\UI\Screens\Auth\EmailVerified;
-use Idei\Usim\Services\Support\UIStateManager;
+use Idei\Usim\Support\UIStateManager;
 use Illuminate\Support\Str;
 
 it('persists the post-load snapshot after reset reloads', function () {

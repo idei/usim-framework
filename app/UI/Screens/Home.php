@@ -2,9 +2,9 @@
 
 namespace App\UI\Screens;
 
-use Idei\Usim\Services\UIBuilder;
-use Idei\Usim\Services\Screen;
-use Idei\Usim\Services\Components\UIContainer;
+use Idei\Usim\UIBuilder;
+use Idei\Usim\Screen;
+use Idei\Usim\Components\UIContainer;
 
 class Home extends Screen
 {

@@ -3,7 +3,7 @@
 namespace Idei\Usim\Console\Commands;
 
 use Illuminate\Console\Command;
-use Idei\Usim\Services\Support\ScreenDiscoveryService;
+use Idei\Usim\Support\ScreenDiscoveryService;
 
 class DiscoverScreensCommand extends Command
 {

@@ -2,11 +2,11 @@
 
 namespace App\UI\Screens\Demo;
 
-use Idei\Usim\Services\Screen;
-use Idei\Usim\Services\Components\LabelBuilder;
-use Idei\Usim\Services\Components\UIContainer;
-use Idei\Usim\Services\Components\UploaderBuilder;
-use Idei\Usim\Services\UIBuilder;
+use Idei\Usim\Screen;
+use Idei\Usim\Components\LabelBuilder;
+use Idei\Usim\Components\UIContainer;
+use Idei\Usim\Components\UploaderBuilder;
+use Idei\Usim\UIBuilder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 
