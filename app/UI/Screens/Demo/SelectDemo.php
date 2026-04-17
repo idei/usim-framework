@@ -4,7 +4,7 @@ namespace App\UI\Screens\Demo;
 use Idei\Usim\UIBuilder;
 use Idei\Usim\Screen;
 use Idei\Usim\Components\UIContainer;
-use Idei\Usim\Components\LabelBuilder;
+use Idei\Usim\Components\Label;
 use Idei\Usim\Components\Button;
 use Idei\Usim\Components\SelectBuilder;
 use Idei\Usim\Components\Checkbox;
@@ -28,7 +28,7 @@ class SelectDemo extends Screen
     protected SelectBuilder $sel_country;
     protected SelectBuilder $sel_city;
     protected SelectBuilder $sel_languages;
-    protected LabelBuilder $lbl_result;
+    protected Label $lbl_result;
     protected Checkbox $chk_enable_multiple;
     protected Button $btn_reset;
 

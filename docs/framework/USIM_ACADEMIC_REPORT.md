@@ -1178,7 +1178,7 @@ class ProfileService extends Screen
 namespace App\Services\Screens;
 
 use App\Services\UI\Screen;
-use App\Services\UI\Components\LabelBuilder;
+use App\Services\UI\Components\Label;
 use App\Services\UI\Components\UIContainer;
 use App\Services\UI\Enums\DialogType;
 use App\Services\UI\Modals\ConfirmDialogService;
@@ -1186,7 +1186,7 @@ use App\Services\UI\UIBuilder;
 
 class ModalDemoService extends Screen
 {
-    protected LabelBuilder $lbl_result;
+    protected Label $lbl_result;
 
     protected function buildBaseUI(UIContainer $container, ...$params): void
     {

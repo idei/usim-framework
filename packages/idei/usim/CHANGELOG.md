@@ -28,7 +28,7 @@ The format is based on Keep a Changelog, and this project follows Semantic Versi
 - Human-text auto-key generation now normalizes escaped and platform line breaks before deriving keys and storing fallback values.
 - Table refresh cycles now reset render-affecting cell state (styles, colors, media/button payloads) before hydrating new row data, ensuring incremental diffs are emitted when visual-only cell changes occur.
 - `usim:install` now registers `vendor/idei/usim/src/Support/helpers.php` in the consumer `composer.json` under `autoload.files` when missing.
-- Confirm dialog messages now render escaped `\\n` as real line breaks in the frontend and support markdown-to-HTML formatting through `LabelBuilder::markdown()`.
+- Confirm dialog messages now render escaped `\\n` as real line breaks in the frontend and support markdown-to-HTML formatting through `Label::markdown()`.
 
 ## [0.7.0] - 2026-03-28
 
@@ -53,7 +53,7 @@ The format is based on Keep a Changelog, and this project follows Semantic Versi
 - Theme-switching support in the backend/frontend contract via `Screen::changeTheme()` and UI renderer handling for light/dark mode updates.
 - Persistent theme tokens and assets for light/dark mode (`resources/assets/css/ui-theme-tokens.css`, `resources/assets/images/theme-icon-*.svg`).
 - New package landing view stub with dynamic theme-aware styling (`stubs/views/landing.blade.php`).
-- Rich label HTML rendering through `LabelBuilder::html()`, including safe rendering of existing backend Blade views into label content.
+- Rich label HTML rendering through `Label::html()`, including safe rendering of existing backend Blade views into label content.
 - New positioning helpers for components and containers, including anchor-based positioning and offset APIs such as `position()`, `positionMode()`, `offsetX()`, `offsetY()`, and directional helpers like `top()` / `right()` / `bottom()` / `left()`.
 - Card theme variants and theme assets for light/dark UI toggles in the default package UI.
 - New `app_id` package configuration (from `APP_ID`) to scope client storage keys per application.

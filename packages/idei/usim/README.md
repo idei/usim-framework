@@ -236,7 +236,7 @@ Use `_crypt` only when the value should not be readable from the client's local 
 
 | Factory Method | Builder Class | Description |
 |---|---|---|
-| `UIBuilder::label()` | `LabelBuilder` | Text labels, headings, paragraphs |
+| `UIBuilder::label()` | `Label` | Text labels, headings, paragraphs |
 | `UIBuilder::button()` | `Button` | Action buttons with styles |
 | `UIBuilder::input()` | `Input` | Text, email, password, hidden inputs |
 | `UIBuilder::select()` | `SelectBuilder` | Dropdown selects |

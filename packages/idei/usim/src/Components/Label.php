@@ -7,8 +7,20 @@ namespace Idei\Usim\Components;
  *
  * Modern and versatile label component with rich styling options,
  * typography controls, icons, badges, and semantic HTML support.
+ *
+ * Features:
+ * - Multiple content modes: text, HTML, markdown
+ * - Rich styling: styles (default, primary, secondary, etc.), variants (badge, chip, tag, pill)
+ * - Typography: font weight, size, transform, alignment, line height
+ * - Color customization: text, background, border, and icon colors
+ * - Icons and badges for visual enhancement
+ * - Semantic HTML tags (span, p, h1-h6, strong, em, code, etc.)
+ * - Interactive: clickable with optional actions and tooltips
+ * - Visual effects: animations, shadow, glow
+ * - Layout control: inline/block, width constraints
+ * - Full accessibility: ARIA labels, roles, semantic structure
  */
-class LabelBuilder extends UIComponent
+class Label extends UIComponent
 {
     protected function getDefaultConfig(): array
     {
@@ -621,17 +633,5 @@ class LabelBuilder extends UIComponent
     public function role(string $role): self
     {
         return $this->setConfig('role', $role);
-    }
-
-    /**
-     * Legacy build method for backward compatibility
-     * Returns array format instead of object
-     *
-     * @return array
-     * @deprecated Use toJson() instead
-     */
-    public function build(): array
-    {
-        return $this->toJson();
     }
 }

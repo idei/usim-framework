@@ -5,16 +5,16 @@ use Idei\Usim\UIBuilder;
 use Idei\Usim\Screen;
 use Idei\Usim\Components\UIContainer;
 use Idei\Usim\Components\Input;
-use Idei\Usim\Components\LabelBuilder;
+use Idei\Usim\Components\Label;
 use Idei\Usim\Components\Button;
 
 class FormDemo extends Screen
 {
-    protected LabelBuilder $lbl_instruction;
+    protected Label $lbl_instruction;
     protected Input $input_name;
     protected Input $input_email;
     protected Button $btn_submit;
-    protected LabelBuilder $lbl_result;
+    protected Label $lbl_result;
 
     protected function buildBaseUI(UIContainer $container, ...$params): void
     {

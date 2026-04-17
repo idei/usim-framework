@@ -4,7 +4,7 @@ namespace {{ namespace }};
 use App\Services\Auth\AuthSessionService;
 use App\Services\Auth\LoginService;
 use Idei\Usim\Screen;
-use Idei\Usim\Components\LabelBuilder;
+use Idei\Usim\Components\Label;
 use Idei\Usim\Components\UIContainer;
 use Idei\Usim\Enums\JustifyContent;
 use Idei\Usim\Enums\LayoutType;
@@ -20,7 +20,7 @@ class Login extends Screen
 
     protected string $store_email = '';
     protected string $store_token = '';
-    protected LabelBuilder $lbl_login_result;
+    protected Label $lbl_login_result;
 
     public static function authorize(): bool
     {

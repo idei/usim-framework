@@ -7,7 +7,7 @@ use Idei\Usim\Enums\DialogType;
 use Idei\Usim\Enums\LayoutType;
 use Idei\Usim\Screen;
 use Idei\Usim\Components\UIContainer;
-use Idei\Usim\Components\LabelBuilder;
+use Idei\Usim\Components\Label;
 use Idei\Usim\Modals\ConfirmDialogService;
 
 /**
@@ -20,8 +20,8 @@ use Idei\Usim\Modals\ConfirmDialogService;
  */
 class ModalDemo extends Screen
 {
-    protected LabelBuilder $lbl_result;
-    protected LabelBuilder $lbl_instruction;
+    protected Label $lbl_result;
+    protected Label $lbl_instruction;
 
     protected function buildBaseUI(UIContainer $container, ...$params): void
     {

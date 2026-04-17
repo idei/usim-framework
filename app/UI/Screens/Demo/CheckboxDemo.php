@@ -4,17 +4,17 @@ namespace App\UI\Screens\Demo;
 use Idei\Usim\UIBuilder;
 use Idei\Usim\Screen;
 use Idei\Usim\Components\UIContainer;
-use Idei\Usim\Components\LabelBuilder;
+use Idei\Usim\Components\Label;
 use Idei\Usim\Components\Button;
 use Idei\Usim\Components\Checkbox;
 
 class CheckboxDemo extends Screen
 {
-    protected LabelBuilder $lbl_instruction;
+    protected Label $lbl_instruction;
     protected Checkbox $chk_javascript;
     protected Checkbox $chk_python;
     protected Button $btn_submit;
-    protected LabelBuilder $lbl_result;
+    protected Label $lbl_result;
 
     /**
      * Build the checkbox demo UI

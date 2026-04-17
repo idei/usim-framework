@@ -295,13 +295,13 @@ namespace App\Services\Screens;
 
 use App\Services\UI\Screen;
 use App\Services\UI\Components\Button;
-use App\Services\UI\Components\LabelBuilder;
+use App\Services\UI\Components\Label;
 use App\Services\UI\Components\UIContainer;
 use App\Services\UI\UIBuilder;
 
 class HelloWorldService extends Screen
 {
-    protected LabelBuilder $lbl_message;
+    protected Label $lbl_message;
     protected Button $btn_click;
     
     protected function buildBaseUI(UIContainer $container, ...$params): void

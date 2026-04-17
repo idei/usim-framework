@@ -5,7 +5,7 @@ use Idei\Usim\UIBuilder;
 use Idei\Usim\Screen;
 use Idei\Usim\Components\UIContainer;
 use Idei\Usim\Components\Input;
-use Idei\Usim\Components\LabelBuilder;
+use Idei\Usim\Components\Label;
 
 /**
  * Input Demo Service
@@ -23,7 +23,7 @@ use Idei\Usim\Components\LabelBuilder;
 class InputDemo extends Screen
 {
     protected Input $input_text;
-    protected LabelBuilder $lbl_result;
+    protected Label $lbl_result;
 
     protected function buildBaseUI(UIContainer $container, ...$params): void
     {

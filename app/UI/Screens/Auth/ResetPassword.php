@@ -8,7 +8,7 @@ use Idei\Usim\Enums\LayoutType;
 use Idei\Usim\Screen;
 use Idei\Usim\Components\UIContainer;
 use Idei\Usim\Components\Input;
-use Idei\Usim\Components\LabelBuilder;
+use Idei\Usim\Components\Label;
 
 class ResetPassword extends Screen
 {
@@ -17,7 +17,7 @@ class ResetPassword extends Screen
     ) {
     }
 
-    protected LabelBuilder $lbl_result;
+    protected Label $lbl_result;
     protected Input $password;
     protected Input $password_confirmation;
 

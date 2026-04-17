@@ -3,7 +3,7 @@
 namespace App\UI\Screens\Demo;
 
 use Idei\Usim\Screen;
-use Idei\Usim\Components\LabelBuilder;
+use Idei\Usim\Components\Label;
 use Idei\Usim\Components\UIContainer;
 use Idei\Usim\Components\UploaderBuilder;
 use Idei\Usim\UIBuilder;
@@ -22,7 +22,7 @@ class UploaderDemo extends Screen
     protected UploaderBuilder $uploader_story;
     protected UploaderBuilder $uploader_images;
     protected UploaderBuilder $uploader_documents;
-    protected LabelBuilder $lbl_result;
+    protected Label $lbl_result;
     protected $btn_confirm_profile;
     protected $btn_confirm_banner;
     protected $btn_confirm_story;

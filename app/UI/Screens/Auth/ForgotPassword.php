@@ -7,7 +7,7 @@ use Idei\Usim\UIBuilder;
 use Idei\Usim\Enums\LayoutType;
 use Idei\Usim\Screen;
 use Idei\Usim\Components\UIContainer;
-use Idei\Usim\Components\LabelBuilder;
+use Idei\Usim\Components\Label;
 
 class ForgotPassword extends Screen
 {
@@ -16,7 +16,7 @@ class ForgotPassword extends Screen
     ) {
     }
 
-    protected LabelBuilder $lbl_result;
+    protected Label $lbl_result;
     protected \Idei\Usim\Components\Input $email;
 
     public function buildBaseUI(UIContainer $container, ...$params): void

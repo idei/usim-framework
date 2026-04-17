@@ -3,7 +3,7 @@
 namespace Idei\Usim;
 
 use Idei\Usim\Components\Button;
-use Idei\Usim\Components\LabelBuilder;
+use Idei\Usim\Components\Label;
 use Idei\Usim\Components\UIContainer;
 use Idei\Usim\Components\TableBuilder;
 use Idei\Usim\Components\TableRowBuilder;
@@ -40,11 +40,11 @@ class UIBuilder
      * Create a new label component
      *
      * @param string|null $name an optional semantic name for the label
-     * @return LabelBuilder
+     * @return Label
      */
-    public static function label(?string $name = null): LabelBuilder
+    public static function label(?string $name = null): Label
     {
-        return new LabelBuilder($name);
+        return new Label($name);
     }
 
     /**

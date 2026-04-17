@@ -6,7 +6,7 @@ use Idei\Usim\Components\Card;
 use Idei\Usim\Components\Checkbox;
 use Idei\Usim\Components\Form;
 use Idei\Usim\Components\Input;
-use Idei\Usim\Components\LabelBuilder;
+use Idei\Usim\Components\Label;
 use Idei\Usim\Components\MenuDropdownBuilder;
 use Idei\Usim\Components\SelectBuilder;
 use Idei\Usim\Components\TableBuilder;
@@ -350,7 +350,7 @@ abstract class Screen
      * the component is injected into that property.
      *
      * Convention: Property name must match component name
-     * Example: protected LabelBuilder $lbl_result; matches component 'lbl_result'
+     * Example: protected Label $lbl_result; matches component 'lbl_result'
      *
      * @return void
      */
@@ -575,7 +575,7 @@ abstract class Screen
     private function mapTypeToClass(string $type): ?string
     {
         return match ($type) {
-            'label' => LabelBuilder::class,
+            'label' => Label::class,
             'button' => Button::class,
             'input' => Input::class,
             'select' => SelectBuilder::class,

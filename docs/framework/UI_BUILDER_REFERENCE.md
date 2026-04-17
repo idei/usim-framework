@@ -144,7 +144,7 @@ $container->clear();
 UIElement (interface)
 ├── UIComponent (abstract) - Elementos hoja
 │   ├── Button
-│   ├── LabelBuilder
+│   ├── Label
 │   └── TableBuilder
 └── UIContainer (composite) - Contenedores
     └── Métodos: add, remove, update, find, etc.

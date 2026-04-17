@@ -3,15 +3,15 @@ namespace App\UI\Screens\Demo;
 
 use Idei\Usim\Screen;
 use Idei\Usim\Components\Button;
-use Idei\Usim\Components\LabelBuilder;
+use Idei\Usim\Components\Label;
 use Idei\Usim\Components\UIContainer;
 use Idei\Usim\Enums\LayoutType;
 use Idei\Usim\UIBuilder;
 
 class DemoUi extends Screen
 {
-    protected LabelBuilder $lbl_welcome;
-    protected LabelBuilder $lbl_counter;
+    protected Label $lbl_welcome;
+    protected Label $lbl_counter;
     protected UIContainer $new_components_container;
     protected int $store_counter = 1000;
     protected int $store_new_components = 0;
@@ -151,7 +151,7 @@ class DemoUi extends Screen
         $this->updateCounterLabel($this->lbl_counter, --$this->store_counter);
     }
 
-    private function updateCounterLabel(LabelBuilder $labelBuilder, int $counterValue): LabelBuilder
+    private function updateCounterLabel(Label $labelBuilder, int $counterValue): Label
     {
         $counterStyle = 'primary';
         if ($counterValue > 5) {
