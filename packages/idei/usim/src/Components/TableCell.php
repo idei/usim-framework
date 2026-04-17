@@ -2,6 +2,7 @@
 
 namespace Idei\Usim\Components;
 
+use Idei\Usim\Components\Container;
 use Idei\Usim\Enums\Align;
 
 /**
@@ -231,8 +232,8 @@ class TableCell extends UIComponent
         }
 
         // Prevent adding containers to avoid recursion/loops
-        if ($component instanceof UIContainer) {
-            throw new \LogicException("TableCell cannot contain a UIContainer. Containers should be outside the table structure.");
+        if ($component instanceof Container) {
+            throw new \LogicException("TableCell cannot contain a Container. Containers should be outside the table structure.");
         }
 
         $this->child = $component;

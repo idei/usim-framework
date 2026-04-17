@@ -1492,7 +1492,7 @@
                         <pre><span class="kw">class</span> <span class="cls">HelloScreen</span> <span class="kw">extends</span> <span class="cls">Screen</span>
 {
   <span class="kw">protected function</span> <span class="fn">buildBaseUI</span>(
-    <span class="cls">UIContainer</span> <span class="ch">$container</span>
+    <span class="cls">Container</span> <span class="ch">$container</span>
   ): <span class="kw">void</span> {
     <span class="ch">$container</span>-><span class="fn">layout</span>(<span class="cls">LayoutType</span>::VERTICAL)
              -><span class="fn">padding</span>(<span class="str">20</span>);

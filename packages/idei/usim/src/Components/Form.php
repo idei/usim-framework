@@ -2,17 +2,18 @@
 
 namespace Idei\Usim\Components;
 
+use Idei\Usim\Components\Container;
 use Idei\Usim\Components\Input;
 use Idei\Usim\Components\Select;
 
 /**
  * Form UI component builder
  *
- * Extends UIContainer with form-specific features: actions (submit, reset, cancel),
+ * Extends Container with form-specific features: actions (submit, reset, cancel),
  * validation, field grouping, AJAX/standard submission, progress indication, auto-save,
  * multiple HTTP methods, CSRF protection, file uploads, and state management.
  */
-class Form extends UIContainer
+class Form extends Container
 {
     protected string $type = 'form';
 
@@ -304,7 +305,7 @@ class Form extends UIContainer
      */
     public function fieldset(string $legend, callable $callback): self
     {
-        $fieldset = new UIContainer($legend);
+        $fieldset = new Container($legend);
         $fieldset->config['type'] = 'fieldset';
         $fieldset->config['legend'] = $legend;
 
@@ -328,7 +329,7 @@ class Form extends UIContainer
      */
     public function section(string $title, callable $callback): self
     {
-        $section = new UIContainer($title);
+        $section = new Container($title);
         $section->config['type'] = 'section';
         $section->config['title'] = $title;
 
@@ -859,7 +860,7 @@ class Form extends UIContainer
 
     /**
      * Add shadow to form
-     * Uses parent UIContainer shadow method with predefined intensity
+     * Uses parent Container shadow method with predefined intensity
      *
      * @param string|int $intensity Shadow intensity (0-3, or 'light'|'medium'|'heavy', or custom CSS)
      * @return self For method chaining
@@ -876,7 +877,7 @@ class Form extends UIContainer
 
     /**
      * Add rounded corners to form
-     * Uses parent UIContainer rounded method
+     * Uses parent Container rounded method
      *
      * @param string|int|bool $radius Radius value (default: 8)
      * @return self For method chaining

@@ -3,7 +3,7 @@ namespace App\UI\Screens\Demo;
 
 use Idei\Usim\UIBuilder;
 use Idei\Usim\Screen;
-use Idei\Usim\Components\UIContainer;
+use Idei\Usim\Components\Container;
 use Idei\Usim\Components\Input;
 use Idei\Usim\Components\Label;
 
@@ -25,7 +25,7 @@ class InputDemo extends Screen
     protected Input $input_text;
     protected Label $lbl_result;
 
-    protected function buildBaseUI(UIContainer $container, ...$params): void
+    protected function buildBaseUI(Container $container, ...$params): void
     {
         $container
             ->title(t('screen.demo.input_demo.title'))

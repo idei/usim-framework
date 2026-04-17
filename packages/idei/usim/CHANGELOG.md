@@ -20,7 +20,7 @@ The format is based on Keep a Changelog, and this project follows Semantic Versi
 - Package defaults and installer stubs now resolve user-facing text via `t('usim...')` keys (dialogs, time units, auth/admin/menu screens, modal scaffolding, and service messages) instead of hardcoded literals.
 - `UsimTranslationSeeder` stub now includes a comprehensive baseline keyset for scaffolded UI and service responses under `usim.component.*`, `usim.dialog.*`, `usim.time_unit.*`, and `usim.*` namespaces.
 - Frontend modal handling now uses an automatic overlay stack with reusable layers (first free overlay on open, top overlay on close), allowing nested dialogs without replacing previous modal content.
-- The legacy `BaseUIBuilder` class was removed after consolidating common builder behavior into `UIComponent` and `UIContainer`.
+- The legacy `BaseUIBuilder` class was removed after consolidating common builder behavior into `UIComponent` and `Container`.
 
 ### Fixed
 - Translation resolution now falls back to English by default and then to Laravel's standard translator before returning the key.
@@ -33,7 +33,7 @@ The format is based on Keep a Changelog, and this project follows Semantic Versi
 ## [0.7.0] - 2026-03-28
 
 ### Added
-- `UIContainer` appearance API: `appearance(string $appearance)`, `card()`, and `plain()` fluent methods to control container visual style; default appearance is `card`.
+- `Container` appearance API: `appearance(string $appearance)`, `card()`, and `plain()` fluent methods to control container visual style; default appearance is `card`.
 - Carousel and calendar components now consume CSS theme tokens for consistent light/dark styling.
 
 ### Changed

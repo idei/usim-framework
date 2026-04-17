@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Password;
 use Idei\Usim\Screen;
 use Idei\Usim\Upload\UploadService;
-use Idei\Usim\Components\UIContainer;
+use Idei\Usim\Components\Container;
 use Idei\Usim\Components\Input;
 use Idei\Usim\Components\UploaderBuilder;
 
@@ -33,7 +33,7 @@ class Profile extends Screen
         return '👤';
     }
 
-    protected function buildBaseUI(UIContainer $container, ...$params): void
+    protected function buildBaseUI(Container $container, ...$params): void
     {
         $user = Auth::user();
 

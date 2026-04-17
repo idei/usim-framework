@@ -15,7 +15,7 @@ use Idei\Usim\Support\UIIdGenerator;
  * organized in a tree structure. It provides methods to add, remove, update,
  * and find child elements, as well as recursive JSON serialization.
  */
-class UIContainer implements UIElement
+class Container implements UIElement
 {
     protected int $id;
     protected string $type = 'container';
@@ -158,7 +158,7 @@ class UIContainer implements UIElement
     /**
      * {@inheritDoc}
      */
-    public static function deserialize(int $id, array $data): UIContainer
+    public static function deserialize(int $id, array $data): Container
     {
         $container = new self();
         $container->id = $id;
@@ -187,7 +187,7 @@ class UIContainer implements UIElement
 
     public function toString(): string
     {
-        return "UIContainer(id={$this->id}, name={$this->name})";
+        return "Container(id={$this->id}, name={$this->name})";
     }
 
     /**
@@ -467,7 +467,7 @@ class UIContainer implements UIElement
 
         // Search recursively in child containers
         foreach ($this->children as $child) {
-            if ($child instanceof UIContainer) {
+            if ($child instanceof Container) {
                 $found = $child->find($elementId);
                 if ($found !== null) {
                     return $found;
@@ -1731,7 +1731,7 @@ class UIContainer implements UIElement
             // Buscar en hijos directos que tengan método getName
             $childName = null;
             if (method_exists($child, 'getName')) {
-                /** @var UIComponent|UIContainer $child */
+                /** @var UIComponent|Container $child */
                 $childName = $child->getName();
             }
 
@@ -1740,7 +1740,7 @@ class UIContainer implements UIElement
             }
 
             // Buscar recursivamente en contenedores
-            if ($child instanceof UIContainer) {
+            if ($child instanceof Container) {
                 $found = $child->findByName($name);
                 if ($found !== null) {
                     return $found;
@@ -1771,7 +1771,7 @@ class UIContainer implements UIElement
             }
 
             // Buscar recursivamente en contenedores
-            if ($child instanceof UIContainer) {
+            if ($child instanceof Container) {
                 $found = $child->findById($id);
                 if ($found !== null) {
                     return $found;

@@ -146,7 +146,7 @@ UIElement (interface)
 │   ├── Button
 │   ├── Label
 │   └── Table
-└── UIContainer (composite) - Contenedores
+└── Container (composite) - Contenedores
     └── Métodos: add, remove, update, find, etc.
 ```
 
@@ -177,18 +177,18 @@ return $ui->build();
 $root = UIBuilder::container('root')->getContainer();
 
 // Header
-$header = new UIContainer('header');
+$header = new Container('header');
 $header->layout(LayoutType::HORIZONTAL);
 $header->add(UIBuilder::label('logo')->text('Logo'));
 $header->add(UIBuilder::label('title')->text('Title'));
 
 // Content
-$content = new UIContainer('content');
+$content = new Container('content');
 $content->add(UIBuilder::button('btn1')->label('Action 1'));
 $content->add(UIBuilder::button('btn2')->label('Action 2'));
 
 // Footer
-$footer = new UIContainer('footer');
+$footer = new Container('footer');
 $footer->add(UIBuilder::label('copyright')->text('© 2025'));
 
 // Ensamblar
@@ -309,11 +309,11 @@ $json = $container->toJson();
 ## ✅ Testing
 
 ```php
-use App\Services\UI\Components\UIContainer;
+use App\Services\UI\Components\Container;
 use App\Services\UI\UIBuilder;
 
 test('can manipulate UI tree', function () {
-    $container = new UIContainer('test');
+    $container = new Container('test');
     
     // Add
     $container->add(UIBuilder::button('btn1'));

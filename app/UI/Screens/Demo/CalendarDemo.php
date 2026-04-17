@@ -4,14 +4,14 @@ namespace App\UI\Screens\Demo;
 
 use Idei\Usim\UIBuilder;
 use Idei\Usim\Screen;
-use Idei\Usim\Components\UIContainer;
+use Idei\Usim\Components\Container;
 use Idei\Usim\Components\Calendar;
 
 class CalendarDemo extends Screen
 {
     protected Calendar $academic_calendar;
 
-    protected function buildBaseUI(UIContainer $container, ...$params): void
+    protected function buildBaseUI(Container $container, ...$params): void
     {
         $container
             ->maxWidth('600px')

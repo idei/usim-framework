@@ -4,7 +4,7 @@ namespace App\UI\Screens\Demo;
 use Idei\Usim\Screen;
 use Idei\Usim\Components\Button;
 use Idei\Usim\Components\Label;
-use Idei\Usim\Components\UIContainer;
+use Idei\Usim\Components\Container;
 use Idei\Usim\Enums\LayoutType;
 use Idei\Usim\UIBuilder;
 
@@ -12,11 +12,11 @@ class DemoUi extends Screen
 {
     protected Label $lbl_welcome;
     protected Label $lbl_counter;
-    protected UIContainer $new_components_container;
+    protected Container $new_components_container;
     protected int $store_counter = 1000;
     protected int $store_new_components = 0;
 
-    protected function buildBaseUI(UIContainer $container, ...$params): void
+    protected function buildBaseUI(Container $container, ...$params): void
     {
         $container
             ->title(t('screen.demo.demo_ui.title'))

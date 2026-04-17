@@ -3,7 +3,7 @@ namespace App\UI\Screens\Demo;
 
 use Idei\Usim\UIBuilder;
 use Idei\Usim\Screen;
-use Idei\Usim\Components\UIContainer;
+use Idei\Usim\Components\Container;
 use Idei\Usim\Components\Button;
 
 class ButtonDemo extends Screen
@@ -11,7 +11,7 @@ class ButtonDemo extends Screen
     protected Button $btn_toggle;
     protected bool $store_state = false;
 
-    protected function buildBaseUI(UIContainer $container, ...$params): void
+    protected function buildBaseUI(Container $container, ...$params): void
     {
         $container
             ->alignContent('center')->alignItems('center')

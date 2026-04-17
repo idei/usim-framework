@@ -3,7 +3,7 @@ namespace App\UI\Screens\Demo;
 
 use Idei\Usim\UIBuilder;
 use Idei\Usim\Screen;
-use Idei\Usim\Components\UIContainer;
+use Idei\Usim\Components\Container;
 use Idei\Usim\Components\Label;
 use Idei\Usim\Components\Button;
 use Idei\Usim\Components\Select;
@@ -110,7 +110,7 @@ class SelectDemo extends Screen
         ['value' => 'zh', 'label' => 'Chinese'],
     ];
 
-    protected function buildBaseUI(UIContainer $container, ...$params): void
+    protected function buildBaseUI(Container $container, ...$params): void
     {
         $container
             ->title(t('screen.demo.select_demo.title'))

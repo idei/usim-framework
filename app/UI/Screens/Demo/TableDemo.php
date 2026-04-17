@@ -5,7 +5,7 @@ namespace App\UI\Screens\Demo;
 use App\Models\User;
 use Idei\Usim\UIBuilder;
 use Idei\Usim\Screen;
-use Idei\Usim\Components\UIContainer;
+use Idei\Usim\Components\Container;
 use Idei\Usim\Components\Table;
 use App\UI\Components\DataTable\UsersTableModel;
 
@@ -27,7 +27,7 @@ class TableDemo extends Screen
     /**
      * Build the table demo UI
      */
-    protected function buildBaseUI(UIContainer $container, ...$params): void
+    protected function buildBaseUI(Container $container, ...$params): void
     {
         $container->title(t('screen.demo.table_demo.title'));
 

@@ -6,7 +6,7 @@ use App\Services\Auth\PasswordService;
 use Idei\Usim\UIBuilder;
 use Idei\Usim\Enums\LayoutType;
 use Idei\Usim\Screen;
-use Idei\Usim\Components\UIContainer;
+use Idei\Usim\Components\Container;
 use Idei\Usim\Components\Input;
 use Idei\Usim\Components\Label;
 
@@ -21,7 +21,7 @@ class ResetPassword extends Screen
     protected Input $password;
     protected Input $password_confirmation;
 
-    public function buildBaseUI(UIContainer $container, ...$params): void
+    public function buildBaseUI(Container $container, ...$params): void
     {
         $token = request()->query('token');
         $email = request()->query('email');

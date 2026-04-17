@@ -473,7 +473,7 @@ class Card extends UIComponent
 
     /**
      * Set card shadow (maps to elevation levels for CSS-class-based rendering).
-     * Accepts numeric (0-3) or named values compatible with UIContainer::shadow().
+     * Accepts numeric (0-3) or named values compatible with Container::shadow().
      *
      * @param string|int $intensity 0/'none', 1/'light', 2/'medium', 3/'heavy' or native 'low'/'high'
      * @return static

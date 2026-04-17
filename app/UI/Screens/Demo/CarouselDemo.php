@@ -4,7 +4,7 @@ namespace App\UI\Screens\Demo;
 
 use Idei\Usim\Screen;
 use Idei\Usim\Components\Carousel;
-use Idei\Usim\Components\UIContainer;
+use Idei\Usim\Components\Container;
 use Idei\Usim\Enums\LayoutType;
 use Idei\Usim\UIBuilder;
 
@@ -18,7 +18,7 @@ class CarouselDemo extends Screen
     protected int $store_auto_timeout_ms = 5000;
     protected bool $store_auto_fullscreen = false;
 
-    protected function buildBaseUI(UIContainer $container, ...$params): void
+    protected function buildBaseUI(Container $container, ...$params): void
     {
         $manualItems = $this->manualItems();
         $autoItems = $this->autoItems();

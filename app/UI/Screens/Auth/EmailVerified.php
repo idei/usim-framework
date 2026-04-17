@@ -4,7 +4,7 @@ namespace App\UI\Screens\Auth;
 
 use App\Services\User\UserService;
 use Idei\Usim\Screen;
-use Idei\Usim\Components\UIContainer;
+use Idei\Usim\Components\Container;
 use Idei\Usim\Enums\LayoutType;
 use Idei\Usim\UIBuilder;
 
@@ -18,7 +18,7 @@ class EmailVerified extends Screen
     protected string $verificationStatus = 'loading';
     protected string $errorMessage = '';
 
-    protected function buildBaseUI(UIContainer $container, ...$params): void
+    protected function buildBaseUI(Container $container, ...$params): void
     {
         $container
             ->layout(LayoutType::VERTICAL)
@@ -104,7 +104,7 @@ class EmailVerified extends Screen
     /**
      * Build loading UI
      */
-    private function buildLoadingUI(UIContainer $container): void
+    private function buildLoadingUI(Container $container): void
     {
         $container->add(
             UIBuilder::label('loading_message')
@@ -118,7 +118,7 @@ class EmailVerified extends Screen
     /**
      * Build success UI
      */
-    private function buildSuccessUI(UIContainer $container): void
+    private function buildSuccessUI(Container $container): void
     {
         $container->add(
             UIBuilder::label('success_icon')
@@ -160,7 +160,7 @@ class EmailVerified extends Screen
     /**
      * Build already verified UI
      */
-    private function buildAlreadyVerifiedUI(UIContainer $container): void
+    private function buildAlreadyVerifiedUI(Container $container): void
     {
         $container->add(
             UIBuilder::label('info_icon')
@@ -193,7 +193,7 @@ class EmailVerified extends Screen
     /**
      * Build error UI
      */
-    private function buildErrorUI(UIContainer $container): void
+    private function buildErrorUI(Container $container): void
     {
         $container->add(
             UIBuilder::label('error_icon')

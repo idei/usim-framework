@@ -8,7 +8,7 @@ use Idei\Usim\Screen;
 use Idei\Usim\Components\Input;
 use Idei\Usim\Components\Select;
 use Idei\Usim\Components\Table;
-use Idei\Usim\Components\UIContainer;
+use Idei\Usim\Components\Container;
 use Idei\Usim\Enums\DialogType;
 use Idei\Usim\Enums\LayoutType;
 use Idei\Usim\Modals\ConfirmDialogService;
@@ -37,7 +37,7 @@ class TranlateManager extends Screen
         return '🌐';
     }
 
-    protected function buildBaseUI(UIContainer $container, ...$params): void
+    protected function buildBaseUI(Container $container, ...$params): void
     {
         $container
             ->maxWidth('1360px')

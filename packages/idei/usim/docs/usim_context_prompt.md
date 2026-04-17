@@ -23,7 +23,7 @@ Do not assume React/Vue component architecture. The source of truth is the backe
 
 ### Screens
 - Implemented as classes in screen namespaces (commonly `App\\UI\\Screens\\...`).
-- Each screen builds UI in `buildBaseUI(UIContainer $container, ...$params)`.
+- Each screen builds UI in `buildBaseUI(Container $container, ...$params)`.
 - Optional lifecycle hooks may run after initial build.
 - Route-like access maps to screen path conventions.
 

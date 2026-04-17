@@ -131,7 +131,7 @@ const element = document.querySelector('[data-component-id="_1a2b3c4d"]');
 Los servicios de UI utilizan una API fluida para construir interfaces:
 
 ```php
-protected function buildBaseUI(UIContainer $container, ...$params): void
+protected function buildBaseUI(Container $container, ...$params): void
 {
     $user = Auth::user();
     
@@ -416,7 +416,7 @@ class UsersService extends Screen
     protected Table $table_users;
 
     // 1. Definir UI
-    protected function buildBaseUI(UIContainer $container): void
+    protected function buildBaseUI(Container $container): void
     {
         $container->add(
             UIBuilder::table('table_users')
@@ -947,7 +947,7 @@ namespace App\Services\Screens;
 
 use App\Services\UI\Screen;
 use App\Services\UI\Components\Button;
-use App\Services\UI\Components\UIContainer;
+use App\Services\UI\Components\Container;
 use App\Services\UI\UIBuilder;
 
 class ButtonDemoService extends Screen
@@ -955,7 +955,7 @@ class ButtonDemoService extends Screen
     protected Button $btn_toggle;
     protected bool $store_state = false;
 
-    protected function buildBaseUI(UIContainer $container, ...$params): void
+    protected function buildBaseUI(Container $container, ...$params): void
     {
         $container
             ->alignContent('center')->alignItems('center')
@@ -1011,7 +1011,7 @@ use App\Services\UI\UIBuilder;
 use Illuminate\Support\Facades\Auth;
 use App\Services\UI\Screen;
 use App\Services\Upload\UploadService;
-use App\Services\UI\Components\UIContainer;
+use App\Services\UI\Components\Container;
 use App\Services\UI\Components\Input;
 use App\Services\UI\Components\UploaderBuilder;
 
@@ -1021,7 +1021,7 @@ class ProfileService extends Screen
     protected Input $input_name;
     protected UploaderBuilder $uploader_profile;
 
-    protected function buildBaseUI(UIContainer $container, ...$params): void
+    protected function buildBaseUI(Container $container, ...$params): void
     {
         $user = Auth::user();
 
@@ -1179,7 +1179,7 @@ namespace App\Services\Screens;
 
 use App\Services\UI\Screen;
 use App\Services\UI\Components\Label;
-use App\Services\UI\Components\UIContainer;
+use App\Services\UI\Components\Container;
 use App\Services\UI\Enums\DialogType;
 use App\Services\UI\Modals\ConfirmDialogService;
 use App\Services\UI\UIBuilder;
@@ -1188,7 +1188,7 @@ class ModalDemoService extends Screen
 {
     protected Label $lbl_result;
 
-    protected function buildBaseUI(UIContainer $container, ...$params): void
+    protected function buildBaseUI(Container $container, ...$params): void
     {
         $container
             ->title('Modal Demo')

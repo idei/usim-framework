@@ -102,7 +102,7 @@ $container = UIBuilder::container('gallery')
 use App\Services\UI\Enums\JustifyContent;
 use App\Services\UI\Enums\AlignItems;
 
-protected function buildBaseUI(...$params): UIContainer
+protected function buildBaseUI(...$params): Container
 {
     $menu_placeholder = UIBuilder::container('_menu_placeholder')
         ->parent('menu')

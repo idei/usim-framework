@@ -136,7 +136,7 @@ class TableRow extends UIComponent
         foreach ($cells as $index => $value) {
             $cell = $this->createCell("cell_$index");
 
-            if ($value instanceof UIComponent && !($value instanceof UIContainer)) {
+            if ($value instanceof UIComponent && !($value instanceof Container)) {
                 // If it's a leaf component (not a container), add it as a child
                 $cell->addChild($value);
             } elseif (is_array($value)) {

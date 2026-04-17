@@ -57,7 +57,7 @@ A **Server-Driven UI** framework for Laravel. Define your entire user interface 
 
 ## What Is New Since 0.6.0 (v0.7.0)
 
-- Container appearance API: `->card()` and `->plain()` fluent helpers on `UIContainer` to switch between card and flat visual variants.
+- Container appearance API: `->card()` and `->plain()` fluent helpers on `Container` to switch between card and flat visual variants.
 - Carousel and calendar components consume CSS theme tokens for consistent light/dark styling.
 - Bug fix: `Screen` now always persists state after `postLoadUI()`, fixing stale cache on `?reset=true` reloads.
 - Bug fix: Checkbox `checked` state now syncs correctly from incremental server responses.
@@ -118,11 +118,11 @@ namespace App\UI\Screens;
 use Idei\Usim\UIBuilder;
 use Idei\Usim\Enums\LayoutType;
 use Idei\Usim\Screen;
-use Idei\Usim\Components\UIContainer;
+use Idei\Usim\Components\Container;
 
 class HelloScreen extends Screen
 {
-    protected function buildBaseUI(UIContainer $container, ...$params): void
+    protected function buildBaseUI(Container $container, ...$params): void
     {
         $container
             ->layout(LayoutType::VERTICAL)
@@ -244,13 +244,13 @@ Use `_crypt` only when the value should not be readable from the client's local 
 | `UIBuilder::form()` | `Form` | Form grouping |
 | `UIBuilder::table()` | `Table` | Data tables with pagination |
 | `UIBuilder::card()` | `Card` | Cards with title, description, actions |
-| `UIBuilder::container()` | `UIContainer` | Layout container (vertical/horizontal/grid) with `card()` / `plain()` appearance |
+| `UIBuilder::container()` | `Container` | Layout container (vertical/horizontal/grid) with `card()` / `plain()` appearance |
 | `UIBuilder::menuDropdown()` | `MenuDropdown` | Navigation dropdown menus |
 | `UIBuilder::uploader()` | `UploaderBuilder` | File upload with preview and crop |
 | `UIBuilder::calendar()` | `Calendar` | Calendar/date picker |
 | `UIBuilder::carousel()` | `Carousel` | Media carousel for image/audio/video with manual/auto modes |
 
-Builders share a fluent API across `UIComponent` and `UIContainer` with common methods like:
+Builders share a fluent API across `UIComponent` and `Container` with common methods like:
 
 ```php
 ->visible(bool $visible)
@@ -273,12 +273,12 @@ Builders share a fluent API across `UIComponent` and `UIContainer` with common m
 namespace App\UI\Screens\Products;
 
 use Idei\Usim\Screen;
-use Idei\Usim\Components\UIContainer;
+use Idei\Usim\Components\Container;
 use Idei\Usim\UIBuilder;
 
 class List extends Screen
 {
-    protected function buildBaseUI(UIContainer $container, ...$params): void
+    protected function buildBaseUI(Container $container, ...$params): void
     {
         $container->add(
             UIBuilder::label('title')->text('Products')->style('h1')

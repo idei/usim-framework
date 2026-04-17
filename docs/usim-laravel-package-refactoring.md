@@ -16,7 +16,7 @@ A critical previous step was the physical extraction of the framework core logic
 ### A. The Framework Core (`packages/idei/usim`)
 *   **Namespace:** `Idei\Usim`
 *   **Status:** This is the reusable engine. It contains:
-    *   **Core Logic:** Builders (`Table`, `UIContainer`), Base Classes (`Screen`), and Trait logic.
+    *   **Core Logic:** Builders (`Table`, `Container`), Base Classes (`Screen`), and Trait logic.
     *   **Routing:** `UIController` (formerly `UIDemoController`) handles all generic UI endpoints via dynamic routing. The controller itself is part of the package, eliminating the need for boilerplate controllers in the user's app.
     *   **Service Provider:** `UsimServiceProvider` which binds the package to Laravel.
 *   **Goal:** This folder will eventually be a separate Git repository.

@@ -6,7 +6,7 @@ use Idei\Usim\Enums\TimeUnit;
 use Idei\Usim\Enums\DialogType;
 use Idei\Usim\Enums\LayoutType;
 use Idei\Usim\Screen;
-use Idei\Usim\Components\UIContainer;
+use Idei\Usim\Components\Container;
 use Idei\Usim\Components\Label;
 use Idei\Usim\Modals\ConfirmDialogService;
 
@@ -23,7 +23,7 @@ class ModalDemo extends Screen
     protected Label $lbl_result;
     protected Label $lbl_instruction;
 
-    protected function buildBaseUI(UIContainer $container, ...$params): void
+    protected function buildBaseUI(Container $container, ...$params): void
     {
         $container
             ->title(t('screen.demo.modal_demo.title'))

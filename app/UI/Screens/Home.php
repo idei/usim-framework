@@ -4,11 +4,11 @@ namespace App\UI\Screens;
 
 use Idei\Usim\UIBuilder;
 use Idei\Usim\Screen;
-use Idei\Usim\Components\UIContainer;
+use Idei\Usim\Components\Container;
 
 class Home extends Screen
 {
-    protected function buildBaseUI(UIContainer $container, ...$params): void
+    protected function buildBaseUI(Container $container, ...$params): void
     {
         $container->shadow(0)->padding("0px");
         $container->add(

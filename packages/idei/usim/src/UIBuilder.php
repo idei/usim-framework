@@ -4,7 +4,7 @@ namespace Idei\Usim;
 
 use Idei\Usim\Components\Button;
 use Idei\Usim\Components\Label;
-use Idei\Usim\Components\UIContainer;
+use Idei\Usim\Components\Container;
 use Idei\Usim\Components\Table;
 use Idei\Usim\Components\TableRow;
 use Idei\Usim\Components\Input;
@@ -120,11 +120,11 @@ class UIBuilder
      * Create a new container component
      *
      * @param string|null $name The optional semantic name for the container
-     * @return UIContainer
+     * @return Container
      */
-    public static function container(?string $name = null, ?string $context = null): UIContainer
+    public static function container(?string $name = null, ?string $context = null): Container
     {
-        return new UIContainer($name, $context);
+        return new Container($name, $context);
     }
 
     /**

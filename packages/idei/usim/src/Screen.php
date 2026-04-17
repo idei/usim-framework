@@ -14,7 +14,7 @@ use Idei\Usim\Components\TableCell;
 use Idei\Usim\Components\TableHeaderCell;
 use Idei\Usim\Components\TableHeaderRow;
 use Idei\Usim\Components\TableRow;
-use Idei\Usim\Components\UIContainer;
+use Idei\Usim\Components\Container;
 use Idei\Usim\Components\UploaderBuilder;
 use Idei\Usim\Contracts\UIElement;
 use Idei\Usim\Enums\LayoutType;
@@ -54,7 +54,7 @@ abstract class Screen
     /**
      * Current container instance
      */
-    protected UIContainer $container;
+    protected Container $container;
 
     /**
      * State before modifications (for diff calculation)
@@ -246,9 +246,9 @@ abstract class Screen
      * This will be called automatically if the cache expires.
      *
      * @param mixed ...$params Optional parameters for user Interface construction
-     * @return UIContainer Base user Interface structure
+     * @return Container Base user Interface structure
      */
-    abstract protected function buildBaseUI(UIContainer $container, ...$params): void;
+    abstract protected function buildBaseUI(Container $container, ...$params): void;
 
     protected function postLoadUI(): void
     {
@@ -503,9 +503,9 @@ abstract class Screen
     /**
      * Get user Interface container instance from cache, regenerate if missing
      *
-     * @return UIContainer user Interface container instance
+     * @return Container user Interface container instance
      */
-    protected function getUIContainer(bool $debug = false): UIContainer
+    protected function getUIContainer(bool $debug = false): Container
     {
         // Always get JSON from cache and reconstruct container
         // This ensures we get the latest state after events modify it
@@ -520,9 +520,9 @@ abstract class Screen
      * Reconstruct UI container from JSON array
      *
      * @param array $jsonUI JSON representation of UI
-     * @return UIContainer Reconstructed container
+     * @return Container Reconstructed container
      */
-    private function reconstructContainerFromJson(array $jsonUI): UIContainer
+    private function reconstructContainerFromJson(array $jsonUI): Container
     {
         $components = [];
         $rootContainer = null;
@@ -582,7 +582,7 @@ abstract class Screen
             'checkbox' => Checkbox::class,
             'card' => Card::class,
             'table' => Table::class,
-            'container' => UIContainer::class,
+            'container' => Container::class,
             'tablerow' => TableRow::class,
             'tablecell' => TableCell::class,
             'tableheadercell' => TableHeaderCell::class,
@@ -599,10 +599,10 @@ abstract class Screen
     /**
      * Store UI state in cache
      *
-     * @param UIContainer $ui UI container to store
+     * @param Container $ui UI container to store
      * @return void
      */
-    protected function storeUI(UIContainer $ui): void
+    protected function storeUI(Container $ui): void
     {
         UIStateManager::store(static::class, $ui->toJson());
     }
@@ -821,12 +821,12 @@ abstract class Screen
      * Find a component by ID and return it only if it matches the expected class.
      *
      * @template T of UIElement
-     * @param UIContainer $container
+     * @param Container $container
      * @param int|string|null $id
      * @param class-string<T> $expectedClass
      * @return T|null
      */
-    protected function findComponentAs(UIContainer $container, int|string|null $id, string $expectedClass): ?UIElement
+    protected function findComponentAs(Container $container, int|string|null $id, string $expectedClass): ?UIElement
     {
         if ($id === null || $id === '') {
             return null;

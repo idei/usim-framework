@@ -3,7 +3,7 @@ namespace App\UI\Screens\Demo;
 
 use Idei\Usim\UIBuilder;
 use Idei\Usim\Screen;
-use Idei\Usim\Components\UIContainer;
+use Idei\Usim\Components\Container;
 use Idei\Usim\Components\Label;
 use Idei\Usim\Components\Button;
 use Idei\Usim\Components\Checkbox;
@@ -19,7 +19,7 @@ class CheckboxDemo extends Screen
     /**
      * Build the checkbox demo UI
      */
-    protected function buildBaseUI(UIContainer $container, ...$params): void
+    protected function buildBaseUI(Container $container, ...$params): void
     {
         $container
             ->title(t('screen.demo.checkbox_demo.title'))

@@ -5,7 +5,7 @@ use App\Services\Auth\AuthSessionService;
 use App\Services\Auth\LoginService;
 use Idei\Usim\Screen;
 use Idei\Usim\Components\Label;
-use Idei\Usim\Components\UIContainer;
+use Idei\Usim\Components\Container;
 use Idei\Usim\Enums\JustifyContent;
 use Idei\Usim\Enums\LayoutType;
 use Idei\Usim\UIBuilder;
@@ -39,7 +39,7 @@ class Login extends Screen
         return '🔑';
     }
 
-    protected function buildBaseUI(UIContainer $container, ...$params): void
+    protected function buildBaseUI(Container $container, ...$params): void
     {
         $email = '';
         $password = '';

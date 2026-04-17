@@ -24,7 +24,7 @@ use Idei\Usim\Events\UsimEvent;
 use Idei\Usim\Screen;
 use Idei\Usim\Components\Button;
 use Idei\Usim\Components\MenuDropdown;
-use Idei\Usim\Components\UIContainer;
+use Idei\Usim\Components\Container;
 use Idei\Usim\Enums\AlignItems;
 use Idei\Usim\Enums\DialogType;
 use Idei\Usim\Enums\JustifyContent;
@@ -55,7 +55,7 @@ class Menu extends Screen
     protected string $store_theme = 'light';
     protected string $store_lang = '';
 
-    protected function buildBaseUI(UIContainer $container, ...$params): void
+    protected function buildBaseUI(Container $container, ...$params): void
     {
         $container
             ->parent('menu') // Important to set parent!

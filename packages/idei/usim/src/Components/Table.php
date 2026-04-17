@@ -2,6 +2,7 @@
 
 namespace Idei\Usim\Components;
 
+use Idei\Usim\Components\Container;
 use Idei\Usim\Components\TableRow;
 use Idei\Usim\Contracts\UIElement;
 use Idei\Usim\DataTable\AbstractDataTableModel;
@@ -17,8 +18,8 @@ use Idei\Usim\DataTable\AbstractDataTableModel;
  */
 class Table extends UIComponent
 {
-    /** @var UIContainer The rows container */
-    private UIContainer $rowsContainer;
+    /** @var Container The rows container */
+    private Container $rowsContainer;
 
     /** @var TableHeaderRow|null The header row (optional) */
     private ?TableHeaderRow $headerRow = null;
@@ -53,7 +54,7 @@ class Table extends UIComponent
         parent::__construct($name);
 
         // Create the rows container
-        $this->rowsContainer = new UIContainer('rows');
+        $this->rowsContainer = new Container('rows');
         $this->rowsContainer->setParent($this->id);
         $this->config['rows_container'] = $this->rowsContainer->getId();
 
@@ -368,7 +369,7 @@ class Table extends UIComponent
 
     public function connectChild(UIElement $element): void
     {
-        if ($element instanceof UIContainer) {
+        if ($element instanceof Container) {
             if ($element->getName() === 'rows') {
                 $this->rowsContainer = $element;
                 $this->config['rows_container'] = $element->getId();
@@ -524,9 +525,9 @@ class Table extends UIComponent
     /**
      * Get the rows container
      *
-     * @return UIContainer
+     * @return Container
      */
-    public function getRowsContainer(): UIContainer
+    public function getRowsContainer(): Container
     {
         return $this->rowsContainer;
     }

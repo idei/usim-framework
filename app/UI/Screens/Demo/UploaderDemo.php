@@ -4,7 +4,7 @@ namespace App\UI\Screens\Demo;
 
 use Idei\Usim\Screen;
 use Idei\Usim\Components\Label;
-use Idei\Usim\Components\UIContainer;
+use Idei\Usim\Components\Container;
 use Idei\Usim\Components\UploaderBuilder;
 use Idei\Usim\UIBuilder;
 use Illuminate\Support\Facades\DB;
@@ -29,7 +29,7 @@ class UploaderDemo extends Screen
     protected $btn_confirm_images;
     protected $btn_confirm_documents;
 
-    protected function buildBaseUI(UIContainer $container, ...$params): void
+    protected function buildBaseUI(Container $container, ...$params): void
     {
         $container
             ->title(t('screen.demo.uploader_demo.title'))

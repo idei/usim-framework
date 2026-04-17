@@ -155,7 +155,7 @@ packages/idei/usim/
 |  |  \- Components/
 |  |     |- BaseUIBuilder.php
 |  |     |- UIComponent.php
-|  |     |- UIContainer.php
+|  |     |- Container.php
 |  |     |- Label.php
 |  |     |- Button.php
 |  |     |- Input.php
@@ -224,7 +224,7 @@ Estos archivos no son decorativos; describen flujos de trabajo esperados y deben
 Segun `packages/idei/usim/CHANGELOG.md` y `packages/idei/usim/README.md`, el contexto reciente del paquete incluye:
 
 - Version actual documentada: `0.7.0`.
-- `UIContainer` tiene API de apariencia con `appearance()`, `card()` y `plain()`.
+- `Container` tiene API de apariencia con `appearance()`, `card()` y `plain()`.
 - Calendar y Carousel usan CSS theme tokens para consistencia light/dark.
 - `Screen` persiste el estado final luego de `postLoadUI()`, incluyendo recargas con `?reset=true`.
 - Los checkboxes sincronizan correctamente su estado incremental desde el backend.
