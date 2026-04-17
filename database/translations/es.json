@@ -431,7 +431,7 @@
     "welcome.comp.form": "Agrupación de formularios",
     "welcome.comp.input": "Text, email, password, hidden",
     "welcome.comp.label": "Textos, headings, párrafos",
-    "welcome.comp.lead": "Todos los builders usan una API fluida y extienden BaseUIBuilder con métodos comunes de estilo y comportamiento.",
+    "welcome.comp.lead": "Todos los builders usan una API fluida basada en UIComponent y UIContainer, con métodos comunes de estilo y comportamiento.",
     "welcome.comp.select": "Dropdowns y selects",
     "welcome.comp.table": "Tablas con paginación",
     "welcome.comp.tag": "Componentes",

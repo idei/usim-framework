@@ -250,7 +250,7 @@ Use `_crypt` only when the value should not be readable from the client's local 
 | `UIBuilder::calendar()` | `CalendarBuilder` | Calendar/date picker |
 | `UIBuilder::carousel()` | `CarouselBuilder` | Media carousel for image/audio/video with manual/auto modes |
 
-All builders extend `BaseUIBuilder` and share common methods:
+Builders share a fluent API across `UIComponent` and `UIContainer` with common methods like:
 
 ```php
 ->visible(bool $visible)
