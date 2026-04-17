@@ -45,7 +45,7 @@ app/Services/UI/
 │   ├── Form.php
 │   ├── Input.php
 │   ├── Table.php
-│   ├── UploaderBuilder.php
+│   ├── Uploader.php
 │   └── ...
 ├── Support/                        # Utilidades del framework
 │   ├── UIDiffer.php               # Algoritmo de diffing
@@ -1013,13 +1013,13 @@ use App\Services\UI\Screen;
 use App\Services\Upload\UploadService;
 use App\Services\UI\Components\Container;
 use App\Services\UI\Components\Input;
-use App\Services\UI\Components\UploaderBuilder;
+use App\Services\UI\Components\Uploader;
 
 class ProfileService extends Screen
 {
     protected Input $input_email;
     protected Input $input_name;
-    protected UploaderBuilder $uploader_profile;
+    protected Uploader $uploader_profile;
 
     protected function buildBaseUI(Container $container, ...$params): void
     {

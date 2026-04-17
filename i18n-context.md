@@ -27,7 +27,7 @@ Migrar textos hardcodeados de package USIM (core + stubs) hacia i18n con keys es
 ## 4) Archivos modificados
 
 ### Core del package
-- [packages/idei/usim/src/Services/Components/UploaderBuilder.php](packages/idei/usim/src/Services/Components/UploaderBuilder.php)
+- [packages/idei/usim/src/Services/Components/Uploader.php](packages/idei/usim/src/Services/Components/Uploader.php)
 - [packages/idei/usim/src/Services/Modals/ConfirmDialogService.php](packages/idei/usim/src/Services/Modals/ConfirmDialogService.php)
 - [packages/idei/usim/src/Services/Enums/DialogType.php](packages/idei/usim/src/Services/Enums/DialogType.php)
 - [packages/idei/usim/src/Services/Enums/TimeUnit.php](packages/idei/usim/src/Services/Enums/TimeUnit.php)

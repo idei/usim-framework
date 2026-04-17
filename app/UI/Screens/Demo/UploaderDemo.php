@@ -5,7 +5,7 @@ namespace App\UI\Screens\Demo;
 use Idei\Usim\Screen;
 use Idei\Usim\Components\Label;
 use Idei\Usim\Components\Container;
-use Idei\Usim\Components\UploaderBuilder;
+use Idei\Usim\Components\Uploader;
 use Idei\Usim\UIBuilder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
@@ -13,15 +13,15 @@ use Illuminate\Support\Facades\Storage;
 /**
  * Uploader Demo Service
  *
- * Demuestra el uso del componente UploaderBuilder
+ * Demuestra el uso del componente Uploader
  */
 class UploaderDemo extends Screen
 {
-    protected UploaderBuilder $uploader_profile;
-    protected UploaderBuilder $uploader_banner;
-    protected UploaderBuilder $uploader_story;
-    protected UploaderBuilder $uploader_images;
-    protected UploaderBuilder $uploader_documents;
+    protected Uploader $uploader_profile;
+    protected Uploader $uploader_banner;
+    protected Uploader $uploader_story;
+    protected Uploader $uploader_images;
+    protected Uploader $uploader_documents;
     protected Label $lbl_result;
     protected $btn_confirm_profile;
     protected $btn_confirm_banner;

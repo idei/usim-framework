@@ -246,7 +246,7 @@ Use `_crypt` only when the value should not be readable from the client's local 
 | `UIBuilder::card()` | `Card` | Cards with title, description, actions |
 | `UIBuilder::container()` | `Container` | Layout container (vertical/horizontal/grid) with `card()` / `plain()` appearance |
 | `UIBuilder::menuDropdown()` | `MenuDropdown` | Navigation dropdown menus |
-| `UIBuilder::uploader()` | `UploaderBuilder` | File upload with preview and crop |
+| `UIBuilder::uploader()` | `Uploader` | File upload with preview and crop |
 | `UIBuilder::calendar()` | `Calendar` | Calendar/date picker |
 | `UIBuilder::carousel()` | `Carousel` | Media carousel for image/audio/video with manual/auto modes |
 
@@ -625,7 +625,7 @@ $container->add($table);
 
 ## File Uploads
 
-Use the `UploaderBuilder` for file uploads with temporary storage, preview, and image cropping:
+Use the `Uploader` for file uploads with temporary storage, preview, and image cropping:
 
 ```php
 $uploader = UIBuilder::uploader('avatar')

@@ -10,13 +10,13 @@ use Idei\Usim\Screen;
 use Idei\Usim\Upload\UploadService;
 use Idei\Usim\Components\Container;
 use Idei\Usim\Components\Input;
-use Idei\Usim\Components\UploaderBuilder;
+use Idei\Usim\Components\Uploader;
 
 class Profile extends Screen
 {
     protected Input $input_email;
     protected Input $input_name;
-    protected UploaderBuilder $uploader_profile;
+    protected Uploader $uploader_profile;
 
     public static function authorize(): bool
     {

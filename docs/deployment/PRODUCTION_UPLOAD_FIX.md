@@ -213,7 +213,7 @@ sudo systemctl start php8.3-fpm
 
 ### Error: "File too large" desde Laravel
 
-Verifica el límite en tu código (`UploaderBuilder`):
+Verifica el límite en tu código (`Uploader`):
 ```php
 // En ProfileService.php
 $uploaderProfile = UIBuilder::uploader('uploader_profile')

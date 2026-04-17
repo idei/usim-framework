@@ -13,7 +13,7 @@ use Idei\Usim\Components\Checkbox;
 use Idei\Usim\Components\Form;
 use Idei\Usim\Components\MenuDropdown;
 use Idei\Usim\Components\Card;
-use Idei\Usim\Components\UploaderBuilder;
+use Idei\Usim\Components\Uploader;
 use Idei\Usim\Components\Calendar;
 use Idei\Usim\Components\Carousel;
 
@@ -153,11 +153,11 @@ class UIBuilder
      * Create a new uploader component
      *
      * @param string|null $name The optional semantic name for the uploader
-     * @return UploaderBuilder
+     * @return Uploader
      */
-    public static function uploader(?string $name = null): UploaderBuilder
+    public static function uploader(?string $name = null): Uploader
     {
-        return new UploaderBuilder($name);
+        return new Uploader($name);
     }
 
     /**

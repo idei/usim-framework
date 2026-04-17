@@ -15,7 +15,7 @@ use Idei\Usim\Components\TableHeaderCell;
 use Idei\Usim\Components\TableHeaderRow;
 use Idei\Usim\Components\TableRow;
 use Idei\Usim\Components\Container;
-use Idei\Usim\Components\UploaderBuilder;
+use Idei\Usim\Components\Uploader;
 use Idei\Usim\Contracts\UIElement;
 use Idei\Usim\Enums\LayoutType;
 use Idei\Usim\Support\UIDiffer;
@@ -589,7 +589,7 @@ abstract class Screen
             'form' => Form::class,
             'tableheaderrow' => TableHeaderRow::class,
             'menudropdown' => MenuDropdown::class,
-            'uploader' => UploaderBuilder::class,
+            'uploader' => Uploader::class,
             'calendar' => \Idei\Usim\Components\Calendar::class,
             'carousel' => \Idei\Usim\Components\Carousel::class,
             'default' => null,

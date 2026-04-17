@@ -10,7 +10,7 @@ namespace Idei\Usim\Components;
  * - Preview según tipo de archivo (imagen, audio, video, documentos)
  * - Los archivos temporales se procesan en el Service via actions
  */
-class UploaderBuilder extends UIComponent
+class Uploader extends UIComponent
 {
     /**
      * Constructor

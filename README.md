@@ -50,7 +50,7 @@ USIM es un framework de UI reactivo donde:
 ### Sistema de Archivos
 - **Upload de archivos** con validación de tipos y tamaños
 - **Almacenamiento temporal** con limpieza automática (cronjob)
-- **Persistencia optimizada** con método `confirm()` de UploaderBuilder
+- **Persistencia optimizada** con método `confirm()` de Uploader
 - **Gestión de archivos** (listado, eliminación)
 - **Sistema de attachments polimórficos**
 
