@@ -153,7 +153,7 @@
                 <mxCell id="uibuilder" value="UIBuilder (Factory)&#xa;button() • label() • input() • select()&#xa;checkbox() • table() • uploader() • modal()" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#666666;align=center;fontSize=10;spacingTop=0;spacingBottom=10;verticalAlign=top;" parent="BIjn1Z4AEju04GT3t9Pa-5" vertex="1">
                     <mxGeometry x="55" y="140" width="250" height="70" as="geometry"/>
                 </mxCell>
-                <mxCell id="component_builders" value="Componentes (Button, InputBuilder, TableBuilder...)&#xa;• Configuración fluida&#xa;• Serialización a JSON&#xa;• IDs determinísticos" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#666666;align=center;fontSize=10;spacingTop=0;spacingBottom=10;verticalAlign=top;" parent="BIjn1Z4AEju04GT3t9Pa-5" vertex="1">
+                <mxCell id="component_builders" value="Componentes (Button, Input, TableBuilder...)&#xa;• Configuración fluida&#xa;• Serialización a JSON&#xa;• IDs determinísticos" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#666666;align=center;fontSize=10;spacingTop=0;spacingBottom=10;verticalAlign=top;" parent="BIjn1Z4AEju04GT3t9Pa-5" vertex="1">
                     <mxGeometry x="55" y="230" width="250" height="70" as="geometry"/>
                 </mxCell>
                 <mxCell id="builder_arrow" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2" parent="BIjn1Z4AEju04GT3t9Pa-5" source="abstract" target="uibuilder" edge="1">
@@ -224,7 +224,7 @@
                 <mxCell id="arrow_button" value="" style="edgeStyle=elbowEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=0;elbow=vertical;" parent="1" source="button" target="abstract_comp" edge="1">
                     <mxGeometry relative="1" as="geometry"/>
                 </mxCell>
-                <mxCell id="input" value="InputBuilder&#xa;&#xa;+ label: string&#xa;+ value: string&#xa;+ type: InputType&#xa;+ placeholder: string&#xa;+ required: bool&#xa;+ error: string&#xa;&#xa;+ validate()&#xa;+ mask(pattern)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;align=left;verticalAlign=top;spacingLeft=10;fontFamily=Courier New;fontSize=11;opacity=80;" parent="1" vertex="1">
+                <mxCell id="input" value="Input&#xa;&#xa;+ label: string&#xa;+ value: string&#xa;+ type: InputType&#xa;+ placeholder: string&#xa;+ required: bool&#xa;+ error: string&#xa;&#xa;+ validate()&#xa;+ mask(pattern)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;align=left;verticalAlign=top;spacingLeft=10;fontFamily=Courier New;fontSize=11;opacity=80;" parent="1" vertex="1">
                     <mxGeometry x="560" y="340" width="200" height="160" as="geometry"/>
                 </mxCell>
                 <mxCell id="arrow_input" value="" style="edgeStyle=elbowEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=0;elbow=vertical;" parent="1" source="input" target="abstract_comp" edge="1">

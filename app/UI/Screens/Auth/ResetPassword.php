@@ -7,7 +7,7 @@ use Idei\Usim\UIBuilder;
 use Idei\Usim\Enums\LayoutType;
 use Idei\Usim\Screen;
 use Idei\Usim\Components\UIContainer;
-use Idei\Usim\Components\InputBuilder;
+use Idei\Usim\Components\Input;
 use Idei\Usim\Components\LabelBuilder;
 
 class ResetPassword extends Screen
@@ -18,8 +18,8 @@ class ResetPassword extends Screen
     }
 
     protected LabelBuilder $lbl_result;
-    protected InputBuilder $password;
-    protected InputBuilder $password_confirmation;
+    protected Input $password;
+    protected Input $password_confirmation;
 
     public function buildBaseUI(UIContainer $container, ...$params): void
     {

@@ -158,7 +158,7 @@ packages/idei/usim/
 |  |     |- UIContainer.php
 |  |     |- LabelBuilder.php
 |  |     |- Button.php
-|  |     |- InputBuilder.php
+|  |     |- Input.php
 |  |     |- SelectBuilder.php
 |  |     |- Checkbox.php
 |  |     |- Form.php

@@ -8,7 +8,7 @@ namespace Idei\Usim\Components;
  * Modern and powerful input component with comprehensive validation,
  * help text, error messages, tooltips, and extensive customization options.
  */
-class InputBuilder extends UIComponent
+class Input extends UIComponent
 {
     protected function getDefaultConfig(): array
     {

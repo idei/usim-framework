@@ -17,7 +17,7 @@ class ForgotPassword extends Screen
     }
 
     protected LabelBuilder $lbl_result;
-    protected \Idei\Usim\Components\InputBuilder $email;
+    protected \Idei\Usim\Components\Input $email;
 
     public function buildBaseUI(UIContainer $container, ...$params): void
     {

@@ -43,7 +43,7 @@ app/Services/UI/
 ├── Components/                     # 16 builders de componentes
 │   ├── Button.php
 │   ├── Form.php
-│   ├── InputBuilder.php
+│   ├── Input.php
 │   ├── TableBuilder.php
 │   ├── UploaderBuilder.php
 │   └── ...
@@ -1012,13 +1012,13 @@ use Illuminate\Support\Facades\Auth;
 use App\Services\UI\Screen;
 use App\Services\Upload\UploadService;
 use App\Services\UI\Components\UIContainer;
-use App\Services\UI\Components\InputBuilder;
+use App\Services\UI\Components\Input;
 use App\Services\UI\Components\UploaderBuilder;
 
 class ProfileService extends Screen
 {
-    protected InputBuilder $input_email;
-    protected InputBuilder $input_name;
+    protected Input $input_email;
+    protected Input $input_name;
     protected UploaderBuilder $uploader_profile;
 
     protected function buildBaseUI(UIContainer $container, ...$params): void
@@ -1165,7 +1165,7 @@ class ProfileService extends Screen
 **Líneas de código:** ~140  
 **Funcionalidad:** Perfil completo con upload de avatar, validación, eventos  
 **Características:**
-- Inyección automática de componentes (`protected InputBuilder $input_name`)
+- Inyección automática de componentes (`protected Input $input_name`)
 - `confirm()` encapsula todo el flujo de upload (3 líneas vs 18)
 - `postLoadUI()` para datos dinámicos (ejecutado en cada request)
 - Eventos USIM para comunicación entre servicios

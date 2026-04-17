@@ -4,7 +4,7 @@ namespace App\UI\Screens\Demo;
 use Idei\Usim\UIBuilder;
 use Idei\Usim\Screen;
 use Idei\Usim\Components\UIContainer;
-use Idei\Usim\Components\InputBuilder;
+use Idei\Usim\Components\Input;
 use Idei\Usim\Components\LabelBuilder;
 
 /**
@@ -22,7 +22,7 @@ use Idei\Usim\Components\LabelBuilder;
  */
 class InputDemo extends Screen
 {
-    protected InputBuilder $input_text;
+    protected Input $input_text;
     protected LabelBuilder $lbl_result;
 
     protected function buildBaseUI(UIContainer $container, ...$params): void

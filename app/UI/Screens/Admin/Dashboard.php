@@ -8,7 +8,7 @@ use Idei\Usim\Enums\DialogType;
 use Idei\Usim\Enums\LayoutType;
 use Idei\Usim\Screen;
 use Idei\Usim\Components\UIContainer;
-use Idei\Usim\Components\InputBuilder;
+use Idei\Usim\Components\Input;
 use Idei\Usim\Components\TableBuilder;
 use Idei\Usim\Components\Button;
 use App\UI\Components\DataTable\UserApiTableModel;
@@ -40,7 +40,7 @@ class Dashboard extends Screen
     }
 
     protected TableBuilder $users_table;
-    protected InputBuilder $search_users;
+    protected Input $search_users;
     protected Button $add_user_btn;
 
     protected function buildBaseUI(UIContainer $container, ...$params): void

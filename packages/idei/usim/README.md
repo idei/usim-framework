@@ -238,7 +238,7 @@ Use `_crypt` only when the value should not be readable from the client's local 
 |---|---|---|
 | `UIBuilder::label()` | `LabelBuilder` | Text labels, headings, paragraphs |
 | `UIBuilder::button()` | `Button` | Action buttons with styles |
-| `UIBuilder::input()` | `InputBuilder` | Text, email, password, hidden inputs |
+| `UIBuilder::input()` | `Input` | Text, email, password, hidden inputs |
 | `UIBuilder::select()` | `SelectBuilder` | Dropdown selects |
 | `UIBuilder::checkbox()` | `Checkbox` | Checkboxes and toggles |
 | `UIBuilder::form()` | `Form` | Form grouping |
@@ -387,7 +387,7 @@ protected function postLoadUI(): void
 }
 ```
 
-> Component auto-injection: If you declare a typed property with the same name as a component ID, USIM automatically injects the builder instance. For example, `protected InputBuilder $input_name;` will be populated with the input created as `UIBuilder::input('input_name')`.
+> Component auto-injection: If you declare a typed property with the same name as a component ID, USIM automatically injects the builder instance. For example, `protected Input $input_name;` will be populated with the input created as `UIBuilder::input('input_name')`.
 
 ---
 

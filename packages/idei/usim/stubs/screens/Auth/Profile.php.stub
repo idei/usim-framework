@@ -9,13 +9,13 @@ use Illuminate\Support\Facades\Password;
 use Idei\Usim\Screen;
 use Idei\Usim\Upload\UploadService;
 use Idei\Usim\Components\UIContainer;
-use Idei\Usim\Components\InputBuilder;
+use Idei\Usim\Components\Input;
 use Idei\Usim\Components\UploaderBuilder;
 
 class Profile extends Screen
 {
-    protected InputBuilder $input_email;
-    protected InputBuilder $input_name;
+    protected Input $input_email;
+    protected Input $input_name;
     protected UploaderBuilder $uploader_profile;
 
     public static function authorize(): bool

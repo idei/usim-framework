@@ -7,7 +7,7 @@ use Idei\Usim\Components\LabelBuilder;
 use Idei\Usim\Components\UIContainer;
 use Idei\Usim\Components\TableBuilder;
 use Idei\Usim\Components\TableRowBuilder;
-use Idei\Usim\Components\InputBuilder;
+use Idei\Usim\Components\Input;
 use Idei\Usim\Components\SelectBuilder;
 use Idei\Usim\Components\Checkbox;
 use Idei\Usim\Components\Form;
@@ -76,11 +76,11 @@ class UIBuilder
      * Create a new input component
      *
      * @param string|null $name The optional semantic name for the input
-     * @return InputBuilder
+     * @return Input
      */
-    public static function input(?string $name = null): InputBuilder
+    public static function input(?string $name = null): Input
     {
-        return new InputBuilder($name);
+        return new Input($name);
     }
 
     /**

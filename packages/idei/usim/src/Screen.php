@@ -5,7 +5,7 @@ use Idei\Usim\Components\Button;
 use Idei\Usim\Components\Card;
 use Idei\Usim\Components\Checkbox;
 use Idei\Usim\Components\Form;
-use Idei\Usim\Components\InputBuilder;
+use Idei\Usim\Components\Input;
 use Idei\Usim\Components\LabelBuilder;
 use Idei\Usim\Components\MenuDropdownBuilder;
 use Idei\Usim\Components\SelectBuilder;
@@ -577,7 +577,7 @@ abstract class Screen
         return match ($type) {
             'label' => LabelBuilder::class,
             'button' => Button::class,
-            'input' => InputBuilder::class,
+            'input' => Input::class,
             'select' => SelectBuilder::class,
             'checkbox' => Checkbox::class,
             'card' => Card::class,

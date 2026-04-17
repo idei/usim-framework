@@ -2,6 +2,8 @@
 
 namespace Idei\Usim\Components;
 
+use Idei\Usim\Components\Input;
+
 /**
  * Form UI component builder
  *
@@ -1042,11 +1044,11 @@ class Form extends UIContainer
      *
      * @param string $name Field name
      * @param string|null $label Field label
-     * @return InputBuilder For method chaining
+     * @return Input For method chaining
      */
-    public function input(string $name, ?string $label = null): InputBuilder
+    public function input(string $name, ?string $label = null): Input
     {
-        $input = new InputBuilder($name);
+        $input = new Input($name);
 
         if ($label !== null) {
             $input->label($label);
