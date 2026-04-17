@@ -160,7 +160,7 @@ packages/idei/usim/
 |  |     |- Button.php
 |  |     |- InputBuilder.php
 |  |     |- SelectBuilder.php
-|  |     |- CheckboxBuilder.php
+|  |     |- Checkbox.php
 |  |     |- FormBuilder.php
 |  |     |- Card.php
 |  |     |- TableBuilder.php y builders relacionados

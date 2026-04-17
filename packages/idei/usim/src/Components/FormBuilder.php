@@ -6,7 +6,7 @@ use Idei\Usim\Contracts\UIElement;
 
 /**
  * Builder for Form UI components
- * 
+ *
  * Modern form component that extends UIContainer with form-specific features:
  * - Form actions (submit, reset, cancel)
  * - Validation rules and error handling
@@ -18,7 +18,7 @@ use Idei\Usim\Contracts\UIElement;
  * - CSRF protection
  * - File upload support
  * - Form state management (pristine, dirty, submitting, submitted)
- * 
+ *
  * @method self action(?string $action) Set form action URL
  * @method self method(string $method) Set form method (GET, POST, PUT, PATCH, DELETE)
  * @method self ajax(bool $ajax = true) Enable/disable AJAX submission
@@ -86,23 +86,23 @@ use Idei\Usim\Contracts\UIElement;
 class FormBuilder extends UIContainer
 {
     protected string $type = 'form';
-    
+
     /** @var array Form sections for organizing fields */
     protected array $sections = [];
-    
+
     /** @var array Form validation rules */
     protected array $validationRules = [];
-    
+
     /** @var array Custom error messages for validation */
     protected array $errorMessages = [];
-    
+
     /** @var bool Whether form has file uploads */
     protected bool $hasFileUploads = false;
 
     public function __construct(?string $name = null)
     {
         parent::__construct($name);
-        
+
         $this->type = 'form';
         $this->config = array_merge($this->config, [
             'type' => 'form',
@@ -113,27 +113,27 @@ class FormBuilder extends UIContainer
             'autocomplete' => true,
             'encoding' => 'application/x-www-form-urlencoded',
             'novalidate' => false,
-            
+
             // Layout
             'form_layout' => 'vertical', // vertical, horizontal, inline
             'label_width' => '120px',
             'field_width' => 'auto',
             'label_position' => 'top', // top, left, floating
             'label_align' => 'left',
-            
+
             // Indicators
             'show_required_indicator' => true,
             'show_optional_indicator' => false,
             'required_indicator' => '*',
             'optional_indicator' => '(optional)',
-            
+
             // Validation
             'validation_mode' => 'onSubmit', // onSubmit, onChange, onBlur, immediate
             'error_display' => 'inline', // inline, summary, toast, none
             'error_summary_title' => 'Please fix the following errors:',
             'focus_on_error' => true,
             'scroll_to_error' => true,
-            
+
             // Submission
             'prevent_multiple_submit' => true,
             'show_progress' => true,
@@ -143,22 +143,22 @@ class FormBuilder extends UIContainer
             'redirect_on_success' => null,
             'reset_on_success' => false,
             'confirm_before_submit' => null,
-            
+
             // Auto-save
             'auto_save' => false,
             'auto_save_delay' => 3000,
             'auto_save_indicator' => true,
-            
+
             // Security
             'csrf_token' => null,
             'csrf_field' => '_token',
             'honeypot' => false,
             'honeypot_field' => '_gotcha',
-            
+
             // File uploads
             'max_file_size' => null,
             'allowed_file_types' => [],
-            
+
             // Styling
             'field_spacing' => 'medium',
             'section_spacing' => 'large',
@@ -172,7 +172,7 @@ class FormBuilder extends UIContainer
             'rounded' => false,
             'padding' => 'medium',
             'background_color' => null,
-            
+
             // Events
             'on_submit' => null,
             'on_reset' => null,
@@ -182,22 +182,22 @@ class FormBuilder extends UIContainer
             'after_submit' => null,
             'on_error' => null,
             'on_success' => null,
-            
+
             // State
             'disabled' => false,
             'readonly' => false,
-            
+
             // Custom
             'custom_class' => null,
             'custom_style' => null,
             'data_attributes' => [],
             'aria_label' => null,
             'aria_describedby' => null,
-            
+
             // Sections
             'sections' => [],
             'fieldsets' => [],
-            
+
             // Buttons
             'buttons' => [],
         ]);
@@ -205,7 +205,7 @@ class FormBuilder extends UIContainer
 
     /**
      * Set form action URL
-     * 
+     *
      * @param string|null $action Form action URL
      * @return self For method chaining
      */
@@ -217,7 +217,7 @@ class FormBuilder extends UIContainer
 
     /**
      * Set form method
-     * 
+     *
      * @param string $method HTTP method (GET, POST, PUT, PATCH, DELETE)
      * @return self For method chaining
      */
@@ -227,21 +227,21 @@ class FormBuilder extends UIContainer
         if (!in_array($method, ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'])) {
             throw new \InvalidArgumentException("Invalid form method: {$method}");
         }
-        
+
         $this->config['method'] = $method;
-        
+
         // For PUT, PATCH, DELETE we need to add a hidden _method field
         if (in_array($method, ['PUT', 'PATCH', 'DELETE'])) {
             $this->config['_method'] = $method;
             $this->config['method'] = 'POST'; // HTML forms only support GET/POST
         }
-        
+
         return $this;
     }
 
     /**
      * Enable/disable AJAX submission
-     * 
+     *
      * @param bool $ajax Whether to submit via AJAX
      * @return self For method chaining
      */
@@ -253,7 +253,7 @@ class FormBuilder extends UIContainer
 
     /**
      * Enable/disable client-side validation
-     * 
+     *
      * @param bool $validate Whether to validate on client
      * @return self For method chaining
      */
@@ -266,7 +266,7 @@ class FormBuilder extends UIContainer
 
     /**
      * Enable/disable autocomplete
-     * 
+     *
      * @param bool $autocomplete Whether to enable autocomplete
      * @return self For method chaining
      */
@@ -278,7 +278,7 @@ class FormBuilder extends UIContainer
 
     /**
      * Set form encoding type
-     * 
+     *
      * @param string $encoding Encoding type (application/x-www-form-urlencoded, multipart/form-data, text/plain)
      * @return self For method chaining
      */
@@ -290,7 +290,7 @@ class FormBuilder extends UIContainer
 
     /**
      * Enable multipart/form-data encoding (for file uploads)
-     * 
+     *
      * @param bool $multipart Whether to use multipart encoding
      * @return self For method chaining
      */
@@ -305,7 +305,7 @@ class FormBuilder extends UIContainer
 
     /**
      * Add submit button to form
-     * 
+     *
      * @param string $label Button label
      * @param array $config Button configuration
      * @return self For method chaining
@@ -319,14 +319,14 @@ class FormBuilder extends UIContainer
             'size' => $this->config['submit_size'],
             'full_width' => $this->config['full_width_buttons'],
         ], $config);
-        
+
         $this->config['buttons'][] = $button;
         return $this;
     }
 
     /**
      * Add reset button to form
-     * 
+     *
      * @param string $label Button label
      * @param array $config Button configuration
      * @return self For method chaining
@@ -340,14 +340,14 @@ class FormBuilder extends UIContainer
             'size' => $this->config['submit_size'],
             'full_width' => $this->config['full_width_buttons'],
         ], $config);
-        
+
         $this->config['buttons'][] = $button;
         return $this;
     }
 
     /**
      * Add cancel button to form
-     * 
+     *
      * @param string $label Button label
      * @param array $config Button configuration (should include 'action' or 'onclick')
      * @return self For method chaining
@@ -361,14 +361,14 @@ class FormBuilder extends UIContainer
             'size' => $this->config['submit_size'],
             'full_width' => $this->config['full_width_buttons'],
         ], $config);
-        
+
         $this->config['buttons'][] = $button;
         return $this;
     }
 
     /**
      * Add fieldset group
-     * 
+     *
      * @param string $legend Fieldset legend
      * @param callable $callback Callback to add fields to fieldset
      * @return self For method chaining
@@ -378,21 +378,21 @@ class FormBuilder extends UIContainer
         $fieldset = new UIContainer($legend);
         $fieldset->config['type'] = 'fieldset';
         $fieldset->config['legend'] = $legend;
-        
+
         $callback($fieldset);
-        
+
         $this->add($fieldset);
         $this->config['fieldsets'][] = [
             'legend' => $legend,
             'id' => $fieldset->getId(),
         ];
-        
+
         return $this;
     }
 
     /**
      * Add form section
-     * 
+     *
      * @param string $title Section title
      * @param callable $callback Callback to add fields to section
      * @return self For method chaining
@@ -402,21 +402,21 @@ class FormBuilder extends UIContainer
         $section = new UIContainer($title);
         $section->config['type'] = 'section';
         $section->config['title'] = $title;
-        
+
         $callback($section);
-        
+
         $this->add($section);
         $this->config['sections'][] = [
             'title' => $title,
             'id' => $section->getId(),
         ];
-        
+
         return $this;
     }
 
     /**
      * Set horizontal form layout
-     * 
+     *
      * @return self For method chaining
      */
     public function horizontalLayout(): self
@@ -428,7 +428,7 @@ class FormBuilder extends UIContainer
 
     /**
      * Set vertical form layout
-     * 
+     *
      * @return self For method chaining
      */
     public function verticalLayout(): self
@@ -440,7 +440,7 @@ class FormBuilder extends UIContainer
 
     /**
      * Set inline form layout
-     * 
+     *
      * @return self For method chaining
      */
     public function inlineLayout(): self
@@ -452,7 +452,7 @@ class FormBuilder extends UIContainer
 
     /**
      * Set label width for horizontal forms
-     * 
+     *
      * @param string $width Label width (e.g., '120px', '30%')
      * @return self For method chaining
      */
@@ -464,7 +464,7 @@ class FormBuilder extends UIContainer
 
     /**
      * Set field width for horizontal forms
-     * 
+     *
      * @param string $width Field width (e.g., '300px', '70%', 'auto')
      * @return self For method chaining
      */
@@ -476,7 +476,7 @@ class FormBuilder extends UIContainer
 
     /**
      * Show/hide required indicator (asterisk)
-     * 
+     *
      * @param bool $show Whether to show required indicator
      * @return self For method chaining
      */
@@ -488,7 +488,7 @@ class FormBuilder extends UIContainer
 
     /**
      * Show/hide optional indicator
-     * 
+     *
      * @param bool $show Whether to show optional indicator
      * @return self For method chaining
      */
@@ -500,7 +500,7 @@ class FormBuilder extends UIContainer
 
     /**
      * Set validation mode
-     * 
+     *
      * @param string $mode Validation mode (onSubmit, onChange, onBlur, immediate)
      * @return self For method chaining
      */
@@ -509,14 +509,14 @@ class FormBuilder extends UIContainer
         if (!in_array($mode, ['onSubmit', 'onChange', 'onBlur', 'immediate'])) {
             throw new \InvalidArgumentException("Invalid validation mode: {$mode}");
         }
-        
+
         $this->config['validation_mode'] = $mode;
         return $this;
     }
 
     /**
      * Set error display mode
-     * 
+     *
      * @param string $display Error display mode (inline, summary, toast, none)
      * @return self For method chaining
      */
@@ -525,14 +525,14 @@ class FormBuilder extends UIContainer
         if (!in_array($display, ['inline', 'summary', 'toast', 'none'])) {
             throw new \InvalidArgumentException("Invalid error display mode: {$display}");
         }
-        
+
         $this->config['error_display'] = $display;
         return $this;
     }
 
     /**
      * Set error summary title
-     * 
+     *
      * @param string $title Error summary title
      * @return self For method chaining
      */
@@ -544,7 +544,7 @@ class FormBuilder extends UIContainer
 
     /**
      * Enable auto-save functionality
-     * 
+     *
      * @param bool $autoSave Whether to enable auto-save
      * @param int $delay Delay in milliseconds before saving
      * @return self For method chaining
@@ -558,7 +558,7 @@ class FormBuilder extends UIContainer
 
     /**
      * Set submit event handler
-     * 
+     *
      * @param string $handler JavaScript function name or code
      * @return self For method chaining
      */
@@ -570,7 +570,7 @@ class FormBuilder extends UIContainer
 
     /**
      * Set reset event handler
-     * 
+     *
      * @param string $handler JavaScript function name or code
      * @return self For method chaining
      */
@@ -582,7 +582,7 @@ class FormBuilder extends UIContainer
 
     /**
      * Set validation event handler
-     * 
+     *
      * @param string $handler JavaScript function name or code
      * @return self For method chaining
      */
@@ -594,7 +594,7 @@ class FormBuilder extends UIContainer
 
     /**
      * Set change event handler
-     * 
+     *
      * @param string $handler JavaScript function name or code
      * @return self For method chaining
      */
@@ -606,7 +606,7 @@ class FormBuilder extends UIContainer
 
     /**
      * Set before-submit event handler
-     * 
+     *
      * @param string $handler JavaScript function name or code
      * @return self For method chaining
      */
@@ -618,7 +618,7 @@ class FormBuilder extends UIContainer
 
     /**
      * Set after-submit event handler
-     * 
+     *
      * @param string $handler JavaScript function name or code
      * @return self For method chaining
      */
@@ -630,7 +630,7 @@ class FormBuilder extends UIContainer
 
     /**
      * Show confirmation dialog before submit
-     * 
+     *
      * @param string $message Confirmation message
      * @return self For method chaining
      */
@@ -642,7 +642,7 @@ class FormBuilder extends UIContainer
 
     /**
      * Prevent multiple submissions
-     * 
+     *
      * @param bool $prevent Whether to prevent multiple submissions
      * @return self For method chaining
      */
@@ -654,7 +654,7 @@ class FormBuilder extends UIContainer
 
     /**
      * Show progress indicator during submission
-     * 
+     *
      * @param bool $show Whether to show progress
      * @return self For method chaining
      */
@@ -666,7 +666,7 @@ class FormBuilder extends UIContainer
 
     /**
      * Set loading message during submission
-     * 
+     *
      * @param string $message Loading message
      * @return self For method chaining
      */
@@ -678,7 +678,7 @@ class FormBuilder extends UIContainer
 
     /**
      * Set success message after submission
-     * 
+     *
      * @param string $message Success message
      * @return self For method chaining
      */
@@ -690,7 +690,7 @@ class FormBuilder extends UIContainer
 
     /**
      * Set error message on submission failure
-     * 
+     *
      * @param string $message Error message
      * @return self For method chaining
      */
@@ -702,7 +702,7 @@ class FormBuilder extends UIContainer
 
     /**
      * Redirect after successful submission
-     * 
+     *
      * @param string $url Redirect URL
      * @return self For method chaining
      */
@@ -714,7 +714,7 @@ class FormBuilder extends UIContainer
 
     /**
      * Reset form after successful submission
-     * 
+     *
      * @param bool $reset Whether to reset form
      * @return self For method chaining
      */
@@ -726,7 +726,7 @@ class FormBuilder extends UIContainer
 
     /**
      * Focus first field with error
-     * 
+     *
      * @param bool $focus Whether to focus on error
      * @return self For method chaining
      */
@@ -738,7 +738,7 @@ class FormBuilder extends UIContainer
 
     /**
      * Scroll to first error
-     * 
+     *
      * @param bool $scroll Whether to scroll to error
      * @return self For method chaining
      */
@@ -750,7 +750,7 @@ class FormBuilder extends UIContainer
 
     /**
      * Set CSRF token
-     * 
+     *
      * @param string $token CSRF token value
      * @return self For method chaining
      */
@@ -762,7 +762,7 @@ class FormBuilder extends UIContainer
 
     /**
      * Set CSRF field name
-     * 
+     *
      * @param string $fieldName CSRF field name
      * @return self For method chaining
      */
@@ -774,7 +774,7 @@ class FormBuilder extends UIContainer
 
     /**
      * Add honeypot field for spam protection
-     * 
+     *
      * @param bool $honeypot Whether to add honeypot
      * @param string $fieldName Honeypot field name
      * @return self For method chaining
@@ -788,7 +788,7 @@ class FormBuilder extends UIContainer
 
     /**
      * Set max file upload size
-     * 
+     *
      * @param int $bytes Maximum file size in bytes
      * @return self For method chaining
      */
@@ -800,7 +800,7 @@ class FormBuilder extends UIContainer
 
     /**
      * Set allowed file types for upload
-     * 
+     *
      * @param array $types Allowed file types (extensions or MIME types)
      * @return self For method chaining
      */
@@ -812,7 +812,7 @@ class FormBuilder extends UIContainer
 
     /**
      * Set spacing between fields
-     * 
+     *
      * @param string $spacing Spacing size (xs, small, medium, large, xl)
      * @return self For method chaining
      */
@@ -821,14 +821,14 @@ class FormBuilder extends UIContainer
         if (!in_array($spacing, ['xs', 'small', 'medium', 'large', 'xl'])) {
             throw new \InvalidArgumentException("Invalid field spacing: {$spacing}");
         }
-        
+
         $this->config['field_spacing'] = $spacing;
         return $this;
     }
 
     /**
      * Set spacing between sections
-     * 
+     *
      * @param string $spacing Spacing size (xs, small, medium, large, xl)
      * @return self For method chaining
      */
@@ -837,14 +837,14 @@ class FormBuilder extends UIContainer
         if (!in_array($spacing, ['xs', 'small', 'medium', 'large', 'xl'])) {
             throw new \InvalidArgumentException("Invalid section spacing: {$spacing}");
         }
-        
+
         $this->config['section_spacing'] = $spacing;
         return $this;
     }
 
     /**
      * Set submit button position
-     * 
+     *
      * @param string $position Button position (left, center, right, space-between)
      * @return self For method chaining
      */
@@ -853,14 +853,14 @@ class FormBuilder extends UIContainer
         if (!in_array($position, ['left', 'center', 'right', 'space-between'])) {
             throw new \InvalidArgumentException("Invalid submit position: {$position}");
         }
-        
+
         $this->config['submit_position'] = $position;
         return $this;
     }
 
     /**
      * Set submit button style
-     * 
+     *
      * @param string $style Button style (primary, secondary, success, danger, warning, info, default)
      * @return self For method chaining
      */
@@ -872,7 +872,7 @@ class FormBuilder extends UIContainer
 
     /**
      * Set submit button size
-     * 
+     *
      * @param string $size Button size (small, medium, large)
      * @return self For method chaining
      */
@@ -881,14 +881,14 @@ class FormBuilder extends UIContainer
         if (!in_array($size, ['small', 'medium', 'large'])) {
             throw new \InvalidArgumentException("Invalid submit size: {$size}");
         }
-        
+
         $this->config['submit_size'] = $size;
         return $this;
     }
 
     /**
      * Make buttons full width
-     * 
+     *
      * @param bool $fullWidth Whether buttons should be full width
      * @return self For method chaining
      */
@@ -900,25 +900,25 @@ class FormBuilder extends UIContainer
 
     /**
      * Use condensed spacing
-     * 
+     *
      * @param bool $condensed Whether to use condensed spacing
      * @return self For method chaining
      */
     public function condensed(bool $condensed = true): self
     {
         $this->config['condensed'] = $condensed;
-        
+
         if ($condensed) {
             $this->config['field_spacing'] = 'small';
             $this->config['padding'] = 'small';
         }
-        
+
         return $this;
     }
 
     /**
      * Add border around form
-     * 
+     *
      * @param bool $bordered Whether to add border
      * @return self For method chaining
      */
@@ -931,7 +931,7 @@ class FormBuilder extends UIContainer
     /**
      * Add shadow to form
      * Uses parent UIContainer shadow method with predefined intensity
-     * 
+     *
      * @param string|int $intensity Shadow intensity (0-3, or 'light'|'medium'|'heavy', or custom CSS)
      * @return self For method chaining
      */
@@ -939,7 +939,7 @@ class FormBuilder extends UIContainer
     {
         // Call parent method which sets box_shadow in config
         parent::shadow($intensity);
-        
+
         // Also set legacy 'shadow' flag for backward compatibility
         $this->config['shadow'] = true;
         return $this;
@@ -948,7 +948,7 @@ class FormBuilder extends UIContainer
     /**
      * Add rounded corners to form
      * Uses parent UIContainer rounded method
-     * 
+     *
      * @param string|int $radius Radius value (default: 8)
      * @return self For method chaining
      */
@@ -956,7 +956,7 @@ class FormBuilder extends UIContainer
     {
         // Call parent method which sets border_radius in config
         parent::rounded($radius);
-        
+
         // Also set legacy 'rounded' flag for backward compatibility
         $this->config['rounded'] = true;
         return $this;
@@ -964,7 +964,7 @@ class FormBuilder extends UIContainer
 
     /**
      * Set form padding (semantic sizes)
-     * 
+     *
      * @param string $paddingSize Padding size (xs, small, medium, large, xl, none)
      * @return self For method chaining
      */
@@ -973,14 +973,14 @@ class FormBuilder extends UIContainer
         if (!in_array($paddingSize, ['xs', 'small', 'medium', 'large', 'xl', 'none'])) {
             throw new \InvalidArgumentException("Invalid padding: {$paddingSize}");
         }
-        
+
         $this->config['padding'] = $paddingSize;
         return $this;
     }
 
     /**
      * Set form background color
-     * 
+     *
      * @param string $color Background color (hex, rgb, named color)
      * @return self For method chaining
      */
@@ -992,7 +992,7 @@ class FormBuilder extends UIContainer
 
     /**
      * Add custom CSS class
-     * 
+     *
      * @param string $class CSS class name
      * @return self For method chaining
      */
@@ -1004,7 +1004,7 @@ class FormBuilder extends UIContainer
 
     /**
      * Add custom inline style
-     * 
+     *
      * @param string $style CSS style string
      * @return self For method chaining
      */
@@ -1016,7 +1016,7 @@ class FormBuilder extends UIContainer
 
     /**
      * Add custom data attributes
-     * 
+     *
      * @param array $attributes Key-value pairs of data attributes
      * @return self For method chaining
      */
@@ -1028,7 +1028,7 @@ class FormBuilder extends UIContainer
 
     /**
      * Set ARIA label for accessibility
-     * 
+     *
      * @param string $label ARIA label
      * @return self For method chaining
      */
@@ -1040,7 +1040,7 @@ class FormBuilder extends UIContainer
 
     /**
      * Set ARIA described-by for accessibility
-     * 
+     *
      * @param string $id ID of describing element
      * @return self For method chaining
      */
@@ -1052,7 +1052,7 @@ class FormBuilder extends UIContainer
 
     /**
      * Disable entire form
-     * 
+     *
      * @param bool $disabled Whether to disable form
      * @return self For method chaining
      */
@@ -1064,7 +1064,7 @@ class FormBuilder extends UIContainer
 
     /**
      * Make entire form read-only
-     * 
+     *
      * @param bool $readonly Whether to make form read-only
      * @return self For method chaining
      */
@@ -1076,7 +1076,7 @@ class FormBuilder extends UIContainer
 
     /**
      * Add validation rule for a field
-     * 
+     *
      * @param string $fieldName Field name
      * @param string $rule Validation rule
      * @param mixed $value Rule value (optional)
@@ -1088,19 +1088,19 @@ class FormBuilder extends UIContainer
         if (!isset($this->validationRules[$fieldName])) {
             $this->validationRules[$fieldName] = [];
         }
-        
+
         $this->validationRules[$fieldName][] = [
             'rule' => $rule,
             'value' => $value,
             'message' => $message,
         ];
-        
+
         return $this;
     }
 
     /**
      * Set custom error message for a field
-     * 
+     *
      * @param string $fieldName Field name
      * @param string $message Error message
      * @return self For method chaining
@@ -1113,7 +1113,7 @@ class FormBuilder extends UIContainer
 
     /**
      * Add input field to form
-     * 
+     *
      * @param string $name Field name
      * @param string|null $label Field label
      * @return InputBuilder For method chaining
@@ -1121,19 +1121,19 @@ class FormBuilder extends UIContainer
     public function input(string $name, ?string $label = null): InputBuilder
     {
         $input = new InputBuilder($name);
-        
+
         if ($label !== null) {
             $input->label($label);
         }
-        
+
         $this->add($input);
-        
+
         return $input;
     }
 
     /**
      * Add select field to form
-     * 
+     *
      * @param string $name Field name
      * @param string|null $label Field label
      * @return SelectBuilder For method chaining
@@ -1141,39 +1141,39 @@ class FormBuilder extends UIContainer
     public function select(string $name, ?string $label = null): SelectBuilder
     {
         $select = new SelectBuilder($name);
-        
+
         if ($label !== null) {
             $select->label($label);
         }
-        
+
         $this->add($select);
-        
+
         return $select;
     }
 
     /**
      * Add checkbox field to form
-     * 
+     *
      * @param string $name Field name
      * @param string|null $label Field label
-     * @return CheckboxBuilder For method chaining
+     * @return Checkbox For method chaining
      */
-    public function checkbox(string $name, ?string $label = null): CheckboxBuilder
+    public function checkbox(string $name, ?string $label = null): Checkbox
     {
-        $checkbox = new CheckboxBuilder($name);
-        
+        $checkbox = new Checkbox($name);
+
         if ($label !== null) {
             $checkbox->label($label);
         }
-        
+
         $this->add($checkbox);
-        
+
         return $checkbox;
     }
 
     /**
      * Get all validation rules
-     * 
+     *
      * @return array Validation rules
      */
     public function getValidationRules(): array
@@ -1183,7 +1183,7 @@ class FormBuilder extends UIContainer
 
     /**
      * Get all error messages
-     * 
+     *
      * @return array Error messages
      */
     public function getErrorMessages(): array
@@ -1193,7 +1193,7 @@ class FormBuilder extends UIContainer
 
     /**
      * Check if form has file uploads
-     * 
+     *
      * @return bool Whether form has file uploads
      */
     public function hasFileUploads(): bool
@@ -1210,17 +1210,17 @@ class FormBuilder extends UIContainer
     public function toJson(?int $order = null): array
     {
         $json = parent::toJson();
-        
+
         // Add validation rules if present
         if (!empty($this->validationRules)) {
             $json[$this->id]['validation_rules'] = $this->validationRules;
         }
-        
+
         // Add error messages if present
         if (!empty($this->errorMessages)) {
             $json[$this->id]['error_messages'] = $this->errorMessages;
         }
-        
+
         return $json;
     }
 }

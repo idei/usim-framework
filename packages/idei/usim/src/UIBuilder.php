@@ -9,7 +9,7 @@ use Idei\Usim\Components\TableBuilder;
 use Idei\Usim\Components\TableRowBuilder;
 use Idei\Usim\Components\InputBuilder;
 use Idei\Usim\Components\SelectBuilder;
-use Idei\Usim\Components\CheckboxBuilder;
+use Idei\Usim\Components\Checkbox;
 use Idei\Usim\Components\FormBuilder;
 use Idei\Usim\Components\MenuDropdownBuilder;
 use Idei\Usim\Components\Card;
@@ -98,11 +98,11 @@ class UIBuilder
      * Create a new checkbox component
      *
      * @param string|null $name The optional semantic name for the checkbox
-     * @return CheckboxBuilder
+     * @return Checkbox
      */
-    public static function checkbox(?string $name = null): CheckboxBuilder
+    public static function checkbox(?string $name = null): Checkbox
     {
-        return new CheckboxBuilder($name);
+        return new Checkbox($name);
     }
 
     /**

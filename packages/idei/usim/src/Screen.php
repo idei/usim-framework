@@ -3,7 +3,7 @@ namespace Idei\Usim;
 
 use Idei\Usim\Components\Button;
 use Idei\Usim\Components\Card;
-use Idei\Usim\Components\CheckboxBuilder;
+use Idei\Usim\Components\Checkbox;
 use Idei\Usim\Components\FormBuilder;
 use Idei\Usim\Components\InputBuilder;
 use Idei\Usim\Components\LabelBuilder;
@@ -579,7 +579,7 @@ abstract class Screen
             'button' => Button::class,
             'input' => InputBuilder::class,
             'select' => SelectBuilder::class,
-            'checkbox' => CheckboxBuilder::class,
+            'checkbox' => Checkbox::class,
             'card' => Card::class,
             'table' => TableBuilder::class,
             'container' => UIContainer::class,

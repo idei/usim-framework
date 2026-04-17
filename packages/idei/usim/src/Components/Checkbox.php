@@ -5,18 +5,19 @@ namespace Idei\Usim\Components;
 use Idei\Usim\Components\UIComponent;
 
 /**
- * Builder class for creating checkbox components
- * 
+ * Checkbox component builder for creating single and grouped checkboxes
+ *
  * Provides a fluent API for configuring checkbox inputs with extensive customization options.
- * Supports single checkboxes, checkbox groups, validation, styling, and modern UX features.
- * 
+ * Supports single checkboxes, checkbox groups, validation, styling, variants (default, switch, button, card),
+ * layout options (vertical, horizontal, grid), and modern UX features like indeterminate state and toggle-all behavior.
+ *
  * @example
  * // Simple checkbox
  * UIBuilder::checkbox('terms')
  *     ->label('I agree to the terms and conditions')
  *     ->required();
- * 
- * // Checkbox with options (checkbox group)
+ *
+ * // Checkbox group with grid layout
  * UIBuilder::checkbox('interests')
  *     ->label('Select your interests')
  *     ->options([
@@ -24,13 +25,30 @@ use Idei\Usim\Components\UIComponent;
  *         ['value' => 'music', 'label' => 'Music'],
  *         ['value' => 'tech', 'label' => 'Technology']
  *     ])
- *     ->value(['sports', 'tech']);
+ *     ->selectedValues(['sports', 'tech'])
+ *     ->grid(3)
+ *     ->minSelections(1)
+ *     ->maxSelections(2);
+ *
+ * // Switch variant
+ * UIBuilder::checkbox('notifications')
+ *     ->label('Enable notifications')
+ *     ->asSwitch('right');
+ *
+ * // Button variant with multiple options
+ * UIBuilder::checkbox('theme')
+ *     ->options([
+ *         ['value' => 'light', 'label' => 'Light', 'icon' => 'sun'],
+ *         ['value' => 'dark', 'label' => 'Dark', 'icon' => 'moon']
+ *     ])
+ *     ->asButton()
+ *     ->size('large');
  */
-class CheckboxBuilder extends UIComponent
+class Checkbox extends UIComponent
 {
     /**
      * Get the default configuration for a checkbox component
-     * 
+     *
      * @return array
      */
     protected function getDefaultConfig(): array
@@ -41,53 +59,53 @@ class CheckboxBuilder extends UIComponent
             'value' => null,
             'label' => null,
             'description' => null,
-            
+
             // Checkbox group (multiple options)
             'options' => [],
             'selected_values' => [],
-            
+
             // Layout for groups
             'layout' => 'vertical', // vertical, horizontal, grid
             'columns' => null, // for grid layout
             'gap' => 'medium', // xs, small, medium, large
-            
+
             // Validation
             'required' => false,
             'min_selections' => null, // for groups
             'max_selections' => null, // for groups
             'error_message' => null,
             'help_text' => null,
-            
+
             // State
             'disabled' => false,
             'readonly' => false,
             'indeterminate' => false, // for parent checkboxes in nested structures
-            
+
             // Appearance
             'style' => 'default', // default, primary, success, danger, warning, info
             'size' => 'medium', // small, medium, large
             'variant' => 'default', // default, switch, button, card
-            
+
             // Icons
             'checked_icon' => 'check',
             'unchecked_icon' => null,
             'indeterminate_icon' => 'minus',
-            
+
             // Switch variant specific
             'switch_position' => 'left', // left, right (for switch variant)
-            
+
             // Button/Card variant specific
             'icon' => null, // icon for button/card variant
             'color' => null, // custom color
             'active_color' => null, // color when checked
-            
+
             // Behavior
             'toggle_all' => false, // for parent checkbox that controls all children
             'auto_check_parent' => false, // auto check parent when all children checked
-            
+
             // Events
             'on_change' => null,
-            
+
             // Accessibility
             'aria_label' => null,
             'tooltip' => null,
@@ -96,7 +114,7 @@ class CheckboxBuilder extends UIComponent
 
     /**
      * Get the component type
-     * 
+     *
      * @return string
      */
     public function getType(): string
@@ -108,7 +126,7 @@ class CheckboxBuilder extends UIComponent
 
     /**
      * Set the checked state
-     * 
+     *
      * @param bool $checked Whether the checkbox is checked
      * @return $this
      */
@@ -120,7 +138,7 @@ class CheckboxBuilder extends UIComponent
 
     /**
      * Get the checked state
-     * 
+     *
      * @return bool
      */
     public function isChecked(): bool
@@ -132,7 +150,7 @@ class CheckboxBuilder extends UIComponent
      * Set the checkbox value
      * For single checkbox: any value to submit when checked
      * For checkbox group: array of selected values
-     * 
+     *
      * @param mixed $value The value
      * @return $this
      */
@@ -148,7 +166,7 @@ class CheckboxBuilder extends UIComponent
 
     /**
      * Set the checkbox label
-     * 
+     *
      * @param string $label The label text
      * @return $this
      */
@@ -160,7 +178,7 @@ class CheckboxBuilder extends UIComponent
 
     /**
      * Set a description text (appears below the label)
-     * 
+     *
      * @param string $description The description text
      * @return $this
      */
@@ -174,7 +192,7 @@ class CheckboxBuilder extends UIComponent
 
     /**
      * Set multiple checkbox options (creates a checkbox group)
-     * 
+     *
      * @param array $options Array of options with 'value' and 'label' keys
      * @return $this
      */
@@ -186,7 +204,7 @@ class CheckboxBuilder extends UIComponent
 
     /**
      * Add a single option to the checkbox group
-     * 
+     *
      * @param string $value The option value
      * @param string $label The option label
      * @param array $extra Extra properties (icon, description, disabled, etc.)
@@ -203,7 +221,7 @@ class CheckboxBuilder extends UIComponent
 
     /**
      * Set the selected values for checkbox group
-     * 
+     *
      * @param array $values Array of selected values
      * @return $this
      */
@@ -217,7 +235,7 @@ class CheckboxBuilder extends UIComponent
 
     /**
      * Set the layout for checkbox group
-     * 
+     *
      * @param string $layout Layout type: vertical, horizontal, grid
      * @param int|null $columns Number of columns for grid layout
      * @return $this
@@ -233,7 +251,7 @@ class CheckboxBuilder extends UIComponent
 
     /**
      * Set vertical layout for checkbox group
-     * 
+     *
      * @return $this
      */
     public function vertical(): self
@@ -243,7 +261,7 @@ class CheckboxBuilder extends UIComponent
 
     /**
      * Set horizontal layout for checkbox group
-     * 
+     *
      * @return $this
      */
     public function horizontal(): self
@@ -253,7 +271,7 @@ class CheckboxBuilder extends UIComponent
 
     /**
      * Set grid layout for checkbox group
-     * 
+     *
      * @param int $columns Number of columns
      * @return $this
      */
@@ -264,7 +282,7 @@ class CheckboxBuilder extends UIComponent
 
     /**
      * Set the gap between checkboxes in a group
-     * 
+     *
      * @param string $gap Gap size: xs, small, medium, large
      * @return $this
      */
@@ -278,7 +296,7 @@ class CheckboxBuilder extends UIComponent
 
     /**
      * Mark the checkbox as required
-     * 
+     *
      * @param bool $required Whether the checkbox is required
      * @return $this
      */
@@ -290,7 +308,7 @@ class CheckboxBuilder extends UIComponent
 
     /**
      * Set minimum selections required (for checkbox groups)
-     * 
+     *
      * @param int $min Minimum number of selections
      * @return $this
      */
@@ -302,7 +320,7 @@ class CheckboxBuilder extends UIComponent
 
     /**
      * Set maximum selections allowed (for checkbox groups)
-     * 
+     *
      * @param int $max Maximum number of selections
      * @return $this
      */
@@ -314,7 +332,7 @@ class CheckboxBuilder extends UIComponent
 
     /**
      * Set the error message
-     * 
+     *
      * @param string $message The error message
      * @return $this
      */
@@ -326,7 +344,7 @@ class CheckboxBuilder extends UIComponent
 
     /**
      * Set help text
-     * 
+     *
      * @param string $text The help text
      * @return $this
      */
@@ -340,7 +358,7 @@ class CheckboxBuilder extends UIComponent
 
     /**
      * Set the disabled state
-     * 
+     *
      * @param bool $disabled Whether the checkbox is disabled
      * @return $this
      */
@@ -352,7 +370,7 @@ class CheckboxBuilder extends UIComponent
 
     /**
      * Set the readonly state
-     * 
+     *
      * @param bool $readonly Whether the checkbox is readonly
      * @return $this
      */
@@ -364,7 +382,7 @@ class CheckboxBuilder extends UIComponent
 
     /**
      * Set the indeterminate state (for parent checkboxes)
-     * 
+     *
      * @param bool $indeterminate Whether the checkbox is indeterminate
      * @return $this
      */
@@ -378,7 +396,7 @@ class CheckboxBuilder extends UIComponent
 
     /**
      * Set the checkbox style
-     * 
+     *
      * @param string $style Style: default, primary, success, danger, warning, info
      * @return $this
      */
@@ -390,7 +408,7 @@ class CheckboxBuilder extends UIComponent
 
     /**
      * Set the checkbox size
-     * 
+     *
      * @param string $size Size: small, medium, large
      * @return $this
      */
@@ -402,7 +420,7 @@ class CheckboxBuilder extends UIComponent
 
     /**
      * Set the checkbox variant
-     * 
+     *
      * @param string $variant Variant: default, switch, button, card
      * @return $this
      */
@@ -414,7 +432,7 @@ class CheckboxBuilder extends UIComponent
 
     /**
      * Use switch variant
-     * 
+     *
      * @param string $position Switch position: left, right
      * @return $this
      */
@@ -427,7 +445,7 @@ class CheckboxBuilder extends UIComponent
 
     /**
      * Use button variant (checkbox looks like a button)
-     * 
+     *
      * @return $this
      */
     public function asButton(): self
@@ -438,7 +456,7 @@ class CheckboxBuilder extends UIComponent
 
     /**
      * Use card variant (checkbox as a card/tile)
-     * 
+     *
      * @return $this
      */
     public function asCard(): self
@@ -451,7 +469,7 @@ class CheckboxBuilder extends UIComponent
 
     /**
      * Set the checked icon
-     * 
+     *
      * @param string $icon The icon name
      * @return $this
      */
@@ -463,7 +481,7 @@ class CheckboxBuilder extends UIComponent
 
     /**
      * Set the unchecked icon
-     * 
+     *
      * @param string $icon The icon name
      * @return $this
      */
@@ -475,7 +493,7 @@ class CheckboxBuilder extends UIComponent
 
     /**
      * Set the indeterminate icon
-     * 
+     *
      * @param string $icon The icon name
      * @return $this
      */
@@ -487,7 +505,7 @@ class CheckboxBuilder extends UIComponent
 
     /**
      * Set an icon for button/card variant
-     * 
+     *
      * @param string $icon The icon name
      * @return $this
      */
@@ -501,7 +519,7 @@ class CheckboxBuilder extends UIComponent
 
     /**
      * Set custom color
-     * 
+     *
      * @param string $color The color (hex, rgb, css variable)
      * @return $this
      */
@@ -513,7 +531,7 @@ class CheckboxBuilder extends UIComponent
 
     /**
      * Set custom active color (when checked)
-     * 
+     *
      * @param string $color The color (hex, rgb, css variable)
      * @return $this
      */
@@ -527,7 +545,7 @@ class CheckboxBuilder extends UIComponent
 
     /**
      * Enable toggle all behavior (checkbox controls all children)
-     * 
+     *
      * @param bool $toggle Whether to enable toggle all
      * @return $this
      */
@@ -539,7 +557,7 @@ class CheckboxBuilder extends UIComponent
 
     /**
      * Enable auto check parent behavior
-     * 
+     *
      * @param bool $autoCheck Whether to auto check parent
      * @return $this
      */
@@ -553,7 +571,7 @@ class CheckboxBuilder extends UIComponent
 
     /**
      * Set the onChange event handler
-     * 
+     *
      * @param string $handler The event handler name
      * @return $this
      */
@@ -567,7 +585,7 @@ class CheckboxBuilder extends UIComponent
 
     /**
      * Set ARIA label for accessibility
-     * 
+     *
      * @param string $label The ARIA label
      * @return $this
      */
@@ -579,7 +597,7 @@ class CheckboxBuilder extends UIComponent
 
     /**
      * Set tooltip text
-     * 
+     *
      * @param string $text The tooltip text
      * @return $this
      */
