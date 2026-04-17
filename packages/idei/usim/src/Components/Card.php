@@ -3,13 +3,13 @@
 namespace Idei\Usim\Components;
 
 /**
- * Builder for Card UI components
+ * Card component builder
  *
- * Modern and versatile card component with support for headers, content,
- * images, actions, and various styling options. Perfect for displaying
- * structured content in an attractive container.
+ * Flexible card component for displaying structured content with support for
+ * titles, images, actions, badges, and multiple visual styles. Supports both
+ * clickable and static modes with customizable layout and appearance.
  */
-class CardBuilder extends UIComponent
+class Card extends UIComponent
 {
     protected function getDefaultConfig(): array
     {

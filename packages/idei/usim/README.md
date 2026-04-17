@@ -243,7 +243,7 @@ Use `_crypt` only when the value should not be readable from the client's local 
 | `UIBuilder::checkbox()` | `CheckboxBuilder` | Checkboxes and toggles |
 | `UIBuilder::form()` | `FormBuilder` | Form grouping |
 | `UIBuilder::table()` | `TableBuilder` | Data tables with pagination |
-| `UIBuilder::card()` | `CardBuilder` | Cards with title, description, actions |
+| `UIBuilder::card()` | `Card` | Cards with title, description, actions |
 | `UIBuilder::container()` | `UIContainer` | Layout container (vertical/horizontal/grid) with `card()` / `plain()` appearance |
 | `UIBuilder::menuDropdown()` | `MenuDropdownBuilder` | Navigation dropdown menus |
 | `UIBuilder::uploader()` | `UploaderBuilder` | File upload with preview and crop |

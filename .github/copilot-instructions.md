@@ -162,7 +162,7 @@ packages/idei/usim/
 |  |     |- SelectBuilder.php
 |  |     |- CheckboxBuilder.php
 |  |     |- FormBuilder.php
-|  |     |- CardBuilder.php
+|  |     |- Card.php
 |  |     |- TableBuilder.php y builders relacionados
 |  |     |- UploaderBuilder.php
 |  |     |- CalendarBuilder.php

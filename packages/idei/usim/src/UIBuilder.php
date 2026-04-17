@@ -12,7 +12,7 @@ use Idei\Usim\Components\SelectBuilder;
 use Idei\Usim\Components\CheckboxBuilder;
 use Idei\Usim\Components\FormBuilder;
 use Idei\Usim\Components\MenuDropdownBuilder;
-use Idei\Usim\Components\CardBuilder;
+use Idei\Usim\Components\Card;
 use Idei\Usim\Components\UploaderBuilder;
 use Idei\Usim\Components\CalendarBuilder;
 use Idei\Usim\Components\CarouselBuilder;
@@ -142,11 +142,11 @@ class UIBuilder
      * Create a new card component
      *
      * @param string|null $name The optional semantic name for the card
-     * @return CardBuilder
+     * @return Card
      */
-    public static function card(?string $name = null): CardBuilder
+    public static function card(?string $name = null): Card
     {
-        return new CardBuilder($name);
+        return new Card($name);
     }
 
     /**
