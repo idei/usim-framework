@@ -260,6 +260,8 @@ Cuando en este repo se hable de "Screen", debes interpretarlo siempre con este s
 - Los handlers se resuelven por convencion: `action` en snake_case -> metodo `onPascalCase(array $params)`.
 - La autorizacion y acceso pertenecen a la `Screen` (`authorize`, `checkAccess`) y no al frontend.
 - La ruta de una `Screen` se deriva por convencion del namespace/clase (`getRoutePath`), salvo personalizaciones explicitas.
+- La metadata de navegacion tambien pertenece a la `Screen`: `getMenuLabel()`, `getMenuIcon()` y `getRoutePath()`.
+- USIM no registra una ruta Laravel individual por cada `Screen`; usa una ruta catch-all y un loader API que traducen `URL <-> clase PHP` por convencion.
 
 Implicancias para tus respuestas y cambios:
 

@@ -926,6 +926,21 @@
             gap: 1.25rem;
         }
 
+        .concepts-note {
+            margin-top: 1.5rem;
+            padding: 1rem 1.15rem;
+            border-radius: 10px;
+            border: 1px solid var(--border);
+            background: color-mix(in srgb, var(--surface) 84%, transparent);
+            color: var(--muted);
+            font-size: 0.88rem;
+            line-height: 1.65;
+        }
+
+        .concepts-note strong {
+            color: var(--text);
+        }
+
         .concept-card {
             background: var(--surface);
             border: 1px solid var(--border);
@@ -1681,7 +1696,13 @@
                     <h3>{{ t('welcome.concept.handlers.title') }}</h3>
                     <p>{{ t('welcome.concept.handlers.desc') }}</p>
                 </article>
+                <article class="concept-card">
+                    <span class="concept-label">USIM</span>
+                    <h3>{{ t('welcome.concept.routing.title') }}</h3>
+                    <p>{{ t('welcome.concept.routing.desc') }}</p>
+                </article>
             </div>
+            <p class="concepts-note"><strong>{{ t('welcome.concepts.note_label') }}</strong> {{ t('welcome.concepts.note') }}</p>
         </div>
     </section>
 

@@ -24,12 +24,16 @@ USIM es un framework de UI reactivo donde:
 En USIM, una **Screen** no es una vista HTML pasiva: es una clase PHP stateful que representa una página completa.
 
 - La Screen define su interfaz en `buildBaseUI(Container $container, ...$params)`.
+- La Screen expone su URL canónica por convención con `getRoutePath()` a partir del namespace/clase.
 - La lógica de interacción vive en handlers backend (`on<ActionName>`), no en frontend ad hoc.
 - El estado se restaura y persiste en servidor entre requests (`store_*`, con `_crypt` para datos sensibles).
 - En cada evento, USIM restaura estado -> ejecuta handler -> calcula diff -> envía solo delta al cliente.
 - La autorización y acceso pertenecen a la Screen (`authorize`, `checkAccess`).
+- Los menús pueden ubicarla automáticamente usando `getMenuLabel()`, `getMenuIcon()` y `getRoutePath()`.
 
 Este enfoque mantiene una única fuente de verdad en backend y evita duplicar reglas entre cliente y servidor.
+
+Importante: esto no implica una `Route::get()` individual por Screen. USIM usa una ruta catch-all y un loader API que traducen URL <-> clase PHP por convención.
 
 ### Ventajas Competitivas
 

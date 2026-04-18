@@ -117,11 +117,15 @@ In USIM, treat a Screen as a **stateful backend UI service**, not as a passive t
 
 - A Screen owns UI structure, interaction rules, and persisted state.
 - `buildBaseUI()` defines the initial component tree.
+- `getRoutePath()` derives the canonical URL from namespace/class naming.
 - Event actions resolve to `on<ActionName>(array $params)` handlers on the same class.
 - Request cycle is: restore state -> run handler -> compute diff -> send only delta.
 - Authorization is part of the Screen contract (`authorize`, `checkAccess`).
+- Menu metadata also belongs to the Screen contract (`getMenuLabel`, `getMenuIcon`, `getRoutePath`).
 
 This model keeps backend as the source of truth and avoids business-logic duplication across client and server.
+
+Important clarification: USIM does not register one Laravel route per Screen class. Instead, it uses a catch-all web route plus a generic `/api/ui/{screen}` loader and resolves `URL <-> Screen class` through naming convention.
 
 ```php
 <?php

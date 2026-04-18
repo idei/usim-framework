@@ -87,6 +87,10 @@ Antes de profundizar en APIs o componentes, usa este modelo mental:
 - La UI se define en backend y el cliente solo renderiza contrato JSON.
 - El estado es server-side y se sincroniza incrementalmente por diffs (delta updates).
 - Las acciones del cliente se resuelven en handlers `on<ActionName>` en la misma Screen.
+- La URL, el control de acceso y la metadata de menú también salen de la propia Screen.
+
+Aclaración:
+USIM no registra una ruta Laravel separada por cada Screen; usa convención namespace/path, una ruta catch-all web y un endpoint API genérico para resolver la clase correspondiente.
 
 Para detalle técnico completo:
 
