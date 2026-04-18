@@ -913,6 +913,63 @@
             line-height: 1.6;
         }
 
+        /* ─── CONCEPTS ─── */
+        .concepts-section {
+            background: var(--bg2);
+            border-top: 1px solid var(--border);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .concepts-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 1.25rem;
+        }
+
+        .concept-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 1.5rem;
+            transition: all var(--transition);
+        }
+
+        .concept-card:hover {
+            border-color: rgba(0, 212, 170, 0.35);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow);
+        }
+
+        .concept-label {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            font-family: var(--font-mono);
+            font-size: 0.68rem;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: var(--accent-label);
+            margin-bottom: 0.8rem;
+        }
+
+        .concept-label::before {
+            content: '#';
+            opacity: 0.7;
+        }
+
+        .concept-card h3 {
+            font-family: var(--font-display);
+            font-size: 1rem;
+            margin-bottom: 0.45rem;
+            letter-spacing: -0.01em;
+        }
+
+        .concept-card p {
+            font-size: 0.86rem;
+            color: var(--muted);
+            line-height: 1.6;
+        }
+
         /* ─── ARCHITECTURE ─── */
         .arch-section {
             background: var(--bg2);
@@ -1597,6 +1654,37 @@
         </div>
     </section>
 
+    <!-- ─── CONCEPTS ─── -->
+    <section class="concepts-section" id="concepts">
+        <div class="section-inner">
+            <div class="section-tag">{{ t('welcome.concepts.tag') }}</div>
+            <h2>{{ t('welcome.concepts.title') }}</h2>
+            <p class="section-lead">{{ t('welcome.concepts.lead') }}</p>
+            <div class="concepts-grid">
+                <article class="concept-card">
+                    <span class="concept-label">USIM</span>
+                    <h3>{{ t('welcome.concept.screen.title') }}</h3>
+                    <p>{{ t('welcome.concept.screen.desc') }}</p>
+                </article>
+                <article class="concept-card">
+                    <span class="concept-label">USIM</span>
+                    <h3>{{ t('welcome.concept.lifecycle.title') }}</h3>
+                    <p>{{ t('welcome.concept.lifecycle.desc') }}</p>
+                </article>
+                <article class="concept-card">
+                    <span class="concept-label">USIM</span>
+                    <h3>{{ t('welcome.concept.state.title') }}</h3>
+                    <p>{{ t('welcome.concept.state.desc') }}</p>
+                </article>
+                <article class="concept-card">
+                    <span class="concept-label">USIM</span>
+                    <h3>{{ t('welcome.concept.handlers.title') }}</h3>
+                    <p>{{ t('welcome.concept.handlers.desc') }}</p>
+                </article>
+            </div>
+        </div>
+    </section>
+
     <!-- ─── ARCHITECTURE ─── -->
     <section class="arch-section" id="architecture">
         <div class="section-inner">
@@ -2118,152 +2206,4 @@
             </div>
         </div>
     </footer>
-
-    <!-- ─── JS ─── -->
-    <script>
-        const wfRoot = document.currentScript?.closest('.wf') || document.querySelector('.wf');
-        const wfById = (id) => wfRoot ? wfRoot.querySelector(`#${id}`) : document.getElementById(id);
-
-        function getGlobalTheme() {
-            const htmlTheme = document.documentElement.getAttribute('data-theme');
-            const bodyTheme = document.body ? document.body.getAttribute('data-theme') : null;
-            const theme = (htmlTheme || bodyTheme || '').toLowerCase();
-            return theme === 'light' ? 'light' : 'dark';
-        }
-
-        function applyThemeIcons() {
-            const darkIcon = wfById('theme-icon-dark');
-            const lightIcon = wfById('theme-icon-light');
-            if (darkIcon) {
-                darkIcon.style.display = currentTheme === 'dark' ? 'block' : 'none';
-            }
-            if (lightIcon) {
-                lightIcon.style.display = currentTheme === 'light' ? 'block' : 'none';
-            }
-        }
-
-        window.addEventListener('usim:theme-changed', (event) => {
-            const nextTheme = (event.detail?.theme || '').toLowerCase();
-            currentTheme = nextTheme === 'light' ? 'light' : 'dark';
-            applyThemeIcons();
-        });
-
-        /* ─── State ─── */
-        let currentTheme = getGlobalTheme();
-
-        /* ─── Theme ─── */
-        function toggleTheme() {
-            currentTheme = currentTheme === 'dark' ? 'light' : 'dark';
-
-            if (window.USIM_THEME && typeof window.USIM_THEME.set === 'function') {
-                window.USIM_THEME.set(currentTheme, 'welcome-usim-toggle');
-            } else {
-                document.documentElement.setAttribute('data-theme', currentTheme);
-                if (document.body) {
-                    document.body.setAttribute('data-theme', currentTheme);
-                }
-
-                window.dispatchEvent(new CustomEvent('usim:theme-changed', {
-                    detail: {
-                        theme: currentTheme,
-                        source: 'welcome-usim-toggle'
-                    }
-                }));
-            }
-
-            applyThemeIcons();
-        }
-
-        /* ─── Hamburger ─── */
-        const hamburger = wfById('hamburger');
-        const navLinks = wfById('nav-links');
-        if (hamburger && navLinks) {
-            hamburger.addEventListener('click', function(e) {
-                e.stopPropagation();
-                navLinks.classList.toggle('open');
-            });
-        }
-
-        /* ─── Theme ─── */
-        const themeButton = wfById('theme-btn');
-        if (themeButton) {
-            themeButton.addEventListener('click', function(e) {
-                e.stopPropagation();
-                toggleTheme();
-            });
-        }
-
-        applyThemeIcons();
-
-        /* ─── Hero mobile tabs ─── */
-        const heroInner = wfById('hero-inner');
-        const heroTabButtons = (wfRoot || document).querySelectorAll('[data-hero-view]');
-        if (heroInner && heroTabButtons.length > 0) {
-            const setHeroView = (view) => {
-                heroInner.classList.toggle('show-content', view === 'content');
-                heroInner.classList.toggle('show-code', view === 'code');
-
-                heroTabButtons.forEach((btn) => {
-                    const isActive = btn.getAttribute('data-hero-view') === view;
-                    btn.classList.toggle('active', isActive);
-                    btn.setAttribute('aria-selected', isActive ? 'true' : 'false');
-                });
-            };
-
-            setHeroView('content');
-
-            heroTabButtons.forEach((btn) => {
-                btn.addEventListener('click', () => {
-                    setHeroView(btn.getAttribute('data-hero-view'));
-                });
-            });
-        }
-
-        /* ─── Dropdowns ─── */
-        function toggleDropdown(id) {
-            const dd = wfById(id);
-            if (!dd) {
-                return;
-            }
-            dd.classList.toggle('open');
-            (wfRoot || document).querySelectorAll('.dropdown').forEach(d => {
-                if (d.id !== id) d.classList.remove('open');
-            });
-        }
-
-        function closeDropdowns() {
-            (wfRoot || document).querySelectorAll('.dropdown').forEach(d => d.classList.remove('open'));
-        }
-        document.addEventListener('click', (e) => {
-            if (!e.target.closest('.dropdown')) closeDropdowns();
-        });
-
-        /* ─── Copy cmd ─── */
-        function copyCmd(btn, text) {
-            navigator.clipboard.writeText(text).then(() => {
-                btn.innerHTML =
-                    '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>';
-                setTimeout(() => {
-                    btn.innerHTML =
-                        '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>';
-                }, 1500);
-                showToast('{{ t('welcome.ui.toast_copied') }}');
-            });
-        }
-
-        /* ─── Toast ─── */
-        function showToast(msg) {
-            const container = wfById('toast-container');
-            if (!container) {
-                return;
-            }
-            const toast = document.createElement('div');
-            toast.className = 'toast';
-            toast.textContent = msg;
-            container.appendChild(toast);
-            setTimeout(() => toast.remove(), 3000);
-        }
-
-        /* ─── Init ─── */
-    </script>
 </div>
