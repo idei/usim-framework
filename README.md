@@ -19,6 +19,18 @@ USIM es un framework de UI reactivo donde:
 - ✅ **El estado persiste entre requests** (cacheo inteligente en sesión)
 - ✅ **Reducción del 40-60% del código** comparado con stack tradicional (Laravel + React)
 
+### Concepto Clave: ¿Qué es una Screen?
+
+En USIM, una **Screen** no es una vista HTML pasiva: es una clase PHP stateful que representa una página completa.
+
+- La Screen define su interfaz en `buildBaseUI(Container $container, ...$params)`.
+- La lógica de interacción vive en handlers backend (`on<ActionName>`), no en frontend ad hoc.
+- El estado se restaura y persiste en servidor entre requests (`store_*`, con `_crypt` para datos sensibles).
+- En cada evento, USIM restaura estado -> ejecuta handler -> calcula diff -> envía solo delta al cliente.
+- La autorización y acceso pertenecen a la Screen (`authorize`, `checkAccess`).
+
+Este enfoque mantiene una única fuente de verdad en backend y evita duplicar reglas entre cliente y servidor.
+
 ### Ventajas Competitivas
 
 | Aspecto | Stack Tradicional | USIM |

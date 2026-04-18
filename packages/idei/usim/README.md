@@ -10,6 +10,7 @@ A **Server-Driven UI** framework for Laravel. Define your entire user interface 
     - [Quick Start](#quick-start)
 - [Core Concepts](#core-concepts)
   - [Screens](#screens)
+    - [Screen Operational Model](#screen-operational-model)
   - [UI — The Component Factory](#uibuilder--the-component-factory)
   - [Event Handlers](#event-handlers)
   - [State Management](#state-management)
@@ -109,6 +110,18 @@ Visit `http://localhost:8000` — you have a working USIM app.
 ### Screens
 
 A **Screen** is a PHP class that defines a full page. Each screen extends `Screen` and builds its UI inside `buildBaseUI()`:
+
+### Screen Operational Model
+
+In USIM, treat a Screen as a **stateful backend UI service**, not as a passive template:
+
+- A Screen owns UI structure, interaction rules, and persisted state.
+- `buildBaseUI()` defines the initial component tree.
+- Event actions resolve to `on<ActionName>(array $params)` handlers on the same class.
+- Request cycle is: restore state -> run handler -> compute diff -> send only delta.
+- Authorization is part of the Screen contract (`authorize`, `checkAccess`).
+
+This model keeps backend as the source of truth and avoids business-logic duplication across client and server.
 
 ```php
 <?php

@@ -79,6 +79,20 @@ docs/
 
 ## 📖 Guía de Lectura Recomendada
 
+## 🧠 Concepto Operativo de Screen (USIM)
+
+Antes de profundizar en APIs o componentes, usa este modelo mental:
+
+- Una **Screen** es una clase PHP que representa una página completa.
+- La UI se define en backend y el cliente solo renderiza contrato JSON.
+- El estado es server-side y se sincroniza incrementalmente por diffs (delta updates).
+- Las acciones del cliente se resuelven en handlers `on<ActionName>` en la misma Screen.
+
+Para detalle técnico completo:
+
+- `packages/idei/usim/README.md` (secciones *Screens*, *Event Handlers* y *State Management*).
+- `framework/USIM_ACADEMIC_REPORT.md` para visión arquitectónica amplia.
+
 ### 👨‍💻 Para Nuevos Desarrolladores:
 1. **Inicio:** [framework/USIM_ACADEMIC_REPORT.md](framework/USIM_ACADEMIC_REPORT.md) - Comprender el framework
 2. **API Técnica:** [framework/UI_BUILDER_REFERENCE.md](framework/UI_BUILDER_REFERENCE.md) - Referencia de componentes

@@ -248,6 +248,26 @@ Segun `packages/idei/usim/CHANGELOG.md` y `packages/idei/usim/README.md`, el con
 - Prioriza implementaciones en PHP alineadas con Laravel y con la arquitectura server-driven del framework.
 - Evita logica frontend ad hoc si el backend puede resolverlo de forma clara.
 
+## Definicion operacional de "Screen" (obligatoria para el chat)
+
+Cuando en este repo se hable de "Screen", debes interpretarlo siempre con este significado:
+
+- Una `Screen` es una clase PHP que representa una pagina completa (no un componente aislado ni una vista pasiva).
+- Su contrato base es extender `Screen` e implementar `buildBaseUI(Container $container, ...$params): void`.
+- La `Screen` concentra interfaz + estado + reglas de interaccion en backend; el frontend solo renderiza el contrato JSON.
+- El estado vive del lado servidor y se restaura entre requests; las propiedades `store_*` persisten entre eventos.
+- El flujo reactivo esperado es: restaurar estado -> ejecutar handler -> calcular diff -> enviar solo delta al cliente.
+- Los handlers se resuelven por convencion: `action` en snake_case -> metodo `onPascalCase(array $params)`.
+- La autorizacion y acceso pertenecen a la `Screen` (`authorize`, `checkAccess`) y no al frontend.
+- La ruta de una `Screen` se deriva por convencion del namespace/clase (`getRoutePath`), salvo personalizaciones explicitas.
+
+Implicancias para tus respuestas y cambios:
+
+- No propongas mover logica de negocio de una `Screen` al cliente salvo pedido explicito.
+- No trates una `Screen` como "template HTML" tradicional: es un servicio UI stateful.
+- Si el usuario pide "agregar una screen", piensa en ciclo de vida, estado `store_*`, handlers, autorizacion y testing, no solo en markup.
+- Si describes arquitectura, deja explicito que la fuente de verdad es backend + contrato JSON incremental.
+
 ## Cuando agregues un componente nuevo al framework
 
 Sigue el flujo definido por `packages/idei/usim/docs/component_prompt.md`:
