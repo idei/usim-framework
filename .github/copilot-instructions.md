@@ -230,6 +230,8 @@ Segun `packages/idei/usim/CHANGELOG.md` y `packages/idei/usim/README.md`, el con
 - Los checkboxes sincronizan correctamente su estado incremental desde el backend.
 - El contrato de storage cambio: `store_*` ahora se serializa plain por defecto y solo valores sensibles deben usar sufijo `_crypt`.
 - El framework soporta cambio de tema y usa `ui-theme-tokens.css` para light/dark mode.
+- Soporte de **Headless Mode** con `USIM_HEADLESS_MODE=true`: el catch-all web devuelve `406` y los clientes deben usar `GET /api/ui/{screen}` + `POST /api/ui-event`.
+- Soporte de **Agent Context** por Screen mediante `getAgentContext(): array`: si no esta vacio, se serializa en `agent_context` dentro del payload JSON para clientes IA/headless.
 
 ## Reglas para decidir donde editar
 
@@ -238,6 +240,7 @@ Segun `packages/idei/usim/CHANGELOG.md` y `packages/idei/usim/README.md`, el con
 - Si una feature del framework debe verse en la app actual, ademas del paquete considera demo screen, entrada de menu, assets publicados y tests de regresion en la app.
 - No dupliques validaciones en frontend y backend salvo pedido explicito.
 - Preserva backward compatibility en payloads y en meta keys reservadas: `storage`, `action`, `redirect`, `toast`, `abort`, `modal`, `update_modal`, `clear_uploaders`, `set_uploader_existing_file`.
+- Si cambias docs de onboarding o guia visual de la app, considera actualizar tambien `resources/views/welcome-usim.blade.php` y sus claves i18n `welcome.*` en `database/translations/{en,es}.json`.
 
 ## Convenciones tecnicas USIM
 
@@ -247,6 +250,7 @@ Segun `packages/idei/usim/CHANGELOG.md` y `packages/idei/usim/README.md`, el con
 - Las propiedades `store_*` son persistidas entre requests; usa `_crypt` solo para valores sensibles.
 - Prioriza implementaciones en PHP alineadas con Laravel y con la arquitectura server-driven del framework.
 - Evita logica frontend ad hoc si el backend puede resolverlo de forma clara.
+- En modo headless, asume integracion por contrato API: carga inicial con `GET /api/ui/{screen}`, eventos con `POST /api/ui-event`, y continuidad de estado reenviando `X-USIM-Storage`.
 
 ## Definicion operacional de "Screen" (obligatoria para el chat)
 
