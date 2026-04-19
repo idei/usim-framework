@@ -26,6 +26,15 @@ if (config('app.env') === 'local') {
 Route::get('/{screen?}', function (?string $screen = 'home') {
     if ($screen === 'favicon.ico')
         return abort(404);
+   // Check if headless mode is enabled
+   if (config('ui-services.headless_mode')) {
+       return response()->json([
+           'error' => 'Headless mode enabled',
+           'message' => 'USIM is running in headless mode. Use /api/ui endpoints directly.',
+           'api_documentation' => 'Consume GET /api/ui/{screen} for initial load and POST /api/ui-event for interactions.',
+       ], 406);
+   }
+
 
     $reset = request()->query('reset', false);
     return view('usim::app', [

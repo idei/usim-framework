@@ -68,6 +68,18 @@ return [
         'log_autokey_suggestions' => env('USIM_I18N_LOG_AUTOKEY_SUGGESTIONS', true),
     ],
 
+       /*
+        |--------------------------------------------------------------------------
+        | Headless Mode
+        |--------------------------------------------------------------------------
+        | Cuando está activado (true), USIM no sirve vistas HTML desde el catch-all
+        | web. Todos los clientes deben consumir /api/ui directamente.
+        | Útil para aplicaciones backend-driven que no necesitan renderer web.
+        |
+        | Por defecto: false (backward compatible)
+        */
+       'headless_mode' => env('USIM_HEADLESS_MODE', false),
+
     /*
     |--------------------------------------------------------------------------
     | Registered UI Services

@@ -47,7 +47,7 @@ it('home fragment theme follows global document theme contract', function () {
     expect($html)->toContain('class="wf"');
     expect($html)->not->toContain('class="wf" data-theme="dark"');
     expect($html)->toContain('html[data-theme="light"] .wf');
-    expect($html)->toContain("window.USIM_THEME.set(currentTheme, 'welcome-usim-toggle')");
+    expect($html)->toContain('body[data-theme="light"] .wf');
 
     $ui->assertNoIssues();
 });

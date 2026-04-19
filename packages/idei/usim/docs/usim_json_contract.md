@@ -167,6 +167,7 @@ Keys reservadas observadas:
 - `update_modal`
 - `clear_uploaders`
 - `set_uploader_existing_file`
+- `agent_context` (optional, headless mode)
 
 Importante:
 
@@ -217,6 +218,22 @@ Importante:
 - Instruccion para setear archivo existente en uploader.
 
 Nota: la forma exacta interna de `modal`, `update_modal`, `clear_uploaders` y `set_uploader_existing_file` depende del backend concreto, pero su presencia es parte del contrato.
+
+`agent_context` (Optional, Headless Mode)
+
+- Metadata describing what the screen does, what inputs it expects, and what outputs it may produce.
+- Only present if `Screen::getAgentContext()` returns non-empty array.
+- Intended for AI agents, headless clients, and multi-client architectures.
+- Example:
+  ```json
+  "agent_context": {
+    "purpose": "User authentication with email/password",
+    "inputs": ["email", "password"],
+    "outputs": ["redirect", "toast", "abort"],
+    "constraints": "Email must be valid format. Password 8+ chars."
+  }
+  ```
+- Web renderer ignores this key automatically.
 
 ## 5. Contrato de componentes
 

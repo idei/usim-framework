@@ -853,4 +853,38 @@ abstract class Screen
 
         return $this->findComponentAs($this->container, $id, $expectedClass);
     }
+
+   /**
+    * Get agent context for this screen.
+    *
+    * Optional method that can be overridden to provide metadata describing
+    * what this screen does, what inputs it expects, and what outputs it may produce.
+    *
+    * Used by headless/AI clients to understand screen semantics without UI rendering.
+    *
+    * Default implementation returns an empty array (no agent context).
+    * Override this method in child classes to provide semantic information.
+    *
+    * Example:
+    * ```php
+    * public function getAgentContext(): array
+    * {
+    *     return [
+    *         'purpose' => 'User authentication',
+    *         'inputs' => ['email', 'password'],
+    *         'outputs' => ['redirect', 'toast', 'abort'],
+    *         'constraints' => 'Email must be valid format. Password 8+ chars.'
+    *     ];
+    * }
+    * ```
+    *
+    * @return array Empty array by default. Override to provide agent context metadata.
+    */
+   public function getAgentContext(): array
+   {
+       return [];
+   }
+
 }
+
+

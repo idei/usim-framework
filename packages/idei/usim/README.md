@@ -778,6 +778,65 @@ return [
 | `upload_disk` | Laravel filesystem disk for uploaded files | `local` (override via `UPLOAD_DISK`) |
 | `i18n.default_locale` | Preferred locale for DB translation lookup | `APP_LOCALE` or `en` |
 | `i18n.fallback_locale` | Fallback locale for DB translations | `en` |
+---
+
+## Headless Mode
+
+USIM can run in **headless mode**, serving API endpoints only without requiring a web renderer.
+
+### Configuration
+
+Set the environment variable:
+
+```bash
+USIM_HEADLESS_MODE=true
+```
+
+### Behavior
+
+- When `USIM_HEADLESS_MODE=true`: Requests to the web catch-all route return `406 Not Acceptable` with JSON error
+- All clients must consume `/api/ui/{screen}` and `/api/ui-event` endpoints directly
+- API endpoints function identically in both modes
+- Ideal for backend-driven applications, AI agents, mobile apps, or multi-client architectures
+
+### Example (Node.js/JavaScript Client)
+
+```javascript
+// Load a screen
+const screenResponse = await fetch('/api/ui/login');
+const screen = await screenResponse.json();
+
+console.log(screen);
+// {
+//   "10": { "_id": 10, "type": "container", "parent": "root", ... },
+//   "11": { "_id": 11, "type": "input", "parent": 10, ... },
+//   "agent_context": {
+//     "purpose": "User login with email/password",
+//     "inputs": ["email", "password"],
+//     "outputs": ["redirect", "toast", "abort"]
+//   }
+// }
+
+// Extract agent context (if present)
+if (screen.agent_context) {
+    console.log('Screen purpose:', screen.agent_context.purpose);
+}
+```
+
+### Example (PHP Client)
+
+```php
+// Use Laravel HTTP client or GuzzleHttp to consume API directly
+$response = Http::get(config('ui-services.api_url') . '/api/ui/admin/dashboard');
+$screen = $response->json();
+
+if (isset($screen['agent_context'])) {
+    // Agentaccess to metadata
+    $context = $screen['agent_context'];
+}
+```
+
+---
 
 ---
 

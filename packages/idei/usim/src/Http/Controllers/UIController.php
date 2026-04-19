@@ -90,6 +90,14 @@ class UIController extends Controller
             queryParams: $allQueryParams
         );
         $service->finalizeEventContext(reload: true);
+       // Inject agent context if provided by the screen
+       $agentContext = $service->getAgentContext();
+       if (!empty($agentContext)) {
+           $this->uiChanges->add([
+               'agent_context' => $agentContext,
+           ]);
+       }
+
 
         return response()->json($this->uiChanges->all());
     }

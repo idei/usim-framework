@@ -14,6 +14,9 @@ The format is based on Keep a Changelog, and this project follows Semantic Versi
 - New i18n autokey suggestion logging when human-readable text is passed to `t(...)`, including generated key plus source file/line/character context.
 - New installer stubs: translation migrations and seeders (`UsimLanguageSeeder`, `UsimTranslationSeeder`).
 
+- **Headless Mode**: USIM now supports pure API mode via `USIM_HEADLESS_MODE` environment variable. When enabled, the web catch-all route returns HTTP 406 with JSON, forcing all clients to use `/api/ui` endpoints directly. Backward compatible (default: false).
+- **Agent Context**: New optional method `Screen::getAgentContext()` enables screens to expose semantic metadata (purpose, inputs, outputs, constraints) for AI agents and headless clients. Metadata is automatically injected into JSON responses when non-empty, and the web renderer ignores this key automatically.
+
 ### Changed
 - `usim:install` database scaffolding logic was extracted into a dedicated concern (`InstallsDatabaseScaffolding`) to keep `InstallCommand` smaller and easier to maintain.
 - `UsimSeeder` now orchestrates translation seeders in addition to role/user seeders.
