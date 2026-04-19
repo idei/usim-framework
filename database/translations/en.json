@@ -482,6 +482,8 @@
     "welcome.hero.title1": "Define your UI",
     "welcome.hero.title2": "in pure PHP.",
     "welcome.hero.title3": "The rest is automatic.",
+    "welcome.headless.flow": "API-only flow: GET /api/ui/{screen} -> POST /api/ui-event (with X-USIM-Storage)",
+    "welcome.headless.title": "Headless Mode",
     "welcome.install.label": "Install via Composer:",
     "welcome.install.mit": "Free · MIT License",
     "welcome.inst.lead": "USIM is a project born from academic and research environments in software engineering.",

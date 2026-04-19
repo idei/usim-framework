@@ -35,6 +35,24 @@ Este enfoque mantiene una única fuente de verdad en backend y evita duplicar re
 
 Importante: esto no implica una `Route::get()` individual por Screen. USIM usa una ruta catch-all y un loader API que traducen URL <-> clase PHP por convención.
 
+### Headless Mode y Agent Context
+
+USIM puede operar en modo API-only (sin renderer web) con:
+
+```env
+USIM_HEADLESS_MODE=true
+```
+
+Cuando está activo:
+
+- El catch-all web responde `406` para indicar que la app está en modo headless.
+- La carga inicial de una Screen se hace con `GET /api/ui/{screen}`.
+- Las interacciones se envían con `POST /api/ui-event`.
+- El estado de sesión UI se mantiene reenviando `X-USIM-Storage`.
+- Cada Screen puede exponer metadata opcional para clientes IA/headless mediante `getAgentContext()`.
+
+Esto permite integrar frontends externos (web custom, mobile, bots/agents) sin romper el contrato server-driven de USIM.
+
 ### Ventajas Competitivas
 
 | Aspecto | Stack Tradicional | USIM |

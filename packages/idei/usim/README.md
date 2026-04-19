@@ -32,6 +32,7 @@ A **Server-Driven UI** framework for Laravel. Define your entire user interface 
 - [Authentication Scaffolding](#authentication-scaffolding)
 - [Testing Screens](#testing-screens)
 - [Configuration](#configuration)
+- [Headless Mode](#headless-mode)
 - [API Endpoints](#api-endpoints)
 - [Artisan Commands](#artisan-commands)
 - [Octane / RoadRunner Support](#octane--roadrunner-support)
@@ -831,7 +832,7 @@ $response = Http::get(config('ui-services.api_url') . '/api/ui/admin/dashboard')
 $screen = $response->json();
 
 if (isset($screen['agent_context'])) {
-    // Agentaccess to metadata
+    // Agent access to metadata
     $context = $screen['agent_context'];
 }
 ```

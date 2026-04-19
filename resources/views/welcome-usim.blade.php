@@ -1626,6 +1626,21 @@
                 <span>{{ t('welcome.install.mit') }}</span>
             </div>
         </div>
+        <div class="install-inner" style="margin-top:0.5rem; gap:0.75rem; flex-wrap:wrap;">
+            <span class="install-label" style="opacity:.95;">{{ t('welcome.headless.title') }}</span>
+            <div class="install-cmd">
+                <span>USIM_HEADLESS_MODE=true</span>
+                <button class="copy-btn" onclick="copyCmd(this, 'USIM_HEADLESS_MODE=true')" title="{{ t('welcome.ui.copy') }}">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="9" y="9" width="13" height="13" rx="2" />
+                        <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1" />
+                    </svg>
+                </button>
+            </div>
+            <span class="install-label" style="font-weight:500; opacity:.8;">
+                {{ t('welcome.headless.flow') }}
+            </span>
+        </div>
     </div>
 
     <!-- ─── FEATURES ─── -->

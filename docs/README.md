@@ -40,6 +40,11 @@ docs/
 | **[CONTAINER_ALIGNMENT_GUIDE.md](framework/CONTAINER_ALIGNMENT_GUIDE.md)** | Guía específica de alineación de contenedores horizontales con ejemplos | 5.2K |
 | **[TECHNICAL_COMPONENTS_README.md](framework/TECHNICAL_COMPONENTS_README.md)** | Sistema CSS modular, variables, temas y personalización | 13K |
 
+Notas de versión funcional recientes:
+
+- **Headless Mode** (`USIM_HEADLESS_MODE=true`): USIM puede correr en modo API-only usando `GET /api/ui/{screen}` + `POST /api/ui-event`.
+- **Agent Context** (`Screen::getAgentContext()`): metadata opcional para clientes IA/headless en la key `agent_context` del payload.
+
 **Total Framework:** 4 documentos, ~72K
 
 ---
