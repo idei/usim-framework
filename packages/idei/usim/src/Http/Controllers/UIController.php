@@ -16,10 +16,10 @@ class UIController extends Controller
     }
 
     /**
-     * Show UI for the specified screen service
+     * Show UI for the specified screen service. It can receive an optional 'reset' query
+     * parameter to clear cached data for the screen.
      *
      * @param string $screen The screen name from the route (e.g., 'admin/dashboard')
-     * @param bool $reset Whether to reset the stored UI state
      * @return JsonResponse
      */
     public function show(string $screen): JsonResponse
