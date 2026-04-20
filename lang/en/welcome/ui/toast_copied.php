@@ -1,3 +1,5 @@
 <?php
 
-return '📋 Copied to clipboard';
+return [
+    'value' => '📋 Copied to clipboard',
+];

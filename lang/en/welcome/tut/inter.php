@@ -1,3 +1,5 @@
 <?php
 
-return 'Intermediate';
+return [
+    'value' => 'Intermediate',
+];

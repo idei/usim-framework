@@ -1,3 +1,5 @@
 <?php
 
-return 'Important clarification:';
+return [
+    'value' => 'Important clarification:',
+];

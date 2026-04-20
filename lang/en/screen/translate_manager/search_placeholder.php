@@ -1,3 +1,5 @@
 <?php
 
-return 'Search keys or groups...';
+return [
+    'value' => 'Search keys or groups...',
+];

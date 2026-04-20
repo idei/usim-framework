@@ -1,3 +1,5 @@
 <?php
 
-return 'Gratis · Licencia MIT';
+return [
+    'value' => 'Gratis · Licencia MIT',
+];

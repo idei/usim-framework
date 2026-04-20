@@ -1,3 +1,5 @@
 <?php
 
-return 'Archivo de registro no encontrado';
+return [
+    'value' => 'Archivo de registro no encontrado',
+];

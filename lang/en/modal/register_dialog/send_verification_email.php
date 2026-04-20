@@ -1,3 +1,5 @@
 <?php
 
-return 'Send verification email';
+return [
+    'value' => 'Send verification email',
+];

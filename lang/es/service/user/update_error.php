@@ -1,3 +1,5 @@
 <?php
 
-return 'Error al actualizar usuario';
+return [
+    'value' => 'Error al actualizar usuario',
+];

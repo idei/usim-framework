@@ -1,3 +1,5 @@
 <?php
 
-return 'Desde cero hasta producción. Aprende USIM con guías paso a paso.';
+return [
+    'value' => 'Desde cero hasta producción. Aprende USIM con guías paso a paso.',
+];

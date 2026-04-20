@@ -1,3 +1,5 @@
 <?php
 
-return '📖 Opening tutorial...';
+return [
+    'value' => '📖 Opening tutorial...',
+];

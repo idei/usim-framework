@@ -1,3 +1,5 @@
 <?php
 
-return 'in pure PHP.';
+return [
+    'value' => 'in pure PHP.',
+];

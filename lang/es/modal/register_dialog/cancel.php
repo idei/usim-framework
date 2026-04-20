@@ -1,3 +1,5 @@
 <?php
 
-return 'Cancelar';
+return [
+    'value' => 'Cancelar',
+];

@@ -1,3 +1,5 @@
 <?php
 
-return 'Laboratorio de Ingeniería de la Gamificación';
+return [
+    'value' => 'Laboratorio de Ingeniería de la Gamificación',
+];

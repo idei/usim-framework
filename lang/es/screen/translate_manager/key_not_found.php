@@ -1,3 +1,5 @@
 <?php
 
-return 'Clave de traducción no encontrada';
+return [
+    'value' => 'Clave de traducción no encontrada',
+];

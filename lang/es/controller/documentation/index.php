@@ -1,3 +1,5 @@
 <?php
 
-return 'Índice de Documentación';
+return [
+    'value' => 'Índice de Documentación',
+];

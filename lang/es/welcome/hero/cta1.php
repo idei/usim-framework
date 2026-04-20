@@ -1,3 +1,5 @@
 <?php
 
-return 'Comenzar ahora';
+return [
+    'value' => 'Comenzar ahora',
+];

@@ -1,3 +1,5 @@
 <?php
 
-return 'content';
+return [
+    'value' => 'content',
+];

@@ -1,3 +1,5 @@
 <?php
 
-return 'Usuario eliminado exitosamente';
+return [
+    'value' => 'Usuario eliminado exitosamente',
+];

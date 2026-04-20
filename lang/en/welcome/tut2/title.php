@@ -1,3 +1,5 @@
 <?php
 
-return 'Data Tables & Pagination';
+return [
+    'value' => 'Data Tables & Pagination',
+];

@@ -1,3 +1,5 @@
 <?php
 
-return 'Principiante';
+return [
+    'value' => 'Principiante',
+];

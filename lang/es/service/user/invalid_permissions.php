@@ -1,3 +1,5 @@
 <?php
 
-return 'Permisos inválidos o inexistentes';
+return [
+    'value' => 'Permisos inválidos o inexistentes',
+];

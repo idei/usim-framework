@@ -1,3 +1,5 @@
 <?php
 
-return 'Archivo de registro eliminado exitosamente';
+return [
+    'value' => 'Archivo de registro eliminado exitosamente',
+];

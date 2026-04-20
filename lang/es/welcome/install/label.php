@@ -1,3 +1,5 @@
 <?php
 
-return 'Instalar via Composer:';
+return [
+    'value' => 'Instalar via Composer:',
+];

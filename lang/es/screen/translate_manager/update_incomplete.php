@@ -1,3 +1,5 @@
 <?php
 
-return 'La carga de actualización de traducción está incompleta';
+return [
+    'value' => 'La carga de actualización de traducción está incompleta',
+];

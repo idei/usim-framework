@@ -1,3 +1,5 @@
 <?php
 
-return 'Guía de Personalización de Emails';
+return [
+    'value' => 'Guía de Personalización de Emails',
+];

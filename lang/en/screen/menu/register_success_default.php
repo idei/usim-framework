@@ -1,3 +1,5 @@
 <?php
 
-return 'User registered successfully';
+return [
+    'value' => 'User registered successfully',
+];

@@ -1,3 +1,5 @@
 <?php
 
-return 'Join the conversation';
+return [
+    'value' => 'Join the conversation',
+];

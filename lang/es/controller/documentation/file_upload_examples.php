@@ -1,3 +1,5 @@
 <?php
 
-return 'Ejemplos de Upload de Archivos';
+return [
+    'value' => 'Ejemplos de Upload de Archivos',
+];

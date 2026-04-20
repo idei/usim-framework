@@ -1,3 +1,5 @@
 <?php
 
-return 'You have been logged out successfully.';
+return [
+    'value' => 'You have been logged out successfully.',
+];

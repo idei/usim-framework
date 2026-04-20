@@ -1,3 +1,5 @@
 <?php
 
-return 'Client-Agnostic by design';
+return [
+    'value' => 'Client-Agnostic by design',
+];

@@ -1,3 +1,5 @@
 <?php
 
-return 'Error deleting file';
+return [
+    'value' => 'Error deleting file',
+];

@@ -1,3 +1,5 @@
 <?php
 
-return 'You do not have permission to perform this action';
+return [
+    'value' => 'You do not have permission to perform this action',
+];

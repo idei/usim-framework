@@ -1,3 +1,5 @@
 <?php
 
-return 'Your first Screen';
+return [
+    'value' => 'Your first Screen',
+];

@@ -1,3 +1,5 @@
 <?php
 
-return 'Form grouping';
+return [
+    'value' => 'Form grouping',
+];

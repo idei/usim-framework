@@ -1,3 +1,5 @@
 <?php
 
-return 'GitHub';
+return [
+    'value' => 'GitHub',
+];

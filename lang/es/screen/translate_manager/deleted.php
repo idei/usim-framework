@@ -1,3 +1,5 @@
 <?php
 
-return 'Traducción eliminada exitosamente';
+return [
+    'value' => 'Traducción eliminada exitosamente',
+];

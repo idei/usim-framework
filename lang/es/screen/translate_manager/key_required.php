@@ -1,3 +1,5 @@
 <?php
 
-return 'La clave de traducción es requerida';
+return [
+    'value' => 'La clave de traducción es requerida',
+];

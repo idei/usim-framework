@@ -1,3 +1,5 @@
 <?php
 
-return 'Buscar claves o grupos...';
+return [
+    'value' => 'Buscar claves o grupos...',
+];

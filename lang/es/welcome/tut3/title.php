@@ -1,3 +1,5 @@
 <?php
 
-return 'Autenticación Completa';
+return [
+    'value' => 'Autenticación Completa',
+];

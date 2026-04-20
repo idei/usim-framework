@@ -1,3 +1,5 @@
 <?php
 
-return 'USIM is completely free and open source under the MIT license. Use it, modify it and distribute it freely.';
+return [
+    'value' => 'USIM is completely free and open source under the MIT license. Use it, modify it and distribute it freely.',
+];

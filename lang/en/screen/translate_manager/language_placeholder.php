@@ -1,3 +1,5 @@
 <?php
 
-return 'Choose a language...';
+return [
+    'value' => 'Choose a language...',
+];

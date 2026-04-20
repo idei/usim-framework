@@ -1,3 +1,5 @@
 <?php
 
-return 'Checkboxes y toggles';
+return [
+    'value' => 'Checkboxes y toggles',
+];

@@ -1,3 +1,5 @@
 <?php
 
-return 'Leer términos y condiciones';
+return [
+    'value' => 'Leer términos y condiciones',
+];

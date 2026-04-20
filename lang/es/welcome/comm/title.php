@@ -1,3 +1,5 @@
 <?php
 
-return 'Únete a la conversación';
+return [
+    'value' => 'Únete a la conversación',
+];

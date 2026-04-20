@@ -1,3 +1,5 @@
 <?php
 
-return 'Usuario registrado exitosamente';
+return [
+    'value' => 'Usuario registrado exitosamente',
+];

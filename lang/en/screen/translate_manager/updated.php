@@ -1,3 +1,5 @@
 <?php
 
-return 'Translation updated successfully';
+return [
+    'value' => 'Translation updated successfully',
+];

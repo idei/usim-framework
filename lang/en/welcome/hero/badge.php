@@ -1,3 +1,5 @@
 <?php
 
-return 'Server-Driven UI · Laravel · v0.7.0';
+return [
+    'value' => 'Server-Driven UI · Laravel · v0.7.0',
+];

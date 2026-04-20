@@ -1,3 +1,5 @@
 <?php
 
-return 'Log file not found';
+return [
+    'value' => 'Log file not found',
+];

@@ -1,3 +1,5 @@
 <?php
 
-return 'Translation update payload is incomplete';
+return [
+    'value' => 'Translation update payload is incomplete',
+];

@@ -1,3 +1,5 @@
 <?php
 
-return 'Ver mensajes';
+return [
+    'value' => 'Ver mensajes',
+];

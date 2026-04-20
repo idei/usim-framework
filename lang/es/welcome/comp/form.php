@@ -1,3 +1,5 @@
 <?php
 
-return 'Agrupación de formularios';
+return [
+    'value' => 'Agrupación de formularios',
+];

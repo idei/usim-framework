@@ -1,3 +1,5 @@
 <?php
 
-return 'Resumen de Implementaciones';
+return [
+    'value' => 'Resumen de Implementaciones',
+];

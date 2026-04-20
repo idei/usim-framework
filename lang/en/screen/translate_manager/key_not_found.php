@@ -1,3 +1,5 @@
 <?php
 
-return 'Translation key not found';
+return [
+    'value' => 'Translation key not found',
+];

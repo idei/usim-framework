@@ -1,3 +1,5 @@
 <?php
 
-return 'Conceptos';
+return [
+    'value' => 'Conceptos',
+];

@@ -1,3 +1,5 @@
 <?php
 
-return 'Error creating user';
+return [
+    'value' => 'Error creating user',
+];

@@ -1,3 +1,5 @@
 <?php
 
-return 'Switch to :theme theme';
+return [
+    'value' => 'Switch to :theme theme',
+];

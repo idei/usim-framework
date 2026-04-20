@@ -1,3 +1,5 @@
 <?php
 
-return 'Components';
+return [
+    'value' => 'Components',
+];

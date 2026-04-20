@@ -1,3 +1,5 @@
 <?php
 
-return 'Register';
+return [
+    'value' => 'Register',
+];

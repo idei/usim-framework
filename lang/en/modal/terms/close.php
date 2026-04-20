@@ -1,3 +1,5 @@
 <?php
 
-return 'Close';
+return [
+    'value' => 'Close',
+];

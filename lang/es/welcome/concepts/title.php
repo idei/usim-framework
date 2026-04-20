@@ -1,3 +1,5 @@
 <?php
 
-return 'Cómo pensar USIM';
+return [
+    'value' => 'Cómo pensar USIM',
+];

@@ -1,3 +1,5 @@
 <?php
 
-return 'Hero views';
+return [
+    'value' => 'Hero views',
+];

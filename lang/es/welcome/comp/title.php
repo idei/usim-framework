@@ -1,3 +1,5 @@
 <?php
 
-return 'Biblioteca de Componentes';
+return [
+    'value' => 'Biblioteca de Componentes',
+];

@@ -1,3 +1,5 @@
 <?php
 
-return 'Calendar / date picker';
+return [
+    'value' => 'Calendar / date picker',
+];

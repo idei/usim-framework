@@ -1,3 +1,5 @@
 <?php
 
-return 'Escribir mensaje';
+return [
+    'value' => 'Escribir mensaje',
+];

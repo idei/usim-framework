@@ -1,3 +1,5 @@
 <?php
 
-return 'Has cerrado sesión exitosamente.';
+return [
+    'value' => 'Has cerrado sesión exitosamente.',
+];

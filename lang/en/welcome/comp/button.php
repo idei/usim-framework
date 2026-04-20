@@ -1,3 +1,5 @@
 <?php
 
-return 'Action buttons with styles';
+return [
+    'value' => 'Action buttons with styles',
+];

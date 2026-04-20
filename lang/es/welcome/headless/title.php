@@ -1,3 +1,5 @@
 <?php
 
-return 'Modo Headless';
+return [
+    'value' => 'Modo Headless',
+];

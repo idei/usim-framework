@@ -1,3 +1,5 @@
 <?php
 
-return 'Invalid or non-existent role';
+return [
+    'value' => 'Invalid or non-existent role',
+];

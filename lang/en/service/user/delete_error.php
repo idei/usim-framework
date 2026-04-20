@@ -1,3 +1,5 @@
 <?php
 
-return 'Error deleting user';
+return [
+    'value' => 'Error deleting user',
+];

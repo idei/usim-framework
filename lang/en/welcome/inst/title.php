@@ -1,3 +1,5 @@
 <?php
 
-return 'Developed with the support of';
+return [
+    'value' => 'Developed with the support of',
+];

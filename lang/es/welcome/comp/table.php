@@ -1,3 +1,5 @@
 <?php
 
-return 'Tablas con paginación';
+return [
+    'value' => 'Tablas con paginación',
+];

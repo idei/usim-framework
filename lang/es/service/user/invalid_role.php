@@ -1,3 +1,5 @@
 <?php
 
-return 'Rol inválido o inexistente';
+return [
+    'value' => 'Rol inválido o inexistente',
+];

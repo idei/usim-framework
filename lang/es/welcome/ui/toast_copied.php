@@ -1,3 +1,5 @@
 <?php
 
-return '📋 Copiado al portapapeles';
+return [
+    'value' => '📋 Copiado al portapapeles',
+];

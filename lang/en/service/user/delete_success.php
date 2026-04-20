@@ -1,3 +1,5 @@
 <?php
 
-return 'User deleted successfully';
+return [
+    'value' => 'User deleted successfully',
+];

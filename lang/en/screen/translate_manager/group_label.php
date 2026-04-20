@@ -1,3 +1,5 @@
 <?php
 
-return 'Group';
+return [
+    'value' => 'Group',
+];

@@ -1,3 +1,5 @@
 <?php
 
-return 'Dropdowns y selects';
+return [
+    'value' => 'Dropdowns y selects',
+];

@@ -1,3 +1,5 @@
 <?php
 
-return 'Translation key is required for deletion';
+return [
+    'value' => 'Translation key is required for deletion',
+];

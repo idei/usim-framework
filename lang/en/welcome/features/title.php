@@ -1,3 +1,5 @@
 <?php
 
-return 'Why USIM?';
+return [
+    'value' => 'Why USIM?',
+];

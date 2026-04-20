@@ -1,3 +1,5 @@
 <?php
 
-return 'Read terms and conditions';
+return [
+    'value' => 'Read terms and conditions',
+];

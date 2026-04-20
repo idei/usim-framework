@@ -1,3 +1,5 @@
 <?php
 
-return 'Carousel de imagen/audio/video';
+return [
+    'value' => 'Carousel de imagen/audio/video',
+];

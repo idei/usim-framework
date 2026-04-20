@@ -1,3 +1,5 @@
 <?php
 
-return 'The rest is automatic.';
+return [
+    'value' => 'The rest is automatic.',
+];

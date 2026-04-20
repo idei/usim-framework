@@ -1,3 +1,5 @@
 <?php
 
-return 'API Documentation';
+return [
+    'value' => 'API Documentation',
+];

@@ -1,3 +1,5 @@
 <?php
 
-return 'Error al eliminar usuario';
+return [
+    'value' => 'Error al eliminar usuario',
+];

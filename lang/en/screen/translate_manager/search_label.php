@@ -1,3 +1,5 @@
 <?php
 
-return 'Search';
+return [
+    'value' => 'Search',
+];

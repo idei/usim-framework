@@ -1,3 +1,5 @@
 <?php
 
-return 'Elige un grupo...';
+return [
+    'value' => 'Elige un grupo...',
+];

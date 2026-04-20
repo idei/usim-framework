@@ -1,3 +1,5 @@
 <?php
 
-return 'Component Library';
+return [
+    'value' => 'Component Library',
+];

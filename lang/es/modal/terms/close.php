@@ -1,3 +1,5 @@
 <?php
 
-return 'Cerrar';
+return [
+    'value' => 'Cerrar',
+];

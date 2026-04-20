@@ -1,3 +1,5 @@
 <?php
 
-return 'User updated successfully';
+return [
+    'value' => 'User updated successfully',
+];

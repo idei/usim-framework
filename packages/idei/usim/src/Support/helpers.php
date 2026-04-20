@@ -17,7 +17,7 @@ if (!function_exists('t')) {
     {
         // 1. Laravel translator (__).
         try {
-            /** @var \Illuminate\Contracts\Translation\Translator $translator */
+            /** @var \Illuminate\Translation\Translator $translator */
             $translator = app('translator');
 
             $candidates = [$key];
@@ -30,8 +30,6 @@ if (!function_exists('t')) {
                 $remaining = array_slice($segments, 3);
 
                 if ($remaining === []) {
-                    $candidates[] = $fileKey;
-                    $candidates[] = $fileKey . '.__self';
                     $candidates[] = $fileKey . '.value';
                 } else {
                     $candidates[] = $fileKey . '.' . implode('.', $remaining);

@@ -1,3 +1,5 @@
 <?php
 
-return 'Testing de Screens';
+return [
+    'value' => 'Testing de Screens',
+];

@@ -1,3 +1,5 @@
 <?php
 
-return '© 2026 Institute of Informatics · FCEFyN · MIT License';
+return [
+    'value' => '© 2026 Institute of Informatics · FCEFyN · MIT License',
+];

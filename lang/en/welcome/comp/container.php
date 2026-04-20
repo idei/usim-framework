@@ -1,3 +1,5 @@
 <?php
 
-return 'Vertical/horizontal layouts';
+return [
+    'value' => 'Vertical/horizontal layouts',
+];

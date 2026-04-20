@@ -1,3 +1,5 @@
 <?php
 
-return 'Error eliminando el archivo';
+return [
+    'value' => 'Error eliminando el archivo',
+];

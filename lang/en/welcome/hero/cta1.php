@@ -1,3 +1,5 @@
 <?php
 
-return 'Get started';
+return [
+    'value' => 'Get started',
+];

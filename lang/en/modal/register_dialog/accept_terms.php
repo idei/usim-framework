@@ -1,3 +1,5 @@
 <?php
 
-return 'I accept the terms and conditions';
+return [
+    'value' => 'I accept the terms and conditions',
+];

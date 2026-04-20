@@ -1,3 +1,5 @@
 <?php
 
-return 'Tutorials';
+return [
+    'value' => 'Tutorials',
+];

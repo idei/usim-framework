@@ -1,3 +1,5 @@
 <?php
 
-return 'Cards with title and actions';
+return [
+    'value' => 'Cards with title and actions',
+];

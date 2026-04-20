@@ -1,3 +1,5 @@
 <?php
 
-return 'Configura login, registro, recuperación de contraseña y gestión de roles con usim:install.';
+return [
+    'value' => 'Configura login, registro, recuperación de contraseña y gestión de roles con usim:install.',
+];

@@ -1,3 +1,5 @@
 <?php
 
-return 'File Upload Examples';
+return [
+    'value' => 'File Upload Examples',
+];

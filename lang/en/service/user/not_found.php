@@ -1,3 +1,5 @@
 <?php
 
-return 'User not found';
+return [
+    'value' => 'User not found',
+];

@@ -1,3 +1,5 @@
 <?php
 
-return 'Instituto de Informática';
+return [
+    'value' => 'Instituto de Informática',
+];

@@ -1,3 +1,5 @@
 <?php
 
-return 'Invalid or non-existent permissions';
+return [
+    'value' => 'Invalid or non-existent permissions',
+];

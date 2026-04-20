@@ -1,3 +1,5 @@
 <?php
 
-return 'Error procesando los archivos';
+return [
+    'value' => 'Error procesando los archivos',
+];

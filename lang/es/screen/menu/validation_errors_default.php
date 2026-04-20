@@ -1,3 +1,5 @@
 <?php
 
-return 'Errores de validación';
+return [
+    'value' => 'Errores de validación',
+];

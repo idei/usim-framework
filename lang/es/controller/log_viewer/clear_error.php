@@ -1,3 +1,5 @@
 <?php
 
-return 'Error al limpiar el registro: :error';
+return [
+    'value' => 'Error al limpiar el registro: :error',
+];

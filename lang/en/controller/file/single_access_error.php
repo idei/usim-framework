@@ -1,3 +1,5 @@
 <?php
 
-return 'Error accessing file';
+return [
+    'value' => 'Error accessing file',
+];

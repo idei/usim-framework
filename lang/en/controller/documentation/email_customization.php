@@ -1,3 +1,5 @@
 <?php
 
-return 'Email Customization Guide';
+return [
+    'value' => 'Email Customization Guide',
+];

@@ -1,3 +1,5 @@
 <?php
 
-return 'Upload con preview y crop';
+return [
+    'value' => 'Upload con preview y crop',
+];

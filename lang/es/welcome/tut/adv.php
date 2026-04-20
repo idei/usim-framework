@@ -1,3 +1,5 @@
 <?php
 
-return 'Avanzado';
+return [
+    'value' => 'Avanzado',
+];

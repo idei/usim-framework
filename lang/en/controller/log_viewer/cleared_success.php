@@ -1,3 +1,5 @@
 <?php
 
-return 'Log file cleared successfully';
+return [
+    'value' => 'Log file cleared successfully',
+];

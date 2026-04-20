@@ -1,3 +1,5 @@
 <?php
 
-return 'Text labels, headings, paragraphs';
+return [
+    'value' => 'Text labels, headings, paragraphs',
+];

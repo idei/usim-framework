@@ -1,3 +1,5 @@
 <?php
 
-return 'Layouts vertical/horizontal';
+return [
+    'value' => 'Layouts vertical/horizontal',
+];

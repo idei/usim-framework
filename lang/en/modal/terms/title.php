@@ -1,3 +1,5 @@
 <?php
 
-return 'Terms and Conditions';
+return [
+    'value' => 'Terms and Conditions',
+];

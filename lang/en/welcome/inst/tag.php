@@ -1,3 +1,5 @@
 <?php
 
-return 'Academic Support';
+return [
+    'value' => 'Academic Support',
+];

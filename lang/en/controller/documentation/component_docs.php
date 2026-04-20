@@ -1,3 +1,5 @@
 <?php
 
-return 'Component Documentation';
+return [
+    'value' => 'Component Documentation',
+];

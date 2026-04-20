@@ -1,3 +1,5 @@
 <?php
 
-return 'en PHP puro.';
+return [
+    'value' => 'en PHP puro.',
+];

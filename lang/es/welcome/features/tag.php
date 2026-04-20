@@ -1,3 +1,5 @@
 <?php
 
-return 'Características';
+return [
+    'value' => 'Características',
+];

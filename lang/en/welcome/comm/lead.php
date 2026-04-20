@@ -1,3 +1,5 @@
 <?php
 
-return 'Share code, ask questions and collaborate with other USIM developers.';
+return [
+    'value' => 'Share code, ask questions and collaborate with other USIM developers.',
+];

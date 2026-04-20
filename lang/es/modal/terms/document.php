@@ -1,3 +1,5 @@
 <?php
 
-return 'legal/terms.es.md';
+return [
+    'value' => 'legal/terms.es.md',
+];

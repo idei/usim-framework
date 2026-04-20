@@ -1,3 +1,5 @@
 <?php
 
-return 'Copy';
+return [
+    'value' => 'Copy',
+];

@@ -1,3 +1,5 @@
 <?php
 
-return '💬 Unirse a la comunidad...';
+return [
+    'value' => '💬 Unirse a la comunidad...',
+];

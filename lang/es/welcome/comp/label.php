@@ -1,3 +1,5 @@
 <?php
 
-return 'Textos, headings, párrafos';
+return [
+    'value' => 'Textos, headings, párrafos',
+];

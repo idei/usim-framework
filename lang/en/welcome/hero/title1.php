@@ -1,3 +1,5 @@
 <?php
 
-return 'Define your UI';
+return [
+    'value' => 'Define your UI',
+];

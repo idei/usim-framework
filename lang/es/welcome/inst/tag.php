@@ -1,3 +1,5 @@
 <?php
 
-return 'Respaldo Académico';
+return [
+    'value' => 'Respaldo Académico',
+];

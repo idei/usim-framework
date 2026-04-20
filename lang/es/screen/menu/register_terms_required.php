@@ -1,3 +1,5 @@
 <?php
 
-return 'Debes aceptar los términos y condiciones para registrarte.';
+return [
+    'value' => 'Debes aceptar los términos y condiciones para registrarte.',
+];

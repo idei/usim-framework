@@ -1,3 +1,5 @@
 <?php
 
-return 'Arquitectura';
+return [
+    'value' => 'Arquitectura',
+];

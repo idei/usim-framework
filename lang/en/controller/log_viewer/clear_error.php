@@ -1,3 +1,5 @@
 <?php
 
-return 'Error clearing log: :error';
+return [
+    'value' => 'Error clearing log: :error',
+];

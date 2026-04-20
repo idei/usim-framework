@@ -1,3 +1,5 @@
 <?php
 
-return 'Text, email, password, hidden';
+return [
+    'value' => 'Text, email, password, hidden',
+];

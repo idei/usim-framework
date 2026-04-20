@@ -1,3 +1,5 @@
 <?php
 
-return 'Comunidad';
+return [
+    'value' => 'Comunidad',
+];
