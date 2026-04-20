@@ -39,16 +39,9 @@ class TermsDialog
             ->plain()
             ->shadow(false)
             ->gap('16px')
-            ->padding('10px')
-            ->width('660px')
+            ->padding('5px')
+            ->width('680px')
             ->maxWidth('92vw');
-
-        $container->add(
-            UI::label('terms_dialog_title')
-                ->text(t('modal.terms.title'))
-                ->style('h3')
-                ->inline(false)
-        );
 
         $container->add(
             UI::label('terms_dialog_document')
