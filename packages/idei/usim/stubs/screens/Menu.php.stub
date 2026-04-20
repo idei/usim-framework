@@ -18,6 +18,7 @@ use Idei\Usim\Enums\DialogType;
 use Idei\Usim\Enums\JustifyContent;
 use Idei\Usim\Enums\LayoutType;
 use Idei\Usim\Modals\ConfirmDialogService;
+use Idei\Usim\Models\UsimLanguage;
 use Idei\Usim\UI;
 use Idei\Usim\Upload\UploadService;
 use Illuminate\Support\Facades\Auth;
@@ -32,9 +33,11 @@ class Menu extends Screen
 
     protected MenuDropdown $main_menu;
     protected MenuDropdown $user_menu;
+    protected MenuDropdown $lang_menu;
 
     protected Button $theme_toggle;
     protected string $store_theme = 'light';
+    protected string $store_lang = '';
 
     protected function buildBaseUI(Container $container, ...$params): void
     {
@@ -50,12 +53,19 @@ class Menu extends Screen
         $this->main_menu = $this->buildLeftMenu();
         $this->user_menu = $this->buildUserMenu();
 
+        if ($this->store_lang === '') {
+            $this->store_lang = config('usim.i18n.fallback_locale', 'en');
+        }
+        $this->lang_menu = $this->buildLangMenu();
+        $this->user_menu->marginLeft('12px');
+
         $container->add($this->main_menu);
         $this->theme_toggle = UI::button('theme_toggle')
             ->action('toggleTheme')
             ->plain()
             ->marginLeft('auto');
         $container->add($this->theme_toggle);
+        $container->add($this->lang_menu);
         $container->add($this->user_menu);
         $this->updateThemeButton();
     }
@@ -80,8 +90,85 @@ class Menu extends Screen
         $this->changeTheme($this->store_theme);
     }
 
+    public function onChangeLang(array $params): void
+    {
+        $lang = (string) ($params['lang'] ?? '');
+        if ($lang === '') {
+            return;
+        }
+
+        $this->store_lang = $lang;
+        $this->updateLangMenu();
+        $this->changeLanguage($this->store_lang);
+
+        $referer = request()->headers->get('referer');
+        if ($referer === null || $referer === '' || str_contains($referer, '/api/ui-event')) {
+            $referer = url('/');
+        }
+
+        $parts = parse_url($referer);
+        $path = (string) ($parts['path'] ?? '/');
+
+        $query = [];
+        if (!empty($parts['query'])) {
+            parse_str((string) $parts['query'], $query);
+        }
+        $query['reset'] = 'true';
+
+        $target = $path;
+        if ($query !== []) {
+            $target .= '?' . http_build_query($query);
+        }
+
+        $this->redirect($target);
+    }
+
+    private function buildLangMenu(): MenuDropdown
+    {
+        $menu = UI::menuDropdown('lang_menu')
+            ->trigger(strtoupper($this->store_lang))
+            ->position('bottom-right')
+            ->width(160);
+
+        $this->populateLangMenu($menu);
+
+        return $menu;
+    }
+
+    private function populateLangMenu(MenuDropdown $menu): void
+    {
+        $menu->clearItems();
+
+        $languages = UsimLanguage::query()
+            ->where('is_active', true)
+            ->orderBy('name')
+            ->get();
+
+        foreach ($languages as $lang) {
+            $label = $lang->native_name ?: $lang->name;
+            if ($lang->code === $this->store_lang) {
+                $label = "✓ $label";
+            }
+
+            $menu->item($label, 'changeLang', ['lang' => $lang->code]);
+        }
+    }
+
+    private function updateLangMenu(): void
+    {
+        if ($this->store_lang === '') {
+            $this->store_lang = config('usim.i18n.fallback_locale', 'en');
+        }
+
+        $this->lang_menu->trigger(strtoupper($this->store_lang));
+        $this->populateLangMenu($this->lang_menu);
+    }
+
     protected function postLoadUI(): void
     {
+        $this->updateThemeButton();
+        $this->updateLangMenu();
+
         if (Auth::check()) {
             $user = Auth::user();
             $this->updateUserMenuTrigger($user);
