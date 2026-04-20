@@ -27,7 +27,8 @@
             --font-display: 'Space Mono', monospace;
             --font-mono: 'Space Mono', monospace;
             --font-body: 'DM Sans', sans-serif;
-            --transition: 0.25s cubic-bezier(.4, 0, .2, 1);
+            /* --transition: 0.25s cubic-bezier(.4, 0, .2, 1); */
+            --transition: none;
             --accent-label: var(--accent);
             --green-label: var(--green);
         }
