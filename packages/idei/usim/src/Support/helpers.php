@@ -47,7 +47,7 @@ if (!function_exists('t')) {
 
             foreach ($candidates as $candidate) {
                 $hasLaravelTranslation = $language !== null
-                    ? $translator->hasForLocale($candidate, $language)
+                    ? $translator->has($candidate, $language)
                     : $translator->has($candidate);
 
                 if ($hasLaravelTranslation) {
