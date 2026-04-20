@@ -11,14 +11,12 @@ class DatabaseSeeder extends Seeder
         $this->call([
             // USIM framework seeders
             UsimLanguageSeeder::class,
-            UsimTranslationSeeder::class,
             UsimRoleSeeder::class,
             UsimUserSeeder::class,
 
             // App-specific seeders
             RoleSeeder::class,
             UserSeeder::class,
-            AppTranslationSeeder::class,
         ]);
     }
 }

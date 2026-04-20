@@ -13,10 +13,11 @@ class UsimLanguageSeeder extends Seeder
 
         $translationService->upsertLanguage('en', 'English', 'English', true, true);
         $translationService->upsertLanguage('es', 'Spanish', 'Espanol', true, false);
-        // $translationService->upsertLanguage('fr', 'French', 'Français', true, false);
-        // $translationService->upsertLanguage('de', 'German', 'Deutsch', true, false);
-        // $translationService->upsertLanguage('zh', 'Chinese', '中文', true, false);
-        // $translationService->upsertLanguage('ja', 'Japanese', '日本語', true, false);
-        // $translationService->upsertLanguage('pt', 'Portuguese', 'Português', true, false);
+        $translationService->upsertLanguage('it', 'Italian', 'Italiano', false, false);
+        $translationService->upsertLanguage('fr', 'French', 'Français', false, false);
+        $translationService->upsertLanguage('de', 'German', 'Deutsch', false, false);
+        $translationService->upsertLanguage('zh', 'Chinese', '中文', false, false);
+        $translationService->upsertLanguage('ja', 'Japanese', '日本語', false, false);
+        $translationService->upsertLanguage('pt', 'Portuguese', 'Português', false, false);
     }
 }

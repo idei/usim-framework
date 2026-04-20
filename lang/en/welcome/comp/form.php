@@ -1,0 +1,3 @@
+<?php
+
+return 'Form grouping';

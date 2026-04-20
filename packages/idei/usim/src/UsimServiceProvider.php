@@ -52,6 +52,7 @@ class UsimServiceProvider extends ServiceProvider
     {
         $this->loadRoutesFrom(__DIR__.'/../routes/api.php');
         $this->loadViewsFrom(__DIR__.'/../resources/views', 'usim');
+        $this->loadTranslationsFrom(__DIR__.'/../lang', 'usim');
 
         if ($this->app->runningInConsole()) {
             $this->publishes([
