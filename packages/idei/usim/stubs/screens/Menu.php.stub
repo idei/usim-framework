@@ -6,6 +6,7 @@ use App\Services\Auth\AuthSessionService;
 use App\Services\Auth\RegisterService;
 use {{ componentsNamespace }}\Modals\RegisterDialog;
 use {{ screensNamespace }}\Admin\Dashboard;
+use {{ screensNamespace }}\Admin\TranslateManager;
 use {{ screensNamespace }}\Auth\Login;
 use {{ screensNamespace }}\Auth\Profile;
 use Idei\Usim\Events\UsimEvent;
@@ -76,10 +77,7 @@ class Menu extends Screen
         $this->theme_toggle->icon("/vendor/idei/usim/images/$icon.svg");
         $this->theme_toggle->iconColor('var(--usim-menu-trigger-text)');
         $this->theme_toggle->iconSize(24);
-        $targetTheme = $this->store_theme === 'light'
-            ? t('usim.menu.theme.dark')
-            : t('usim.menu.theme.light');
-        $this->theme_toggle->tooltip(t('usim.menu.theme.switch_to', ['theme' => $targetTheme]));
+        $this->theme_toggle->tooltip(t('screen.menu.theme_switch_to', ['theme' => $this->store_theme === 'light' ? 'dark' : 'light']));
     }
 
     public function onToggleTheme(array $params): void
@@ -212,12 +210,13 @@ class Menu extends Screen
 
     private function populateMainMenu(MenuDropdown $menu): void
     {
-        $menu->link(t('usim.menu.home'), '/', '🏠');
+        $menu->link(t('screen.menu.items.home'), '/', '🏠');
         if (Auth::check()) {
             $menu->screen(Dashboard::class);
+            $menu->screen(TranslateManager::class);
         }
         $menu->separator();
-        $menu->item(t('usim.menu.about'), 'show_about_info', [], 'ℹ️');
+        $menu->item(t('screen.menu.items.about'), 'show_about_info', [], 'ℹ️');
     }
 
     private function buildUserMenu(): MenuDropdown
@@ -235,9 +234,9 @@ class Menu extends Screen
     private function populateUserMenu(MenuDropdown $menu): void
     {
         $menu->screen(Login::class);
-        $menu->item(t('usim.menu.register'), 'show_register_form', [], '📝', visible: !Auth::check());
+        $menu->item(t('screen.menu.items.register'), 'show_register_form', [], '📝', visible: !Auth::check());
         $menu->screen(Profile::class);
-        $menu->item(t('usim.menu.logout'), 'confirm_logout', [], '🚪', visible: Auth::check());
+        $menu->item(t('screen.menu.items.logout'), 'confirm_logout', [], '🚪', visible: Auth::check());
     }
 
     public function onLoggedUser(array $params): void
@@ -277,7 +276,7 @@ class Menu extends Screen
         $this->main_menu->clearItems();
         $this->populateMainMenu($this->main_menu);
 
-        $this->toast(t('usim.menu.toast.logged_out'));
+        $this->toast(t('screen.menu.logout_success'));
         $this->redirect();
     }
 
@@ -285,8 +284,8 @@ class Menu extends Screen
     {
         ConfirmDialogService::open(
             type: DialogType::INFO,
-            title: t('usim.menu.about_dialog.title'),
-            message: t('usim.menu.about_dialog.message'),
+            title: t('screen.menu.about.title'),
+            message: t('screen.menu.about.message', ['version' => '0.7.0']),
             callerServiceId: $this->getServiceComponentId(),
         );
     }
@@ -321,7 +320,7 @@ class Menu extends Screen
 
     private function handleRegisterSuccess(array $response): void
     {
-        $message = (string) ($response['message'] ?? t('usim.menu.success.user_registered'));
+        $message = (string) ($response['message'] ?? t('screen.menu.register_success_default'));
         $this->toast($message, 'success');
 
         $user = $response['user'] ?? null;
@@ -337,7 +336,7 @@ class Menu extends Screen
 
     private function handleRegisterError(array $response): void
     {
-        $message = (string) ($response['message'] ?? t('usim.menu.error.validation'));
+        $message = (string) ($response['message'] ?? t('screen.menu.validation_errors_default'));
         $this->toast($message, 'error');
         $this->updateModalValidationErrors((array) ($response['errors'] ?? []));
     }
@@ -362,8 +361,8 @@ class Menu extends Screen
     {
         ConfirmDialogService::open(
             type: DialogType::CONFIRM,
-            title: t('usim.menu.logout_dialog.title'),
-            message: t('usim.menu.logout_dialog.message'),
+            title: t('screen.menu.logout_confirm.title'),
+            message: t('screen.menu.logout_confirm.message'),
             confirmAction: 'confirm_logout',
             cancelAction: 'cancel_logout',
             callerServiceId: $this->getServiceComponentId(),

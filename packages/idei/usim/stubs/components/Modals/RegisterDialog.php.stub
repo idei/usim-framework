@@ -52,8 +52,8 @@ class RegisterDialog
 
         $registerContainer->add(
             UI::input('name')
-                ->label(t('usim.common.full_name'))
-                ->placeholder(t('usim.common.placeholder.enter_full_name'))
+                ->label(t('modal.register_dialog.name.label'))
+                ->placeholder(t('modal.register_dialog.name.placeholder'))
                 ->required(true)
                 ->value($name)
                 ->autocomplete('off')
@@ -61,8 +61,8 @@ class RegisterDialog
 
         $registerContainer->add(
             UI::input('email')
-                ->label(t('usim.common.email'))
-                ->placeholder(t('usim.auth.login.placeholder.email'))
+                ->label(t('modal.register_dialog.email.label'))
+                ->placeholder(t('modal.register_dialog.email.placeholder'))
                 ->required(true)
                 ->value($email)
                 ->autocomplete('off')
@@ -70,9 +70,9 @@ class RegisterDialog
 
         $registerContainer->add(
             UI::input('password')
-                ->label(t('usim.common.password'))
+                ->label(t('modal.register_dialog.password.label'))
                 ->type('password')
-                ->placeholder(t('usim.auth.register.placeholder.password_min'))
+                ->placeholder(t('modal.register_dialog.password.placeholder'))
                 ->required(true)
                 ->value($password)
                 ->autocomplete('new-password')
@@ -80,9 +80,9 @@ class RegisterDialog
 
         $registerContainer->add(
             UI::input('password_confirmation')
-                ->label(t('usim.common.confirm_password'))
+                ->label(t('modal.register_dialog.confirm_password.label'))
                 ->type('password')
-                ->placeholder(t('usim.auth.register.placeholder.confirm_password'))
+                ->placeholder(t('modal.register_dialog.confirm_password.placeholder'))
                 ->required(true)
                 ->value($password_confirmation)
                 ->autocomplete('new-password')
@@ -91,10 +91,10 @@ class RegisterDialog
         if ($askForRole) {
             $registerContainer->add(
                 UI::select('roles')
-                    ->label(t('usim.common.role'))
+                    ->label(t('modal.register_dialog.role.label'))
                     ->options([
-                        ['value' => 'user', 'label' => t('usim.common.role_user')],
-                        ['value' => 'admin', 'label' => t('usim.common.role_admin')],
+                        ['value' => 'user', 'label' => t('modal.register_dialog.role.user')],
+                        ['value' => 'admin', 'label' => t('modal.register_dialog.role.admin')],
                     ])
                     ->value($role)
                     ->required(true)
@@ -102,7 +102,7 @@ class RegisterDialog
 
             $registerContainer->add(
                 UI::checkbox('send_verification_email')
-                    ->label(t('usim.auth.register.send_verification_email'))
+                    ->label(t('modal.register_dialog.send_verification_email'))
                     ->checked(true)
             );
         }
@@ -118,7 +118,7 @@ class RegisterDialog
         if ($cancelAction) {
             $buttonsContainer->add(
                 UI::button('btn_cancel_register')
-                    ->label(t('usim.common.cancel'))
+                    ->label(t('modal.register_dialog.cancel'))
                     ->style('secondary')
                     ->action($cancelAction, [
                         '_caller_service_id' => $callerServiceId
@@ -128,7 +128,7 @@ class RegisterDialog
 
         $buttonsContainer->add(
             UI::button('btn_submit_register')
-                ->label(t('usim.auth.register.submit'))
+                ->label(t('modal.register_dialog.submit'))
                 ->style('primary')
                 ->action($submitAction, [
                     '_caller_service_id' => $callerServiceId

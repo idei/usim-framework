@@ -3,6 +3,8 @@
 namespace Idei\Usim\Console\Commands;
 
 use Idei\Usim\Console\Commands\Concerns\InstallsDatabaseScaffolding;
+use Idei\Usim\Console\Commands\Concerns\InstallsLangStubs;
+use Idei\Usim\Console\Commands\Concerns\InstallsTranslationManagerScaffolding;
 use Idei\Usim\Console\Commands\Concerns\RegistersPackageHelperAutoload;
 use Idei\Usim\Support\CodeModifier\ClassModifier;
 use Illuminate\Console\Command;
@@ -13,6 +15,8 @@ use Illuminate\Support\Str;
 class InstallCommand extends Command
 {
     use InstallsDatabaseScaffolding;
+    use InstallsLangStubs;
+    use InstallsTranslationManagerScaffolding;
     use RegistersPackageHelperAutoload;
 
     protected $signature = 'usim:install
@@ -59,6 +63,7 @@ class InstallCommand extends Command
 
         $this->installScreen('Menu.php.stub', 'Menu.php');
         $this->installScreen('Admin/Dashboard.php.stub', 'Dashboard.php', 'Admin');
+        $this->installTranslationManagerScaffolding();
 
         // === STEP 3: Install auth scaffolding, controller, model, and supporting files ===
         $this->installAuthScaffolding();
@@ -66,19 +71,24 @@ class InstallCommand extends Command
         // === STEP 4: Install email and page views ===
         $this->installViews();
 
-        // === STEP 5: Install web routes (catch-all) ===
+        // === STEP 5: Install language files from stubs/lang (without overwrite) ===
+        $this->newLine();
+        $this->info('Publishing language stubs...');
+        $this->installLangStubs();
+
+        // === STEP 6: Install web routes (catch-all) ===
         $this->installWebRoutes();
 
-        // === STEP 6: Append .env variables ===
+        // === STEP 7: Append .env variables ===
         $this->appendEnvVariables();
 
-        // === STEP 7: Register package helpers in composer autoload ===
+        // === STEP 8: Register package helpers in composer autoload ===
         $this->registerPackageHelpersAutoload();
 
-        // === STEP 8: Run usim:discover ===
+        // === STEP 9: Run usim:discover ===
         $this->call('usim:discover');
 
-        // === STEP 9: Summary ===
+        // === STEP 10: Summary ===
         $this->newLine();
         $this->info('USIM installed successfully!');
         $this->newLine();
@@ -195,6 +205,7 @@ class InstallCommand extends Command
         $this->installComponent('Modals/LoginDialog.php.stub', 'LoginDialog.php', 'Modals');
         $this->installComponent('Modals/RegisterDialog.php.stub', 'RegisterDialog.php', 'Modals');
         $this->installComponent('Modals/EditUserDialog.php.stub', 'EditUserDialog.php', 'Modals');
+        $this->installComponent('Modals/EditTranslationDialog.php.stub', 'EditTranslationDialog.php', 'Modals');
 
         $this->newLine();
         $this->info('Installing DataTable components...');
@@ -603,7 +614,6 @@ class InstallCommand extends Command
         $steps = [];
 
         $steps[] = "Run <fg=yellow>php artisan usim:discover</> after creating new screens\n";
-        $steps[] = "Run <fg=yellow>composer dump-autoload</> to load package helpers from composer autoload.files\n";
         $steps[] = "Run <fg=yellow>./start.sh [-r]</> to start the development server.\n" .
             "     <fg=gray>Note: -r option removes database and starts fresh)</fg=gray>";
 

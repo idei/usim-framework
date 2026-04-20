@@ -1,9 +1,9 @@
 <?php
 
-namespace App\UI\Screens\Admin;
+namespace {{ namespace }};
 
-use App\UI\Components\Modals\EditTranslationDialog;
-use App\UI\Components\DataTable\TranslationKeysTableModel;
+use {{ componentsNamespace }}\Modals\EditTranslationDialog;
+use {{ componentsNamespace }}\DataTable\TranslationKeysTableModel;
 use Idei\Usim\Screen;
 use Idei\Usim\Components\Input;
 use Idei\Usim\Components\Select;
@@ -15,7 +15,7 @@ use Idei\Usim\Modals\ConfirmDialogService;
 use Idei\Usim\Support\TranslationService;
 use Idei\Usim\UI;
 
-class TranlateManager extends Screen
+class TranslateManager extends Screen
 {
     protected Table $translations_table;
     protected Input $search_translations;

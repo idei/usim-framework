@@ -6,7 +6,7 @@ use App\Services\Auth\RegisterService;
 use App\UI\Components\Modals\RegisterDialog;
 use App\UI\Components\Modals\TermsDialog;
 use App\UI\Screens\Admin\Dashboard;
-use App\UI\Screens\Admin\TranlateManager;
+use App\UI\Screens\Admin\TranslateManager;
 use App\UI\Screens\Auth\Login;
 use App\UI\Screens\Auth\Profile;
 use App\UI\Screens\Demo\ButtonDemo;
@@ -226,7 +226,7 @@ class Menu extends Screen
     {
         $menu->link(t('screen.menu.items.home'), '/', '🏠');
         $menu->screen(Dashboard::class);
-        $menu->screen(TranlateManager::class);
+        $menu->screen(TranslateManager::class);
         $this->buildDemosMenu($menu);
         $menu->separator();
         $menu->item(t('screen.menu.items.about'), 'show_about_info', [], 'ℹ️');

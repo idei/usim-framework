@@ -25,7 +25,7 @@ class Profile extends Screen
 
     public static function getMenuLabel(): string
     {
-        return t('usim.auth.profile.menu_label');
+        return 'Profile';
     }
 
     public static function getMenuIcon(): ?string
@@ -38,7 +38,7 @@ class Profile extends Screen
         $user = Auth::user();
 
         $container
-            ->title(t('usim.auth.profile.title'))
+            ->title(t('screen.auth.profile.title'))
             ->maxWidth('600px')
             ->centerHorizontal()
             ->shadow(2)
@@ -46,14 +46,14 @@ class Profile extends Screen
 
         $container->add(
             UI::label('lbl_title')
-                ->text(t('usim.auth.profile.settings_heading'))
+                ->text('👤 Configuracion de Perfil')
                 ->style('primary')
                 ->fontSize(20)
                 ->fontWeight('bold')
         );
 
         $this->input_email = UI::input('input_email')
-            ->label(t('usim.common.email'))
+            ->label(t('screen.auth.profile.email.label'))
             ->type('email')
             ->value($user->email)
             ->disabled(true)
@@ -62,9 +62,9 @@ class Profile extends Screen
         $container->add($this->input_email);
 
         $this->input_name = UI::input('input_name')
-            ->label(t('usim.common.full_name'))
+            ->label(t('screen.auth.profile.name.label'))
             ->type('text')
-            ->placeholder(t('usim.auth.profile.placeholder.full_name'))
+            ->placeholder(t('screen.auth.profile.name.placeholder'))
             ->value($user->name ?? '')
             ->required(true)
             ->width('100%');
@@ -73,7 +73,7 @@ class Profile extends Screen
 
         $this->uploader_profile = UI::uploader('uploader_profile')
             ->allowedTypes(['image/*'])
-            ->label(t('usim.auth.profile.profile_photo'))
+            ->label(t('screen.auth.profile.photo.label'))
             ->maxFiles(1)
             ->maxSize(2)
             ->aspect('1:1')
@@ -83,7 +83,7 @@ class Profile extends Screen
 
         $container->add(
             UI::button('btn_save_profile')
-                ->label(t('usim.auth.profile.save_changes'))
+                ->label(t('screen.auth.profile.actions.save'))
                 ->action('save_profile')
                 ->style('primary')
                 ->width('100%')
@@ -91,7 +91,7 @@ class Profile extends Screen
 
         $container->add(
             UI::button('btn_change_password')
-                ->label(t('usim.auth.profile.change_password'))
+                ->label(t('screen.auth.profile.actions.change_password'))
                 ->action('change_password')
                 ->style('secondary')
                 ->width('100%')
@@ -106,7 +106,7 @@ class Profile extends Screen
         $this->input_name->value($user->name ?? '');
 
         if (!$user->email_verified_at) {
-            $this->input_email->error(t('usim.auth.profile.error.email_not_verified'));
+            $this->input_email->error(t('screen.auth.profile.email.not_verified'));
         } else {
             $this->input_email->error(null);
         }
@@ -128,7 +128,7 @@ class Profile extends Screen
             $name = trim($params['input_name'] ?? '');
 
             if (empty($name)) {
-                $this->input_name->error(t('usim.auth.profile.error.name_required'));
+                $this->input_name->error(t('screen.auth.profile.validation.name_required'));
                 return;
             }
 
@@ -145,10 +145,10 @@ class Profile extends Screen
                 'user' => $user
             ]));
 
-            $this->toast(t('usim.auth.profile.success.updated'), 'success');
+            $this->toast(t('screen.auth.profile.toast.updated'), 'success');
         } catch (\Throwable $e) {
             \Illuminate\Support\Facades\Log::error('Error saving profile: ' . $e->getMessage() . "\n" . $e->getTraceAsString());
-            $this->toast(t('usim.auth.profile.error.save_prefix') . $e->getMessage(), 'error');
+            $this->toast(t('screen.auth.profile.toast.save_error', ['message' => $e->getMessage()]), 'error');
         }
     }
 
@@ -157,12 +157,12 @@ class Profile extends Screen
         $user = Auth::user();
 
         if ($user->email_verified_at) {
-            $this->toast(t('usim.auth.profile.info.already_verified'), 'info');
+            $this->toast(t('screen.auth.profile.toast.already_verified'), 'info');
             return;
         }
 
         $user->sendEmailVerificationNotification();
-        $this->toast(t('usim.auth.profile.success.verification_sent'), 'success');
+        $this->toast(t('screen.auth.profile.toast.verification_sent'), 'success');
     }
 
     public function onChangePassword(array $params): void
@@ -174,9 +174,9 @@ class Profile extends Screen
         ]);
 
         if ($status === Password::RESET_LINK_SENT) {
-            $this->toast(t('usim.auth.profile.success.password_link_sent'), 'success');
+            $this->toast(t('screen.auth.profile.toast.password_link_sent'), 'success');
         } else {
-            $this->toast(t('usim.auth.profile.error.password_link_failed'), 'error');
+            $this->toast(t('screen.auth.profile.toast.password_link_error'), 'error');
         }
     }
 }

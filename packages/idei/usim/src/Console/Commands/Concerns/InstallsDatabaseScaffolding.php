@@ -60,10 +60,6 @@ trait InstallsDatabaseScaffolding
                 'target' => 'UsimLanguageSeeder.php',
                 'replacements' => [],
             ],
-            'UsimTranslationSeeder.php.stub' => [
-                'target' => 'UsimTranslationSeeder.php',
-                'replacements' => [],
-            ],
             'UsimSeeder.php.stub' => [
                 'target' => 'UsimSeeder.php',
                 'replacements' => [],

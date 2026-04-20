@@ -31,7 +31,7 @@ class Login extends Screen
 
     public static function getMenuLabel(): string
     {
-        return t('usim.auth.login.menu_label');
+        return 'Login';
     }
 
     public static function getMenuIcon(): ?string
@@ -53,7 +53,7 @@ class Login extends Screen
         }
 
         $container
-            ->title(t('usim.auth.login.title'))
+            ->title(t('screen.auth.login.title'))
             ->maxWidth('450px')
             ->centerHorizontal()
             ->shadow(3)
@@ -61,8 +61,8 @@ class Login extends Screen
 
         $container->add(
             UI::input('login_email')
-                ->label(t('usim.common.email'))
-                ->placeholder(t('usim.auth.login.placeholder.email'))
+                ->label(t('screen.auth.login.email.label'))
+                ->placeholder(t('screen.auth.login.email.placeholder'))
                 ->value($email)
                 ->type('email')
                 ->required(true)
@@ -71,9 +71,9 @@ class Login extends Screen
 
         $container->add(
             UI::input('login_password')
-                ->label(t('usim.common.password'))
+                ->label(t('screen.auth.login.password.label'))
                 ->type('password')
-                ->placeholder(t('usim.auth.login.placeholder.password'))
+                ->placeholder(t('screen.auth.login.password.placeholder'))
                 ->value($password)
                 ->required(true)
                 ->width('100%')
@@ -93,14 +93,14 @@ class Login extends Screen
 
         $buttonsContainer->add(
             UI::button('btn_cancel_login')
-                ->label(t('usim.common.cancel'))
+                ->label(t('screen.auth.login.actions.cancel'))
                 ->style('secondary')
                 ->action('close_login_dialog')
         );
 
         $buttonsContainer->add(
             UI::button('btn_submit_login')
-                ->label(t('usim.auth.login.menu_label'))
+                ->label(t('screen.auth.login.actions.submit'))
                 ->style('primary')
                 ->action('submit_login')
         );
@@ -110,7 +110,7 @@ class Login extends Screen
         // Forgot Password Link left-aligned below the buttons and filled with the full width of the container
         $container->add(
             UI::button('btn_forgot_password')
-                ->label(t('usim.auth.login.forgot_password'))
+                ->label(t('screen.auth.login.actions.forgot_password'))
                 ->style('link')
                 ->action('navigate_forgot_password')
                 ->width('100%')
@@ -135,7 +135,7 @@ class Login extends Screen
 
         $response = $this->loginService->login($email, $password, (bool) $remember);
 
-        $message = $response['message'] ?? t('usim.auth.login.error.failed');
+        $message = $response['message'] ?? 'Login failed.';
         $status = $response['status'] ?? 'error';
         $this->toast($message, $status);
         $this->lbl_login_result->text($message)->style($status);
@@ -149,7 +149,7 @@ class Login extends Screen
 
         $user = $response['user'] ?? null;
         if (!$user) {
-            $this->toast(t('usim.auth.login.error.user_not_resolved'), 'error');
+            $this->toast(t('screen.auth.login.errors.resolve_user'), 'error');
             return;
         }
 
