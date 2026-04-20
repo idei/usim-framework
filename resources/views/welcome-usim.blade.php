@@ -1729,7 +1729,123 @@
             <h2>{{ t('welcome.arch.title') }}</h2>
             <p class="section-lead">{{ t('welcome.arch.lead') }}</p>
             <div class="arch-diagram-wrap">
-                <svg class="arch-svg" viewBox="0 0 860 620" xmlns="http://www.w3.org/2000/svg"
+                <svg class="arch-svg" viewBox="0 0 860 620" xmlns="http://www.w3.org/2000/svg" font-family="'Space Mono', monospace">
+    <defs>
+        <marker id="arr" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+            <path d="M0,0 L0,6 L8,3 z" fill="var(--border-svg)" />
+        </marker>
+        <marker id="arr-accent" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+            <path d="M0,0 L0,6 L8,3 z" fill="var(--accent-svg)" />
+        </marker>
+        <marker id="arr-up" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto-start-reverse">
+            <path d="M0,0 L0,6 L8,3 z" fill="var(--border-svg)" />
+        </marker>
+        <filter id="glow">
+            <feGaussianBlur stdDeviation="3" result="blur" />
+            <feComposite in="SourceGraphic" in2="blur" operator="over" />
+        </filter>
+    </defs>
+    <style>
+        .arch-svg .node-rect { fill: var(--arch-surface); stroke: var(--arch-border); stroke-width: 1.5; }
+        .arch-svg .node-rect-accent { fill: var(--arch-surface); stroke: var(--arch-accent); stroke-width: 1.5; }
+        .arch-svg .core-rect { fill: var(--arch-core); stroke: var(--arch-accent2); stroke-width: 1.5; }
+        .arch-svg .node-text { fill: var(--arch-text); font-size: 13px; }
+        .arch-svg .node-sub { fill: var(--arch-muted); font-size: 10.5px; }
+        .arch-svg .label-text { fill: var(--arch-muted); font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; }
+        .arch-svg .conn-line { stroke: var(--arch-border); stroke-width: 1.5; fill: none; marker-end: url(#arr); }
+        .arch-svg .conn-line-bi { stroke: var(--arch-border); stroke-width: 1.5; fill: none; marker-end: url(#arr); marker-start: url(#arr-up); }
+        .arch-svg .conn-accent { stroke: var(--arch-accent); stroke-width: 1.5; fill: none; stroke-dasharray: 5 3; marker-end: url(#arr-accent); }
+        .arch-svg .screen-rect { fill: var(--arch-surface); stroke: var(--arch-border); stroke-width: 1.2; }
+        .arch-svg .tag-pill { fill: rgba(0, 212, 170, 0.12); stroke: rgba(0, 212, 170, 0.35); stroke-width: 1; }
+        .arch-svg .tag-text { fill: var(--arch-accent); font-size: 9px; letter-spacing: 0.05em; }
+        .arch-svg .tool-rect { fill: rgba(255, 255, 255, 0.05); stroke: var(--arch-border); stroke-dasharray: 2 2; }
+    </style>
+
+    <g transform="translate(48, 52)">
+        <circle cx="36" cy="16" r="11" fill="none" stroke="var(--border-svg)" stroke-width="1.5" />
+        <line x1="36" y1="27" x2="36" y2="58" stroke="var(--border-svg)" stroke-width="1.5" />
+        <line x1="36" y1="36" x2="18" y2="50" stroke="var(--border-svg)" stroke-width="1.5" />
+        <line x1="36" y1="36" x2="54" y2="50" stroke="var(--border-svg)" stroke-width="1.5" />
+        <line x1="36" y1="58" x2="20" y2="76" stroke="var(--border-svg)" stroke-width="1.5" />
+        <line x1="36" y1="58" x2="52" y2="76" stroke="var(--border-svg)" stroke-width="1.5" />
+        <text x="36" y="93" text-anchor="middle" class="node-sub">Browser</text>
+    </g>
+
+    <rect x="132" y="76" width="148" height="26" rx="5" fill="var(--bg-node)" stroke="var(--border-svg)" stroke-width="1" />
+    <text x="206" y="93" text-anchor="middle" class="node-sub" style="font-size:10.5px">http://screen-a</text>
+    <line x1="116" y1="89" x2="132" y2="89" class="conn-line" style="marker-start:url(#arr-up)" />
+    <line x1="280" y1="89" x2="312" y2="89" class="conn-line" />
+
+    <g transform="translate(312, 46)">
+        <rect width="200" height="80" rx="10" class="node-rect-accent" />
+        <rect x="0" y="54" width="200" height="26" rx="0" fill="rgba(0,212,170,0.07)" stroke="none" />
+        <text x="100" y="28" text-anchor="middle" class="node-text" font-weight="700">Web Client</text>
+        <text x="100" y="46" text-anchor="middle" class="node-sub">(html, css, js)</text>
+        <rect x="0" y="54" width="200" height="1" fill="var(--border-svg)" />
+        <text x="100" y="71" text-anchor="middle" class="node-sub" style="fill:var(--arch-accent)">Render</text>
+    </g>
+
+    <g transform="translate(560, 46)">
+        <rect width="220" height="110" rx="10" class="node-rect-accent" style="stroke: var(--arch-accent2);" />
+        <text x="110" y="25" text-anchor="middle" class="node-text" font-weight="700">MCP Client</text>
+        <text x="110" y="40" text-anchor="middle" class="node-sub">(Model Context Protocol)</text>
+
+        <rect x="10" y="50" width="200" height="50" rx="5" class="tool-rect" />
+        <text x="20" y="65" class="tag-text" style="fill: var(--arch-text); font-weight: bold;">TOOLS:</text>
+        <text x="20" y="80" class="node-sub" style="font-size: 10px;">• display_screen()</text>
+        <text x="20" y="93" class="node-sub" style="font-size: 10px;">• send_event()</text>
+    </g>
+
+    <path d="M670,156 Q670,209 512,209" class="conn-accent" marker-start="none" />
+
+    <g transform="translate(312, 176)">
+        <rect width="200" height="66" rx="10" class="node-rect-accent" />
+        <rect x="6" y="8" width="76" height="18" rx="9" class="tag-pill" />
+        <text x="44" y="21" text-anchor="middle" class="tag-text">AGNOSTIC</text>
+        <text x="100" y="44" text-anchor="middle" class="node-text" font-weight="700">JSON Output</text>
+        <text x="100" y="59" text-anchor="middle" class="node-sub">(Agnostic contract)</text>
+    </g>
+
+    <line x1="412" y1="126" x2="412" y2="176" class="conn-line-bi" />
+    <line x1="412" y1="242" x2="412" y2="290" class="conn-line-bi" />
+
+    <g transform="translate(230, 290)">
+        <rect width="364" height="148" rx="12" class="core-rect" />
+        <text x="184" y="136" text-anchor="middle" class="node-text" font-weight="700" style="font-size:14px; fill:var(--arch-accent2)">USIM Core</text>
+        <g transform="translate(18, 18)">
+            <rect width="96" height="80" rx="10" class="screen-rect" />
+            <text x="48" y="46" text-anchor="middle" class="node-text" font-weight="700" style="font-size:12px">ScreenA</text>
+        </g>
+        <g transform="translate(134, 18)">
+            <rect width="96" height="80" rx="10" class="screen-rect" />
+            <text x="48" y="46" text-anchor="middle" class="node-text" font-weight="700" style="font-size:12px">ScreenB</text>
+        </g>
+        <g transform="translate(250, 18)">
+            <rect width="96" height="80" rx="10" class="screen-rect" />
+            <text x="48" y="46" text-anchor="middle" class="node-text" font-weight="700" style="font-size:12px">ScreenX</text>
+        </g>
+    </g>
+
+    <line x1="412" y1="438" x2="412" y2="468" class="conn-line-bi" />
+
+    <g transform="translate(230, 468)">
+        <rect width="364" height="44" rx="10" class="node-rect" />
+        <text x="182" y="27" text-anchor="middle" class="node-text" font-weight="700">Service Layer</text>
+    </g>
+
+    <line x1="412" y1="512" x2="412" y2="540" class="conn-line-bi" />
+
+    <g transform="translate(372, 538)">
+        <ellipse cx="40" cy="8" rx="40" ry="10" fill="var(--bg-node)" stroke="var(--border-svg)" stroke-width="1.5" />
+        <rect x="0" y="8" width="80" height="30" fill="var(--bg-node)" stroke="none" />
+        <line x1="0" y1="8" x2="0" y2="38" stroke="var(--border-svg)" stroke-width="1.5" />
+        <line x1="80" y1="8" x2="80" y2="38" stroke="var(--border-svg)" stroke-width="1.5" />
+        <ellipse cx="40" cy="38" rx="40" ry="10" fill="var(--bg-node)" stroke="var(--border-svg)" stroke-width="1.5" />
+        <text x="40" y="57" text-anchor="middle" class="node-text" font-weight="700" style="font-size:12px">DB</text>
+    </g>
+</svg>
+
+                {{-- <svg class="arch-svg" viewBox="0 0 860 620" xmlns="http://www.w3.org/2000/svg"
                     font-family="'Space Mono', monospace">
                     <defs>
                         <marker id="arr" markerWidth="8" markerHeight="8" refX="6" refY="3"
@@ -1958,7 +2074,7 @@
                             style="font-size:12px">DB</text>
                     </g>
 
-                </svg>
+                </svg> --}}
             </div>
         </div>
     </section>
