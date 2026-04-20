@@ -156,4 +156,9 @@ class Login extends Screen
         $redirectTo = $this->authSessionService->start($user, $this->store_token);
         $this->redirect($redirectTo);
     }
+
+    public function onCloseLoginDialog(): void
+    {
+        $this->redirect('/');
+    }
 }
