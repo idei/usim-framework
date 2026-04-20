@@ -24,6 +24,8 @@
     --usim-container-title-border: rgba(52, 152, 219, 0.32);
     --usim-container-title-text: var(--usim-color-text-strong);
     --usim-container-title-shadow: none;
+    --usim-tooltip-bg: #1f2937;
+    --usim-tooltip-text: #f9fafb;
     --usim-tooltip-shadow: 0 4px 12px rgba(15, 23, 36, 0.24);
 
     /* Action tokens */
@@ -76,6 +78,9 @@
 
     /* Toast tokens */
     --usim-toast-bg: var(--usim-color-surface);
+    --usim-toast-success-bg: rgba(46, 204, 113, 0.12);
+    --usim-toast-info-bg: rgba(52, 152, 219, 0.12);
+    --usim-toast-warning-bg: rgba(243, 156, 18, 0.14);
     --usim-toast-shadow: 0 4px 12px rgba(15, 23, 36, 0.15);
     --usim-toast-border-info: var(--usim-color-primary);
     --usim-toast-border-success: #27ae60;
@@ -205,6 +210,8 @@ body[data-theme="dark"] {
     --usim-container-title-border: rgba(143, 169, 205, 0.46);
     --usim-container-title-text: #f1f5ff;
     --usim-container-title-shadow: 0 1px 0 rgba(255, 255, 255, 0.03);
+    --usim-tooltip-bg: #0b1220;
+    --usim-tooltip-text: #e6edf9;
     --usim-tooltip-shadow: 0 8px 18px rgba(0, 0, 0, 0.4);
 
     --usim-menu-bar-bg: var(--usim-color-surface);
@@ -305,6 +312,9 @@ body[data-theme="dark"] {
     --usim-card-theme-info: #6fb8e8;
 
     --usim-toast-bg: rgba(22, 32, 51, 0.98);
+    --usim-toast-success-bg: rgba(61, 214, 140, 0.2);
+    --usim-toast-info-bg: rgba(143, 169, 205, 0.22);
+    --usim-toast-warning-bg: rgba(247, 185, 85, 0.2);
     --usim-toast-shadow: 0 8px 20px rgba(0, 0, 0, 0.32);
     --usim-toast-border-info: #8fa9cd;
     --usim-toast-border-success: #3dd68c;

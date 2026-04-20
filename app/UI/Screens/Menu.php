@@ -73,6 +73,7 @@ class Menu extends Screen
             $this->store_lang = config('usim.i18n.fallback_locale', 'en');
         }
         $this->lang_menu = $this->buildLangMenu();
+        $this->user_menu->marginLeft('12px');
 
         $container->add($this->main_menu);
         $this->theme_toggle = UI::button('theme_toggle')

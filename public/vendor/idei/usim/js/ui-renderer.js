@@ -1043,7 +1043,6 @@ class InputComponent extends UIComponent {
             errorIcon.className = 'ui-input-error-icon';
             errorIcon.innerHTML = '⚠️';
             errorIcon.setAttribute('data-tooltip', this.config.error);
-            errorIcon.title = this.config.error; // Fallback tooltip
             inputWrapper.appendChild(errorIcon);
         }
 
@@ -2643,6 +2642,8 @@ class UIRenderer {
             toastContainer.id = 'toast-container';
             document.body.appendChild(toastContainer);
         }
+        raiseToastContainerAboveModals(toastContainer);
+        document.body.appendChild(toastContainer);
         toastContainer.className = `toast-container toast-position-${position}`;
 
         // Create toast element with position-aware classes
@@ -2666,6 +2667,7 @@ class UIRenderer {
 
         // Add to container
         toastContainer.appendChild(toast);
+        raiseToastContainerAboveModals(toastContainer);
 
         // Trigger opening animation
         requestAnimationFrame(() => {
@@ -2674,8 +2676,13 @@ class UIRenderer {
 
         // Close button handler
         const closeBtn = toast.querySelector('.toast-close');
+        let isClosing = false;
         const closeToast = () => {
-            toast.classList.remove('toast-open');
+            if (isClosing) {
+                return;
+            }
+
+            isClosing = true;
             toast.classList.add(`toast-close-${close_effect}`);
 
             setTimeout(() => {
@@ -3289,7 +3296,6 @@ class UIRenderer {
                         errorIcon.className = 'ui-input-error-icon';
                         errorIcon.innerHTML = '⚠️';
                         errorIcon.setAttribute('data-tooltip', changes.error);
-                        errorIcon.title = changes.error;
                         inputWrapper.appendChild(errorIcon);
                     } else {
                         // Remove error state
@@ -3645,6 +3651,17 @@ const modalOverlayStack = [];
 const modalTimeouts = new Map();
 let modalOverlayCounter = 0;
 
+function raiseToastContainerAboveModals(toastContainer = document.getElementById('toast-container')) {
+    if (!toastContainer) {
+        return;
+    }
+
+    const topModalZIndex = MODAL_BASE_Z_INDEX + Math.max(modalOverlayStack.length - 1, 0);
+    const targetZIndex = Math.min(2147483647, topModalZIndex + 1000);
+
+    toastContainer.style.setProperty('z-index', String(targetZIndex), 'important');
+}
+
 function ensureModalRoot() {
     let root = document.getElementById(MODAL_ROOT_ID);
     if (!root) {
@@ -3773,6 +3790,7 @@ function openModal(uiData) {
 
     layer.overlay.classList.remove('hidden');
     modalOverlayStack.push(layer);
+    raiseToastContainerAboveModals();
     setBodyModalState();
 
     let timeoutConfig = null;
@@ -3823,6 +3841,7 @@ function closeModal() {
     }
 
     setBodyModalState();
+    raiseToastContainerAboveModals();
 
     console.log('✅ Modal closed');
 }
