@@ -7,11 +7,14 @@ use Idei\Usim\Models\UsimTextKey;
 
 class TranslationDatasetQuery
 {
-    public function listLanguagesDataset(): array
+    public function listLanguagesDataset(bool $includeInactive = false): array
     {
         $items = UsimLanguage::query()
             ->orderByDesc('is_fallback')
             ->orderBy('name')
+            ->when(!$includeInactive, function ($query) {
+                $query->where('is_active', true);
+            })
             ->get()
             ->map(static function (UsimLanguage $language): array {
                 return [
