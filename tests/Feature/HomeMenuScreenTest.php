@@ -73,19 +73,21 @@ it('returns menu screen for guests with settings trigger and register option', f
         app()->setLocale($locale);
 
         $ui = uiScenario($this, Menu::class, ['parent' => 'menu']);
+        $storage = json_decode($ui->opaqueUsim(), true) ?: [];
+        $menuLang = (string) ($storage['store_lang'] ?? app()->getLocale());
 
         $mainMenu = $ui->component('main_menu')->data();
         $userMenu = $ui->component('user_menu')->data();
         $themeToggle = $ui->component('theme_toggle')->data();
 
         expect($mainMenu['type'] ?? null)->toBe('menudropdown');
-        expect(menuItemsContainLabel($mainMenu['items'] ?? [], t('screen.menu.items.home')))->toBeTrue();
-        expect(menuItemsContainLabel($mainMenu['items'] ?? [], t('screen.menu.items.about')))->toBeTrue();
+        expect(menuItemsContainLabel($mainMenu['items'] ?? [], t('screen.menu.items.home', [], $menuLang)))->toBeTrue();
+        expect(menuItemsContainLabel($mainMenu['items'] ?? [], t('screen.menu.items.about', [], $menuLang)))->toBeTrue();
 
         expect($userMenu['type'] ?? null)->toBe('menudropdown');
         expect($userMenu['trigger']['label'] ?? null)->toBe('⚙️');
-        expect(menuItemsContainLabel($userMenu['items'] ?? [], t('screen.menu.items.register')))->toBeTrue();
-        expect(menuItemsContainLabel($userMenu['items'] ?? [], t('screen.menu.items.logout')))->toBeFalse();
+        expect(menuItemsContainLabel($userMenu['items'] ?? [], t('screen.menu.items.register', [], $menuLang)))->toBeTrue();
+        expect(menuItemsContainLabel($userMenu['items'] ?? [], t('screen.menu.items.logout', [], $menuLang)))->toBeFalse();
         expect($themeToggle['icon_color'] ?? null)->toBe('var(--usim-menu-trigger-text)');
 
         $ui->assertNoIssues();

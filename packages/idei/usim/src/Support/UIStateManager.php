@@ -43,16 +43,18 @@ class UIStateManager
      */
     protected static function getOrCreateClientId(): string
     {
+        $clientId = request()->cookie(self::CLIENT_ID_COOKIE);
+
+        // If a client cookie is present, it must be the source of truth
+        // for this request (important for test scenarios and multi-tab flows).
+        if (is_string($clientId) && $clientId !== '') {
+            session()->put(self::CLIENT_ID_COOKIE, $clientId);
+            return $clientId;
+        }
+
         $sessionClientId = session()->get(self::CLIENT_ID_COOKIE);
         if (is_string($sessionClientId) && $sessionClientId !== '') {
             return $sessionClientId;
-        }
-
-        $clientId = request()->cookie(self::CLIENT_ID_COOKIE);
-
-        if ($clientId) {
-            session()->put(self::CLIENT_ID_COOKIE, $clientId);
-            return $clientId;
         }
 
         // Generate new UUID for this client
@@ -79,7 +81,6 @@ class UIStateManager
      * Generate cache key for a service
      *
      * @param string $serviceClass Full service class name
-     * @param string|null $userId Optional user ID (deprecated, not used)
      * @return string Cache key
      */
     public static function getCacheKey(?string $serviceClass = null, string $prefix = 'ui_state'): string
