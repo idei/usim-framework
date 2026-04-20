@@ -4,7 +4,7 @@ return [
     'actions' => [
         'validate' => 'Validar',
     ],
-    'instruction' => 'Ingresa un nombre con al menos 3 caracteres y haz clic en "Validar"',
+    'instruction' => 'Ingresa un nombre con al menos 3 letras y presiona "Validar"',
     'name' => [
         'label' => 'Tu Nombre',
         'placeholder' => 'Ingresa tu nombre aquí...',
@@ -16,7 +16,7 @@ return [
     ],
     'title' => 'Demo de Componente Input',
     'validation' => [
-        'name_min' => 'El nombre debe tener al menos 3 caracteres',
+        'name_min' => 'El nombre debe tener al menos 3 letras',
         'name_required' => 'El nombre es obligatorio',
     ],
 ];

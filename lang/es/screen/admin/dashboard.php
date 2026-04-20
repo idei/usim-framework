@@ -17,6 +17,7 @@ return [
         'verified' => 'Verificado',
     ],
     'title' => 'Gestión de Usuarios',
+    'menu_label' => 'Usuarios',
     'user_created' => 'Usuario creado exitosamente',
     'user_updated' => 'Usuario actualizado exitosamente',
 ];

@@ -17,6 +17,7 @@ return [
         'verified' => 'Verified',
     ],
     'title' => 'User Management',
+    'menu_label' => 'Users',
     'user_created' => 'User created successfully',
     'user_updated' => 'User updated successfully',
 ];

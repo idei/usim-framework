@@ -31,7 +31,7 @@ class Dashboard extends Screen
 
     public static function getMenuLabel(): string
     {
-        return t('usim.admin.dashboard.menu_label');
+        return t('screen.admin.dashboard.menu_label');
     }
 
     public static function getMenuIcon(): ?string
