@@ -310,6 +310,32 @@ Sigue `packages/idei/usim/docs/package-update-and-consumer-upgrade-guide.md`:
 - Si cambias assets del paquete, recuerda publicarlos en la app.
 - No asumas que publicar el paquete basta; verifica tambien el impacto en esta app monorepo.
 
+## Publicar el paquete ("publica el paquete")
+
+Cuando el usuario diga "publica el paquete" o una frase equivalente, sigue estos pasos **en orden** sin pedir confirmacion intermedia:
+
+1. **Leer el CHANGELOG** (`packages/idei/usim/CHANGELOG.md`) para identificar:
+   - La ultima version publicada (ultimo encabezado `## [X.Y.Z]`).
+   - El contenido de la seccion `## [Unreleased]` para clasificar los cambios.
+
+2. **Calcular la nueva version** con Semantic Versioning (pre-1.0: `0.x`):
+   - **Patch** (`0.Y.Z+1`): solo fixes, sin nuevas features ni breaking changes.
+   - **Minor** (`0.Y+1.0`): nuevas features, breaking changes o eliminacion de API (en `0.x` el minor absorbe breaking changes).
+   - Regla practica: si `[Unreleased]` incluye `### Added` o `### Changed` con eliminacion/renombrado de clases/metodos, sube minor. Si solo tiene `### Fixed`, sube patch.
+
+3. **Confirmar la version calculada** brevemente al usuario antes de ejecutar el script (una sola linea: "Version calculada: vX.Y.Z — ejecutando release...").
+
+4. **Ejecutar el script de release**:
+   ```bash
+   bash scripts/release_usim_package -v vX.Y.Z -f
+   ```
+   - Usa `-f` siempre para forzar limpieza del split branch previo.
+   - No agregar `-p` salvo que el usuario lo pida explicitamente.
+
+5. **Reportar el resultado**: indicar si el push y el tag tuvieron exito, y recordar al usuario que puede triggerear Packagist manualmente o con `-p` si tiene las variables `PACKAGIST_USERNAME` / `PACKAGIST_TOKEN` exportadas.
+
+6. **Post-release obligatorio**: actualizar la seccion `## [Unreleased]` del CHANGELOG para moverla a `## [vX.Y.Z] - YYYY-MM-DD` con la fecha actual, y dejar una nueva seccion `## [Unreleased]` vacia encima. Hacer commit con mensaje `chore: mark vX.Y.Z as released in CHANGELOG`.
+
 ## Testing y validacion
 
 - Para tests de UI/Screen en la app, sigue `tests/SCREEN_TESTING_GUIDE.md` y `tests/prompt.md`.
