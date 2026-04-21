@@ -24,15 +24,15 @@
     },
     "require": {
         "php": "^8.2",
-        "illuminate/console": "^10.0|^11.0|^12.0",
-        "illuminate/filesystem": "^10.0|^11.0|^12.0",
-        "illuminate/support": "^10.0|^11.0|^12.0",
+        "illuminate/console": "^10.0|^11.0|^12.0|^13.0",
+        "illuminate/filesystem": "^10.0|^11.0|^12.0|^13.0",
+        "illuminate/support": "^10.0|^11.0|^12.0|^13.0",
         "laravel/sanctum": "^3.0|^4.0",
         "spatie/laravel-permission": "^6.0",
         "symfony/finder": "^6.0|^7.0",
         "nikic/php-parser": "^5.7",
         "symfony/var-dumper": "^6.0|^7.0",
-        "illuminate/contracts": "^10.0|^11.0|^12.0"
+        "illuminate/contracts": "^10.0|^11.0|^12.0|^13.0"
     },
     "suggest": {
         "laravel/octane": "Required to handle state reset in long-running processes."

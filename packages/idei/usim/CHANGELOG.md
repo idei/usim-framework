@@ -26,6 +26,7 @@ The format is based on Keep a Changelog, and this project follows Semantic Versi
 - The legacy `BaseUIBuilder` class was removed after consolidating common builder behavior into `UIComponent` and `Container`.
 
 ### Fixed
+- Composer constraints now allow Laravel 13 (`illuminate/* ^13.0`).
 - Translation resolution now falls back to English by default and then to Laravel's standard translator before returning the key.
 - Auto-generated key length is now configurable (`ui-services.i18n.auto_key_max_length`) with smart truncation that prefers completing the current token up to the next separator.
 - Human-text auto-key generation now normalizes escaped and platform line breaks before deriving keys and storing fallback values.
