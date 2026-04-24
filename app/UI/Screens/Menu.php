@@ -12,6 +12,7 @@ use App\UI\Screens\Auth\Profile;
 use App\UI\Screens\Demo\ButtonDemo;
 use App\UI\Screens\Demo\CalendarDemo;
 use App\UI\Screens\Demo\CarouselDemo;
+use App\UI\Screens\Demo\AddressForm;
 use App\UI\Screens\Demo\CheckboxDemo;
 use App\UI\Screens\Demo\DemoUi;
 use App\UI\Screens\Demo\FormDemo;
@@ -236,6 +237,7 @@ class Menu extends Screen
     {
         $menu->separator();
         $menu->submenu(t('screen.menu.items.demos'), function ($submenu) {
+            $submenu->screen(AddressForm::class, 'Formulario de direccion', '📍');
             $submenu->screen(ButtonDemo::class, t('screen.menu.demos.button_demo'), '🖲️');
             $submenu->screen(TableDemo::class, t('screen.menu.demos.table_demo'), '📊');
             $submenu->screen(ModalDemo::class, t('screen.menu.demos.modal_demo'), '🪟');
