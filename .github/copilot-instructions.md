@@ -274,6 +274,94 @@ Implicancias para tus respuestas y cambios:
 - Si el usuario pide "agregar una screen", piensa en ciclo de vida, estado `store_*`, handlers, autorizacion y testing, no solo en markup.
 - Si describes arquitectura, deja explicito que la fuente de verdad es backend + contrato JSON incremental.
 
+## Cuando crees una Screen
+
+Cuando el usuario te pida "crear una Screen" o "agregar una screen", debes entender que se refiere a crear una clase PHP que herede de `Screen` (no solo una vista pasiva). Sigue estos patrones observados en [Dashboard.php](app/UI/Screens/Admin/Dashboard.php) y [TranslateManager.php](app/UI/Screens/Admin/TranslateManager.php):
+
+### Estructura base y ciclo de vida
+
+1. **Namespace y clase**: ubica la Screen en `App\UI\Screens\{Category}\{ScreenName}` (e.g., `App\UI\Screens\Admin\Dashboard`).
+2. **Heredar de Screen**: `extends Screen` e implementar obligatoriamente:
+   - `buildBaseUI(Container $container, ...$params): void` - construir la interfaz inicial
+   - `getMenuLabel(): string` - etiqueta para el menu de navegacion
+   - `getMenuIcon(): ?string` - emoji o icono para el menu (opcional)
+   - `authorize(): bool` - control de acceso basado en roles (opcional pero recomendado)
+3. **Propiedades protegidas**: declara como `protected` los componentes que necesites persistir entre requests (e.g., `protected Table $users_table`, `protected Input $search_field`).
+4. **Handlers**: implementa metodos en convención `on<ActionName>` (e.g., `onAddUserClicked`, `onSearchUsers`, `onSubmitRegister`). Reciben `array $params` con datos del evento frontend.
+5. **postLoadUI()**: si necesitas sincronizar estado restaurado con valores de componentes, implementa este metodo.
+
+### Control de roles
+
+Si la Screen requiere un rol especifico, implementa el metodo `authorize()`:
+
+```php
+public static function authorize(): bool
+{
+    return self::requireRole('admin');
+}
+```
+
+Usa `requireRole()` para un rol unico, o `requireAnyRole()` para multiples roles. El framework lanzará `AuthorizationException` automaticamente si el usuario no esta autorizado.
+
+### Internacionalizacion (i18n)
+
+Las claves de traduccion siguen un patrón jerarquico por pantalla:
+
+**Estructura de directorios**: 
+- `lang/{locale}/screen/{category}/{screen_name}.php`
+
+**Ejemplos reales**:
+- `lang/en/screen/admin/dashboard.php` → claves para `App\UI\Screens\Admin\Dashboard`
+- `lang/en/screen/admin/translate_manager.php` → claves para `App\UI\Screens\Admin\TranslateManager`
+
+**Estructura de archivos de traduccion** (retorna array asociativo):
+```php
+<?php
+return [
+    'menu_label' => 'Users',
+    'add_user' => 'Add User',
+    'search_placeholder' => 'Search users...',
+    'table' => [
+        'email' => 'Email',
+        'name' => 'Name',
+        'role' => 'Role',
+    ],
+    'edit' => [
+        'title' => 'Edit User',
+        'name_label' => 'Full Name',
+        'email_label' => 'Email',
+    ],
+    'delete' => [
+        'title' => 'Delete User',
+        'confirm' => 'Are you sure you want to delete user "{user_name}"?',
+        'success' => 'User deleted successfully',
+    ],
+    'errors' => [
+        'user_not_found' => 'User not found',
+        'update_failed' => 'Update failed',
+    ],
+];
+```
+
+**Uso en el codigo**:
+- `t('screen.admin.dashboard.menu_label')` → "Users"
+- `t('screen.admin.dashboard.table.email')` → "Email"
+- Usar `t(..., ['placeholder' => '...'])` para interpolacion
+
+**Generacion**: cuando crees una Screen nueva, debes:
+1. Crear `lang/en/screen/{category}/{screen_name}.php` con todas las claves
+2. Crear `lang/es/screen/{category}/{screen_name}.php` con las claves traducidas al español
+3. Usar `t('screen.{category}.{screen_name}...')` consistentemente en el codigo
+
+### Ciclo completo
+
+Cuando se cree una Screen, considerar:
+1. Clase Screen con `buildBaseUI()`, `authorize()`, handlers (`on*` methods).
+2. Propiedades persistidas (`store_*` si el estado debe sobrevivir entre requests).
+3. Archivo de traducciones en `lang/{locale}/screen/{categoria}/{nombre}.php`.
+4. Entrada en menu si aplica (actualizar `app/UI/Screens/Menu.php`).
+5. Tests Pest siguiendo `tests/SCREEN_TESTING_GUIDE.md` y `tests/prompt.md`.
+
 ## Cuando agregues un componente nuevo al framework
 
 Sigue el flujo definido por `packages/idei/usim/docs/component_prompt.md`:
