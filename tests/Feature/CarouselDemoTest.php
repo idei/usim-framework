@@ -43,7 +43,7 @@ it('updates auto carousel timeout dynamically on timeout tick', function () {
     $ui = uiScenario($this, CarouselDemo::class, ['reset' => true]);
 
     $auto = $ui->component('auto_carousel')->data();
-    $autoId = $auto['_id'] ?? null;
+    $autoId = isset($auto['_json_key']) ? (int) $auto['_json_key'] : null;
 
     expect($autoId)->toBeInt();
     expect($auto['current_index'] ?? null)->toBe(0);

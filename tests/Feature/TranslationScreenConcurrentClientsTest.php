@@ -32,13 +32,13 @@ it('isolates translation screen state across concurrent browser clients', functi
         $searchComponent = findComponentByName($initial->json(), 'search_translations');
         expect($searchComponent)->not->toBeNull();
 
-        $searchComponentId = (int) ($searchComponent['_id'] ?? 0);
+        $searchComponentId = (int) ($searchComponent['_json_key'] ?? 0);
         expect($searchComponentId)->toBeGreaterThan(0);
 
         $languageFilter = findComponentByName($initial->json(), 'language_filter');
         expect($languageFilter)->not->toBeNull();
 
-        $languageFilterComponentId = (int) ($languageFilter['_id'] ?? 0);
+        $languageFilterComponentId = (int) ($languageFilter['_json_key'] ?? 0);
         expect($languageFilterComponentId)->toBeGreaterThan(0);
 
         if ($expectedSearchComponentId === null) {

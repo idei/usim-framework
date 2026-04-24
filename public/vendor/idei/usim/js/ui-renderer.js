@@ -97,6 +97,28 @@ function getUsimStorageValue() {
     return localStorage.getItem(storageKey) || '';
 }
 
+function encodeHeaderSafeValue(rawValue) {
+    if (typeof rawValue !== 'string' || rawValue.length === 0) {
+        return '';
+    }
+
+    try {
+        const utf8Bytes = new TextEncoder().encode(rawValue);
+        let binary = '';
+        for (const byte of utf8Bytes) {
+            binary += String.fromCharCode(byte);
+        }
+        return `b64:${btoa(binary)}`;
+    } catch (error) {
+        // Fallback: return raw value if encoding APIs are unavailable.
+        return rawValue;
+    }
+}
+
+function getUsimStorageHeaderValue() {
+    return encodeHeaderSafeValue(getUsimStorageValue());
+}
+
 function getUsimStorageObject() {
     const storageRaw = getUsimStorageValue();
     return safeParseJsonObject(storageRaw) || {};
@@ -313,6 +335,11 @@ class UIComponent {
         this.element = null;
     }
 
+    getComponentId() {
+        const parsedId = Number.parseInt(this.id, 10);
+        return Number.isNaN(parsedId) ? this.id : parsedId;
+    }
+
     render() {
         // Override in subclasses
         throw new Error('render() must be implemented by subclass');
@@ -328,8 +355,7 @@ class UIComponent {
     }
 
     applyCommonAttributes(element) {
-        // Use internal component ID (_id) for data attribute, not JSON key
-        const componentId = this.config._id || this.id;
+        const componentId = this.getComponentId();
         const isTransparentColor = (value) => {
             if (typeof value !== 'string') {
                 return false;
@@ -644,11 +670,10 @@ class UIComponent {
             // Get CSRF token from meta tag
             const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
 
-            // Use internal component ID (_id), not the JSON key
-            const componentId = this.config._id || parseInt(this.id);
+            const componentId = this.getComponentId();
 
             // Get USIM storage from localStorage
-            const usimStorage = getUsimStorageValue();
+            const usimStorage = getUsimStorageHeaderValue();
 
             // console.log('Sending event:', { component_id: componentId, action, csrfToken });
 
@@ -862,7 +887,7 @@ class ButtonComponent extends UIComponent {
         const values = {};
 
         // Find the button element in the DOM
-        const buttonElement = document.querySelector(`[data-component-id="${this.config._id}"]`);
+        const buttonElement = document.querySelector(`[data-component-id="${this.getComponentId()}"]`);
         if (!buttonElement) {
             return values;
         }
@@ -1052,7 +1077,7 @@ class InputComponent extends UIComponent {
     }
 
     attachInputEvents(input) {
-        const componentId = this.config._id || parseInt(this.id);
+        const componentId = this.getComponentId();
 
         // onInput event (while typing) - with debounce support
         if (this.config.on_input) {
@@ -1100,8 +1125,8 @@ class InputComponent extends UIComponent {
     async triggerAction(action, parameters) {
         try {
             const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
-            const componentId = this.config._id || parseInt(this.id);
-            const usimStorage = getUsimStorageValue();
+            const componentId = this.getComponentId();
+            const usimStorage = getUsimStorageHeaderValue();
 
             const response = await fetch('/api/ui-event', {
                 method: 'POST',
@@ -1227,8 +1252,8 @@ class SelectComponent extends UIComponent {
 
         try {
             const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
-            const componentId = this.config._id || parseInt(this.id);
-            const usimStorage = getUsimStorageValue();
+            const componentId = this.getComponentId();
+            const usimStorage = getUsimStorageHeaderValue();
 
             const response = await fetch('/api/ui-event', {
                 method: 'POST',
@@ -1336,8 +1361,8 @@ class CheckboxComponent extends UIComponent {
 
         try {
             const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
-            const componentId = this.config._id || parseInt(this.id);
-            const usimStorage = getUsimStorageValue();
+            const componentId = this.getComponentId();
+            const usimStorage = getUsimStorageHeaderValue();
 
             const response = await fetch('/api/ui-event', {
                 method: 'POST',
@@ -1386,7 +1411,7 @@ class CheckboxComponent extends UIComponent {
             console.error('❌ Network error on checkbox change:', error);
 
             // Revert to original state on error
-            const checkbox = document.querySelector(`[data-component-id="${this.config._id}"] input[type="checkbox"]`);
+            const checkbox = document.querySelector(`[data-component-id="${this.getComponentId()}"] input[type="checkbox"]`);
             if (checkbox) {
                 checkbox.checked = this.config.checked || false;
             }
@@ -1587,8 +1612,8 @@ class TableComponent extends UIComponent {
 
         try {
             const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
-            const componentId = this.config._id || parseInt(this.id);
-            const usimStorage = getUsimStorageValue();
+            const componentId = this.getComponentId();
+            const usimStorage = getUsimStorageHeaderValue();
 
             const response = await fetch('/api/ui-event', {
                 method: 'POST',
@@ -1866,8 +1891,8 @@ class TableCellComponent extends UIComponent {
 
         try {
             const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
-            const componentId = this.config._id || parseInt(this.id);
-            const usimStorage = getUsimStorageValue();
+            const componentId = this.getComponentId();
+            const usimStorage = getUsimStorageHeaderValue();
 
             const response = await fetch('/api/ui-event', {
                 method: 'POST',
@@ -1975,8 +2000,8 @@ class TableHeaderCellComponent extends UIComponent {
     async handleHeaderClick(action, parameters) {
         try {
             const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
-            const componentId = this.config._id || parseInt(this.id);
-            const usimStorage = getUsimStorageValue();
+            const componentId = this.getComponentId();
+            const usimStorage = getUsimStorageHeaderValue();
 
             const response = await fetch('/api/ui-event', {
                 method: 'POST',
@@ -2281,28 +2306,11 @@ class UIRenderer {
             return;
         }
 
-        // Step 1: Build a map of internal ID -> JSON key
-        // Each component now has _id in its config
-        const internalIdToKey = new Map();
         const componentIds = Object.keys(this.data);
 
         // console.log('📋 Component IDs from JSON keys:', componentIds);
 
-        for (const key of componentIds) {
-            const config = this.data[key];
-
-            // Skip special keys that are not UI components
-            if (isSpecialUIKey(key)) {
-                continue;
-            }
-
-            if (config._id !== undefined) {
-                internalIdToKey.set(config._id, key);
-                // console.log(`  🔗 Mapped _id ${config._id} -> JSON key "${key}"`);
-            }
-        }
-
-        // Step 2: Create all component instances
+        // Step 1: Create all component instances
         for (const id of componentIds) {
             // Skip special keys that are not UI components
             if (isSpecialUIKey(id)) {
@@ -2322,7 +2330,7 @@ class UIRenderer {
 
         // console.log(`✅ Created ${this.components.size} components`);
 
-        // Step 3: Group components by parent and sort by _order
+        // Step 2: Group components by parent and sort by _order
         const childrenByParent = new Map();
         for (const id of componentIds) {
             // Skip special keys that are not UI components
@@ -2340,9 +2348,9 @@ class UIRenderer {
                 // Parent is a DOM element
                 parentKey = parentId;
             } else if (typeof parentId === 'number') {
-                // Parent is a component - find its key using _id
-                parentKey = internalIdToKey.get(parentId);
-                if (!parentKey) {
+                // Parent is a component - use numeric ID as component map key
+                parentKey = String(parentId);
+                if (!this.components.has(parentKey)) {
                     console.error(`Parent component with internal ID ${parentId} not found in JSON`);
                     continue;
                 }
@@ -2386,7 +2394,7 @@ class UIRenderer {
             });
         }
 
-        // Step 4: Mount components in hierarchical order
+        // Step 3: Mount components in hierarchical order
         const mounted = new Set();
         const maxIterations = this.components.size * 2;
         let iterations = 0;
@@ -2420,8 +2428,8 @@ class UIRenderer {
                             mounted.add(id);
                         }
                     } else if (typeof parentId === 'number') {
-                        // Parent is a component - find its key using _id
-                        const parentComponentKey = internalIdToKey.get(parentId);
+                        // Parent is a component - component map key is its numeric ID as string
+                        const parentComponentKey = String(parentId);
                         const parentComponent = this.components.get(parentComponentKey);
 
                         if (!parentComponent) {
@@ -2452,7 +2460,7 @@ class UIRenderer {
 
                             component.mount(mountTarget);
                             mounted.add(id);
-                            // console.log(`    ✅ Mounted to component "${parentComponentKey}" (_id: ${parentId})`);
+                            // console.log(`    ✅ Mounted to component "${parentComponentKey}"`);
                         } else {
                             // console.log(`    ⏳ Waiting for parent "${parentComponentKey}" to be mounted first`);
                         }
@@ -2479,7 +2487,7 @@ class UIRenderer {
         console.log('🗑️ Attempting to clear uploaders with IDs:', uploaderIds);
 
         uploaderIds.forEach(uploaderId => {
-            // Buscar el componente por su _id numérico
+            // Buscar el componente por su ID numérico
             const component = this.components.get(String(uploaderId));
 
             if (component && typeof component.clearFiles === 'function') {
@@ -2822,8 +2830,8 @@ class UIRenderer {
                             continue;
                         }
 
-                        const componentId = changes._id;
-                        if (!componentId) continue;
+                        const parsedId = Number.parseInt(jsonKey, 10);
+                        const componentId = Number.isNaN(parsedId) ? jsonKey : parsedId;
 
                         // If parent is null, remove the component and all descendants from DOM/registry
                         if (changes.parent === null) {
@@ -2852,8 +2860,8 @@ class UIRenderer {
                 continue;
             }
 
-            const componentId = changes._id;
-            if (!componentId) continue;
+            const parsedId = Number.parseInt(jsonKey, 10);
+            const componentId = Number.isNaN(parsedId) ? jsonKey : parsedId;
 
             // If parent is null, remove the component and all descendants from DOM/registry
             if (changes.parent === null) {
@@ -2876,7 +2884,7 @@ class UIRenderer {
     /**
      * Remove a component and all descendants from DOM and component registry
      *
-     * @param {number|string} componentId - Internal component id (_id)
+        * @param {number|string} componentId - Component id
      */
     removeComponentAndChildren(componentId) {
         const targetId = String(componentId);
@@ -2907,9 +2915,7 @@ class UIRenderer {
                 }
 
                 const parentId = component.config.parent;
-                const internalId = component.config._id !== undefined
-                    ? String(component.config._id)
-                    : String(mapKey);
+                const internalId = String(mapKey);
 
                 if (parentId !== undefined && parentId !== null && removedIds.has(String(parentId)) && !removedIds.has(internalId)) {
                     removedIds.add(internalId);
@@ -2920,9 +2926,7 @@ class UIRenderer {
 
         // Cleanup component registry
         for (const [mapKey, component] of this.components.entries()) {
-            const internalId = component && component.config && component.config._id !== undefined
-                ? String(component.config._id)
-                : String(mapKey);
+            const internalId = String(mapKey);
 
             if (removedIds.has(internalId) || removedIds.has(String(mapKey))) {
                 this.components.delete(mapKey);
@@ -2939,9 +2943,10 @@ class UIRenderer {
      * @param {object} changes - Properties to update
      */
     updateComponent(element, changes) {
+        const componentId = element.getAttribute('data-component-id');
+
         try {
             // Generic component update delegation
-            const componentId = element.getAttribute('data-component-id');
             if (componentId && this.components) {
                 const component = this.components.get(String(componentId));
                 if (component && typeof component.update === 'function') {
@@ -3002,7 +3007,7 @@ class UIRenderer {
                     btn.addEventListener('click', async () => {
                         const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
                         const componentId = element.getAttribute('data-component-id');
-                        const usimStorage = getUsimStorageValue();
+                        const usimStorage = getUsimStorageHeaderValue();
 
                         try {
                             const response = await fetch('/api/ui-event', {
@@ -3113,7 +3118,7 @@ class UIRenderer {
             // Permissions (menudropdown) - Re-render menu items with new permissions
             if (changes.permissions !== undefined) {
                 const menuContainer = element;
-                const component = globalRenderer?.components?.get(String(changes._id));
+                const component = componentId ? globalRenderer?.components?.get(String(componentId)) : null;
 
                 if (component && component.config) {
                     // Update component config
@@ -3404,7 +3409,7 @@ class UIRenderer {
                     const canPrev = pagination.can_prev !== undefined ? pagination.can_prev : (currentPage > 1);
 
                     // Get component reference once for all operations
-                    const component = globalRenderer?.components?.get(String(changes._id));
+                    const component = componentId ? globalRenderer?.components?.get(String(componentId)) : null;
 
                     // Labels from backend (fall back to component config labels, then English)
                     const deltaLabels = pagination.labels
@@ -3430,7 +3435,7 @@ class UIRenderer {
                     if (controlsDiv) {
                         // If component not found, skip interactive controls
                         if (!component) {
-                            console.warn(`Component ${changes._id} not found in registry for pagination update`);
+                            console.warn(`Component ${componentId} not found in registry for pagination update`);
                             return;
                         }
 
@@ -3516,9 +3521,9 @@ class UIRenderer {
                 }
             }
 
-            // console.log(`✅ Component ${changes._id} updated successfully`);
+            // console.log(`✅ Component ${componentId} updated successfully`);
         } catch (error) {
-            console.error(`❌ Error updating component ${changes._id}:`, error);
+            console.error(`❌ Error updating component ${componentId}:`, error);
         }
     }
 
@@ -3545,9 +3550,9 @@ class UIRenderer {
 
             if (parentElement) {
                 parentElement.appendChild(element);
-                console.log(`➕ Component ${config._id} added to parent ${config.parent}`);
+                console.log(`➕ Component ${jsonKey} added to parent ${config.parent}`);
             } else {
-                console.error(`❌ Parent ${config.parent} not found for component ${config._id}`);
+                console.error(`❌ Parent ${config.parent} not found for component ${jsonKey}`);
             }
         } catch (error) {
             console.error(`❌ Error adding component:`, error);
@@ -3594,7 +3599,7 @@ async function loadScreenUI(screenName = null, forceReset = null) {
         // Build final query string (with ? prefix if there are params)
         const queryString = urlParams.toString() ? `?${urlParams.toString()}` : '';
 
-        const usimStorage = getUsimStorageValue();
+        const usimStorage = getUsimStorageHeaderValue();
         const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
         // Use /api/ui/ prefix to separate UI definitions from Data API
         const response = await fetch(`/api/ui/${screen}${queryString}`, {
@@ -3985,7 +3990,7 @@ async function executeTimeoutAction(action, callerServiceId) {
         // Execute custom action via backend
         try {
             const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
-            const usimStorage = getUsimStorageValue();
+            const usimStorage = getUsimStorageHeaderValue();
 
             const response = await fetch('/api/ui-event', {
                 method: 'POST',
@@ -4367,7 +4372,7 @@ async function loadMenuUI(forceReset = null) {
     try {
         const shouldReset = forceReset === null ? Boolean(window.RESET_STATE) : Boolean(forceReset);
         const resetQuery = shouldReset ? 'reset=true' : '';
-        const usimStorage = getUsimStorageValue();
+        const usimStorage = getUsimStorageHeaderValue();
         const parentElement = 'parent=menu';
 
         // Use /api/ui/ prefix for menu as well

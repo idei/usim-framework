@@ -29,7 +29,6 @@ Todas las respuestas de `GET /api/ui...` y `POST /api/ui-event` deben incluir:
   "timestamp": "2026-03-07T13:15:22Z",
   "components": {
     "10": {
-      "_id": 10,
       "type": "container",
       "parent": "root",
       "name": "main_container"
@@ -75,7 +74,6 @@ Base minima por componente:
 
 ```json
 {
-  "_id": 11,
   "type": "input",
   "parent": 10,
   "name": "login_email"
@@ -84,7 +82,6 @@ Base minima por componente:
 
 Campos recomendados:
 
-- `_id` (int, requerido)
 - `type` (string, requerido)
 - `parent` (string|int, requerido)
 - `name` (string, recomendado)
@@ -168,7 +165,6 @@ Catalogo inicial de `code` recomendado:
     "id": "session-timeout",
     "components": {
       "201": {
-        "_id": 201,
         "type": "label",
         "parent": "modal",
         "name": "timeout_text",
@@ -254,8 +250,8 @@ Eventos soportados:
 Para `payload_mode=delta`:
 
 - merge superficial por campo de componente.
-- si componente no existe y payload parece componente (`_id` o `type` o `parent`), agregarlo.
-- si key numerica no existe como key, intentar resolver por `_id`.
+- si componente no existe y payload parece componente (`type` o `parent`), agregarlo.
+- si key numerica no existe como key, registrar warning y activar estrategia de resync.
 - si no se puede resolver, registrar warning y activar estrategia de resync.
 
 No permitido en v1:

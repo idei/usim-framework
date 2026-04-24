@@ -26,12 +26,13 @@ if (!function_exists('getScreenJson')) {
 if (!function_exists('findComponentByName')) {
     function findComponentByName(array $payload, string $name): ?array
     {
-        foreach ($payload as $component) {
+        foreach ($payload as $key => $component) {
             if (!is_array($component)) {
                 continue;
             }
 
             if (($component['name'] ?? null) === $name) {
+                $component['_json_key'] = (string) $key;
                 return $component;
             }
         }
@@ -50,7 +51,8 @@ if (!function_exists('firstUiComponentFromPayload')) {
                 continue;
             }
 
-            if (is_array($value) && isset($value['type'], $value['parent'], $value['_id'])) {
+            if (is_array($value) && isset($value['type'], $value['parent'])) {
+                $value['_json_key'] = (string) $key;
                 return $value;
             }
         }

@@ -41,7 +41,7 @@ Nota: `CodableValue` representa un wrapper para tipos JSON dinamicos.
 
 - snapshot inicial: reset completo.
 - delta: merge superficial por key.
-- key numerica en response: resolver primero por `_id`.
+- key numérica en response: resolver directamente por `jsonKey`.
 
 ## 5. Render
 

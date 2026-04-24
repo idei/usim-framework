@@ -253,9 +253,6 @@ class TableHeaderCell extends UIComponent
             $config = array_diff_key($config, array_flip($excludeKeys));
         }
 
-        // CRITICAL: Include component ID in config for frontend lookups
-        $config['_id'] = $this->id;
-
         return [$this->id => $config];
     }
 

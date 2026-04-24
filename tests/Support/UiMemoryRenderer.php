@@ -216,6 +216,7 @@ final class UiMemoryRenderer
     /** @param array<string, mixed> $component */
     private function setComponent(string $jsonKey, array $component): void
     {
+        $component['_json_key'] = $jsonKey;
         $this->componentsByKey[$jsonKey] = $component;
         $this->syncInternalId($jsonKey, $component);
     }
@@ -223,11 +224,11 @@ final class UiMemoryRenderer
     /** @param array<string, mixed> $component */
     private function syncInternalId(string $jsonKey, array $component): void
     {
-        if (!isset($component['_id']) || !is_numeric($component['_id'])) {
+        if (!is_numeric($jsonKey)) {
             return;
         }
 
-        $this->keyByInternalId[(int) $component['_id']] = $jsonKey;
+        $this->keyByInternalId[(int) $jsonKey] = $jsonKey;
     }
 
     /**
@@ -249,6 +250,6 @@ final class UiMemoryRenderer
     /** @param array<string, mixed> $component */
     private function looksLikeComponent(array $component): bool
     {
-        return isset($component['type']) || isset($component['_id']) || isset($component['parent']);
+        return isset($component['type']) || isset($component['parent']);
     }
 }

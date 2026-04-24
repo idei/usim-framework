@@ -46,14 +46,13 @@ data class UiMeta(
 Estructuras:
 
 - `componentsByKey: MutableMap<String, JsonObject>`
-- `keyByInternalId: MutableMap<Int, String>`
 - `rawUsim: String?`
 
 Reglas:
 
 - `initial`: reset y carga completa.
 - `delta`: merge superficial por key.
-- key numerica: resolver por mapping de `_id`.
+- key numérica: resolver directamente por `jsonKey`.
 
 ## 5. Render
 

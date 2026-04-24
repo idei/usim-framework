@@ -435,8 +435,6 @@ abstract class Screen
 
         $result = [];
         foreach ($diff as $componentId => $changes) {
-            $changes['_id'] = $componentId;
-
             // Always include 'type' from newUI so frontend knows how to handle the change
             if (isset($this->newUI[$componentId]['type'])) {
                 $changes['type'] = $this->newUI[$componentId]['type'];

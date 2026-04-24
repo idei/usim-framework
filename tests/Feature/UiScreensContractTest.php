@@ -16,7 +16,7 @@ it('returns login screen UI contract with renderable components', function () {
     expect($component)->not->toBeNull();
     expect($component['type'])->toBeString();
     expect($component['parent'])->not->toBeNull();
-    expect($component['_id'])->toBeNumeric();
+    expect($component['_json_key'] ?? null)->toBeNumeric();
 });
 
 it('redirects guest when requesting profile screen', function () {

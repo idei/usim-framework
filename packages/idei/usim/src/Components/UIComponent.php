@@ -320,10 +320,6 @@ abstract class UIComponent implements UIElement
             $config['_order'] = $order;
         }
 
-        // CRITICAL: Include component ID in config for frontend lookups
-        // This is needed because JSON_FORCE_OBJECT reindexes array keys
-        $config['_id'] = $this->id;
-
         // Return as associative array with component ID as key
         return [$this->id => $config];
     }

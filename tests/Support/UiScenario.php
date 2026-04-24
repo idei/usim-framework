@@ -89,18 +89,15 @@ final class UiScenario
             throw new RuntimeException("Component '{$componentName}' has no action configured.");
         }
 
-        $componentId = $component['_id'] ?? null;
-        if (!is_numeric($componentId)) {
-            throw new RuntimeException("Component '{$componentName}' does not have a numeric _id.");
-        }
+        $componentId = $this->mustGetComponentId($componentName);
 
         return $this->sendUiEvent(
-            componentId: (int) $componentId,
+            componentId: $componentId,
             event: 'click',
             action: $action,
             parameters: $parameters,
             storageMode: self::STORAGE_HEADER,
-            syncComponentId: (int) $componentId
+            syncComponentId: $componentId
         );
     }
 
@@ -246,10 +243,10 @@ final class UiScenario
     private function mustGetComponentId(string $name): int
     {
         $component = $this->mustGetComponent($name);
-        $componentId = $component['_id'] ?? null;
+        $componentId = $component['_json_key'] ?? ($component['_id'] ?? null);
 
         if (!is_numeric($componentId)) {
-            throw new RuntimeException("Component '{$name}' does not have a numeric _id.");
+            throw new RuntimeException("Component '{$name}' does not have a numeric component ID.");
         }
 
         return (int) $componentId;
@@ -295,7 +292,7 @@ final class UiScenario
                 continue;
             }
 
-            if (isset($value['type']) && isset($value['_id'])) {
+            if (isset($value['type'])) {
                 return true;
             }
         }

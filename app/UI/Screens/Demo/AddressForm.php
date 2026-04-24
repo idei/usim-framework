@@ -24,8 +24,6 @@ class AddressForm extends Screen
     protected Input $input_postal_code;
     protected Button $btn_submit;
     protected Label $lbl_result;
-    protected array $store_country_options = [];
-    protected array $store_province_options = [];
     protected ?string $store_selected_country = null;
     protected ?string $store_selected_province = null;
 
@@ -41,13 +39,10 @@ class AddressForm extends Screen
 
     protected function buildBaseUI(Container $container, ...$params): void
     {
-        if ($this->store_country_options === []) {
-            $this->store_country_options = $this->fetchCountryOptions();
-        }
-
-        if ($this->store_selected_country && $this->store_province_options === []) {
-            $this->store_province_options = $this->fetchProvinceOptions($this->store_selected_country);
-        }
+        $countryOptions = $this->fetchCountryOptions();
+        $provinceOptions = $this->store_selected_country
+            ? $this->fetchProvinceOptions($this->store_selected_country)
+            : [];
 
         $container
             ->title('Solicitud de direccion')
@@ -77,7 +72,7 @@ class AddressForm extends Screen
             UI::select('input_country')
                 ->label('Pais')
                 ->placeholder('Selecciona un pais')
-                ->options($this->store_country_options)
+                ->options($countryOptions)
                 ->value($this->store_selected_country)
                 ->required(true)
                 ->searchable(true, 'Buscar pais')
@@ -90,7 +85,7 @@ class AddressForm extends Screen
             UI::select('input_province')
                 ->label('Provincia o estado')
                 ->placeholder($this->store_selected_country ? 'Selecciona una provincia o estado' : 'Selecciona primero un pais')
-                ->options($this->store_province_options)
+                ->options($provinceOptions)
                 ->value($this->store_selected_province)
                 ->required(true)
                 ->searchable(true, 'Buscar provincia o estado')
@@ -136,13 +131,18 @@ class AddressForm extends Screen
 
     protected function postLoadUI(): void
     {
+        $countryOptions = $this->fetchCountryOptions();
+        $provinceOptions = $this->store_selected_country
+            ? $this->fetchProvinceOptions($this->store_selected_country)
+            : [];
+
         $this->input_address->error(null);
         $this->input_country
-            ->options($this->store_country_options)
+            ->options($countryOptions)
             ->value($this->store_selected_country)
             ->errorMessage('');
         $this->input_province
-            ->options($this->store_province_options)
+            ->options($provinceOptions)
             ->value($this->store_selected_province)
             ->disabled($this->store_selected_country === null)
             ->placeholder($this->store_selected_country ? 'Selecciona una provincia o estado' : 'Selecciona primero un pais')
@@ -164,7 +164,6 @@ class AddressForm extends Screen
         $this->input_province->errorMessage('');
 
         if ($this->store_selected_country === null) {
-            $this->store_province_options = [];
             $this->input_province
                 ->options([])
                 ->value(null)
@@ -178,21 +177,21 @@ class AddressForm extends Screen
             return;
         }
 
-        $this->store_province_options = $this->fetchProvinceOptions($this->store_selected_country);
+        $provinceOptions = $this->fetchProvinceOptions($this->store_selected_country);
 
         $this->input_province
-            ->options($this->store_province_options)
+            ->options($provinceOptions)
             ->value(null)
-            ->disabled($this->store_province_options === [])
-            ->placeholder($this->store_province_options === []
+            ->disabled($provinceOptions === [])
+            ->placeholder($provinceOptions === []
                 ? 'No hay provincias o estados disponibles'
                 : 'Selecciona una provincia o estado');
 
         $this->lbl_result
-            ->text($this->store_province_options === []
+            ->text($provinceOptions === []
                 ? sprintf('No se encontraron provincias o estados para %s.', $this->store_selected_country)
                 : sprintf('Selecciona una provincia o estado para %s.', $this->store_selected_country))
-            ->style($this->store_province_options === [] ? 'warning' : 'info');
+            ->style($provinceOptions === [] ? 'warning' : 'info');
     }
 
     public function onSubmitAddressForm(array $params): void
@@ -263,7 +262,6 @@ class AddressForm extends Screen
         $this->input_address->value('');
         $this->store_selected_country = null;
         $this->store_selected_province = null;
-        $this->store_province_options = [];
         $this->input_country->value(null);
         $this->input_province
             ->options([])

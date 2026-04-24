@@ -69,7 +69,7 @@ it('processes profile upload, moves file, clears temporary row and requests uplo
         $ui = uiScenario($this, UploaderDemo::class, ['reset' => true]);
 
         $tempId = createTemporaryUploadRecord(
-            componentId: (string) ($ui->component('uploader_profile')->data()['_id'] ?? 'uploader_profile'),
+            componentId: (string) ($ui->component('uploader_profile')->data()['_json_key'] ?? 'uploader_profile'),
             originalFilename: 'avatar.jpg',
             storedFilename: 'avatar-temp.jpg',
             type: 'image',
@@ -87,7 +87,9 @@ it('processes profile upload, moves file, clears temporary row and requests uplo
         expect($resultText)->not->toBe('');
         $ui->component('lbl_result')->expect('style')->toBe('success');
 
-        $uploaderProfileId = $ui->component('uploader_profile')->data()['_id'] ?? null;
+        $uploaderProfileId = isset($ui->component('uploader_profile')->data()['_json_key'])
+            ? (int) $ui->component('uploader_profile')->data()['_json_key']
+            : null;
         expect($response->json('clear_uploaders'))->toBe([$uploaderProfileId]);
 
         expect(DB::table('temporary_uploads')->where('id', $tempId)->exists())->toBeFalse();
@@ -109,7 +111,7 @@ it('processes multiple documents and clears document uploader', function () {
 
         $ui = uiScenario($this, UploaderDemo::class, ['reset' => true]);
 
-        $componentId = (string) ($ui->component('uploader_documents')->data()['_id'] ?? 'uploader_documents');
+        $componentId = (string) ($ui->component('uploader_documents')->data()['_json_key'] ?? 'uploader_documents');
 
         $firstId = createTemporaryUploadRecord(
             componentId: $componentId,
@@ -138,7 +140,9 @@ it('processes multiple documents and clears document uploader', function () {
         expect($resultText)->not->toBe('');
         $ui->component('lbl_result')->expect('style')->toBe('success');
 
-        $uploaderDocumentsId = $ui->component('uploader_documents')->data()['_id'] ?? null;
+        $uploaderDocumentsId = isset($ui->component('uploader_documents')->data()['_json_key'])
+            ? (int) $ui->component('uploader_documents')->data()['_json_key']
+            : null;
         expect($response->json('clear_uploaders'))->toBe([$uploaderDocumentsId]);
 
         expect(DB::table('temporary_uploads')->where('id', $firstId)->exists())->toBeFalse();

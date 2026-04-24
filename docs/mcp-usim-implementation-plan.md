@@ -66,7 +66,7 @@ Por cada sesion de agente:
 - `session_id`: id de conversacion MCP.
 - `screen`: screen activa.
 - `storage`: ultimo `X-USIM-Storage` valido.
-- `component_map`: relacion `name -> _id` + metadata minima.
+- `component_map`: relacion `name -> json_key` + metadata minima.
 - `last_payload`: ultima respuesta USIM (o resumen estructurado).
 - `user_context`: usuario autenticado y atributos de permiso.
 
@@ -99,14 +99,14 @@ Output:
 
 Input:
 
-- `component` (string): `name` o `_id`.
+- `component` (string): `name` o JSON key numérica.
 - `action` (string).
 - `event` (string, opcional segun contrato).
 - `parameters` (obj, opcional).
 
 Accion interna:
 
-- Resuelve `component` a `_id` via `component_map`.
+- Resuelve `component` a JSON key via `component_map`.
 - Llama `POST /api/ui-event` con `X-USIM-Storage`.
 - Persiste nuevo `storage` y cambios.
 
@@ -216,7 +216,7 @@ Objetivo: interacciones end-to-end.
 Entregables:
 
 - Integracion con `POST /api/ui-event`.
-- Resolucion robusta de `component` (`name`/`_id`).
+- Resolucion robusta de `component` (`name`/JSON key).
 - Manejo de `meta` (`toast`, `redirect`, `abort`, etc.).
 
 Criterio de salida:

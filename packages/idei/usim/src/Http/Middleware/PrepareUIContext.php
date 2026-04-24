@@ -40,6 +40,12 @@ class PrepareUIContext
         if ($request->hasHeader('X-USIM-Storage')) {
             $headerValue = $request->header('X-USIM-Storage');
             if (!empty($headerValue) && $headerValue !== 'null' && $headerValue !== 'undefined') {
+                if (str_starts_with($headerValue, 'b64:')) {
+                    $decodedHeader = base64_decode(substr($headerValue, 4), true);
+                    if ($decodedHeader !== false) {
+                        $headerValue = $decodedHeader;
+                    }
+                }
                 $encrypted = $headerValue;
             }
         }

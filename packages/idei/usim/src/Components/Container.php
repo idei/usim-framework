@@ -1614,9 +1614,6 @@ class Container implements UIElement
             $config['_order'] = $order;
         }
 
-        // CRITICAL: Include component ID in config for frontend lookups
-        $config['_id'] = $this->id;
-
         // Start with this container's config
         $result = [$this->id => $config];
 

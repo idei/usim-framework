@@ -75,7 +75,7 @@ Interpretacion minima:
 
 ## 4. Reglas de estado local
 
-- Identificar componentes por `_id` + key JSON.
+- Identificar componentes por su key JSON numérica.
 - Delta = merge superficial por campo.
 - Si respuesta no trae componentes (solo meta), conservar snapshot previo.
 - Si hay inconsistencia, resincronizar con `GET /api/ui{route}`.

@@ -63,7 +63,7 @@ Body base:
 
 Campos:
 
-- `component_id` (int, requerido): `_id` del componente origen del evento.
+- `component_id` (int, requerido): JSON key numérica del componente origen del evento.
 - `event` (string, requerido): tipo de evento. Valores observados:
   - `click`
   - `input`
@@ -130,13 +130,11 @@ Ejemplo simplificado:
 ```json
 {
   "10": {
-    "_id": 10,
     "type": "container",
     "parent": "root",
     "name": "main_container"
   },
   "11": {
-    "_id": 11,
     "type": "input",
     "parent": 10,
     "name": "login_email",
@@ -242,16 +240,14 @@ Nota: la forma exacta interna de `modal`, `update_modal`, `clear_uploaders` y `s
 Un nodo se considera componente UI cuando cumple alguno de estos indicios:
 
 - Tiene `type`, o
-- Tiene `_id`, o
 - Tiene `parent`
 
 El helper de tests usa como forma fuerte para detectar componente inicial:
 
-- `type` + `parent` + `_id`
+- `type` + `parent`
 
 ## 5.2 Campos comunes observados
 
-- `_id` (int): identificador interno del componente, usado en eventos.
 - `type` (string): tipo de componente (`container`, `button`, `input`, etc.).
 - `parent` (string|int): jerarquia.
 - `name` (string): identificador funcional para lookup en cliente/tests.
@@ -280,22 +276,18 @@ Regla observada en `UiMemoryRenderer::mergeComponent`:
 
 ## 6.2 Resolucion de key en deltas
 
-Un delta puede venir con key:
-
-- por key JSON original, o
-- por id numerico que corresponde a `_id`.
+Un delta viene siempre con la misma key JSON numérica del componente.
 
 Cliente robusto:
 
 1. Mantener `jsonKey -> component`.
-2. Mantener indice `_id -> jsonKey`.
-3. Al recibir key numerica en delta, resolver primero por `_id` si existe mapping.
+2. Al recibir key numérica en delta, resolver directamente por `jsonKey`.
 
 ## 6.3 Delta de componente desconocido
 
 Si llega delta para componente no conocido:
 
-- Si payload "parece componente" (`type` o `_id` o `parent`), agregarlo.
+- Si payload "parece componente" (`type` o `parent`), agregarlo.
 - Si no parece componente, registrar issue de contrato y considerar resync.
 
 ## 6.4 Respuesta solo meta (sin componentes)
@@ -405,7 +397,6 @@ Procesar respuesta:
 Mantener estructuras:
 
 - `componentsByKey: MutableMap<String, JsonObject>`
-- `keyByInternalId: MutableMap<Int, String>`
 - `metaState` para `toast`, `redirect`, `modal`, etc.
 - `rawUsim: String?`
 - `parsedStorage: MutableMap<String, Any?>` (opcional, derivado de `rawUsim`)
@@ -462,7 +453,7 @@ Estos casos deben automatizarse en cualquier cliente para validar compatibilidad
 Caso 1: bootstrap de pantalla
 
 - Ejecutar `GET /api/ui{route}`.
-- Verificar `200` y al menos un componente con `_id` y `type`.
+- Verificar `200` y al menos un componente con `type`.
 - Guardar cookie de client id y `storage.usim` (si existe).
 
 Caso 2: evento click exitoso

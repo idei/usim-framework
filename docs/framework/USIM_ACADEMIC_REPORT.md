@@ -95,10 +95,7 @@ public/js/
 
 ### 2.3 Sistema de Identificación
 
-USIM implementa un sistema de IDs dual:
-
-1. **ID JSON (clave)**: Usado para organización en JSON (`input_email`)
-2. **ID Interno (_id)**: UUID único para rastreo en diffing (`_1a2b3c4d`)
+USIM identifica cada componente por su key JSON numérica, generada determinísticamente desde el nombre del componente en backend.
 
 ```php
 // Backend
@@ -110,18 +107,16 @@ $container->add(
 
 // JSON transmitido
 {
-  "components": {
-    "input_email": {
-      "_id": "_1a2b3c4d",
-      "type": "input",
-      "label": "Email",
-      "value": "user@example.com"
-    }
+  "153503019": {
+    "type": "input",
+    "label": "Email",
+    "value": "user@example.com",
+    "name": "input_email"
   }
 }
 
-// Frontend aplica diff por _id
-const element = document.querySelector('[data-component-id="_1a2b3c4d"]');
+// Frontend aplica diff por key JSON
+const element = document.querySelector('[data-component-id="153503019"]');
 ```
 
 ## 3. Características Distintivas

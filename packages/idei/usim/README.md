@@ -809,8 +809,8 @@ const screen = await screenResponse.json();
 
 console.log(screen);
 // {
-//   "10": { "_id": 10, "type": "container", "parent": "root", ... },
-//   "11": { "_id": 11, "type": "input", "parent": 10, ... },
+//   "10": { "type": "container", "parent": "root", ... },
+//   "11": { "type": "input", "parent": 10, ... },
 //   "agent_context": {
 //     "purpose": "User login with email/password",
 //     "inputs": ["email", "password"],
