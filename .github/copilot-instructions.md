@@ -358,9 +358,11 @@ return [
 Cuando se cree una Screen, considerar:
 1. Clase Screen con `buildBaseUI()`, `authorize()`, handlers (`on*` methods).
 2. Propiedades persistidas (`store_*` si el estado debe sobrevivir entre requests).
-3. Archivo de traducciones en `lang/{locale}/screen/{categoria}/{nombre}.php`.
+3. **Solo si explícitamente lo solicito**: Archivo de traducciones en `lang/{locale}/screen/{categoria}/{nombre}.php`.
 4. Entrada en menu si aplica (actualizar `app/UI/Screens/Menu.php`).
 5. Tests Pest siguiendo `tests/SCREEN_TESTING_GUIDE.md` y `tests/prompt.md`.
+
+**Nota importante sobre i18n**: Por defecto, crea la clase Screen sin archivos de traducción. Solo genera archivos i18n (`lang/en/screen/...` y `lang/es/screen/...`) si el usuario explícitamente lo solicita o dice "con i18n" o "con traducciones". Cuando no se pida i18n, usa strings literales en español o en el idioma que tenga sentido en el contexto.
 
 ## Cuando agregues un componente nuevo al framework
 
