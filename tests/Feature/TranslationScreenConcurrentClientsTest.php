@@ -1,6 +1,6 @@
 <?php
 
-use App\UI\Screens\Admin\TranlateManager;
+use App\UI\Screens\Admin\TranslateManager;
 use Idei\Usim\Support\UIStateManager;
 use Illuminate\Support\Str;
 use Tests\TestCase;
@@ -25,7 +25,7 @@ it('isolates translation screen state across concurrent browser clients', functi
         $initial = $test
             ->withSession([UIStateManager::CLIENT_ID_COOKIE => $clientId])
             ->withCookie(UIStateManager::CLIENT_ID_COOKIE, $clientId)
-            ->getJson(screenApiUrl(TranlateManager::class, ['reset' => true]));
+            ->getJson(screenApiUrl(TranslateManager::class, ['reset' => true]));
 
         $initial->assertOk();
 
@@ -98,7 +98,7 @@ it('isolates translation screen state across concurrent browser clients', functi
         $reload = $test
             ->withSession([UIStateManager::CLIENT_ID_COOKIE => $client['client_id']])
             ->withCookie(UIStateManager::CLIENT_ID_COOKIE, $client['client_id'])
-            ->getJson(screenApiUrl(TranlateManager::class));
+            ->getJson(screenApiUrl(TranslateManager::class, ['reset' => true]));
 
         $reload->assertOk();
 
