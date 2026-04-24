@@ -24,6 +24,7 @@ The format is based on Keep a Changelog, and this project follows Semantic Versi
 - `UsimTranslationSeeder` stub now includes a comprehensive baseline keyset for scaffolded UI and service responses under `usim.component.*`, `usim.dialog.*`, `usim.time_unit.*`, and `usim.*` namespaces.
 - Frontend modal handling now uses an automatic overlay stack with reusable layers (first free overlay on open, top overlay on close), allowing nested dialogs without replacing previous modal content.
 - The legacy `BaseUIBuilder` class was removed after consolidating common builder behavior into `UIComponent` and `Container`.
+- **Protocol cleanup**: Removed the redundant `_id` attribute from the USIM JSON protocol. Both the backend (PHP serialization layer) and the frontend renderer no longer emit or consume `_id` on component payloads; component identity is now resolved exclusively through the structural position and the `id` field where applicable.
 
 ### Fixed
 - Composer constraints now allow Laravel 13 (`illuminate/* ^13.0`).
