@@ -590,6 +590,7 @@ abstract class Screen
             'uploader' => Uploader::class,
             'calendar' => \Idei\Usim\Components\Calendar::class,
             'carousel' => \Idei\Usim\Components\Carousel::class,
+            'textarea' => \Idei\Usim\Components\Textarea::class,
             'default' => null,
         };
     }

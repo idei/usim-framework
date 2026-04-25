@@ -12,6 +12,7 @@ use App\UI\Screens\Auth\Profile;
 use App\UI\Screens\Demo\ButtonDemo;
 use App\UI\Screens\Demo\CalendarDemo;
 use App\UI\Screens\Demo\CarouselDemo;
+use App\UI\Screens\Demo\TextareaDemo;
 use App\UI\Screens\Demo\AddressForm;
 use App\UI\Screens\Demo\CheckboxDemo;
 use App\UI\Screens\Demo\DemoUi;
@@ -250,6 +251,7 @@ class Menu extends Screen
             $submenu->screen(UploaderDemo::class, t('screen.menu.demos.uploader_demo'), '📤');
             $submenu->screen(CalendarDemo::class, t('screen.menu.demos.calendar_demo'), '📅');
             $submenu->screen(CarouselDemo::class, t('screen.menu.demos.carousel_demo'), '🎞️');
+            $submenu->screen(TextareaDemo::class, 'Textarea Demo', '📝');
         }, '🎮');
     }
 

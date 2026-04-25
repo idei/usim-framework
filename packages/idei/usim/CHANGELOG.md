@@ -7,6 +7,8 @@ The format is based on Keep a Changelog, and this project follows Semantic Versi
 ## [Unreleased]
 
 ### Added
+- **Textarea component**: new `Textarea` builder (`UI::textarea()`) with plain-text and markdown modes. Supports configurable `width`, `height`, `maxLength` (or unlimited), `placeholder`, `label`, `required`, `disabled`, `readonly`, `error`, `helpText`, `onChange`, `onInput`, and `debounce`. In markdown mode renders a split-view editor with live preview and a formatting toolbar (bold, italic, strikethrough, inline code, H1–H3, bullet list, numbered list, blockquote, code block, link, HR). Includes `marked.min.js` v9 bundled as a static asset. Type `textarea` registered in `Screen::mapTypeToClass()` and factory added to `UI::textarea()`. New frontend module at `js/components/textarea/index.js` and styles at `css/components/textarea/index.css`. Assets loaded via `app.blade.php`.
+
 - Database translation architecture based on identifier keys with language-specific values and optional media payload (`usim_languages`, `usim_text_keys`, `usim_text_values`).
 - New package models: `UsimLanguage`, `UsimTextKey`, and `UsimTextValue`.
 - New `TranslationService` with CRUD operations for languages, keys, and text/media values.

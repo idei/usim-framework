@@ -16,6 +16,7 @@ use Idei\Usim\Components\Card;
 use Idei\Usim\Components\Uploader;
 use Idei\Usim\Components\Calendar;
 use Idei\Usim\Components\Carousel;
+use Idei\Usim\Components\Textarea;
 
 /**
  * UI component factory
@@ -180,5 +181,16 @@ class UI
     public static function carousel(?string $name = null): Carousel
     {
         return new Carousel($name);
+    }
+
+    /**
+     * Create a new textarea component
+     *
+     * @param string|null $name The optional semantic name for the textarea
+     * @return Textarea
+     */
+    public static function textarea(?string $name = null): Textarea
+    {
+        return new Textarea($name);
     }
 }

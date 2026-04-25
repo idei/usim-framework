@@ -1238,17 +1238,17 @@
         },
         {
             "name": "idei/usim",
-            "version": "dev-main",
+            "version": "dev-front-refactor",
             "dist": {
                 "type": "path",
                 "url": "packages/idei/usim",
-                "reference": "5becbb86bd95c722eb345db77b986e524fed8e2d"
+                "reference": "5b021958d563a246b70b91672c3a7787426b839b"
             },
             "require": {
-                "illuminate/console": "^10.0|^11.0|^12.0",
-                "illuminate/contracts": "^10.0|^11.0|^12.0",
-                "illuminate/filesystem": "^10.0|^11.0|^12.0",
-                "illuminate/support": "^10.0|^11.0|^12.0",
+                "illuminate/console": "^10.0|^11.0|^12.0|^13.0",
+                "illuminate/contracts": "^10.0|^11.0|^12.0|^13.0",
+                "illuminate/filesystem": "^10.0|^11.0|^12.0|^13.0",
+                "illuminate/support": "^10.0|^11.0|^12.0|^13.0",
                 "laravel/sanctum": "^3.0|^4.0",
                 "nikic/php-parser": "^5.7",
                 "php": "^8.2",

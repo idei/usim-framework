@@ -28,6 +28,7 @@
     <link rel="stylesheet" href="{{ asset('vendor/idei/usim/css/components/uploader/index.css') }}?v={{ $usimAssetVersion('vendor/idei/usim/css/components/uploader/index.css') }}">
     <link rel="stylesheet" href="{{ asset('vendor/idei/usim/css/components/carousel/index.css') }}?v={{ $usimAssetVersion('vendor/idei/usim/css/components/carousel/index.css') }}">
     <link rel="stylesheet" href="{{ asset('vendor/idei/usim/css/components/image-crop-editor/index.css') }}?v={{ $usimAssetVersion('vendor/idei/usim/css/components/image-crop-editor/index.css') }}">
+    <link rel="stylesheet" href="{{ asset('vendor/idei/usim/css/components/textarea/index.css') }}?v={{ $usimAssetVersion('vendor/idei/usim/css/components/textarea/index.css') }}">
 </head>
 <body>
     <header id="top-menu-bar">
@@ -81,5 +82,7 @@
     <script src="{{ asset('vendor/idei/usim/js/components/uploader/index.js') }}?v={{ $usimAssetVersion('vendor/idei/usim/js/components/uploader/index.js') }}"></script>
     <script src="{{ asset('vendor/idei/usim/js/components/calendar/index.js') }}?v={{ $usimAssetVersion('vendor/idei/usim/js/components/calendar/index.js') }}"></script>
     <script src="{{ asset('vendor/idei/usim/js/components/carousel/index.js') }}?v={{ $usimAssetVersion('vendor/idei/usim/js/components/carousel/index.js') }}"></script>
+    <script src="{{ asset('vendor/idei/usim/js/lib/marked.min.js') }}?v={{ $usimAssetVersion('vendor/idei/usim/js/lib/marked.min.js') }}"></script>
+    <script src="{{ asset('vendor/idei/usim/js/components/textarea/index.js') }}?v={{ $usimAssetVersion('vendor/idei/usim/js/components/textarea/index.js') }}"></script>
 </body>
 </html>

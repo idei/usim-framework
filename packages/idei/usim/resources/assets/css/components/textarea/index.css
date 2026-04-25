@@ -1,0 +1,316 @@
+/* ============================================================
+   Textarea component styles
+   Uses ui-theme-tokens.css variables for light/dark consistency
+   ============================================================ */
+
+/* ── Wrapper ──────────────────────────────────────────────── */
+.usim-textarea-wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    font-family: var(--usim-font-family, sans-serif);
+    width: 100%;
+    box-sizing: border-box;
+}
+
+/* ── Label ────────────────────────────────────────────────── */
+.usim-textarea-label {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--usim-label-color, var(--usim-text-primary));
+    margin-bottom: 2px;
+}
+
+.usim-textarea-label.required::after {
+    content: ' *';
+    color: var(--usim-error-color, #e53e3e);
+}
+
+/* ── Body ─────────────────────────────────────────────────── */
+.usim-textarea-body {
+    display: flex;
+    flex-direction: column;
+    border: 1px solid var(--usim-input-border, var(--usim-border-color));
+    border-radius: 6px;
+    overflow: hidden;
+    background: var(--usim-input-bg, var(--usim-bg-secondary));
+    transition: border-color 0.15s ease;
+}
+
+.usim-textarea-body:focus-within {
+    border-color: var(--usim-accent, var(--usim-primary));
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--usim-accent, var(--usim-primary)) 20%, transparent);
+}
+
+.usim-textarea-wrapper.has-error .usim-textarea-body {
+    border-color: var(--usim-error-color, #e53e3e);
+}
+
+/* ── Native textarea element ──────────────────────────────── */
+.usim-textarea-el {
+    width: 100%;
+    min-height: 120px;
+    padding: 10px 12px;
+    font-size: 0.9rem;
+    font-family: inherit;
+    line-height: 1.55;
+    color: var(--usim-text-primary);
+    background: transparent;
+    border: none;
+    outline: none;
+    resize: vertical;
+    box-sizing: border-box;
+}
+
+.usim-textarea-el::placeholder {
+    color: var(--usim-text-muted, #9ca3af);
+}
+
+.usim-textarea-el:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    resize: none;
+}
+
+.usim-textarea-el:read-only {
+    background: var(--usim-input-readonly-bg, color-mix(in srgb, var(--usim-bg-secondary) 80%, var(--usim-bg-primary)));
+    cursor: default;
+}
+
+/* ── Markdown toolbar ─────────────────────────────────────── */
+.usim-textarea-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 2px;
+    padding: 4px 8px;
+    background: var(--usim-toolbar-bg, color-mix(in srgb, var(--usim-bg-primary) 60%, var(--usim-bg-secondary)));
+    border-bottom: 1px solid var(--usim-border-color);
+}
+
+.usim-toolbar-btn {
+    padding: 2px 7px;
+    font-size: 0.78rem;
+    font-family: monospace;
+    font-weight: 600;
+    color: var(--usim-text-secondary);
+    background: transparent;
+    border: 1px solid transparent;
+    border-radius: 4px;
+    cursor: pointer;
+    line-height: 1.6;
+    transition: background 0.1s, color 0.1s, border-color 0.1s;
+    white-space: nowrap;
+}
+
+.usim-toolbar-btn:hover {
+    background: var(--usim-btn-hover-bg, color-mix(in srgb, var(--usim-accent, var(--usim-primary)) 12%, transparent));
+    border-color: var(--usim-accent, var(--usim-primary));
+    color: var(--usim-text-primary);
+}
+
+.usim-toolbar-sep {
+    width: 1px;
+    height: 18px;
+    background: var(--usim-border-color);
+    margin: 0 4px;
+    flex-shrink: 0;
+}
+
+/* ── Mobile tabs ──────────────────────────────────────────── */
+.usim-textarea-tabs {
+    display: none;  /* hidden on desktop */
+    border-bottom: 1px solid var(--usim-border-color);
+}
+
+.usim-textarea-tab {
+    padding: 5px 14px;
+    font-size: 0.8rem;
+    font-weight: 500;
+    cursor: pointer;
+    background: transparent;
+    border: none;
+    color: var(--usim-text-muted);
+    border-bottom: 2px solid transparent;
+    transition: color 0.15s, border-color 0.15s;
+}
+
+.usim-textarea-tab.active {
+    color: var(--usim-accent, var(--usim-primary));
+    border-bottom-color: var(--usim-accent, var(--usim-primary));
+}
+
+.tab-hidden {
+    display: none !important;
+}
+
+/* ── Split view ───────────────────────────────────────────── */
+.usim-textarea-split {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    min-height: 200px;
+}
+
+.usim-textarea-editor-pane {
+    display: flex;
+    flex-direction: column;
+    border-right: 1px solid var(--usim-border-color);
+}
+
+.usim-textarea-editor-pane .usim-textarea-el {
+    flex: 1;
+    resize: none;  /* disable resize in split view */
+    min-height: 0;
+    height: 100%;
+}
+
+.usim-textarea-preview-pane {
+    overflow-y: auto;
+    padding: 10px 14px;
+    background: var(--usim-preview-bg, var(--usim-bg-primary));
+}
+
+/* ── Markdown preview ─────────────────────────────────────── */
+.usim-md-preview {
+    font-size: 0.9rem;
+    line-height: 1.7;
+    color: var(--usim-text-primary);
+    word-break: break-word;
+}
+
+.usim-md-preview h1,
+.usim-md-preview h2,
+.usim-md-preview h3,
+.usim-md-preview h4,
+.usim-md-preview h5,
+.usim-md-preview h6 {
+    margin: 0.75em 0 0.4em;
+    font-weight: 700;
+    line-height: 1.3;
+    color: var(--usim-text-primary);
+}
+
+.usim-md-preview h1 { font-size: 1.5rem; }
+.usim-md-preview h2 { font-size: 1.25rem; }
+.usim-md-preview h3 { font-size: 1.05rem; }
+
+.usim-md-preview p {
+    margin: 0.5em 0;
+}
+
+.usim-md-preview ul,
+.usim-md-preview ol {
+    margin: 0.4em 0;
+    padding-left: 1.4em;
+}
+
+.usim-md-preview li {
+    margin: 0.2em 0;
+}
+
+.usim-md-preview strong { font-weight: 700; }
+.usim-md-preview em     { font-style: italic; }
+.usim-md-preview del    { text-decoration: line-through; opacity: 0.7; }
+
+.usim-md-preview code {
+    font-family: monospace;
+    font-size: 0.85em;
+    background: var(--usim-code-bg, color-mix(in srgb, var(--usim-bg-secondary) 70%, var(--usim-accent, #6366f1) 30%));
+    color: var(--usim-code-color, var(--usim-text-primary));
+    padding: 1px 5px;
+    border-radius: 3px;
+}
+
+.usim-md-preview pre {
+    background: var(--usim-code-block-bg, color-mix(in srgb, var(--usim-bg-secondary) 85%, #000));
+    border-radius: 6px;
+    padding: 10px 14px;
+    overflow-x: auto;
+    margin: 0.6em 0;
+}
+
+.usim-md-preview pre code {
+    background: transparent;
+    padding: 0;
+    font-size: 0.83em;
+    color: var(--usim-code-block-color, var(--usim-text-primary));
+}
+
+.usim-md-preview blockquote {
+    border-left: 3px solid var(--usim-accent, var(--usim-primary));
+    margin: 0.5em 0;
+    padding: 4px 12px;
+    color: var(--usim-text-secondary);
+    background: color-mix(in srgb, var(--usim-accent, var(--usim-primary)) 6%, transparent);
+    border-radius: 0 4px 4px 0;
+}
+
+.usim-md-preview hr {
+    border: none;
+    border-top: 1px solid var(--usim-border-color);
+    margin: 1em 0;
+}
+
+.usim-md-preview a {
+    color: var(--usim-accent, var(--usim-primary));
+    text-decoration: underline;
+}
+
+/* ── Footer ───────────────────────────────────────────────── */
+.usim-textarea-footer {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 10px;
+    min-height: 18px;
+    flex-wrap: wrap;
+}
+
+.usim-textarea-counter {
+    font-size: 0.75rem;
+    color: var(--usim-text-muted);
+    margin-left: auto;
+    transition: color 0.15s;
+}
+
+.usim-textarea-counter.near-limit {
+    color: var(--usim-warning-color, #d97706);
+}
+
+.usim-textarea-counter.at-limit {
+    color: var(--usim-error-color, #e53e3e);
+    font-weight: 600;
+}
+
+.usim-textarea-error-msg {
+    font-size: 0.78rem;
+    color: var(--usim-error-color, #e53e3e);
+    flex: 1;
+}
+
+.usim-textarea-help {
+    font-size: 0.78rem;
+    color: var(--usim-text-muted);
+    flex: 1;
+}
+
+/* ── Responsive: single-column on narrow screens ──────────── */
+@media (max-width: 600px) {
+    .usim-textarea-split {
+        grid-template-columns: 1fr;
+    }
+
+    .usim-textarea-editor-pane {
+        border-right: none;
+        border-bottom: 1px solid var(--usim-border-color);
+    }
+
+    .usim-textarea-tabs {
+        display: flex;
+    }
+
+    /* In mobile, tab switching handles visibility */
+    .usim-textarea-split > .usim-textarea-preview-pane {
+        /* visible by default until JS hides it */
+    }
+}
