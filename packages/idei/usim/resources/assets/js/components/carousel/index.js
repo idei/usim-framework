@@ -252,3 +252,9 @@ class CarouselComponent extends UIComponent {
 }
 
 window.CarouselComponent = CarouselComponent;
+
+if (window.USIM_COMPONENTS?.register) {
+    window.USIM_COMPONENTS.register('carousel', (id, config) => new CarouselComponent(id, config), {
+        source: 'external',
+    });
+}

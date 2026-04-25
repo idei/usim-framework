@@ -632,3 +632,9 @@ class CalendarComponent extends UIComponent {
 
 // Exponer globalmente
 window.CalendarComponent = CalendarComponent;
+
+if (window.USIM_COMPONENTS?.register) {
+    window.USIM_COMPONENTS.register('calendar', (id, config) => new CalendarComponent(id, config), {
+        source: 'external',
+    });
+}

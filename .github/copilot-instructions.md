@@ -49,16 +49,12 @@ Usa este mapa como contexto por defecto para cualquier chat:
 |  |  |- Auth/                      # AuthSessionService, LoginService, PasswordService, RegisterService
 |  |  \- User/                      # UserService
 |  \- UI/
-|     |- Components/
-|     |  |- DataTable/              # modelos/adaptadores de tablas de la app
-|     |  \- Modals/                 # dialogs concretos como EditUserDialog
-|     \- Screens/
+|  |  |  |  |- component-registry.js
+|  |  |  |  \- components/
 |        |- Home.php
 |        |- Menu.php
 |        |- Admin/                  # Dashboard.php
-|        |- Auth/                   # Login, Profile, ForgotPassword, ResetPassword, EmailVerified
-|        \- Demo/                   # demos reales de componentes del framework
-|- bootstrap/
+|  |  |  |  \- components/
 |- config/
 |  |- ui-home.php
 |  \- ui-services.php               # configuracion/registro de pantallas USIM en la app
@@ -119,16 +115,12 @@ packages/idei/usim/
 |  |- assets/
 |  |  |- js/
 |  |  |  |- ui-renderer.js
-|  |  |  |- uploader-component.js
-|  |  |  |- image-crop-editor.js
-|  |  |  |- calendar-component.js
-|  |  |  \- carousel-component.js
+|  |  |  |- component-registry.js
+|  |  |  \- components/
 |  |  |- css/
 |  |  |  |- ui-components.css
 |  |  |  |- ui-theme-tokens.css
-|  |  |  |- uploader-component.css
-|  |  |  |- image-crop-editor.css
-|  |  |  \- carousel-component.css
+|  |  |  \- components/
 |  |  \- images/
 |  \- views/
 |     \- app.blade.php             # shell que carga assets/renderizador del paquete

@@ -25,9 +25,9 @@
     @endphp
     <link rel="stylesheet" href="{{ asset('vendor/idei/usim/css/ui-theme-tokens.css') }}?v={{ $usimAssetVersion('vendor/idei/usim/css/ui-theme-tokens.css') }}">
     <link rel="stylesheet" href="{{ asset('vendor/idei/usim/css/ui-components.css') }}?v={{ $usimAssetVersion('vendor/idei/usim/css/ui-components.css') }}">
-    <link rel="stylesheet" href="{{ asset('vendor/idei/usim/css/uploader-component.css') }}?v={{ $usimAssetVersion('vendor/idei/usim/css/uploader-component.css') }}">
-    <link rel="stylesheet" href="{{ asset('vendor/idei/usim/css/carousel-component.css') }}?v={{ $usimAssetVersion('vendor/idei/usim/css/carousel-component.css') }}">
-    <link rel="stylesheet" href="{{ asset('vendor/idei/usim/css/image-crop-editor.css') }}?v={{ $usimAssetVersion('vendor/idei/usim/css/image-crop-editor.css') }}">
+    <link rel="stylesheet" href="{{ asset('vendor/idei/usim/css/components/uploader/index.css') }}?v={{ $usimAssetVersion('vendor/idei/usim/css/components/uploader/index.css') }}">
+    <link rel="stylesheet" href="{{ asset('vendor/idei/usim/css/components/carousel/index.css') }}?v={{ $usimAssetVersion('vendor/idei/usim/css/components/carousel/index.css') }}">
+    <link rel="stylesheet" href="{{ asset('vendor/idei/usim/css/components/image-crop-editor/index.css') }}?v={{ $usimAssetVersion('vendor/idei/usim/css/components/image-crop-editor/index.css') }}">
 </head>
 <body>
     <header id="top-menu-bar">
@@ -59,10 +59,27 @@
         window.PARAMS = @json($allParams);
         window.QUERY_PARAMS = new URLSearchParams(window.location.search);
     </script>
+    <script src="{{ asset('vendor/idei/usim/js/component-registry.js') }}?v={{ $usimAssetVersion('vendor/idei/usim/js/component-registry.js') }}"></script>
     <script src="{{ asset('vendor/idei/usim/js/ui-renderer.js') }}?v={{ $usimAssetVersion('vendor/idei/usim/js/ui-renderer.js') }}"></script>
-    <script src="{{ asset('vendor/idei/usim/js/image-crop-editor.js') }}?v={{ $usimAssetVersion('vendor/idei/usim/js/image-crop-editor.js') }}"></script>
-    <script src="{{ asset('vendor/idei/usim/js/uploader-component.js') }}?v={{ $usimAssetVersion('vendor/idei/usim/js/uploader-component.js') }}"></script>
-    <script src="{{ asset('vendor/idei/usim/js/calendar-component.js') }}?v={{ $usimAssetVersion('vendor/idei/usim/js/calendar-component.js') }}"></script>
-    <script src="{{ asset('vendor/idei/usim/js/carousel-component.js') }}?v={{ $usimAssetVersion('vendor/idei/usim/js/carousel-component.js') }}"></script>
+    <script src="{{ asset('vendor/idei/usim/js/components/shared/ui-event.js') }}?v={{ $usimAssetVersion('vendor/idei/usim/js/components/shared/ui-event.js') }}"></script>
+    <script src="{{ asset('vendor/idei/usim/js/components/shared/content-render.js') }}?v={{ $usimAssetVersion('vendor/idei/usim/js/components/shared/content-render.js') }}"></script>
+    <script src="{{ asset('vendor/idei/usim/js/components/container/index.js') }}?v={{ $usimAssetVersion('vendor/idei/usim/js/components/container/index.js') }}"></script>
+    <script src="{{ asset('vendor/idei/usim/js/components/label/index.js') }}?v={{ $usimAssetVersion('vendor/idei/usim/js/components/label/index.js') }}"></script>
+    <script src="{{ asset('vendor/idei/usim/js/components/button/index.js') }}?v={{ $usimAssetVersion('vendor/idei/usim/js/components/button/index.js') }}"></script>
+    <script src="{{ asset('vendor/idei/usim/js/components/input/index.js') }}?v={{ $usimAssetVersion('vendor/idei/usim/js/components/input/index.js') }}"></script>
+    <script src="{{ asset('vendor/idei/usim/js/components/select/index.js') }}?v={{ $usimAssetVersion('vendor/idei/usim/js/components/select/index.js') }}"></script>
+    <script src="{{ asset('vendor/idei/usim/js/components/checkbox/index.js') }}?v={{ $usimAssetVersion('vendor/idei/usim/js/components/checkbox/index.js') }}"></script>
+    <script src="{{ asset('vendor/idei/usim/js/components/storage/index.js') }}?v={{ $usimAssetVersion('vendor/idei/usim/js/components/storage/index.js') }}"></script>
+    <script src="{{ asset('vendor/idei/usim/js/components/card/index.js') }}?v={{ $usimAssetVersion('vendor/idei/usim/js/components/card/index.js') }}"></script>
+    <script src="{{ asset('vendor/idei/usim/js/components/menudropdown/index.js') }}?v={{ $usimAssetVersion('vendor/idei/usim/js/components/menudropdown/index.js') }}"></script>
+    <script src="{{ asset('vendor/idei/usim/js/components/table/index.js') }}?v={{ $usimAssetVersion('vendor/idei/usim/js/components/table/index.js') }}"></script>
+    <script src="{{ asset('vendor/idei/usim/js/components/tableheaderrow/index.js') }}?v={{ $usimAssetVersion('vendor/idei/usim/js/components/tableheaderrow/index.js') }}"></script>
+    <script src="{{ asset('vendor/idei/usim/js/components/tablerow/index.js') }}?v={{ $usimAssetVersion('vendor/idei/usim/js/components/tablerow/index.js') }}"></script>
+    <script src="{{ asset('vendor/idei/usim/js/components/tablecell/index.js') }}?v={{ $usimAssetVersion('vendor/idei/usim/js/components/tablecell/index.js') }}"></script>
+    <script src="{{ asset('vendor/idei/usim/js/components/tableheadercell/index.js') }}?v={{ $usimAssetVersion('vendor/idei/usim/js/components/tableheadercell/index.js') }}"></script>
+    <script src="{{ asset('vendor/idei/usim/js/components/image-crop-editor/index.js') }}?v={{ $usimAssetVersion('vendor/idei/usim/js/components/image-crop-editor/index.js') }}"></script>
+    <script src="{{ asset('vendor/idei/usim/js/components/uploader/index.js') }}?v={{ $usimAssetVersion('vendor/idei/usim/js/components/uploader/index.js') }}"></script>
+    <script src="{{ asset('vendor/idei/usim/js/components/calendar/index.js') }}?v={{ $usimAssetVersion('vendor/idei/usim/js/components/calendar/index.js') }}"></script>
+    <script src="{{ asset('vendor/idei/usim/js/components/carousel/index.js') }}?v={{ $usimAssetVersion('vendor/idei/usim/js/components/carousel/index.js') }}"></script>
 </body>
 </html>

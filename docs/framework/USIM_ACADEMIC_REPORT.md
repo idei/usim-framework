@@ -77,16 +77,15 @@ app/Services/UI/
 
 ```
 public/js/
-├── ui-renderer.js                  # Renderizador principal (3373 líneas)
-│   ├── UIComponent (clase base)
-│   ├── FormComponent
-│   ├── TableComponent
-│   ├── ButtonComponent
-│   ├── UploaderComponent
-│   └── 16+ componentes especializados
-├── uploader-component.js           # Componente de carga de archivos
-├── image-crop-editor.js            # Editor de recorte de imágenes
-└── utils.js                        # Utilidades compartidas
+├── ui-renderer.js                  # Renderizador principal reducido, con bootstrap, diff y modales compartidos
+├── component-registry.js           # Registro global de componentes extensible
+├── components/
+│   ├── uploader/index.js           # Componente de carga de archivos
+│   ├── image-crop-editor/index.js  # Editor de recorte de imágenes
+│   ├── calendar/index.js           # Calendario modular
+│   ├── carousel/index.js           # Carousel modular
+│   └── ...                         # Resto de componentes UI modulares
+└── shared helpers                  # Helpers de eventos/render compartidos por componentes
 ```
 
 ### 2.2 Flujo de Datos

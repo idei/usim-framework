@@ -663,3 +663,9 @@ class UploaderComponent extends UIComponent {
 
 // Hacer la clase disponible globalmente para ComponentFactory
 window.UploaderComponent = UploaderComponent;
+
+if (window.USIM_COMPONENTS?.register) {
+    window.USIM_COMPONENTS.register('uploader', (id, config) => new UploaderComponent(id, config), {
+        source: 'external',
+    });
+}

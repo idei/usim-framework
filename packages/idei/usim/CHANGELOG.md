@@ -18,6 +18,21 @@ The format is based on Keep a Changelog, and this project follows Semantic Versi
 - **Agent Context**: New optional method `Screen::getAgentContext()` enables screens to expose semantic metadata (purpose, inputs, outputs, constraints) for AI agents and headless clients. Metadata is automatically injected into JSON responses when non-empty, and the web renderer ignores this key automatically.
 
 ### Changed
+- Frontend assets now support a folder-per-component layout (`js/components/<component>/index.js` and `css/components/<component>/index.css`) and the package app shell now loads component assets from those modular paths.
+- Added a global frontend component registry (`window.USIM_COMPONENTS`) used by `ComponentFactory` before legacy fallback resolution, enabling new component types to be added without modifying renderer core switch logic.
+- Continued incremental extraction of simple built-in components into modular files (`container`, `label`, `button`) that override legacy registrations via registry, allowing phased migration without breaking the existing renderer.
+- Continued modular extraction with additional simple components (`input`, `select`, `checkbox`, `storage`) loaded from `js/components/*/index.js` and registered as registry-first overrides.
+- Continued modular extraction with `card` and `menudropdown` components moved to folder-based modules and registered through `window.USIM_COMPONENTS` overrides.
+- Continued modular extraction for the table family (`table`, `tableheaderrow`, `tablerow`, `tablecell`, `tableheadercell`) via folder-based registry wrappers, enabling phased migration without duplicating table logic yet.
+- Fixed a modular button compatibility regression during theme-driven updates by restoring the `_applyContent()` contract expected by the renderer diff updater.
+- Upgraded the modular table family from wrappers to standalone implementations in `js/components/table*`, reducing runtime dependency on legacy class definitions in the monolithic renderer.
+- Added shared modular event helper (`js/components/shared/ui-event.js`) to centralize `POST /api/ui-event` requests and renderer update application.
+- Added shared modular content helper (`js/components/shared/content-render.js`) to centralize button/icon rendering and label content rendering.
+- Removed all legacy component class bodies (`ContainerComponent`, `ButtonComponent`, `LabelComponent`, `InputComponent`, `SelectComponent`, `CheckboxComponent`, `TableComponent` family, `CardComponent`, `MenuDropdownComponent`, `StorageComponent`) from `ui-renderer.js` — all component types are now owned exclusively by their modular `js/components/*/index.js` files.
+- Simplified `ComponentFactory.create()` to a registry-first lookup with `console.warn` fallback, removing the legacy switch-case entirely. `ui-renderer.js` is now ~2578 lines (down from ~4509), a 43% reduction.
+- Removed dead top-level asset duplicates (`js/*-component.js`, `js/image-crop-editor.js`, `css/*-component.css`, `css/image-crop-editor.css`) after moving runtime loading entirely to `js/components/*/index.js` and `css/components/*/index.css`.
+- Refactored modular `input`, `select`, `checkbox`, and table action handlers to use the shared UI-event helper, reducing duplicated fetch/storage-header boilerplate.
+- Refactored modular `button`, `tablecell`, and `label` components to use shared content helpers and reduce duplicated icon/text rendering logic.
 - `usim:install` database scaffolding logic was extracted into a dedicated concern (`InstallsDatabaseScaffolding`) to keep `InstallCommand` smaller and easier to maintain.
 - `UsimSeeder` now orchestrates translation seeders in addition to role/user seeders.
 - Package defaults and installer stubs now resolve user-facing text via `t('usim...')` keys (dialogs, time units, auth/admin/menu screens, modal scaffolding, and service messages) instead of hardcoded literals.
