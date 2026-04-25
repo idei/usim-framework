@@ -37,6 +37,7 @@ docs/
 |-----------|-------------|--------|
 | **[USIM_ACADEMIC_REPORT.md](framework/USIM_ACADEMIC_REPORT.md)** ⭐ | Documentación académica completa del framework. Arquitectura, características, ejemplos de servicios reales y comparativas con stack tradicional | 41K |
 | **[UI_BUILDER_REFERENCE.md](framework/UI_BUILDER_REFERENCE.md)** | Referencia técnica de UI. Patrón Composite, manipulación de árbol, todos los componentes disponibles | 13K |
+| **[FRONTEND_COMPONENTS_GUIDE.md](framework/FRONTEND_COMPONENTS_GUIDE.md)** | Guía operativa para agregar, modificar y fixear componentes frontend del renderer modular actual | 15K |
 | **[CONTAINER_ALIGNMENT_GUIDE.md](framework/CONTAINER_ALIGNMENT_GUIDE.md)** | Guía específica de alineación de contenedores horizontales con ejemplos | 5.2K |
 | **[TECHNICAL_COMPONENTS_README.md](framework/TECHNICAL_COMPONENTS_README.md)** | Sistema CSS modular, variables, temas y personalización | 13K |
 

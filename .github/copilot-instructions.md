@@ -356,30 +356,154 @@ Cuando se cree una Screen, considerar:
 
 **Nota importante sobre i18n**: Por defecto, crea la clase Screen sin archivos de traducción. Solo genera archivos i18n (`lang/en/screen/...` y `lang/es/screen/...`) si el usuario explícitamente lo solicita o dice "con i18n" o "con traducciones". Cuando no se pida i18n, usa strings literales en español o en el idioma que tenga sentido en el contexto.
 
-## Cuando agregues un componente nuevo al framework
+## Cuando el usuario diga "crea un componente que..."
 
-Sigue el flujo definido por `packages/idei/usim/docs/component_prompt.md`:
+Interpreta esta solicitud como "crear o extender una capacidad reusable del framework", no como agregar markup suelto.
 
-1. Backend del paquete:
-	- crear builder en `packages/idei/usim/src/Services/Components/`
-	- registrar factory method en `packages/idei/usim/src/Services/UI.php`
-	- registrar mapping de tipo en `packages/idei/usim/src/Services/Screen.php`
-2. Frontend del paquete:
-	- crear JS en `packages/idei/usim/resources/assets/js/`
-	- crear CSS si aplica en `packages/idei/usim/resources/assets/css/`
-	- registrar el componente en `packages/idei/usim/resources/assets/js/ui-renderer.js`
-	- cargar assets en `packages/idei/usim/resources/views/app.blade.php`
-3. Integracion en la app:
-	- crear demo screen en `app/UI/Screens/Demo/`
-	- agregar entrada en `app/UI/Screens/Menu.php` si aplica
-4. Tests:
-	- crear o actualizar tests Pest con `uiScenario(...)`
-	- cubrir contrato inicial, eventos, deltas y edge cases
-5. Validacion/ejecucion:
-	- `composer dump-autoload`
-	- `php artisan usim:discover`
-	- `php artisan test ...`
-	- `php artisan vendor:publish --tag=usim-assets --force` si cambian assets del paquete
+Esta instrucción SOLO aplica si el workspace actual tiene acceso editable al framework `idei/usim`, por ejemplo dentro de este monorepo con `packages/idei/usim/` presente.
+
+Antes de hacer cualquier cambio, verifica explícitamente si estás en uno de estos contextos:
+
+### Contexto 1: monorepo o paquete editable disponible
+
+Se cumple si puedes editar directamente `packages/idei/usim/` en el workspace actual.
+
+Solo en este contexto sí debes crear o modificar componentes reusables del framework.
+
+### Contexto 2: app consumidora sin acceso editable al paquete
+
+Se cumple si la aplicación solo consume `idei/usim` como dependencia y el código fuente editable del paquete no está disponible en el workspace.
+
+En este contexto, la petición "crea un componente" NO debe ejecutarse como si pudieras modificar el framework.
+
+Debes hacer esto en su lugar:
+
+1. explicar brevemente que un componente reusable de USIM pertenece al paquete `idei/usim` y no puede implementarse correctamente solo desde la app consumidora si no existe acceso editable al paquete
+2. no inventar archivos parciales ni hacks frontend locales para simular un componente del framework sin tocar el paquete
+3. ofrecer una de estas alternativas, según el pedido:
+    - preparar el cambio para el repositorio del framework si el usuario abre ese workspace
+    - proponer una solución a nivel Screen usando componentes ya existentes del framework
+    - documentar exactamente qué habría que agregar en `idei/usim` para implementarlo bien
+4. si el usuario pidió algo que sí puede resolverse solo en la app consumidora, limitarte a la Screen/app y dejar claro que NO estás creando un componente reusable del framework
+
+Regla de oro: "crear componente" significa extender el framework reusable. Si no puedes editar el framework, no debes fingir que la tarea quedó resuelta con cambios locales de app que no agregan realmente el componente a USIM.
+
+Antes de editar, determina cuál de estos dos casos aplica:
+
+### Caso A: el tipo backend ya existe y solo falta frontend nuevo o refactor frontend
+
+Ejemplos:
+
+- "crea un componente frontend para renderizar mejor el button"
+- "modulariza el componente table"
+- "agrega estilos propios al uploader"
+
+En este caso, NO inventes un builder PHP nuevo si el `type` ya existe en el contrato JSON.
+
+Debes hacer esto:
+
+1. **Confirmar el tipo backend existente**
+    - revisar el builder/component PHP ya existente en `packages/idei/usim/src/Services/Components/`
+    - verificar qué `type` serializa ese componente
+2. **Crear o editar el módulo frontend correcto**
+    - JS en `packages/idei/usim/resources/assets/js/components/<tipo>/index.js`
+    - CSS en `packages/idei/usim/resources/assets/css/components/<tipo>/index.css` solo si realmente hace falta
+3. **Implementar el componente con arquitectura actual**
+    - heredar de `UIComponent` definida en `packages/idei/usim/resources/assets/js/ui-renderer.js`
+    - implementar `render()`
+    - implementar `update(newConfig)` si el componente participa en updates incrementales o si el renderer lo espera
+    - reutilizar helpers compartidos en `packages/idei/usim/resources/assets/js/components/shared/` cuando aplique
+4. **Registrar el tipo en el registry modular**
+    - usar `window.USIM_COMPONENTS.register('<tipo>', factory, metadata)`
+    - si reemplazas una implementación previa del mismo tipo, hacer antes `unregister('<tipo>')`
+    - NO volver a meter un `switch` ni clases concretas nuevas dentro de `ui-renderer.js` salvo que el cambio sea realmente de infraestructura base
+5. **Cargar assets en la shell del paquete**
+    - agregar el `script` y/o `link` en `packages/idei/usim/resources/views/app.blade.php`
+    - respetar el orden actual: registry -> renderer -> shared helpers -> componentes
+6. **Integrar en app/demo si hace falta mostrarlo**
+    - crear o actualizar demo screen en `app/UI/Screens/Demo/`
+    - agregar entrada en `app/UI/Screens/Menu.php` solo si el usuario quiere exponerla navegablemente
+7. **Validar y publicar**
+    - `node --check` al archivo JS tocado y, si cambias base, también a `ui-renderer.js`
+    - `php artisan vendor:publish --tag=usim-assets --force`
+    - test puntual de la screen/demo afectada si existe
+
+### Caso B: el usuario realmente está pidiendo un componente nuevo end-to-end
+
+Ejemplos:
+
+- "crea un componente carousel-like llamado timeline"
+- "crea un nuevo componente badge con builder PHP y renderer frontend"
+- "agrega un componente reusable al framework"
+
+En este caso debes tocar backend y frontend del paquete.
+
+#### Backend del paquete
+
+1. crear builder/componente PHP en `packages/idei/usim/src/Services/Components/`
+2. definir API fluida consistente con los builders existentes
+3. asegurar que el componente serialice un `type` estable y determinista
+4. registrar factory method en `packages/idei/usim/src/Services/UI.php`
+5. registrar mapping del tipo y reconstrucción en `packages/idei/usim/src/Services/Screen.php` si el framework lo necesita para hydratar/restaurar componentes
+6. revisar impacto en estado persistido, diffs incrementales y handlers si el componente envía eventos
+
+#### Frontend del paquete
+
+1. crear JS en `packages/idei/usim/resources/assets/js/components/<tipo>/index.js`
+2. extender `UIComponent`
+3. implementar `render()` y `update(newConfig)` cuando corresponda
+4. si el componente envía eventos al backend, reutilizar `packages/idei/usim/resources/assets/js/components/shared/ui-event.js`
+5. si comparte render de contenido con otros componentes, extraer o reutilizar helpers en `shared/`
+6. crear CSS en `packages/idei/usim/resources/assets/css/components/<tipo>/index.css` solo si el estilo no cabe bien en `ui-components.css` o tokens base
+7. registrar el tipo con `window.USIM_COMPONENTS.register(...)`
+8. cargar assets en `packages/idei/usim/resources/views/app.blade.php`
+
+#### Integración en la app consumidora
+
+1. crear demo screen real en `app/UI/Screens/Demo/` para probar el componente desde una screen backend-driven
+2. agregar entrada en `app/UI/Screens/Menu.php` si sirve para exploración manual
+3. si el componente necesita datos o comportamiento de dominio, resolverlos desde la screen o servicios PHP, no desde JS ad hoc
+
+#### Testing mínimo esperado
+
+1. crear o actualizar tests Pest con `uiScenario(...)`
+2. cubrir al menos:
+    - contrato inicial del componente
+    - evento principal, si existe
+    - delta/update incremental
+    - edge cases visibles del componente
+3. si hay notificaciones o efectos Laravel, usar `Notification::fake()` o fakes equivalentes
+
+#### Validación/ejecución
+
+1. `composer dump-autoload`
+2. `php artisan usim:discover`
+3. `php artisan vendor:publish --tag=usim-assets --force`
+4. `php artisan test ...` con foco en la screen/demo o tests del componente
+5. si cambias documentación pública, actualizar también `packages/idei/usim/README.md` y `packages/idei/usim/CHANGELOG.md`
+
+## Reglas obligatorias al crear componentes
+
+- Primero verifica si `packages/idei/usim/` existe y es editable en el workspace. Si no lo es, no ejecutes la creación real del componente reusable.
+- No pongas lógica específica de componentes nuevos dentro de `ui-renderer.js` si puede vivir en `js/components/<tipo>/index.js`.
+- No vuelvas a crear assets legacy top-level como `resources/assets/js/<algo>-component.js` o `resources/assets/css/<algo>-component.css`.
+- Usa siempre la estructura modular `components/<tipo>/index.js` y `components/<tipo>/index.css`.
+- Si el problema es reusable del framework, empieza en `packages/idei/usim/`, no en `app/`.
+- Si el usuario solo pidió el componente, normalmente debes entregar también la parte backend necesaria para que el framework pueda emitir ese `type`, salvo que confirmes que ese `type` ya existe.
+- Si cambias assets del paquete, recuerda que sin `vendor:publish` la app consumidora local puede seguir usando archivos viejos en `public/vendor/idei/usim`.
+- Si el componente requiere una demo o prueba manual clara, prefiere una Screen demo en lugar de inventar HTML aislado.
+- En una app consumidora sin acceso al paquete, no presentes como "componente nuevo" una composición local de componentes existentes salvo que el usuario pida explícitamente una solución app-specific.
+
+## Fuentes que debes usar cuando te pidan crear un componente
+
+Lee y usa como contexto, según corresponda:
+
+- `packages/idei/usim/docs/component_prompt.md`
+- `docs/framework/FRONTEND_COMPONENTS_GUIDE.md`
+- `packages/idei/usim/README.md`
+- `packages/idei/usim/CHANGELOG.md`
+
+Si las instrucciones de `component_prompt.md` contradicen la arquitectura modular actual del frontend, prevalece la arquitectura real del repo: registry modular + `js/components/*/index.js` + carga explícita en `app.blade.php`.
 
 ## Cuando actualices el framework o prepares release
 
