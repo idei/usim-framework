@@ -64,6 +64,10 @@ class UsimTextareaComponent extends UIComponent {
         if (newConfig.border_color !== undefined || newConfig.border_width !== undefined || newConfig.border_radius !== undefined) {
             if (this._bodyElement) this._applyBorderStyles(this._bodyElement);
         }
+
+        if (newConfig.background_color !== undefined) {
+            this._applyBackgroundStyles();
+        }
     }
 
     render() {
@@ -76,12 +80,27 @@ class UsimTextareaComponent extends UIComponent {
 
         // Label
         if (this.config.label) {
+            const labelRow = document.createElement('div');
+            labelRow.className = 'usim-textarea-label-row';
+
             const label = document.createElement('label');
             label.className = 'usim-textarea-label';
             if (this.config.required) label.classList.add('required');
             if (this.config.name) label.setAttribute('for', `usim-ta-${this.id}`);
             label.textContent = this.config.label;
-            wrapper.appendChild(label);
+            labelRow.appendChild(label);
+
+            if (this.config.help_text) {
+                const helpIcon = document.createElement('span');
+                helpIcon.className = 'usim-textarea-help-icon';
+                helpIcon.textContent = '?';
+                helpIcon.setAttribute('role', 'img');
+                helpIcon.setAttribute('aria-label', 'Ayuda');
+                helpIcon.setAttribute('data-tooltip', this.config.help_text);
+                labelRow.appendChild(helpIcon);
+            }
+
+            wrapper.appendChild(labelRow);
         }
 
         // Body
@@ -99,6 +118,8 @@ class UsimTextareaComponent extends UIComponent {
             this._buildPlainEditor(body);
         }
 
+        this._applyBackgroundStyles();
+
         // Footer: counter + error
         const footer = document.createElement('div');
         footer.className = 'usim-textarea-footer';
@@ -115,13 +136,6 @@ class UsimTextareaComponent extends UIComponent {
             errMsg.className = 'usim-textarea-error-msg';
             errMsg.textContent = this.config.error;
             footer.appendChild(errMsg);
-        }
-
-        if (this.config.help_text && !this.config.error) {
-            const help = document.createElement('span');
-            help.className = 'usim-textarea-help';
-            help.textContent = this.config.help_text;
-            footer.appendChild(help);
         }
 
         wrapper.appendChild(footer);
@@ -330,13 +344,11 @@ class UsimTextareaComponent extends UIComponent {
     _applyBorderStyles(el) {
         if (!el) return;
 
-        const borderColor = this.config.border_color || '#4f46e5';
-        const borderWidth = (this.config.border_width || 3);
-        const borderRadius = (this.config.border_radius || 10);
+        const borderColor = this.config.border_color ?? null;
 
-        el.style.borderColor = borderColor;
-        el.style.borderWidth = borderWidth + 'px';
-        el.style.borderRadius = borderRadius + 'px';
+        el.style.borderColor = borderColor || '';
+        el.style.borderWidth = this.config.border_width != null ? `${this.config.border_width}px` : '';
+        el.style.borderRadius = this.config.border_radius != null ? `${this.config.border_radius}px` : '';
 
         // Apply shadow only if color is set (custom styling)
         if (this.config.border_color) {
@@ -344,7 +356,27 @@ class UsimTextareaComponent extends UIComponent {
             if (rgbColor) {
                 const [r, g, b] = rgbColor;
                 el.style.boxShadow = `0 0 0 2px rgba(${r}, ${g}, ${b}, 0.2), inset 0 0 10px rgba(${r}, ${g}, ${b}, 0.1)`;
+            } else {
+                el.style.boxShadow = '';
             }
+        } else {
+            el.style.boxShadow = '';
+        }
+    }
+
+    _applyBackgroundStyles() {
+        const backgroundColor = this.config.background_color;
+
+        if (this._bodyElement) {
+            this._bodyElement.style.backgroundColor = backgroundColor || '';
+        }
+
+        if (this._textarea) {
+            this._textarea.style.backgroundColor = backgroundColor || '';
+        }
+
+        if (this._previewPane) {
+            this._previewPane.style.backgroundColor = backgroundColor || '';
         }
     }
 

@@ -30,6 +30,7 @@ class Textarea extends UIComponent
             'border_color' => null,     // CSS color, e.g. '#4f46e5'
             'border_width' => null,     // px width, e.g. 3
             'border_radius' => null,    // px radius, e.g. 10
+            'background_color' => null, // CSS color, e.g. '#0f172a'
         ];
     }
 
@@ -186,5 +187,15 @@ class Textarea extends UIComponent
     public function borderRadius(?int $radius): self
     {
         return $this->setConfig('border_radius', $radius);
+    }
+
+    /**
+     * Set the textarea background color.
+     *
+     * @param string|null $color CSS color or null to use theme default
+     */
+    public function backgroundColor(?string $color): self
+    {
+        return $this->setConfig('background_color', $color);
     }
 }

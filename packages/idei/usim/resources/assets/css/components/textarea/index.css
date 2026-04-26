@@ -14,32 +14,98 @@
 }
 
 /* ── Label ────────────────────────────────────────────────── */
+.usim-textarea-label-row {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
 .usim-textarea-label {
-    font-size: 0.875rem;
+    font-size: 14px;
     font-weight: 500;
-    color: var(--usim-label-color, var(--usim-text-primary));
-    margin-bottom: 2px;
+    color: var(--ui-text-strong);
 }
 
 .usim-textarea-label.required::after {
     content: ' *';
-    color: var(--usim-error-color, #e53e3e);
+    color: var(--usim-form-required-color, var(--usim-color-danger));
+}
+
+.usim-textarea-help-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    border: 1px solid var(--usim-form-control-border, var(--ui-border));
+    color: var(--ui-text-muted);
+    font-size: 11px;
+    font-weight: 700;
+    cursor: help;
+    user-select: none;
+    position: relative;
+    background: var(--ui-surface-muted);
+}
+
+.usim-textarea-help-icon::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    left: 50%;
+    bottom: calc(100% + 8px);
+    transform: translateX(-50%);
+    min-width: 180px;
+    max-width: 320px;
+    width: max-content;
+    padding: 8px 10px;
+    border-radius: 6px;
+    background: rgba(15, 23, 36, 0.95);
+    color: #ffffff;
+    font-size: 12px;
+    font-weight: 500;
+    line-height: 1.35;
+    text-align: left;
+    white-space: normal;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.15s ease;
+    z-index: 1000;
+}
+
+.usim-textarea-help-icon::before {
+    content: '';
+    position: absolute;
+    left: 50%;
+    bottom: calc(100% + 3px);
+    transform: translateX(-50%);
+    border: 5px solid transparent;
+    border-top-color: rgba(15, 23, 36, 0.95);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.15s ease;
+    z-index: 1001;
+}
+
+.usim-textarea-help-icon:hover::after,
+.usim-textarea-help-icon:hover::before {
+    opacity: 1;
 }
 
 /* ── Body ─────────────────────────────────────────────────── */
 .usim-textarea-body {
     display: flex;
     flex-direction: column;
-    border: 2px solid var(--usim-input-border, var(--usim-border-color));
+    border: 1px solid var(--usim-form-control-border, var(--ui-border));
     border-radius: 10px;
     overflow: hidden;
-    background: var(--usim-input-bg, var(--usim-bg-secondary));
+    background: var(--usim-form-control-bg, var(--ui-surface));
     transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
 
 .usim-textarea-body:focus-within {
-    border-color: var(--usim-accent, var(--usim-primary));
-    box-shadow: 0 0 0 2px color-mix(in srgb, var(--usim-accent, var(--usim-primary)) 20%, transparent);
+    border-color: var(--usim-form-control-focus-border, var(--usim-color-primary));
+    box-shadow: 0 0 0 3px var(--usim-form-control-focus-ring, rgba(52, 152, 219, 0.12));
 }
 
 .usim-textarea-wrapper.has-error .usim-textarea-body {
@@ -71,9 +137,6 @@
 
 .usim-textarea-body.mode-plain {
     background: color-mix(in srgb, var(--usim-bg-secondary) 92%, var(--usim-bg-primary));
-    border: 3px solid #4f46e5 !important;
-    box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.2),
-                inset 0 0 10px rgba(79, 70, 229, 0.1);
     width: 100%;
     overflow: hidden;
     border-radius: 10px;
