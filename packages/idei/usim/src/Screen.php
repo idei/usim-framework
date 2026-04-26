@@ -4,6 +4,7 @@ namespace Idei\Usim;
 use Idei\Usim\Components\Button;
 use Idei\Usim\Components\Card;
 use Idei\Usim\Components\Checkbox;
+use Idei\Usim\Components\Container;
 use Idei\Usim\Components\Form;
 use Idei\Usim\Components\Input;
 use Idei\Usim\Components\Label;
@@ -14,7 +15,6 @@ use Idei\Usim\Components\TableCell;
 use Idei\Usim\Components\TableHeaderCell;
 use Idei\Usim\Components\TableHeaderRow;
 use Idei\Usim\Components\TableRow;
-use Idei\Usim\Components\Container;
 use Idei\Usim\Components\Uploader;
 use Idei\Usim\Contracts\UIElement;
 use Idei\Usim\Enums\LayoutType;
@@ -590,7 +590,7 @@ abstract class Screen
             'uploader' => Uploader::class,
             'calendar' => \Idei\Usim\Components\Calendar::class,
             'carousel' => \Idei\Usim\Components\Carousel::class,
-            'textarea' => \Idei\Usim\Components\Textarea::class,
+            'textarea' => 'Idei\\Usim\\Components\\Textarea',
             'default' => null,
         };
     }

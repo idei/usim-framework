@@ -1238,7 +1238,7 @@
         },
         {
             "name": "idei/usim",
-            "version": "dev-front-refactor",
+            "version": "dev-main",
             "dist": {
                 "type": "path",
                 "url": "packages/idei/usim",
