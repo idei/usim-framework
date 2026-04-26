@@ -6,51 +6,28 @@ The format is based on Keep a Changelog, and this project follows Semantic Versi
 
 ## [Unreleased]
 
+## [0.10.0] - 2026-04-26
+
 ### Added
-- **Textarea component**: new `Textarea` builder (`UI::textarea()`) with plain-text and markdown modes. Supports configurable `width`, `height`, `maxLength` (or unlimited), `placeholder`, `label`, `required`, `disabled`, `readonly`, `error`, `helpText`, `onChange`, `onInput`, and `debounce`. In markdown mode renders a split-view editor with live preview and a formatting toolbar (bold, italic, strikethrough, inline code, H1–H3, bullet list, numbered list, blockquote, code block, link, HR). Includes `marked.min.js` v9 bundled as a static asset. Type `textarea` registered in `Screen::mapTypeToClass()` and factory added to `UI::textarea()`. New frontend module at `js/components/textarea/index.js` and styles at `css/components/textarea/index.css`. Assets loaded via `app.blade.php`.
-
-- Database translation architecture based on identifier keys with language-specific values and optional media payload (`usim_languages`, `usim_text_keys`, `usim_text_values`).
-- New package models: `UsimLanguage`, `UsimTextKey`, and `UsimTextValue`.
-- New `TranslationService` with CRUD operations for languages, keys, and text/media values.
-- New global helper `t(string $key, array $params = [], ?string $language = null): string`.
-- New i18n autokey suggestion logging when human-readable text is passed to `t(...)`, including generated key plus source file/line/character context.
-- New installer stubs: translation migrations and seeders (`UsimLanguageSeeder`, `UsimTranslationSeeder`).
-
-- **Headless Mode**: USIM now supports pure API mode via `USIM_HEADLESS_MODE` environment variable. When enabled, the web catch-all route returns HTTP 406 with JSON, forcing all clients to use `/api/ui` endpoints directly. Backward compatible (default: false).
-- **Agent Context**: New optional method `Screen::getAgentContext()` enables screens to expose semantic metadata (purpose, inputs, outputs, constraints) for AI agents and headless clients. Metadata is automatically injected into JSON responses when non-empty, and the web renderer ignores this key automatically.
+- **Textarea component**: new `Textarea` builder (`UI::textarea()`) with plain-text and markdown modes.
+- Textarea supports configurable `width`, `height`, `maxLength` (or unlimited), `placeholder`, `label`, `required`, `disabled`, `readonly`, `error`, `helpText`, `onChange`, `onInput`, and `debounce`.
+- Markdown mode includes split-view editor with live preview and formatting toolbar (bold, italic, strikethrough, inline code, headings H1-H3, bullet list, numbered list, blockquote, code block, links, and horizontal rule).
+- Added Textarea visual customization API: `borderColor()`, `borderWidth()`, `borderRadius()`, and `backgroundColor()`.
+- Added contextual help indicator on textarea labels: when `helpText()` is defined, a help icon appears next to the label and shows a tooltip on hover.
+- Bundled `marked.min.js` v9 as static package asset for markdown rendering.
+- Registered `textarea` type end-to-end: PHP component class, `UI::textarea()` factory, `Screen::mapTypeToClass()` mapping, modular frontend renderer (`js/components/textarea/index.js`) and component styles (`css/components/textarea/index.css`).
 
 ### Changed
-- Frontend assets now support a folder-per-component layout (`js/components/<component>/index.js` and `css/components/<component>/index.css`) and the package app shell now loads component assets from those modular paths.
-- Added a global frontend component registry (`window.USIM_COMPONENTS`) used by `ComponentFactory` before legacy fallback resolution, enabling new component types to be added without modifying renderer core switch logic.
-- Continued incremental extraction of simple built-in components into modular files (`container`, `label`, `button`) that override legacy registrations via registry, allowing phased migration without breaking the existing renderer.
-- Continued modular extraction with additional simple components (`input`, `select`, `checkbox`, `storage`) loaded from `js/components/*/index.js` and registered as registry-first overrides.
-- Continued modular extraction with `card` and `menudropdown` components moved to folder-based modules and registered through `window.USIM_COMPONENTS` overrides.
-- Continued modular extraction for the table family (`table`, `tableheaderrow`, `tablerow`, `tablecell`, `tableheadercell`) via folder-based registry wrappers, enabling phased migration without duplicating table logic yet.
-- Fixed a modular button compatibility regression during theme-driven updates by restoring the `_applyContent()` contract expected by the renderer diff updater.
-- Upgraded the modular table family from wrappers to standalone implementations in `js/components/table*`, reducing runtime dependency on legacy class definitions in the monolithic renderer.
-- Added shared modular event helper (`js/components/shared/ui-event.js`) to centralize `POST /api/ui-event` requests and renderer update application.
-- Added shared modular content helper (`js/components/shared/content-render.js`) to centralize button/icon rendering and label content rendering.
-- Removed all legacy component class bodies (`ContainerComponent`, `ButtonComponent`, `LabelComponent`, `InputComponent`, `SelectComponent`, `CheckboxComponent`, `TableComponent` family, `CardComponent`, `MenuDropdownComponent`, `StorageComponent`) from `ui-renderer.js` — all component types are now owned exclusively by their modular `js/components/*/index.js` files.
-- Simplified `ComponentFactory.create()` to a registry-first lookup with `console.warn` fallback, removing the legacy switch-case entirely. `ui-renderer.js` is now ~2578 lines (down from ~4509), a 43% reduction.
-- Removed dead top-level asset duplicates (`js/*-component.js`, `js/image-crop-editor.js`, `css/*-component.css`, `css/image-crop-editor.css`) after moving runtime loading entirely to `js/components/*/index.js` and `css/components/*/index.css`.
-- Refactored modular `input`, `select`, `checkbox`, and table action handlers to use the shared UI-event helper, reducing duplicated fetch/storage-header boilerplate.
-- Refactored modular `button`, `tablecell`, and `label` components to use shared content helpers and reduce duplicated icon/text rendering logic.
-- `usim:install` database scaffolding logic was extracted into a dedicated concern (`InstallsDatabaseScaffolding`) to keep `InstallCommand` smaller and easier to maintain.
-- `UsimSeeder` now orchestrates translation seeders in addition to role/user seeders.
-- Package defaults and installer stubs now resolve user-facing text via `t('usim...')` keys (dialogs, time units, auth/admin/menu screens, modal scaffolding, and service messages) instead of hardcoded literals.
-- `UsimTranslationSeeder` stub now includes a comprehensive baseline keyset for scaffolded UI and service responses under `usim.component.*`, `usim.dialog.*`, `usim.time_unit.*`, and `usim.*` namespaces.
-- Frontend modal handling now uses an automatic overlay stack with reusable layers (first free overlay on open, top overlay on close), allowing nested dialogs without replacing previous modal content.
-- The legacy `BaseUIBuilder` class was removed after consolidating common builder behavior into `UIComponent` and `Container`.
-- **Protocol cleanup**: Removed the redundant `_id` attribute from the USIM JSON protocol. Both the backend (PHP serialization layer) and the frontend renderer no longer emit or consume `_id` on component payloads; component identity is now resolved exclusively through the structural position and the `id` field where applicable.
+- **Frontend renderer refactor**: completed migration to modular component architecture (`js/components/<component>/index.js` and `css/components/<component>/index.css`) with registry-first resolution via `window.USIM_COMPONENTS`.
+- Simplified `ComponentFactory.create()` to registry-first lookup with fallback warning, removing legacy switch-case paths.
+- Removed legacy monolithic component bodies and duplicate top-level legacy assets after modular migration.
+- Expanded shared frontend helpers (`shared/ui-event.js`, `shared/content-render.js`) and refactored modular components to reuse them, reducing duplicated render/event boilerplate.
+- `ui-renderer.js` reduced significantly in size after extracting component ownership to modular files.
 
 ### Fixed
-- Composer constraints now allow Laravel 13 (`illuminate/* ^13.0`).
-- Translation resolution now falls back to English by default and then to Laravel's standard translator before returning the key.
-- Auto-generated key length is now configurable (`ui-services.i18n.auto_key_max_length`) with smart truncation that prefers completing the current token up to the next separator.
-- Human-text auto-key generation now normalizes escaped and platform line breaks before deriving keys and storing fallback values.
-- Table refresh cycles now reset render-affecting cell state (styles, colors, media/button payloads) before hydrating new row data, ensuring incremental diffs are emitted when visual-only cell changes occur.
-- `usim:install` now registers `vendor/idei/usim/src/Support/helpers.php` in the consumer `composer.json` under `autoload.files` when missing.
-- Confirm dialog messages now render escaped `\\n` as real line breaks in the frontend and support markdown-to-HTML formatting through `Label::markdown()`.
+- **Protocol/response optimization**: removed redundant `_id` from USIM JSON payloads. Backend and frontend no longer emit/consume `_id`; component identity is resolved using structural diff keys and canonical `id` where applicable.
+- Textarea default visual behavior is now theme-compatible when border/background overrides are not provided, aligning with existing form-control tokens.
+
 
 ## [0.7.0] - 2026-03-28
 
