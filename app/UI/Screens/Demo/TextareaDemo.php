@@ -17,8 +17,7 @@ use Idei\Usim\Components\Label;
 class TextareaDemo extends Screen
 {
     protected Textarea $plain_textarea;
-    // protected Textarea $md_textarea;
-    protected Label    $lbl_plain_result;
+    protected Textarea $md_textarea;
 
     public static function getMenuLabel(): string
     {
@@ -47,13 +46,6 @@ class TextareaDemo extends Screen
             ->gap('12px');
 
         $sectionPlain->add(
-            UI::label('lbl_plain_title')
-                ->text('Modo: Texto plano')
-                ->style('subtitle')
-                ->width('100%')
-        );
-
-        $sectionPlain->add(
             UI::textarea('plain_textarea')
                 ->label('Notas rápidas')
                 ->placeholder('Escribe algo aquí…')
@@ -68,13 +60,6 @@ class TextareaDemo extends Screen
                 ->onChange('on_plain_saved')
         );
 
-        $sectionPlain->add(
-            UI::label('lbl_plain_result')
-                ->text('Estado: pendiente de guardar. Haz click fuera del campo para enviar.')
-                ->style('muted')
-                ->width('100%')
-        );
-
         $container->add($sectionPlain);
 
         // // ── Sección 2: markdown ──────────────────────────────────────────────
@@ -82,13 +67,6 @@ class TextareaDemo extends Screen
             ->plain()
             ->width('100%')
             ->gap('12px');
-
-        $sectionMd->add(
-            UI::label('lbl_md_title')
-                ->text('Modo: Markdown')
-                ->style('subtitle')
-                ->width('100%')
-        );
 
         $defaultMd = "## Bienvenido al editor Markdown\n\nEscribe **negrita**, *cursiva* o `código inline`.\n\n- Viñeta 1\n- Viñeta 2\n\n> Una cita de ejemplo.\n";
 
@@ -111,26 +89,9 @@ class TextareaDemo extends Screen
         $container->add($sectionMd);
     }
 
-    protected function postLoadUI(): void
-    {
-        $this->lbl_plain_result->text('Estado: pendiente de guardar. Haz click fuera del campo para enviar.')->style('muted');
-    }
-
-    // ── Handlers ──────────────────────────────────────────────────────────────
-
     public function onPlainSaved(array $params): void
     {
         $value = trim($params['value'] ?? '');
-        $len   = mb_strlen($value);
-
-        if ($len === 0) {
-            $this->lbl_plain_result->text('El campo está vacío.')->style('warning');
-            return;
-        }
-
-        $this->lbl_plain_result
-            ->text("✅ Guardado ({$len} caracteres): \"" . mb_substr($value, 0, 60) . (mb_strlen($value) > 60 ? '…' : '') . '"')
-            ->style('success');
     }
 
     public function onMdSaved(array $params): void
