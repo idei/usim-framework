@@ -5,7 +5,6 @@ use Idei\Usim\UI;
 use Idei\Usim\Screen;
 use Idei\Usim\Components\Container;
 use Idei\Usim\Components\Textarea;
-use Idei\Usim\Components\Label;
 
 /**
  * TextareaDemo
