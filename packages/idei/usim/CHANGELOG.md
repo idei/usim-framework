@@ -6,7 +6,7 @@ The format is based on Keep a Changelog, and this project follows Semantic Versi
 
 ## [Unreleased]
 
-## [0.10.0] - 2026-04-26
+## [v0.10.0] - 2026-04-26
 
 ### Added
 - **Textarea component**: new `Textarea` builder (`UI::textarea()`) with plain-text and markdown modes.
