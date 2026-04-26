@@ -44,8 +44,11 @@ class TextareaDemo extends Screen
             ->width('100%')
             ->gap('12px');
 
+        /** @var Textarea $plainTextarea */
+        $plainTextarea = UI::textarea('plain_textarea');
+
         $sectionPlain->add(
-            UI::textarea('plain_textarea')
+            $plainTextarea
                 ->label('Notas rápidas')
                 ->placeholder('Escribe algo aquí…')
                 ->plainText()
@@ -69,8 +72,11 @@ class TextareaDemo extends Screen
 
         $defaultMd = "## Bienvenido al editor Markdown\n\nEscribe **negrita**, *cursiva* o `código inline`.\n\n- Viñeta 1\n- Viñeta 2\n\n> Una cita de ejemplo.\n";
 
+        /** @var Textarea $markdownTextarea */
+        $markdownTextarea = UI::textarea('md_textarea');
+
         $sectionMd->add(
-            UI::textarea('md_textarea')
+            $markdownTextarea
                 ->label('Descripción con formato')
                 ->placeholder('Escribe en Markdown…')
                 ->markdown()
