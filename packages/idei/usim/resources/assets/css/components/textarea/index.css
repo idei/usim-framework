@@ -7,7 +7,7 @@
 .usim-textarea-wrapper {
     display: flex;
     flex-direction: column;
-    gap: 4px;
+    gap: 8px;
     font-family: var(--usim-font-family, sans-serif);
     width: 100%;
     box-sizing: border-box;
@@ -30,11 +30,11 @@
 .usim-textarea-body {
     display: flex;
     flex-direction: column;
-    border: 1px solid var(--usim-input-border, var(--usim-border-color));
-    border-radius: 6px;
-    overflow: hidden;
+    border: 2px solid var(--usim-input-border, var(--usim-border-color));
+    border-radius: 10px;
+    overflow: visible;
     background: var(--usim-input-bg, var(--usim-bg-secondary));
-    transition: border-color 0.15s ease;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
 
 .usim-textarea-body:focus-within {
@@ -49,8 +49,8 @@
 /* ── Native textarea element ──────────────────────────────── */
 .usim-textarea-el {
     width: 100%;
-    min-height: 120px;
-    padding: 10px 12px;
+    min-height: 140px;
+    padding: 12px 14px;
     font-size: 0.9rem;
     font-family: inherit;
     line-height: 1.55;
@@ -58,8 +58,32 @@
     background: transparent;
     border: none;
     outline: none;
-    resize: vertical;
+    resize: none;
     box-sizing: border-box;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+.usim-textarea-el-markdown {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    font-size: 0.88rem;
+}
+
+.usim-textarea-body.mode-plain {
+    background: color-mix(in srgb, var(--usim-bg-secondary) 92%, var(--usim-bg-primary));
+    border: 3px solid #4f46e5 !important;
+    box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.2),
+                inset 0 0 10px rgba(79, 70, 229, 0.1);
+    width: 100%;
+    overflow: hidden;
+    border-radius: 10px;
+}
+
+.usim-textarea-body.mode-plain .usim-textarea-el {
+    display: block;
+    width: 100%;
+    min-height: 150px;
+    resize: none;
 }
 
 .usim-textarea-el::placeholder {
@@ -82,23 +106,23 @@
     display: flex;
     flex-wrap: wrap;
     align-items: center;
-    gap: 2px;
-    padding: 4px 8px;
+    gap: 4px;
+    padding: 8px 10px;
     background: var(--usim-toolbar-bg, color-mix(in srgb, var(--usim-bg-primary) 60%, var(--usim-bg-secondary)));
     border-bottom: 1px solid var(--usim-border-color);
 }
 
 .usim-toolbar-btn {
-    padding: 2px 7px;
-    font-size: 0.78rem;
-    font-family: monospace;
+    padding: 3px 8px;
+    font-size: 0.76rem;
+    font-family: inherit;
     font-weight: 600;
     color: var(--usim-text-secondary);
     background: transparent;
-    border: 1px solid transparent;
+    border: 1px solid color-mix(in srgb, var(--usim-border-color) 80%, transparent);
     border-radius: 4px;
     cursor: pointer;
-    line-height: 1.6;
+    line-height: 1.4;
     transition: background 0.1s, color 0.1s, border-color 0.1s;
     white-space: nowrap;
 }
@@ -147,14 +171,15 @@
 /* ── Split view ───────────────────────────────────────────── */
 .usim-textarea-split {
     display: grid;
-    grid-template-columns: 1fr 1fr;
-    min-height: 200px;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    min-height: 240px;
 }
 
 .usim-textarea-editor-pane {
     display: flex;
     flex-direction: column;
     border-right: 1px solid var(--usim-border-color);
+    min-width: 0;
 }
 
 .usim-textarea-editor-pane .usim-textarea-el {
@@ -165,9 +190,27 @@
 }
 
 .usim-textarea-preview-pane {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
     overflow-y: auto;
-    padding: 10px 14px;
+    padding: 0;
     background: var(--usim-preview-bg, var(--usim-bg-primary));
+}
+
+.usim-textarea-pane-title {
+    font-size: 0.72rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    font-weight: 700;
+    color: var(--usim-text-muted);
+    padding: 7px 12px;
+    border-bottom: 1px solid var(--usim-border-color);
+    background: color-mix(in srgb, var(--usim-bg-primary) 72%, var(--usim-bg-secondary));
+}
+
+.usim-textarea-preview-content {
+    padding: 12px 14px;
 }
 
 /* ── Markdown preview ─────────────────────────────────────── */
@@ -260,10 +303,11 @@
 .usim-textarea-footer {
     display: flex;
     align-items: center;
-    justify-content: flex-end;
+    justify-content: space-between;
     gap: 10px;
     min-height: 18px;
     flex-wrap: wrap;
+    padding: 0 2px;
 }
 
 .usim-textarea-counter {
@@ -307,6 +351,11 @@
 
     .usim-textarea-tabs {
         display: flex;
+    }
+
+    .usim-textarea-split {
+        min-height: 220px;
+        height: auto !important;
     }
 
     /* In mobile, tab switching handles visibility */

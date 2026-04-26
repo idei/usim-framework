@@ -17,7 +17,7 @@ use Idei\Usim\Components\Label;
 class TextareaDemo extends Screen
 {
     protected Textarea $plain_textarea;
-    protected Textarea $md_textarea;
+    // protected Textarea $md_textarea;
     protected Label    $lbl_plain_result;
 
     public static function getMenuLabel(): string
@@ -34,7 +34,7 @@ class TextareaDemo extends Screen
     {
         $container
             ->title('Textarea — Demo')
-            ->maxWidth('860px')
+            ->maxWidth('1024px')
             ->centerHorizontal()
             ->shadow(2)
             ->padding('30px')
@@ -43,6 +43,7 @@ class TextareaDemo extends Screen
         // ── Sección 1: texto plano ───────────────────────────────────────────
         $sectionPlain = UI::container('section_plain')
             ->plain()
+            ->width('100%')
             ->gap('12px');
 
         $sectionPlain->add(
@@ -58,24 +59,28 @@ class TextareaDemo extends Screen
                 ->placeholder('Escribe algo aquí…')
                 ->plainText()
                 ->width('100%')
-                ->height('130px')
+                ->height('200px')
                 ->maxLength(300)
-                ->helpText('Máximo 300 caracteres.')
+                ->borderColor('#4f46e5')
+                ->borderWidth(3)
+                ->borderRadius(5)
+                ->helpText('Máximo 300 caracteres. Se guarda al salir del campo (onChange).')
                 ->onChange('on_plain_saved')
         );
 
         $sectionPlain->add(
             UI::label('lbl_plain_result')
-                ->text('(todavía no guardado)')
+                ->text('Estado: pendiente de guardar. Haz click fuera del campo para enviar.')
                 ->style('muted')
                 ->width('100%')
         );
 
         $container->add($sectionPlain);
 
-        // ── Sección 2: markdown ──────────────────────────────────────────────
+        // // ── Sección 2: markdown ──────────────────────────────────────────────
         $sectionMd = UI::container('section_md')
             ->plain()
+            ->width('100%')
             ->gap('12px');
 
         $sectionMd->add(
@@ -95,6 +100,9 @@ class TextareaDemo extends Screen
                 ->value($defaultMd)
                 ->width('100%')
                 ->height('260px')
+                ->borderColor('#16a34a')
+                ->borderWidth(2)
+                ->borderRadius(8)
                 ->maxLength(2000)
                 ->helpText('Vista previa en tiempo real a la derecha.')
                 ->onChange('on_md_saved')
@@ -105,7 +113,7 @@ class TextareaDemo extends Screen
 
     protected function postLoadUI(): void
     {
-        $this->lbl_plain_result->text('(todavía no guardado)')->style('muted');
+        $this->lbl_plain_result->text('Estado: pendiente de guardar. Haz click fuera del campo para enviar.')->style('muted');
     }
 
     // ── Handlers ──────────────────────────────────────────────────────────────

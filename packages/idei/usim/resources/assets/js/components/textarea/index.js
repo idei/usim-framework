@@ -59,6 +59,11 @@ class UsimTextareaComponent extends UIComponent {
         if (newConfig.disabled !== undefined) {
             if (this._textarea) this._textarea.disabled = !!this.config.disabled;
         }
+
+        // Sync border styles if they changed
+        if (newConfig.border_color !== undefined || newConfig.border_width !== undefined || newConfig.border_radius !== undefined) {
+            if (this._bodyElement) this._applyBorderStyles(this._bodyElement);
+        }
     }
 
     render() {
@@ -83,6 +88,10 @@ class UsimTextareaComponent extends UIComponent {
         const body = document.createElement('div');
         body.className = `usim-textarea-body mode-${this.config.mode || 'plain'}`;
         wrapper.appendChild(body);
+
+        // Apply border styles
+        this._applyBorderStyles(body);
+        this._bodyElement = body;
 
         if (this.config.mode === 'markdown') {
             this._buildMarkdownEditor(body);
@@ -124,7 +133,7 @@ class UsimTextareaComponent extends UIComponent {
     // ─── Plain editor ─────────────────────────────────────────────────────────
 
     _buildPlainEditor(container) {
-        const ta = this._createTextareaEl();
+        const ta = this._createTextareaEl(false);
         container.appendChild(ta);
         this._textarea = ta;
     }
@@ -149,13 +158,24 @@ class UsimTextareaComponent extends UIComponent {
         const editorPane = document.createElement('div');
         editorPane.className = 'usim-textarea-editor-pane';
 
-        const ta = this._createTextareaEl();
+        const editorTitle = document.createElement('div');
+        editorTitle.className = 'usim-textarea-pane-title';
+        editorTitle.textContent = 'Editor';
+        editorPane.appendChild(editorTitle);
+
+        const ta = this._createTextareaEl(true);
         editorPane.appendChild(ta);
         this._textarea = ta;
 
         // Preview pane
         const previewPane = document.createElement('div');
         previewPane.className = 'usim-textarea-preview-pane';
+
+        const previewTitle = document.createElement('div');
+        previewTitle.className = 'usim-textarea-pane-title';
+        previewTitle.textContent = 'Vista previa';
+        previewPane.appendChild(previewTitle);
+
         const preview = document.createElement('div');
         preview.className = 'usim-textarea-preview-content usim-md-preview';
         previewPane.appendChild(preview);
@@ -164,6 +184,9 @@ class UsimTextareaComponent extends UIComponent {
         // Split wrapper
         const split = document.createElement('div');
         split.className = 'usim-textarea-split';
+        if (this.config.height) {
+            split.style.height = this.config.height;
+        }
         split.appendChild(editorPane);
         split.appendChild(previewPane);
         container.appendChild(split);
@@ -178,6 +201,9 @@ class UsimTextareaComponent extends UIComponent {
         this._previewTab = previewTab;
         this._editorPane = editorPane;
         this._previewPane = previewPane;
+
+        // Ensure mobile opens with editor tab only.
+        this._switchTab('edit', editTab, previewTab, editorPane, previewPane);
     }
 
     _makeTab(label, name) {
@@ -191,6 +217,18 @@ class UsimTextareaComponent extends UIComponent {
 
     _switchTab(tab, editTab, previewTab, editorPane, previewPane) {
         this._activeTab = tab;
+        const isMobile = window.matchMedia('(max-width: 600px)').matches;
+
+        if (!isMobile) {
+            // Desktop always shows editor + preview simultaneously.
+            editTab.classList.remove('active');
+            previewTab.classList.remove('active');
+            editorPane.classList.remove('tab-hidden');
+            previewPane.classList.remove('tab-hidden');
+            this._updatePreview();
+            return;
+        }
+
         editTab.classList.toggle('active', tab === 'edit');
         previewTab.classList.toggle('active', tab === 'preview');
         editorPane.classList.toggle('tab-hidden', tab !== 'edit');
@@ -253,9 +291,12 @@ class UsimTextareaComponent extends UIComponent {
 
     // ─── Textarea element ─────────────────────────────────────────────────────
 
-    _createTextareaEl() {
+    _createTextareaEl(inMarkdownMode = false) {
         const ta = document.createElement('textarea');
         ta.className = 'usim-textarea-el';
+        if (inMarkdownMode) {
+            ta.classList.add('usim-textarea-el-markdown');
+        }
         if (this.config.name) ta.id = `usim-ta-${this.id}`;
         ta.placeholder = this.config.placeholder ?? '';
         ta.value = this.config.value ?? '';
@@ -263,7 +304,7 @@ class UsimTextareaComponent extends UIComponent {
         ta.readOnly = !!this.config.readonly;
         ta.required = !!this.config.required;
         if (this.config.max_length) ta.maxLength = this.config.max_length;
-        if (this.config.height) ta.style.height = this.config.height;
+        if (!inMarkdownMode && this.config.height) ta.style.height = this.config.height;
 
         ta.addEventListener('input', () => {
             this._updatePreview();
@@ -282,6 +323,38 @@ class UsimTextareaComponent extends UIComponent {
 
     _applyDimensions(el) {
         if (this.config.width) el.style.width = this.config.width;
+    }
+
+    // ─── Border Styles ────────────────────────────────────────────────────────
+
+    _applyBorderStyles(el) {
+        if (!el) return;
+
+        const borderColor = this.config.border_color || '#4f46e5';
+        const borderWidth = (this.config.border_width || 3);
+        const borderRadius = (this.config.border_radius || 10);
+
+        el.style.borderColor = borderColor;
+        el.style.borderWidth = borderWidth + 'px';
+        el.style.borderRadius = borderRadius + 'px';
+
+        // Apply shadow only if color is set (custom styling)
+        if (this.config.border_color) {
+            const rgbColor = this._hexToRgb(borderColor);
+            if (rgbColor) {
+                const [r, g, b] = rgbColor;
+                el.style.boxShadow = `0 0 0 2px rgba(${r}, ${g}, ${b}, 0.2), inset 0 0 10px rgba(${r}, ${g}, ${b}, 0.1)`;
+            }
+        }
+    }
+
+    _hexToRgb(hex) {
+        const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+        return result ? [
+            parseInt(result[1], 16),
+            parseInt(result[2], 16),
+            parseInt(result[3], 16)
+        ] : null;
     }
 
     // ─── Preview ──────────────────────────────────────────────────────────────

@@ -12,21 +12,24 @@ class Textarea extends UIComponent
     protected function getDefaultConfig(): array
     {
         return [
-            'label'       => null,
-            'placeholder' => null,
-            'value'       => null,
-            'width'       => null,
-            'height'      => null,
-            'max_length'  => null,
-            'mode'        => 'plain',   // 'plain' | 'markdown'
-            'required'    => false,
-            'disabled'    => false,
-            'readonly'    => false,
-            'error'       => null,
-            'help_text'   => null,
-            'on_change'   => null,
-            'on_input'    => null,
-            'debounce'    => null,
+            'label'        => null,
+            'placeholder'  => null,
+            'value'        => null,
+            'width'        => null,
+            'height'       => null,
+            'max_length'   => null,
+            'mode'         => 'plain',   // 'plain' | 'markdown'
+            'required'     => false,
+            'disabled'     => false,
+            'readonly'     => false,
+            'error'        => null,
+            'help_text'    => null,
+            'on_change'    => null,
+            'on_input'     => null,
+            'debounce'     => null,
+            'border_color' => null,     // CSS color, e.g. '#4f46e5'
+            'border_width' => null,     // px width, e.g. 3
+            'border_radius' => null,    // px radius, e.g. 10
         ];
     }
 
@@ -153,5 +156,35 @@ class Textarea extends UIComponent
     public function debounce(int $ms): self
     {
         return $this->setConfig('debounce', $ms);
+    }
+
+    /**
+     * Set the border color (CSS value, e.g. '#4f46e5', 'rgb(79, 70, 229)').
+     *
+     * @param string|null $color CSS color or null for default
+     */
+    public function borderColor(?string $color): self
+    {
+        return $this->setConfig('border_color', $color);
+    }
+
+    /**
+     * Set the border width in pixels.
+     *
+     * @param int|null $width Border width or null for default (2px)
+     */
+    public function borderWidth(?int $width): self
+    {
+        return $this->setConfig('border_width', $width);
+    }
+
+    /**
+     * Set the border radius in pixels.
+     *
+     * @param int|null $radius Border radius or null for default (10px)
+     */
+    public function borderRadius(?int $radius): self
+    {
+        return $this->setConfig('border_radius', $radius);
     }
 }
