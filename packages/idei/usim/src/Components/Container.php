@@ -57,6 +57,22 @@ class Container implements UIElement
             'title' => null,
             'root' => false,
             'appearance' => 'card',
+            'tabs' => [],
+            'tabs_active' => null,
+            'tabs_on_change' => null,
+            'tabs_on_close' => null,
+            'tabs_colors' => [
+                'list_background_color' => null,
+                'border_color' => null,
+                'tab_color' => null,
+                'tab_text_color' => null,
+                'active_tab_color' => null,
+                'active_tab_text_color' => null,
+                'disabled_tab_color' => null,
+                'disabled_tab_text_color' => null,
+                'close_color' => null,
+                'close_hover_color' => null,
+            ],
 
             // Flexbox properties
             'flex_direction' => null,
@@ -317,6 +333,23 @@ class Container implements UIElement
     }
 
     /**
+     * Assign this container to a named or identified tab within another tabbed container.
+     *
+     * @param int|string|null $tab The target tab id/name, or null to clear it
+     * @return self
+     */
+    public function tab(int|string|null $tab): self
+    {
+        if ($tab === null) {
+            unset($this->config['tab']);
+            return $this;
+        }
+
+        $this->config['tab'] = is_string($tab) ? trim($tab) : $tab;
+        return $this;
+    }
+
+    /**
      * Set the layout type for this container
      *
      * @param LayoutType $layout The layout type (VERTICAL or HORIZONTAL)
@@ -348,7 +381,7 @@ class Container implements UIElement
      * @return self For method chaining
      * @throws \InvalidArgumentException If element with same ID already exists
      */
-    public function add(UIElement $element, bool &$result = null): self
+    public function add(UIElement $element, bool &$result = null, int|string|null $tab = null): self
     {
         $elementId = $element->getId();
 
@@ -357,12 +390,29 @@ class Container implements UIElement
             return $this;
         }
 
+        if ($tab !== null) {
+            $this->assignElementToTab($element, $tab);
+        }
+
         // Automatically set the child's parent to this container's ID
         $element->setParent($this->id);
 
         $this->children[$elementId] = $element;
         $result = true;
         return $this;
+    }
+
+    /**
+     * Add a child element directly to a target tab.
+     *
+     * @param UIElement $element The element to add
+     * @param int|string $tab The target tab id or name
+     * @param bool|null $result Set to true when added, false when ignored due to duplicate ID
+     * @return self
+     */
+    public function addToTab(UIElement $element, int|string $tab, bool &$result = null): self
+    {
+        return $this->add($element, $result, $tab);
     }
 
     /**
@@ -1381,6 +1431,190 @@ class Container implements UIElement
     }
 
     /**
+     * Replace all tab definitions for this container.
+     *
+     * Supported item shapes:
+     * - 'General'
+     * - ['id' => 'general', 'label' => 'General']
+     * - ['name' => 'General', 'label' => 'General']
+     */
+    public function tabs(array $tabs, int|string|null $activeTab = null): self
+    {
+        $this->config['tabs'] = [];
+
+        foreach ($tabs as $tab) {
+            if (is_string($tab)) {
+                $this->tabItem($tab, $tab);
+                continue;
+            }
+
+            if (!is_array($tab)) {
+                continue;
+            }
+
+            $tabId = $tab['id'] ?? $tab['name'] ?? $tab['label'] ?? null;
+            if ($tabId === null) {
+                continue;
+            }
+
+            $label = (string) ($tab['label'] ?? $tab['name'] ?? $tab['id']);
+            $options = $tab;
+            unset($options['id'], $options['label']);
+
+            $this->tabItem((string) $tabId, $label, $options);
+        }
+
+        if ($activeTab !== null) {
+            $this->activeTab($activeTab);
+        } elseif (($this->config['tabs_active'] ?? null) === null) {
+            $this->config['tabs_active'] = $this->getFirstAvailableTabId();
+        }
+
+        return $this;
+    }
+
+    /**
+     * Append or replace a single tab definition.
+     *
+     * Options:
+     * - name
+     * - disabled
+     * - closable
+     * - color
+     * - text_color
+     * - active_color
+     * - active_text_color
+     * - disabled_color
+     * - disabled_text_color
+     */
+    public function tabItem(string $id, ?string $label = null, array $options = []): self
+    {
+        $normalizedId = $this->normalizeTabId($id);
+        $tab = [
+            'id' => $normalizedId,
+            'name' => isset($options['name']) ? trim((string) $options['name']) : trim($id),
+            'label' => trim((string) ($label ?? $options['label'] ?? $id)),
+            'disabled' => (bool) ($options['disabled'] ?? false),
+            'closable' => (bool) ($options['closable'] ?? false),
+            'color' => $options['color'] ?? null,
+            'text_color' => $options['text_color'] ?? null,
+            'active_color' => $options['active_color'] ?? null,
+            'active_text_color' => $options['active_text_color'] ?? null,
+            'disabled_color' => $options['disabled_color'] ?? null,
+            'disabled_text_color' => $options['disabled_text_color'] ?? null,
+        ];
+
+        $index = $this->findTabIndex($normalizedId);
+        if ($index === null) {
+            $this->config['tabs'][] = $tab;
+        } else {
+            $this->config['tabs'][$index] = array_merge($this->config['tabs'][$index], $tab);
+        }
+
+        if (($this->config['tabs_active'] ?? null) === null && !$tab['disabled']) {
+            $this->config['tabs_active'] = $tab['id'];
+        }
+
+        return $this;
+    }
+
+    /**
+     * Set the active tab.
+     */
+    public function activeTab(int|string $tab): self
+    {
+        $resolved = $this->resolveTabReference($tab, false);
+        $this->config['tabs_active'] = $resolved ?? (is_string($tab) ? trim($tab) : $tab);
+        return $this;
+    }
+
+    /**
+     * Set the backend action to fire when the active tab changes.
+     */
+    public function onTabChange(string $action): self
+    {
+        $this->config['tabs_on_change'] = trim($action);
+        return $this;
+    }
+
+    /**
+     * Set the backend action to fire when a tab close button is clicked.
+     */
+    public function onTabClose(string $action): self
+    {
+        $this->config['tabs_on_close'] = trim($action);
+        return $this;
+    }
+
+    /**
+     * Configure default colors for the tabs chrome.
+     */
+    public function tabColors(array $colors): self
+    {
+        $allowed = [
+            'list_background_color',
+            'border_color',
+            'tab_color',
+            'tab_text_color',
+            'active_tab_color',
+            'active_tab_text_color',
+            'disabled_tab_color',
+            'disabled_tab_text_color',
+            'close_color',
+            'close_hover_color',
+        ];
+
+        $current = is_array($this->config['tabs_colors'] ?? null) ? $this->config['tabs_colors'] : [];
+        foreach ($allowed as $key) {
+            if (array_key_exists($key, $colors)) {
+                $current[$key] = $colors[$key];
+            }
+        }
+
+        $this->config['tabs_colors'] = $current;
+        return $this;
+    }
+
+    /**
+     * Mark a tab as disabled or enabled.
+     */
+    public function disableTab(int|string $tab, bool $disabled = true): self
+    {
+        $index = $this->findTabIndex($tab);
+        if ($index === null) {
+            return $this;
+        }
+
+        $this->config['tabs'][$index]['disabled'] = $disabled;
+
+        if ($disabled && ($this->config['tabs_active'] ?? null) === $this->config['tabs'][$index]['id']) {
+            $this->config['tabs_active'] = $this->getFirstAvailableTabId();
+        }
+
+        return $this;
+    }
+
+    /**
+     * Remove a tab definition.
+     */
+    public function removeTab(int|string $tab): self
+    {
+        $index = $this->findTabIndex($tab);
+        if ($index === null) {
+            return $this;
+        }
+
+        $removed = $this->config['tabs'][$index]['id'] ?? null;
+        array_splice($this->config['tabs'], $index, 1);
+
+        if (($this->config['tabs_active'] ?? null) === $removed) {
+            $this->config['tabs_active'] = $this->getFirstAvailableTabId();
+        }
+
+        return $this;
+    }
+
+    /**
      * Add custom CSS class
      *
      * @param string $class CSS class name
@@ -1402,6 +1636,87 @@ class Container implements UIElement
     {
         $this->config['custom_style'] = $style;
         return $this;
+    }
+
+    private function assignElementToTab(UIElement $element, int|string $tab): void
+    {
+        $resolvedTab = $this->resolveTabReference($tab, true);
+        if ($resolvedTab === null || !method_exists($element, 'tab')) {
+            return;
+        }
+
+        $element->tab($resolvedTab);
+    }
+
+    private function resolveTabReference(int|string $tab, bool $autoCreate = false): ?string
+    {
+        $search = trim((string) $tab);
+        if ($search === '') {
+            return null;
+        }
+
+        foreach ($this->config['tabs'] as $tabConfig) {
+            $tabId = trim((string) ($tabConfig['id'] ?? ''));
+            $tabName = trim((string) ($tabConfig['name'] ?? ''));
+            $tabLabel = trim((string) ($tabConfig['label'] ?? ''));
+
+            if ($search === $tabId || $search === $tabName || $search === $tabLabel) {
+                return $tabId;
+            }
+
+            if (mb_strtolower($search) === mb_strtolower($tabId)
+                || mb_strtolower($search) === mb_strtolower($tabName)
+                || mb_strtolower($search) === mb_strtolower($tabLabel)) {
+                return $tabId;
+            }
+        }
+
+        if ($autoCreate) {
+            $this->tabItem($search, $search);
+            return $this->resolveTabReference($search, false);
+        }
+
+        return null;
+    }
+
+    private function findTabIndex(int|string $tab): ?int
+    {
+        $resolved = $this->resolveTabReference($tab, false);
+        if ($resolved === null) {
+            return null;
+        }
+
+        foreach ($this->config['tabs'] as $index => $tabConfig) {
+            if (($tabConfig['id'] ?? null) === $resolved) {
+                return $index;
+            }
+        }
+
+        return null;
+    }
+
+    private function getFirstAvailableTabId(): ?string
+    {
+        foreach ($this->config['tabs'] as $tabConfig) {
+            if (($tabConfig['disabled'] ?? false) !== true) {
+                return $tabConfig['id'] ?? null;
+            }
+        }
+
+        return $this->config['tabs'][0]['id'] ?? null;
+    }
+
+    private function normalizeTabId(string $value): string
+    {
+        $trimmed = trim($value);
+        if ($trimmed === '') {
+            return 'tab_' . $this->id . '_' . (count($this->config['tabs']) + 1);
+        }
+
+        $normalized = preg_replace('/[^a-zA-Z0-9]+/', '_', mb_strtolower($trimmed));
+        $normalized = trim((string) $normalized, '_');
+
+        return $normalized !== '' ? $normalized : 'tab_' . $this->id . '_' . (count($this->config['tabs']) + 1);
     }
 
     /**

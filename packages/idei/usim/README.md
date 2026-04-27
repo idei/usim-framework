@@ -60,6 +60,7 @@ A **Server-Driven UI** framework for Laravel. Define your entire user interface 
 ## What Is New Since 0.6.0 (v0.7.0)
 
 - Container appearance API: `->card()` and `->plain()` fluent helpers on `Container` to switch between card and flat visual variants.
+- Container tabs API: `->tabs()`, `->tabItem()`, `->activeTab()`, `->onTabChange()`, `->onTabClose()` and `->tabColors()` allow server-driven tab strips with theme-aware defaults, disabled tabs, closable tabs, and per-tab color overrides.
 - Carousel and calendar components consume CSS theme tokens for consistent light/dark styling.
 - Bug fix: `Screen` now always persists state after `postLoadUI()`, fixing stale cache on `?reset=true` reloads.
 - Bug fix: Checkbox `checked` state now syncs correctly from incremental server responses.
@@ -205,6 +206,24 @@ $row->add(UI::button('btn_a')->label('A'));
 $row->add(UI::button('btn_b')->label('B'));
 
 $container->add($row);
+
+$tabs = UI::container('workspace_tabs')
+    ->tabs([
+        ['id' => 'overview', 'label' => 'Overview', 'color' => '#dbeafe', 'active_color' => '#2563eb'],
+        ['id' => 'reports', 'label' => 'Reports', 'disabled' => true, 'disabled_color' => '#e2e8f0'],
+        ['id' => 'settings', 'label' => 'Settings', 'closable' => true],
+    ], 'overview')
+    ->onTabChange('workspace_tab_changed')
+    ->onTabClose('workspace_tab_closed')
+    ->tabColors([
+        'active_tab_color' => 'var(--ui-surface)',
+        'active_tab_text_color' => 'var(--ui-text-strong)',
+    ]);
+
+$tabs->add(UI::label('overview_copy')->text('Overview content'), tab: 'overview');
+$tabs->add(UI::label('reports_copy')->text('Reports content'), tab: 'Reports');
+
+$container->add($tabs);
 ```
 
 ### Event Handlers
@@ -262,7 +281,7 @@ Use `_crypt` only when the value should not be readable from the client's local 
 | `UI::form()` | `Form` | Form grouping |
 | `UI::table()` | `Table` | Data tables with pagination |
 | `UI::card()` | `Card` | Cards with title, description, actions |
-| `UI::container()` | `Container` | Layout container (vertical/horizontal/grid) with `card()` / `plain()` appearance |
+| `UI::container()` | `Container` | Layout container (vertical/horizontal/grid) with `card()` / `plain()` appearance and optional server-driven tabs |
 | `UI::menuDropdown()` | `MenuDropdown` | Navigation dropdown menus |
 | `UI::uploader()` | `Uploader` | File upload with preview and crop |
 | `UI::calendar()` | `Calendar` | Calendar/date picker |

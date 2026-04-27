@@ -297,6 +297,23 @@ abstract class UIComponent implements UIElement
     }
 
     /**
+     * Assign this component to a named or identified tab within a tabbed container.
+     *
+     * @param int|string|null $tab The target tab id/name, or null to clear it
+     * @return static
+     */
+    public function tab(int|string|null $tab): static
+    {
+        if ($tab === null) {
+            unset($this->config['tab']);
+            return $this;
+        }
+
+        $this->config['tab'] = is_string($tab) ? trim($tab) : $tab;
+        return $this;
+    }
+
+    /**
      * {@inheritDoc}
      *
      * For leaf components, returns the configuration wrapped in the component ID

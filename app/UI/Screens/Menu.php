@@ -21,6 +21,7 @@ use App\UI\Screens\Demo\ModalDemo;
 use App\UI\Screens\Demo\SelectDemo;
 use App\UI\Screens\Demo\SplitDemo;
 use App\UI\Screens\Demo\TableDemo;
+use App\UI\Screens\Demo\TabsDemo;
 use App\UI\Screens\Demo\UploaderDemo;
 use Idei\Usim\Events\UsimEvent;
 use Idei\Usim\Screen;
@@ -253,6 +254,7 @@ class Menu extends Screen
             $submenu->screen(CarouselDemo::class, t('screen.menu.demos.carousel_demo'), '🎞️');
             $submenu->screen('App\\UI\\Screens\\Demo\\TextareaDemo', 'Textarea Demo', '📝');
             $submenu->screen(SplitDemo::class);
+            $submenu->screen(TabsDemo::class);
         }, '🎮');
     }
 

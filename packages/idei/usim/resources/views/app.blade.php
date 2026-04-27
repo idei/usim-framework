@@ -30,6 +30,7 @@
     <link rel="stylesheet" href="{{ asset('vendor/idei/usim/css/components/image-crop-editor/index.css') }}?v={{ $usimAssetVersion('vendor/idei/usim/css/components/image-crop-editor/index.css') }}">
     <link rel="stylesheet" href="{{ asset('vendor/idei/usim/css/components/textarea/index.css') }}?v={{ $usimAssetVersion('vendor/idei/usim/css/components/textarea/index.css') }}">
     <link rel="stylesheet" href="{{ asset('vendor/idei/usim/css/components/split/index.css') }}?v={{ $usimAssetVersion('vendor/idei/usim/css/components/split/index.css') }}">
+    <link rel="stylesheet" href="{{ asset('vendor/idei/usim/css/components/container/index.css') }}?v={{ $usimAssetVersion('vendor/idei/usim/css/components/container/index.css') }}">
 </head>
 <body>
     <header id="top-menu-bar">

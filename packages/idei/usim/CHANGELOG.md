@@ -9,6 +9,13 @@ The format is based on Keep a Changelog, and this project follows Semantic Versi
 ### Added
 - New `Split` component (`UI::split()`) with `horizontal()`/`vertical()` orientation, draggable divider, collapsible panel support, configurable first-panel size (`splitSize`) and divider thickness (`splitterSize`).
 - Registered `split` type end-to-end: PHP component class, `UI::split()` factory, `Screen::mapTypeToClass()` mapping, modular frontend renderer (`js/components/split/index.js`) and component styles (`css/components/split/index.css`).
+- New **Tabs component** for `Container` (`tabs()`, `tabItem()`, `activeTab()`, `onTabChange()`, `onTabClose()`, `tabColors()`), including disabled tabs, closable tabs, and per-tab color overrides.
+- `Container` now supports tabbed layouts through `tabs()`, `tabItem()`, `activeTab()`, `onTabChange()`, `onTabClose()` and `tabColors()`.
+- `Container::add()` now accepts `tab:` as a named argument, so child components can be assigned to tabs by id or visible name while preserving the existing incremental JSON tree.
+
+### Changed
+- The modular `container` frontend renderer now mounts child components into tab panels, respects theme tokens by default, and supports per-tab colors, disabled tabs, and closable tabs.
+- Tabbed container styles were modularized to `css/components/container/index.css`, and tab visual polish was improved (active tab continuity with panel + consistent tab height for closable/non-closable tabs).
 
 ## [v0.10.0] - 2026-04-26
 

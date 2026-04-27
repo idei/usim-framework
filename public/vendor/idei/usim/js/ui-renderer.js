@@ -954,6 +954,13 @@ class UIRenderer {
                                 }
                             }
 
+                            if (typeof parentComponent.getChildMountTarget === 'function') {
+                                const resolvedTarget = parentComponent.getChildMountTarget(component.config, component);
+                                if (resolvedTarget instanceof HTMLElement) {
+                                    mountTarget = resolvedTarget;
+                                }
+                            }
+
                             component.mount(mountTarget);
                             mounted.add(id);
                             // console.log(`    ✅ Mounted to component "${parentComponentKey}"`);
@@ -2039,10 +2046,29 @@ class UIRenderer {
             }
 
             const element = component.render();
+            this.components.set(String(jsonKey), component);
 
             // Find parent and append
-            const parentElement = document.querySelector(`[data-component-id="${config.parent}"]`)
-                || document.getElementById(config.parent);
+            const parentComponent = this.components.get(String(config.parent));
+            let parentElement = null;
+
+            if (parentComponent?.tableElement) {
+                parentElement = parentComponent.tableElement;
+            } else if (parentComponent?.element instanceof HTMLElement) {
+                parentElement = parentComponent.element;
+            }
+
+            if (parentComponent && typeof parentComponent.getChildMountTarget === 'function') {
+                const resolvedTarget = parentComponent.getChildMountTarget(config, component);
+                if (resolvedTarget instanceof HTMLElement) {
+                    parentElement = resolvedTarget;
+                }
+            }
+
+            if (!(parentElement instanceof HTMLElement)) {
+                parentElement = document.querySelector(`[data-component-id="${config.parent}"]`)
+                    || document.getElementById(config.parent);
+            }
 
             if (parentElement) {
                 parentElement.appendChild(element);
