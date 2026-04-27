@@ -42,12 +42,18 @@ class SplitDemo extends Screen
     protected function buildBaseUI(Container $container, ...$params): void
     {
         $container
-            ->title(t('screen.demo.split_demo.title'))
             ->maxWidth('1100px')
             ->centerHorizontal()
-            ->padding('24px')
+            ->padding('12px 24px 24px 24px')
             ->gap('14px')
             ->plain();
+
+        $container->add(
+            UI::label('split_demo_title')
+                ->text(t('screen.demo.split_demo.title'))
+                ->style('h2')
+                ->width('100%')
+        );
 
         $container->add(
             UI::label('split_demo_intro')

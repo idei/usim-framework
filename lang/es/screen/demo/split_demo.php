@@ -1,25 +1,25 @@
 <?php
 
 return [
-    'menu_label' => 'Demo Split',
+    'menu_label' => 'Demo de Split',
     'title' => 'Demo de Contenedor Split',
-    'intro' => 'Configura orientacion, tamaño inicial y comportamiento de colapso. La barra del split es draggable.',
+    'intro' => 'Configura orientación, tamaño inicial y comportamiento de colapso. La barra del split es arrastrable.',
     'orientation' => [
-        'label' => 'Orientacion',
+        'label' => 'Orientación',
         'options' => [
             'horizontal' => 'Horizontal',
             'vertical' => 'Vertical',
         ],
     ],
     'split_size' => [
-        'label' => 'Ancho/alto del primer panel (ej: 35% o 360px)',
+        'label' => 'Tamaño del primer panel (ej: 35% o 360px)',
         'placeholder' => '45%',
     ],
     'splitter_size' => [
-        'label' => 'Ancho de barra split (ej: 8px)',
+        'label' => 'Tamaño de la barra divisora (ej: 8px)',
         'placeholder' => '8px',
     ],
-    'draggable' => 'Draggable',
+    'draggable' => 'Arrastrable',
     'collapsible' => 'Colapsable',
     'collapse_target' => [
         'label' => 'Panel colapsable',
@@ -30,8 +30,8 @@ return [
     ],
     'actions' => [
         'apply_sizes' => 'Aplicar medidas',
-        'toggle_collapse' => 'Toggle colapso',
-        'reset_demo' => 'Reset demo',
+        'toggle_collapse' => 'Alternar colapso',
+        'reset_demo' => 'Reiniciar demo',
         'collapse_first' => 'Colapsar panel A',
         'collapse_second' => 'Colapsar panel B',
     ],
