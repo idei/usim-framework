@@ -316,7 +316,6 @@ class UsimContainerComponent extends UIComponent {
             action: this.config.tabs_on_change,
             parameters: {
                 tab_id: resolvedTab,
-                tab_name: tab?.name || tab?.label || resolvedTab,
             },
         });
 
@@ -343,7 +342,6 @@ class UsimContainerComponent extends UIComponent {
             action: this.config.tabs_on_close,
             parameters: {
                 tab_id: tabId,
-                tab_name: tab.name || tab.label || tabId,
             },
         });
 
@@ -396,7 +394,7 @@ class UsimContainerComponent extends UIComponent {
     }
 
     _tabId(tab) {
-        return String(tab?.id || tab?.name || tab?.label || '').trim();
+        return String(tab?.id || '').trim();
     }
 
     _hasTabs() {

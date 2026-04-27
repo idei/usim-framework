@@ -1436,14 +1436,19 @@ class Container implements UIElement
      * Supported item shapes:
      * - 'General'
      * - ['id' => 'general', 'label' => 'General']
-     * - ['name' => 'General', 'label' => 'General']
+     * - ['general' => ['label' => 'General']]
      */
     public function tabs(array $tabs, int|string|null $activeTab = null): self
     {
         $this->config['tabs'] = [];
 
-        foreach ($tabs as $tab) {
+        foreach ($tabs as $key => $tab) {
             if (is_string($tab)) {
+                if (is_string($key)) {
+                    $this->tabItem($key, $tab);
+                    continue;
+                }
+
                 $this->tabItem($tab, $tab);
                 continue;
             }
@@ -1452,14 +1457,14 @@ class Container implements UIElement
                 continue;
             }
 
-            $tabId = $tab['id'] ?? $tab['name'] ?? $tab['label'] ?? null;
+            $tabId = $tab['id'] ?? (is_string($key) ? $key : null) ?? $tab['label'] ?? null;
             if ($tabId === null) {
                 continue;
             }
 
-            $label = (string) ($tab['label'] ?? $tab['name'] ?? $tab['id']);
+            $label = (string) ($tab['label'] ?? $tabId);
             $options = $tab;
-            unset($options['id'], $options['label']);
+            unset($options['id'], $options['label'], $options['name']);
 
             $this->tabItem((string) $tabId, $label, $options);
         }
@@ -1492,7 +1497,6 @@ class Container implements UIElement
         $normalizedId = $this->normalizeTabId($id);
         $tab = [
             'id' => $normalizedId,
-            'name' => isset($options['name']) ? trim((string) $options['name']) : trim($id),
             'label' => trim((string) ($label ?? $options['label'] ?? $id)),
             'disabled' => (bool) ($options['disabled'] ?? false),
             'closable' => (bool) ($options['closable'] ?? false),

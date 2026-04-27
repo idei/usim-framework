@@ -3,23 +3,16 @@
 namespace App\UI\Screens\Demo;
 
 use Idei\Usim\Components\Container;
-use Idei\Usim\Components\Label;
-use Idei\Usim\Enums\LayoutType;
 use Idei\Usim\Screen;
 use Idei\Usim\UI;
 
 class TabsDemo extends Screen
 {
-    protected Container $tabs_workspace;
-    protected Label $tabs_reports_state;
-
-    protected string $store_active_tab = 'overview';
-    protected bool $store_reports_disabled = true;
-    protected array $store_closed_tabs = [];
+    protected Container $tabs_container;
 
     public static function getMenuLabel(): string
     {
-        return 'Tabs Demo';
+        return t('screen.demo.tabs_demo.menu_label');
     }
 
     public static function getMenuIcon(): ?string
@@ -31,103 +24,70 @@ class TabsDemo extends Screen
     {
         $container
             ->plain()
-            ->maxWidth('1100px')
+            ->maxWidth('1024px')
             ->centerHorizontal()
             ->padding('12px 24px 24px 24px')
             ->gap('14px');
 
         $container->add(
             UI::label('tabs_demo_title')
-                ->text('Contenedor con Tabs')
+                ->text(t('screen.demo.tabs_demo.title'))
                 ->style('h2')
                 ->width('100%')
         );
 
-        $container->add(
-            UI::label('tabs_demo_intro')
-                ->text('Este demo muestra tabs con colores por pestaña, pestañas deshabilitadas, cierre y cambios sincronizados con backend.')
-                ->style('info')
-                ->width('100%')
-        );
-
-        $toolbar = UI::container('tabs_demo_toolbar')
-            ->plain()
-            ->layout(LayoutType::HORIZONTAL)
-            ->gap('10px')
-            ->width('100%');
-
-        $toolbar->add(
-            UI::button('btn_enable_reports')
-                ->label('Habilitar Reportes')
-                ->style('primary')
-                ->action('enable_reports_tab')
-        );
-
-        $toolbar->add(
-            UI::button('btn_reset_tabs_demo')
-                ->label('Restaurar Tabs')
-                ->style('secondary')
-                ->action('reset_tabs_demo')
-        );
-
-        $container->add($toolbar);
-
-        $this->tabs_workspace = UI::container('tabs_workspace')
+        $this->tabs_container = UI::container('tabs_container')
             ->width('100%')
             ->padding('16px')
+            ->minHeight('300px')
             ->gap('10px');
 
-        $this->configureTabsWorkspace();
+        $this->tabs_container
+            ->tabs($this->tabsDefaultConfig(), 'overview')
+            ->onTabChange('tabs_switch')
+            ->onTabClose('tabs_close');
 
-        $this->tabs_workspace->add(
+        $this->tabs_container->add(
             UI::label('tabs_overview_title')
-                ->text('Resumen general')
+                ->text(t('screen.demo.tabs_demo.content.overview_title'))
                 ->style('primary'),
             tab: 'overview'
         );
 
-        $this->tabs_workspace->add(
+        $this->tabs_container->add(
             UI::label('tabs_overview_body')
-                ->text('La tab de resumen usa asignacion por id y define el estado inicial del contenedor.'),
-            tab: 'Resumen'
+                ->text(t('screen.demo.tabs_demo.content.overview_body')),
+            tab: t('screen.demo.tabs_demo.tabs.overview.label')
         );
 
-        $this->tabs_workspace->add(
+        $this->tabs_container->add(
             UI::label('tabs_activity_log')
-                ->text('La tab Actividad fue asociada usando su nombre visible, no el id interno.')
+                ->text(t('screen.demo.tabs_demo.content.activity_log'))
                 ->style('secondary'),
-            tab: 'Actividad'
+            tab: t('screen.demo.tabs_demo.tabs.activity.label')
         );
 
-        $this->tabs_reports_state = UI::label('tabs_reports_state')
-            ->text($this->store_reports_disabled
-                ? 'Reportes esta deshabilitada hasta que se pulse el boton de habilitar.'
-                : 'Reportes ya fue habilitada desde backend y ahora puede ser la tab activa.')
-            ->style($this->store_reports_disabled ? 'warning' : 'success');
-
-        $this->tabs_workspace->add($this->tabs_reports_state, tab: 'reports');
-
-        $this->tabs_workspace->add(
+        $this->tabs_container->add(
             UI::label('tabs_settings_copy')
-                ->text('Configuracion es closable. Al cerrarla, backend actualiza la definicion de tabs.'),
+                ->text(t('screen.demo.tabs_demo.content.settings_copy')),
             tab: 'settings'
         );
 
-        $this->tabs_workspace->add(
+        $this->tabs_container->add(
             UI::label('tabs_advanced_info')
-                ->text('Esta tab no tiene colores definidos, por lo que usa los colores por defecto del tema mediante herencia CSS.')
+                ->text(t('screen.demo.tabs_demo.content.advanced_info'))
                 ->style('info'),
             tab: 'advanced'
         );
 
-        $container->add($this->tabs_workspace);
+        $container->add($this->tabs_container);
     }
 
     public function onTabsSwitch(array $params): void
     {
         $requested = (string) ($params['tab_id'] ?? 'overview');
-        $this->store_active_tab = $requested !== '' ? $requested : 'overview';
-        $this->configureTabsWorkspace();
+        $activeTab = $requested !== '' ? $requested : 'overview';
+        $this->tabs_container->activeTab($activeTab);
     }
 
     public function onTabsClose(array $params): void
@@ -137,123 +97,26 @@ class TabsDemo extends Screen
             return;
         }
 
-        if (!in_array($tabId, $this->store_closed_tabs, true)) {
-            $this->store_closed_tabs[] = $tabId;
-        }
-
-        if ($this->store_active_tab === $tabId) {
-            $this->store_active_tab = 'overview';
-        }
-
-        $this->configureTabsWorkspace();
+        $this->toast(t('screen.demo.tabs_demo.toasts.tab_closed', ['tab' => $tabId]), 'success');
     }
 
-    public function onEnableReportsTab(array $params): void
+    private function tabsDefaultConfig(): array
     {
-        $this->store_reports_disabled = false;
-        $this->store_active_tab = 'reports';
-        $this->configureTabsWorkspace();
-
-        $this->tabs_reports_state
-            ->text('Reportes ya fue habilitada desde backend y ahora puede ser la tab activa.')
-            ->style('success');
-    }
-
-    public function onResetTabsDemo(array $params): void
-    {
-        $this->store_active_tab = 'overview';
-        $this->store_reports_disabled = true;
-        $this->store_closed_tabs = [];
-        $this->configureTabsWorkspace();
-
-        $this->tabs_reports_state
-            ->text('Reportes esta deshabilitada hasta que se pulse el boton de habilitar.')
-            ->style('warning');
-    }
-
-    private function configureTabsWorkspace(): void
-    {
-        $tabs = [];
-
-        $tabs[] = [
-            'id' => 'overview',
-            'name' => 'overview',
-            'label' => 'Resumen',
-            'color' => '#dbeafe',
-            'text_color' => '#1d4ed8',
-            'active_color' => '#2563eb',
-            'active_text_color' => '#ffffff',
-        ];
-
-        if (!in_array('activity', $this->store_closed_tabs, true)) {
-            $tabs[] = [
-                'id' => 'activity',
-                'name' => 'activity',
-                'label' => 'Actividad',
+        return [
+            'overview' => [
+                'label' => t('screen.demo.tabs_demo.tabs.overview.label'),
+            ],
+            'activity' => [
+                'label' => t('screen.demo.tabs_demo.tabs.activity.label'),
                 'closable' => true,
-                'color' => '#dcfce7',
-                'text_color' => '#166534',
-                'active_color' => '#16a34a',
-                'active_text_color' => '#ffffff',
-            ];
-        }
-
-        $tabs[] = [
-            'id' => 'reports',
-            'name' => 'reports',
-            'label' => 'Reportes',
-            'disabled' => $this->store_reports_disabled,
-            'disabled_color' => '#e2e8f0',
-            'disabled_text_color' => '#64748b',
-            'active_color' => '#7c3aed',
-            'active_text_color' => '#ffffff',
-        ];
-
-        if (!in_array('settings', $this->store_closed_tabs, true)) {
-            $tabs[] = [
-                'id' => 'settings',
-                'name' => 'settings',
-                'label' => 'Configuracion',
+            ],
+            'settings' => [
+                'label' => t('screen.demo.tabs_demo.tabs.settings.label'),
                 'closable' => true,
-                'color' => '#fef3c7',
-                'text_color' => '#92400e',
-                'active_color' => '#f59e0b',
-                'active_text_color' => '#ffffff',
-            ];
-        }
-
-        $tabs[] = [
-            'id' => 'advanced',
-            'name' => 'advanced',
-            'label' => 'Avanzado',
-            // Sin colores definidos: usa los colores por defecto del tema
+            ],
+            'advanced' => [
+                'label' => t('screen.demo.tabs_demo.tabs.advanced.label'),
+            ],
         ];
-
-        $activeTab = $this->store_active_tab;
-        if (in_array($activeTab, $this->store_closed_tabs, true)) {
-            $activeTab = 'overview';
-            $this->store_active_tab = 'overview';
-        }
-        if ($activeTab === 'reports' && $this->store_reports_disabled) {
-            $activeTab = 'overview';
-            $this->store_active_tab = 'overview';
-        }
-
-        $this->tabs_workspace
-            ->tabs($tabs, $activeTab)
-            ->onTabChange('tabs_switch')
-            ->onTabClose('tabs_close')
-            ->tabColors([
-                'list_background_color' => 'var(--ui-surface-muted)',
-                'border_color' => 'var(--ui-border)',
-                'tab_color' => 'transparent',
-                'tab_text_color' => 'var(--ui-text-muted)',
-                'active_tab_color' => 'var(--ui-surface)',
-                'active_tab_text_color' => 'var(--ui-text-strong)',
-                'disabled_tab_color' => 'var(--ui-surface-muted)',
-                'disabled_tab_text_color' => 'var(--ui-text-muted)',
-                'close_color' => 'var(--ui-text-muted)',
-                'close_hover_color' => 'var(--ui-text-strong)',
-            ]);
     }
 }

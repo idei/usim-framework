@@ -16,6 +16,8 @@ The format is based on Keep a Changelog, and this project follows Semantic Versi
 ### Changed
 - The modular `container` frontend renderer now mounts child components into tab panels, respects theme tokens by default, and supports per-tab colors, disabled tabs, and closable tabs.
 - Tabbed container styles were modularized to `css/components/container/index.css`, and tab visual polish was improved (active tab continuity with panel + consistent tab height for closable/non-closable tabs).
+- **Tab configuration simplified**: `id` field is now the sole unique identifier for tabs; redundant `name` field removed. Backend events (`tabs_on_change`, `tabs_on_close`) now send only `tab_id` parameter.
+- `Container::tabs()` now also supports associative tab definitions keyed by id (for example: `['overview' => ['label' => 'Resumen']]`) while preserving compatibility with the existing list format.
 
 ## [v0.10.0] - 2026-04-26
 
