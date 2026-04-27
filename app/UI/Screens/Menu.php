@@ -19,6 +19,7 @@ use App\UI\Screens\Demo\FormDemo;
 use App\UI\Screens\Demo\InputDemo;
 use App\UI\Screens\Demo\ModalDemo;
 use App\UI\Screens\Demo\SelectDemo;
+use App\UI\Screens\Demo\SplitDemo;
 use App\UI\Screens\Demo\TableDemo;
 use App\UI\Screens\Demo\UploaderDemo;
 use Idei\Usim\Events\UsimEvent;
@@ -251,6 +252,7 @@ class Menu extends Screen
             $submenu->screen(CalendarDemo::class, t('screen.menu.demos.calendar_demo'), '📅');
             $submenu->screen(CarouselDemo::class, t('screen.menu.demos.carousel_demo'), '🎞️');
             $submenu->screen('App\\UI\\Screens\\Demo\\TextareaDemo', 'Textarea Demo', '📝');
+            $submenu->screen(SplitDemo::class, 'Split Demo', '↔️');
         }, '🎮');
     }
 

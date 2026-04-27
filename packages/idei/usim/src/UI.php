@@ -16,6 +16,7 @@ use Idei\Usim\Components\Card;
 use Idei\Usim\Components\Uploader;
 use Idei\Usim\Components\Calendar;
 use Idei\Usim\Components\Carousel;
+use Idei\Usim\Components\Split;
 
 /**
  * UI component factory
@@ -180,6 +181,17 @@ class UI
     public static function carousel(?string $name = null): Carousel
     {
         return new Carousel($name);
+    }
+
+    /**
+     * Create a new split container component.
+     *
+     * @param string|null $name The optional semantic name for the split container
+     * @return Split
+     */
+    public static function split(?string $name = null): Split
+    {
+        return new Split($name);
     }
 
     /**

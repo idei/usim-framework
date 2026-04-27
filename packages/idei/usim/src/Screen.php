@@ -10,6 +10,7 @@ use Idei\Usim\Components\Input;
 use Idei\Usim\Components\Label;
 use Idei\Usim\Components\MenuDropdown;
 use Idei\Usim\Components\Select;
+use Idei\Usim\Components\Split;
 use Idei\Usim\Components\Table;
 use Idei\Usim\Components\TableCell;
 use Idei\Usim\Components\TableHeaderCell;
@@ -591,6 +592,7 @@ abstract class Screen
             'calendar' => \Idei\Usim\Components\Calendar::class,
             'carousel' => \Idei\Usim\Components\Carousel::class,
             'textarea' => 'Idei\\Usim\\Components\\Textarea',
+            'split' => Split::class,
             'default' => null,
         };
     }

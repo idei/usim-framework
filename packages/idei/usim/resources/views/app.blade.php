@@ -29,6 +29,7 @@
     <link rel="stylesheet" href="{{ asset('vendor/idei/usim/css/components/carousel/index.css') }}?v={{ $usimAssetVersion('vendor/idei/usim/css/components/carousel/index.css') }}">
     <link rel="stylesheet" href="{{ asset('vendor/idei/usim/css/components/image-crop-editor/index.css') }}?v={{ $usimAssetVersion('vendor/idei/usim/css/components/image-crop-editor/index.css') }}">
     <link rel="stylesheet" href="{{ asset('vendor/idei/usim/css/components/textarea/index.css') }}?v={{ $usimAssetVersion('vendor/idei/usim/css/components/textarea/index.css') }}">
+    <link rel="stylesheet" href="{{ asset('vendor/idei/usim/css/components/split/index.css') }}?v={{ $usimAssetVersion('vendor/idei/usim/css/components/split/index.css') }}">
 </head>
 <body>
     <header id="top-menu-bar">
@@ -84,5 +85,6 @@
     <script src="{{ asset('vendor/idei/usim/js/components/carousel/index.js') }}?v={{ $usimAssetVersion('vendor/idei/usim/js/components/carousel/index.js') }}"></script>
     <script src="{{ asset('vendor/idei/usim/js/lib/marked.min.js') }}?v={{ $usimAssetVersion('vendor/idei/usim/js/lib/marked.min.js') }}"></script>
     <script src="{{ asset('vendor/idei/usim/js/components/textarea/index.js') }}?v={{ $usimAssetVersion('vendor/idei/usim/js/components/textarea/index.js') }}"></script>
+    <script src="{{ asset('vendor/idei/usim/js/components/split/index.js') }}?v={{ $usimAssetVersion('vendor/idei/usim/js/components/split/index.js') }}"></script>
 </body>
 </html>

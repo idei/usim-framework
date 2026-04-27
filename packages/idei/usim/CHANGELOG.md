@@ -6,6 +6,10 @@ The format is based on Keep a Changelog, and this project follows Semantic Versi
 
 ## [Unreleased]
 
+### Added
+- New `Split` component (`UI::split()`) with `horizontal()`/`vertical()` orientation, draggable divider, collapsible panel support, configurable first-panel size (`splitSize`) and divider thickness (`splitterSize`).
+- Registered `split` type end-to-end: PHP component class, `UI::split()` factory, `Screen::mapTypeToClass()` mapping, modular frontend renderer (`js/components/split/index.js`) and component styles (`css/components/split/index.css`).
+
 ## [v0.10.0] - 2026-04-26
 
 ### Added
