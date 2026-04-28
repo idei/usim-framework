@@ -267,7 +267,7 @@ abstract class Screen
      */
     public function initializeEventContext(array $incomingStorage = [], array $queryParams = [], bool $debug = false): void
     {
-        $this->container = $this->getUIContainer($debug);
+        $this->container = $this->reconstructScreenTreeFromCache($debug);
         $this->oldUI = $this->container->toJson();
 
         $this->queryParams = $queryParams;
@@ -415,7 +415,7 @@ abstract class Screen
 
         // Persist the final container state for both event diffs and full reloads.
         // Without this, reload flows such as ?reset=true can leave cache with a pre-postLoad snapshot.
-        $this->storeUI($this->container);
+        $this->cacheScreenSnapshot($this->container);
 
         $diff = $this->buildDiffResponse($reload);
         $storageVariables = $this->getStorageVariables();
@@ -453,7 +453,7 @@ abstract class Screen
      * @param mixed ...$params Optional parameters passed to buildBaseUI
      * @return array user Interface structure in JSON format
      */
-    protected function getStoredUI(string $parent = 'main', bool $debug = false, ...$params): array
+    protected function getCachedScreenSnapshot(string $parent = 'main', bool $debug = false, ...$params): array
     {
         // Check if user Interface exists in cache
         $cachedUI = UIStateManager::get(static::class);
@@ -485,15 +485,15 @@ abstract class Screen
     }
 
     /**
-     * Get user Interface container instance from cache, regenerate if missing
+     * Reconstruct the current screen component tree from cache.
      *
-     * @return Container user Interface container instance
+     * If no cached snapshot exists, the UI is generated first and then reconstructed.
      */
-    protected function getUIContainer(bool $debug = false): Container
+    protected function reconstructScreenTreeFromCache(bool $debug = false): Container
     {
         // Always get JSON from cache and reconstruct container
         // This ensures we get the latest state after events modify it
-        $jsonUI = $this->getStoredUI(debug: $debug);
+        $jsonUI = $this->getCachedScreenSnapshot(debug: $debug);
         // Log::info(json_encode($jsonUI));
 
         // Reconstruct container from JSON
@@ -585,56 +585,96 @@ abstract class Screen
     /**
      * Store UI state in cache
      *
-     * @param Container $ui UI container to store
+        * @param Container $container UI container to store
      * @return void
      */
-    protected function storeUI(Container $ui): void
+    protected function cacheScreenSnapshot(Container $container): void
     {
-        UIStateManager::store(static::class, $ui->toJson());
+        UIStateManager::store(static::class, $container->toJson());
     }
 
     /**
-     * Clear stored UI state
+     * Clear the cached screen snapshot.
      *
      * @return void
      */
-    public function clearStoredUI(): void
+    public function clearCachedScreenSnapshot(): void
     {
         UIStateManager::clear(static::class);
     }
 
     /**
-     * Allow child classes to react when the service is reset.
+     * Allow child classes to react when the screen is reset.
      *
      * @return void
      */
-    public function onResetService(): void
+    public function onResetScreen(): void
     {
     }
 
     /**
-     * Get the service component ID
-     * Returns the ID of the main container, which represents this service
-     * Used for modal callbacks to route events back to this service
+     * Get the component ID of the current screen root container.
      *
-     * @return int Service component ID
+     * Used for modal callbacks to route events back to this screen.
+     *
+     * @return int Screen component ID
      */
-    protected function getServiceComponentId(): int
+    protected function getScreenComponentId(): int
     {
-        $ui = $this->getStoredUI();
+        $ui = $this->getCachedScreenSnapshot();
 
-        // Find the first container (main container that represents the service)
+        // Find the first container (main container that represents the screen)
         foreach ($ui as $id => $component) {
             if ($component['type'] === 'container') {
                 return (int) $id;
             }
         }
 
-        // Fallback: generate deterministic ID from service class name
+        // Fallback: generate deterministic ID from screen class name
         return UIIdGenerator::generateFromName(
             static::class,
-            'service_root'
+            'screen_root'
         );
+    }
+
+    /**
+     * @deprecated Use getCachedScreenSnapshot() instead.
+     */
+    protected function getStoredUI(string $parent = 'main', bool $debug = false, ...$params): array
+    {
+        return $this->getCachedScreenSnapshot($parent, $debug, ...$params);
+    }
+
+    /**
+     * @deprecated Use cacheScreenSnapshot() instead.
+     */
+    protected function storeUI(Container $ui): void
+    {
+        $this->cacheScreenSnapshot($ui);
+    }
+
+    /**
+     * @deprecated Use clearCachedScreenSnapshot() instead.
+     */
+    public function clearStoredUI(): void
+    {
+        $this->clearCachedScreenSnapshot();
+    }
+
+    /**
+     * @deprecated Use onResetScreen() instead.
+     */
+    public function onResetService(): void
+    {
+        $this->onResetScreen();
+    }
+
+    /**
+     * @deprecated Use getScreenComponentId() instead.
+     */
+    protected function getServiceComponentId(): int
+    {
+        return $this->getScreenComponentId();
     }
 
     /**

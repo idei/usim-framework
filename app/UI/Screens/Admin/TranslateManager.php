@@ -168,7 +168,7 @@ class TranslateManager extends Screen
             selectedText: (string) ($selectedEntry['text'] ?? ''),
             fallbackNeedsReview: (bool) ($fallbackEntry['needs_review'] ?? false),
             selectedNeedsReview: (bool) ($selectedEntry['needs_review'] ?? false),
-            callerServiceId: $this->getServiceComponentId()
+            callerServiceId: $this->getScreenComponentId()
         );
     }
 
@@ -186,7 +186,7 @@ class TranslateManager extends Screen
             message: t('screen.admin.translate_manager.delete.confirm', ['key' => $key]),
             confirmAction: 'confirm_delete_translation',
             confirmParams: ['key' => $key],
-            callerServiceId: $this->getServiceComponentId()
+            callerServiceId: $this->getScreenComponentId()
         );
     }
 

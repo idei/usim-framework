@@ -93,8 +93,8 @@ class ModalDemo extends Screen
      */
     public function onOpenConfirmation(array $params): void
     {
-        // Get this service's ID to receive the callback
-        $serviceId = $this->getServiceComponentId();
+        // Get this screen ID to receive the callback.
+        $screenId = $this->getScreenComponentId();
 
         ConfirmDialogService::open(
             type: DialogType::CONFIRM,
@@ -105,7 +105,7 @@ class ModalDemo extends Screen
             confirmLabel: t('screen.demo.modal_demo.confirm_dialog.confirm_label'),
             cancelAction: 'handle_cancel',
             cancelLabel: t('screen.demo.modal_demo.confirm_dialog.cancel_label'),
-            callerServiceId: $serviceId
+            callerServiceId: $screenId
         );
     }
 
@@ -146,15 +146,15 @@ class ModalDemo extends Screen
      */
     public function onShowErrorDialog(array $params): void
     {
-        // Get this service ID to receive the callback
-        $serviceId = $this->getServiceComponentId();
+        // Get this screen ID to receive the callback.
+        $screenId = $this->getScreenComponentId();
 
         ConfirmDialogService::open(
             type: DialogType::ERROR,
             title: t('screen.demo.modal_demo.error_dialog.title'),
             message: t('screen.demo.modal_demo.error_dialog.message'),
             confirmAction: 'close_error_dialog',
-            callerServiceId: $serviceId
+            callerServiceId: $screenId
         );
     }
 
@@ -168,7 +168,7 @@ class ModalDemo extends Screen
 
     public function onShowTimeoutDialog(array $params): void
     {
-        $serviceId = $this->getServiceComponentId();
+        $screenId = $this->getScreenComponentId();
         $duration  = $params['duration'] ?? 10;
 
         ConfirmDialogService::open(
@@ -179,13 +179,13 @@ class ModalDemo extends Screen
             timeUnit: TimeUnit::SECONDS,
             showCountdown: true,
             confirmAction: 'close_timeout_dialog',
-            callerServiceId: $serviceId
+            callerServiceId: $screenId
         );
     }
 
     public function onShowTimeoutNoButton(array $params): void
     {
-        $serviceId = $this->getServiceComponentId();
+        $screenId = $this->getScreenComponentId();
 
         ConfirmDialogService::open(
             type: DialogType::TIMEOUT,
@@ -195,7 +195,7 @@ class ModalDemo extends Screen
             timeUnit: TimeUnit::SECONDS,
             showCountdown: true,
             showCloseButton: false, // No mostrar botón de cerrar
-            callerServiceId: $serviceId
+            callerServiceId: $screenId
         );
     }
 
@@ -209,8 +209,8 @@ class ModalDemo extends Screen
 
     public function onShowSettingsConfirm(array $params): void
     {
-        // Get this service ID to receive the callback
-        $serviceId = $this->getServiceComponentId();
+        // Get this screen ID to receive the callback.
+        $screenId = $this->getScreenComponentId();
 
         ConfirmDialogService::open(
             type: DialogType::WARNING,
@@ -219,7 +219,7 @@ class ModalDemo extends Screen
             confirmAction: 'reset_settings',
             confirmParams: [],
             cancelAction: 'cancel_settings',
-            callerServiceId: $serviceId
+            callerServiceId: $screenId
         );
     }
 
@@ -236,15 +236,15 @@ class ModalDemo extends Screen
      */
     public function onResetSettings(array $params): void
     {
-        // Get this service ID to receive the callback
-        $serviceId = $this->getServiceComponentId();
+        // Get this screen ID to receive the callback.
+        $screenId = $this->getScreenComponentId();
 
         ConfirmDialogService::open(
             type: DialogType::SUCCESS,
             title: t('screen.demo.modal_demo.success_dialog.title'),
             message: t('screen.demo.modal_demo.success_dialog.message'),
             confirmAction: 'close_success_dialog',
-            callerServiceId: $serviceId
+            callerServiceId: $screenId
         );
     }
 

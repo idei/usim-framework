@@ -329,8 +329,8 @@ class Menu extends Screen
      */
     public function onShowAboutInfo(array $params): void
     {
-        // Get this service ID to receive the callback
-        $serviceId = $this->getServiceComponentId();
+        // Get this screen ID to receive the callback.
+        $screenId = $this->getScreenComponentId();
         $version = "0.7.0";
         // This i18n message may include escaped "\\n" and markdown; the dialog renderer handles both.
         $aboutMessage = t('screen.menu.about.message', [
@@ -341,7 +341,7 @@ class Menu extends Screen
             type: DialogType::INFO,
             title: t('screen.menu.about.title'),
             message: $aboutMessage,
-            callerServiceId: $serviceId
+            callerServiceId: $screenId
         );
     }
 
@@ -358,14 +358,14 @@ class Menu extends Screen
         RegisterDialog::open(
             submitAction: 'submit_register',
             fakeData: config('app.env') === 'local',
-            callerServiceId: $this->getServiceComponentId()
+            callerServiceId: $this->getScreenComponentId()
         );
     }
 
     public function onOpenTermsAndConditions(array $params): void
     {
         TermsDialog::open(
-            callerServiceId: $this->getServiceComponentId()
+            callerServiceId: $this->getScreenComponentId()
         );
     }
 
@@ -448,7 +448,7 @@ class Menu extends Screen
      */
     public function onLogoutUser(array $params): void
     {
-        $serviceId = $this->getServiceComponentId();
+        $screenId = $this->getScreenComponentId();
 
         ConfirmDialogService::open(
             type: DialogType::CONFIRM,
@@ -456,7 +456,7 @@ class Menu extends Screen
             message: t('screen.menu.logout_confirm.message'),
             confirmAction: 'confirm_logout',
             cancelAction: 'cancel_logout',
-            callerServiceId: $serviceId
+            callerServiceId: $screenId
         );
     }
 

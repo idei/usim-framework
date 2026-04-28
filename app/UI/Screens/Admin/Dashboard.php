@@ -94,7 +94,7 @@ class Dashboard extends Screen
         RegisterDialog::open(
             fakeData: config('app.env') === 'local',
             askForRole: true,
-            callerServiceId: $this->getServiceComponentId()
+            callerServiceId: $this->getScreenComponentId()
         );
     }
 
@@ -168,7 +168,7 @@ class Dashboard extends Screen
 
         EditUserDialog::open(
             user: $user,
-            callerServiceId: $this->getServiceComponentId()
+            callerServiceId: $this->getScreenComponentId()
         );
     }
 
@@ -248,7 +248,7 @@ class Dashboard extends Screen
             message: t("Are you sure you want to delete user '{$user['name']}'?"),
             confirmAction: 'confirm_delete_user',
             confirmParams: ['user_id' => $params['user_id']],
-            callerServiceId: $this->getServiceComponentId()
+            callerServiceId: $this->getScreenComponentId()
         );
     }
 

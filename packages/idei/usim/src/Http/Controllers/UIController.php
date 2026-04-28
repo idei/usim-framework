@@ -118,8 +118,8 @@ class UIController extends Controller
 
     private function resetScreen(Screen $screen): void
     {
-        $screen->clearStoredUI();
-        $screen->onResetService();
+        $screen->clearCachedScreenSnapshot();
+        $screen->onResetScreen();
     }
 
     private function initializeScreenContext(Screen $screen, array $requestData): void
