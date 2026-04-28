@@ -3,102 +3,142 @@ namespace Idei\Usim\Http\Controllers;
 
 use Illuminate\Routing\Controller;
 use Idei\Usim\UIChangesCollector;
+use Idei\Usim\Screen;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Str;
 
 class UIController extends Controller
 {
-
     public function __construct(
         protected UIChangesCollector $uiChanges
-    )
-    {
+    ) {
     }
 
     /**
-     * Show UI for the specified screen service. It can receive an optional 'reset' query
-     * parameter to clear cached data for the screen.
+     * Show UI for the specified screen service.
      *
-     * @param string $screen The screen name from the route (e.g., 'admin/dashboard')
+     * Supports optional 'reset' query parameter to clear cached data for the screen.
+     *
+     * @param string $screenRoute The screen route from the URL (e.g., 'admin/dashboard')
      * @return JsonResponse
      */
-    public function show(string $screen): JsonResponse
+    public function show(string $screenRoute): JsonResponse
     {
         $this->uiChanges->reset();
-        $reset = request()->query('reset', false);
-        $parent = request()->query('parent', "main");
-        $allQueryParams = request()->query();
 
-        $incomingStorage = request()->storage ?? [];
+        $screenClass = $this->resolveScreenClass($screenRoute);
 
-        // Convert path to namespace class name
-        // Supports nested folders: 'admin/dashboard' -> 'Admin\Dashboard'
-        // Supports kebab-case files: 'demos/input-demo' -> 'Demos\InputDemo'
-        $serviceName = collect(explode('/', $screen))
-            ->map(fn($segment) => Str::studly($segment))
+        if (!class_exists($screenClass)) {
+            return $this->screenNotFoundResponse($screenRoute);
+        }
+
+        $accessResult = $screenClass::checkAccess();
+
+        if (!$accessResult['allowed']) {
+            return $this->accessDeniedResponse($accessResult);
+        }
+
+        $requestData = $this->extractRequestData();
+        $screen = $this->instantiateScreen($screenClass, $requestData);
+
+        if ($requestData['shouldReset']) {
+            $this->resetScreen($screen);
+        }
+
+        $this->initializeScreenContext($screen, $requestData);
+        $this->injectAgentContext($screen);
+
+        return response()->json($this->uiChanges->all());
+    }
+
+    /**
+     * Convert URL route to fully qualified screen class name.
+     *
+     * Examples:
+     * - 'admin/dashboard' -> 'App\UI\Screens\Admin\Dashboard'
+     * - 'demos/input-demo' -> 'App\UI\Screens\Demos\InputDemo'
+     */
+    private function resolveScreenClass(string $screenRoute): string
+    {
+        $screenNameSegments = collect(explode('/', $screenRoute))
+            ->map(fn(string $segment) => Str::studly($segment))
             ->join('\\');
 
         $namespace = config('ui-services.screens_namespace', 'App\\UI\\Screens');
 
-        // Build fully qualified class name
-        $serviceClass = "{$namespace}\\{$serviceName}";
+        return "{$namespace}\\{$screenNameSegments}";
+    }
 
-        // Check if service class exists
-        if (!class_exists($serviceClass)) {
-            return response()->json([
-                'error' => 'Screen not found',
-                'service' => $serviceName,
-            ], 404);
+    private function extractRequestData(): array
+    {
+        return [
+            'shouldReset' => request()->query('reset', false),
+            'storage' => request()->storage ?? [],
+            'queryParams' => request()->query(),
+        ];
+    }
+
+    private function screenNotFoundResponse(string $screenRoute): JsonResponse
+    {
+        return response()->json([
+            'error' => 'Screen not found',
+            'screen' => $screenRoute,
+        ], 404);
+    }
+
+    private function accessDeniedResponse(array $accessResult): JsonResponse
+    {
+        $action = $accessResult['action'];
+        $params = $accessResult['params'];
+        $response = [];
+
+        if ($action === 'redirect') {
+            $response['redirect'] = $params['url'];
+        } elseif ($action === 'abort') {
+            $response['abort'] = [
+                'code' => $params['code'],
+                'message' => $params['message'],
+            ];
         }
 
-        // Check Access Permissions (Static Check - No instantiation needed)
-        // Returns ['allowed' => bool, 'action' => string|null, 'params' => array]
-        /** @var array $access */
-        $access = $serviceClass::checkAccess();
+        return response()->json($response);
+    }
 
-        if (!$access['allowed']) {
-            $action = $access['action']; // 'redirect', 'abort', 'toast', etc.
-            $params = $access['params'];
-            $response = [];
+    private function instantiateScreen(string $screenClass, array $requestData): Screen
+    {
+        $this->uiChanges->setStorage($requestData['storage']);
+        $screen = app($screenClass);
 
-            if ($action === 'redirect') {
-                $response['redirect'] = $params['url'];
-            } elseif ($action === 'abort') {
-                $response['abort'] = [
-                    'code' => $params['code'],
-                    'message' => $params['message'],
-                ];
-            }
-
-            return response()->json($response);
+        if (!$screen instanceof Screen) {
+            abort(500, "Resolved screen [{$screenClass}] is not a valid Screen instance.");
         }
 
-        $this->uiChanges->setStorage($incomingStorage);
+        return $screen;
+    }
 
-        // Instantiate service using Laravel's service container
-        // This allows dependency injection to work
-        $service = app($serviceClass);
+    private function resetScreen(Screen $screen): void
+    {
+        $screen->clearStoredUI();
+        $screen->onResetService();
+    }
 
-        // If the 'reset' url parameter is present, clear any cached data
-        if ($reset) {
-            $service->clearStoredUI();
-            $service->onResetService();
-        }
+    private function initializeScreenContext(Screen $screen, array $requestData): void
+    {
 
-        $service->initializeEventContext(
-            incomingStorage: $incomingStorage,
-            queryParams: $allQueryParams
+        $screen->initializeEventContext(
+            incomingStorage: $requestData['storage'],
+            queryParams: $requestData['queryParams']
         );
-        $service->finalizeEventContext(reload: true);
-       // Inject agent context if provided by the screen
-       $agentContext = $service->getAgentContext();
-       if (!empty($agentContext)) {
-           $this->uiChanges->add([
-               'agent_context' => $agentContext,
-           ]);
-       }
 
+        $screen->finalizeEventContext(reload: true);
+    }
 
-        return response()->json($this->uiChanges->all());
+    private function injectAgentContext(Screen $screen): void
+    {
+        $agentContext = $screen->getAgentContext();
+
+        if (!empty($agentContext)) {
+            $this->uiChanges->add(['agent_context' => $agentContext]);
+        }
     }
 }

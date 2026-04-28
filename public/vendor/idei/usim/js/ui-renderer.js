@@ -2085,6 +2085,148 @@ class UIRenderer {
 // Global renderer instance
 let globalRenderer = null;
 
+// ==================== Error Handling ====================
+/**
+ * Build a user-friendly error message based on HTTP status and response data
+ */
+function buildErrorMessage(status, errorData = {}) {
+    // Map HTTP status codes to friendly messages
+    const errorMessages = {
+        404: {
+            title: 'Pantalla no encontrada',
+            getMessage: (data) => {
+                if (data.screen) {
+                    return `La pantalla "${data.screen}" no existe en esta aplicación.`;
+                }
+                return 'La pantalla solicitada no fue encontrada.';
+            }
+        },
+        403: {
+            title: 'Acceso denegado',
+            getMessage: () => 'No tienes permiso para acceder a esta pantalla.'
+        },
+        401: {
+            title: 'Autenticación requerida',
+            getMessage: () => 'Debes iniciar sesión para acceder a esta pantalla.'
+        },
+        500: {
+            title: 'Error del servidor',
+            getMessage: (data) => data.message || 'Ocurrió un error interno del servidor. Intenta más tarde.'
+        },
+        503: {
+            title: 'Servicio no disponible',
+            getMessage: () => 'El servidor está en mantenimiento. Intenta más tarde.'
+        }
+    };
+
+    const errorSpec = errorMessages[status];
+    if (errorSpec) {
+        return `${errorSpec.title}: ${errorSpec.getMessage(errorData)}`;
+    }
+
+    return `Error HTTP ${status}: ${errorData.error || 'No se pudo cargar la pantalla.'}`;
+}
+
+/**
+ * Build error screen HTML with styling and help information
+ */
+function buildErrorScreenHTML(message) {
+    return `
+        <div style="
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            padding: 20px;
+        ">
+            <div style="
+                background: white;
+                border-radius: 12px;
+                box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+                padding: 40px;
+                max-width: 500px;
+                text-align: center;
+            ">
+                <div style="
+                    font-size: 64px;
+                    margin-bottom: 20px;
+                ">⚠️</div>
+
+                <h1 style="
+                    color: #333;
+                    margin: 0 0 12px 0;
+                    font-size: 24px;
+                    font-weight: 600;
+                ">Oops, algo salió mal</h1>
+
+                <p style="
+                    color: #666;
+                    margin: 0 0 24px 0;
+                    font-size: 16px;
+                    line-height: 1.5;
+                ">${escapeHtml(message)}</p>
+
+                <div style="
+                    display: flex;
+                    gap: 12px;
+                    justify-content: center;
+                ">
+                    <button onclick="window.location = '/'" style="
+                        background: #667eea;
+                        color: white;
+                        border: none;
+                        border-radius: 6px;
+                        padding: 10px 24px;
+                        font-size: 14px;
+                        font-weight: 500;
+                        cursor: pointer;
+                        transition: background 0.3s ease;
+                    " onmouseover="this.style.background='#5568d3'" onmouseout="this.style.background='#667eea'">
+                        Ir a inicio
+                    </button>
+                    <button onclick="window.history.back()" style="
+                        background: #f0f0f0;
+                        color: #333;
+                        border: none;
+                        border-radius: 6px;
+                        padding: 10px 24px;
+                        font-size: 14px;
+                        font-weight: 500;
+                        cursor: pointer;
+                        transition: background 0.3s ease;
+                    " onmouseover="this.style.background='#e0e0e0'" onmouseout="this.style.background='#f0f0f0'">
+                        Volver atrás
+                    </button>
+                </div>
+
+                <p style="
+                    color: #999;
+                    margin: 24px 0 0 0;
+                    font-size: 12px;
+                    border-top: 1px solid #eee;
+                    padding-top: 16px;
+                ">Si el problema persiste, contacta con soporte.</p>
+            </div>
+        </div>
+    `;
+}
+
+/**
+ * Escape HTML special characters to prevent XSS
+ */
+function escapeHtml(text) {
+    const map = {
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#039;'
+    };
+    return text.replace(/[&<>"']/g, m => map[m]);
+}
+
 // ==================== Main Application ====================
 async function loadScreenUI(screenName = null, forceReset = null) {
     try {
@@ -2135,7 +2277,9 @@ async function loadScreenUI(screenName = null, forceReset = null) {
         });
 
         if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
+            const errorData = await response.json().catch(() => ({}));
+            const errorMessage = buildErrorMessage(response.status, errorData);
+            throw new Error(errorMessage);
         }
 
         const uiData = await response.json();
@@ -2152,13 +2296,7 @@ async function loadScreenUI(screenName = null, forceReset = null) {
 
     } catch (error) {
         console.error('Error loading screen UI:', error);
-        document.getElementById('main').innerHTML = `
-            <div style="padding: 20px; color: red; background: #fee; border: 1px solid #fcc; border-radius: 6px;">
-                <h2>❌ Error loading UI components</h2>
-                <p><strong>Message:</strong> ${error.message}</p>
-                <p><strong>Check the console</strong> for more details.</p>
-            </div>
-        `;
+        document.getElementById('main').innerHTML = buildErrorScreenHTML(error.message);
     }
 }
 

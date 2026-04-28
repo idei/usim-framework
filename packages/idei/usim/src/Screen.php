@@ -447,21 +447,6 @@ abstract class Screen
         return $result;
     }
 
-    // /**
-    //  * Get the user Interface structure
-    //  *
-    //  * Returns the user Interface from cache or regenerates if not exists.
-    //  * This is the standard public method to retrieve user Interface for all services.
-    //  *
-    //  * @param mixed ...$params Optional parameters that can be used by child classes
-    //  * @return array user Interface structure in JSON format
-    //  */
-    // public function getUI(string $parent = 'main', ...$params): array
-    // {
-    //     $ui = $this->getStoredUI($parent, ...$params);
-    //     return $ui;
-    // }
-
     /**
      * Get stored user Interface state, regenerate if missing
      *
