@@ -286,7 +286,7 @@ class Menu extends Screen
             type: DialogType::INFO,
             title: t('screen.menu.about.title'),
             message: t('screen.menu.about.message', ['version' => '0.7.0']),
-            callerServiceId: $this->getServiceComponentId(),
+            callerServiceId: $this->getScreenComponentId(),
         );
     }
 
@@ -295,7 +295,7 @@ class Menu extends Screen
         RegisterDialog::open(
             submitAction: 'submit_register',
             fakeData: config('app.env') === 'local',
-            callerServiceId: $this->getServiceComponentId(),
+            callerServiceId: $this->getScreenComponentId(),
         );
     }
 
@@ -365,7 +365,7 @@ class Menu extends Screen
             message: t('screen.menu.logout_confirm.message'),
             confirmAction: 'confirm_logout',
             cancelAction: 'cancel_logout',
-            callerServiceId: $this->getServiceComponentId(),
+            callerServiceId: $this->getScreenComponentId(),
         );
     }
 
