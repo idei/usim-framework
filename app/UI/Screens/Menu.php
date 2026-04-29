@@ -113,9 +113,16 @@ class Menu extends Screen
             return;
         }
 
+        if ($lang === $this->store_lang) {
+            return;
+        }
+
         $this->store_lang = $lang;
-        $this->updateLangMenu();
+
         $this->changeLanguage($this->store_lang);
+        $this->updateLangMenu();
+
+        event(new UsimEvent('reset_screen'));
 
         $referer = request()->headers->get('referer');
         if (empty($referer) || str_contains($referer, '/api/ui-event')) {
@@ -128,7 +135,7 @@ class Menu extends Screen
         if (!empty($parts['query'])) {
             parse_str($parts['query'], $query);
         }
-        $query['reset'] = 'true';
+        //$query['reset'] = 'true';
 
         $target = $path;
         if (!empty($query)) {

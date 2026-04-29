@@ -47,13 +47,13 @@ class UIStateManager
 
         // If a client cookie is present, it must be the source of truth
         // for this request (important for test scenarios and multi-tab flows).
-        if (is_string($clientId) && $clientId !== '') {
+        if (\is_string($clientId) && $clientId !== '') {
             session()->put(self::CLIENT_ID_COOKIE, $clientId);
             return $clientId;
         }
 
         $sessionClientId = session()->get(self::CLIENT_ID_COOKIE);
-        if (is_string($sessionClientId) && $sessionClientId !== '') {
+        if (\is_string($sessionClientId) && $sessionClientId !== '') {
             return $sessionClientId;
         }
 
@@ -153,7 +153,37 @@ class UIStateManager
             );
         }
 
+        // invoca a una funcion que cachea el $firstKey en un arreglo asociativo específico al clientId,
+        // para luego poder recuperar todas las screens que el cliente tiene abiertas, y así enviar eventos solo a esas screens.
+        self::storeClientOpenedScreens($firstKey);
+
         return $result;
+    }
+
+    /**
+     * Store each screen opened by the user
+     * @param string $screenId
+     * @return void
+     */
+    private static function storeClientOpenedScreens(string $screenId): void
+    {
+        $clientId = self::getOrCreateClientId();
+        $cacheKey = "ui_open_screens:{$clientId}";
+        $ttl = env('UI_CACHE_TTL', self::DEFAULT_TTL);
+        $openedScreens = Cache::get($cacheKey, []);
+        if (!\is_array($openedScreens)) {
+            $openedScreens = [];
+        }
+        $openedScreens[$screenId] = true;
+        Cache::put($cacheKey, $openedScreens, $ttl);
+    }
+
+    public static function getClientOpenedScreens(): array
+    {
+        $clientId = self::getOrCreateClientId();
+        $cacheKey = "ui_open_screens:{$clientId}";
+        $openedScreens = Cache::get($cacheKey, []);
+        return \is_array($openedScreens) ? array_keys($openedScreens) : [];
     }
 
     /**
@@ -168,7 +198,7 @@ class UIStateManager
         $content = Cache::get($cacheKey);
         $cache = ($content === null || $content === '') ? null : json_decode($content, true);
 
-        $result = is_array($cache) ? $cache : null;
+        $result = \is_array($cache) ? $cache : null;
         $logLevel = $result !== null ? 'info' : 'error';
 
         // UIDebug::$logLevel("Retrieving UI State of {$serviceClass}", [

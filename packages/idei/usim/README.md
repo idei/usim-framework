@@ -412,7 +412,7 @@ $menu->screen(Products\List::class, 'All Products', '📦'); // custom label + i
 |---|---|
 | `buildBaseUI($container)` | Called on first load to build the initial UI tree |
 | `postLoadUI()` | Called after state is restored — update components with live data |
-| `onResetService()` | Called when `?reset=true` is passed in the URL |
+| `onResetScreen()` | Called when `?reset=true` is passed in the URL |
 
 ```php
 protected function postLoadUI(): void

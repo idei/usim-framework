@@ -42,7 +42,7 @@ class UIController extends Controller
         $screen = $this->instantiateScreen($screenClass, $requestData);
 
         if ($requestData['shouldReset']) {
-            $this->resetScreen($screen);
+            $screen->onResetScreen();
         }
 
         $this->initializeScreenContext($screen, $requestData);
@@ -114,12 +114,6 @@ class UIController extends Controller
         }
 
         return $screen;
-    }
-
-    private function resetScreen(Screen $screen): void
-    {
-        $screen->clearCachedScreenSnapshot();
-        $screen->onResetScreen();
     }
 
     private function initializeScreenContext(Screen $screen, array $requestData): void

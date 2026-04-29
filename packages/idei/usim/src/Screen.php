@@ -585,7 +585,7 @@ abstract class Screen
     /**
      * Store UI state in cache
      *
-        * @param Container $container UI container to store
+     * @param Container $container UI container to store
      * @return void
      */
     protected function cacheScreenSnapshot(Container $container): void
@@ -610,6 +610,9 @@ abstract class Screen
      */
     public function onResetScreen(): void
     {
+        $this->clearCachedScreenSnapshot();
+        $screenName = class_basename(static::class);
+        Log::info("Screen '{$screenName}' has been reset. Cache cleared.");
     }
 
     /**
@@ -659,14 +662,6 @@ abstract class Screen
     public function clearStoredUI(): void
     {
         $this->clearCachedScreenSnapshot();
-    }
-
-    /**
-     * @deprecated Use onResetScreen() instead.
-     */
-    public function onResetService(): void
-    {
-        $this->onResetScreen();
     }
 
     /**
@@ -831,6 +826,9 @@ abstract class Screen
      */
     protected function changeLanguage(string $language): void
     {
+        app()->setLocale($language);
+
+        // TODO: In the following way, the language is being stored on the front. It should be stored user's preferences.
         $this->uiChanges()->add([
             'change_language' => $language,
         ]);
@@ -880,36 +878,36 @@ abstract class Screen
         return $this->findComponentAs($this->container, $id, $expectedClass);
     }
 
-   /**
-    * Get agent context for this screen.
-    *
-    * Optional method that can be overridden to provide metadata describing
-    * what this screen does, what inputs it expects, and what outputs it may produce.
-    *
-    * Used by headless/AI clients to understand screen semantics without UI rendering.
-    *
-    * Default implementation returns an empty array (no agent context).
-    * Override this method in child classes to provide semantic information.
-    *
-    * Example:
-    * ```php
-    * public function getAgentContext(): array
-    * {
-    *     return [
-    *         'purpose' => 'User authentication',
-    *         'inputs' => ['email', 'password'],
-    *         'outputs' => ['redirect', 'toast', 'abort'],
-    *         'constraints' => 'Email must be valid format. Password 8+ chars.'
-    *     ];
-    * }
-    * ```
-    *
-    * @return array Empty array by default. Override to provide agent context metadata.
-    */
-   public function getAgentContext(): array
-   {
-       return [];
-   }
+    /**
+     * Get agent context for this screen.
+     *
+     * Optional method that can be overridden to provide metadata describing
+     * what this screen does, what inputs it expects, and what outputs it may produce.
+     *
+     * Used by headless/AI clients to understand screen semantics without UI rendering.
+     *
+     * Default implementation returns an empty array (no agent context).
+     * Override this method in child classes to provide semantic information.
+     *
+     * Example:
+     * ```php
+     * public function getAgentContext(): array
+     * {
+     *     return [
+     *         'purpose' => 'User authentication',
+     *         'inputs' => ['email', 'password'],
+     *         'outputs' => ['redirect', 'toast', 'abort'],
+     *         'constraints' => 'Email must be valid format. Password 8+ chars.'
+     *     ];
+     * }
+     * ```
+     *
+     * @return array Empty array by default. Override to provide agent context metadata.
+     */
+    public function getAgentContext(): array
+    {
+        return [];
+    }
 
 }
 
