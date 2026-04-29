@@ -14,32 +14,30 @@ class UsimEventDispatcher
 
     public function handle(UsimEvent $event): void
     {
-        // // 1. Encolamos el evento entrante
-        // self::$eventQueue[] = $event;
+        // 1. Encolamos el evento entrante
+        self::$eventQueue[] = $event;
 
-        // // 2. Si ya hay un proceso en marcha, nos retiramos.
-        // // El bucle "while" original se encargará de procesar este nuevo evento.
-        // if (self::$isProcessing) {
-        //     Log::info("Evento '{$event->eventName}' encolado. Actualmente procesando otro evento, se procesará después.");
-        //     return;
-        // }
+        // 2. Si ya hay un proceso en marcha, nos retiramos.
+        // El bucle "while" original se encargará de procesar este nuevo evento.
+        if (self::$isProcessing) {
+            return;
+        }
 
-        // self::$isProcessing = true;
+        self::$isProcessing = true;
 
-        // // 3. Procesamos la cola hasta que no queden eventos (FIFO)
-        // while ($currentEvent = array_shift(self::$eventQueue)) {
-        $this->processEvent($event);
-        // }
+        // 3. Procesamos la cola hasta que no queden eventos (FIFO)
+        while ($currentEvent = array_shift(self::$eventQueue)) {
+            $this->processEvent($currentEvent);
+        }
 
-        // self::$isProcessing = false;
+        self::$isProcessing = false;
     }
 
     protected function processEvent(UsimEvent $event): void
     {
         $methodName = 'on' . str_replace('_', '', ucwords($event->eventName, '_'));
-        $openedScreens = UIStateManager::getClientOpenedScreens($event->params['client_id']);
-        //$incomingStorage = request()->storage ?? [];
-        $incomingStorage = $event->params['storage'];
+        $openedScreens = UIStateManager::getClientOpenedScreens();
+        $incomingStorage = request()->storage ?? [];
 
         foreach ($openedScreens as $rootComponentId) {
             $screenClass = UIIdGenerator::getContextFromId($rootComponentId);
@@ -47,6 +45,8 @@ class UsimEventDispatcher
 
             if ($methodName === 'onResetScreen') {
                 $screen->onResetScreen();
+                $screen->initializeEventContext($incomingStorage, debug: true);
+                $screen->finalizeEventContext(debug: true);
                 continue;
             }
 
