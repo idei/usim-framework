@@ -598,9 +598,9 @@ abstract class Screen
      *
      * @return void
      */
-    public function clearCachedScreenSnapshot(): void
+    public function clearCachedScreenSnapshot(): bool
     {
-        UIStateManager::clear(static::class);
+        return UIStateManager::clear(static::class);
     }
 
     /**
@@ -610,9 +610,13 @@ abstract class Screen
      */
     public function onResetScreen(): void
     {
-        $this->clearCachedScreenSnapshot();
+        $cleared = $this->clearCachedScreenSnapshot();
         $screenName = class_basename(static::class);
-        Log::info("Screen '{$screenName}' has been reset. Cache cleared.");
+        if ($cleared) {
+            Log::info("Screen '{$screenName}' cache cleared successfully.");
+        } else {
+            Log::warning("Screen '{$screenName}' cache was already empty or could not be cleared.");
+        }
     }
 
     /**
@@ -654,14 +658,6 @@ abstract class Screen
     protected function storeUI(Container $ui): void
     {
         $this->cacheScreenSnapshot($ui);
-    }
-
-    /**
-     * @deprecated Use clearCachedScreenSnapshot() instead.
-     */
-    public function clearStoredUI(): void
-    {
-        $this->clearCachedScreenSnapshot();
     }
 
     /**

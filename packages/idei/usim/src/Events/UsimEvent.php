@@ -2,8 +2,9 @@
 
 namespace Idei\Usim\Events;
 
-use Illuminate\Queue\SerializesModels;
+use Idei\Usim\Support\UIStateManager;
 use Illuminate\Foundation\Events\Dispatchable;
+use Illuminate\Queue\SerializesModels;
 
 class UsimEvent
 {
@@ -12,5 +13,8 @@ class UsimEvent
     public function __construct(
         public string $eventName,
         public array $params = []
-    ) {}
+    ) {
+        $this->params['client_id'] = UIStateManager::getOrCreateClientId();
+        $this->params['storage'] = request()->storage ?? [];
+    }
 }

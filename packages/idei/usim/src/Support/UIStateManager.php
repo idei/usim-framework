@@ -41,7 +41,7 @@ class UIStateManager
      *
      * @return string Client UUID
      */
-    protected static function getOrCreateClientId(): string
+    public static function getOrCreateClientId(): string
     {
         $clientId = request()->cookie(self::CLIENT_ID_COOKIE);
 
@@ -91,29 +91,29 @@ class UIStateManager
         return "{$prefix}:{$serviceBaseName}:{$clientId}";
     }
 
-    /**
-     * Store root component ID and its parent container in session
-     *
-     * @param string $parent Parent container name (e.g., 'main', 'modal')
-     * @param string $rootComponentId Root component ID
-     * @return void
-     */
-    private static function storeRootComponentId(string $parent, string $rootComponentId): void
-    {
-        $parents = session()->get('ui_parents', []);
-        $parents[$parent] = $rootComponentId;
-        session()->put('ui_parents', $parents);
-    }
+    // /**
+    //  * Store root component ID and its parent container in session
+    //  *
+    //  * @param string $parent Parent container name (e.g., 'main', 'modal')
+    //  * @param string $rootComponentId Root component ID
+    //  * @return void
+    //  */
+    // private static function storeRootComponentId(string $parent, string $rootComponentId): void
+    // {
+    //     $parents = session()->get('ui_parents', []);
+    //     $parents[$parent] = $rootComponentId;
+    //     session()->put('ui_parents', $parents);
+    // }
 
-    /**
-     * Get root components from session
-     *
-     * @return array Root components array
-     */
-    public static function getRootComponents(): array
-    {
-        return session()->get('ui_parents', []);
-    }
+    // /**
+    //  * Get root components from session
+    //  *
+    //  * @return array Root components array
+    //  */
+    // public static function getRootComponents(): array
+    // {
+    //     return session()->get('ui_parents', []);
+    // }
 
     /**
      * Store UI state in cache
@@ -146,12 +146,12 @@ class UIStateManager
 
         // Store root component ID and its parent container
         $firstKey = array_key_first($uiState);
-        if (isset($uiState[$firstKey]['parent'])) {
-            self::storeRootComponentId(
-                $uiState[$firstKey]['parent'],
-                (string) $firstKey
-            );
-        }
+        // if (isset($uiState[$firstKey]['parent'])) {
+        //     self::storeRootComponentId(
+        //         $uiState[$firstKey]['parent'],
+        //         (string) $firstKey
+        //     );
+        // }
 
         // invoca a una funcion que cachea el $firstKey en un arreglo asociativo específico al clientId,
         // para luego poder recuperar todas las screens que el cliente tiene abiertas, y así enviar eventos solo a esas screens.
@@ -178,9 +178,9 @@ class UIStateManager
         Cache::put($cacheKey, $openedScreens, $ttl);
     }
 
-    public static function getClientOpenedScreens(): array
+    public static function getClientOpenedScreens(string $clientId = null): array
     {
-        $clientId = self::getOrCreateClientId();
+        $clientId ??= self::getOrCreateClientId();
         $cacheKey = "ui_open_screens:{$clientId}";
         $openedScreens = Cache::get($cacheKey, []);
         return \is_array($openedScreens) ? array_keys($openedScreens) : [];

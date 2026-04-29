@@ -9,10 +9,10 @@ use App\UI\Screens\Admin\Dashboard;
 use App\UI\Screens\Admin\TranslateManager;
 use App\UI\Screens\Auth\Login;
 use App\UI\Screens\Auth\Profile;
+use App\UI\Screens\Demo\AddressForm;
 use App\UI\Screens\Demo\ButtonDemo;
 use App\UI\Screens\Demo\CalendarDemo;
 use App\UI\Screens\Demo\CarouselDemo;
-use App\UI\Screens\Demo\AddressForm;
 use App\UI\Screens\Demo\CheckboxDemo;
 use App\UI\Screens\Demo\DemoUi;
 use App\UI\Screens\Demo\FormDemo;
@@ -23,20 +23,21 @@ use App\UI\Screens\Demo\SplitDemo;
 use App\UI\Screens\Demo\TableDemo;
 use App\UI\Screens\Demo\TabsDemo;
 use App\UI\Screens\Demo\UploaderDemo;
-use Idei\Usim\Events\UsimEvent;
-use Idei\Usim\Screen;
 use Idei\Usim\Components\Button;
-use Idei\Usim\Components\MenuDropdown;
 use Idei\Usim\Components\Container;
+use Idei\Usim\Components\MenuDropdown;
 use Idei\Usim\Enums\AlignItems;
 use Idei\Usim\Enums\DialogType;
 use Idei\Usim\Enums\JustifyContent;
 use Idei\Usim\Enums\LayoutType;
+use Idei\Usim\Events\UsimEvent;
 use Idei\Usim\Modals\ConfirmDialogService;
 use Idei\Usim\Models\UsimLanguage;
+use Idei\Usim\Screen;
 use Idei\Usim\UI;
 use Idei\Usim\Upload\UploadService;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 
 /**
  * Menu Service
@@ -68,6 +69,8 @@ class Menu extends Screen
             ->alignItems(AlignItems::CENTER)
             ->padding(0)
             ->marginBottom('0');
+
+        Log::info("Building Menu UI with params: " . json_encode($params));
 
         $this->main_menu = $this->buildLeftMenu();
         $this->user_menu = $this->buildUserMenu();
@@ -109,40 +112,38 @@ class Menu extends Screen
     public function onChangeLang(array $params): void
     {
         $lang = $params['lang'] ?? '';
-        if (empty($lang)) {
-            return;
-        }
-
-        if ($lang === $this->store_lang) {
+        if (empty($lang) || $lang === $this->store_lang) {
             return;
         }
 
         $this->store_lang = $lang;
 
-        $this->changeLanguage($this->store_lang);
+        $this->changeLanguage($lang);
+
         $this->updateLangMenu();
 
         event(new UsimEvent('reset_screen'));
+        $this->toast("Cambio a $lang");
 
-        $referer = request()->headers->get('referer');
-        if (empty($referer) || str_contains($referer, '/api/ui-event')) {
-            $referer = url('/');
-        }
+        // $referer = request()->headers->get('referer');
+        // if (empty($referer) || str_contains($referer, '/api/ui-event')) {
+        //     $referer = url('/');
+        // }
 
-        $parts = parse_url($referer);
-        $path = $parts['path'] ?? '/';
-        $query = [];
-        if (!empty($parts['query'])) {
-            parse_str($parts['query'], $query);
-        }
-        //$query['reset'] = 'true';
+        // $parts = parse_url($referer);
+        // $path = $parts['path'] ?? '/';
+        // $query = [];
+        // if (!empty($parts['query'])) {
+        //     parse_str($parts['query'], $query);
+        // }
+        // //$query['reset'] = 'true';
 
-        $target = $path;
-        if (!empty($query)) {
-            $target .= '?' . http_build_query($query);
-        }
+        // $target = $path;
+        // if (!empty($query)) {
+        //     $target .= '?' . http_build_query($query);
+        // }
 
-        $this->redirect($target);
+        // $this->redirect($target);
     }
 
     private function buildLangMenu(): MenuDropdown

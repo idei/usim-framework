@@ -2,43 +2,64 @@
 namespace Idei\Usim\Listeners;
 
 use Idei\Usim\Events\UsimEvent;
+use Idei\Usim\Screen;
 use Idei\Usim\Support\UIIdGenerator;
 use Idei\Usim\Support\UIStateManager;
 
 class UsimEventDispatcher
 {
+    // Cola estática para mantener los eventos pendientes en esta petición
+    protected static array $eventQueue = [];
+    protected static bool $isProcessing = false;
+
     public function handle(UsimEvent $event): void
     {
-        // Convertir el nombre del evento a nombre de método
-        // "logged_user" -> "onLoggedUser"
+        // // 1. Encolamos el evento entrante
+        // self::$eventQueue[] = $event;
+
+        // // 2. Si ya hay un proceso en marcha, nos retiramos.
+        // // El bucle "while" original se encargará de procesar este nuevo evento.
+        // if (self::$isProcessing) {
+        //     Log::info("Evento '{$event->eventName}' encolado. Actualmente procesando otro evento, se procesará después.");
+        //     return;
+        // }
+
+        // self::$isProcessing = true;
+
+        // // 3. Procesamos la cola hasta que no queden eventos (FIFO)
+        // while ($currentEvent = array_shift(self::$eventQueue)) {
+        $this->processEvent($event);
+        // }
+
+        // self::$isProcessing = false;
+    }
+
+    protected function processEvent(UsimEvent $event): void
+    {
         $methodName = 'on' . str_replace('_', '', ucwords($event->eventName, '_'));
+        $openedScreens = UIStateManager::getClientOpenedScreens($event->params['client_id']);
+        //$incomingStorage = request()->storage ?? [];
+        $incomingStorage = $event->params['storage'];
 
-        // $rootComponents  = UIStateManager::getRootComponents();
-        $openedScreens = UIStateManager::getClientOpenedScreens();
-        $incomingStorage = request()->storage ?? [];
-
-        //foreach ($rootComponents as $parent => $rootComponentId) {
         foreach ($openedScreens as $rootComponentId) {
-            $serviceClass = UIIdGenerator::getContextFromId($rootComponentId);
+            $screenClass = UIIdGenerator::getContextFromId($rootComponentId);
+            $screen = $this->instantiateScreen($screenClass);
 
-            // Instantiate service
-            $service = app($serviceClass);
+            if ($methodName === 'onResetScreen') {
+                $screen->onResetScreen();
+                continue;
+            }
 
-            if (method_exists($service, $methodName)) {
-                // If the method is "onResetScreen", we want to call it before the event context
-                // is initialized, so that the screen is reset before processing the event.
-                if ($methodName === 'onResetScreen') {
-                    $service->$methodName();
-                }
-
-                $service->initializeEventContext($incomingStorage, debug: true);
-
-                if ($methodName !== 'onResetScreen') {
-                    // If the method is not "onResetScreen", we want to call it after the event context is initialized, so that the screen is updated with the new event context before processing the event.
-                    $service->$methodName($event->params);
-                    $finalizedResult = $service->finalizeEventContext(debug: true);
-                }
+            if (method_exists($screen, $methodName)) {
+                $screen->initializeEventContext($incomingStorage, debug: true);
+                $screen->$methodName($event->params);
+                $screen->finalizeEventContext(debug: true);
             }
         }
+    }
+
+    private function instantiateScreen(string $screenClass): Screen
+    {
+        return app($screenClass);
     }
 }
