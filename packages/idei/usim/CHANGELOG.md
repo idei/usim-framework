@@ -6,6 +6,14 @@ The format is based on Keep a Changelog, and this project follows Semantic Versi
 
 ## [Unreleased]
 
+### Changed
+- `UIEventController` now defers processing of `UsimEvent` listeners while a screen action handler is executing, then flushes queued events after `finalizeEventContext()` to preserve deterministic event ordering in the same request.
+- `UsimEventDispatcher` now separates enqueue and drain responsibilities and adds explicit deferred-processing controls (`beginDeferredProcessing()`, `endDeferredProcessing()`, `flushQueuedEvents()`).
+
+### Fixed
+- Prevented nested/dispatched-in-handler events (for example `reset_screen` emitted from `onChangeLang`) from executing before the parent screen handler completes its event context finalization.
+- Added request-state reset safeguards in the deferred event flow to avoid stale static dispatcher state in persistent worker runtimes.
+
 ## [v0.11.0] - 2026-04-27
 
 ### Added
