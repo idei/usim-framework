@@ -6,9 +6,16 @@ The format is based on Keep a Changelog, and this project follows Semantic Versi
 
 ## [Unreleased]
 
+### Added
+- New landing translation stub files for scaffolded apps: `stubs/lang/en/landing.php` and `stubs/lang/es/landing.php`.
+- Initial localized copy keys for the package landing experience, including hero badge/lead, CTA labels, feature highlights, and quick-start checklist entries.
+
 ### Changed
 - `UIEventController` now defers processing of `UsimEvent` listeners while a screen action handler is executing, then flushes queued events after `finalizeEventContext()` to preserve deterministic event ordering in the same request.
 - `UsimEventDispatcher` now separates enqueue and drain responsibilities and adds explicit deferred-processing controls (`beginDeferredProcessing()`, `endDeferredProcessing()`, `flushQueuedEvents()`).
+- The generic landing stub (`stubs/views/landing.blade.php`) was redesigned into a more professional, responsive first-run page with a two-column layout, polished visual styling, and better onboarding content hierarchy.
+- The landing stub now uses i18n keys (`t('landing.*')`) instead of hardcoded strings so generated projects render localized content out of the box.
+- `stubs/screens/Menu.php.stub` now uses a more robust generic language-switch flow: it ignores no-op language changes, updates language/menu state coherently, emits `UsimEvent('reset_screen')`, and redirects while preserving the current route/query context.
 
 ### Fixed
 - Prevented nested/dispatched-in-handler events (for example `reset_screen` emitted from `onChangeLang`) from executing before the parent screen handler completes its event context finalization.
