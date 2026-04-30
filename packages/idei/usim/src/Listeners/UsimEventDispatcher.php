@@ -11,6 +11,7 @@ class UsimEventDispatcher
     // Cola estática para mantener los eventos pendientes en esta petición
     protected static array $eventQueue = [];
     protected static bool $isProcessing = false;
+    protected static bool $deferProcessing = false;
 
     public function handle(UsimEvent $event): void
     {
@@ -19,18 +20,51 @@ class UsimEventDispatcher
 
         // 2. Si ya hay un proceso en marcha, nos retiramos.
         // El bucle "while" original se encargará de procesar este nuevo evento.
+        if (self::$deferProcessing || self::$isProcessing) {
+            return;
+        }
+
+        $this->drainQueue();
+    }
+
+    public static function beginDeferredProcessing(): void
+    {
+        self::$deferProcessing = true;
+    }
+
+    public static function endDeferredProcessing(): void
+    {
+        self::$deferProcessing = false;
+    }
+
+    public static function flushQueuedEvents(): void
+    {
+        app(self::class)->drainQueue();
+    }
+
+    public static function resetRequestState(): void
+    {
+        self::$eventQueue = [];
+        self::$isProcessing = false;
+        self::$deferProcessing = false;
+    }
+
+    private function drainQueue(): void
+    {
         if (self::$isProcessing) {
             return;
         }
 
         self::$isProcessing = true;
 
-        // 3. Procesamos la cola hasta que no queden eventos (FIFO)
-        while ($currentEvent = array_shift(self::$eventQueue)) {
-            $this->processEvent($currentEvent);
+        try {
+            // 3. Procesamos la cola hasta que no queden eventos (FIFO)
+            while ($currentEvent = array_shift(self::$eventQueue)) {
+                $this->processEvent($currentEvent);
+            }
+        } finally {
+            self::$isProcessing = false;
         }
-
-        self::$isProcessing = false;
     }
 
     protected function processEvent(UsimEvent $event): void

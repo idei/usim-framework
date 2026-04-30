@@ -5,6 +5,7 @@ namespace Idei\Usim\Http\Controllers;
 use Illuminate\Routing\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
+use Idei\Usim\Listeners\UsimEventDispatcher;
 use Idei\Usim\Screen;
 use Idei\Usim\UIChangesCollector;
 use Idei\Usim\Support\UIIdGenerator;
@@ -69,9 +70,18 @@ class UIEventController extends Controller
                 return $this->actionNotImplementedResponse($action);
             }
 
-            $screen->initializeEventContext($incomingStorage);
-            $screen->$method($parameters);
-            $screen->finalizeEventContext();
+            UsimEventDispatcher::beginDeferredProcessing();
+
+            try {
+                $screen->initializeEventContext($incomingStorage);
+                $screen->$method($parameters);
+                $screen->finalizeEventContext();
+
+                UsimEventDispatcher::endDeferredProcessing();
+                UsimEventDispatcher::flushQueuedEvents();
+            } finally {
+                UsimEventDispatcher::resetRequestState();
+            }
 
             return response()->json($this->uiChanges->all());
         } catch (\Throwable $exception) {
