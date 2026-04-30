@@ -121,25 +121,24 @@ class Menu extends Screen
 
         event(new UsimEvent('reset_screen'));
 
-        // $referer = request()->headers->get('referer');
-        // if (empty($referer) || str_contains($referer, '/api/ui-event')) {
-        //     $referer = url('/');
-        // }
+        $referer = request()->headers->get('referer');
+        if (empty($referer) || str_contains($referer, '/api/ui-event')) {
+            $referer = url('/');
+        }
 
-        // $parts = parse_url($referer);
-        // $path = $parts['path'] ?? '/';
-        // $query = [];
-        // if (!empty($parts['query'])) {
-        //     parse_str($parts['query'], $query);
-        // }
-        // //$query['reset'] = 'true';
+        $parts = parse_url($referer);
+        $path = $parts['path'] ?? '/';
+        $query = [];
+        if (!empty($parts['query'])) {
+            parse_str($parts['query'], $query);
+        }
 
-        // $target = $path;
-        // if (!empty($query)) {
-        //     $target .= '?' . http_build_query($query);
-        // }
+        $target = $path;
+        if (!empty($query)) {
+            $target .= '?' . http_build_query($query);
+        }
 
-        // $this->redirect($target);
+        $this->redirect($target);
     }
 
     private function buildLangMenu(): MenuDropdown

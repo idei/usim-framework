@@ -596,7 +596,7 @@ abstract class Screen
     /**
      * Clear the cached screen snapshot.
      *
-     * @return void
+     * @return bool
      */
     public function clearCachedScreenSnapshot(): bool
     {
@@ -611,12 +611,12 @@ abstract class Screen
     public function onResetScreen(): void
     {
         $cleared = $this->clearCachedScreenSnapshot();
-        $screenName = class_basename(static::class);
-        if ($cleared) {
-            Log::info("Screen '{$screenName}' cache cleared successfully.");
-        } else {
-            Log::warning("Screen '{$screenName}' cache was already empty or could not be cleared.");
-        }
+        // $screenName = class_basename(static::class);
+        // if ($cleared) {
+        //     Log::info("Screen '{$screenName}' cache cleared successfully.");
+        // } else {
+        //     Log::warning("Screen '{$screenName}' cache was already empty or could not be cleared.");
+        // }
     }
 
     /**
