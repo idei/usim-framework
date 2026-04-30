@@ -6,6 +6,8 @@ The format is based on Keep a Changelog, and this project follows Semantic Versi
 
 ## [Unreleased]
 
+## [v0.12.0] - 2026-04-30
+
 ### Added
 - New landing translation stub files for scaffolded apps: `stubs/lang/en/landing.php` and `stubs/lang/es/landing.php`.
 - Initial localized copy keys for the package landing experience, including hero badge/lead, CTA labels, feature highlights, and quick-start checklist entries.
