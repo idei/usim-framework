@@ -54,7 +54,7 @@ class Menu extends Screen
         $this->main_menu = $this->buildLeftMenu();
         $this->user_menu = $this->buildUserMenu();
 
-        if ($this->store_lang === '') {
+        if (empty($this->store_lang)) {
             $this->store_lang = config('usim.i18n.fallback_locale', 'en');
         }
         $this->lang_menu = $this->buildLangMenu();
@@ -90,31 +90,34 @@ class Menu extends Screen
 
     public function onChangeLang(array $params): void
     {
-        $lang = (string) ($params['lang'] ?? '');
-        if ($lang === '') {
+        $lang = $params['lang'] ?? '';
+        if (empty($lang) || $lang === $this->store_lang) {
             return;
         }
 
         $this->store_lang = $lang;
+
+        $this->changeLanguage($lang);
         $this->updateLangMenu();
-        $this->changeLanguage($this->store_lang);
+
+        // Ask client to rebuild current screen with the new locale.
+        event(new UsimEvent('reset_screen'));
 
         $referer = request()->headers->get('referer');
-        if ($referer === null || $referer === '' || str_contains($referer, '/api/ui-event')) {
+        if (empty($referer) || str_contains($referer, '/api/ui-event')) {
             $referer = url('/');
         }
 
         $parts = parse_url($referer);
-        $path = (string) ($parts['path'] ?? '/');
+        $path = $parts['path'] ?? '/';
 
         $query = [];
         if (!empty($parts['query'])) {
-            parse_str((string) $parts['query'], $query);
+            parse_str($parts['query'], $query);
         }
-        $query['reset'] = 'true';
 
         $target = $path;
-        if ($query !== []) {
+        if (!empty($query)) {
             $target .= '?' . http_build_query($query);
         }
 
@@ -154,7 +157,7 @@ class Menu extends Screen
 
     private function updateLangMenu(): void
     {
-        if ($this->store_lang === '') {
+        if (empty($this->store_lang)) {
             $this->store_lang = config('usim.i18n.fallback_locale', 'en');
         }
 
