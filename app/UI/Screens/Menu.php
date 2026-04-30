@@ -37,7 +37,6 @@ use Idei\Usim\Screen;
 use Idei\Usim\UI;
 use Idei\Usim\Upload\UploadService;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Log;
 
 /**
  * Menu Service
@@ -69,8 +68,6 @@ class Menu extends Screen
             ->alignItems(AlignItems::CENTER)
             ->padding(0)
             ->marginBottom('0');
-
-        Log::info("Building Menu UI with params: " . json_encode($params));
 
         $this->main_menu = $this->buildLeftMenu();
         $this->user_menu = $this->buildUserMenu();
@@ -123,7 +120,6 @@ class Menu extends Screen
         $this->updateLangMenu();
 
         event(new UsimEvent('reset_screen'));
-        $this->toast("Cambio a $lang");
 
         // $referer = request()->headers->get('referer');
         // if (empty($referer) || str_contains($referer, '/api/ui-event')) {
