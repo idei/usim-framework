@@ -2,7 +2,7 @@
 
 namespace App\UI\Components\DataTable;
 
-use App\Models\User;
+use App\UI\Screens\Demo\Support\TableDemoData;
 use Idei\Usim\DataTable\AbstractDataTableModel;
 
 /**
@@ -10,8 +10,9 @@ use Idei\Usim\DataTable\AbstractDataTableModel;
  *
  * Implementation for real User model from database
  */
-class UsersTableModel extends \Idei\Usim\DataTable\AbstractDataTableModel
+class UsersTableModel extends AbstractDataTableModel
 {
+
     /**
      * Get all users data from database
      *
@@ -19,7 +20,7 @@ class UsersTableModel extends \Idei\Usim\DataTable\AbstractDataTableModel
      */
     protected function getAllData(): array
     {
-        return User::all()->toArray();
+        return TableDemoData::users();
     }
 
     /**
@@ -30,7 +31,7 @@ class UsersTableModel extends \Idei\Usim\DataTable\AbstractDataTableModel
     public function getColumns(): array
     {
         return [
-            // 'id' => ['label' => 'ID', 'width' => [60, 80]],
+            'id' => ['label' => 'ID', 'width' => [50, 100]],
             'name' => ['label' => t('datatable.users_table.columns.name'), 'width' => [300, 500]],
             'email' => ['label' => t('datatable.users_table.columns.email'), 'width' => [250, 350]],
             'actions' => ['label' => t('datatable.users_table.columns.actions'), 'width' => [100, 150]],
@@ -48,11 +49,8 @@ class UsersTableModel extends \Idei\Usim\DataTable\AbstractDataTableModel
         $formatted = [];
 
         foreach ($users as $index => $user) {
-            // rowIndex is the visual row index in the table (0-based within current page)
-            // $rowIndex = $index;
-
             $formatted[] = [
-                // 'id' => $user['id'],
+                'id' => $user['id'],
                 'name' => $user['name'],
                 'email' => $user['email'],
                 'actions' => [
@@ -112,11 +110,19 @@ class UsersTableModel extends \Idei\Usim\DataTable\AbstractDataTableModel
      *
      * @param int $userId
      * @param array $data
-     * @return bool
+     * @return void
      */
     public function updateRow(int $userId, array $data): void
     {
-        $user = User::find($userId);
+        // Find user in the $this->data array
+        $userIndex = null;
+        foreach ($this->data as $index => $user) {
+            if ($user['id'] === $userId) {
+                $userIndex = $index;
+                break;
+            }
+        }
+        $user = $this->data[$userIndex] ?? null;
         if (!$user) {
             return;
         }
@@ -135,7 +141,6 @@ class UsersTableModel extends \Idei\Usim\DataTable\AbstractDataTableModel
         if ($row !== null) {
             $this->tableBuilder->editCell($row, 0, $user->name);
         }
-
     }
 
     /**
@@ -146,11 +151,12 @@ class UsersTableModel extends \Idei\Usim\DataTable\AbstractDataTableModel
      */
     public function deleteUser(int $userId): bool
     {
-        $user = User::find($userId);
-        if (!$user) {
-            return false;
-        }
+        // $user = User::find($userId);
+        // if (!$user) {
+        //     return false;
+        // }
 
-        return $user->delete();
+        // return $user->delete();
+        return false;
     }
 }

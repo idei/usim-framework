@@ -98,9 +98,13 @@ class UsimTableComponent extends UIComponent {
 
         const prevBtn = document.createElement('button');
         prevBtn.className = 'ui-pagination-button';
+        prevBtn.type = 'button';
         prevBtn.textContent = labelPrevious;
         prevBtn.disabled = !canPrev;
-        prevBtn.addEventListener('click', () => this.changePage(currentPage - 1, paginationDiv));
+        prevBtn.addEventListener('click', (event) => {
+            event.preventDefault();
+            this.changePage(currentPage - 1, paginationDiv);
+        });
         controlsDiv.appendChild(prevBtn);
 
         const pages = this.getPageNumbers(currentPage, totalPages);
@@ -113,20 +117,28 @@ class UsimTableComponent extends UIComponent {
             } else {
                 const pageBtn = document.createElement('button');
                 pageBtn.className = 'ui-pagination-button';
+                pageBtn.type = 'button';
                 if (page === currentPage) {
                     pageBtn.classList.add('active');
                 }
                 pageBtn.textContent = page;
-                pageBtn.addEventListener('click', () => this.changePage(page, paginationDiv));
+                pageBtn.addEventListener('click', (event) => {
+                    event.preventDefault();
+                    this.changePage(page, paginationDiv);
+                });
                 controlsDiv.appendChild(pageBtn);
             }
         });
 
         const nextBtn = document.createElement('button');
         nextBtn.className = 'ui-pagination-button';
+        nextBtn.type = 'button';
         nextBtn.textContent = labelNext;
         nextBtn.disabled = !canNext;
-        nextBtn.addEventListener('click', () => this.changePage(currentPage + 1, paginationDiv));
+        nextBtn.addEventListener('click', (event) => {
+            event.preventDefault();
+            this.changePage(currentPage + 1, paginationDiv);
+        });
         controlsDiv.appendChild(nextBtn);
 
         paginationDiv.appendChild(controlsDiv);
@@ -187,7 +199,7 @@ class UsimTableComponent extends UIComponent {
                 event: 'action',
                 action: 'change_page',
                 parameters: { page },
-                credentials: 'omit',
+                credentials: 'same-origin',
             });
 
             if (!ok) {

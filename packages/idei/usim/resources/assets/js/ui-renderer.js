@@ -1969,10 +1969,14 @@ class UIRenderer {
                         // Previous button
                         const prevBtn = document.createElement('button');
                         prevBtn.className = 'ui-pagination-button';
+                        prevBtn.type = 'button';
                         prevBtn.textContent = dLabelPrevious;
                         prevBtn.disabled = !canPrev;
                         if (component) {
-                            prevBtn.addEventListener('click', () => component.changePage(currentPage - 1, paginationDiv));
+                            prevBtn.addEventListener('click', (event) => {
+                                event.preventDefault();
+                                component.changePage(currentPage - 1, paginationDiv);
+                            });
                         }
                         controlsDiv.appendChild(prevBtn);
 
@@ -1988,11 +1992,15 @@ class UIRenderer {
                                 } else {
                                     const pageBtn = document.createElement('button');
                                     pageBtn.className = 'ui-pagination-button';
+                                    pageBtn.type = 'button';
                                     if (page === currentPage) {
                                         pageBtn.classList.add('active');
                                     }
                                     pageBtn.textContent = page;
-                                    pageBtn.addEventListener('click', () => component.changePage(page, paginationDiv));
+                                    pageBtn.addEventListener('click', (event) => {
+                                        event.preventDefault();
+                                        component.changePage(page, paginationDiv);
+                                    });
                                     controlsDiv.appendChild(pageBtn);
                                 }
                             });
@@ -2001,10 +2009,14 @@ class UIRenderer {
                         // Next button
                         const nextBtn = document.createElement('button');
                         nextBtn.className = 'ui-pagination-button';
+                        nextBtn.type = 'button';
                         nextBtn.textContent = dLabelNext;
                         nextBtn.disabled = !canNext;
                         if (component) {
-                            nextBtn.addEventListener('click', () => component.changePage(currentPage + 1, paginationDiv));
+                            nextBtn.addEventListener('click', (event) => {
+                                event.preventDefault();
+                                component.changePage(currentPage + 1, paginationDiv);
+                            });
                         }
                         controlsDiv.appendChild(nextBtn);
                     }

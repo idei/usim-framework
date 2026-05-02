@@ -3,11 +3,12 @@
 namespace App\UI\Screens\Demo;
 
 use App\Models\User;
-use Idei\Usim\UI;
-use Idei\Usim\Screen;
+use App\UI\Components\DataTable\UsersTableModel;
+use App\UI\Screens\Demo\Support\TableDemoData;
 use Idei\Usim\Components\Container;
 use Idei\Usim\Components\Table;
-use App\UI\Components\DataTable\UsersTableModel;
+use Idei\Usim\Screen;
+use Idei\Usim\UI;
 
 /**
  * Table Demo Service
@@ -23,13 +24,22 @@ use App\UI\Components\DataTable\UsersTableModel;
 class TableDemo extends Screen
 {
     protected Table $users_table;
+    protected array $store_data = [];
 
     /**
      * Build the table demo UI
      */
     protected function buildBaseUI(Container $container, ...$params): void
     {
-        $container->title(t('screen.demo.table_demo.title'));
+        // Load demo data into store
+        $this->store_data = TableDemoData::users();
+
+        $container->plain()
+            ->add(
+                UI::label()
+                    ->text(t('screen.demo.table_demo.title'))
+                    ->style('h2')
+            );
 
         $table = UI::table('users_table')
             ->title(t('screen.demo.table_demo.users_table_title'))
