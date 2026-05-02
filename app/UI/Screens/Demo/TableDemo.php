@@ -2,9 +2,8 @@
 
 namespace App\UI\Screens\Demo;
 
-use App\Models\User;
 use App\UI\Components\DataTable\UsersTableModel;
-use App\UI\Screens\Demo\Support\TableDemoData;
+use App\UI\Screens\Demo\Support\TableDemoService;
 use Idei\Usim\Components\Container;
 use Idei\Usim\Components\Table;
 use Idei\Usim\Screen;
@@ -24,16 +23,12 @@ use Idei\Usim\UI;
 class TableDemo extends Screen
 {
     protected Table $users_table;
-    protected array $store_data = [];
 
     /**
      * Build the table demo UI
      */
     protected function buildBaseUI(Container $container, ...$params): void
     {
-        // Load demo data into store
-        $this->store_data = TableDemoData::users();
-
         $container->plain()
             ->add(
                 UI::label()
@@ -46,22 +41,38 @@ class TableDemo extends Screen
             ->pagination(10)
             ->dataModel(UsersTableModel::class)
             ->align('center')
-            ->rowMinHeight(40);
+            ->width('600px')
+            ->rowMinHeight(45);
 
         $container->add($table);
     }
 
     public function onEditUser(array $params): void
     {
-        $id = $params['user_id'] ?? null;
-        $user = User::find($id);
-        $updateData = ['name' => "{$user->name} (E)"];
+        $id = (int) ($params['user_id'] ?? 0);
+        $user = TableDemoService::find($id);
+        if (!$user) {
+            return;
+        }
+        $name = $user['name'] ?? 'Unknown';
+        $this->toast("Editando usuario: {$name} (ID: {$id})");
+        $updateData = ['name' => "$name (E)"];
         $this->users_table->getModel()->updateRow($id, $updateData);
     }
 
     public function onRemoveUser(array $params): void
     {
-        $id = $params['user_id'] ?? null;
+        $id = (int) ($params['user_id'] ?? 0);
+        $user = TableDemoService::find($id);
+        if (!$user) {
+            return;
+        }
+
+        /** @var UsersTableModel|null $model */
+        $model = $this->users_table->getModel();
+        if ($model instanceof UsersTableModel && $model->deleteUser($id)) {
+            $this->users_table->refresh();
+        }
     }
 
     public function onChangePage(array $params): void

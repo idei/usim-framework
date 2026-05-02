@@ -2,25 +2,25 @@
 
 namespace App\UI\Components\DataTable;
 
-use App\UI\Screens\Demo\Support\TableDemoData;
+use App\UI\Screens\Demo\Support\TableDemoService;
 use Idei\Usim\DataTable\AbstractDataTableModel;
 
 /**
  * Users Table Model
  *
- * Implementation for real User model from database
+ * Demo table model backed by TableDemoService cache data
  */
 class UsersTableModel extends AbstractDataTableModel
 {
 
     /**
-     * Get all users data from database
+     * Get all users data
      *
      * @return array
      */
     protected function getAllData(): array
     {
-        return TableDemoData::users();
+        return TableDemoService::all();
     }
 
     /**
@@ -31,10 +31,11 @@ class UsersTableModel extends AbstractDataTableModel
     public function getColumns(): array
     {
         return [
-            'id' => ['label' => 'ID', 'width' => [50, 100]],
-            'name' => ['label' => t('datatable.users_table.columns.name'), 'width' => [300, 500]],
-            'email' => ['label' => t('datatable.users_table.columns.email'), 'width' => [250, 350]],
-            'actions' => ['label' => t('datatable.users_table.columns.actions'), 'width' => [100, 150]],
+            'id' => ['label' => 'ID', 'width' => [75, 75]],
+            'name' => ['label' => t('datatable.users_table.columns.name'), 'width' => [175, 175]],
+            'email' => ['label' => t('datatable.users_table.columns.email'), 'width' => [250, 250]],
+            'edit' => ['label' => '', 'width' => [50, 50]],
+            'delete' => ['label' => '', 'width' => [50, 50]],
         ];
     }
 
@@ -53,7 +54,7 @@ class UsersTableModel extends AbstractDataTableModel
                 'id' => $user['id'],
                 'name' => $user['name'],
                 'email' => $user['email'],
-                'actions' => [
+                'edit' => [
                     'button' => [
                         'label' => "✏️",
                         'action' => 'edit_user',
@@ -61,6 +62,15 @@ class UsersTableModel extends AbstractDataTableModel
                             'user_id' => $user['id'],
                         ]
                     ]
+                ],
+                'delete' => [
+                    'button' => [
+                        'label' => "🗑️",
+                        'action' => 'remove_user',
+                        'parameters' => [
+                            'user_id' => $user['id'],
+                        ]
+                    ],
                 ],
             ];
         }
@@ -106,7 +116,7 @@ class UsersTableModel extends AbstractDataTableModel
     }
 
     /**
-     * Update user data in database
+     * Update user data
      *
      * @param int $userId
      * @param array $data
@@ -114,19 +124,6 @@ class UsersTableModel extends AbstractDataTableModel
      */
     public function updateRow(int $userId, array $data): void
     {
-        // Find user in the $this->data array
-        $userIndex = null;
-        foreach ($this->data as $index => $user) {
-            if ($user['id'] === $userId) {
-                $userIndex = $index;
-                break;
-            }
-        }
-        $user = $this->data[$userIndex] ?? null;
-        if (!$user) {
-            return;
-        }
-
         // Only update allowed fields
         $allowedFields = ['name', 'email'];
         $updateData = array_intersect_key($data, array_flip($allowedFields));
@@ -135,28 +132,26 @@ class UsersTableModel extends AbstractDataTableModel
             return;
         }
 
-        $user->update($updateData);
+        $updatedUser = TableDemoService::update($userId, $updateData);
+        if ($updatedUser === null) {
+            return;
+        }
 
-        $row = $this->getRowIndexInPage($user->id);
+        $row = $this->getRowIndexInPage($userId);
         if ($row !== null) {
-            $this->tableBuilder->editCell($row, 0, $user->name);
+            $this->tableBuilder->editCell($row, 1, $updatedUser['name']);
+            $this->tableBuilder->editCell($row, 2, $updatedUser['email']);
         }
     }
 
     /**
-     * Delete user from database
+     * Delete user
      *
      * @param int $userId
      * @return bool
      */
     public function deleteUser(int $userId): bool
     {
-        // $user = User::find($userId);
-        // if (!$user) {
-        //     return false;
-        // }
-
-        // return $user->delete();
-        return false;
+        return TableDemoService::delete($userId);
     }
 }
