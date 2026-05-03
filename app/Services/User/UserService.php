@@ -7,6 +7,7 @@ use Idei\Usim\Events\UsimEvent;
 use Illuminate\Auth\Events\Verified;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Password as PasswordBroker;
 
@@ -210,7 +211,7 @@ class UserService
 
         $invalidRoles = [];
         foreach ($roles as $roleName) {
-            $roleExists = \DB::table('roles')
+            $roleExists = DB::table('roles')
                 ->where('name', $roleName)
                 ->exists();
 

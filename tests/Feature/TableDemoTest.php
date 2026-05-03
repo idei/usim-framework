@@ -1,15 +1,14 @@
 <?php
 
-use App\Models\User;
 use App\UI\Screens\Demo\TableDemo;
+use App\UI\Screens\Demo\Support\TableDemoService;
 
 it('loads table demo with expected table configuration', function () {
     $originalLocale = app()->getLocale();
 
     foreach (['en', 'es'] as $locale) {
         app()->setLocale($locale);
-        User::query()->delete();
-        User::factory()->count(15)->create();
+        TableDemoService::reset();
 
         $ui = uiScenario($this, TableDemo::class, ['reset' => true]);
 
@@ -20,8 +19,8 @@ it('loads table demo with expected table configuration', function () {
         expect($table['pagination']['enabled'] ?? null)->toBeTrue();
         expect($table['pagination']['per_page'] ?? null)->toBe(10);
         expect($table['pagination']['current_page'] ?? null)->toBe(1);
-        expect($table['pagination']['total_items'] ?? null)->toBe(15);
-        expect($table['pagination']['total_pages'] ?? null)->toBe(2);
+        expect($table['pagination']['total_items'] ?? null)->toBe(25);
+        expect($table['pagination']['total_pages'] ?? null)->toBe(3);
         expect($table['pagination']['can_next'] ?? null)->toBeTrue();
         expect($table['pagination']['can_prev'] ?? null)->toBeFalse();
 
@@ -36,8 +35,7 @@ it('includes edit_user actions in table payload', function () {
 
     foreach (['en', 'es'] as $locale) {
         app()->setLocale($locale);
-        User::query()->delete();
-        User::factory()->count(5)->create();
+        TableDemoService::reset();
 
         $response = getScreenJson($this, TableDemo::class, ['reset' => true]);
         $response->assertOk();
@@ -54,16 +52,15 @@ it('changes page and updates pagination flags', function () {
 
     foreach (['en', 'es'] as $locale) {
         app()->setLocale($locale);
-        User::query()->delete();
-        User::factory()->count(15)->create();
+        TableDemoService::reset();
 
         $ui = uiScenario($this, TableDemo::class, ['reset' => true]);
 
-        $response = $ui->action('users_table', 'change_page', ['page' => 2]);
+        $response = $ui->action('users_table', 'change_page', ['page' => 3]);
         $response->assertOk();
 
         $table = $ui->component('users_table')->data();
-        expect($table['pagination']['current_page'] ?? null)->toBe(2);
+        expect($table['pagination']['current_page'] ?? null)->toBe(3);
         expect($table['pagination']['can_prev'] ?? null)->toBeTrue();
         expect($table['pagination']['can_next'] ?? null)->toBeFalse();
 
@@ -73,23 +70,26 @@ it('changes page and updates pagination flags', function () {
     app()->setLocale($originalLocale);
 });
 
-it('edits a user through table action and persists database update', function () {
+it('edits a user through table action and persists cache update', function () {
     $originalLocale = app()->getLocale();
 
     foreach (['en', 'es'] as $locale) {
         app()->setLocale($locale);
-        User::query()->delete();
-        User::factory()->count(12)->create();
+        TableDemoService::reset();
 
         $ui = uiScenario($this, TableDemo::class, ['reset' => true]);
-        $user = User::query()->firstOrFail();
+        $targetUserId = 1;
+        $originalUser = TableDemoService::find($targetUserId);
+        expect($originalUser)->not->toBeNull();
 
-        $response = $ui->action('users_table', 'edit_user', ['user_id' => $user->id]);
+        $response = $ui->action('users_table', 'edit_user', ['user_id' => $targetUserId]);
         $response->assertOk();
 
-        $user->refresh();
-        expect($user->name)->toContain('(E)');
-        expect(uiPayloadContainsText($response->json(), '(E)'))->toBeTrue();
+        $expectedName = ($originalUser['name'] ?? '') . ' (E)';
+
+        $updatedUser = TableDemoService::find($targetUserId);
+        expect($updatedUser)->not->toBeNull();
+        expect($updatedUser['name'] ?? null)->toBe($expectedName);
 
         $ui->assertNoIssues();
     }
