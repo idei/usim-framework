@@ -1,98 +1,73 @@
 <?php
 
 use App\UI\Screens\Demo\TableDemo;
-use App\UI\Screens\Demo\Support\TableDemoService;
+use Database\Seeders\GenreSeeder;
+use Database\Seeders\MovieSeeder;
 
-it('loads table demo with expected table configuration', function () {
-    $originalLocale = app()->getLocale();
+// 17 movies seeded, 7 per page → 3 pages (7 + 7 + 3)
+const MOVIES_TOTAL = 17;
+const MOVIES_PER_PAGE = 7;
+const MOVIES_TOTAL_PAGES = 3;
 
-    foreach (['en', 'es'] as $locale) {
-        app()->setLocale($locale);
-        TableDemoService::reset();
-
-        $ui = uiScenario($this, TableDemo::class, ['reset' => true]);
-
-        $table = $ui->component('users_table')->data();
-
-        expect($table['type'] ?? null)->toBe('table');
-        expect($table['title'] ?? null)->toBe(t('screen.demo.table_demo.users_table_title'));
-        expect($table['pagination']['enabled'] ?? null)->toBeTrue();
-        expect($table['pagination']['per_page'] ?? null)->toBe(10);
-        expect($table['pagination']['current_page'] ?? null)->toBe(1);
-        expect($table['pagination']['total_items'] ?? null)->toBe(25);
-        expect($table['pagination']['total_pages'] ?? null)->toBe(3);
-        expect($table['pagination']['can_next'] ?? null)->toBeTrue();
-        expect($table['pagination']['can_prev'] ?? null)->toBeFalse();
-
-        $ui->assertNoIssues();
-    }
-
-    app()->setLocale($originalLocale);
+beforeEach(/** @param Tests\TestCase $this */ function () {
+    $this->seed([GenreSeeder::class, MovieSeeder::class]);
 });
 
-it('includes edit_user actions in table payload', function () {
-    $originalLocale = app()->getLocale();
+it('loads movies table with expected configuration', function () {
+    $ui = uiScenario($this, TableDemo::class, ['reset' => true]);
 
-    foreach (['en', 'es'] as $locale) {
-        app()->setLocale($locale);
-        TableDemoService::reset();
+    $table = $ui->component('movies_table')->data();
 
-        $response = getScreenJson($this, TableDemo::class, ['reset' => true]);
-        $response->assertOk();
+    expect($table['type'] ?? null)->toBe('table');
+    expect($table['title'] ?? null)->toBe(t('screen.demo.table_demo.table_title'));
+    expect($table['pagination']['enabled'] ?? null)->toBeTrue();
+    expect($table['pagination']['per_page'] ?? null)->toBe(MOVIES_PER_PAGE);
+    expect($table['pagination']['current_page'] ?? null)->toBe(1);
+    expect($table['pagination']['total_items'] ?? null)->toBe(MOVIES_TOTAL);
+    expect($table['pagination']['total_pages'] ?? null)->toBe(MOVIES_TOTAL_PAGES);
+    expect($table['pagination']['can_next'] ?? null)->toBeTrue();
+    expect($table['pagination']['can_prev'] ?? null)->toBeFalse();
 
-        $payload = $response->json();
-        expect(uiPayloadContainsAction($payload, 'edit_user'))->toBeTrue();
-    }
+    $ui->assertNoIssues();
+});
 
-    app()->setLocale($originalLocale);
+it('movies table initializes with sort by title ascending', function () {
+    $ui = uiScenario($this, TableDemo::class, ['reset' => true]);
+
+    $table = $ui->component('movies_table')->data();
+
+    expect($table['sort_column'] ?? null)->toBe('title');
+    expect($table['sort_direction'] ?? null)->toBe('asc');
+
+    $ui->assertNoIssues();
 });
 
 it('changes page and updates pagination flags', function () {
-    $originalLocale = app()->getLocale();
+    $ui = uiScenario($this, TableDemo::class, ['reset' => true]);
 
-    foreach (['en', 'es'] as $locale) {
-        app()->setLocale($locale);
-        TableDemoService::reset();
+    $response = $ui->action('movies_table', 'change_page', ['page' => MOVIES_TOTAL_PAGES]);
+    $response->assertOk();
 
-        $ui = uiScenario($this, TableDemo::class, ['reset' => true]);
+    $table = $ui->component('movies_table')->data();
+    expect($table['pagination']['current_page'] ?? null)->toBe(MOVIES_TOTAL_PAGES);
+    expect($table['pagination']['can_prev'] ?? null)->toBeTrue();
+    expect($table['pagination']['can_next'] ?? null)->toBeFalse();
 
-        $response = $ui->action('users_table', 'change_page', ['page' => 3]);
-        $response->assertOk();
-
-        $table = $ui->component('users_table')->data();
-        expect($table['pagination']['current_page'] ?? null)->toBe(3);
-        expect($table['pagination']['can_prev'] ?? null)->toBeTrue();
-        expect($table['pagination']['can_next'] ?? null)->toBeFalse();
-
-        $ui->assertNoIssues();
-    }
-
-    app()->setLocale($originalLocale);
+    $ui->assertNoIssues();
 });
 
-it('edits a user through table action and persists cache update', function () {
-    $originalLocale = app()->getLocale();
+it('sorts movies by column and resets to page 1', function () {
+    $ui = uiScenario($this, TableDemo::class, ['reset' => true]);
 
-    foreach (['en', 'es'] as $locale) {
-        app()->setLocale($locale);
-        TableDemoService::reset();
+    // Go to page 2 first, then sort — should return to page 1
+    $ui->action('movies_table', 'change_page', ['page' => 2]);
 
-        $ui = uiScenario($this, TableDemo::class, ['reset' => true]);
-        $targetUserId = 1;
-        $originalUser = TableDemoService::find($targetUserId);
-        expect($originalUser)->not->toBeNull();
+    $response = $ui->action('movies_table', 'movies_table_column_clicked', ['sort_by' => 'release_year']);
+    $response->assertOk();
 
-        $response = $ui->action('users_table', 'edit_user', ['user_id' => $targetUserId]);
-        $response->assertOk();
+    $table = $ui->component('movies_table')->data();
+    expect($table['pagination']['current_page'] ?? null)->toBe(1);
+    expect($table['sort_column'] ?? null)->toBe('release_year');
 
-        $expectedName = ($originalUser['name'] ?? '') . ' (E)';
-
-        $updatedUser = TableDemoService::find($targetUserId);
-        expect($updatedUser)->not->toBeNull();
-        expect($updatedUser['name'] ?? null)->toBe($expectedName);
-
-        $ui->assertNoIssues();
-    }
-
-    app()->setLocale($originalLocale);
+    $ui->assertNoIssues();
 });
