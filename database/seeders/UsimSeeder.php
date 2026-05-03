@@ -15,6 +15,9 @@ class UsimSeeder extends Seeder
             UsimRoleSeeder::class,
             UsimUserSeeder::class,
             UsimLanguageSeeder::class,
+
+            GenreSeeder::class,
+            MovieSeeder::class,
         ]);
     }
 }

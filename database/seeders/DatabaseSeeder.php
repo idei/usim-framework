@@ -16,7 +16,7 @@ class DatabaseSeeder extends Seeder
 
             // App-specific seeders
             RoleSeeder::class,
-            UserSeeder::class,
+            UserSeeder::class
         ]);
     }
 }

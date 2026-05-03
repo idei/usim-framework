@@ -2,14 +2,11 @@
 
 namespace App\UI\Screens\Demo\Support;
 
-use Idei\Usim\Contracts\CrudService;
 use Idei\Usim\Support\UIStateManager;
 use Illuminate\Support\Facades\Cache;
 
-/**
- * @implements CrudService<array<string, mixed>>
- */
-class TableDemoService implements CrudService
+
+class TableDemoService
 {
 	private const CACHE_PREFIX = 'table_demo_users';
 
