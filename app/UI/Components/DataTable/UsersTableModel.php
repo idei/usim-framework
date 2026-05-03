@@ -12,6 +12,16 @@ use Idei\Usim\DataTable\AbstractDataTableModel;
  */
 class UsersTableModel extends AbstractDataTableModel
 {
+    private ?TableDemoService $tableDemoService = null;
+
+    private function tableDemoService(): TableDemoService
+    {
+        if ($this->tableDemoService === null) {
+            $this->tableDemoService = app(TableDemoService::class);
+        }
+
+        return $this->tableDemoService;
+    }
 
     /**
      * Get all users data
@@ -20,7 +30,7 @@ class UsersTableModel extends AbstractDataTableModel
      */
     protected function getAllData(): array
     {
-        return TableDemoService::all();
+        return $this->tableDemoService()->all();
     }
 
     /**
@@ -132,7 +142,7 @@ class UsersTableModel extends AbstractDataTableModel
             return;
         }
 
-        $updatedUser = TableDemoService::update($userId, $updateData);
+        $updatedUser = $this->tableDemoService()->update($userId, $updateData);
         if ($updatedUser === null) {
             return;
         }
@@ -152,6 +162,6 @@ class UsersTableModel extends AbstractDataTableModel
      */
     public function deleteUser(int $userId): bool
     {
-        return TableDemoService::delete($userId);
+        return $this->tableDemoService()->delete($userId);
     }
 }

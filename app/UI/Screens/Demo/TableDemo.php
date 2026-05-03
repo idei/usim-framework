@@ -23,6 +23,16 @@ use Idei\Usim\UI;
 class TableDemo extends Screen
 {
     protected Table $users_table;
+    private ?TableDemoService $tableDemoService = null;
+
+    private function tableDemoService(): TableDemoService
+    {
+        if ($this->tableDemoService === null) {
+            $this->tableDemoService = app(TableDemoService::class);
+        }
+
+        return $this->tableDemoService;
+    }
 
     /**
      * Build the table demo UI
@@ -50,7 +60,7 @@ class TableDemo extends Screen
     public function onEditUser(array $params): void
     {
         $id = (int) ($params['user_id'] ?? 0);
-        $user = TableDemoService::find($id);
+        $user = $this->tableDemoService()->find($id);
         if (!$user) {
             return;
         }
@@ -63,7 +73,7 @@ class TableDemo extends Screen
     public function onRemoveUser(array $params): void
     {
         $id = (int) ($params['user_id'] ?? 0);
-        $user = TableDemoService::find($id);
+        $user = $this->tableDemoService()->find($id);
         if (!$user) {
             return;
         }

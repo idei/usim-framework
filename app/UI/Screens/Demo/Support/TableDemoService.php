@@ -2,14 +2,18 @@
 
 namespace App\UI\Screens\Demo\Support;
 
+use Idei\Usim\Contracts\CrudService;
 use Idei\Usim\Support\UIStateManager;
 use Illuminate\Support\Facades\Cache;
 
-class TableDemoService
+/**
+ * @implements CrudService<array<string, mixed>>
+ */
+class TableDemoService implements CrudService
 {
 	private const CACHE_PREFIX = 'table_demo_users';
 
-	private static function users(): array
+	private function users(): array
 	{
 		return [
 			['id' => 1, 'name' => 'Ana Torres', 'email' => 'ana.torres.demo@example.com'],
@@ -40,18 +44,19 @@ class TableDemoService
 		];
 	}
 
-	public static function all(): array
+	public function all(): array
 	{
-		return self::loadUsers();
+		return $this->loadUsers();
 	}
 
-	public static function find(int $id): ?array
+	public function find(int|string $id): mixed
 	{
+        $id = (int) $id;
         // validate id
         if ($id <= 0) {
             return null;
         }
-		foreach (self::loadUsers() as $user) {
+		foreach ($this->loadUsers() as $user) {
 			if (($user['id'] ?? null) === $id) {
 				return $user;
 			}
@@ -60,10 +65,10 @@ class TableDemoService
 		return null;
 	}
 
-	public static function create(array $data): array
+	public function create(array $data): mixed
 	{
-		$users = self::loadUsers();
-		$nextId = self::nextId($users);
+		$users = $this->loadUsers();
+		$nextId = $this->nextId($users);
 
 		$newUser = [
 			'id' => $nextId,
@@ -72,14 +77,15 @@ class TableDemoService
 		];
 
 		$users[] = $newUser;
-		self::persistUsers($users);
+		$this->persistUsers($users);
 
 		return $newUser;
 	}
 
-	public static function update(int $id, array $data): ?array
+	public function update(int|string $id, array $data): mixed
 	{
-		$users = self::loadUsers();
+		$id = (int) $id;
+		$users = $this->loadUsers();
 
 		foreach ($users as $index => $user) {
 			if (($user['id'] ?? null) !== $id) {
@@ -92,63 +98,100 @@ class TableDemoService
 				'email' => (string) ($data['email'] ?? $user['email'] ?? ''),
 			];
 
-			self::persistUsers($users);
+			$this->persistUsers($users);
 			return $users[$index];
 		}
 
 		return null;
 	}
 
-	public static function delete(int $id): bool
+	public function delete(int|string $id): bool
 	{
-		$users = self::loadUsers();
-		$initialCount = count($users);
+		$id = (int) $id;
+		$users = $this->loadUsers();
+		$initialCount = \count($users);
 
 		$users = array_values(array_filter($users, static fn (array $user): bool => ($user['id'] ?? null) !== $id));
 
-		if (count($users) === $initialCount) {
+		if (\count($users) === $initialCount) {
 			return false;
 		}
 
-		self::persistUsers($users);
+		$this->persistUsers($users);
 		return true;
 	}
 
-	public static function reset(): array
+	public function filter(array $filters): array
 	{
-		$users = self::users();
-		self::persistUsers($users);
+		$users = $this->loadUsers();
+
+		return array_values(array_filter($users, static function (array $user) use ($filters): bool {
+			foreach ($filters as $field => $value) {
+				if (!\array_key_exists($field, $user)) {
+					return false;
+				}
+
+				if ((string) ($user[$field] ?? '') !== (string) $value) {
+					return false;
+				}
+			}
+
+			return true;
+		}));
+	}
+
+	public function search(string $term, array $filters = []): array
+	{
+		$normalizedTerm = trim(mb_strtolower($term));
+		$users = $this->filter($filters);
+
+		if ($normalizedTerm === '') {
+			return $users;
+		}
+
+		return array_values(array_filter($users, static function (array $user) use ($normalizedTerm): bool {
+			$name = mb_strtolower((string) ($user['name'] ?? ''));
+			$email = mb_strtolower((string) ($user['email'] ?? ''));
+
+			return str_contains($name, $normalizedTerm) || str_contains($email, $normalizedTerm);
+		}));
+	}
+
+	public function reset(): array
+	{
+		$users = $this->users();
+		$this->persistUsers($users);
 		return $users;
 	}
 
-	private static function loadUsers(): array
+	private function loadUsers(): array
 	{
-		$cacheKey = self::cacheKey();
+		$cacheKey = $this->cacheKey();
 		$users = Cache::get($cacheKey);
 
 		if (!\is_array($users)) {
-			$users = self::users();
-			self::persistUsers($users);
+			$users = $this->users();
+			$this->persistUsers($users);
 		}
 
 		return array_values($users);
 	}
 
-	private static function persistUsers(array $users): bool
+	private function persistUsers(array $users): bool
 	{
-		$cacheKey = self::cacheKey();
+		$cacheKey = $this->cacheKey();
 		$ttl = (int) env('UI_CACHE_TTL', UIStateManager::DEFAULT_TTL);
 
 		return Cache::put($cacheKey, array_values($users), $ttl);
 	}
 
-	private static function cacheKey(): string
+	private function cacheKey(): string
 	{
 		$clientId = UIStateManager::getOrCreateClientId();
 		return self::CACHE_PREFIX . ':' . $clientId;
 	}
 
-	private static function nextId(array $users): int
+	private function nextId(array $users): int
 	{
 		$maxId = 0;
 
@@ -159,6 +202,4 @@ class TableDemoService
 
 		return $maxId + 1;
 	}
-
-
 }
