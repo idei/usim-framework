@@ -2,5 +2,10 @@
 
 return [
     'title' => 'Demo de Componente Tabla',
-    'users_table_title' => 'Tabla de Usuarios',
+    'table_title' => 'Películas Famosas',
+    'title_column' => 'Título',
+    'genre_column' => 'Género',
+    'release_year_column' => 'Año',
+    'cast_column' => 'Reparto',
+    'synopsis_column' => 'Sinopsis',
 ];

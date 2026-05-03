@@ -23,6 +23,7 @@ class UserApiTableModel extends AbstractDataTableModel
         // Resolve UserService from container since Table doesn't support DI
         $this->userService = app(UserService::class);
     }
+
     public function getColumns(): array
     {
         return [

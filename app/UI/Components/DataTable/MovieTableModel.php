@@ -12,34 +12,33 @@ class MovieTableModel extends AbstractDataTableModel
     private const SEARCH_KEY = 'movie_table_search';
     private const GENRE_FILTER_KEY = 'movie_table_genre_filter';
     private const MAX_CAST_LENGTH = 52;
-    private const MAX_SYNOPSIS_LENGTH = 84;
 
-    private ?MovieListingService $movieListingService = null;
+    private MovieListingService $movieListingService;
 
     public function __construct(Table $tableBuilder)
     {
         parent::__construct($tableBuilder);
+        $this->movieListingService = app(MovieListingService::class);
     }
 
     public function getColumns(): array
     {
         return [
-            'title' => ['label' => 'Title', 'width' => [220, 220], 'sort_by' => 'title'],
-            'genre' => ['label' => 'Genre', 'width' => [140, 140], 'sort_by' => 'genre_name'],
-            'release_year' => ['label' => 'Year', 'width' => [90, 90], 'sort_by' => 'release_year'],
-            'cast_members' => ['label' => 'Cast', 'width' => [260, 260]],
-            'synopsis' => ['label' => 'Synopsis', 'width' => [360, 360]],
+            'title' => ['label' => t('screen.demo.table_demo.title_column'), 'width' => [220, 220], 'sort_by' => 'title'],
+            'genre' => ['label' => t('screen.demo.table_demo.genre_column'), 'width' => [140, 140], 'sort_by' => 'genre_name'],
+            'release_year' => ['label' => t('screen.demo.table_demo.release_year_column'), 'width' => [90, 90], 'sort_by' => 'release_year'],
+            'cast_members' => ['label' => t('screen.demo.table_demo.cast_column'), 'width' => [260, 260]],
         ];
     }
 
     protected function getAllData(): array
     {
-        return $this->movieListingService()->all();
+        return $this->movieListingService->all();
     }
 
     protected function countTotal(): int
     {
-        return $this->movieListingService()->countMovies(
+        return $this->movieListingService->countMovies(
             $this->getSearchTerm(),
             $this->buildFilters()
         );
@@ -81,7 +80,7 @@ class MovieTableModel extends AbstractDataTableModel
     {
         $pagination = $this->tableBuilder->getPaginationData();
 
-        $result = $this->movieListingService()->listMovies(
+        $result = $this->movieListingService->listMovies(
             page: (int) $pagination['current_page'],
             perPage: (int) $pagination['per_page'],
             search: $this->getSearchTerm(),
@@ -104,25 +103,12 @@ class MovieTableModel extends AbstractDataTableModel
                 'genre' => (string) ($movie->genre?->name ?? $movie->genre_name ?? 'Unknown'),
                 'release_year' => (string) $movie->release_year,
                 'cast_members' => $this->truncateText((string) $movie->cast_members, self::MAX_CAST_LENGTH),
-                'synopsis' => $this->truncateText((string) $movie->synopsis, self::MAX_SYNOPSIS_LENGTH),
             ];
         }
 
         return $formatted;
     }
 
-    private function movieListingService(): MovieListingService
-    {
-        if ($this->movieListingService === null) {
-            $this->movieListingService = app(MovieListingService::class);
-        }
-
-        return $this->movieListingService;
-    }
-
-    /**
-     * @return array<string, string>
-     */
     private function buildFilters(): array
     {
         $filters = [];

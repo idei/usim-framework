@@ -17,19 +17,31 @@ class TableDemo extends Screen
         $container->plain()
             ->add(
                 UI::label()
-                    ->text('Movies Table Demo')
+                    ->text(t('screen.demo.table_demo.title'))
                     ->style('h2')
             );
 
         $table = UI::table('movies_table')
-            ->title('Famous Movies')
-            ->pagination(10)
+            ->title(t('screen.demo.table_demo.table_title'))
+            ->pagination(7)
+            ->sortedBy('title')
             ->dataModel(MovieTableModel::class)
             ->align('center')
-            ->width('1200px')
-            ->rowMinHeight(45);
+            ->width('710px')
+            ->rowMinHeight(50);
 
         $container->add($table);
+    }
+
+    public function onMoviesTableColumnClicked(array $params): void
+    {
+        $column = $params['sort_by'] ?? null;
+        if (!$column) {
+            return;
+        }
+
+        $this->movies_table->sortedBy($column);
+        $this->movies_table->page(1);
     }
 
     public function onChangePage(array $params): void
