@@ -1920,8 +1920,13 @@ class Container implements UIElement
      */
     public function toJson(?int $order = null): array
     {
-        // Filter out null values from config
-        $config = array_filter($this->config, fn($value) => $value !== null);
+        // Filter out null values from config including empty arrays (like 'tabs' when no tabs are defined)
+        $config = array_filter($this->config, fn($value) => $value !== null && $value !== []);
+
+        // If not tabs defined, ensure 'tabs_colors' is not included as empty
+        if (empty($config['tabs'] ?? [])) {
+            unset($config['tabs_colors']);
+        }
 
         // Remove default visible value to save JSON size
         if (isset($config['visible']) && $config['visible'] === true) {
