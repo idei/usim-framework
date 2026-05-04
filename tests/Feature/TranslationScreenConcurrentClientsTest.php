@@ -98,7 +98,7 @@ it('isolates translation screen state across concurrent browser clients', functi
         $reload = $test
             ->withSession([UIStateManager::CLIENT_ID_COOKIE => $client['client_id']])
             ->withCookie(UIStateManager::CLIENT_ID_COOKIE, $client['client_id'])
-            ->getJson(screenApiUrl(TranslateManager::class, ['reset' => true]));
+            ->getJson(screenApiUrl(TranslateManager::class));
 
         $reload->assertOk();
 

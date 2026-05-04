@@ -107,19 +107,6 @@ abstract class AbstractDataTableModel
         return count($this->getAllData());
     }
 
-    public function setSearchTerm(?string $searchTerm): void
-    {
-    }
-
-    public function clearSearch(): void
-    {
-    }
-
-    public function getSearchTerm(): ?string
-    {
-        return null;
-    }
-
     /**
      * Updates the content of the row.
      *

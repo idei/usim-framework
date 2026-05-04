@@ -94,6 +94,7 @@ class Table extends UIComponent
             'align' => 'left', // Alignment: left, center, right
             'sort_column' => null,
             'sort_direction' => 'asc', // asc or desc
+            'search_term' => null,
         ];
     }
 
@@ -124,9 +125,9 @@ class Table extends UIComponent
 
     public function setSearchTerm(string $search): self
     {
+        $this->setConfig('search_term', $search === '' ? null : $search);
         $model = $this->getModel();
         if ($model) {
-            $model->setSearchTerm($search === '' ? null : $search);
             // Reset to first page on new search
             $this->page(1);
         }
@@ -135,11 +136,7 @@ class Table extends UIComponent
 
     public function getSearchTerm(): ?string
     {
-        $model = $this->getModel();
-        if ($model) {
-            return $model->getSearchTerm();
-        }
-        return null;
+        return $this->config['search_term'];
     }
 
     public function sortedBy(?string $column, ?string $direction = 'asc'): self
@@ -166,7 +163,6 @@ class Table extends UIComponent
     {
         return $this->config['sort_direction'];
     }
-
     public function refresh(): void
     {
         $this->page(null);

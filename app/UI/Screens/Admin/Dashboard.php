@@ -51,6 +51,20 @@ class Dashboard extends Screen
             ->padding('10px')
             ->plain();
 
+        $container->add($this->buildToolbar());
+
+        $users_table = UI::table('users_table')
+            ->pagination(7)
+            ->sortedBy('name')
+            ->width('100%')
+            ->dataModel(UserApiTableModel::class)
+            ->rowMinHeight(50);
+
+        $container->add($users_table);
+    }
+
+    private function buildToolbar(): Container
+    {
         $toolbar = UI::container('users_toolbar')
             ->layout(LayoutType::HORIZONTAL)
             ->fullWidth()
@@ -71,16 +85,7 @@ class Dashboard extends Screen
             ->icon('plus');
 
         $toolbar->add($search)->add($addBtn);
-        $container->add($toolbar);
-
-        $users_table = UI::table('users_table')
-            ->pagination(7)
-            ->sortedBy('name')
-            ->width('100%')
-            ->dataModel(UserApiTableModel::class)
-            ->rowMinHeight(50);
-
-        $container->add($users_table);
+        return $toolbar;
     }
 
     protected function postLoadUI(): void

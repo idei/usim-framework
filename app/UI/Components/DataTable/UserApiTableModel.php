@@ -3,7 +3,6 @@
 namespace App\UI\Components\DataTable;
 
 use App\Services\User\UserService;
-use Idei\Usim\Support\UIStateManager;
 use Idei\Usim\DataTable\AbstractDataTableModel;
 use Idei\Usim\Components\Table;
 
@@ -44,30 +43,8 @@ class UserApiTableModel extends AbstractDataTableModel
 
     protected function countTotal(): int
     {
-        $searchTerm = $this->getSearchTerm();
+        $searchTerm = $this->tableBuilder->getSearchTerm();
         return $this->userService->countUsers($searchTerm);
-    }
-
-    public function setSearchTerm(string|null $searchTerm): void
-    {
-        UIStateManager::storeKeyValue(
-            'user_table_search',
-            $searchTerm
-        );
-    }
-
-    public function getSearchTerm(): ?string
-    {
-        return UIStateManager::getKeyValue(
-            'user_table_search'
-        );
-    }
-
-    public function clearSearch(): void
-    {
-        UIStateManager::clearKeyValue(
-            'user_table_search'
-        );
     }
 
     public function getPageData(): array
@@ -75,7 +52,7 @@ class UserApiTableModel extends AbstractDataTableModel
         $paginationData = $this->tableBuilder->getPaginationData();
         $sortBy = $this->tableBuilder->getSortColumn();
         $sortDirection = $this->tableBuilder->getSortDirection();
-        $searchTerm = $this->getSearchTerm();
+        $searchTerm = $this->tableBuilder->getSearchTerm();
 
         $params = [
             'per_page' => $paginationData['per_page'],

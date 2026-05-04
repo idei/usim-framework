@@ -108,21 +108,6 @@ SVG;
         return $this->buildBaseQuery()->count();
     }
 
-    public function setSearchTerm(?string $searchTerm): void
-    {
-        UIStateManager::storeKeyValue(self::SEARCH_KEY, $searchTerm);
-    }
-
-    public function getSearchTerm(): ?string
-    {
-        return UIStateManager::getKeyValue(self::SEARCH_KEY);
-    }
-
-    public function clearSearch(): void
-    {
-        UIStateManager::clearKeyValue(self::SEARCH_KEY);
-    }
-
     public function setLanguageFilter(?string $languageCode): void
     {
         UIStateManager::storeKeyValue(self::LANGUAGE_FILTER_KEY, $this->normalizeFilterValue($languageCode));
@@ -346,7 +331,7 @@ SVG;
 
     protected function buildBaseQuery()
     {
-        $searchTerm = trim((string) ($this->getSearchTerm() ?? ''));
+        $searchTerm = trim((string) ($this->tableBuilder->getSearchTerm() ?? ''));
         $groupFilter = $this->getGroupFilter();
 
         return UsimTextKey::query()

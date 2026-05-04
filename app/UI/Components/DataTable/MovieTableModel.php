@@ -9,7 +9,6 @@ use Idei\Usim\Support\UIStateManager;
 
 class MovieTableModel extends AbstractDataTableModel
 {
-    private const SEARCH_KEY = 'movie_table_search';
     private const GENRE_FILTER_KEY = 'movie_table_genre_filter';
     private const MAX_CAST_LENGTH = 52;
 
@@ -39,24 +38,9 @@ class MovieTableModel extends AbstractDataTableModel
     protected function countTotal(): int
     {
         return $this->movieListingService->countMovies(
-            $this->getSearchTerm(),
+            $this->tableBuilder->getSearchTerm(),
             $this->buildFilters()
         );
-    }
-
-    public function setSearchTerm(?string $searchTerm): void
-    {
-        UIStateManager::storeKeyValue(self::SEARCH_KEY, $searchTerm);
-    }
-
-    public function getSearchTerm(): ?string
-    {
-        return UIStateManager::getKeyValue(self::SEARCH_KEY);
-    }
-
-    public function clearSearch(): void
-    {
-        UIStateManager::clearKeyValue(self::SEARCH_KEY);
     }
 
     public function setGenreFilter(?string $genre): void
@@ -83,7 +67,7 @@ class MovieTableModel extends AbstractDataTableModel
         $result = $this->movieListingService->listMovies(
             page: (int) $pagination['current_page'],
             perPage: (int) $pagination['per_page'],
-            search: $this->getSearchTerm(),
+            search: $this->tableBuilder->getSearchTerm(),
             filters: $this->buildFilters(),
             sortField: $this->tableBuilder->getSortColumn(),
             sortDirection: (string) ($this->tableBuilder->getSortDirection() ?: 'asc'),
