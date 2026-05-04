@@ -8,4 +8,5 @@ return [
     'release_year_column' => 'Año',
     'cast_column' => 'Reparto',
     'synopsis_column' => 'Sinopsis',
+    'search_placeholder' => 'Buscar películas...',
 ];

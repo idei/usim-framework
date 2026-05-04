@@ -3,18 +3,18 @@ namespace App\UI\Screens\Admin;
 
 use App\Services\Auth\RegisterService;
 use App\Services\User\UserService;
-use Idei\Usim\UI;
-use Idei\Usim\Enums\DialogType;
-use Idei\Usim\Enums\LayoutType;
-use Idei\Usim\Screen;
-use Idei\Usim\Components\Container;
-use Idei\Usim\Components\Input;
-use Idei\Usim\Components\Table;
-use Idei\Usim\Components\Button;
 use App\UI\Components\DataTable\UserApiTableModel;
 use App\UI\Components\Modals\EditUserDialog;
 use App\UI\Components\Modals\RegisterDialog;
+use Idei\Usim\Components\Button;
+use Idei\Usim\Components\Container;
+use Idei\Usim\Components\Input;
+use Idei\Usim\Components\Table;
+use Idei\Usim\Enums\DialogType;
+use Idei\Usim\Enums\LayoutType;
 use Idei\Usim\Modals\ConfirmDialogService;
+use Idei\Usim\Screen;
+use Idei\Usim\UI;
 
 class Dashboard extends Screen
 {
