@@ -3,29 +3,16 @@
 namespace App\Services\Movie;
 
 use App\Models\Movie;
-use Idei\Usim\Contracts\ModelFilterService;
-use Idei\Usim\Contracts\ModelReadService;
-use Idei\Usim\Contracts\ModelSearchService;
-use Idei\Usim\Contracts\ModelSortService;
-use Idei\Usim\Contracts\ModelStructureService;
+use Idei\Usim\Contracts\ModelQueryableService;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 
 /**
  * Read-only service for movies demo. No write operations are supported.
  *
- * @implements ModelReadService<Movie>
- * @implements ModelFilterService<Movie>
- * @implements ModelSortService<Movie>
- * @implements ModelSearchService<Movie>
- * @implements ModelStructureService
+ * @implements ModelQueryableService<Movie>
  */
-class MovieListingService implements
-    ModelReadService,
-    ModelFilterService,
-    ModelSortService,
-    ModelSearchService,
-    ModelStructureService
+class MovieListingService implements ModelQueryableService
 {
     /** Fields allowed as sort columns. */
     private const SORTABLE_FIELDS = [
