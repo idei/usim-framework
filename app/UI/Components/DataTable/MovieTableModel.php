@@ -12,12 +12,12 @@ class MovieTableModel extends AbstractDataTableModel
     private const GENRE_FILTER_KEY = 'movie_table_genre_filter';
     private const MAX_CAST_LENGTH = 52;
 
-    private MovieListingService $movieListingService;
+    private MovieListingService $listingService;
 
     public function __construct(Table $tableBuilder)
     {
         parent::__construct($tableBuilder);
-        $this->movieListingService = app(MovieListingService::class);
+        $this->listingService = app(MovieListingService::class);
     }
 
     public function getColumns(): array
@@ -32,12 +32,12 @@ class MovieTableModel extends AbstractDataTableModel
 
     protected function getAllData(): array
     {
-        return $this->movieListingService->all();
+        return $this->listingService->all();
     }
 
     protected function countTotal(): int
     {
-        return $this->movieListingService->countMovies(
+        return $this->listingService->countMatching(
             $this->tableBuilder->getSearchTerm(),
             $this->buildFilters()
         );
@@ -64,7 +64,7 @@ class MovieTableModel extends AbstractDataTableModel
     {
         $pagination = $this->tableBuilder->getPaginationData();
 
-        $result = $this->movieListingService->listMovies(
+        $result = $this->listingService->paginate(
             page: (int) $pagination['current_page'],
             perPage: (int) $pagination['per_page'],
             search: $this->tableBuilder->getSearchTerm(),
