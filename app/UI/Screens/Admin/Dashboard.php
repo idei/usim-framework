@@ -288,7 +288,7 @@ class Dashboard extends Screen
 
     public function onSearchUsers(array $params): void
     {
-        $search = $params['value'] ?? '';
+        $search = (string) ($params['value'] ?? '');
         $this->users_table->setSearchTerm($search);
     }
 }

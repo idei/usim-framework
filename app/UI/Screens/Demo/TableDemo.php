@@ -38,7 +38,7 @@ class TableDemo extends Screen
         $container->add($table);
     }
 
- private function buildToolbar(): Container
+    private function buildToolbar(): Container
     {
         $toolbar = UI::container('movies_toolbar')
             ->layout(LayoutType::HORIZONTAL)
@@ -70,7 +70,7 @@ class TableDemo extends Screen
 
     public function onSearchInputTyped(array $params): void
     {
-        $value = $params['value'] ?? null;
+        $value = (string) ($params['value'] ?? '');
         $this->movies_table->setSearchTerm($value);
     }
 

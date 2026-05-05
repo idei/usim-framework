@@ -85,8 +85,8 @@ class Table extends UIComponent
                 'total_pages' => 0,
                 'labels' => [
                     'previous' => t('usim.table.pagination.previous'),
-                    'next'     => t('usim.table.pagination.next'),
-                    'showing'  => t('usim.table.pagination.showing'),
+                    'next' => t('usim.table.pagination.next'),
+                    'showing' => t('usim.table.pagination.showing'),
                 ],
             ],
             'rows' => 0,
@@ -198,7 +198,7 @@ class Table extends UIComponent
         // Rebuild header row labels and sort actions
         $headerData = [];
         foreach ($columns as $column) {
-            $label  = is_array($column) ? ($column['label']   ?? '') : (string) $column;
+            $label = is_array($column) ? ($column['label'] ?? '') : (string) $column;
             $sortBy = is_array($column) ? ($column['sort_by'] ?? null) : null;
             $headerData[] = ['label' => $label, 'sort_by' => $sortBy];
         }
