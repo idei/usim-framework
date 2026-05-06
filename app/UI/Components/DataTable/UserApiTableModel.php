@@ -26,13 +26,13 @@ class UserApiTableModel extends AbstractDataTableModel
     public function getColumns(): array
     {
         return [
-            'name' => ['label' => t('datatable.user_api.columns.name'), 'width' => [250, 250], 'sort_by' => 'name'],
-            'email' => ['label' => t('datatable.user_api.columns.email'), 'width' => [250, 250], 'sort_by' => 'email'],
-            'email_verified' => ['label' => t('datatable.user_api.columns.email_verified'), 'width' => [100, 100], 'sort_by' => 'email_verified_at'],
-            'roles' => ['label' => t('datatable.user_api.columns.roles'), 'width' => [100, 100], 'sort_by' => 'roles'],
-            'updated_at' => ['label' => t('datatable.user_api.columns.updated_at'), 'width' => [150, 150], 'sort_by' => 'updated_at'],
-            'edit' => ['label' => '', 'width' => [20, 20]],
-            'delete' => ['label' => '', 'width' => [20, 20]],
+            'name' => ['label' => t('datatable.user_api.columns.name'), 'width' => 250, 'sort_by' => 'name'],
+            'email' => ['label' => t('datatable.user_api.columns.email'), 'width' => 250, 'sort_by' => 'email'],
+            'email_verified' => ['label' => t('datatable.user_api.columns.email_verified'), 'width' => 100, 'sort_by' => 'email_verified_at'],
+            'roles' => ['label' => t('datatable.user_api.columns.roles'), 'width' => 100, 'sort_by' => 'roles'],
+            'updated_at' => ['label' => t('datatable.user_api.columns.updated_at'), 'width' => 150, 'sort_by' => 'updated_at'],
+            'edit' => ['label' => '', 'width' => 20],
+            'delete' => ['label' => '', 'width' => 20],
         ];
     }
 

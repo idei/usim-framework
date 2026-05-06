@@ -22,11 +22,12 @@ class MovieTableModel extends AbstractDataTableModel
 
     public function getColumns(): array
     {
+        $prefix = 'screen.demo.table_demo';
         return [
-            'title' => ['label' => t('screen.demo.table_demo.title_column'), 'width' => [220, 220], 'sort_by' => 'title'],
-            'genre' => ['label' => t('screen.demo.table_demo.genre_column'), 'width' => [140, 140], 'sort_by' => 'genre_name'],
-            'release_year' => ['label' => t('screen.demo.table_demo.release_year_column'), 'width' => [90, 90], 'sort_by' => 'release_year'],
-            'cast_members' => ['label' => t('screen.demo.table_demo.cast_column'), 'width' => [260, 260]],
+            'title' => ['label' => t("$prefix.title_column"), 'width' => 350, 'sort_by' => 'title'],
+            'genre' => ['label' => t("$prefix.genre_column"), 'width' => 120, 'sort_by' => 'genre_name'],
+            'release_year' => ['label' => t("$prefix.release_year_column"), 'width' => 90, 'sort_by' => 'release_year'],
+            'cast_members' => ['label' => t("$prefix.cast_column"), 'width' => 340],
         ];
     }
 

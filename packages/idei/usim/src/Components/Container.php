@@ -1022,73 +1022,97 @@ class Container implements UIElement
     // ========================================================================
 
     /**
-     * Set width
+     * Set or get width
      *
-     * @param string $width Width value (px, %, vh, auto, etc)
-     * @return self For method chaining
+     * @param string|null $width Width value (px, %, vh, auto, etc), or null to get current value
+     * @return static|string|null For chaining when setting, or current value when getting
      */
-    public function width(string $width): static
+    public function width(string | null $width = null): static | string | null
     {
+        if ($width === null) {
+            return $this->config['width'] ?? null;
+        }
+
         $this->config['width'] = $width;
         return $this;
     }
 
     /**
-     * Set height
+     * Set or get height
      *
-     * @param string $height Height value
-     * @return self For method chaining
+     * @param string|null $height Height value, or null to get current value
+     * @return static|string|null For chaining when setting, or current value when getting
      */
-    public function height(string $height): static
+    public function height(string | null $height = null): static | string | null
     {
+        if ($height === null) {
+            return $this->config['height'] ?? null;
+        }
+
         $this->config['height'] = $height;
         return $this;
     }
 
     /**
-     * Set minimum width
+     * Set or get minimum width
      *
-     * @param string $width Min width value
-     * @return self For method chaining
+     * @param string|null $width Min width value, or null to get current value
+     * @return static|string|null For chaining when setting, or current value when getting
      */
-    public function minWidth(string $width): static
+    public function minWidth(string | null $width = null): static | string | null
     {
+        if ($width === null) {
+            return $this->config['min_width'] ?? null;
+        }
+
         $this->config['min_width'] = $width;
         return $this;
     }
 
     /**
-     * Set minimum height
+     * Set or get minimum height
      *
-     * @param string $height Min height value
-     * @return self For method chaining
+     * @param string|null $height Min height value, or null to get current value
+     * @return static|string|null For chaining when setting, or current value when getting
      */
-    public function minHeight(string $height): static
+    public function minHeight(string | null $height = null): static | string | null
     {
+        if ($height === null) {
+            return $this->config['min_height'] ?? null;
+        }
+
         $this->config['min_height'] = $height;
         return $this;
     }
 
     /**
-     * Set maximum width
+     * Set or get maximum width
      *
-     * @param string $width Max width value
-     * @return self For method chaining
+     * @param string|null $width Max width value, or null to get current value
+     * @return static|string|null For chaining when setting, or current value when getting
      */
-    public function maxWidth(string $width): static
+    public function maxWidth(string | null $width = null): static | string | null
     {
+        if ($width === null) {
+            return $this->config['max_width'] ?? null;
+        }
+
         $this->config['max_width'] = $width;
         return $this;
     }
 
     /**
-     * Set maximum height
+     * Set or get maximum height
      *
-     * @param string $height Max height value
-     * @return self For method chaining
+     * @param string|null $height Max height value, or null to get current value
+     * @return static|string|null For chaining when setting, or current value when getting
      */
-    public function maxHeight(string $height): static
+    public function maxHeight(string | null $height = null): static | string | null
     {
+        if ($height === null) {
+            return $this->config['max_height'] ?? null;
+        }
+
         $this->config['max_height'] = $height;
         return $this;
     }

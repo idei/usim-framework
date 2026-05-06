@@ -59,9 +59,9 @@ SVG;
     {
         $columns = [
             // Fixed width: keep key column stable regardless of content length.
-            'key' => ['label' => t('datatable.translation_keys.columns.key'), 'width' => [320, 320], 'sort_by' => 'key'],
+            'key' => ['label' => t('datatable.translation_keys.columns.key'), 'width' => 320, 'sort_by' => 'key'],
             // Fixed width: narrow column showing only the percentage value.
-            'completion' => ['label' => t('datatable.translation_keys.columns.completion'), 'width' => [52, 52]],
+            'completion' => ['label' => t('datatable.translation_keys.columns.completion'), 'width' => 52],
         ];
 
         // Fallback language column — always visible
@@ -69,7 +69,7 @@ SVG;
         $columns['lang_fallback'] = [
             'label' => strtoupper($this->fallbackCode) . ' (' . $fallbackName . ')',
             // Fixed width: keep fallback translation column stable regardless of content length.
-            'width' => [320, 320],
+            'width' => 320,
         ];
 
         // Selected language column — always present to keep column count stable;
@@ -83,17 +83,17 @@ SVG;
             $selectedName = $this->languages[$selectedCode];
             $columns['lang_selected'] = [
                 'label' => strtoupper($selectedCode) . ' (' . $selectedName . ')',
-                'width' => [320, 320],
+                'width' => 320,
             ];
         } else {
             $columns['lang_selected'] = [
                 'label' => '',
-                'width' => [0, 0],
+                'width' => 0,
             ];
         }
 
-        $columns['edit'] = ['label' => '', 'width' => [20, 20]];
-        $columns['delete'] = ['label' => '', 'width' => [20, 20]];
+        $columns['edit'] = ['label' => '', 'width' => 20];
+        $columns['delete'] = ['label' => '', 'width' => 20];
 
         return $columns;
     }

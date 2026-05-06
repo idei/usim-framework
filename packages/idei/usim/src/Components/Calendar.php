@@ -56,16 +56,6 @@ class Calendar extends UIComponent
         return $this->setConfig('cell_size', $size);
     }
 
-    public function minHeight(string $height): static
-    {
-        return $this->setConfig('min_height', $height);
-    }
-
-    public function maxHeight(string $height): static
-    {
-        return $this->setConfig('max_height', $height);
-    }
-
     public function numberStyle(array $style): static
     {
         return $this->setConfig('number_style', $style);

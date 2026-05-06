@@ -98,17 +98,6 @@ class TableHeaderCell extends UIComponent
     }
 
     /**
-     * Set the column width
-     *
-     * @param string $width Width value (e.g., '200px', '20%')
-     * @return self For method chaining
-     */
-    public function width(string $width): static
-    {
-        return $this->setConfig('width', $width);
-    }
-
-    /**
      * Set width constraints (min and max) for the header cell
      *
      * @param int|null $minWidth Minimum width in pixels

@@ -62,15 +62,20 @@ class TableRow extends UIComponent
     }
 
     /**
-     * Set minimum height for the row
+     * Set minimum height for the row.
      *
-     * @param int|string $height Minimum height in pixels or with units
-     * @return self
+     * Accepts an integer (converted to px) or a CSS string. Omit to read current value.
+     *
+     * @param int|string|null $height Minimum height in pixels (int) or with units (string), or null to get.
+     * @return static|string|null
      */
-    public function minHeight(int|string $height): static
+    public function minHeight(int|string|null $height = null): static|string|null
     {
-        $this->setConfig('min_height', is_int($height) ? $height : $height);
-        return $this;
+        if ($height === null) {
+            return $this->config['min_height'] ?? null;
+        }
+
+        return $this->setConfig('min_height', is_int($height) ? $height . 'px' : $height);
     }
 
     /**

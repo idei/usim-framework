@@ -592,28 +592,6 @@ class Label extends UIComponent
     }
 
     /**
-     * Set fixed width
-     *
-     * @param string $width The width (e.g., '200px', '50%')
-     * @return $this For method chaining
-     */
-    public function width(string $width): static
-    {
-        return $this->setConfig('width', $width);
-    }
-
-    /**
-     * Set maximum width
-     *
-     * @param string $maxWidth The max width
-     * @return $this For method chaining
-     */
-    public function maxWidth(string $maxWidth): static
-    {
-        return $this->setConfig('max_width', $maxWidth);
-    }
-
-    /**
      * Set ARIA label
      *
      * @param string $label The ARIA label

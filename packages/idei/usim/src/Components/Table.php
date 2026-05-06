@@ -18,6 +18,8 @@ use Idei\Usim\DataTable\AbstractDataTableModel;
  */
 class Table extends UIComponent
 {
+    public const DEFAULT_COLUMN_WIDTH = 160;
+
     /** @var Container The rows container */
     private Container $rowsContainer;
 
@@ -39,7 +41,7 @@ class Table extends UIComponent
     /** @var array Array of row builders */
     private array $rowBuilders = [];
 
-    /** @var array Column width configuration [col => ['min' => int, 'max' => int]] */
+    /** @var array Column width configuration [col => int] */
     private array $columnWidths = [];
 
     /**
@@ -95,6 +97,7 @@ class Table extends UIComponent
             'sort_column' => null,
             'sort_direction' => 'asc', // asc or desc
             'search_term' => null,
+            'row_min_height' => null,
         ];
     }
 
@@ -188,12 +191,15 @@ class Table extends UIComponent
 
         // Update column widths on all existing cells
         $columnIndex = 0;
+        $tableWidth = 0;
         foreach ($columns as $column) {
-            if (is_array($column) && isset($column['width'])) {
-                $this->columnWidth($columnIndex, $column['width'][0], $column['width'][1]);
-            }
+            $width = $this->resolveColumnWidth($column);
+            $this->columnWidth($columnIndex, $width);
+            $tableWidth += $width;
             $columnIndex++;
         }
+
+        $this->setConfig('width', $tableWidth);
 
         // Rebuild header row labels and sort actions
         $headerData = [];
@@ -545,6 +551,12 @@ class Table extends UIComponent
         for ($row = 0; $row < $this->rows; $row++) {
             $rowBuilder = $this->createRow("row_$row");
             $rowBuilder->row($row); // Set row index for ordering
+
+            $rowMinHeight = $this->config['row_min_height'] ?? null;
+            if ($rowMinHeight !== null) {
+                $rowBuilder->minHeight($rowMinHeight);
+            }
+
             $this->rowBuilders[$row] = $rowBuilder;
 
             // Create empty cells for this row with column index
@@ -758,45 +770,44 @@ class Table extends UIComponent
      */
     public function rowMinHeight(int $height): self
     {
+        $rowMinHeight = $height . 'px';
+        $this->setConfig('row_min_height', $rowMinHeight);
+
         // Apply min height to all existing rows
         foreach ($this->rowBuilders as $row) {
-            $row->minHeight($height);
+            $row->minHeight($rowMinHeight);
         }
 
         return $this;
     }
 
     /**
-     * Set width constraints for a specific column
+     * Set fixed width for a specific column.
      *
      * @param int $col Column index (0-based)
-     * @param int|null $minWidth Minimum width in pixels (null = no min)
-     * @param int|null $maxWidth Maximum width in pixels (null = no max)
+     * @param int $width Width in pixels
      * @return self
      */
-    public function columnWidth(int $col, ?int $minWidth = null, ?int $maxWidth = null): self
+    public function columnWidth(int $col, int $width): self
     {
         if ($col < 0 || $col >= $this->cols) {
             throw new \OutOfBoundsException("Column index $col is out of bounds (0-" . ($this->cols - 1) . ")");
         }
 
-        $this->columnWidths[$col] = [
-            'min' => $minWidth,
-            'max' => $maxWidth,
-        ];
+        $this->columnWidths[$col] = $width;
 
         // Apply width to all cells in this column (header + data rows)
         if ($this->headerRow) {
             $headerCells = $this->headerRow->getCells();
             if (isset($headerCells[$col])) {
-                $headerCells[$col]->widthConstraints($minWidth, $maxWidth);
+                $headerCells[$col]->widthConstraints($width, $width);
             }
         }
 
         // Apply to all data row cells in this column
         for ($row = 0; $row < $this->rows; $row++) {
             if (isset($this->cells[$row][$col])) {
-                $this->cells[$row][$col]->widthConstraints($minWidth, $maxWidth);
+                $this->cells[$row][$col]->widthConstraints($width, $width);
             }
         }
 
@@ -804,17 +815,15 @@ class Table extends UIComponent
     }
 
     /**
-     * Set width constraints for all columns at once
+     * Set fixed widths for all columns at once.
      *
-     * @param array $widths Array of width configs: [[min, max], [min, max], ...]
+     * @param array $widths Array of widths in pixels
      * @return self
      */
     public function columnWidths(array $widths): self
     {
         foreach ($widths as $col => $width) {
-            $min = $width['min'] ?? $width[0] ?? null;
-            $max = $width['max'] ?? $width[1] ?? null;
-            $this->columnWidth($col, $min, $max);
+            $this->columnWidth((int) $col, $this->normalizeColumnWidthValue($width));
         }
 
         return $this;
@@ -879,9 +888,7 @@ class Table extends UIComponent
             if ($columns) {
                 $columnIndex = 0;
                 foreach ($columns as $column) {
-                    if (isset($column['width'])) {
-                        $this->columnWidth($columnIndex, $column['width'][0], $column['width'][1]);
-                    }
+                    $this->columnWidth($columnIndex, $this->resolveColumnWidth($column));
                     $columnIndex++;
                 }
             }
@@ -922,6 +929,48 @@ class Table extends UIComponent
         }
 
         return $this;
+    }
+
+    /**
+     * Resolve column width from model metadata.
+     *
+     * Accepts only integer width in getColumns() definitions.
+     * Falls back to DEFAULT_COLUMN_WIDTH when not present.
+     *
+     * @param mixed $column
+     * @return int
+     */
+    private function resolveColumnWidth(mixed $column): int
+    {
+        if (is_array($column) && array_key_exists('width', $column)) {
+            return $this->normalizeColumnWidthValue($column['width']);
+        }
+
+        return self::DEFAULT_COLUMN_WIDTH;
+    }
+
+    /**
+     * Normalize width values to a safe integer in pixels.
+     *
+     * @param mixed $width
+     * @return int
+     */
+    private function normalizeColumnWidthValue(mixed $width): int
+    {
+        if (is_int($width)) {
+            return max(0, $width);
+        }
+
+        if (is_string($width) && is_numeric($width)) {
+            return max(0, (int) $width);
+        }
+
+        if (is_array($width)) {
+            $legacyWidth = $width['min'] ?? $width[0] ?? $width['max'] ?? $width[1] ?? self::DEFAULT_COLUMN_WIDTH;
+            return $this->normalizeColumnWidthValue($legacyWidth);
+        }
+
+        return self::DEFAULT_COLUMN_WIDTH;
     }
 
 

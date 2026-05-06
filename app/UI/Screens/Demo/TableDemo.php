@@ -17,8 +17,8 @@ class TableDemo extends Screen
     {
         $container
             ->plain()
-            ->maxWidth('710px')
             ->centerHorizontal()
+            ->maxWidth('900px')
             ->padding('5px')
             ->add(
                 UI::label()
@@ -32,7 +32,6 @@ class TableDemo extends Screen
             ->sortedBy('title')
             ->dataModel(MovieTableModel::class)
             ->align('center')
-            ->width('710px')
             ->rowMinHeight(50);
 
         $container->add($table);

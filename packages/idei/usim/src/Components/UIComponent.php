@@ -469,65 +469,89 @@ abstract class UIComponent implements UIElement
      * Set width
      *
      * @param string $width Width value (px, %, vh, auto, etc)
-     * @return static For method chaining
+     * @return static|string|null For method chaining or current value if called without arguments
      */
-    public function width(string $width): static
+    public function width(string | null $width = null): static | string | null
     {
+        if ($width === null) {
+            return $this->config['width'] ?? null;
+        }
+
         return $this->setConfig('width', $width);
     }
 
     /**
      * Set height
      *
-     * @param string $height Height value
-     * @return static For method chaining
+     * @param string|null $height Height value (px, %, vh, auto, etc). Omit to read current value.
+     * @return static|string|null
      */
-    public function height(string $height): static
+    public function height(string | null $height = null): static | string | null
     {
+        if ($height === null) {
+            return $this->config['height'] ?? null;
+        }
+
         return $this->setConfig('height', $height);
     }
 
     /**
      * Set maximum width
      *
-     * @param string $width Max width value
-     * @return static For method chaining
+     * @param string|null $width Max width value (px, %, auto, etc). Omit to read current value.
+     * @return static|string|null
      */
-    public function maxWidth(string $width): static
+    public function maxWidth(string | null $width = null): static | string | null
     {
+        if ($width === null) {
+            return $this->config['max_width'] ?? null;
+        }
+
         return $this->setConfig('max_width', $width);
     }
 
     /**
      * Set maximum height
      *
-     * @param string $height Max height value
-     * @return static For method chaining
+     * @param string|null $height Max height value (px, %, auto, etc). Omit to read current value.
+     * @return static|string|null
      */
-    public function maxHeight(string $height): static
+    public function maxHeight(string | null $height = null): static | string | null
     {
+        if ($height === null) {
+            return $this->config['max_height'] ?? null;
+        }
+
         return $this->setConfig('max_height', $height);
     }
 
     /**
      * Set minimum width
      *
-     * @param string $width Min width value
-     * @return static For method chaining
+     * @param string|null $width Min width value (px, %, auto, etc). Omit to read current value.
+     * @return static|string|null
      */
-    public function minWidth(string $width): static
+    public function minWidth(string | null $width = null): static | string | null
     {
+        if ($width === null) {
+            return $this->config['min_width'] ?? null;
+        }
+
         return $this->setConfig('min_width', $width);
     }
 
     /**
      * Set minimum height
      *
-     * @param string $height Min height value
-     * @return static For method chaining
+     * @param string|null $height Min height value (px, %, auto, etc). Omit to read current value.
+     * @return static|string|null
      */
-    public function minHeight(string $height): static
+    public function minHeight(string | null $height = null): static | string | null
     {
+        if ($height === null) {
+            return $this->config['min_height'] ?? null;
+        }
+
         return $this->setConfig('min_height', $height);
     }
 

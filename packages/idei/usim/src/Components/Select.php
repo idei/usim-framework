@@ -341,38 +341,6 @@ class Select extends UIComponent
     }
 
     /**
-     * Set width
-     *
-     * @param string $width The width
-     * @return $this For method chaining
-     */
-    public function width(string $width): static
-    {
-        return $this->setConfig('width', $width);
-    }
-
-    /**
-     * Set max width
-     *
-     * @param string $maxWidth The max width
-     * @return $this For method chaining
-     */
-    public function maxWidth(string $maxWidth): static
-    {
-        return $this->setConfig('max_width', $maxWidth);
-    }
-
-    /**
-     * Set max height for dropdown
-     *
-     * @param string $height The max height
-     * @return $this For method chaining
-     */
-    public function maxHeight(string $height): static
-    {
-        return $this->setConfig('max_height', $height);
-    }
-
     /**
      * Set dropdown position
      *
