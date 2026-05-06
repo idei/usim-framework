@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Services\Support;
+namespace Idei\Usim\Support;
 
 use Idei\Usim\Contracts\ModelQueryableService;
 use Illuminate\Database\Eloquent\Builder;

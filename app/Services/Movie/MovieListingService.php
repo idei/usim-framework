@@ -3,7 +3,7 @@
 namespace App\Services\Movie;
 
 use App\Models\Movie;
-use App\Services\Support\EloquentListingService;
+use Idei\Usim\Support\EloquentListingService;
 
 /**
  * Read-only service for movies demo. No write operations are supported.
