@@ -21,7 +21,6 @@ class MovieListingService extends EloquentListingService
 	{
 		return [
 			'title' => 'title',
-			'synopsis' => 'synopsis',
 			'cast_members' => 'cast_members',
 			'genre_name' => 'genre.name',
 		];
