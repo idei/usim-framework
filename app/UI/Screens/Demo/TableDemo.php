@@ -15,16 +15,14 @@ class TableDemo extends Screen
 
     protected function buildBaseUI(Container $container, ...$params): void
     {
-        $container
-            ->plain()
+        $container->plain()
             ->centerHorizontal()
             ->maxWidth('900px')
-            ->padding('5px')
-            ->add(
-                UI::label()
-                    ->text(t('screen.demo.table_demo.title'))
-                    ->style('h2')
-            )->add($this->buildToolbar());
+            ->padding('5px');
+
+        $label = UI::label()
+            ->text(t('screen.demo.table_demo.title'))
+            ->style('h2');
 
         $table = UI::table('movies_table')
             ->title(t('screen.demo.table_demo.table_title'))
@@ -34,7 +32,9 @@ class TableDemo extends Screen
             ->align('center')
             ->rowMinHeight(50);
 
-        $container->add($table);
+        $container->add($label)
+            ->add($this->buildToolbar())
+            ->add($table);
     }
 
     private function buildToolbar(): Container
