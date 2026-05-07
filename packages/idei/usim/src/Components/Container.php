@@ -1097,6 +1097,11 @@ class Container implements UIElement
             return $this->config['max_width'] ?? null;
         }
 
+        // If width is string and not ends with valid unit, assume pixels
+        if (\is_string($width) && !preg_match('/(px|%|em|rem|vh|vw|vmin|vmax|auto)$/', $width)) {
+            $width .= 'px';
+        }
+
         $this->config['max_width'] = $width;
         return $this;
     }
@@ -1111,6 +1116,11 @@ class Container implements UIElement
     {
         if ($height === null) {
             return $this->config['max_height'] ?? null;
+        }
+
+        // If height is string and not ends with valid unit, assume pixels
+        if (\is_string($height) && !preg_match('/(px|%|em|rem|vh|vw|vmin|vmax|auto)$/', $height)) {
+            $height .= 'px';
         }
 
         $this->config['max_height'] = $height;

@@ -6,6 +6,7 @@ use Idei\Usim\Components\Container;
 use Idei\Usim\Components\TableRow;
 use Idei\Usim\Contracts\UIElement;
 use Idei\Usim\DataTable\AbstractDataTableModel;
+use Illuminate\Support\Facades\Log;
 
 /**
  * Table Builder
@@ -856,79 +857,165 @@ class Table extends UIComponent
      * - getPaginationInfo(): pagination information
      * - getFormattedPageData(): formatted data for current page
      *
-     * @param mixed $dataModel The data model instance
+     * @param string $dataModel The data model class name
      * @return self
+     * @throws \InvalidArgumentException
      */
-    //public function dataModel(AbstractDataTableModel $dataModel): self
     public function dataModel(string $dataModel): self
     {
-        // asegura que $dataModel es una :class de tipo AbstractDataTableModel
-        if (!is_subclass_of($dataModel, AbstractDataTableModel::class)) {
-            throw new \InvalidArgumentException("Data model must be a subclass of AbstractDataTableModel");
-        }
-        // Set the data model class in config
-        $this->setConfig('data_model', $dataModel);
+        $this->validateDataModel($dataModel);
         $this->model = new $dataModel($this);
+        $this->setConfig('data_model', $dataModel);
 
-        // Get columns and pagination configuration
-        $columns = null;
         $columns = $this->model->getColumns();
+        $this->initializeTableDimensions($columns);
+
+        if ($this->hasValidDimensions()) {
+            $this->initializeEmptyCells();
+            $this->configureTableColumns($columns);
+            $this->configureTableHeaders($columns);
+            $this->fillTableData();
+            $this->calculateAndSetTableWidth();
+        }
+
+        return $this;
+    }
+
+    /**
+     * Validate that the data model is a subclass of AbstractDataTableModel
+     *
+     * @param string $dataModel
+     * @throws \InvalidArgumentException
+     */
+    private function validateDataModel(string $dataModel): void
+    {
+        if (!is_subclass_of($dataModel, AbstractDataTableModel::class)) {
+            throw new \InvalidArgumentException(
+                "Data model must be a subclass of AbstractDataTableModel, got: $dataModel"
+            );
+        }
+    }
+
+    /**
+     * Initialize table dimensions from the data model
+     *
+     * @param array $columns
+     */
+    private function initializeTableDimensions(array $columns): void
+    {
         $this->cols = count($columns);
         $this->setConfig('cols', $this->cols);
 
         $this->updatePaginationData();
         $this->rows = $this->config['pagination']['per_page'];
         $this->setConfig('rows', $this->rows);
+    }
 
-        // Initialize cells now that we have dimensions
-        if ($this->rows > 0 && $this->cols > 0) {
-            $this->initializeEmptyCells();
+    /**
+     * Check if table has valid dimensions for rendering
+     *
+     * @return bool
+     */
+    private function hasValidDimensions(): bool
+    {
+        return $this->rows > 0 && $this->cols > 0;
+    }
 
-            // Configure column widths AFTER cells are initialized
-            if ($columns) {
-                $columnIndex = 0;
-                foreach ($columns as $column) {
-                    $this->columnWidth($columnIndex, $this->resolveColumnWidth($column));
-                    $columnIndex++;
-                }
+    /**
+     * Configure column widths from the data model
+     *
+     * @param array $columns
+     */
+    private function configureTableColumns(array $columns): void
+    {
+        $columnIndex = 0;
+        foreach ($columns as $column) {
+            $width = $this->resolveColumnWidth($column);
+            $this->columnWidth($columnIndex, $width);
+            $columnIndex++;
+        }
+    }
+
+    /**
+     * Configure and fill the table header row
+     *
+     * @param array $columns
+     */
+    private function configureTableHeaders(array $columns): void
+    {
+        $headerData = array_values(array_map(
+            fn ($column) => [
+                'label' => $this->extractColumnLabel($column),
+                'sort_by' => $this->extractSortByKey($column),
+            ],
+            $columns
+        ));
+
+        $this->fillHeaderRow($headerData);
+    }
+
+    /**
+     * Extract label from column definition
+     *
+     * @param mixed $column
+     * @return string
+     */
+    private function extractColumnLabel(mixed $column): string
+    {
+        return \is_array($column) ? ($column['label'] ?? '') : (string) $column;
+    }
+
+    /**
+     * Extract sort_by key from column definition
+     *
+     * @param mixed $column
+     * @return string|null
+     */
+    private function extractSortByKey(mixed $column): ?string
+    {
+        return \is_array($column) ? ($column['sort_by'] ?? null) : null;
+    }
+
+    /**
+     * Fill table data rows from the current page of the data model
+     */
+    private function fillTableData(): void
+    {
+        $pagination = $this->config['pagination'];
+        $currentPage = $pagination['current_page'];
+        $perPage = $pagination['per_page'];
+
+        $formattedData = $this->model->getFormattedPageData($currentPage, $perPage);
+
+        $row = 0;
+        foreach ($formattedData as $rowData) {
+            if ($row >= $this->rows) {
+                break;
             }
 
-            // Fill header row
-            if ($columns) {
-                // Convert columns to array format for fillHeaderRow
-                $headerData = [];
-                foreach ($columns as $key => $column) {
-                    $label = \is_array($column) ? $column['label'] : $column;
-                    $sortBy = \is_array($column) ? ($column['sort_by'] ?? null) : null;
-                    $headerData[] = [
-                        'label' => $label,
-                        'sort_by' => $sortBy
-                    ];
-                }
-                $this->fillHeaderRow($headerData);
-            }
+            [$rowData, $rowMeta] = $this->splitFormattedRowData($rowData);
+            $rowValues = array_values($rowData);
+            $this->fillRow($row, $rowValues);
+            $this->applyRowMetadata($row, $rowMeta);
+            $row++;
+        }
+    }
 
-            // Fill data rows
-            $pagination = $this->config['pagination'];
-            $currentPage = $pagination['current_page'];
-            $perPage = $pagination['per_page'];
+    /**
+     * Calculate table width as the sum of all column widths and store it in config
+     *
+     * @return int The calculated total width
+     */
+    private function calculateAndSetTableWidth(): int
+    {
+        $totalWidth = 0;
 
-            $formattedData = $this->model->getFormattedPageData($currentPage, $perPage);
-            $row = 0;
-            foreach ($formattedData as $rowData) {
-                if ($row >= $this->rows) {
-                    break;
-                }
-
-                [$rowData, $rowMeta] = $this->splitFormattedRowData($rowData);
-                $rowValues = array_values($rowData);
-                $this->fillRow($row, $rowValues);
-                $this->applyRowMetadata($row, $rowMeta);
-                $row++;
-            }
+        for ($col = 0; $col < $this->cols; $col++) {
+            $totalWidth += $this->columnWidths[$col] ?? self::DEFAULT_COLUMN_WIDTH;
         }
 
-        return $this;
+        $this->setConfig('width', $totalWidth);
+        return $totalWidth;
     }
 
     /**

@@ -5,11 +5,9 @@ namespace App\UI\Components\DataTable;
 use App\Services\Movie\MovieListingService;
 use Idei\Usim\Components\Table;
 use Idei\Usim\DataTable\AbstractDataTableModel;
-use Idei\Usim\Support\UIStateManager;
 
 class MovieTableModel extends AbstractDataTableModel
 {
-    private const GENRE_FILTER_KEY = 'movie_table_genre_filter';
     private const MAX_CAST_LENGTH = 52;
 
     private MovieListingService $listingService;
@@ -27,7 +25,7 @@ class MovieTableModel extends AbstractDataTableModel
             'title' => ['label' => t("$prefix.title_column"), 'width' => 350, 'sort_by' => 'title'],
             'genre' => ['label' => t("$prefix.genre_column"), 'width' => 120, 'sort_by' => 'genre_name'],
             'release_year' => ['label' => t("$prefix.release_year_column"), 'width' => 90, 'sort_by' => 'release_year'],
-            'cast_members' => ['label' => t("$prefix.cast_column"), 'width' => 340],
+            'cast_members' => ['label' => t("$prefix.cast_column"), 'width' => 400],
         ];
     }
 
@@ -39,26 +37,8 @@ class MovieTableModel extends AbstractDataTableModel
     protected function countTotal(): int
     {
         return $this->listingService->countMatching(
-            $this->tableBuilder->getSearchTerm(),
-            $this->buildFilters()
+            $this->tableBuilder->getSearchTerm()
         );
-    }
-
-    public function setGenreFilter(?string $genre): void
-    {
-        UIStateManager::storeKeyValue(self::GENRE_FILTER_KEY, $this->normalizeFilterValue($genre));
-    }
-
-    public function getGenreFilter(): ?string
-    {
-        $value = UIStateManager::getKeyValue(self::GENRE_FILTER_KEY);
-
-        return $this->normalizeFilterValue($value);
-    }
-
-    public function clearGenreFilter(): void
-    {
-        UIStateManager::clearKeyValue(self::GENRE_FILTER_KEY);
     }
 
     public function getPageData(): array
@@ -69,7 +49,6 @@ class MovieTableModel extends AbstractDataTableModel
             page: (int) $pagination['current_page'],
             perPage: (int) $pagination['per_page'],
             search: $this->tableBuilder->getSearchTerm(),
-            filters: $this->buildFilters(),
             sortField: $this->tableBuilder->getSortColumn(),
             sortDirection: (string) ($this->tableBuilder->getSortDirection() ?: 'asc'),
         );
@@ -92,29 +71,6 @@ class MovieTableModel extends AbstractDataTableModel
         }
 
         return $formatted;
-    }
-
-    private function buildFilters(): array
-    {
-        $filters = [];
-        $genre = $this->getGenreFilter();
-
-        if ($genre !== null) {
-            $filters['genre_name'] = $genre;
-        }
-
-        return $filters;
-    }
-
-    private function normalizeFilterValue(?string $value): ?string
-    {
-        $normalized = trim((string) $value);
-
-        if ($normalized === '' || $normalized === 'all') {
-            return null;
-        }
-
-        return $normalized;
     }
 
     private function truncateText(string $value, int $maxLength): string
