@@ -6,7 +6,6 @@ use Idei\Usim\Components\Container;
 use Idei\Usim\Components\TableRow;
 use Idei\Usim\Contracts\UIElement;
 use Idei\Usim\DataTable\AbstractDataTableModel;
-use Illuminate\Support\Facades\Log;
 
 /**
  * Table Builder
