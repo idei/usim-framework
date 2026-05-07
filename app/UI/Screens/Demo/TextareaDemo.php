@@ -20,7 +20,7 @@ class TextareaDemo extends Screen
 
     public static function getMenuLabel(): string
     {
-        return 'Textarea Demo';
+        return t('screen.demo.textarea_demo.menu_label');
     }
 
     public static function getMenuIcon(): ?string
@@ -31,12 +31,17 @@ class TextareaDemo extends Screen
     protected function buildBaseUI(Container $container, ...$params): void
     {
         $container
-            ->title('Textarea — Demo')
             ->maxWidth('1024px')
             ->centerHorizontal()
-            ->shadow(2)
-            ->gap('6px')
-            ->padding('30px');
+            ->plain()
+            ->gap('5px')
+            ->padding('0px');
+
+        $title = UI::label('textarea_demo_title')
+            ->text(t('screen.demo.textarea_demo.title'))
+            ->style('h2');
+
+        $container->add($title);
 
         // ── Sección 1: texto plano ───────────────────────────────────────────
         $sectionPlain = UI::container('section_plain')
@@ -79,7 +84,7 @@ class TextareaDemo extends Screen
                 ->markdown()
                 ->value($defaultMd)
                 ->width('100%')
-                ->height('260px')
+                ->height('300px')
                 ->maxLength(2000)
                 ->helpText('Vista previa en tiempo real a la derecha.')
                 ->onChange('on_md_saved')
@@ -96,7 +101,7 @@ class TextareaDemo extends Screen
     public function onMdSaved(array $params): void
     {
         $value = $params['value'] ?? '';
-        $len   = mb_strlen($value);
+        $len = mb_strlen($value);
 
         $this->toast("Markdown guardado ({$len} car.)");
     }

@@ -252,7 +252,7 @@ class Menu extends Screen
             // $submenu->screen(UploaderDemo::class, t('screen.menu.demos.uploader_demo'), '📤');
             // $submenu->screen(CalendarDemo::class, t('screen.menu.demos.calendar_demo'), '📅');
             $submenu->screen(CarouselDemo::class, t('screen.menu.demos.carousel_demo'), '🎞️');
-            $submenu->screen(TextareaDemo::class, t('screen.menu.demos.textarea_demo'), '📝');
+            $submenu->screen(TextareaDemo::class);
             $submenu->screen(SplitDemo::class);
             $submenu->screen(TabsDemo::class);
         }, '🎮');
