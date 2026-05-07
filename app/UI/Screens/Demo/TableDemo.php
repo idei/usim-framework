@@ -17,7 +17,7 @@ class TableDemo extends Screen
     {
         $container->plain()
             ->centerHorizontal()
-            ->gap('10px');
+            ->gap('5px');
 
         $label = UI::label()
             ->text(t('screen.demo.table_demo.title'))

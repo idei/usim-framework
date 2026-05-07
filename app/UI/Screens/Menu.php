@@ -22,6 +22,7 @@ use App\UI\Screens\Demo\SelectDemo;
 use App\UI\Screens\Demo\SplitDemo;
 use App\UI\Screens\Demo\TableDemo;
 use App\UI\Screens\Demo\TabsDemo;
+use App\UI\Screens\Demo\TextareaDemo;
 use App\UI\Screens\Demo\UploaderDemo;
 use Idei\Usim\Components\Button;
 use Idei\Usim\Components\Container;
@@ -242,20 +243,20 @@ class Menu extends Screen
     {
         $menu->separator();
         $menu->submenu(t('screen.menu.items.demos'), function ($submenu) {
-            $submenu->screen(AddressForm::class, 'Formulario de direccion', '📍');
+            // $submenu->screen(AddressForm::class, 'Formulario de direccion', '📍');
             $submenu->screen(ButtonDemo::class, t('screen.menu.demos.button_demo'), '🖲️');
             $submenu->screen(TableDemo::class, t('screen.menu.demos.table_demo'), '📊');
             $submenu->screen(ModalDemo::class, t('screen.menu.demos.modal_demo'), '🪟');
             $submenu->item(t('screen.menu.demos.abort_error'), 'show_error_info', [], '❌');
             $submenu->screen(FormDemo::class, t('screen.menu.demos.form_demo'), '📝');
-            $submenu->screen(DemoUi::class, t('screen.menu.demos.demo_ui'), '🎨');
+            // $submenu->screen(DemoUi::class, t('screen.menu.demos.demo_ui'), '🎨');
             $submenu->screen(InputDemo::class, t('screen.menu.demos.input_demo'), '⌨️');
             $submenu->screen(SelectDemo::class, t('screen.menu.demos.select_demo'), '📋');
             $submenu->screen(CheckboxDemo::class, t('screen.menu.demos.checkbox_demo'), '☑️');
-            $submenu->screen(UploaderDemo::class, t('screen.menu.demos.uploader_demo'), '📤');
-            $submenu->screen(CalendarDemo::class, t('screen.menu.demos.calendar_demo'), '📅');
+            // $submenu->screen(UploaderDemo::class, t('screen.menu.demos.uploader_demo'), '📤');
+            // $submenu->screen(CalendarDemo::class, t('screen.menu.demos.calendar_demo'), '📅');
             $submenu->screen(CarouselDemo::class, t('screen.menu.demos.carousel_demo'), '🎞️');
-            $submenu->screen('App\\UI\\Screens\\Demo\\TextareaDemo', 'Textarea Demo', '📝');
+            $submenu->screen(TextareaDemo::class, t('screen.menu.demos.textarea_demo'), '📝');
             $submenu->screen(SplitDemo::class);
             $submenu->screen(TabsDemo::class);
         }, '🎮');
