@@ -36,9 +36,8 @@ class MovieTableModel extends AbstractDataTableModel
 
     protected function countTotal(): int
     {
-        return $this->listingService->countMatching(
-            $this->tableBuilder->getSearchTerm()
-        );
+        $searchTerm = $this->tableBuilder->getSearchTerm();
+        return $this->listingService->countMatching($searchTerm);
     }
 
     public function getPageData(): array
@@ -62,15 +61,20 @@ class MovieTableModel extends AbstractDataTableModel
         $formatted = [];
 
         foreach ($movies as $movie) {
-            $formatted[] = [
-                'title' => (string) $movie->title,
-                'genre' => (string) ($movie->genre?->name ?? $movie->genre_name ?? 'Unknown'),
-                'release_year' => (string) $movie->release_year,
-                'cast_members' => $this->truncateText((string) $movie->cast_members, self::MAX_CAST_LENGTH),
-            ];
+            $formatted[] = $this->formatRow($movie);
         }
 
         return $formatted;
+    }
+
+    public function formatRow(object $row): array
+    {
+        return [
+            'title' => (string) $row->title,
+            'genre' => (string) ($row->genre?->name ?? $row->genre_name ?? 'Unknown'),
+            'release_year' => (string) $row->release_year,
+            'cast_members' => $this->truncateText((string) $row->cast_members, self::MAX_CAST_LENGTH),
+        ];
     }
 
     private function truncateText(string $value, int $maxLength): string
