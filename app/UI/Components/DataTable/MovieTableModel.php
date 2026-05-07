@@ -31,7 +31,7 @@ class MovieTableModel extends AbstractDataTableModel
 
     protected function getAllData(): array
     {
-        return $this->listingService->all();
+        return [];
     }
 
     protected function countTotal(): int
