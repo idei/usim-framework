@@ -8,7 +8,6 @@ use Idei\Usim\Components\Table;
 use Idei\Usim\Enums\LayoutType;
 use Idei\Usim\Screen;
 use Idei\Usim\UI;
-use Illuminate\Support\Facades\Log;
 
 class TableDemo extends Screen
 {
@@ -18,7 +17,7 @@ class TableDemo extends Screen
     {
         $container->plain()
             ->centerHorizontal()
-            ->padding('5px');
+            ->gap('10px');
 
         $label = UI::label()
             ->text(t('screen.demo.table_demo.title'))
@@ -32,13 +31,9 @@ class TableDemo extends Screen
             ->align('center')
             ->rowMinHeight(50);
 
-        $tableWidth = $table->width();
-
-        Log::debug("Setting container max width to: {$tableWidth}px to match table width");
-
-        $container->maxWidth($tableWidth);
-
-        $container->add($label)
+        $container
+            ->maxWidth($table->width())
+            ->add($label)
             ->add($this->buildToolbar())
             ->add($table);
     }

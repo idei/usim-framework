@@ -94,6 +94,7 @@ class Table extends UIComponent
             'rows' => 0,
             'cols' => 0,
             'align' => 'left', // Alignment: left, center, right
+            'border_radius' => '8px',
             'sort_column' => null,
             'sort_direction' => 'asc', // asc or desc
             'search_term' => null,
@@ -760,6 +761,36 @@ class Table extends UIComponent
         }
 
         return $this->setConfig('align', $align);
+    }
+
+    /**
+     * Set border radius for the table wrapper.
+     *
+     * @param string|int $radius CSS radius value or pixels as integer
+     * @return self
+     */
+    public function borderRadius(string|int $radius): self
+    {
+        if (is_int($radius)) {
+            $radius = $radius === 0 ? '0' : "{$radius}px";
+        }
+
+        return $this->setConfig('border_radius', $radius);
+    }
+
+    /**
+     * Convenience alias to set rounded corners.
+     *
+     * @param string|int|bool $radius Radius value (e.g. 8, '12px', true, false)
+     * @return self
+     */
+    public function rounded(string|int|bool $radius = 8): self
+    {
+        if (is_bool($radius)) {
+            $radius = $radius ? 8 : 0;
+        }
+
+        return $this->borderRadius($radius);
     }
 
     /**

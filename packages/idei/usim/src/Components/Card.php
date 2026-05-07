@@ -248,7 +248,7 @@ class Card extends UIComponent
         foreach ($trace as $frame) {
             if (isset($frame['class']) &&
                 is_subclass_of($frame['class'], \Idei\Usim\Screen::class)) {
-                return $frame['class'];
+                return (string)$frame['class'];
             }
         }
 
