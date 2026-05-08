@@ -128,7 +128,7 @@ The format is based on Keep a Changelog, and this project follows Semantic Versi
 ### Added
 - Admin Dashboard screen stub (`App\UI\Screens\Admin\Dashboard`) with full user management: search, paginated user table, create, edit, and delete users with role assignment.
 - `EditUserDialog` modal component stub for inline user editing from the Admin Dashboard.
-- `UserApiTableModel` data table component stub (`App\UI\Components\DataTable`) for paginated, searchable user lists backed by `UserService`.
+- `UserTableModel` data table component stub (`App\UI\Components\DataTable`) for paginated, searchable user lists backed by `UserService`.
 - `upload_disk` configuration key (`config/ui-services.php`) to set the filesystem disk used for uploads. Defaults to `local`; override via `UPLOAD_DISK` env variable.
 - `UPLOAD_DISK=local` entry added to the published `.env` template.
 

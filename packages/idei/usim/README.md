@@ -625,12 +625,12 @@ $modal->add(
 
 ## Data Tables
 
-For paginated server-side data tables, extend `AbstractDataTableModel`:
+For paginated server-side data tables, extend `AbstractTableModel`:
 
 ```php
-use Idei\Usim\DataTable\AbstractDataTableModel;
+use Idei\Usim\DataTable\AbstractTableModel;
 
-class ProductsTable extends AbstractDataTableModel
+class ProductsTable extends AbstractTableModel
 {
     public function getColumns(): array
     {
@@ -922,7 +922,7 @@ app/
 └── UI/
     ├── Components/
     │   ├── DataTable/
-    │   │   └── UserApiTableModel.php  # Paginated user table
+    │   │   └── UserTableModel.php  # Paginated user table
     │   └── Modals/
     │       ├── EditUserDialog.php
     │       ├── LoginDialog.php

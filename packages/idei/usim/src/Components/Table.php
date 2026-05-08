@@ -5,7 +5,7 @@ namespace Idei\Usim\Components;
 use Idei\Usim\Components\Container;
 use Idei\Usim\Components\TableRow;
 use Idei\Usim\Contracts\UIElement;
-use Idei\Usim\DataTable\AbstractDataTableModel;
+use Idei\Usim\DataTable\AbstractTableModel;
 
 /**
  * Table Builder
@@ -26,8 +26,8 @@ class Table extends UIComponent
     /** @var TableHeaderRow|null The header row (optional) */
     private ?TableHeaderRow $headerRow = null;
 
-    /** @var AbstractDataTableModel|null The data model instance */
-    private ?AbstractDataTableModel $model = null;
+    /** @var AbstractTableModel|null The data model instance */
+    private ?AbstractTableModel $model = null;
 
     /** @var int Number of data rows (excluding header) */
     private int $rows;
@@ -323,9 +323,9 @@ class Table extends UIComponent
     /**
      * Get the data model instance
      *
-     * @return AbstractDataTableModel|null
+     * @return AbstractTableModel|null
      */
-    public function getModel(): ?AbstractDataTableModel
+    public function getModel(): ?AbstractTableModel
     {
         if ($this->model === null) {
             $modelClass = $this->config['data_model'] ?? null;
@@ -912,16 +912,16 @@ class Table extends UIComponent
     }
 
     /**
-     * Validate that the data model is a subclass of AbstractDataTableModel
+     * Validate that the data model is a subclass of AbstractTableModel
      *
      * @param string $dataModel
      * @throws \InvalidArgumentException
      */
     private function validateDataModel(string $dataModel): void
     {
-        if (!is_subclass_of($dataModel, AbstractDataTableModel::class)) {
+        if (!is_subclass_of($dataModel, AbstractTableModel::class)) {
             throw new \InvalidArgumentException(
-                "Data model must be a subclass of AbstractDataTableModel, got: $dataModel"
+                "Data model must be a subclass of AbstractTableModel, got: $dataModel"
             );
         }
     }

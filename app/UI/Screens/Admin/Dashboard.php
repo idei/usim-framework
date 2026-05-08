@@ -3,7 +3,7 @@ namespace App\UI\Screens\Admin;
 
 use App\Services\Auth\RegisterService;
 use App\Services\User\UserService;
-use App\UI\Components\DataTable\UserApiTableModel;
+use App\UI\Components\DataTable\UserTableModel;
 use App\UI\Components\Modals\EditUserDialog;
 use App\UI\Components\Modals\RegisterDialog;
 use Idei\Usim\Components\Button;
@@ -57,7 +57,7 @@ class Dashboard extends Screen
             ->pagination(7)
             ->sortedBy('name')
             ->width('100%')
-            ->dataModel(UserApiTableModel::class)
+            ->dataModel(UserTableModel::class)
             ->rowMinHeight(50);
 
         $container->add($users_table);

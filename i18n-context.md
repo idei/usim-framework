@@ -43,7 +43,7 @@ Migrar textos hardcodeados de package USIM (core + stubs) hacia i18n con keys es
 - [packages/idei/usim/stubs/components/Modals/LoginDialog.php.stub](packages/idei/usim/stubs/components/Modals/LoginDialog.php.stub)
 - [packages/idei/usim/stubs/components/Modals/RegisterDialog.php.stub](packages/idei/usim/stubs/components/Modals/RegisterDialog.php.stub)
 - [packages/idei/usim/stubs/components/Modals/EditUserDialog.php.stub](packages/idei/usim/stubs/components/Modals/EditUserDialog.php.stub)
-- [packages/idei/usim/stubs/components/DataTable/UserApiTableModel.php.stub](packages/idei/usim/stubs/components/DataTable/UserApiTableModel.php.stub)
+- [packages/idei/usim/stubs/components/DataTable/UserTableModel.php.stub](packages/idei/usim/stubs/components/DataTable/UserTableModel.php.stub)
 - [packages/idei/usim/stubs/services/Auth/LoginService.php.stub](packages/idei/usim/stubs/services/Auth/LoginService.php.stub)
 - [packages/idei/usim/stubs/services/Auth/RegisterService.php.stub](packages/idei/usim/stubs/services/Auth/RegisterService.php.stub)
 - [packages/idei/usim/stubs/services/Auth/PasswordService.php.stub](packages/idei/usim/stubs/services/Auth/PasswordService.php.stub)

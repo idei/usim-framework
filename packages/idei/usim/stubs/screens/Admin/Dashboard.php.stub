@@ -12,7 +12,7 @@ use Idei\Usim\Enums\DialogType;
 use Idei\Usim\Enums\LayoutType;
 use Idei\Usim\Modals\ConfirmDialogService;
 use Idei\Usim\UI;
-use {{ componentsNamespace }}\DataTable\UserApiTableModel;
+use {{ componentsNamespace }}\DataTable\UserTableModel;
 use {{ componentsNamespace }}\Modals\EditUserDialog;
 use {{ componentsNamespace }}\Modals\RegisterDialog;
 
@@ -76,7 +76,7 @@ class Dashboard extends Screen
         $usersTable = UI::table('users_table')
             ->pagination(7)
             ->sortedBy('name')
-            ->dataModel(UserApiTableModel::class)
+            ->dataModel(UserTableModel::class)
             ->rowMinHeight(50);
 
         $container->add($usersTable);

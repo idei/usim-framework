@@ -4,11 +4,11 @@ namespace App\UI\Components\DataTable;
 
 use Idei\Usim\Models\UsimTextKey;
 use Idei\Usim\Components\Table;
-use Idei\Usim\DataTable\AbstractDataTableModel;
+use Idei\Usim\DataTable\AbstractTableModel;
 use Idei\Usim\Support\TranslationService;
 use Idei\Usim\Support\UIStateManager;
 
-class TranslationKeysTableModel extends AbstractDataTableModel
+class TranslationKeysTableModel extends AbstractTableModel
 {
     protected const MAX_CELL_STRING_LENGTH = 47;
     protected TranslationService $translationService;
@@ -96,11 +96,6 @@ SVG;
         $columns['delete'] = ['label' => '', 'width' => 20];
 
         return $columns;
-    }
-
-    protected function getAllData(): array
-    {
-        return [];
     }
 
     protected function countTotal(): int

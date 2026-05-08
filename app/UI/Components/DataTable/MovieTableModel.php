@@ -4,9 +4,9 @@ namespace App\UI\Components\DataTable;
 
 use App\Services\Movie\MovieListingService;
 use Idei\Usim\Components\Table;
-use Idei\Usim\DataTable\AbstractDataTableModel;
+use Idei\Usim\DataTable\AbstractTableModel;
 
-class MovieTableModel extends AbstractDataTableModel
+class MovieTableModel extends AbstractTableModel
 {
     private const MAX_CAST_LENGTH = 52;
 
@@ -27,11 +27,6 @@ class MovieTableModel extends AbstractDataTableModel
             'release_year' => ['label' => t("$prefix.release_year_column"), 'width' => 90, 'sort_by' => 'release_year'],
             'cast_members' => ['label' => t("$prefix.cast_column"), 'width' => 400],
         ];
-    }
-
-    protected function getAllData(): array
-    {
-        return [];
     }
 
     protected function countTotal(): int

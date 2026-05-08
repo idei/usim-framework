@@ -10,7 +10,7 @@ use Idei\Usim\Components\Table;
  * Provides pagination logic and data management for table components.
  * Implementations should override the data source methods.
  */
-abstract class AbstractDataTableModel
+abstract class AbstractTableModel
 {
     protected Table $tableBuilder;
 
@@ -42,15 +42,7 @@ abstract class AbstractDataTableModel
      *
      * @return array
      */
-    public function getPageData(): array
-    {
-        $paginationData = $this->tableBuilder->getPaginationData();
-        $currentPage = $paginationData['current_page'];
-        $perPage = $paginationData['per_page'];
-
-        $offset = ($currentPage - 1) * $perPage;
-        return $this->fetchData($offset, $perPage);
-    }
+    abstract public function getPageData(): array;
 
     /**
      * Get pagination data from the Table
@@ -60,29 +52,6 @@ abstract class AbstractDataTableModel
     public function getPaginationData(): array
     {
         return $this->tableBuilder->getPaginationData();
-    }
-
-    /**
-     * Get all data (for counting or other operations)
-     * Override this method in implementations
-     *
-     * @return array
-     */
-    abstract protected function getAllData(): array;
-
-    /**
-     * Fetch data with offset and limit
-     * Default implementation uses getAllData() and array_slice
-     * Override for more efficient database queries
-     *
-     * @param int $offset
-     * @param int $limit
-     * @return array
-     */
-    protected function fetchData(int $offset, int $limit): array
-    {
-        $allData = $this->getAllData();
-        return array_slice($allData, $offset, $limit);
     }
 
     /**
@@ -102,10 +71,7 @@ abstract class AbstractDataTableModel
      *
      * @return int
      */
-    protected function countTotal(): int
-    {
-        return count($this->getAllData());
-    }
+    abstract protected function countTotal(): int;
 
     /**
      * Updates the content of the row.

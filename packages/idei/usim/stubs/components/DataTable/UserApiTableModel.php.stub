@@ -4,10 +4,10 @@ namespace {{ componentsNamespace }};
 
 use App\Services\User\UserService;
 use Idei\Usim\Components\Table;
-use Idei\Usim\DataTable\AbstractDataTableModel;
+use Idei\Usim\DataTable\AbstractTableModel;
 use Idei\Usim\Support\UIStateManager;
 
-class UserApiTableModel extends AbstractDataTableModel
+class UserTableModel extends AbstractTableModel
 {
     protected UserService $userService;
 

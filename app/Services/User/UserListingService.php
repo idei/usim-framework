@@ -32,14 +32,6 @@ class UserListingService extends EloquentListingService
     protected function filterableFields(): array
     {
         return [
-            'name' => [
-                'path' => 'name',
-                'operator' => 'like',
-            ],
-            'email' => [
-                'path' => 'email',
-                'operator' => 'like',
-            ],
             'role_name' => [
                 'path' => 'roles.name',
                 'operator' => 'like',

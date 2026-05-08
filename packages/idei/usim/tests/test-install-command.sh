@@ -44,8 +44,8 @@ if [ ! -f "app/UI/Screens/Admin/Dashboard.php" ]; then
     echo "❌ Error: Admin/Dashboard.php no se creó."
     exit 1
 fi
-if [ ! -f "app/UI/Components/DataTable/UserApiTableModel.php" ]; then
-    echo "❌ Error: DataTable/UserApiTableModel.php no se creó."
+if [ ! -f "app/UI/Components/DataTable/UserTableModel.php" ]; then
+    echo "❌ Error: DataTable/UserTableModel.php no se creó."
     exit 1
 fi
 if [ ! -f "app/UI/Components/Modals/EditUserDialog.php" ]; then

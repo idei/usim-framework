@@ -209,7 +209,7 @@ class InstallCommand extends Command
 
         $this->newLine();
         $this->info('Installing DataTable components...');
-        $this->installComponent('DataTable/UserApiTableModel.php.stub', 'UserApiTableModel.php', 'DataTable');
+        $this->installComponent('DataTable/UserTableModel.php.stub', 'UserTableModel.php', 'DataTable');
 
         // AuthController
         $this->newLine();

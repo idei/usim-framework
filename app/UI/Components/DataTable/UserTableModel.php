@@ -3,7 +3,7 @@
 namespace App\UI\Components\DataTable;
 
 use App\Services\User\UserListingService;
-use Idei\Usim\DataTable\AbstractDataTableModel;
+use Idei\Usim\DataTable\AbstractTableModel;
 use Idei\Usim\Components\Table;
 
 /**
@@ -11,7 +11,7 @@ use Idei\Usim\Components\Table;
  *
  * Implementation for real User model from database
  */
-class UserApiTableModel extends AbstractDataTableModel
+class UserTableModel extends AbstractTableModel
 {
     protected UserListingService $listingService;
 
@@ -34,11 +34,6 @@ class UserApiTableModel extends AbstractDataTableModel
             'edit' => ['label' => '', 'width' => 20],
             'delete' => ['label' => '', 'width' => 20],
         ];
-    }
-
-    protected function getAllData(): array
-    {
-        return [];
     }
 
     protected function countTotal(): int
