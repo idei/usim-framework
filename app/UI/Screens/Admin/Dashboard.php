@@ -46,30 +46,49 @@ class Dashboard extends Screen
     protected function buildBaseUI(Container $container, ...$params): void
     {
         $container
-            ->maxWidth('1024px')
-            ->centerHorizontal()
-            ->padding('10px')
-            ->plain();
+            ->plain()
+            ->maxWidth('900px')
+            ->centerHorizontal();
 
-        $container->add($this->buildToolbar());
-
-        $users_table = UI::table('users_table')
-            ->pagination(7)
-            ->sortedBy('name')
+        $tabs_container = UI::container('tabs_container')
             ->width('100%')
-            ->dataModel(UserTableModel::class)
-            ->rowMinHeight(50);
+            ->padding('10px')
+            ->minHeight('600px')
+            ->rounded(0)
+            ->gap('2px')
+            ->tabs(
+                [
+                    'users_tab' => [
+                        'label' => 'Users',
+                    ],
+                    'roles_tab' => [
+                        'label' => 'Roles',
+                    ],
+                    'permissions_tab' => [
+                        'label' => 'Permissions',
+                    ],
+                ],
+                'users_tab'
+            );
 
-        $container->add($users_table);
+        $tabs_container->add($this->buildUsersCrudContainer(), tab: 'users_tab');
+        $container->add($tabs_container);
+
     }
 
-    private function buildToolbar(): Container
+    private function buildUsersCrudContainer(): Container
     {
+        $users_crud_container = UI::container('users_crud_container')
+            ->layout(LayoutType::VERTICAL)
+            ->gap('4px')
+            ->plain();
+
         $toolbar = UI::container('users_toolbar')
             ->layout(LayoutType::HORIZONTAL)
             ->fullWidth()
+            ->rounded(0)
             ->shadow(0)
-            ->gap("12px");
+            ->gap("5px");
 
         $search = UI::input('search_users')
             ->placeholder(t('screen.admin.dashboard.search_placeholder'))
@@ -85,7 +104,20 @@ class Dashboard extends Screen
             ->icon('plus');
 
         $toolbar->add($search)->add($addBtn);
-        return $toolbar;
+
+        $users_table = UI::table('users_table')
+            ->pagination(7)
+            ->sortedBy('name')
+            ->width('100%')
+            ->dataModel(UserTableModel::class)
+            ->rounded(0)
+            ->rowMinHeight(45);
+
+        $users_crud_container
+            ->add($toolbar)
+            ->add($users_table);
+
+        return $users_crud_container;
     }
 
     protected function postLoadUI(): void

@@ -27,7 +27,7 @@ class UserTableModel extends AbstractTableModel
     {
         return [
             'name' => ['label' => t('datatable.user_api.columns.name'), 'width' => 250, 'sort_by' => 'name'],
-            'email' => ['label' => t('datatable.user_api.columns.email'), 'width' => 250, 'sort_by' => 'email'],
+            'email' => ['label' => t('datatable.user_api.columns.email'), 'width' => 200, 'sort_by' => 'email'],
             'email_verified' => ['label' => t('datatable.user_api.columns.email_verified'), 'width' => 100, 'sort_by' => 'email_verified_at'],
             'roles' => ['label' => t('datatable.user_api.columns.roles'), 'width' => 100, 'sort_by' => 'role_name'],
             'updated_at' => ['label' => t('datatable.user_api.columns.updated_at'), 'width' => 150, 'sort_by' => 'updated_at'],
