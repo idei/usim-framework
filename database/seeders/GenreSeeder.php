@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 use App\Models\Genre;
+use Idei\Usim\Support\TranslationService;
 use Illuminate\Database\Seeder;
 
 class GenreSeeder extends Seeder
@@ -21,8 +22,12 @@ class GenreSeeder extends Seeder
             'Thriller',
         ];
 
+        $translationService = app(TranslationService::class);
+
         foreach ($genres as $name) {
-            Genre::firstOrCreate(['name' => $name]);
+            $translationKey = 'genre.' . str()->slug($name);
+            Genre::firstOrCreate(['name' => $translationKey]);
+            $translationService->upsertFallbackValue($translationKey, $name);
         }
     }
 }

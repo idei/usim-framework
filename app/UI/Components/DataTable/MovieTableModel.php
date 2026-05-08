@@ -69,10 +69,13 @@ class MovieTableModel extends AbstractDataTableModel
 
     public function formatRow(object $row): array
     {
+        $title = t($row->title);
+        $genreName = $row->genre?->name ?? $row->genre_name ?? 'genre.unknown';
+        $genreName = t($genreName);
         return [
-            'title' => (string) $row->title,
-            'genre' => (string) ($row->genre?->name ?? $row->genre_name ?? 'Unknown'),
-            'release_year' => (string) $row->release_year,
+            'title' => $title,
+            'genre' => $genreName,
+            'release_year' => $row->release_year,
             'cast_members' => $this->truncateText((string) $row->cast_members, self::MAX_CAST_LENGTH),
         ];
     }

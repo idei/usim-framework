@@ -46,6 +46,22 @@ class TranslationService
         return $this->keyManager->upsertValue($key, $languageCode, $text, $mediaUrl, $mediaMeta, $needsReview);
     }
 
+    public function upsertFallbackValue(
+        string $key,
+        ?string $text,
+        ?string $mediaUrl = null,
+        ?array $mediaMeta = null,
+        ?bool $needsReview = null
+    ): UsimTextValue {
+        $fallbackLanguageCode = (string) config('ui-services.i18n.fallback_locale', 'en');
+        $group = $this->inferGroupFromKey($key);
+
+        $this->keyManager->ensureLanguageExists($fallbackLanguageCode);
+        $this->createOrUpdateKey($key, ['group' => $group]);
+
+        return $this->upsertValue($key, $fallbackLanguageCode, $text, $mediaUrl, $mediaMeta, $needsReview);
+    }
+
     public function deleteKey(string $key): bool
     {
         return $this->keyManager->deleteKey($key);
@@ -113,5 +129,45 @@ class TranslationService
         } catch (QueryException) {
             return null;
         }
+    }
+
+    public function registerMissingKey(string $key): void
+    {
+        if (!$this->shouldRegisterMissingKey($key)) {
+            return;
+        }
+
+        try {
+            $this->createOrUpdateKey($key, [
+                'group' => $this->inferGroupFromKey($key),
+                'is_active' => true,
+            ]);
+        } catch (QueryException) {
+            // Ignore writes when translation tables are unavailable.
+        }
+    }
+
+    private function shouldRegisterMissingKey(string $key): bool
+    {
+        $normalizedKey = trim($key);
+
+        if ($normalizedKey === '' || str_contains($normalizedKey, ' ')) {
+            return false;
+        }
+
+        return str_contains($normalizedKey, '.');
+    }
+
+    private function inferGroupFromKey(string $key): ?string
+    {
+        $segments = array_values(array_filter(explode('.', $key), static fn (string $segment): bool => $segment !== ''));
+
+        if (count($segments) < 2) {
+            return null;
+        }
+
+        array_pop($segments);
+
+        return $segments === [] ? null : implode('.', $segments);
     }
 }

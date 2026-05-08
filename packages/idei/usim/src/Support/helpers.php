@@ -64,9 +64,11 @@ if (!function_exists('t')) {
             $translationService = app(TranslationService::class);
             $value = $translationService->safeGetValue($key, $params, $language);
 
-            if ($value !== null && $value !== '') {
+            if ($value !== null && $value !== '' && $value !== $key) {
                 return $value;
             }
+
+            $translationService->registerMissingKey($key);
         } catch (Throwable) {
             // DB unavailable — continue to key fallback.
         }
