@@ -73,7 +73,6 @@ class Dashboard extends Screen
 
         $tabs_container->add($this->buildUsersCrudContainer(), tab: 'users_tab');
         $container->add($tabs_container);
-
     }
 
     private function buildUsersCrudContainer(): Container
@@ -88,7 +87,8 @@ class Dashboard extends Screen
             ->fullWidth()
             ->rounded(0)
             ->shadow(0)
-            ->gap("5px");
+            ->padding('10px')
+            ->gap("10px");
 
         $search = UI::input('search_users')
             ->placeholder(t('screen.admin.dashboard.search_placeholder'))
