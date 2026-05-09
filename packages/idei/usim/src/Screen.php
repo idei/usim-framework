@@ -458,8 +458,12 @@ abstract class Screen
         // Check if user Interface exists in cache
         $cachedUI = UIStateManager::get(static::class);
 
-        if ($cachedUI !== null) {
+        if ($cachedUI !== null && $this->isValidCachedScreenSnapshot($cachedUI)) {
             return $cachedUI;
+        }
+
+        if ($cachedUI !== null) {
+            UIStateManager::clear(static::class);
         }
 
         $current_class = static::class;
@@ -482,6 +486,50 @@ abstract class Screen
         UIStateManager::store(static::class, $ui);
 
         return $ui;
+    }
+
+    /**
+     * Cached snapshots can become stale after structural screen changes.
+     * Reject snapshots that reference component parents not present in the payload
+     * or table internals that no longer form a consistent subtree.
+     */
+    private function isValidCachedScreenSnapshot(array $ui): bool
+    {
+        foreach ($ui as $componentId => $component) {
+            if (!\is_array($component)) {
+                continue;
+            }
+
+            $parent = $component['parent'] ?? null;
+            if (\is_int($parent) && !isset($ui[$parent]) && !isset($ui[(string) $parent])) {
+                return false;
+            }
+
+            if (($component['type'] ?? null) !== 'table') {
+                continue;
+            }
+
+            $rowsContainerId = $component['rows_container'] ?? null;
+            $headerRowId = $component['header_row'] ?? null;
+
+            if (!\is_int($rowsContainerId) || !isset($ui[$rowsContainerId])) {
+                return false;
+            }
+
+            if (($ui[$rowsContainerId]['parent'] ?? null) !== $componentId) {
+                return false;
+            }
+
+            if (!\is_int($headerRowId) || !isset($ui[$headerRowId])) {
+                return false;
+            }
+
+            if (($ui[$headerRowId]['parent'] ?? null) !== $componentId) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     /**

@@ -2,6 +2,60 @@
  * Table component (modular implementation)
  */
 class UsimTableComponent extends UIComponent {
+    update(newConfig) {
+        this.config = {
+            ...this.config,
+            ...newConfig,
+        };
+
+        if (!this.element) {
+            return;
+        }
+
+        this.applyCommonAttributes(this.element);
+
+        const oldPagination = this.element.querySelector('.ui-pagination');
+        const shouldRenderPagination = this.shouldRenderPaginationControls();
+
+        if (!shouldRenderPagination) {
+            if (oldPagination) {
+                oldPagination.remove();
+            }
+            return;
+        }
+
+        const newPagination = this.createPaginationControls();
+        if (oldPagination) {
+            oldPagination.replaceWith(newPagination);
+        } else {
+            this.element.appendChild(newPagination);
+        }
+    }
+
+    shouldRenderPaginationControls() {
+        const pagination = this.config?.pagination;
+        if (!pagination || pagination.enabled === false) {
+            return false;
+        }
+
+        if (pagination.show_controls === false) {
+            return false;
+        }
+
+        const totalPages = Number(pagination.total_pages || 0);
+        if (totalPages > 0) {
+            return totalPages > 1;
+        }
+
+        const perPage = Number(pagination.per_page || 0);
+        const totalItems = Number(pagination.total_items || 0);
+        if (perPage <= 0) {
+            return false;
+        }
+
+        return Math.ceil(totalItems / perPage) > 1;
+    }
+
     render() {
         const tableWrapper = document.createElement('div');
         tableWrapper.className = 'ui-table-wrapper';
@@ -21,7 +75,7 @@ class UsimTableComponent extends UIComponent {
         table.className = 'ui-table';
         tableWrapper.appendChild(table);
 
-        if (this.config.pagination) {
+        if (this.shouldRenderPaginationControls()) {
             const paginationDiv = this.createPaginationControls();
             tableWrapper.appendChild(paginationDiv);
         }
@@ -213,9 +267,24 @@ class UsimTableComponent extends UIComponent {
                     this.config.pagination = tableData.pagination;
 
                     const oldPagination = this.element.querySelector('.ui-pagination');
-                    if (oldPagination) {
+                    const shouldRenderPagination = this.shouldRenderPaginationControls();
+
+                    if (!shouldRenderPagination) {
+                        if (oldPagination) {
+                            oldPagination.remove();
+                        }
+                    } else if (oldPagination) {
                         const newPagination = this.createPaginationControls();
                         oldPagination.replaceWith(newPagination);
+                    } else {
+                        const tableWrapper = this.element?.classList.contains('ui-table-wrapper')
+                            ? this.element
+                            : this.element?.querySelector('.ui-table-wrapper');
+                        if (tableWrapper) {
+                            tableWrapper.appendChild(this.createPaginationControls());
+                        } else {
+                            this.element?.appendChild(this.createPaginationControls());
+                        }
                     }
                 } else {
                     if (paginationDiv) {

@@ -55,8 +55,9 @@ class Table extends UIComponent
     {
         parent::__construct($name);
 
-        // Create the rows container
-        $this->rowsContainer = new Container('rows');
+        // Create the rows container with a table-scoped name to avoid ID collisions
+        // when multiple tables are rendered inside the same screen.
+        $this->rowsContainer = new Container($this->internalComponentName('rows'));
         $this->rowsContainer->setParent($this->id);
         $this->config['rows_container'] = $this->rowsContainer->getId();
 
@@ -85,6 +86,7 @@ class Table extends UIComponent
                 'can_next' => true,
                 'can_prev' => false,
                 'total_pages' => 0,
+                'show_controls' => true,
                 'labels' => [
                     'previous' => t('usim.table.pagination.previous'),
                     'next' => t('usim.table.pagination.next'),
@@ -95,6 +97,7 @@ class Table extends UIComponent
             'cols' => 0,
             'align' => 'left', // Alignment: left, center, right
             'border_radius' => '8px',
+            'box_shadow' => null,
             'sort_column' => null,
             'sort_direction' => 'asc', // asc or desc
             'search_term' => null,
@@ -132,8 +135,13 @@ class Table extends UIComponent
         $this->setConfig('search_term', $search === '' ? null : $search);
         $model = $this->getModel();
         if ($model) {
-            // Reset to first page on new search
-            $this->page(1);
+            // Reset to first page and force pagination recalculation after search.
+            $pagination = $this->config['pagination'];
+            $pagination['current_page'] = 1;
+            $this->setConfig('pagination', $pagination);
+
+            $this->updatePaginationData();
+            $this->updateTableData();
         }
         return $this;
     }
@@ -362,6 +370,9 @@ class Table extends UIComponent
         $pagination['can_next'] = $currentPage < $pagination['total_pages'];
         $pagination['can_prev'] = $currentPage > 1;
 
+        // Hide pagination controls if there's only one page
+        $pagination['show_controls'] = $pagination['total_pages'] > 1;
+
         if ($currentPage > $pagination['total_pages']) {
             $currentPage = $pagination['total_pages'];
             $pagination['current_page'] = $currentPage;
@@ -373,7 +384,7 @@ class Table extends UIComponent
     public function connectChild(UIElement $element): void
     {
         if ($element instanceof Container) {
-            if ($element->getName() === 'rows') {
+            if ($this->isRowsContainer($element)) {
                 $this->rowsContainer = $element;
                 $this->config['rows_container'] = $element->getId();
             }
@@ -541,16 +552,16 @@ class Table extends UIComponent
     private function initializeEmptyCells(): void
     {
         // Create header row
-        $headerRow = $this->createHeaderRow('header');
+        $headerRow = $this->createHeaderRow($this->internalComponentName('header'));
 
         // Create empty header cells with column index
         for ($col = 0; $col < $this->cols; $col++) {
-            $headerRow->createCell("header_$col")->text('')->column($col);
+            $headerRow->createCell($this->internalComponentName("header_$col"))->text('')->column($col);
         }
 
         // Create data rows with empty cells
         for ($row = 0; $row < $this->rows; $row++) {
-            $rowBuilder = $this->createRow("row_$row");
+            $rowBuilder = $this->createRow($this->internalComponentName("row_$row"));
             $rowBuilder->row($row); // Set row index for ordering
 
             $rowMinHeight = $this->config['row_min_height'] ?? null;
@@ -563,12 +574,28 @@ class Table extends UIComponent
             // Create empty cells for this row with column index
             $this->cells[$row] = [];
             for ($col = 0; $col < $this->cols; $col++) {
-                $cellName = "{$row}_{$col}";
+                $cellName = $this->internalComponentName("{$row}_{$col}");
                 $cell = $rowBuilder->createCell($cellName);
                 $cell->text('')->column($col); // Empty by default with column index
                 $this->cells[$row][$col] = $cell;
             }
         }
+    }
+
+    private function internalComponentName(string $suffix): string
+    {
+        $base = $this->name ?: (string) $this->id;
+
+        return $base . '__' . $suffix;
+    }
+
+    private function isRowsContainer(Container $element): bool
+    {
+        $name = $element->getName();
+
+        return $name === 'rows'
+            || $name === $this->internalComponentName('rows')
+            || ($name !== null && str_ends_with($name, '__rows'));
     }
 
     /**
@@ -791,6 +818,33 @@ class Table extends UIComponent
         }
 
         return $this->borderRadius($radius);
+    }
+
+    /**
+     * Set table shadow
+     *
+     * @param string|int $intensity Shadow intensity (0=none, 1-3=levels, 'light', 'medium', 'heavy', or custom CSS)
+     * @return self For method chaining
+     */
+    public function shadow(string|int $intensity = 1): self
+    {
+        if (is_int($intensity)) {
+            $shadows = [
+                0 => 'none',
+                1 => '0 2px 8px rgba(0, 0, 0, 0.1)',
+                2 => '0 4px 16px rgba(0, 0, 0, 0.15)',
+                3 => '0 8px 32px rgba(0, 0, 0, 0.2)',
+            ];
+            $shadow = $shadows[$intensity] ?? $shadows[1];
+        } else {
+            $shadows = [
+                'light' => '0 1px 3px rgba(0,0,0,0.1)',
+                'medium' => '0 4px 6px rgba(0,0,0,0.1)',
+                'heavy' => '0 10px 15px rgba(0,0,0,0.2)'
+            ];
+            $shadow = $shadows[$intensity] ?? $intensity;
+        }
+        return $this->setConfig('box_shadow', $shadow);
     }
 
     /**

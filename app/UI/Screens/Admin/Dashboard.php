@@ -3,6 +3,7 @@ namespace App\UI\Screens\Admin;
 
 use App\Services\Auth\RegisterService;
 use App\Services\User\UserService;
+use App\UI\Components\DataTable\RoleTableModel;
 use App\UI\Components\DataTable\UserTableModel;
 use App\UI\Components\Modals\EditUserDialog;
 use App\UI\Components\Modals\RegisterDialog;
@@ -40,8 +41,11 @@ class Dashboard extends Screen
     }
 
     protected Table $users_table;
+    protected Table $roles_table;
     protected Input $search_users;
+    protected Input $search_roles;
     protected Button $add_user_btn;
+    protected Button $add_role_btn;
 
     protected function buildBaseUI(Container $container, ...$params): void
     {
@@ -59,19 +63,20 @@ class Dashboard extends Screen
             ->tabs(
                 [
                     'users_tab' => [
-                        'label' => 'Users',
+                        'label' => t('screen.admin.dashboard.users_tab'),
                     ],
                     'roles_tab' => [
-                        'label' => 'Roles',
+                        'label' => t('screen.admin.dashboard.roles_tab'),
                     ],
                     'permissions_tab' => [
-                        'label' => 'Permissions',
+                        'label' => t('screen.admin.dashboard.permissions_tab'),
                     ],
                 ],
                 'users_tab'
             );
 
         $tabs_container->add($this->buildUsersCrudContainer(), tab: 'users_tab');
+        $tabs_container->add($this->buildRolesContainer(), tab: 'roles_tab');
         $container->add($tabs_container);
     }
 
@@ -111,6 +116,7 @@ class Dashboard extends Screen
             ->width('100%')
             ->dataModel(UserTableModel::class)
             ->rounded(0)
+            ->shadow(0)
             ->rowMinHeight(45);
 
         $users_crud_container
@@ -120,10 +126,59 @@ class Dashboard extends Screen
         return $users_crud_container;
     }
 
+    private function buildRolesContainer(): Container
+    {
+        $roles_container = UI::container('roles_container')
+            ->layout(LayoutType::VERTICAL)
+            ->gap('4px')
+            ->plain();
+
+        $toolbar = UI::container('roles_toolbar')
+            ->layout(LayoutType::HORIZONTAL)
+            ->fullWidth()
+            ->rounded(0)
+            ->shadow(0)
+            ->padding('10px')
+            ->gap("10px");
+
+        $search = UI::input('search_roles')
+            ->placeholder(t('screen.admin.dashboard.search_role_placeholder'))
+            ->width('300px')
+            ->autocomplete('off')
+            ->onInput('search_roles', [])
+            ->debounce(500);
+
+        $addBtn = UI::button('add_role_btn')
+            ->label(t('screen.admin.dashboard.add_role'))
+            ->style('primary')
+            ->action('add_role_clicked')
+            ->icon('plus');
+
+        $toolbar->add($search)->add($addBtn);
+
+        $roles_table = UI::table('roles_table')
+            ->pagination(7)
+            ->sortedBy('name')
+            ->width('100%')
+            ->dataModel(RoleTableModel::class)
+            ->rounded(0)
+            ->shadow(0)
+            ->rowMinHeight(45);
+
+        $roles_container
+            ->add($toolbar)
+            ->add($roles_table);
+
+        return $roles_container;
+    }
+
     protected function postLoadUI(): void
     {
         $search_users = $this->users_table->getSearchTerm();
         $this->search_users->value($search_users);
+
+        $search_roles = $this->roles_table->getSearchTerm();
+        $this->search_roles->value($search_roles);
     }
 
     public function onAddUserClicked(array $params): void
@@ -322,5 +377,11 @@ class Dashboard extends Screen
     {
         $search = (string) ($params['value'] ?? '');
         $this->users_table->setSearchTerm($search);
+    }
+
+    public function onSearchRoles(array $params): void
+    {
+        $search = (string) ($params['value'] ?? '');
+        $this->roles_table->setSearchTerm($search);
     }
 }
