@@ -111,7 +111,7 @@ class Dashboard extends Screen
         $toolbar->add($search)->add($addBtn);
 
         $users_table = UI::table('users_table')
-            ->pagination(7)
+            ->pagination(0) // Disable pagination to show all users
             ->sortedBy('name')
             ->width('100%')
             ->dataModel(UserTableModel::class)
@@ -157,7 +157,7 @@ class Dashboard extends Screen
         $toolbar->add($search)->add($addBtn);
 
         $roles_table = UI::table('roles_table')
-            ->pagination(7)
+            ->pagination(0) // Disable pagination to show all roles
             ->sortedBy('name')
             ->width('100%')
             ->dataModel(RoleTableModel::class)
