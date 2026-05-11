@@ -327,6 +327,11 @@ abstract class UIComponent implements UIElement
         // Filter out null values from config
         $config = array_filter($this->config, fn($value) => $value !== null);
 
+        // Keep explicit parent=null for protocol-driven removals in incremental updates.
+        if (array_key_exists('parent', $this->config) && $this->config['parent'] === null) {
+            $config['parent'] = null;
+        }
+
         // Remove default visible value to save JSON size
         if (isset($config['visible']) && $config['visible'] === true) {
             unset($config['visible']);

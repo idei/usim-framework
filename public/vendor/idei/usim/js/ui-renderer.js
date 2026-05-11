@@ -1245,6 +1245,72 @@ class UIRenderer {
      * @param {object} uiUpdate - UI update object (same structure as initial render)
      */
     handleUIUpdate(uiUpdate) {
+        const shouldRemoveByParent = (parentValue) => parentValue === null || parentValue === 'null';
+        const parseComponentId = (jsonKey) => {
+            const parsedId = Number.parseInt(jsonKey, 10);
+            return Number.isNaN(parsedId) ? jsonKey : parsedId;
+        };
+        const processComponentUpdates = (entries) => {
+            // 1) Remove first to avoid stale descendants during the same update batch.
+            for (const [jsonKey, changes] of entries) {
+                if (isSpecialUIKey(jsonKey) || !changes || typeof changes !== 'object') {
+                    continue;
+                }
+
+                if (shouldRemoveByParent(changes.parent)) {
+                    this.removeComponentAndChildren(parseComponentId(jsonKey));
+                }
+            }
+
+            // 2) Then apply updates, and collect creates to resolve parent/child ordering in retries.
+            const creates = [];
+
+            for (const [jsonKey, changes] of entries) {
+                if (isSpecialUIKey(jsonKey) || !changes || typeof changes !== 'object') {
+                    continue;
+                }
+
+                if (shouldRemoveByParent(changes.parent)) {
+                    continue;
+                }
+
+                const componentId = parseComponentId(jsonKey);
+                const element = document.querySelector(`[data-component-id="${componentId}"]`);
+
+                if (element) {
+                    this.updateComponent(element, changes);
+                } else {
+                    creates.push([jsonKey, changes]);
+                }
+            }
+
+            // 3) Resolve creates in multiple passes so parents mount before children.
+            let pendingCreates = creates;
+            const maxPasses = 4;
+
+            for (let pass = 0; pass < maxPasses && pendingCreates.length > 0; pass++) {
+                const nextPending = [];
+
+                for (const [jsonKey, changes] of pendingCreates) {
+                    const added = this.addComponent(jsonKey, changes);
+                    if (!added) {
+                        nextPending.push([jsonKey, changes]);
+                    }
+                }
+
+                if (nextPending.length === pendingCreates.length) {
+                    // No progress in this pass; stop retry loop.
+                    break;
+                }
+
+                pendingCreates = nextPending;
+            }
+
+            if (pendingCreates.length > 0) {
+                console.warn('⚠️ Some components could not be mounted after retries:', pendingCreates.map(([id]) => id));
+            }
+        };
+
         // Handle storage updates if present
         if (uiUpdate.storage) {
             this.handleStorageUpdate(uiUpdate.storage);
@@ -1326,62 +1392,13 @@ class UIRenderer {
 
                 case 'close_modal':
                     closeModal();
-                    // Process UI updates directly from root object
-                    for (const [jsonKey, changes] of Object.entries(uiUpdate)) {
-                        // Skip special keys
-                        if (isSpecialUIKey(jsonKey) || !changes || typeof changes !== 'object') {
-                            continue;
-                        }
-
-                        const parsedId = Number.parseInt(jsonKey, 10);
-                        const componentId = Number.isNaN(parsedId) ? jsonKey : parsedId;
-
-                        // If parent is null, remove the component and all descendants from DOM/registry
-                        if (changes.parent === null) {
-                            this.removeComponentAndChildren(componentId);
-                            continue;
-                        }
-
-                        const element = document.querySelector(`[data-component-id="${componentId}"]`);
-
-                        if (element) {
-                            // console.log(`✏️ Updating component ${componentId}`, changes);
-                            this.updateComponent(element, changes);
-                        } else {
-                            // console.log(`➕ Creating new component ${componentId}`, changes);
-                            this.addComponent(jsonKey, changes);
-                        }
-                    }
+                    processComponentUpdates(Object.entries(uiUpdate));
                     return; // Don't continue processing
             }
         }
 
         // Handle UI updates (for non-modal actions)
-        for (const [jsonKey, changes] of Object.entries(uiUpdate)) {
-            // Skip special keys
-            if (isSpecialUIKey(jsonKey) || !changes || typeof changes !== 'object') {
-                continue;
-            }
-
-            const parsedId = Number.parseInt(jsonKey, 10);
-            const componentId = Number.isNaN(parsedId) ? jsonKey : parsedId;
-
-            // If parent is null, remove the component and all descendants from DOM/registry
-            if (changes.parent === null) {
-                this.removeComponentAndChildren(componentId);
-                continue;
-            }
-
-            const element = document.querySelector(`[data-component-id="${componentId}"]`);
-
-            if (element) {
-                // console.log(`✏️ Updating component ${componentId}`, changes);
-                this.updateComponent(element, changes);
-            } else {
-                // console.log(`➕ Creating new component ${componentId}`, changes);
-                this.addComponent(jsonKey, changes);
-            }
-        }
+        processComponentUpdates(Object.entries(uiUpdate));
     }
 
     /**
@@ -2054,7 +2071,7 @@ class UIRenderer {
 
             if (!component) {
                 console.error(`❌ ComponentFactory returned null for type: ${config.type}`);
-                return;
+                return false;
             }
 
             const element = component.render();
@@ -2082,14 +2099,78 @@ class UIRenderer {
                     || document.getElementById(config.parent);
             }
 
+            const insertByTableOrder = (parent, child, childConfig) => {
+                if (!(parent instanceof HTMLElement) || !(child instanceof HTMLElement) || !childConfig) {
+                    return false;
+                }
+
+                if (childConfig.type === 'tablerow' && parent.matches('table, tbody, thead, tfoot')) {
+                    const rowIndex = Number(childConfig.row);
+                    if (!Number.isInteger(rowIndex) || rowIndex < 0) {
+                        return false;
+                    }
+
+                    const siblings = Array.from(parent.children)
+                        .filter((node) => node instanceof HTMLElement && node.matches('tr.ui-table-row'));
+
+                    const nextSibling = siblings.find((rowNode) => {
+                        const siblingRowIndex = Number(rowNode.getAttribute('data-row'));
+                        return Number.isInteger(siblingRowIndex) && siblingRowIndex > rowIndex;
+                    });
+
+                    child.setAttribute('data-row', String(rowIndex));
+                    if (nextSibling) {
+                        parent.insertBefore(child, nextSibling);
+                    } else {
+                        parent.appendChild(child);
+                    }
+
+                    return true;
+                }
+
+                if (childConfig.type === 'tablecell' && parent.matches('tr.ui-table-row')) {
+                    const columnIndex = Number(childConfig.column);
+                    if (!Number.isInteger(columnIndex) || columnIndex < 0) {
+                        return false;
+                    }
+
+                    child.setAttribute('data-column', String(columnIndex));
+
+                    const siblings = Array.from(parent.children)
+                        .filter((node) => node instanceof HTMLElement && node.matches('td.ui-table-cell'));
+
+                    const nextSibling = siblings.find((cellNode) => {
+                        const siblingCol = Number(cellNode.getAttribute('data-column'));
+                        return Number.isInteger(siblingCol) && siblingCol > columnIndex;
+                    });
+
+                    if (nextSibling) {
+                        parent.insertBefore(child, nextSibling);
+                    } else {
+                        parent.appendChild(child);
+                    }
+
+                    return true;
+                }
+
+                return false;
+            };
+
             if (parentElement) {
-                parentElement.appendChild(element);
+                if (!insertByTableOrder(parentElement, element, config)) {
+                    parentElement.appendChild(element);
+                }
                 console.log(`➕ Component ${jsonKey} added to parent ${config.parent}`);
+                return true;
             } else {
                 console.error(`❌ Parent ${config.parent} not found for component ${jsonKey}`);
+                this.components.delete(String(jsonKey));
+                return false;
             }
         } catch (error) {
             console.error(`❌ Error adding component:`, error);
+            this.components.delete(String(jsonKey));
+            return false;
         }
     }
 }
@@ -2223,20 +2304,6 @@ function buildErrorScreenHTML(message) {
             </div>
         </div>
     `;
-}
-
-/**
- * Escape HTML special characters to prevent XSS
- */
-function escapeHtml(text) {
-    const map = {
-        '&': '&amp;',
-        '<': '&lt;',
-        '>': '&gt;',
-        '"': '&quot;',
-        "'": '&#039;'
-    };
-    return text.replace(/[&<>"']/g, m => map[m]);
 }
 
 // ==================== Main Application ====================

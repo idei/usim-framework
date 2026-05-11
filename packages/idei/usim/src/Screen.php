@@ -579,8 +579,10 @@ abstract class Screen
                 $rootContainer = $component;
             }
 
-            if (!$parentId) {
-                throw new RuntimeException("Component '{$id}' has no parent defined.");
+            // Detached components (parent=null) are valid during incremental remove operations.
+            // Ignore them while rebuilding the live tree from cache.
+            if ($parentId === null || $parentId === '') {
+                continue;
             }
 
             if (!$parentId || !isset($components[$parentId])) {

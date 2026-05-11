@@ -299,17 +299,23 @@ class Table extends UIComponent
         $currentPage = $pagination['current_page'];
         $perPage = $pagination['per_page'];
 
-        // Ensure $this->rows is set to perPage if it's 0
-        if ($this->rows === 0) {
-            $this->rows = $perPage;
-            $this->setConfig('rows', $this->rows);
-        }
+        // Ensure row capacity matches current page size (important after search/filters).
+        $this->ensureRowCapacity($perPage);
 
         // Clear current rows
         $this->clearRows();
 
         // Fetch data for current page
         $formattedData = $model->getFormattedPageData($currentPage, $perPage);
+
+        // Protocol-driven row structure sync:
+        // - shrinking rows => mark extra TableRow as parent=null (frontend removes from DOM)
+        // - growing rows => create/re-attach rows and cells with proper parents
+        $targetRows = min(count($formattedData), max(0, (int) $perPage));
+        $this->syncRowStructure($targetRows);
+
+        $this->rows = $targetRows;
+        $this->setConfig('rows', $this->rows);
 
         // Fill rows with new data and track actual row count
         $row = 0;
@@ -327,6 +333,118 @@ class Table extends UIComponent
         // Update $this->rows with the actual number of rows displayed
         // This is important for the last page which may have fewer rows than per_page
         $this->rows = $row;
+        $this->setConfig('rows', $this->rows);
+    }
+
+    /**
+     * Synchronize row/cell component structure for the target row count.
+     *
+     * USIM protocol rules:
+     * - Removed rows must be sent with parent=null.
+     * - Added rows must include correct parent (rows container), and cells with row parent.
+     *
+     * @param int $targetRows
+     * @return void
+     */
+    private function syncRowStructure(int $targetRows): void
+    {
+        $targetRows = max(0, $targetRows);
+        $existingRows = count($this->rowBuilders);
+
+        // Grow structure when needed.
+        if ($existingRows < $targetRows) {
+            for ($row = $existingRows; $row < $targetRows; $row++) {
+                $rowBuilder = $this->createRow($this->internalComponentName("row_$row"));
+                $rowBuilder->row($row);
+
+                $rowMinHeight = $this->config['row_min_height'] ?? null;
+                if ($rowMinHeight !== null) {
+                    $rowBuilder->minHeight($rowMinHeight);
+                }
+
+                $this->rowBuilders[$row] = $rowBuilder;
+                $this->cells[$row] = [];
+
+                for ($col = 0; $col < $this->cols; $col++) {
+                    $cellName = $this->internalComponentName("{$row}_{$col}");
+                    $cell = $rowBuilder->createCell($cellName);
+                    $cell->text('')->column($col);
+                    $this->cells[$row][$col] = $cell;
+                }
+            }
+        }
+
+        // Active rows: ensure parent points to rows container and cells to row.
+        for ($row = 0; $row < $targetRows; $row++) {
+            if (!isset($this->rowBuilders[$row])) {
+                continue;
+            }
+
+            $rowBuilder = $this->rowBuilders[$row];
+            $rowBuilder->setParent($this->rowsContainer->getId());
+            $rowBuilder->row($row);
+
+            $cells = $rowBuilder->getCells();
+            if (!isset($this->cells[$row])) {
+                $this->cells[$row] = $cells;
+            }
+
+            foreach ($cells as $cell) {
+                $cell->setParent($rowBuilder->getId());
+            }
+        }
+
+        // Removed rows: mark parent=null so frontend removes from DOM.
+        for ($row = $targetRows; $row < count($this->rowBuilders); $row++) {
+            if (isset($this->rowBuilders[$row])) {
+                $this->rowBuilders[$row]->setParent(null);
+            }
+        }
+    }
+
+    /**
+     * Ensure the table has enough row builders and cells for the required size.
+     *
+     * @param int $requiredRows
+     * @return void
+     */
+    private function ensureRowCapacity(int $requiredRows): void
+    {
+        if ($requiredRows <= 0) {
+            return;
+        }
+
+        $existingRows = count($this->rowBuilders);
+
+        if ($existingRows < $requiredRows) {
+            for ($row = $existingRows; $row < $requiredRows; $row++) {
+                $rowBuilder = $this->createRow($this->internalComponentName("row_$row"));
+                $rowBuilder->row($row);
+
+                $rowMinHeight = $this->config['row_min_height'] ?? null;
+                if ($rowMinHeight !== null) {
+                    $rowBuilder->minHeight($rowMinHeight);
+                }
+
+                $this->rowBuilders[$row] = $rowBuilder;
+                $this->cells[$row] = [];
+
+                for ($col = 0; $col < $this->cols; $col++) {
+                    $cellName = $this->internalComponentName("{$row}_{$col}");
+                    $cell = $rowBuilder->createCell($cellName);
+                    $cell->text('')->column($col);
+
+                    if (isset($this->columnWidths[$col])) {
+                        $width = $this->columnWidths[$col];
+                        $cell->widthConstraints($width, $width);
+                    }
+
+                    $this->cells[$row][$col] = $cell;
+                }
+            }
+        }
+
+        $this->rows = $requiredRows;
         $this->setConfig('rows', $this->rows);
     }
 
@@ -367,6 +485,13 @@ class Table extends UIComponent
         $currentPage = $pagination['current_page'];
         $perPage = $pagination['per_page'];
 
+        // If pagination is disabled (per_page = 0), render all rows in a single logical page.
+        // Use total item count as effective page size to keep existing flows intact.
+        if (($pagination['enabled'] ?? true) === false || $perPage <= 0) {
+            $perPage = max(1, $totalItems);
+            $pagination['per_page'] = $perPage;
+        }
+
         $pagination['total_items'] = $totalItems;
         $pagination['total_pages'] = (int) ceil($totalItems / $perPage);
         $pagination['can_next'] = $currentPage < $pagination['total_pages'];
@@ -376,7 +501,7 @@ class Table extends UIComponent
         $pagination['show_controls'] = $pagination['total_pages'] > 1;
 
         if ($currentPage > $pagination['total_pages']) {
-            $currentPage = $pagination['total_pages'];
+            $currentPage = max(1, $pagination['total_pages']);
             $pagination['current_page'] = $currentPage;
         }
 

@@ -4,14 +4,17 @@ namespace App\UI\Screens\Demo;
 
 use App\UI\Components\DataTable\MovieTableModel;
 use Idei\Usim\Components\Container;
+use Idei\Usim\Components\Input;
 use Idei\Usim\Components\Table;
 use Idei\Usim\Enums\LayoutType;
 use Idei\Usim\Screen;
 use Idei\Usim\UI;
+use Override;
 
 class TableDemo extends Screen
 {
     protected Table $movies_table;
+    protected Input $search_movies;
 
     protected function buildBaseUI(Container $container, ...$params): void
     {
@@ -26,6 +29,7 @@ class TableDemo extends Screen
         $table = UI::table('movies_table')
             ->title(t('screen.demo.table_demo.table_title'))
             ->sortedBy('title')
+            ->pagination(0) // Disable pagination to show all movies
             ->dataModel(MovieTableModel::class)
             ->align('center');
 
@@ -34,6 +38,12 @@ class TableDemo extends Screen
             ->add($label)
             ->add($this->buildToolbar())
             ->add($table);
+    }
+
+    #[Override]
+    protected function postLoadUI(): void
+    {
+        $this->search_movies->value($this->movies_table->getSearchTerm());
     }
 
     private function buildToolbar(): Container

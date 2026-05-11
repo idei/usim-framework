@@ -2,6 +2,68 @@
  * Table component (modular implementation)
  */
 class UsimTableComponent extends UIComponent {
+    normalizeRenderedRows() {
+        if (!this.tableElement) {
+            return;
+        }
+
+        const expectedCols = Number(this.config?.cols ?? 0);
+        if (!Number.isInteger(expectedCols) || expectedCols <= 0) {
+            return;
+        }
+
+        const rows = Array.from(this.tableElement.querySelectorAll('.ui-table-row'));
+        for (const row of rows) {
+            const cells = Array.from(row.querySelectorAll(':scope > .ui-table-cell'));
+            const byColumn = new Map();
+            const overflow = [];
+
+            for (const cell of cells) {
+                const columnAttr = cell.getAttribute('data-column');
+                const column = Number(columnAttr);
+
+                if (Number.isInteger(column) && column >= 0 && column < expectedCols && !byColumn.has(column)) {
+                    byColumn.set(column, cell);
+                    continue;
+                }
+
+                overflow.push(cell);
+            }
+
+            overflow.forEach((cell) => cell.remove());
+
+            for (let col = 0; col < expectedCols; col++) {
+                let cell = byColumn.get(col);
+                if (!cell) {
+                    cell = document.createElement('td');
+                    cell.className = 'ui-table-cell ui-table-cell-placeholder';
+                    cell.setAttribute('data-column', String(col));
+                    byColumn.set(col, cell);
+                }
+
+                row.appendChild(cell);
+            }
+        }
+    }
+
+    syncRenderedRows() {
+        if (!this.tableElement) {
+            return;
+        }
+
+        const expectedRows = Number(this.config?.rows ?? 0);
+        if (!Number.isFinite(expectedRows) || expectedRows < 0) {
+            return;
+        }
+
+        const dataRows = Array.from(this.tableElement.querySelectorAll('.ui-table-row'));
+
+        // Remove stale rows from the end so filtered tables reflect server row count immediately.
+        for (let i = dataRows.length - 1; i >= expectedRows; i--) {
+            dataRows[i]?.remove();
+        }
+    }
+
     update(newConfig) {
         this.config = {
             ...this.config,
@@ -13,6 +75,8 @@ class UsimTableComponent extends UIComponent {
         }
 
         this.applyCommonAttributes(this.element);
+        this.syncRenderedRows();
+        this.normalizeRenderedRows();
 
         const oldPagination = this.element.querySelector('.ui-pagination');
         const shouldRenderPagination = this.shouldRenderPaginationControls();
@@ -342,6 +406,8 @@ class UsimTableComponent extends UIComponent {
 
     mount(parentElement) {
         super.mount(parentElement);
+        this.syncRenderedRows();
+        this.normalizeRenderedRows();
     }
 }
 

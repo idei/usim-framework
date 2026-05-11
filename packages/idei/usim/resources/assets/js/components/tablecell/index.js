@@ -6,6 +6,11 @@ class UsimTableCellComponent extends UIComponent {
         const cell = document.createElement('td');
         cell.className = 'ui-table-cell';
 
+        const columnIndex = Number(this.config?.column);
+        if (Number.isInteger(columnIndex) && columnIndex >= 0) {
+            cell.setAttribute('data-column', String(columnIndex));
+        }
+
         if (this.config.button) {
             const btn = document.createElement('button');
             btn.className = `ui-button ${this.config.button.style || 'default'}`;

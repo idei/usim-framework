@@ -228,6 +228,11 @@ class TableRow extends UIComponent
         // Get base config and filter nulls
         $config = array_filter($this->config, fn($value) => $value !== null);
 
+        // Keep explicit parent=null for protocol-driven removals in incremental updates.
+        if (array_key_exists('parent', $this->config) && $this->config['parent'] === null) {
+            $config['parent'] = null;
+        }
+
         // Remove 'visible' if it's true (default value)
         if (isset($config['visible']) && $config['visible'] === true) {
             unset($config['visible']);
