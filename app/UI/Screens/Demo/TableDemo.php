@@ -25,11 +25,9 @@ class TableDemo extends Screen
 
         $table = UI::table('movies_table')
             ->title(t('screen.demo.table_demo.table_title'))
-            ->pagination(7)
             ->sortedBy('title')
             ->dataModel(MovieTableModel::class)
-            ->align('center')
-            ->rowMinHeight(50);
+            ->align('center');
 
         $container
             ->maxWidth($table->width())

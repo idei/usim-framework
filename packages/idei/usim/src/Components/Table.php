@@ -19,6 +19,8 @@ use Idei\Usim\DataTable\AbstractTableModel;
 class Table extends UIComponent
 {
     public const DEFAULT_COLUMN_WIDTH = 160;
+    public const DEFAULT_PAGINATION_PER_PAGE = 7;
+    public const DEFAULT_ROW_MIN_HEIGHT = 45;
 
     /** @var Container The rows container */
     private Container $rowsContainer;
@@ -80,7 +82,7 @@ class Table extends UIComponent
             'header_row' => null,
             'pagination' => [
                 'enabled' => true,
-                'per_page' => 10,
+                'per_page' => self::DEFAULT_PAGINATION_PER_PAGE,
                 'current_page' => 1,
                 'total_items' => 0,
                 'can_next' => true,
@@ -101,7 +103,7 @@ class Table extends UIComponent
             'sort_column' => null,
             'sort_direction' => 'asc', // asc or desc
             'search_term' => null,
-            'row_min_height' => null,
+            'row_min_height' => self::DEFAULT_ROW_MIN_HEIGHT,
         ];
     }
 
@@ -920,7 +922,7 @@ class Table extends UIComponent
      * @param int $perPage Number of items per page
      * @return self
      */
-    public function pagination(int $perPage = 10): self
+    public function pagination(int $perPage = self::DEFAULT_PAGINATION_PER_PAGE): self
     {
         $pagination = $this->config['pagination'];
         $pagination['enabled'] = $perPage > 0;
