@@ -21,6 +21,8 @@ class Table extends UIComponent
     public const DEFAULT_COLUMN_WIDTH = 160;
     public const DEFAULT_PAGINATION_PER_PAGE = 7;
     public const DEFAULT_ROW_MIN_HEIGHT = 45;
+    public const DEFAULT_BODY_OVERFLOW_X = 'visible';
+    public const DEFAULT_BODY_OVERFLOW_Y = 'visible';
 
     /** @var Container The rows container */
     private Container $rowsContainer;
@@ -80,6 +82,7 @@ class Table extends UIComponent
         return [
             'title' => '',
             'header_row' => null,
+            'column_widths' => [],
             'pagination' => [
                 'enabled' => true,
                 'per_page' => self::DEFAULT_PAGINATION_PER_PAGE,
@@ -104,6 +107,10 @@ class Table extends UIComponent
             'sort_direction' => 'asc', // asc or desc
             'search_term' => null,
             'row_min_height' => self::DEFAULT_ROW_MIN_HEIGHT,
+            'body_min_height' => null,
+            'body_max_height' => null,
+            'body_overflow_x' => self::DEFAULT_BODY_OVERFLOW_X,
+            'body_overflow_y' => self::DEFAULT_BODY_OVERFLOW_Y,
         ];
     }
 
@@ -369,6 +376,12 @@ class Table extends UIComponent
                     $cellName = $this->internalComponentName("{$row}_{$col}");
                     $cell = $rowBuilder->createCell($cellName);
                     $cell->text('')->column($col);
+
+                    if (isset($this->columnWidths[$col])) {
+                        $width = $this->columnWidths[$col];
+                        $cell->widthConstraints($width, $width);
+                    }
+
                     $this->cells[$row][$col] = $cell;
                 }
             }
@@ -398,6 +411,13 @@ class Table extends UIComponent
         for ($row = $targetRows; $row < count($this->rowBuilders); $row++) {
             if (isset($this->rowBuilders[$row])) {
                 $this->rowBuilders[$row]->setParent(null);
+
+                // Keep row/cell lifecycle symmetric in incremental updates:
+                // if a row is removed, detach all its cells too so they can be
+                // reattached deterministically when that row becomes visible again.
+                foreach ($this->rowBuilders[$row]->getCells() as $cell) {
+                    $cell->setParent(null);
+                }
             }
         }
     }
@@ -536,6 +556,22 @@ class Table extends UIComponent
     public function postConnect(): void
     {
         $this->cols = $this->config['cols'];
+
+        // Recover persisted column widths after cache deserialization so
+        // dynamically re-created rows keep the same fixed widths.
+        $rawColumnWidths = $this->config['column_widths'] ?? [];
+        $this->columnWidths = [];
+        if (is_array($rawColumnWidths)) {
+            foreach ($rawColumnWidths as $col => $width) {
+                $colIndex = (int) $col;
+                if ($colIndex < 0) {
+                    continue;
+                }
+
+                $this->columnWidths[$colIndex] = $this->normalizeColumnWidthValue($width);
+            }
+        }
+
         // After deserialization and reconnection, rebuild the row builders array
         // and cells matrix from the rowsContainer
         $this->reconstructRowBuilders();
@@ -994,6 +1030,88 @@ class Table extends UIComponent
     }
 
     /**
+     * Set or get minimum height for table body area.
+     *
+     * @param int|string|null $height Height in px (int) or any CSS size string
+     * @return static|string|null
+     */
+    public function bodyMinHeight(int|string|null $height = null): static|string|null
+    {
+        if ($height === null) {
+            return $this->config['body_min_height'] ?? null;
+        }
+
+        return $this->setConfig('body_min_height', $this->normalizeCssSize($height));
+    }
+
+    /**
+     * Set or get maximum height for table body area.
+     *
+     * @param int|string|null $height Height in px (int) or any CSS size string
+     * @return static|string|null
+     */
+    public function bodyMaxHeight(int|string|null $height = null): static|string|null
+    {
+        if ($height === null) {
+            return $this->config['body_max_height'] ?? null;
+        }
+
+        return $this->setConfig('body_max_height', $this->normalizeCssSize($height));
+    }
+
+    /**
+     * Set or get horizontal overflow mode for table body area.
+     *
+     * Allowed values: visible, hidden, auto, scroll.
+     *
+     * @param string|null $overflow
+     * @return static|string|null
+     */
+    public function bodyOverflowX(?string $overflow = null): static|string|null
+    {
+        if ($overflow === null) {
+            return $this->config['body_overflow_x'] ?? null;
+        }
+
+        return $this->setConfig('body_overflow_x', $this->normalizeOverflowValue($overflow));
+    }
+
+    /**
+     * Set or get vertical overflow mode for table body area.
+     *
+     * Allowed values: visible, hidden, auto, scroll.
+     *
+     * @param string|null $overflow
+     * @return static|string|null
+     */
+    public function bodyOverflowY(?string $overflow = null): static|string|null
+    {
+        if ($overflow === null) {
+            return $this->config['body_overflow_y'] ?? null;
+        }
+
+        return $this->setConfig('body_overflow_y', $this->normalizeOverflowValue($overflow));
+    }
+
+    /**
+     * Set overflow mode for table body area.
+     *
+     * @param string $overflowX
+     * @param string|null $overflowY If null, same value as $overflowX is used
+     * @return self
+     */
+    public function bodyOverflow(string $overflowX, ?string $overflowY = null): self
+    {
+        $normalizedX = $this->normalizeOverflowValue($overflowX);
+        $normalizedY = $this->normalizeOverflowValue($overflowY ?? $overflowX);
+
+        $this->setConfig('body_overflow_x', $normalizedX);
+        $this->setConfig('body_overflow_y', $normalizedY);
+
+        return $this;
+    }
+
+    /**
      * Set fixed width for a specific column.
      *
      * @param int $col Column index (0-based)
@@ -1007,6 +1125,7 @@ class Table extends UIComponent
         }
 
         $this->columnWidths[$col] = $width;
+        $this->setConfig('column_widths', $this->columnWidths);
 
         // Apply width to all cells in this column (header + data rows)
         if ($this->headerRow) {
@@ -1227,6 +1346,37 @@ class Table extends UIComponent
 
         $this->setConfig('width', $totalWidth);
         return $totalWidth;
+    }
+
+    /**
+     * Normalize CSS size values to consistent string format.
+     *
+     * @param int|string $value
+     * @return string
+     */
+    private function normalizeCssSize(int|string $value): string
+    {
+        return is_int($value) ? $value . 'px' : trim($value);
+    }
+
+    /**
+     * Validate and normalize overflow values.
+     *
+     * @param string $value
+     * @return string
+     */
+    private function normalizeOverflowValue(string $value): string
+    {
+        $normalized = strtolower(trim($value));
+        $allowed = ['visible', 'hidden', 'auto', 'scroll'];
+
+        if (!in_array($normalized, $allowed, true)) {
+            throw new \InvalidArgumentException(
+                "Invalid overflow value: {$value}. Use one of: " . implode(', ', $allowed) . '.'
+            );
+        }
+
+        return $normalized;
     }
 
     /**

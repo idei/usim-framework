@@ -33,10 +33,21 @@ class UIDiffer
                 // AGREGAR: Componente nuevo (incluye parent)
                 $changes[$id] = $newComp;
             } else {
-                // ACTUALIZAR: Solo propiedades que cambiaron
-                $diff = self::diffProperties($oldComponents[$id], $newComp);
-                if (!empty($diff)) {
-                    $changes[$id] = $diff;
+                $oldParent = $oldComponents[$id]['parent'] ?? null;
+                $newParent = $newComp['parent'] ?? null;
+
+                if ($oldParent === null && $newParent !== null) {
+                    // RE-ADJUNTAR: el componente estaba desvinculado (parent=null).
+                    // El frontend lo eliminó del DOM y del registry, por lo que
+                    // necesita el config COMPLETO para recrearlo correctamente
+                    // (incluyendo anchos de columna, estilos, etc.).
+                    $changes[$id] = $newComp;
+                } else {
+                    // ACTUALIZAR: Solo propiedades que cambiaron
+                    $diff = self::diffProperties($oldComponents[$id], $newComp);
+                    if (!empty($diff)) {
+                        $changes[$id] = $diff;
+                    }
                 }
             }
         }

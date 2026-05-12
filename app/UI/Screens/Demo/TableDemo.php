@@ -31,6 +31,9 @@ class TableDemo extends Screen
             ->sortedBy('title')
             // ->pagination(0) // Disable pagination to show all movies
             ->dataModel(MovieTableModel::class)
+            ->bodyMinHeight(320)
+            ->bodyMaxHeight(320)
+            ->bodyOverflow('auto')
             ->align('center');
 
         $container

@@ -542,13 +542,13 @@ class UIComponent {
             element.style.height = this.config.height;
         }
         if (this.config.max_width !== undefined) {
-            element.style.maxWidth = this.config.max_width;
+            element.style.maxWidth = normalizeSizeValue(this.config.max_width);
         }
         if (this.config.max_height !== undefined) {
             element.style.maxHeight = this.config.max_height;
         }
         if (this.config.min_width !== undefined) {
-            element.style.minWidth = this.config.min_width;
+            element.style.minWidth = normalizeSizeValue(this.config.min_width);
         }
         if (this.config.min_height !== undefined) {
             element.style.minHeight = this.config.min_height;
@@ -942,6 +942,13 @@ class UIRenderer {
                             // Special case: if parent is a table, mount rows inside <table> element
                             if (parentComponent.tableElement) {
                                 mountTarget = parentComponent.tableElement;
+
+                                if (typeof parentComponent.getChildMountTarget === 'function') {
+                                    const resolvedTarget = parentComponent.getChildMountTarget(component.config, component);
+                                    if (resolvedTarget instanceof HTMLElement) {
+                                        mountTarget = resolvedTarget;
+                                    }
+                                }
 
                                 // Special case: if child is a container inside a table, it's probably the rows container
                                 // Don't create a DOM element for it, just mark it as mounted and let its children mount to the table

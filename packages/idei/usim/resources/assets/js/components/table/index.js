@@ -3,7 +3,8 @@
  */
 class UsimTableComponent extends UIComponent {
     normalizeRenderedRows() {
-        if (!this.tableElement) {
+        const rowHost = this.tbodyElement || this.tableElement;
+        if (!rowHost) {
             return;
         }
 
@@ -12,9 +13,18 @@ class UsimTableComponent extends UIComponent {
             return;
         }
 
-        const rows = Array.from(this.tableElement.querySelectorAll('.ui-table-row'));
+        const rows = Array.from(rowHost.querySelectorAll('.ui-table-row'));
         for (const row of rows) {
             const cells = Array.from(row.querySelectorAll(':scope > .ui-table-cell'));
+
+            // Cells from the initial render path (mount) don't have data-column set.
+            // Backfill using DOM order so the column-deduplication logic below works correctly
+            // and doesn't treat every untagged cell as column 0 (destroying real cell content).
+            const anyMissingColumn = cells.some((c) => c.getAttribute('data-column') === null);
+            if (anyMissingColumn) {
+                cells.forEach((cell, idx) => cell.setAttribute('data-column', String(idx)));
+            }
+
             const byColumn = new Map();
             const overflow = [];
 
@@ -47,7 +57,8 @@ class UsimTableComponent extends UIComponent {
     }
 
     syncRenderedRows() {
-        if (!this.tableElement) {
+        const rowHost = this.tbodyElement || this.tableElement;
+        if (!rowHost) {
             return;
         }
 
@@ -56,7 +67,7 @@ class UsimTableComponent extends UIComponent {
             return;
         }
 
-        const dataRows = Array.from(this.tableElement.querySelectorAll('.ui-table-row'));
+        const dataRows = Array.from(rowHost.querySelectorAll('.ui-table-row'));
 
         // Remove stale rows from the end so filtered tables reflect server row count immediately.
         for (let i = dataRows.length - 1; i >= expectedRows; i--) {
@@ -75,25 +86,11 @@ class UsimTableComponent extends UIComponent {
         }
 
         this.applyCommonAttributes(this.element);
+        this.applyBodyViewportStyles();
         this.syncRenderedRows();
         this.normalizeRenderedRows();
-
-        const oldPagination = this.element.querySelector('.ui-pagination');
         const shouldRenderPagination = this.shouldRenderPaginationControls();
-
-        if (!shouldRenderPagination) {
-            if (oldPagination) {
-                oldPagination.remove();
-            }
-            return;
-        }
-
-        const newPagination = this.createPaginationControls();
-        if (oldPagination) {
-            oldPagination.replaceWith(newPagination);
-        } else {
-            this.element.appendChild(newPagination);
-        }
+        this.upsertPaginationControls(shouldRenderPagination);
     }
 
     shouldRenderPaginationControls() {
@@ -137,16 +134,135 @@ class UsimTableComponent extends UIComponent {
 
         const table = document.createElement('table');
         table.className = 'ui-table';
+
+        const thead = document.createElement('thead');
+        thead.className = 'ui-table-head';
+        table.appendChild(thead);
+
+        const tbody = document.createElement('tbody');
+        tbody.className = 'ui-table-body';
+        table.appendChild(tbody);
+
+        const tfoot = document.createElement('tfoot');
+        tfoot.className = 'ui-table-foot';
+        table.appendChild(tfoot);
+
         tableWrapper.appendChild(table);
 
-        if (this.shouldRenderPaginationControls()) {
-            const paginationDiv = this.createPaginationControls();
-            tableWrapper.appendChild(paginationDiv);
-        }
-
         this.tableElement = table;
+        this.theadElement = thead;
+        this.tbodyElement = tbody;
+        this.tfootElement = tfoot;
+        this.applyBodyViewportStyles();
+        this.upsertPaginationControls(this.shouldRenderPaginationControls());
 
         return this.applyCommonAttributes(tableWrapper);
+    }
+
+    getChildMountTarget(childConfig, childComponent) {
+        if (!this.tableElement || !childConfig) {
+            return this.tableElement || this.element;
+        }
+
+        if (childConfig.type === 'tableheaderrow') {
+            return this.theadElement || this.tableElement;
+        }
+
+        if (childConfig.type === 'tablerow') {
+            return this.tbodyElement || this.tableElement;
+        }
+
+        if (childConfig.type === 'container') {
+            const rowsContainerId = String(this.config?.rows_container ?? '');
+            const childId = String(childComponent?.id ?? childConfig.id ?? '');
+            if (rowsContainerId && childId && rowsContainerId === childId) {
+                return this.tbodyElement || this.tableElement;
+            }
+        }
+
+        return this.tableElement;
+    }
+
+    applyBodyViewportStyles() {
+        if (!this.tbodyElement || !this.tableElement) {
+            return;
+        }
+
+        const minHeight = this.normalizeSize(this.config?.body_min_height);
+        const maxHeight = this.normalizeSize(this.config?.body_max_height);
+        const overflowX = this.normalizeOverflow(this.config?.body_overflow_x);
+        const overflowY = this.normalizeOverflow(this.config?.body_overflow_y);
+        const viewportEnabled = Boolean(minHeight || maxHeight || overflowX !== 'visible' || overflowY !== 'visible');
+
+        this.tableElement.classList.toggle('ui-table-body-viewport', viewportEnabled);
+
+        this.tbodyElement.style.minHeight = minHeight || '';
+        this.tbodyElement.style.maxHeight = maxHeight || '';
+        this.tbodyElement.style.overflowX = overflowX || '';
+        this.tbodyElement.style.overflowY = overflowY || '';
+    }
+
+    normalizeSize(value) {
+        if (value === null || value === undefined || value === '') {
+            return '';
+        }
+
+        if (typeof value === 'number') {
+            return `${value}px`;
+        }
+
+        return String(value);
+    }
+
+    normalizeOverflow(value) {
+        const normalized = String(value || 'visible').toLowerCase().trim();
+        const allowed = new Set(['visible', 'hidden', 'auto', 'scroll']);
+
+        return allowed.has(normalized) ? normalized : 'visible';
+    }
+
+    ensureFooterCell() {
+        if (!this.tfootElement) {
+            return null;
+        }
+
+        this.tfootElement.innerHTML = '';
+
+        const footerRow = document.createElement('tr');
+        footerRow.className = 'ui-table-footer-row';
+
+        const footerCell = document.createElement('td');
+        footerCell.className = 'ui-table-footer-cell';
+        footerCell.colSpan = Math.max(1, Number(this.config?.cols || 1));
+
+        footerRow.appendChild(footerCell);
+        this.tfootElement.appendChild(footerRow);
+
+        return footerCell;
+    }
+
+    upsertPaginationControls(shouldRender) {
+        const oldPagination = this.element?.querySelector('.ui-pagination');
+
+        if (!shouldRender) {
+            if (oldPagination) {
+                oldPagination.remove();
+            }
+
+            if (this.tfootElement) {
+                this.tfootElement.innerHTML = '';
+            }
+
+            return;
+        }
+
+        const footerCell = this.ensureFooterCell();
+        if (!footerCell) {
+            return;
+        }
+
+        const newPagination = this.createPaginationControls();
+        footerCell.appendChild(newPagination);
     }
 
     createPaginationControls() {
@@ -329,27 +445,8 @@ class UsimTableComponent extends UIComponent {
 
                 if (tableData && tableData.pagination) {
                     this.config.pagination = tableData.pagination;
-
-                    const oldPagination = this.element.querySelector('.ui-pagination');
                     const shouldRenderPagination = this.shouldRenderPaginationControls();
-
-                    if (!shouldRenderPagination) {
-                        if (oldPagination) {
-                            oldPagination.remove();
-                        }
-                    } else if (oldPagination) {
-                        const newPagination = this.createPaginationControls();
-                        oldPagination.replaceWith(newPagination);
-                    } else {
-                        const tableWrapper = this.element?.classList.contains('ui-table-wrapper')
-                            ? this.element
-                            : this.element?.querySelector('.ui-table-wrapper');
-                        if (tableWrapper) {
-                            tableWrapper.appendChild(this.createPaginationControls());
-                        } else {
-                            this.element?.appendChild(this.createPaginationControls());
-                        }
-                    }
+                    this.upsertPaginationControls(shouldRenderPagination);
                 } else {
                     if (paginationDiv) {
                         this.setLoadingState(paginationDiv, false);

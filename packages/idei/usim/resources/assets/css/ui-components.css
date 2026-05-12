@@ -577,6 +577,32 @@ body {
     table-layout: fixed; /* Keep fixed for consistent sizing */
 }
 
+/* Body viewport mode keeps head/foot visible while body can scroll with fixed height */
+.ui-table.ui-table-body-viewport {
+    border-collapse: separate;
+    border-spacing: 0;
+    width: 100%;
+}
+
+.ui-table.ui-table-body-viewport .ui-table-head,
+.ui-table.ui-table-body-viewport .ui-table-foot {
+    display: table;
+    width: 100%;
+    table-layout: fixed;
+}
+
+.ui-table.ui-table-body-viewport .ui-table-body {
+    display: block;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.ui-table.ui-table-body-viewport .ui-table-body > .ui-table-row {
+    display: table;
+    width: 100%;
+    table-layout: fixed;
+}
+
 /* Header Row */
 .ui-table-header-row {
     background: var(--usim-table-header-bg, var(--ui-surface-muted));
