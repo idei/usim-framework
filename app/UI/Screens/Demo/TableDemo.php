@@ -29,7 +29,7 @@ class TableDemo extends Screen
         $table = UI::table('movies_table')
             ->title(t('screen.demo.table_demo.table_title'))
             ->sortedBy('title')
-            ->pagination(0) // Disable pagination to show all movies
+            // ->pagination(0) // Disable pagination to show all movies
             ->dataModel(MovieTableModel::class)
             ->align('center');
 
