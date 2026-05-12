@@ -29,11 +29,12 @@ class TableDemo extends Screen
         $table = UI::table('movies_table')
             ->title(t('screen.demo.table_demo.table_title'))
             ->sortedBy('title')
-            // ->pagination(0) // Disable pagination to show all movies
+            ->pagination(10)
             ->dataModel(MovieTableModel::class)
             ->bodyMinHeight(320)
             ->bodyMaxHeight(320)
-            ->bodyOverflow('auto')
+            ->bodyOverflowX('hidden')
+            ->bodyOverflowY('auto')
             ->align('center');
 
         $container
