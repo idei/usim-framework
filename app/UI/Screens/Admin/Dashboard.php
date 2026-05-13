@@ -13,6 +13,7 @@ use Idei\Usim\Components\Input;
 use Idei\Usim\Components\Table;
 use Idei\Usim\Enums\DialogType;
 use Idei\Usim\Enums\LayoutType;
+use Idei\Usim\Enums\SelectionMode;
 use Idei\Usim\Modals\ConfirmDialogService;
 use Idei\Usim\Screen;
 use Idei\Usim\UI;
@@ -162,6 +163,9 @@ class Dashboard extends Screen
             ->dataModel(RoleTableModel::class)
             ->rounded(0)
             ->shadow(0)
+            ->bodyOverflowX('hidden')
+            ->bodyOverflowY('auto')
+            ->selectionMode(SelectionMode::SINGLE)
             ->rowMinHeight(45);
 
         $roles_container
@@ -377,5 +381,16 @@ class Dashboard extends Screen
         $search = (string) ($params['value'] ?? '');
         $this->roles_table->setSearchTerm($search);
         $this->search_roles->value($search);
+    }
+
+    public function onRolesTableRowClicked(array $params): void
+    {
+        $roleId = $params['model_id'] ?? null;
+        if (!$roleId) {
+            $this->toast(t('Role ID is required'), 'error');
+            return;
+        }
+
+        $this->roles_table->select($roleId);
     }
 }
