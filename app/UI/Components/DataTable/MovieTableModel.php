@@ -68,7 +68,7 @@ class MovieTableModel extends AbstractTableModel
         $genreName = $row->genre?->name ?? $row->genre_name ?? 'genre.unknown';
         $genreName = t($genreName);
         return [
-            '__row_model_id' => $row->id,
+            '_model_id' => $row->id,
             'title' => $title,
             'genre' => $genreName,
             'release_year' => $row->release_year,

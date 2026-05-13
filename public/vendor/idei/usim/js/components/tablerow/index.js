@@ -127,7 +127,6 @@ class UsimTableRowComponent extends UIComponent {
             });
 
             if (ok) {
-                row.classList.add('selected');
                 helpers.applyUiUpdate?.(result);
             }
         } catch (error) {

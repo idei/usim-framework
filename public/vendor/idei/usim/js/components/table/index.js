@@ -244,6 +244,7 @@ class UsimTableComponent extends UIComponent {
     }
 
     getSelectedRowIdSet() {
+        const selectionMode = this.normalizeSelectionMode(this.config?.selection_mode);
         const rawSelection = this.config?.selected_rows;
         let selectedRows = [];
 
@@ -251,6 +252,10 @@ class UsimTableComponent extends UIComponent {
             selectedRows = rawSelection;
         } else if (rawSelection !== null && rawSelection !== undefined && rawSelection !== '') {
             selectedRows = [rawSelection];
+        }
+
+        if (selectionMode === 'single' && selectedRows.length > 1) {
+            selectedRows = [selectedRows[0]];
         }
 
         return new Set(selectedRows.map((value) => String(value)));

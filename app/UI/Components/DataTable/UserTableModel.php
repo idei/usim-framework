@@ -6,11 +6,6 @@ use App\Services\User\UserListingService;
 use Idei\Usim\DataTable\AbstractTableModel;
 use Idei\Usim\Components\Table;
 
-/**
- * User API Table Model
- *
- * Implementation for real User model from database
- */
 class UserTableModel extends AbstractTableModel
 {
     protected UserListingService $listingService;
@@ -30,9 +25,7 @@ class UserTableModel extends AbstractTableModel
             'email' => ['label' => t('datatable.user_api.columns.email'), 'width' => 200, 'sort_by' => 'email'],
             'email_verified' => ['label' => t('datatable.user_api.columns.email_verified'), 'width' => 100, 'sort_by' => 'email_verified_at'],
             'roles' => ['label' => t('datatable.user_api.columns.roles'), 'width' => 100, 'sort_by' => 'role_name'],
-            'updated_at' => ['label' => t('datatable.user_api.columns.updated_at'), 'width' => 150, 'sort_by' => 'updated_at'],
-            'edit' => ['label' => '', 'width' => 20],
-            'delete' => ['label' => '', 'width' => 20],
+            'updated_at' => ['label' => t('datatable.user_api.columns.updated_at'), 'width' => 150, 'sort_by' => 'updated_at']
         ];
     }
 
@@ -66,55 +59,22 @@ class UserTableModel extends AbstractTableModel
         $formatted = [];
 
         foreach ($users as $user) {
-            $roles = '';
-            if (is_array($user)) {
-                $roles = (string) ($user['roles'] ?? '');
-            } else {
-                $roles = $user->roles
-                    ->pluck('name')
-                    ->sort()
-                    ->values()
-                    ->implode(', ');
-            }
+            $roles = $user->roles
+                ->pluck('name')
+                ->sort()
+                ->values()
+                ->implode(', ');
 
-            $emailVerified = is_array($user)
-                ? !empty($user['email_verified'])
-                : (bool) ($user->email_verified_at ?? false);
-
-            $updatedAt = is_array($user)
-                ? (string) ($user['updated_at'] ?? '')
-                : (string) ($user->updated_at?->diffForHumans() ?? '');
-
-            $userId = is_array($user)
-                ? ($user['id'] ?? null)
-                : ($user->id ?? null);
+            $emailVerified = $user->email_verified_at ?? false;
+            $updatedAt = $user->updated_at?->diffForHumans() ?? '';
 
             $formatted[] = [
-                'name' => is_array($user) ? ($user['name'] ?? '') : (string) ($user->name ?? ''),
-                'email' => is_array($user) ? ($user['email'] ?? '') : (string) ($user->email ?? ''),
+                '_model_id' => $user->id,
+                'name' => $user->name ?? '',
+                'email' => $user->email ?? '',
                 'email_verified' => $emailVerified ? '✅' : '⚠️',
                 'roles' => $roles,
                 'updated_at' => $updatedAt,
-                'edit' => [
-                    'button' => [
-                        'label' => "✏️",
-                        'action' => 'edit_user',
-                        'style' => 'secondary',
-                        'parameters' => [
-                            'user_id' => $userId,
-                        ]
-                    ]
-                ],
-                'delete' => [
-                    'button' => [
-                        'label' => "🗑️",
-                        'action' => 'delete_user',
-                        'style' => 'danger',
-                        'parameters' => [
-                            'user_id' => $userId,
-                        ]
-                    ]
-                ],
             ];
         }
 

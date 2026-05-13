@@ -135,6 +135,17 @@ class EditUserDialog
                 ])
         );
 
+        // Remove button
+        $buttonsContainer->add(
+            UI::button('btn_delete_user')
+                ->label('Delete User')
+                ->style('danger')
+                ->action('delete_user', [
+                    '_caller_service_id' => $callerServiceId
+                ])
+                ->visible($user !== null) // Only show delete if editing an existing user
+        );
+
         $registerContainer->add($buttonsContainer);
 
         return $registerContainer->toJson();

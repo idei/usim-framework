@@ -67,10 +67,7 @@ class Dashboard extends Screen
                     ],
                     'roles_tab' => [
                         'label' => t('screen.admin.dashboard.roles_tab'),
-                    ],
-                    'permissions_tab' => [
-                        'label' => t('screen.admin.dashboard.permissions_tab'),
-                    ],
+                    ]
                 ],
                 'users_tab'
             );
@@ -117,6 +114,8 @@ class Dashboard extends Screen
             ->dataModel(UserTableModel::class)
             ->rounded(0)
             ->shadow(0)
+            ->bodyOverflowX('hidden')
+            ->bodyOverflowY('auto')
             ->rowMinHeight(45);
 
         $users_crud_container
@@ -170,15 +169,6 @@ class Dashboard extends Screen
             ->add($roles_table);
 
         return $roles_container;
-    }
-
-    protected function postLoadUI(): void
-    {
-        $search_users = $this->users_table->getSearchTerm();
-        $this->search_users->value($search_users);
-
-        $search_roles = $this->roles_table->getSearchTerm();
-        $this->search_roles->value($search_roles);
     }
 
     public function onAddUserClicked(array $params): void
@@ -238,9 +228,9 @@ class Dashboard extends Screen
         }
     }
 
-    public function onEditUser(array $params): void
+    public function onUsersTableRowClicked(array $params): void
     {
-        $userId = $params['user_id'] ?? null;
+        $userId = $params['model_id'] ?? null;
         if (!$userId) {
             $this->toast(t('User ID is required'), 'error');
             return;
@@ -257,6 +247,8 @@ class Dashboard extends Screen
             $this->toast(t('User not found'), 'error');
             return;
         }
+
+        $this->users_table->select($userId);
 
         EditUserDialog::open(
             user: $user,
@@ -377,11 +369,13 @@ class Dashboard extends Screen
     {
         $search = (string) ($params['value'] ?? '');
         $this->users_table->setSearchTerm($search);
+        $this->search_users->value($search);
     }
 
     public function onSearchRoles(array $params): void
     {
         $search = (string) ($params['value'] ?? '');
         $this->roles_table->setSearchTerm($search);
+        $this->search_roles->value($search);
     }
 }

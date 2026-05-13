@@ -297,7 +297,7 @@ class Table extends UIComponent
      * - __row_selected: boolean selected state
      * - __row_action: custom backend action for row click
      * - __row_parameters: custom backend parameters for row click
-     * - __row_model_id: model identifier exposed as parameter model_id
+     * - _model_id: model identifier exposed as parameter model_id
      *
      * @param array $rowData
      * @return array{0: array, 1: array{style: string, selected: bool, action: ?string, parameters: array<string, mixed>}}
@@ -312,7 +312,7 @@ class Table extends UIComponent
             $parameters = [];
         }
 
-        $modelId = $rowData['__row_model_id'] ?? null;
+        $modelId = $rowData['_model_id'] ?? null;
         if ($modelId !== null && !array_key_exists('model_id', $parameters)) {
             $parameters['model_id'] = $modelId;
         }
@@ -324,7 +324,7 @@ class Table extends UIComponent
             $rowData['__row_selected'],
             $rowData['__row_action'],
             $rowData['__row_parameters'],
-            $rowData['__row_model_id']
+            $rowData['_model_id']
         );
 
         return [
