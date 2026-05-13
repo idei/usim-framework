@@ -10,6 +10,7 @@ use App\UI\Components\Modals\RegisterDialog;
 use Idei\Usim\Components\Button;
 use Idei\Usim\Components\Container;
 use Idei\Usim\Components\Input;
+use Idei\Usim\Components\Split;
 use Idei\Usim\Components\Table;
 use Idei\Usim\Enums\DialogType;
 use Idei\Usim\Enums\LayoutType;
@@ -47,6 +48,7 @@ class Dashboard extends Screen
     protected Input $search_roles;
     protected Button $add_user_btn;
     protected Button $add_role_btn;
+    protected Split $roles_split;
 
     protected function buildBaseUI(Container $container, ...$params): void
     {
@@ -133,6 +135,23 @@ class Dashboard extends Screen
             ->gap('4px')
             ->plain();
 
+        $roles_split = UI::split('roles_split')
+            ->horizontal()
+            ->splitSize('65%')
+            ->minFirstSize('320px')
+            ->minSecondSize('220px')
+            ->width('100%')
+            ->height('520px')
+            ->plain();
+
+        $roles_left_panel = UI::container('roles_left_panel')
+            ->layout(LayoutType::VERTICAL)
+            ->gap('4px')
+            ->plain();
+
+        $roles_right_panel = UI::container('roles_right_panel')
+            ->plain();
+
         $toolbar = UI::container('roles_toolbar')
             ->layout(LayoutType::HORIZONTAL)
             ->fullWidth()
@@ -168,9 +187,15 @@ class Dashboard extends Screen
             ->selectionMode(SelectionMode::SINGLE)
             ->rowMinHeight(45);
 
-        $roles_container
+        $roles_left_panel
             ->add($toolbar)
             ->add($roles_table);
+
+        $roles_split
+            ->addFirst($roles_left_panel)
+            ->addSecond($roles_right_panel);
+
+        $roles_container->add($roles_split);
 
         return $roles_container;
     }
