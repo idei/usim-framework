@@ -39,6 +39,8 @@ class TableRow extends UIComponent
             'empty' => null,
             'row' => null, // Row index for ordering
             'min_height' => null, // Minimum height in pixels
+            'action' => null,
+            'parameters' => null,
         ];
     }
 
@@ -180,6 +182,28 @@ class TableRow extends UIComponent
     public function selected(bool $selected = true): self
     {
         return $this->setConfig('selected', $selected);
+    }
+
+    /**
+     * Set the action to trigger when the row is clicked.
+     *
+     * @param string|null $action Action name or null to clear it
+     * @return self For method chaining
+     */
+    public function action(?string $action): self
+    {
+        return $this->setConfig('action', $action);
+    }
+
+    /**
+     * Set the parameters to send when the row is clicked.
+     *
+     * @param array|null $parameters Parameter payload or null to clear it
+     * @return self For method chaining
+     */
+    public function parameters(?array $parameters): self
+    {
+        return $this->setConfig('parameters', $parameters);
     }
 
     /**

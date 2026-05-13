@@ -9,4 +9,5 @@ return [
     'cast_column' => 'Reparto',
     'synopsis_column' => 'Sinopsis',
     'search_placeholder' => 'Buscar películas...',
+    'row_clicked_toast' => 'PFila seleccionada: :name',
 ];

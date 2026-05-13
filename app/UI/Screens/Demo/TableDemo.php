@@ -2,6 +2,7 @@
 
 namespace App\UI\Screens\Demo;
 
+use App\Services\Movie\MovieListingService;
 use App\UI\Components\DataTable\MovieTableModel;
 use Idei\Usim\Components\Container;
 use Idei\Usim\Components\Input;
@@ -13,7 +14,6 @@ use Override;
 
 class TableDemo extends Screen
 {
-    private const BODY_HEIGHT = 400;
     protected Table $movies_table;
     protected Input $search_movies;
 
@@ -32,8 +32,6 @@ class TableDemo extends Screen
             ->sortedBy('title')
             ->pagination(10)
             ->dataModel(MovieTableModel::class)
-            ->bodyMinHeight(self::BODY_HEIGHT)
-            ->bodyMaxHeight(self::BODY_HEIGHT)
             ->bodyOverflowX('hidden')
             ->bodyOverflowY('auto')
             ->align('center');
@@ -91,6 +89,18 @@ class TableDemo extends Screen
     {
         $page = $params['page'] ?? 1;
         $this->movies_table->page($page);
+    }
+
+    public function onMoviesTableRowClicked(array $params): void
+    {
+        $movieId = isset($params['model_id']) ? (int) $params['model_id'] : 0;
+        if ($movieId <= 0) {
+            return;
+        }
+
+        $movie = app(MovieListingService::class)->findById($movieId);
+
+        $this->toast(t($movie->title));
     }
 
 }

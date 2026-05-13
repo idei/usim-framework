@@ -4,9 +4,31 @@ use App\UI\Screens\Demo\TableDemo;
 use Database\Seeders\GenreSeeder;
 use Database\Seeders\MovieSeeder;
 
-// TableDemo disables pagination (pagination(0)), so all movies are rendered in one logical page.
 const MOVIES_TOTAL = 17;
-const MOVIES_TOTAL_PAGES = 1;
+const MOVIES_PER_PAGE = 10;
+const MOVIES_TOTAL_PAGES = 2;
+
+function firstTableRowComponent(array $payload, int $rowIndex = 0): array
+{
+    foreach ($payload as $key => $component) {
+        if (!is_array($component)) {
+            continue;
+        }
+
+        if (($component['type'] ?? null) !== 'tablerow') {
+            continue;
+        }
+
+        if (($component['row'] ?? null) !== $rowIndex) {
+            continue;
+        }
+
+        $component['_json_key'] = (int) $key;
+        return $component;
+    }
+
+    throw new RuntimeException("Table row {$rowIndex} not found in payload.");
+}
 
 beforeEach(/** @param Tests\TestCase $this */ function () {
     $this->seed([GenreSeeder::class, MovieSeeder::class]);
@@ -19,14 +41,14 @@ it('loads movies table with expected configuration', function () {
 
     expect($table['type'] ?? null)->toBe('table');
     expect($table['title'] ?? null)->toBe(t('screen.demo.table_demo.table_title'));
-    expect($table['pagination']['enabled'] ?? null)->toBeFalse();
-    expect($table['pagination']['per_page'] ?? null)->toBe(MOVIES_TOTAL);
+    expect($table['pagination']['enabled'] ?? null)->toBeTrue();
+    expect($table['pagination']['per_page'] ?? null)->toBe(MOVIES_PER_PAGE);
     expect($table['pagination']['current_page'] ?? null)->toBe(1);
     expect($table['pagination']['total_items'] ?? null)->toBe(MOVIES_TOTAL);
     expect($table['pagination']['total_pages'] ?? null)->toBe(MOVIES_TOTAL_PAGES);
-    expect($table['pagination']['can_next'] ?? null)->toBeFalse();
+    expect($table['pagination']['can_next'] ?? null)->toBeTrue();
     expect($table['pagination']['can_prev'] ?? null)->toBeFalse();
-    expect($table['pagination']['show_controls'] ?? null)->toBeFalse();
+    expect($table['pagination']['show_controls'] ?? null)->toBeTrue();
 
     $ui->assertNoIssues();
 });
@@ -49,10 +71,10 @@ it('changes page and updates pagination flags', function () {
     $response->assertOk();
 
     $table = $ui->component('movies_table')->data();
-    expect($table['pagination']['current_page'] ?? null)->toBe(1);
-    expect($table['pagination']['can_prev'] ?? null)->toBeFalse();
+    expect($table['pagination']['current_page'] ?? null)->toBe(MOVIES_TOTAL_PAGES);
+    expect($table['pagination']['can_prev'] ?? null)->toBeTrue();
     expect($table['pagination']['can_next'] ?? null)->toBeFalse();
-    expect($table['pagination']['show_controls'] ?? null)->toBeFalse();
+    expect($table['pagination']['show_controls'] ?? null)->toBeTrue();
 
     $ui->assertNoIssues();
 });
@@ -71,4 +93,41 @@ it('sorts movies by column and resets to page 1', function () {
     expect($table['sort_column'] ?? null)->toBe('release_year');
 
     $ui->assertNoIssues();
+});
+
+it('configures row click actions using the table name and model id', function () {
+    $response = getScreenJson($this, TableDemo::class, ['reset' => true]);
+    $response->assertOk();
+
+    $firstRow = firstTableRowComponent($response->json(), 0);
+
+    expect($firstRow['action'] ?? null)->toBe('movies_table_row_clicked');
+    expect($firstRow['parameters']['model_id'] ?? null)->toBeInt();
+});
+
+it('handles movie row click through the table name convention', function () {
+    $response = getScreenJson($this, TableDemo::class, ['reset' => true]);
+    $response->assertOk();
+
+    $payload = $response->json();
+    $firstRow = firstTableRowComponent($payload, 0);
+    $movieId = $firstRow['parameters']['model_id'] ?? null;
+    $storageKey = config('ui-services.app_id');
+    $storage = $payload['storage'][$storageKey] ?? null;
+
+    expect($movieId)->toBeInt();
+    expect($storage)->toBeString();
+
+    $eventResponse = $this->postJson('/api/ui-event', [
+        'component_id' => $firstRow['_json_key'],
+        'event' => 'click',
+        'action' => 'movies_table_row_clicked',
+        'parameters' => ['model_id' => $movieId],
+        $storageKey => $storage,
+    ]);
+
+    $eventResponse->assertOk();
+    expect($eventResponse->json('toast.message'))->toBe(
+        t('screen.demo.table_demo.row_clicked_toast', ['id' => $movieId])
+    );
 });

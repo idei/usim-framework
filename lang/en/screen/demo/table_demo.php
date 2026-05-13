@@ -9,4 +9,5 @@ return [
     'cast_column' => 'Cast',
     'synopsis_column' => 'Synopsis',
     'search_placeholder' => 'Search movies...',
+    'row_clicked_toast' => 'Selected movie: :name',
 ];

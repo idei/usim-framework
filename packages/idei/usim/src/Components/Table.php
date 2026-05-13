@@ -21,6 +21,7 @@ class Table extends UIComponent
     public const DEFAULT_COLUMN_WIDTH = 160;
     public const DEFAULT_PAGINATION_PER_PAGE = 7;
     public const DEFAULT_ROW_MIN_HEIGHT = 45;
+    public const DEFAULT_BODY_HEIGHT = 400;
     public const DEFAULT_BODY_OVERFLOW_X = 'visible';
     public const DEFAULT_BODY_OVERFLOW_Y = 'visible';
 
@@ -107,8 +108,8 @@ class Table extends UIComponent
             'sort_direction' => 'asc', // asc or desc
             'search_term' => null,
             'row_min_height' => self::DEFAULT_ROW_MIN_HEIGHT,
-            'body_min_height' => null,
-            'body_max_height' => null,
+            'body_min_height' => self::DEFAULT_BODY_HEIGHT,
+            'body_max_height' => self::DEFAULT_BODY_HEIGHT,
             'body_overflow_x' => self::DEFAULT_BODY_OVERFLOW_X,
             'body_overflow_y' => self::DEFAULT_BODY_OVERFLOW_Y,
         ];
@@ -237,25 +238,50 @@ class Table extends UIComponent
      * Reserved keys:
      * - __row_style: table row semantic style (default, warning, success, etc.)
      * - __row_selected: boolean selected state
+     * - __row_action: custom backend action for row click
+     * - __row_parameters: custom backend parameters for row click
+     * - __row_model_id: model identifier exposed as parameter model_id
      *
      * @param array $rowData
-     * @return array{0: array, 1: array{style: string, selected: bool}}
+     * @return array{0: array, 1: array{style: string, selected: bool, action: ?string, parameters: array<string, mixed>}}
      */
     private function splitFormattedRowData(array $rowData): array
     {
         $style = (string) ($rowData['__row_style'] ?? 'default');
         $selected = (bool) ($rowData['__row_selected'] ?? false);
+        $action = $rowData['__row_action'] ?? null;
 
-        unset($rowData['__row_style'], $rowData['__row_selected']);
+        $parameters = $rowData['__row_parameters'] ?? [];
+        if (!is_array($parameters)) {
+            $parameters = [];
+        }
 
-        return [$rowData, ['style' => $style, 'selected' => $selected]];
+        $modelId = $rowData['__row_model_id'] ?? null;
+        if ($modelId !== null && !array_key_exists('model_id', $parameters)) {
+            $parameters['model_id'] = $modelId;
+        }
+
+        unset(
+            $rowData['__row_style'],
+            $rowData['__row_selected'],
+            $rowData['__row_action'],
+            $rowData['__row_parameters'],
+            $rowData['__row_model_id']
+        );
+
+        return [$rowData, [
+            'style' => $style,
+            'selected' => $selected,
+            'action' => is_string($action) && $action !== '' ? $action : null,
+            'parameters' => $parameters,
+        ]];
     }
 
     /**
      * Apply row-level metadata after the row has been prepared.
      *
      * @param int $row
-     * @param array{style: string, selected: bool} $meta
+     * @param array{style: string, selected: bool, action: ?string, parameters: array<string, mixed>} $meta
      * @return void
      */
     private function applyRowMetadata(int $row, array $meta): void
@@ -266,7 +292,9 @@ class Table extends UIComponent
 
         $this->rowBuilders[$row]
             ->style($meta['style'] !== '' ? $meta['style'] : 'default')
-            ->selected($meta['selected']);
+            ->selected($meta['selected'])
+            ->action($meta['action'] ?? (empty($meta['parameters']) ? null : $this->getRowClickActionName()))
+            ->parameters(empty($meta['parameters']) ? null : $meta['parameters']);
     }
 
     /**
@@ -752,6 +780,13 @@ class Table extends UIComponent
         return $base . '__' . $suffix;
     }
 
+    private function getRowClickActionName(): string
+    {
+        $tableName = $this->name ?? 'table';
+
+        return $tableName . '_row_clicked';
+    }
+
     private function isRowsContainer(Container $element): bool
     {
         $name = $element->getName();
@@ -830,6 +865,12 @@ class Table extends UIComponent
         if ($row < 0 || $row >= $this->rows) {
             throw new \OutOfBoundsException("Row index $row is out of bounds (0-" . ($this->rows - 1) . ")");
         }
+
+        $this->rowBuilders[$row]
+            ->style('default')
+            ->selected(false)
+            ->action(null)
+            ->parameters(null);
 
         for ($col = 0; $col < min(count($data), $this->cols); $col++) {
             $value = $data[$col];
@@ -1274,7 +1315,7 @@ class Table extends UIComponent
     private function configureTableHeaders(array $columns): void
     {
         $headerData = array_values(array_map(
-            fn ($column) => [
+            fn($column) => [
                 'label' => $this->extractColumnLabel($column),
                 'sort_by' => $this->extractSortByKey($column),
             ],
