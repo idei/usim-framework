@@ -770,6 +770,22 @@ body {
     background: var(--usim-table-row-danger-bg, rgba(231, 76, 60, 0.12));
 }
 
+/* Keep selection highlight visible regardless of row semantic style or zebra striping. */
+.ui-table-row.selected,
+.ui-table-row.default.selected,
+.ui-table-row.primary.selected,
+.ui-table-row.success.selected,
+.ui-table-row.warning.selected,
+.ui-table-row.danger.selected,
+.ui-table-row.selected:nth-child(even),
+.ui-table-row.default.selected:nth-child(even),
+.ui-table-row.primary.selected:nth-child(even),
+.ui-table-row.success.selected:nth-child(even),
+.ui-table-row.warning.selected:nth-child(even),
+.ui-table-row.danger.selected:nth-child(even) {
+    background: var(--usim-table-row-selected-bg, rgba(52, 152, 219, 0.14));
+}
+
 /* Empty state */
 .ui-table-empty {
     padding: 40px 20px;

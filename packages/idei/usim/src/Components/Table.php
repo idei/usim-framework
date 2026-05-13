@@ -194,7 +194,7 @@ class Table extends UIComponent
      *
      * If $mode is null, returns current mode.
      *
-     * @param string|null $mode
+     * @param SelectionMode|null $mode
      * @return static|string|null
      */
     public function selectionMode(?SelectionMode $mode = null): static|string
@@ -233,6 +233,10 @@ class Table extends UIComponent
                 return $singleSelected;
             }
             return $selected;
+        }
+
+        if (!\is_array($rows)) {
+            $rows = [$rows];
         }
 
         return $this->setConfig('selected_rows', $rows);
@@ -301,7 +305,6 @@ class Table extends UIComponent
     private function splitFormattedRowData(array $rowData): array
     {
         $style = (string) ($rowData['__row_style'] ?? 'default');
-        $selected = (bool) ($rowData['__row_selected'] ?? false);
         $action = $rowData['__row_action'] ?? null;
 
         $parameters = $rowData['__row_parameters'] ?? [];
@@ -313,6 +316,8 @@ class Table extends UIComponent
         if ($modelId !== null && !array_key_exists('model_id', $parameters)) {
             $parameters['model_id'] = $modelId;
         }
+
+        $selected = (bool) ($rowData['__row_selected'] ?? false);
 
         unset(
             $rowData['__row_style'],

@@ -2,6 +2,18 @@
  * Table component (modular implementation)
  */
 class UsimTableComponent extends UIComponent {
+    scheduleSelectedRowsStateSync() {
+        if (this._selectedRowsSyncScheduled) {
+            return;
+        }
+
+        this._selectedRowsSyncScheduled = true;
+        queueMicrotask(() => {
+            this._selectedRowsSyncScheduled = false;
+            this.applySelectedRowsState();
+        });
+    }
+
     normalizeRenderedRows() {
         const rowHost = this.tbodyElement || this.tableElement;
         if (!rowHost) {
@@ -89,6 +101,7 @@ class UsimTableComponent extends UIComponent {
         this.applyBodyViewportStyles();
         this.syncRenderedRows();
         this.normalizeRenderedRows();
+        this.scheduleSelectedRowsStateSync();
         const shouldRenderPagination = this.shouldRenderPaginationControls();
         this.upsertPaginationControls(shouldRenderPagination);
     }
@@ -219,6 +232,56 @@ class UsimTableComponent extends UIComponent {
         const allowed = new Set(['visible', 'hidden', 'auto', 'scroll']);
 
         return allowed.has(normalized) ? normalized : 'visible';
+    }
+
+    normalizeSelectionMode(value) {
+        const normalized = String(value || 'none').toLowerCase().trim();
+        if (normalized === 'single' || normalized === 'multiple') {
+            return normalized;
+        }
+
+        return 'none';
+    }
+
+    getSelectedRowIdSet() {
+        const rawSelection = this.config?.selected_rows;
+        let selectedRows = [];
+
+        if (Array.isArray(rawSelection)) {
+            selectedRows = rawSelection;
+        } else if (rawSelection !== null && rawSelection !== undefined && rawSelection !== '') {
+            selectedRows = [rawSelection];
+        }
+
+        return new Set(selectedRows.map((value) => String(value)));
+    }
+
+    applySelectedRowsState() {
+        const rowHost = this.tbodyElement || this.tableElement;
+        if (!rowHost) {
+            return;
+        }
+
+        const rows = Array.from(rowHost.querySelectorAll('.ui-table-row'));
+        if (rows.length === 0) {
+            return;
+        }
+
+        const selectionMode = this.normalizeSelectionMode(this.config?.selection_mode);
+        if (selectionMode === 'none') {
+            rows.forEach((row) => row.classList.remove('selected'));
+            return;
+        }
+
+        const selectedIds = this.getSelectedRowIdSet();
+        rows.forEach((row) => {
+            const modelId = row.getAttribute('data-row-model-id');
+            if (modelId === null) {
+                return;
+            }
+
+            row.classList.toggle('selected', selectedIds.has(String(modelId)));
+        });
     }
 
     ensureFooterCell() {
@@ -505,6 +568,7 @@ class UsimTableComponent extends UIComponent {
         super.mount(parentElement);
         this.syncRenderedRows();
         this.normalizeRenderedRows();
+        this.scheduleSelectedRowsStateSync();
     }
 }
 

@@ -7,6 +7,7 @@ class UsimTableRowComponent extends UIComponent {
         row.className = 'ui-table-row';
 
         this.applyInteractiveState(row);
+        this.applyModelIdentifierState(row);
 
         if (this.config.selected) {
             row.classList.add('selected');
@@ -40,6 +41,7 @@ class UsimTableRowComponent extends UIComponent {
 
         this.element.className = 'ui-table-row';
         this.applyInteractiveState(this.element);
+        this.applyModelIdentifierState(this.element);
 
         if (this.config.selected) {
             this.element.classList.add('selected');
@@ -62,6 +64,17 @@ class UsimTableRowComponent extends UIComponent {
         }
 
         this.applyCommonAttributes(this.element);
+    }
+
+    applyModelIdentifierState(row) {
+        const modelId = this.config?.parameters?.model_id;
+
+        if (modelId === null || modelId === undefined || modelId === '') {
+            row.removeAttribute('data-row-model-id');
+            return;
+        }
+
+        row.setAttribute('data-row-model-id', String(modelId));
     }
 
     applyInteractiveState(row) {

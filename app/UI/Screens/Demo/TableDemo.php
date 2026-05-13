@@ -8,6 +8,7 @@ use Idei\Usim\Components\Container;
 use Idei\Usim\Components\Input;
 use Idei\Usim\Components\Table;
 use Idei\Usim\Enums\LayoutType;
+use Idei\Usim\Enums\SelectionMode;
 use Idei\Usim\Screen;
 use Idei\Usim\UI;
 use Override;
@@ -34,6 +35,7 @@ class TableDemo extends Screen
             ->dataModel(MovieTableModel::class)
             ->bodyOverflowX('hidden')
             ->bodyOverflowY('auto')
+            ->selectionMode(SelectionMode::SINGLE)
             ->align('center');
 
         $container
@@ -93,7 +95,19 @@ class TableDemo extends Screen
 
     public function onMoviesTableRowClicked(array $params): void
     {
-        $movieId = isset($params['model_id']) ? (int) $params['model_id'] : 0;
+        $modelId = $params['model_id'] ?? null;
+        if ($modelId === null || $modelId === '') {
+            return;
+        }
+
+        // Always persist selected row exactly as received (supports int and string IDs).
+        $this->movies_table->select($modelId);
+
+        if (!is_numeric((string) $modelId)) {
+            return;
+        }
+
+        $movieId = (int) $modelId;
         if ($movieId <= 0) {
             return;
         }
