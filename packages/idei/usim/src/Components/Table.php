@@ -6,6 +6,7 @@ use Idei\Usim\Components\Container;
 use Idei\Usim\Components\TableRow;
 use Idei\Usim\Contracts\UIElement;
 use Idei\Usim\DataTable\AbstractTableModel;
+use Idei\Usim\Enums\SelectionMode;
 
 /**
  * Table Builder
@@ -21,7 +22,7 @@ class Table extends UIComponent
     public const DEFAULT_COLUMN_WIDTH = 160;
     public const DEFAULT_PAGINATION_PER_PAGE = 7;
     public const DEFAULT_ROW_MIN_HEIGHT = 45;
-    public const DEFAULT_BODY_HEIGHT = 400;
+    public const DEFAULT_BODY_HEIGHT = 320;
     public const DEFAULT_BODY_OVERFLOW_X = 'visible';
     public const DEFAULT_BODY_OVERFLOW_Y = 'visible';
 
@@ -102,7 +103,7 @@ class Table extends UIComponent
             'rows' => 0,
             'cols' => 0,
             'align' => 'left', // Alignment: left, center, right
-            'border_radius' => '8px',
+            'border_radius' => '4px',
             'box_shadow' => null,
             'sort_column' => null,
             'sort_direction' => 'asc', // asc or desc
@@ -112,6 +113,8 @@ class Table extends UIComponent
             'body_max_height' => self::DEFAULT_BODY_HEIGHT,
             'body_overflow_x' => self::DEFAULT_BODY_OVERFLOW_X,
             'body_overflow_y' => self::DEFAULT_BODY_OVERFLOW_Y,
+            'selection_mode' => SelectionMode::NONE->value,
+            'selected_rows' => [], // Array of selected row indices (single mode uses first element)
         ];
     }
 
@@ -185,6 +188,56 @@ class Table extends UIComponent
     {
         return $this->config['sort_direction'];
     }
+
+    /**
+     * Set or get row selection mode.
+     *
+     * If $mode is null, returns current mode.
+     *
+     * @param string|null $mode
+     * @return static|string|null
+     */
+    public function selectionMode(?SelectionMode $mode = null): static|string
+    {
+        if ($mode === null) {
+            return $this->config['selection_mode'];
+        }
+
+        if (!($mode instanceof SelectionMode) || !SelectionMode::isValid($mode->value)) {
+            throw new \InvalidArgumentException("Invalid selection mode: " . $mode);
+        }
+
+        return $this->setConfig('selection_mode', $mode->value);
+    }
+
+    /**
+     * Set or get selected row identifiers based on the current selection mode.
+     *
+     * If $rows is null, returns the current selection:
+     * - null when selection is disabled
+     * - a single row identifier in single selection mode
+     * - an array of row identifiers in multiple selection mode
+     *
+     * @param array|string|int|null $rows Row identifier or identifiers to select.
+     * @return static|array|string|int|null
+     */
+    public function select(array|string|int|null $rows = null): static|array|string|int
+    {
+        $selected = $this->config['selected_rows'] ?? [];
+        if ($rows === null) {
+            if ($this->config['selection_mode'] === SelectionMode::NONE->value) {
+                return null;
+            }
+            if ($this->config['selection_mode'] === SelectionMode::SINGLE->value) {
+                $singleSelected = !empty($selected) ? $selected[0] : null;
+                return $singleSelected;
+            }
+            return $selected;
+        }
+
+        return $this->setConfig('selected_rows', $rows);
+    }
+
     public function refresh(): void
     {
         $this->page(null);
@@ -269,12 +322,15 @@ class Table extends UIComponent
             $rowData['__row_model_id']
         );
 
-        return [$rowData, [
-            'style' => $style,
-            'selected' => $selected,
-            'action' => is_string($action) && $action !== '' ? $action : null,
-            'parameters' => $parameters,
-        ]];
+        return [
+            $rowData,
+            [
+                'style' => $style,
+                'selected' => $selected,
+                'action' => is_string($action) && $action !== '' ? $action : null,
+                'parameters' => $parameters,
+            ]
+        ];
     }
 
     /**

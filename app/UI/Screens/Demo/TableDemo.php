@@ -30,7 +30,7 @@ class TableDemo extends Screen
         $table = UI::table('movies_table')
             ->title(t('screen.demo.table_demo.table_title'))
             ->sortedBy('title')
-            ->pagination(10)
+            ->pagination(7)
             ->dataModel(MovieTableModel::class)
             ->bodyOverflowX('hidden')
             ->bodyOverflowY('auto')
