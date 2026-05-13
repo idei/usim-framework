@@ -13,6 +13,7 @@ use Override;
 
 class TableDemo extends Screen
 {
+    private const BODY_HEIGHT = 400;
     protected Table $movies_table;
     protected Input $search_movies;
 
@@ -31,8 +32,8 @@ class TableDemo extends Screen
             ->sortedBy('title')
             ->pagination(10)
             ->dataModel(MovieTableModel::class)
-            ->bodyMinHeight(320)
-            ->bodyMaxHeight(320)
+            ->bodyMinHeight(self::BODY_HEIGHT)
+            ->bodyMaxHeight(self::BODY_HEIGHT)
             ->bodyOverflowX('hidden')
             ->bodyOverflowY('auto')
             ->align('center');
