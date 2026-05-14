@@ -37,7 +37,6 @@ return [
                 'en' => 'Manages the system and users.',
             ],
             'default_screen' => Dashboard::class,
-            'permissions' => ['*'],
             'seed_user' => [
                 'first_name' => env('ADMIN_FIRST_NAME', 'Admin'),
                 'last_name' => env('ADMIN_LAST_NAME', 'User'),
@@ -55,7 +54,6 @@ return [
                 'en' => 'Regular system user.',
             ],
             'default_screen' => Home::class,
-            'permissions' => [],
             'seed_user' => [
                 'first_name' => env('USER_FIRST_NAME', 'Regular'),
                 'last_name' => env('USER_LAST_NAME', 'User'),
