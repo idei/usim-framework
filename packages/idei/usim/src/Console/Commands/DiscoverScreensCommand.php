@@ -16,7 +16,7 @@ class DiscoverScreensCommand extends Command
 
         $screens = $discoveryService->discover();
 
-        $count = count($screens);
+        $count = \count($screens);
         $this->info("Found {$count} screens.");
 
         $this->writeManifest($screens);
@@ -28,14 +28,44 @@ class DiscoverScreensCommand extends Command
     {
         $path = $this->getManifestPath();
 
-        $content = "<?php\n\nreturn " . var_export($screens, true) . ";\n";
+        $content = "<?php\n\nreturn " . $this->formatArrayToShortSyntax($screens) . ";\n";
 
         file_put_contents($path, $content);
 
-        // Invalidate PHP opcache for this file if applicable
         if (function_exists('opcache_invalidate')) {
             opcache_invalidate($path, true);
         }
+    }
+
+    private function formatArrayToShortSyntax(array $array, int $indentLevel = 0): string
+    {
+        $indent = str_repeat("\t", $indentLevel);
+        $subIndent = str_repeat("\t", $indentLevel + 1);
+
+        $parts = [];
+        foreach ($array as $key => $value) {
+            // Verificamos si la clave parece una clase de PHP (contiene barras invertidas)
+            if (is_string($key) && str_contains($key, '\\')) {
+                // Quitamos el escape doble para que quede App\UI\Screens\Home::class
+                $formattedKey = "{$key}::class";
+            } else {
+                $formattedKey = is_int($key) ? $key : "'" . addslashes($key) . "'";
+            }
+
+            if (\is_array($value)) {
+                $formattedValue = $this->formatArrayToShortSyntax($value, $indentLevel + 1);
+            } else {
+                $formattedValue = \is_int($value) || \is_float($value) ? $value : "'" . addslashes($value) . "'";
+            }
+
+            $parts[] = "{$subIndent}{$formattedKey} => {$formattedValue},";
+        }
+
+        if (empty($parts)) {
+            return "[]";
+        }
+
+        return "[\n" . implode("\n", $parts) . "\n{$indent}]";
     }
 
     private function getManifestPath(): string

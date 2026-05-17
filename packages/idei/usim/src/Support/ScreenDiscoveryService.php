@@ -31,6 +31,8 @@ class ScreenDiscoveryService
             if ($className && $this->isValidScreenClass($className)) {
                 $manifest[$className] = [
                     'id_offset' => $this->generateStableOffset($className),
+                    'route_path' => $className::getRoutePath(),
+                    'permission' => $this->permissionFromRoutePath($className::getRoutePath()),
                     // Future metadata (menu, auth, etc) will go here
                 ];
             }
@@ -50,7 +52,7 @@ class ScreenDiscoveryService
         $hash = crc32($className);
 
         // Ensure positive integer (32-bit PHP compatibility)
-        $hash = sprintf("%u", $hash);
+        $hash = \sprintf("%u", $hash);
 
         // Take last 6 digits to keep numbers manageable but dispersed
         // This is a trade-off. Full CRC32 * 10000 might overflow max int on some systems.
@@ -107,5 +109,16 @@ class ScreenDiscoveryService
 
         $reflection = new \ReflectionClass($className);
         return $reflection->isSubclassOf(Screen::class) && !$reflection->isAbstract();
+    }
+
+    private function permissionFromRoutePath(string $routePath): string
+    {
+        $normalized = trim($routePath, '/');
+
+        if ($normalized === '') {
+            return 'screen.access.root';
+        }
+
+        return 'screen.access.' . str_replace('/', '.', $normalized);
     }
 }

@@ -3,8 +3,6 @@
 namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
-use Idei\Usim\Screen;
-use Idei\Usim\Support\ScreenDiscoveryService;
 use Spatie\Permission\Models\Role;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\PermissionRegistrar;
@@ -16,15 +14,11 @@ class UsimRoleSeeder extends Seeder
         app()[PermissionRegistrar::class]->forgetCachedPermissions();
 
         $rolesConfig = config('users.roles', []);
-        $screenPermissions = collect(app(ScreenDiscoveryService::class)->discover())
-            ->keys()
-            ->filter(fn ($screenClass) => is_string($screenClass) && class_exists($screenClass))
-            ->filter(fn ($screenClass) => is_subclass_of($screenClass, Screen::class))
-            ->map(function (string $screenClass): ?string {
-                /** @var class-string<Screen> $screenClass */
-                return $this->permissionFromRoutePath($screenClass::getRoutePath());
-            })
-            ->filter(fn ($permission) => is_string($permission) && $permission !== '')
+        $manifest = $this->loadScreensManifest();
+
+        $screenPermissions = collect($manifest)
+            ->pluck('permission')
+            ->filter(fn ($permission) => \is_string($permission) && $permission !== '')
             ->values()
             ->all();
 
@@ -38,7 +32,7 @@ class UsimRoleSeeder extends Seeder
         }
 
         foreach ($rolesConfig as $roleName => $roleMeta) {
-            if (!is_string($roleName) || $roleName === '') {
+            if (!\is_string($roleName) || $roleName === '') {
                 continue;
             }
 
@@ -50,8 +44,10 @@ class UsimRoleSeeder extends Seeder
                 continue;
             }
 
+            // TODO: this is for "default screen access"
             $defaultScreenPermission = $this->permissionFromScreenClass(
-                is_array($roleMeta) ? ($roleMeta['default_screen'] ?? null) : null
+                manifest: $manifest,
+                screenClass: \is_array($roleMeta) ? ($roleMeta['default_screen'] ?? null) : null
             );
 
             if ($defaultScreenPermission !== null) {
@@ -63,28 +59,45 @@ class UsimRoleSeeder extends Seeder
         }
     }
 
-    private function permissionFromScreenClass(mixed $screenClass): ?string
+    /**
+     * @return array<string, array<string, mixed>>
+     */
+    private function loadScreensManifest(): array
     {
-        if (!is_string($screenClass) || !class_exists($screenClass)) {
-            return null;
+        $manifestPath = app()->bootstrapPath('cache/usim_screens.php');
+
+        if (!file_exists($manifestPath)) {
+            return [];
         }
 
-        if (!is_subclass_of($screenClass, Screen::class)) {
-            return null;
+        $manifest = require $manifestPath;
+
+        if (!\is_array($manifest)) {
+            return [];
         }
 
-        /** @var class-string<Screen> $screenClass */
-        return $this->permissionFromRoutePath($screenClass::getRoutePath());
+        return $manifest;
     }
 
-    private function permissionFromRoutePath(string $routePath): string
+    /**
+     * @param array<string, array<string, mixed>> $manifest
+     */
+    private function permissionFromScreenClass(array $manifest, mixed $screenClass): ?string
     {
-        $normalized = trim($routePath, '/');
-
-        if ($normalized === '') {
-            return 'screen.access.root';
+        if (!\is_string($screenClass) || $screenClass === '') {
+            return null;
         }
 
-        return 'screen.access.' . str_replace('/', '.', $normalized);
+        $screenMeta = $manifest[$screenClass] ?? null;
+        if (!\is_array($screenMeta)) {
+            return null;
+        }
+
+        $permission = $screenMeta['permission'] ?? null;
+        if (!\is_string($permission) || $permission === '') {
+            return null;
+        }
+
+        return $permission;
     }
 }
