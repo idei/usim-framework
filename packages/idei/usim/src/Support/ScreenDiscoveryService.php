@@ -29,11 +29,15 @@ class ScreenDiscoveryService
             $className = $this->getClassNameFromFile($file);
 
             if ($className && $this->isValidScreenClass($className)) {
+
+                $id_offset = $this->generateStableOffset($className);
+                $routePath = $className::getRoutePath();
+                $permission = $this->permissionFromRoutePath($routePath);
+
                 $manifest[$className] = [
-                    'id_offset' => $this->generateStableOffset($className),
-                    'route_path' => $className::getRoutePath(),
-                    'permission' => $this->permissionFromRoutePath($className::getRoutePath()),
-                    // Future metadata (menu, auth, etc) will go here
+                    'id_offset' => $id_offset,
+                    'route_path' => $routePath,
+                    'permission' => $permission,
                 ];
             }
         }

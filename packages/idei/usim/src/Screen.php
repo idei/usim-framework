@@ -72,6 +72,12 @@ abstract class Screen
      */
     protected array $queryParams = [];
 
+    /**
+     * If true, the framework will not enforce any permission checks for this screen.
+     */
+    public static bool $isPubliclyAccessible = false;
+
+
     protected function uiChanges(): UIChangesCollector
     {
         return app(UIChangesCollector::class);
@@ -199,6 +205,65 @@ abstract class Screen
         }
 
         return true;
+    }
+
+    /**
+     * Gets a unique identifier for the screen based on its Namespace and Class.
+     * Example: App\Usim\Screens\Admin\UserManagerScreen -> admin.user_manager
+     */
+    private static function getScreenSlug(): string
+    {
+        // 1. Get the FQCN (Fully Qualified Class Name) of the child class
+        $className = static::class;
+
+        // For example, remove 'App\Usim\Screens\\' if you want to shorten it
+        // 2. We remove the base namespace of the project (optional, to clean up the prefix)
+        // For example, remove 'App\Usim\Screens\\' if you want to shorten it
+        $cleanPath = Str::after($className, 'Screens\\');
+
+        // 3. We convert 'Admin\UserManagerScreen' into ['Admin', 'UserManagerScreen']
+        $segments = explode('\\', $cleanPath);
+
+        // 4. We transform each segment to snake_case and join them with dots
+        $dotted = collect($segments)
+            ->map(fn($segment) => Str::snake(Str::replaceLast('Screen', '', $segment))) // Opcional: remover el sufijo 'Screen' si lo usan
+            ->implode('.');
+
+        return $dotted; // Returns "admin.user_manager"
+    }
+
+    /**
+     * The required permissions to access this screen.
+     * By default, it dynamically generates "[slug].view". Override this in child classes to customize.
+     *
+     * @return string|array<string>
+     */
+    public static function requiredPermissions(): string|array
+    {
+        // If the developer marked the screen as public, it does not require any permissions
+        if (static::$isPubliclyAccessible) {
+            return [];
+        }
+
+        // By default, the automatic convention
+        return static::getScreenSlug() . '.view';
+    }
+
+    /**
+     * These permissions are not required for accessing the screen itself, but the
+     * screen can check them in its logic to conditionally render components or
+     * enable/disable actions.
+     * For example,
+     * return [
+            'products.create',
+            'products.edit',
+            'products.delete',
+            'products.export-excel',
+        ];
+     */
+    public static function featuresPermissions(): array
+    {
+        return [];
     }
 
     /**
