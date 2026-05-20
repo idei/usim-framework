@@ -12,7 +12,7 @@
         },
         "8025": {
             "label": "Mailpit UI",
-            "onAutoForward": "notify"
+            "onAutoForward": "ignore"
         },
         "6001": {
             "label": "RoadRunner RPC (Internal)",
