@@ -19,6 +19,7 @@ use Idei\Usim\Components\TableRow;
 use Idei\Usim\Components\Uploader;
 use Idei\Usim\Contracts\UIElement;
 use Idei\Usim\Enums\LayoutType;
+use Idei\Usim\Enums\Visibility;
 use Idei\Usim\Support\UIDiffer;
 use Idei\Usim\Support\UIIdGenerator;
 use Idei\Usim\Support\UIStateManager;
@@ -73,10 +74,10 @@ abstract class Screen
     protected array $queryParams = [];
 
     /**
-     * If true, the framework will not enforce any permission checks for this screen.
+     * Screen visibility level. Used by the framework to determine access and menu display.
+     * @var Visibility
      */
-    public static bool $isPubliclyAccessible = false;
-
+    public static Visibility $visibility = Visibility::AUTHENTICATED;
 
     protected function uiChanges(): UIChangesCollector
     {
@@ -234,36 +235,52 @@ abstract class Screen
 
     /**
      * The required permissions to access this screen.
-     * By default, it dynamically generates "[slug].view". Override this in child classes to customize.
+     * Override this in child classes to customize.
      *
-     * @return string|array<string>
+     * @return array<string>
      */
-    public static function requiredPermissions(): string|array
+    public static function requiredPermissions(): array
     {
-        // If the developer marked the screen as public, it does not require any permissions
-        if (static::$isPubliclyAccessible) {
-            return [];
-        }
-
-        // By default, the automatic convention
-        return static::getScreenSlug() . '.view';
+        return ['access'];
     }
 
     /**
-     * These permissions are not required for accessing the screen itself, but the
-     * screen can check them in its logic to conditionally render components or
-     * enable/disable actions.
-     * For example,
-     * return [
-            'products.create',
-            'products.edit',
-            'products.delete',
-            'products.export-excel',
-        ];
+     * Specific screen's permissions can be defined overriding this.
+     *
+     * @return string[]
      */
-    public static function featuresPermissions(): array
+    public static function permissions(): array
     {
-        return [];
+        return ['access'];
+    }
+
+    /**
+     * Dynamically generates
+     * "[slug].access" permission based on the screen's namespace and class name.
+     *
+     * @return array<string, array<string, string>> Associative array of permission => translation_key_description => parameters
+     */
+    final public static function resolvedPermissions(): array
+    {
+        $ret = [];
+
+        if (static::$visibility !== Visibility::AUTHENTICATED) {
+            return $ret; // No permissions for guest-only or public screens
+        }
+
+        $screenContextPart = static::getScreenSlug(); // e.g., "admin.user_manager"
+
+        foreach (static::permissions() as $permission) {
+            $permission = "$screenContextPart.$permission"; // e.g., "admin.user_manager.access"
+            $ret[$permission] = [
+                'translation' => "screen.permissions.$permission",
+                'parameters' => [
+                    'screen' => static::getMenuLabel()
+                ]
+            ];
+        }
+
+        return $ret;
     }
 
     /**

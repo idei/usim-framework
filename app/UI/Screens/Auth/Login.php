@@ -3,11 +3,12 @@ namespace App\UI\Screens\Auth;
 
 use App\Services\Auth\AuthSessionService;
 use App\Services\Auth\LoginService;
-use Idei\Usim\Screen;
-use Idei\Usim\Components\Label;
 use Idei\Usim\Components\Container;
+use Idei\Usim\Components\Label;
 use Idei\Usim\Enums\JustifyContent;
 use Idei\Usim\Enums\LayoutType;
+use Idei\Usim\Enums\Visibility;
+use Idei\Usim\Screen;
 use Idei\Usim\UI;
 
 class Login extends Screen
@@ -17,6 +18,8 @@ class Login extends Screen
         protected AuthSessionService $authSessionService
     ) {
     }
+
+    public static Visibility $visibility = Visibility::GUEST;
 
     protected string $store_email = '';
     protected string $store_token = '';
