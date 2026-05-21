@@ -2,9 +2,11 @@
 
 namespace Idei\Usim\Support;
 
+use Idei\Usim\Screen;
+use Spatie\Permission\Models\Permission;
+use Spatie\Permission\PermissionRegistrar;
 use Symfony\Component\Finder\Finder;
 use Symfony\Component\Finder\SplFileInfo;
-use Idei\Usim\Screen;
 
 class ScreenDiscoveryService
 {
@@ -25,6 +27,8 @@ class ScreenDiscoveryService
         $finder = new Finder();
         $finder->files()->in($screensPath)->name('*.php');
 
+        $permissions = [];
+
         foreach ($finder as $file) {
             $className = $this->getClassNameFromFile($file);
 
@@ -32,17 +36,33 @@ class ScreenDiscoveryService
 
                 $id_offset = $this->generateStableOffset($className);
                 $routePath = $className::getRoutePath();
-                $permissions = $className::resolvedPermissions();
+                $permissions[] = $className::resolvedPermissions();
 
                 $manifest[$className] = [
                     'id_offset' => $id_offset,
                     'route_path' => $routePath,
-                    'permissions' => $permissions,
                 ];
             }
         }
 
+        $this->createOrUpdateSpatiePermissions($permissions);
+
         return $manifest;
+    }
+
+    private function createOrUpdateSpatiePermissions(array $permissions): void
+    {
+        if (!class_exists(Permission::class)) {
+            return;
+        }
+
+        app()[PermissionRegistrar::class]->forgetCachedPermissions();
+
+        $allPermissions = collect($permissions)->flatten(1)->unique();
+
+        foreach ($allPermissions as $permission) {
+            Permission::firstOrCreate(['name' => $permission]);
+        }
     }
 
     /**

@@ -17,7 +17,7 @@ class UsimUserSeeder extends Seeder
         $rolesConfig = config('users.roles', []);
 
         foreach ($rolesConfig as $roleName => $roleMeta) {
-            if (!is_string($roleName) || $roleName === '') {
+            if (!\is_string($roleName) || $roleName === '') {
                 continue;
             }
 
@@ -28,7 +28,7 @@ class UsimUserSeeder extends Seeder
     private function createConfigUser(string $role, array $seedUserConfig = []): void
     {
         $legacyUserConfig = (array) config("users.{$role}", []);
-        $userConfig = array_merge($legacyUserConfig, $seedUserConfig);
+        $userConfig = [$legacyUserConfig, ...$seedUserConfig];
 
         if (empty($userConfig['email']) || empty($userConfig['password'])) {
             return;
@@ -36,7 +36,7 @@ class UsimUserSeeder extends Seeder
 
         $firstName = $userConfig['first_name'] ?? ucfirst($role);
         $lastName = $userConfig['last_name'] ?? 'User';
-        $fullName = trim($firstName . ' ' . $lastName);
+        $fullName = trim("$firstName $lastName");
 
         $user = User::firstOrCreate(
             ['email' => $userConfig['email']],
