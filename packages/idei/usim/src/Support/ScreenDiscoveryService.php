@@ -32,12 +32,12 @@ class ScreenDiscoveryService
 
                 $id_offset = $this->generateStableOffset($className);
                 $routePath = $className::getRoutePath();
-                $permission = $this->permissionFromRoutePath($routePath);
+                $permissions = $className::resolvedPermissions();
 
                 $manifest[$className] = [
                     'id_offset' => $id_offset,
                     'route_path' => $routePath,
-                    'permission' => $permission,
+                    'permissions' => $permissions,
                 ];
             }
         }
@@ -113,16 +113,5 @@ class ScreenDiscoveryService
 
         $reflection = new \ReflectionClass($className);
         return $reflection->isSubclassOf(Screen::class) && !$reflection->isAbstract();
-    }
-
-    private function permissionFromRoutePath(string $routePath): string
-    {
-        $normalized = trim($routePath, '/');
-
-        if ($normalized === '') {
-            return 'screen.access.root';
-        }
-
-        return 'screen.access.' . str_replace('/', '.', $normalized);
     }
 }

@@ -12,6 +12,8 @@ class DiscoverScreensCommand extends Command
 
     public function handle(ScreenDiscoveryService $discoveryService)
     {
+        $this->checkNotInProduction();
+
         $this->info('Discovering USIM Screens...');
 
         $screens = $discoveryService->discover();
@@ -71,5 +73,13 @@ class DiscoverScreensCommand extends Command
     private function getManifestPath(): string
     {
         return app()->bootstrapPath('cache/usim_screens.php');
+    }
+
+    private function checkNotInProduction(): void
+    {
+        if (app()->environment('production')) {
+            $this->error('This command cannot be run in production environment.');
+            exit(1);
+        }
     }
 }

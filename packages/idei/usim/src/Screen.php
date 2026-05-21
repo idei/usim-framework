@@ -245,20 +245,20 @@ abstract class Screen
     }
 
     /**
-     * Specific screen's permissions can be defined overriding this.
+     * Extra screen's permissions can be defined overriding this.
      *
      * @return string[]
      */
     public static function permissions(): array
     {
-        return ['access'];
+        return [];
     }
 
     /**
      * Dynamically generates
      * "[slug].access" permission based on the screen's namespace and class name.
      *
-     * @return array<string, array<string, string>> Associative array of permission => translation_key_description => parameters
+     * @return array<string> Array of resolved permission strings
      */
     final public static function resolvedPermissions(): array
     {
@@ -268,19 +268,48 @@ abstract class Screen
             return $ret; // No permissions for guest-only or public screens
         }
 
+        // We force 'access' to always be present by combining it with the extras. This ensures
+        // the base permission is always generated, even if the child class forgets to include
+        // it in permissions().
+        $allPermissions = array_unique(['access', ...static::permissions()]);
+
         $screenContextPart = static::getScreenSlug(); // e.g., "admin.user_manager"
 
-        foreach (static::permissions() as $permission) {
+        foreach ($allPermissions as $permission) {
             $permission = "$screenContextPart.$permission"; // e.g., "admin.user_manager.access"
-            $ret[$permission] = [
-                'translation' => "screen.permissions.$permission",
-                'parameters' => [
-                    'screen' => static::getMenuLabel()
-                ]
-            ];
+            $translationKey = "screen.permissions.$permission";
+            $ret[$permission] = $translationKey;
         }
 
         return $ret;
+    }
+
+    /**
+     * Determinates if the currently authenticated user has a specific permission within the context of this screen.
+     *
+     * @param string $permission The short permission name (e.g., "publish") that will be resolved to a full permission
+     * string based on the screen's slug (e.g., "blog.post_management.publish").
+     * @return bool
+     */
+    public function userCan(string $permission): bool
+    {
+        if (static::$visibility === Visibility::PUBLIC) {
+            return true;
+        }
+
+        if (!auth()->check()) {
+            return false;
+        }
+
+        $user = auth()->user();
+
+        // If the permission doesn't contain a dot, we assume it's a local permission and resolve
+        //  it using the screen's slug.
+        if (!str_contains($permission, '.')) {
+            $permission = static::getScreenSlug() . '.' . $permission;
+        }
+
+        return $user->hasPermissionTo($permission);
     }
 
     /**
