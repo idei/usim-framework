@@ -67,6 +67,8 @@ class Button extends UIComponent
             // Animation
             'animation' => null, // pulse, bounce, shake, etc.
             'ripple_effect' => true,
+
+            'status' => false, // Custom status for toggle buttons or stateful actions
         ];
     }
 
@@ -148,6 +150,21 @@ class Button extends UIComponent
     public function enabled(bool $enabled = true): self
     {
         return $this->setConfig('enabled', $enabled);
+    }
+
+    public function status(bool $status): self
+    {
+        return $this->setConfig('status', $status);
+    }
+
+    public function getStatus(): bool
+    {
+        return $this->config['status'];
+    }
+
+    public function toggle(): self
+    {
+        return $this->setConfig('status', !$this->config['status']);
     }
 
     /**
