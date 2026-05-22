@@ -9,7 +9,6 @@ use Idei\Usim\Components\Button;
 class ButtonDemo extends Screen
 {
     protected Button $btn_toggle;
-    // protected bool $store_state = false;
 
     protected function buildBaseUI(Container $container, ...$params): void
     {
@@ -26,14 +25,8 @@ class ButtonDemo extends Screen
             );
     }
 
-    protected function postLoadUI(): void
-    {
-        // $this->updateButtonState();
-    }
-
     public function onToggleLabel(array $params): void
     {
-        // $this->store_state = !$this->store_state;
         $this->btn_toggle->toggle();
         $this->updateButtonState();
     }
