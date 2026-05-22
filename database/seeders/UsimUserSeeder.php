@@ -14,7 +14,7 @@ class UsimUserSeeder extends Seeder
             return;
         }
 
-        $rolesConfig = config('users.roles', []);
+        $rolesConfig = config('usim.users.roles', config('users.roles', []));
 
         foreach ($rolesConfig as $roleName => $roleMeta) {
             if (!\is_string($roleName) || $roleName === '') {
@@ -27,8 +27,8 @@ class UsimUserSeeder extends Seeder
 
     private function createConfigUser(string $role, array $seedUserConfig = []): void
     {
-        $legacyUserConfig = (array) config("users.{$role}", []);
-        $userConfig = [$legacyUserConfig, ...$seedUserConfig];
+        $legacyUserConfig = (array) config("usim.users.{$role}", config("users.{$role}", []));
+        $userConfig = array_merge($legacyUserConfig, $seedUserConfig);
 
         if (empty($userConfig['email']) || empty($userConfig['password'])) {
             return;

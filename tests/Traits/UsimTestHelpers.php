@@ -29,7 +29,7 @@ trait UsimTestHelpers
 
         Role::findOrCreate($role);
 
-        $userConfig = config("users.roles.{$role}.seed_user", []);
+        $userConfig = config("usim.users.roles.{$role}.seed_user", config("users.roles.{$role}.seed_user", []));
         $firstName = $userConfig['first_name'] ?? ucfirst($role);
         $lastName = $userConfig['last_name'] ?? 'User';
         $email = $userConfig['email'] ?? "{$role}@example.com";

@@ -339,7 +339,7 @@ abstract class Screen
     public static function getRoutePath(): string
     {
         $class = static::class;
-        $prefix = config('ui-services.screens_namespace', 'App\\UI\\Screens');
+        $prefix = config('usim.screens_namespace', config('ui-services.screens_namespace', 'App\\UI\\Screens'));
 
         if (str_starts_with($class, $prefix)) {
             $relative = substr($class, strlen($prefix));

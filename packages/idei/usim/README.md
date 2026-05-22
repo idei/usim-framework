@@ -549,7 +549,7 @@ Translation values support placeholders (`:name`, `:count`, etc.) and optional m
 
 Auto-key behavior for human-readable text (`t('Some text')`):
 
-- key length limit is configurable via `ui-services.i18n.auto_key_max_length` (env: `USIM_I18N_AUTO_KEY_MAX_LENGTH`, default `20`)
+- key length limit is configurable via `usim.i18n.auto_key_max_length` (env: `USIM_I18N_AUTO_KEY_MAX_LENGTH`, default `20`)
 - when truncation is needed, USIM tries to continue to the next separator so the current word is not cut mid-word
 - escaped and real line breaks are normalized before key generation and fallback text storage
 
@@ -557,8 +557,8 @@ I18n suggestion logging:
 
 - when a key is auto-generated from human-readable text, USIM emits an i18n warning suggesting to replace the literal text with the generated key
 - log context includes generated key, source text, group, file, line, and best-effort character position
-- configure channel with `ui-services.i18n.log_channel` (env: `USIM_I18N_LOG_CHANNEL`, default `i18n`)
-- enable/disable with `ui-services.i18n.log_autokey_suggestions` (env: `USIM_I18N_LOG_AUTOKEY_SUGGESTIONS`, default `true`)
+- configure channel with `usim.i18n.log_channel` (env: `USIM_I18N_LOG_CHANNEL`, default `i18n`)
+- enable/disable with `usim.i18n.log_autokey_suggestions` (env: `USIM_I18N_LOG_AUTOKEY_SUGGESTIONS`, default `true`)
 
 Recommended key naming for package and scaffolded code:
 
@@ -773,7 +773,7 @@ Publish the config file (done automatically by `usim:install`):
 php artisan vendor:publish --tag=usim-config
 ```
 
-This creates `config/ui-services.php`:
+This creates `config/usim.php`:
 
 ```php
 return [
@@ -782,6 +782,11 @@ return [
     'screens_path'      => app_path('UI/Screens'),
     'api_url'           => env('API_BASE_URL', env('APP_URL')),
     'upload_disk'       => env('UPLOAD_DISK', 'local'),
+    'users'             => [
+        'roles' => [
+            // admin/user role metadata + seed_user defaults
+        ],
+    ],
     'i18n'              => [
         'default_locale'  => env('USIM_DEFAULT_LOCALE', env('APP_LOCALE', 'en')),
         'fallback_locale' => env('USIM_FALLBACK_LOCALE', 'en'),
@@ -796,6 +801,7 @@ return [
 | `screens_path` | Filesystem path to scan for screens | `app/UI/Screens` |
 | `api_url` | Base URL for internal HTTP calls | `APP_URL` |
 | `upload_disk` | Laravel filesystem disk for uploaded files | `local` (override via `UPLOAD_DISK`) |
+| `users.roles` | Role metadata and default seeded users | `admin` / `user` roles scaffold |
 | `i18n.default_locale` | Preferred locale for DB translation lookup | `APP_LOCALE` or `en` |
 | `i18n.fallback_locale` | Fallback locale for DB translations | `en` |
 ---
@@ -847,7 +853,7 @@ if (screen.agent_context) {
 
 ```php
 // Use Laravel HTTP client or GuzzleHttp to consume API directly
-$response = Http::get(config('ui-services.api_url') . '/api/ui/admin/dashboard');
+$response = Http::get(config('usim.api_url') . '/api/ui/admin/dashboard');
 $screen = $response->json();
 
 if (isset($screen['agent_context'])) {
@@ -939,8 +945,7 @@ app/
             ├── EmailVerified.php
             └── Profile.php
 config/
-├── ui-services.php               # USIM configuration
-└── users.php                     # Default users for seeding
+└── usim.php                      # USIM configuration (includes users.roles)
 database/
 ├── migrations/
 │   ├── *_create_temporary_uploads_table.php

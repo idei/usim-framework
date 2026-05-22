@@ -13,7 +13,7 @@ class UsimRoleSeeder extends Seeder
     {
         app()[PermissionRegistrar::class]->forgetCachedPermissions();
 
-        $rolesConfig = config('users.roles', []);
+        $rolesConfig = config('usim.users.roles', config('users.roles', []));
         $manifest = $this->loadScreensManifest();
 
         $screenPermissions = collect($manifest)

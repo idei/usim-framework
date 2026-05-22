@@ -175,7 +175,7 @@ final class UiMemoryRenderer
     /** @param array<string, mixed> $payload */
     private function captureMeta(array $payload): void
     {
-        $storage_key = config('ui-services.app_id');
+        $storage_key = config('usim.app_id', config('ui-services.app_id'));
         if (isset($payload['storage']) && is_array($payload['storage'])) {
             $this->meta['storage'] = array_merge($this->meta['storage'], $payload['storage']);
 

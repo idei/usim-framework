@@ -223,7 +223,7 @@ class UploadService
             $finalPath = "uploads/{$category}/{$file->stored_filename}";
 
             // Mover de temporal a definitivo
-            $uploadDisk = config('ui-services.upload_disk', 'local');
+            $uploadDisk = config('usim.upload_disk', config('ui-services.upload_disk', 'local'));
             $content = Storage::disk('local')->get($file->path);
             Storage::disk($uploadDisk)->put($finalPath, $content);
 
@@ -257,7 +257,7 @@ class UploadService
         try {
             $path = "uploads/{$category}/{$filename}";
 
-            $uploadDisk = config('ui-services.upload_disk', 'local');
+            $uploadDisk = config('usim.upload_disk', config('ui-services.upload_disk', 'local'));
             if (Storage::disk($uploadDisk)->exists($path)) {
                 return Storage::disk($uploadDisk)->delete($path);
             }

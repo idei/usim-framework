@@ -50,9 +50,9 @@ class Login extends Screen
         if (config('app.env') === 'local') {
             // Pre-fill credentials in local environment for easier testing
             $email = empty($this->store_email)
-                ? config('users.roles.admin.seed_user.email')
+                ? config('usim.users.roles.admin.seed_user.email', config('users.roles.admin.seed_user.email'))
                 : $this->store_email;
-            $password = config('users.roles.admin.seed_user.password');
+            $password = config('usim.users.roles.admin.seed_user.password', config('users.roles.admin.seed_user.password'));
         }
 
         $container

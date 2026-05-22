@@ -53,7 +53,7 @@ class TranslationService
         ?array $mediaMeta = null,
         ?bool $needsReview = null
     ): UsimTextValue {
-        $fallbackLanguageCode = (string) config('ui-services.i18n.fallback_locale', 'en');
+        $fallbackLanguageCode = (string) config('usim.i18n.fallback_locale', config('ui-services.i18n.fallback_locale', 'en'));
         $group = $this->inferGroupFromKey($key);
 
         $this->keyManager->ensureLanguageExists($fallbackLanguageCode);

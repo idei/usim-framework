@@ -23,12 +23,20 @@ class UsimServiceProvider extends ServiceProvider
     public function register(): void
     {
         $this->mergeConfigFrom(
+            __DIR__.'/../config/usim.php', 'usim'
+        );
+
+        // Backward compatibility with legacy key used in older integrations.
+        $this->mergeConfigFrom(
             __DIR__.'/../config/usim.php', 'ui-services'
         );
 
+        // Backward compatibility with legacy users.php file.
         $this->mergeConfigFrom(
             __DIR__.'/../config/users.php', 'users'
         );
+
+        $this->harmonizeLegacyConfigKeys();
 
         $this->app->scoped(UIChangesCollector::class, function ($app) {
             return new UIChangesCollector();
@@ -76,9 +84,30 @@ class UsimServiceProvider extends ServiceProvider
         }
 
         $this->publishes([
-            __DIR__.'/../config/usim.php' => config_path('ui-services.php'),
-            __DIR__.'/../config/users.php' => config_path('users.php'),
+            __DIR__.'/../config/usim.php' => config_path('usim.php'),
         ], 'usim-config');
 
+    }
+
+    private function harmonizeLegacyConfigKeys(): void
+    {
+        $usimConfig = (array) config('usim', []);
+        $legacyUsimConfig = (array) config('ui-services', []);
+
+        if ($usimConfig !== []) {
+            config(['ui-services' => array_replace($legacyUsimConfig, $usimConfig)]);
+        } elseif ($legacyUsimConfig !== []) {
+            config(['usim' => $legacyUsimConfig]);
+            $usimConfig = $legacyUsimConfig;
+        }
+
+        $usimUsers = (array) data_get($usimConfig, 'users', []);
+        $legacyUsers = (array) config('users', []);
+
+        if ($usimUsers !== []) {
+            config(['users' => array_replace($legacyUsers, $usimUsers)]);
+        } elseif ($legacyUsers !== []) {
+            config(['usim.users' => $legacyUsers]);
+        }
     }
 }

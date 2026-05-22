@@ -49,9 +49,58 @@ return [
     |
     | Disco de filesystem usado para almacenar los archivos subidos.
     | Por defecto 'local' (disponible en cualquier app Laravel sin config extra).
-    | Publica config/ui-services.php y cámbialo si necesitas un disco dedicado.
+    | Publica config/usim.php y cámbialo si necesitas un disco dedicado.
     */
     'upload_disk' => env('UPLOAD_DISK', 'local'),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Default Users Configuration
+    |--------------------------------------------------------------------------
+    |
+    | Centralized role metadata used by scaffolded auth/seed flows.
+    |
+    */
+    'users' => [
+        'roles' => [
+            'admin' => [
+                'label' => [
+                    'es' => 'Administrador',
+                    'en' => 'Administrator',
+                ],
+                'description' => [
+                    'es' => 'Gestiona el sistema y usuarios.',
+                    'en' => 'Manages the system and users.',
+                ],
+                'default_screen' => 'App\\UI\\Screens\\Admin\\Dashboard',
+                'permissions' => ['*'],
+                'seed_user' => [
+                    'first_name' => env('ADMIN_FIRST_NAME', 'Admin'),
+                    'last_name' => env('ADMIN_LAST_NAME', 'User'),
+                    'email' => env('ADMIN_EMAIL', 'admin@example.com'),
+                    'password' => env('ADMIN_PASSWORD', 'password'),
+                ],
+            ],
+            'user' => [
+                'label' => [
+                    'es' => 'Usuario',
+                    'en' => 'User',
+                ],
+                'description' => [
+                    'es' => 'Usuario regular del sistema.',
+                    'en' => 'Regular system user.',
+                ],
+                'default_screen' => 'App\\UI\\Screens\\Home',
+                'permissions' => [],
+                'seed_user' => [
+                    'first_name' => env('USER_FIRST_NAME', 'Regular'),
+                    'last_name' => env('USER_LAST_NAME', 'User'),
+                    'email' => env('USER_EMAIL', 'user@example.com'),
+                    'password' => env('USER_PASSWORD', 'password'),
+                ],
+            ],
+        ],
+    ],
 
     /*
     |--------------------------------------------------------------------------

@@ -112,11 +112,11 @@ class TranslationValueResolver
     {
         return $languageCode
             ?? app()->getLocale()
-            ?? config('ui-services.i18n.default_locale', 'en');
+            ?? config('usim.i18n.default_locale', config('ui-services.i18n.default_locale', 'en'));
     }
 
     private function resolveFallbackLocale(): string
     {
-        return config('ui-services.i18n.fallback_locale', 'en');
+        return config('usim.i18n.fallback_locale', config('ui-services.i18n.fallback_locale', 'en'));
     }
 }

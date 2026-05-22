@@ -49,14 +49,16 @@ class InstallCommand extends Command
         $this->newLine();
 
         // --- Resolve namespaces ---
-        $this->screensNamespace = \config('ui-services.screens_namespace', 'App\\UI\\Screens');
-        $this->screensPath = \config('ui-services.screens_path', \app_path('UI/Screens'));
+        $this->screensNamespace = \config('usim.screens_namespace', \config('ui-services.screens_namespace', 'App\\UI\\Screens'));
+        $this->screensPath = \config('usim.screens_path', \config('ui-services.screens_path', \app_path('UI/Screens')));
         $this->componentsNamespace = Str::beforeLast($this->screensNamespace, '\\Screens') . '\\Components';
         $this->componentsPath = Str::beforeLast($this->screensPath, '/Screens') . '/Components';
 
         // === STEP 1: Publish USIM config and assets ===
         $this->publishConfig();
         $this->publishAssets();
+
+        return self::SUCCESS;
 
         // === STEP 2: Install core screens ===
         $this->installScreen('Home.php.stub', 'Home.php');
@@ -478,11 +480,7 @@ class InstallCommand extends Command
 
     protected function installUsersConfig(): void
     {
-        $configPath = \config_path('users.php');
-        $stubPath = $this->stubsPath('config/users.php.stub');
-        $this->publishStub($stubPath, $configPath, false, []);
-        $relativePath = str_replace(\base_path() . '/', '', $configPath);
-        $this->line("  <fg=green>✓</> {$relativePath}");
+        $this->line('  <fg=blue>→</> Users config now lives in config/usim.php (usim.users.*)');
     }
 
     // =========================================================================
