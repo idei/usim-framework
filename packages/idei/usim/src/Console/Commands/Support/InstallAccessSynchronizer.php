@@ -1,0 +1,490 @@
+<?php
+
+namespace Idei\Usim\Console\Commands\Support;
+
+use Idei\Usim\Models\UsimLanguage;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
+use Spatie\Permission\Models\Permission;
+use Spatie\Permission\Models\Role;
+use Spatie\Permission\PermissionRegistrar;
+
+class InstallAccessSynchronizer
+{
+    /**
+     * @param array<string, string> $rootUserEnvValues
+     * @return array{permissions_created:int,permissions_total:int,roles_created:int,roles_total:int,users_created:int,users_updated:int,languages_created:int,languages_updated:int}
+     */
+    public function sync(array $rootUserEnvValues, string $userModelClass): array
+    {
+        $stats = [
+            'permissions_created' => 0,
+            'permissions_total' => 0,
+            'roles_created' => 0,
+            'roles_total' => 0,
+            'users_created' => 0,
+            'users_updated' => 0,
+            'languages_created' => 0,
+            'languages_updated' => 0,
+        ];
+
+        DB::transaction(function () use (&$stats, $rootUserEnvValues, $userModelClass): void {
+            app(PermissionRegistrar::class)->forgetCachedPermissions();
+            $guardName = $this->resolveGuardNameForUserModel($userModelClass);
+
+            $permissions = $this->collectPermissionNames();
+            $stats['permissions_total'] = count($permissions);
+
+            foreach ($permissions as $permissionName) {
+                $permission = Permission::query()
+                    ->where('name', $permissionName)
+                    ->where('guard_name', $guardName)
+                    ->first();
+
+                if ($permission === null) {
+                    Permission::findOrCreate($permissionName, $guardName);
+                    $stats['permissions_created']++;
+                }
+            }
+
+            $roles = $this->normalizeRolesConfig();
+            $stats['roles_total'] = count($roles);
+
+            foreach ($roles as $roleName => $roleMeta) {
+                $isRootRole = $roleName === 'root';
+                $role = Role::query()
+                    ->where('name', $roleName)
+                    ->where('guard_name', $guardName)
+                    ->first();
+
+                if ($role === null) {
+                    $role = Role::findOrCreate($roleName, $guardName);
+                    $stats['roles_created']++;
+                }
+
+                /** @var Role $role */
+                $rolePermissions = $this->normalizeRolePermissions($roleMeta, $permissions, $isRootRole);
+                $role->syncPermissions($rolePermissions);
+            }
+
+            $this->upsertDefaultUsers($stats, $rootUserEnvValues, $userModelClass, $guardName);
+            $this->upsertLanguages($stats);
+        });
+
+        app(PermissionRegistrar::class)->forgetCachedPermissions();
+
+        return $stats;
+    }
+
+    /**
+     * @return array<int, string>
+     */
+    private function collectPermissionNames(): array
+    {
+        $permissionConfig = config('usim.permissions', []);
+        $defined = [];
+
+        if (is_array($permissionConfig)) {
+            foreach (array_keys($permissionConfig) as $permissionName) {
+                if (is_string($permissionName) && trim($permissionName) !== '') {
+                    $defined[] = trim($permissionName);
+                }
+            }
+        }
+
+        $rolePermissions = [];
+        foreach ($this->normalizeRolesConfig() as $roleMeta) {
+            $configured = $roleMeta['permissions'] ?? [];
+            $configured = is_array($configured) ? $configured : [];
+
+            foreach ($configured as $permissionName) {
+                if (!is_string($permissionName)) {
+                    continue;
+                }
+
+                $permissionName = trim($permissionName);
+                if ($permissionName === '') {
+                    continue;
+                }
+
+                $rolePermissions[] = $permissionName;
+            }
+        }
+
+        $all = array_values(array_unique([...$defined, ...$rolePermissions, '*']));
+        sort($all);
+
+        return $all;
+    }
+
+    /**
+     * @return array<string, array<string, mixed>>
+     */
+    private function normalizeRolesConfig(): array
+    {
+        $roles = config('usim.roles', []);
+        if (!is_array($roles)) {
+            $roles = [];
+        }
+
+        if (!array_key_exists('root', $roles) || !is_array($roles['root'])) {
+            $roles['root'] = ['permissions' => ['*']];
+        }
+
+        $roles['root']['permissions'] = ['*'];
+
+        return array_filter(
+            $roles,
+            static fn ($key, $value): bool => is_string($key) && trim($key) !== '' && is_array($value),
+            ARRAY_FILTER_USE_BOTH
+        );
+    }
+
+    /**
+     * @param array<string, mixed> $roleMeta
+     * @param array<int, string> $allPermissions
+     * @return array<int, string>
+     */
+    private function normalizeRolePermissions(array $roleMeta, array $allPermissions, bool $isRootRole): array
+    {
+        if ($isRootRole) {
+            return $allPermissions;
+        }
+
+        $permissions = $roleMeta['permissions'] ?? [];
+        $permissions = is_array($permissions) ? $permissions : [];
+
+        $normalized = [];
+        foreach ($permissions as $permissionName) {
+            if (!is_string($permissionName)) {
+                continue;
+            }
+
+            $permissionName = trim($permissionName);
+            if ($permissionName === '') {
+                continue;
+            }
+
+            $normalized[] = $permissionName;
+        }
+
+        if (in_array('*', $normalized, true)) {
+            return $allPermissions;
+        }
+
+        $normalized = array_values(array_unique($normalized));
+        sort($normalized);
+
+        return $normalized;
+    }
+
+    /**
+     * @param array<string, int> $stats
+     * @param array<string, string> $rootUserEnvValues
+     */
+    private function upsertDefaultUsers(array &$stats, array $rootUserEnvValues, string $userModelClass, string $guardName): void
+    {
+        if (!class_exists($userModelClass) || !is_subclass_of($userModelClass, Model::class)) {
+            throw new \RuntimeException("Configured user model [{$userModelClass}] is invalid.");
+        }
+
+        $usersConfig = config('usim.users', []);
+        $usersConfig = is_array($usersConfig) ? $usersConfig : [];
+
+        $rootConfig = is_array($usersConfig['root'] ?? null) ? $usersConfig['root'] : [];
+        $rootValues = $rootUserEnvValues !== []
+            ? $rootUserEnvValues
+            : [
+                'first_name' => (string) env('ROOT_FIRST_NAME', $rootConfig['first_name'] ?? 'Root'),
+                'last_name' => (string) env('ROOT_LAST_NAME', $rootConfig['last_name'] ?? 'User'),
+                'email' => (string) env('ROOT_EMAIL', $rootConfig['email'] ?? ''),
+                'password' => (string) env('ROOT_PASSWORD', $rootConfig['password'] ?? ''),
+            ];
+
+        $rootEnv = [
+            'first_name' => (string) ($rootValues['first_name'] ?? 'Root'),
+            'last_name' => (string) ($rootValues['last_name'] ?? 'User'),
+            'email' => (string) ($rootValues['email'] ?? ''),
+            'password' => (string) ($rootValues['password'] ?? ''),
+        ];
+
+        $this->upsertSingleUser(
+            stats: $stats,
+            userModelClass: $userModelClass,
+            key: 'root',
+            userConfig: $rootEnv,
+            fallbackRole: 'root',
+            forceRootRules: true,
+            guardName: $guardName
+        );
+
+        foreach ($usersConfig as $key => $userConfig) {
+            if (!is_string($key) || $key === '' || $key === 'root' || $key === 'roles') {
+                continue;
+            }
+
+            if (!is_array($userConfig)) {
+                continue;
+            }
+
+            $this->upsertSingleUser(
+                stats: $stats,
+                userModelClass: $userModelClass,
+                key: $key,
+                userConfig: $userConfig,
+                fallbackRole: $key,
+                forceRootRules: false,
+                guardName: $guardName
+            );
+        }
+    }
+
+    /**
+     * @param array<string, int> $stats
+     * @param class-string<Model> $userModelClass
+     * @param array<string, mixed> $userConfig
+     */
+    private function upsertSingleUser(
+        array &$stats,
+        string $userModelClass,
+        string $key,
+        array $userConfig,
+        string $fallbackRole,
+        bool $forceRootRules,
+        string $guardName
+    ): void
+    {
+        $email = isset($userConfig['email']) && is_string($userConfig['email']) ? trim($userConfig['email']) : '';
+        $password = isset($userConfig['password']) && is_string($userConfig['password']) ? trim($userConfig['password']) : '';
+
+        if ($email === '' || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            if ($forceRootRules) {
+                throw new \RuntimeException('ROOT_EMAIL must be a valid email to install USIM.');
+            }
+
+            return;
+        }
+
+        if ($password === '' || strtoupper($password) === 'CHANGE_ME') {
+            if ($forceRootRules) {
+                throw new \RuntimeException('ROOT_PASSWORD must be set (not CHANGE_ME) to install USIM.');
+            }
+
+            return;
+        }
+
+        $firstName = isset($userConfig['first_name']) && is_string($userConfig['first_name'])
+            ? trim($userConfig['first_name'])
+            : ucfirst($key);
+        $lastName = isset($userConfig['last_name']) && is_string($userConfig['last_name'])
+            ? trim($userConfig['last_name'])
+            : 'User';
+        $name = trim($firstName . ' ' . $lastName);
+
+        /** @var Model|null $user */
+        $user = $userModelClass::query()->where('email', $email)->first();
+        $created = false;
+
+        if ($user === null) {
+            $user = new $userModelClass();
+            $created = true;
+            $user->setAttribute('email', $email);
+            $user->setAttribute('remember_token', Str::random(10));
+        }
+
+        $user->setAttribute('name', $name !== '' ? $name : ucfirst($key));
+        $user->setAttribute('password', bcrypt($password));
+
+        if ($user->getAttribute('email_verified_at') === null) {
+            $user->setAttribute('email_verified_at', now());
+        }
+
+        $user->save();
+
+        if (!method_exists($user, 'syncRoles')) {
+            throw new \RuntimeException('User model must use Spatie HasRoles trait to sync roles.');
+        }
+
+        $effectiveGuard = $this->resolveGuardNameForUser($user, $guardName);
+
+        if ($forceRootRules) {
+            Role::findOrCreate('root', $effectiveGuard);
+            $user->syncRoles(['root']);
+        } else {
+            $roles = $this->normalizeUserRoles($userConfig, $fallbackRole, $effectiveGuard);
+            $user->syncRoles($roles);
+        }
+
+        if ($created) {
+            $stats['users_created']++;
+        } else {
+            $stats['users_updated']++;
+        }
+    }
+
+    /**
+     * @param array<string, mixed> $userConfig
+     * @return array<int, string>
+     */
+    private function normalizeUserRoles(array $userConfig, string $fallbackRole, string $guardName): array
+    {
+        $roles = $userConfig['roles'] ?? [$fallbackRole];
+
+        if (is_string($roles)) {
+            $roles = [$roles];
+        }
+
+        if (!is_array($roles) || $roles === []) {
+            $roles = [$fallbackRole];
+        }
+
+        $normalized = [];
+        foreach ($roles as $roleName) {
+            if (!is_string($roleName)) {
+                continue;
+            }
+
+            $roleName = trim($roleName);
+            if ($roleName !== '') {
+                $normalized[] = $roleName;
+            }
+        }
+
+        if ($normalized === []) {
+            $normalized = [$fallbackRole];
+        }
+
+        $normalized = array_values(array_unique($normalized));
+
+        foreach ($normalized as $roleName) {
+            Role::findOrCreate($roleName, $guardName);
+        }
+
+        return $normalized;
+    }
+
+    /**
+     * @param array<string, int> $stats
+     */
+    private function upsertLanguages(array &$stats): void
+    {
+        $configuredLanguages = config('usim.i18n.languages', []);
+        if (!is_array($configuredLanguages)) {
+            $configuredLanguages = [];
+        }
+
+        $fallbackCode = config('usim.i18n.fallback_locale', config('app.fallback_locale', 'en'));
+        $fallbackCode = is_string($fallbackCode) && trim($fallbackCode) !== '' ? trim($fallbackCode) : 'en';
+
+        $touchedFallback = false;
+
+        foreach ($configuredLanguages as $languageConfig) {
+            if (!is_array($languageConfig)) {
+                continue;
+            }
+
+            $code = isset($languageConfig['code']) && is_string($languageConfig['code']) ? trim($languageConfig['code']) : '';
+            if ($code === '') {
+                continue;
+            }
+
+            $name = isset($languageConfig['name']) && is_string($languageConfig['name'])
+                ? trim($languageConfig['name'])
+                : strtoupper($code);
+            $nativeName = isset($languageConfig['native_name']) && is_string($languageConfig['native_name'])
+                ? trim($languageConfig['native_name'])
+                : null;
+            $isActive = array_key_exists('active', $languageConfig)
+                ? (bool) $languageConfig['active']
+                : true;
+            $isFallback = $code === $fallbackCode;
+
+            $language = UsimLanguage::query()->where('code', $code)->first();
+            $created = false;
+
+            if ($language === null) {
+                $language = new UsimLanguage();
+                $language->code = $code;
+                $created = true;
+            }
+
+            $language->name = $name !== '' ? $name : strtoupper($code);
+            $language->native_name = $nativeName;
+            $language->is_active = $isActive;
+            $language->is_fallback = $isFallback;
+            $language->save();
+
+            if ($isFallback) {
+                $touchedFallback = true;
+            }
+
+            if ($created) {
+                $stats['languages_created']++;
+            } else {
+                $stats['languages_updated']++;
+            }
+        }
+
+        if (!$touchedFallback) {
+            $fallbackLanguage = UsimLanguage::query()->firstOrNew(['code' => $fallbackCode]);
+            $created = !$fallbackLanguage->exists;
+            $fallbackLanguage->name = $fallbackLanguage->name ?: strtoupper($fallbackCode);
+            $fallbackLanguage->native_name = $fallbackLanguage->native_name ?: strtoupper($fallbackCode);
+            $fallbackLanguage->is_active = true;
+            $fallbackLanguage->is_fallback = true;
+            $fallbackLanguage->save();
+
+            if ($created) {
+                $stats['languages_created']++;
+            } else {
+                $stats['languages_updated']++;
+            }
+        }
+
+        UsimLanguage::query()
+            ->where('code', '!=', $fallbackCode)
+            ->update(['is_fallback' => false]);
+    }
+
+    private function resolveAuthGuardName(): string
+    {
+        $guard = config('auth.defaults.guard', 'web');
+
+        return is_string($guard) && trim($guard) !== '' ? trim($guard) : 'web';
+    }
+
+    private function resolveGuardNameForUserModel(string $userModelClass): string
+    {
+        $defaultGuard = $this->resolveAuthGuardName();
+
+        if (!class_exists($userModelClass) || !is_subclass_of($userModelClass, Model::class)) {
+            return $defaultGuard;
+        }
+
+        try {
+            /** @var Model $user */
+            $user = new $userModelClass();
+            $guard = method_exists($user, 'getDefaultGuardName')
+                ? $user->getDefaultGuardName()
+                : $defaultGuard;
+
+            return is_string($guard) && trim($guard) !== '' ? trim($guard) : $defaultGuard;
+        } catch (\Throwable) {
+            return $defaultGuard;
+        }
+    }
+
+    private function resolveGuardNameForUser(Model $user, string $fallbackGuard): string
+    {
+        try {
+            $guard = method_exists($user, 'getDefaultGuardName')
+                ? $user->getDefaultGuardName()
+                : $fallbackGuard;
+
+            return is_string($guard) && trim($guard) !== '' ? trim($guard) : $fallbackGuard;
+        } catch (\Throwable) {
+            return $fallbackGuard;
+        }
+    }
+}

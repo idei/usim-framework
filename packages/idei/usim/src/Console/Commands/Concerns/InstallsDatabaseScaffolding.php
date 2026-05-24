@@ -40,45 +40,6 @@ trait InstallsDatabaseScaffolding
         }
     }
 
-    protected function installSeeders(): void
-    {
-        $seedersPath = \database_path('seeders');
-
-        $seederStubs = [
-            'UsimRoleSeeder.php.stub' => [
-                'target' => 'UsimRoleSeeder.php',
-                'replacements' => [],
-            ],
-            'UsimUserSeeder.php.stub' => [
-                'target' => 'UsimUserSeeder.php',
-                'replacements' => [
-                    '{{ userModel }}' => $this->resolveUserModelImport(),
-                    '{{ userModelClass }}' => $this->resolveUserModelClass(),
-                ],
-            ],
-            'UsimLanguageSeeder.php.stub' => [
-                'target' => 'UsimLanguageSeeder.php',
-                'replacements' => [],
-            ],
-            'UsimSeeder.php.stub' => [
-                'target' => 'UsimSeeder.php',
-                'replacements' => [],
-                'autoForce' => true,
-            ],
-        ];
-
-        foreach ($seederStubs as $stub => $definition) {
-            $targetPath = $seedersPath . '/' . $definition['target'];
-            $stubPath = $this->stubsPath('seeders/' . $stub);
-            $autoForce = $definition['autoForce'] ?? false;
-            $this->publishStub($stubPath, $targetPath, $autoForce, $definition['replacements']);
-            $this->line('  <fg=green>✓</> ' . pathinfo($definition['target'], PATHINFO_FILENAME));
-        }
-
-        $this->info('USIM uses its own seeder (UsimSeeder) to preserve the integrity of existing project seeders.');
-        $this->line('Run: php artisan db:seed --class=UsimSeeder');
-    }
-
     protected function installStubMigration(string $migrationName, int $offsetSeconds, bool $autoForce = true): void
     {
         if ($this->migrationExists($migrationName)) {
