@@ -49,8 +49,15 @@ class InstallCommand extends Command
         $this->newLine();
 
         // --- Resolve namespaces ---
-        $this->screensNamespace = \config('usim.screens_namespace', \config('ui-services.screens_namespace', 'App\\UI\\Screens'));
-        $this->screensPath = \config('usim.screens_path', \config('ui-services.screens_path', \app_path('UI/Screens')));
+        $screensNamespace = \config('usim.screens_namespace', \config('ui-services.screens_namespace', 'App\\UI\\Screens'));
+        $screensPath = \config('usim.screens_path', \config('ui-services.screens_path', \app_path('UI/Screens')));
+
+        $this->screensNamespace = \is_string($screensNamespace) && $screensNamespace !== ''
+            ? $screensNamespace
+            : 'App\\UI\\Screens';
+        $this->screensPath = \is_string($screensPath) && $screensPath !== ''
+            ? $screensPath
+            : \app_path('UI/Screens');
         $this->componentsNamespace = Str::beforeLast($this->screensNamespace, '\\Screens') . '\\Components';
         $this->componentsPath = Str::beforeLast($this->screensPath, '/Screens') . '/Components';
 
@@ -58,7 +65,7 @@ class InstallCommand extends Command
         $this->publishConfig();
         $this->publishAssets();
 
-        return self::SUCCESS;
+        // return self::SUCCESS;
 
         // === STEP 2: Install core screens ===
         $this->installScreen('Home.php.stub', 'Home.php');
@@ -663,7 +670,10 @@ class InstallCommand extends Command
     {
         // Check if the app has a custom User model location
         $authConfig = \config('auth.providers.users.model', 'App\\Models\\User');
-        return $authConfig;
+
+        return \is_string($authConfig) && $authConfig !== ''
+            ? $authConfig
+            : 'App\\Models\\User';
     }
 
     protected function resolveUserModelClass(): string
