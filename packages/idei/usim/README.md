@@ -79,7 +79,7 @@ Laravel's package auto-discovery will register `UsimServiceProvider` automatical
 
 ### Quick Start
 
-Run the install command to scaffold a complete working application with authentication, profile, menus, seeders, and routes:
+Run the install command to scaffold a complete working application with authentication, profile, menus, configuration, and routes:
 
 ```bash
 php artisan usim:install
@@ -89,7 +89,6 @@ Then follow the printed instructions:
 
 ```bash
 php artisan migrate
-php artisan db:seed --class=UsimSeeder        # creates default admin/user from .env
 ./start.sh [-r]
 ```
 
@@ -710,7 +709,7 @@ Supporting files:
 - **AuthController** — API endpoints for register, login, logout, verify email, reset password
 - **UsimUser trait** — Custom notification methods for password reset and email verification
 - **UserService** — Full user management: find, get, create, update (with role sync, email validation, notifications)
-- **UsimSeeder / UsimRoleSeeder / UsimUserSeeder** — Default roles (admin/user/verified) and seed users from `.env`
+- Default root/admin/user provisioning is now handled during `php artisan usim:install` through config-driven database upsert.
 - **EventServiceProvider** — App-level event/listener registration scaffold
 - **Email view stubs** — Styled Blade views for password reset and email verification emails
 - **Terms view** — Blade view for terms and conditions display
@@ -732,7 +731,7 @@ USER_EMAIL=user@example.com
 USER_PASSWORD=your-secure-password
 ```
 
-Then run `php artisan db:seed`.
+The installer now provisions the default access data during `php artisan usim:install`; no separate package seeder is required.
 
 ---
 
@@ -952,9 +951,7 @@ database/
 │   ├── *_add_profile_image_to_users_table.php
 │   └── *_add_terms_accepted_at_to_users_table.php
 └── seeders/
-    ├── UsimSeeder.php           # Entry point — calls role and user seeders
-    ├── UsimRoleSeeder.php
-    └── UsimUserSeeder.php
+    └── (consumer-defined seeders only; USIM no longer ships package seeders)
 providers/
 └── EventServiceProvider.php
 resources/views/emails/
