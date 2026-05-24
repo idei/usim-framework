@@ -62,6 +62,13 @@ return [
     |
     */
     'users' => [
+        'root' => [
+            'first_name' => env('ROOT_FIRST_NAME', 'Root'),
+            'last_name' => env('ROOT_LAST_NAME', 'User'),
+            'email' => env('ROOT_EMAIL', 'root@example.com'),
+            'password' => env('ROOT_PASSWORD', 'CHANGE_ME'),
+        ],
+        /** OLD ROLES AND USERS' IT IS DEPRECATED */
         'roles' => [
             'admin' => [
                 'label' => [
@@ -81,24 +88,156 @@ return [
                     'password' => env('ADMIN_PASSWORD', 'password'),
                 ],
             ],
-            'user' => [
-                'label' => [
-                    'es' => 'Usuario',
-                    'en' => 'User',
-                ],
-                'description' => [
-                    'es' => 'Usuario regular del sistema.',
-                    'en' => 'Regular system user.',
-                ],
-                'default_screen' => 'App\\UI\\Screens\\Home',
-                'permissions' => [],
-                'seed_user' => [
-                    'first_name' => env('USER_FIRST_NAME', 'Regular'),
-                    'last_name' => env('USER_LAST_NAME', 'User'),
-                    'email' => env('USER_EMAIL', 'user@example.com'),
-                    'password' => env('USER_PASSWORD', 'password'),
-                ],
+        ],
+    ],
+
+    'permissions' => [
+        '*' => [
+            'label' => [
+                'es' => 'Acceso Total',
+                'en' => 'Full Access',
             ],
+            'description' => [
+                'es' => 'Permite acceso a todas las funciones y pantallas.',
+                'en' => 'Allows access to all features and screens.',
+            ],
+        ],
+        'view.logs' => [
+            'label' => [
+                'es' => 'Ver Logs del Sistema',
+                'en' => 'View System Logs',
+            ],
+            'description' => [
+                'es' => 'Permite ver los registros de actividad y errores del sistema.',
+                'en' => 'Allows viewing system activity and error logs.',
+            ],
+        ],
+        'manage.users' => [
+            'label' => [
+                'es' => 'Gestionar Usuarios',
+                'en' => 'Manage Users',
+            ],
+            'description' => [
+                'es' => 'Permite crear, editar y eliminar usuarios.',
+                'en' => 'Allows creating, editing, and deleting users.',
+            ],
+        ],
+        'manage.roles' => [
+            'label' => [
+                'es' => 'Gestionar Roles',
+                'en' => 'Manage Roles',
+            ],
+            'description' => [
+                'es' => 'Permite crear, editar y eliminar roles y sus permisos.',
+                'en' => 'Allows creating, editing, and deleting roles and their permissions.',
+            ],
+        ],
+        'debug.access' => [
+            'label' => [
+                'es' => 'Acceso a Herramientas de Debug',
+                'en' => 'Access Debug Tools',
+            ],
+            'description' => [
+                'es' => 'Permite acceder a herramientas de depuración y diagnóstico.',
+                'en' => 'Allows access to debugging and diagnostic tools.',
+            ],
+        ],
+        'screen.admin.dashboard.access' => [
+            'label' => [
+                'es' => 'Acceso al Dashboard de Admin',
+                'en' => 'Access Admin Dashboard',
+            ],
+            'description' => [
+                'es' => 'Permite acceder al panel de administración.',
+                'en' => 'Allows access to the admin dashboard.',
+            ],
+        ],
+        'screen.user.home.access' => [
+            'label' => [
+                'es' => 'Acceso a la Home de Usuario',
+                'en' => 'Access User Home',
+            ],
+            'description' => [
+                'es' => 'Permite acceder a la página principal del usuario.',
+                'en' => 'Allows access to the user home page.',
+            ],
+        ],
+        'feature.premium.access' => [
+            'label' => [
+                'es' => 'Acceso a Funciones Premium',
+                'en' => 'Access Premium Features',
+            ],
+            'description' => [
+                'es' => 'Permite acceder a funciones adicionales para usuarios aprobados.',
+                'en' => 'Allows access to additional features for approved users.',
+            ],
+        ],
+    ],
+
+    'roles' => [
+        'root' => [
+            'label' => [
+                'es' => 'Root',
+                'en' => 'Root',
+            ],
+            'description' => [
+                'es' => 'Usuario con acceso total e incondicional a todas las funciones.',
+                'en' => 'User with total and unconditional access to all features.',
+            ],
+            'default_screen' => 'App\\UI\\Screens\\Admin\\Dashboard',
+            'permissions' => ['*'],
+        ],
+        'developer' => [
+            'label' => [
+                'es' => 'Desarrollador',
+                'en' => 'Developer',
+            ],
+            'description' => [
+                'es' => 'Usuario con acceso a herramientas de desarrollo y debug.',
+                'en' => 'User with access to development and debug tools.',
+            ],
+            'default_screen' => 'App\\UI\\Screens\\Dev\\Tools',
+            'permissions' => [
+                'debug.access',
+                'screen.dev.tools.access',
+                'view.logs'
+            ],
+        ],
+        'admin' => [
+            'label' => [
+                'es' => 'Administrador',
+                'en' => 'Administrator',
+            ],
+            'description' => [
+                'es' => 'Gestiona el sistema y usuarios.',
+                'en' => 'Manages the system and users.',
+            ],
+            'default_screen' => 'App\\UI\\Screens\\Admin\\Dashboard',
+            'permissions' => ['screen.admin.dashboard.access'],
+        ],
+        'registered' => [
+            'label' => [
+                'es' => 'Registrado',
+                'en' => 'Registered',
+            ],
+            'description' => [
+                'es' => 'Usuario registrado con permisos limitados.',
+                'en' => 'Registered user with limited permissions.',
+            ],
+            'default_screen' => 'App\\UI\\Screens\\User\\Home',
+            'permissions' => ['screen.user.home.access'],
+        ],
+        'approved' => [
+            'label' => [
+                'es' => 'Aprobado',
+                'en' => 'Approved',
+            ],
+            'description' => [
+                'es' => 'Usuario aprobado con acceso a funciones adicionales.',
+                'en' => 'Approved user with access to additional features.',
+            ],
+            'default_screen' => 'App\\UI\\Screens\\User\\Home',
+            'permissions' => ['screen.user.home.access', 'feature.premium.access'],
         ],
     ],
 

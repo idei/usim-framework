@@ -370,7 +370,7 @@ class InstallCommand extends Command
         if (!$databaseExists) {
             $databaseIssue = (string) ($assessment['database_issue'] ?? 'Database does not exist or is not reachable with current .env settings.');
             throw new MissingDatabaseException(
-                $databaseIssue . ' Run `php artisan migrate` after creating/configuring the database, then retry `php artisan usim:install`.'
+                $databaseIssue . ' Migration is not completed for this environment. Create/configure the database and run `php artisan migrate` before continuing with `php artisan usim:install`.'
             );
         }
 
