@@ -106,6 +106,22 @@ class InstallStateManager
         $this->write($state);
     }
 
+    public function markRolledBack(string $reason): void
+    {
+        $state = $this->read() ?? [];
+        $completed = is_array($state['completed_steps'] ?? null) ? $state['completed_steps'] : [];
+
+        $state['status'] = 'rolled_back';
+        $state['updated_at'] = now()->toIso8601String();
+        $state['current_step'] = null;
+        $state['rolled_back_at'] = now()->toIso8601String();
+        $state['rolled_back_steps'] = $completed;
+        $state['completed_steps'] = [];
+        $state['rollback_reason'] = $reason;
+
+        $this->write($state);
+    }
+
     /**
      * @param array<string, mixed> $state
      */

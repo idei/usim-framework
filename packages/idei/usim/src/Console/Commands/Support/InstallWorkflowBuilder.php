@@ -6,6 +6,7 @@ class InstallWorkflowBuilder
 {
     /**
      * @param callable(): void $checkEnvironment
+        * @param callable(): void $checkDatabaseReadiness
      * @param callable(): void $publishConfig
      * @param callable(): void $publishAssets
      * @param callable(): void $installCoreScreens
@@ -22,6 +23,7 @@ class InstallWorkflowBuilder
      */
     public function build(
         callable $checkEnvironment,
+        callable $checkDatabaseReadiness,
         callable $publishConfig,
         callable $publishAssets,
         callable $installCoreScreens,
@@ -37,6 +39,7 @@ class InstallWorkflowBuilder
     ): array {
         return [
             ['key' => 'safety.check-environment', 'label' => 'Checking environment safety', 'run' => $checkEnvironment],
+            ['key' => 'database.check-readiness', 'label' => 'Checking database migration readiness', 'run' => $checkDatabaseReadiness],
             ['key' => 'bootstrap.publish-config', 'label' => 'Publishing USIM config', 'run' => $publishConfig],
             ['key' => 'bootstrap.publish-assets', 'label' => 'Publishing USIM assets', 'run' => $publishAssets],
             ['key' => 'scaffold.install-screens', 'label' => 'Installing core screens', 'run' => $installCoreScreens],

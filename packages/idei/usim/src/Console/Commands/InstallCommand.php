@@ -10,13 +10,15 @@ use Idei\Usim\Console\Commands\Support\InstallAppScaffoldingManager;
 use Idei\Usim\Console\Commands\Support\InstallAccessSynchronizer;
 use Idei\Usim\Console\Commands\Support\InstallContextResolver;
 use Idei\Usim\Console\Commands\Support\InstallEnvironmentManager;
+use Idei\Usim\Console\Commands\Support\InstallExecutionRollbackManager;
+use Idei\Usim\Console\Commands\Support\InstallMigrationStatusChecker;
+use Idei\Usim\Console\Commands\Support\MissingDatabaseException;
 use Idei\Usim\Console\Commands\Support\InstallScaffoldingManager;
 use Idei\Usim\Console\Commands\Support\InstallStateManager;
 use Idei\Usim\Console\Commands\Support\InstallStubPublisher;
 use Idei\Usim\Console\Commands\Support\InstallWorkflowBuilder;
 use Illuminate\Console\Command;
 use Illuminate\Filesystem\Filesystem;
-use Illuminate\Support\Facades\Schema;
 use Throwable;
 
 class InstallCommand extends Command
@@ -37,6 +39,8 @@ class InstallCommand extends Command
     protected InstallAccessSynchronizer $installAccessSynchronizer;
     protected InstallContextResolver $installContextResolver;
     protected InstallEnvironmentManager $installEnvironmentManager;
+    protected InstallExecutionRollbackManager $installExecutionRollbackManager;
+    protected InstallMigrationStatusChecker $installMigrationStatusChecker;
     protected InstallScaffoldingManager $installScaffoldingManager;
     protected InstallWorkflowBuilder $installWorkflowBuilder;
     protected InstallStubPublisher $installStubPublisher;
@@ -71,6 +75,8 @@ class InstallCommand extends Command
         InstallAccessSynchronizer $installAccessSynchronizer,
         InstallContextResolver $installContextResolver,
         InstallEnvironmentManager $installEnvironmentManager,
+        InstallExecutionRollbackManager $installExecutionRollbackManager,
+        InstallMigrationStatusChecker $installMigrationStatusChecker,
         InstallScaffoldingManager $installScaffoldingManager,
         InstallStubPublisher $installStubPublisher,
         InstallWorkflowBuilder $installWorkflowBuilder
@@ -83,6 +89,8 @@ class InstallCommand extends Command
         $this->installAccessSynchronizer = $installAccessSynchronizer;
         $this->installContextResolver = $installContextResolver;
         $this->installEnvironmentManager = $installEnvironmentManager;
+        $this->installExecutionRollbackManager = $installExecutionRollbackManager;
+        $this->installMigrationStatusChecker = $installMigrationStatusChecker;
         $this->installScaffoldingManager = $installScaffoldingManager;
         $this->installStubPublisher = $installStubPublisher;
         $this->installWorkflowBuilder = $installWorkflowBuilder;
@@ -98,6 +106,8 @@ class InstallCommand extends Command
         $this->newLine();
 
         $envPath = '';
+
+        $this->installExecutionRollbackManager->begin($this->rollbackTrackedPaths());
 
         $steps = $this->buildWorkflowSteps($envPath);
 
@@ -117,7 +127,21 @@ class InstallCommand extends Command
             }
 
             $this->installStateManager->finish($this->syncStats);
+            $this->installExecutionRollbackManager->cleanup();
         } catch (Throwable $exception) {
+            if ($exception instanceof MissingDatabaseException) {
+                $this->installExecutionRollbackManager->rollback();
+                $this->installStateManager->markRolledBack($exception->getMessage());
+                $this->installExecutionRollbackManager->cleanup();
+
+                $statePath = $this->installStateManager->getPath();
+                $this->components->error("USIM installation was rolled back because database is missing. State was persisted in {$statePath}.");
+                $this->components->error($exception->getMessage());
+
+                return self::FAILURE;
+            }
+
+            $this->installExecutionRollbackManager->cleanup();
             $this->installStateManager->fail($exception);
             $statePath = $this->installStateManager->getPath();
             $this->components->error("USIM installation failed. State was persisted for troubleshooting in {$statePath}.");
@@ -178,6 +202,9 @@ class InstallCommand extends Command
         return $this->installWorkflowBuilder->build(
             checkEnvironment: function (): void {
                 $this->installEnvironmentManager->assertNotProductionEnvironment();
+            },
+            checkDatabaseReadiness: function (): void {
+                $this->assertDatabaseMigrationReadyForInstall();
             },
             publishConfig: function (): void {
                 $this->installScaffoldingManager->publishConfig(
@@ -332,26 +359,107 @@ class InstallCommand extends Command
 
     protected function ensureRequiredTables(): void
     {
-        $required = ['roles', 'permissions', 'users', 'usim_languages'];
-        $missing = array_values(array_filter($required, fn (string $table): bool => !Schema::hasTable($table)));
+        $this->assertDatabaseMigrationReadyForInstall();
+    }
 
-        if ($missing === []) {
+    protected function assertDatabaseMigrationReadyForInstall(): void
+    {
+        $assessment = $this->installMigrationStatusChecker->assess();
+
+        $databaseExists = (bool) ($assessment['database_exists'] ?? true);
+        if (!$databaseExists) {
+            $databaseIssue = (string) ($assessment['database_issue'] ?? 'Database does not exist or is not reachable with current .env settings.');
+            throw new MissingDatabaseException(
+                $databaseIssue . ' Run `php artisan migrate` after creating/configuring the database, then retry `php artisan usim:install`.'
+            );
+        }
+
+        if (($assessment['is_ready'] ?? false) === true) {
             return;
         }
 
-        $this->line('  <fg=yellow>!</> Missing required tables: ' . implode(', ', $missing));
+        $details = [];
 
-        $shouldRunMigrate = !$this->input->isInteractive() || $this->confirm('Run migrations now?', true);
-        if (!$shouldRunMigrate) {
-            throw new \RuntimeException('Migrations are required before USIM can upsert permissions, users and languages.');
+        $missingTables = $assessment['missing_tables'] ?? [];
+        if (is_array($missingTables) && $missingTables !== []) {
+            $details[] = 'missing tables: ' . implode(', ', $missingTables);
         }
 
-        $this->call('migrate', ['--force' => true]);
+        $missingColumns = $assessment['missing_columns'] ?? [];
+        if (is_array($missingColumns)) {
+            foreach ($missingColumns as $table => $columns) {
+                if (!is_string($table) || !is_array($columns) || $columns === []) {
+                    continue;
+                }
 
-        $stillMissing = array_values(array_filter($required, fn (string $table): bool => !Schema::hasTable($table)));
-        if ($stillMissing !== []) {
-            throw new \RuntimeException('Missing tables after migration: ' . implode(', ', $stillMissing));
+                $details[] = 'missing columns in ' . $table . ': ' . implode(', ', $columns);
+            }
         }
+
+        $missingMigrations = $assessment['missing_migrations'] ?? [];
+        if (is_array($missingMigrations) && $missingMigrations !== []) {
+            $details[] = 'critical migrations not executed: ' . implode(', ', $missingMigrations);
+        }
+
+        $notes = $assessment['notes'] ?? [];
+        if (is_array($notes)) {
+            foreach ($notes as $note) {
+                if (is_string($note) && trim($note) !== '') {
+                    $details[] = trim($note);
+                }
+            }
+        }
+
+        if ($details === []) {
+            $details[] = 'database schema validation failed';
+        }
+
+        throw new \RuntimeException(
+            'Database migration is not ready for USIM install (' . implode('; ', $details) . '). ' .
+            'Run `php artisan migrate` before continuing.'
+        );
+    }
+
+    /**
+     * @return array<int, string>
+     */
+    protected function rollbackTrackedPaths(): array
+    {
+        return [
+            '.env',
+            'config/usim.php',
+            'routes/web.php',
+            'composer.json',
+            'bootstrap/providers.php',
+            'app/UI/Screens/Home.php',
+            'app/UI/Screens/Menu.php',
+            'app/UI/Screens/Admin',
+            'app/UI/Screens/Auth',
+            'app/UI/Components/Modals',
+            'app/UI/Components/DataTable',
+            'app/Services/Auth',
+            'app/Services/User',
+            'app/Http/Controllers/Api/AuthController.php',
+            'app/Providers/EventServiceProvider.php',
+            'resources/views/emails/verify-email.blade.php',
+            'resources/views/emails/reset-password.blade.php',
+            'resources/views/terms.blade.php',
+            'resources/views/landing.blade.php',
+            'tests/Pest.php',
+            'tests/TestCase.php',
+            'tests/Support',
+            'tests/Traits',
+            'tests/Feature/HomeMenuScreenTest.php',
+            'tests/Feature/LoginScreenTest.php',
+            'tests/Feature/PasswordRecoveryUiTest.php',
+            'tests/Feature/UiAuthEventsContractTest.php',
+            'lang/en/landing.php',
+            'lang/en/modal/edit_translation_dialog.php',
+            'lang/en/screen/permissions.php',
+            'lang/es/landing.php',
+            'lang/es/modal/edit_translation_dialog.php',
+            'database/migrations',
+        ];
     }
 
     // =========================================================================
