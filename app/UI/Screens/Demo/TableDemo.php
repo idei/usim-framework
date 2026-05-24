@@ -114,7 +114,9 @@ class TableDemo extends Screen
 
         $movie = app(MovieListingService::class)->findById($movieId);
 
-        $this->toast(t($movie->title));
+        $this->toast(t('screen.demo.table_demo.row_clicked_toast', [
+            'name' => t($movie->title),
+        ]));
     }
 
 }
