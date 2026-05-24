@@ -6,17 +6,7 @@ use Idei\Usim\Console\Commands\Concerns\InstallsDatabaseScaffolding;
 use Idei\Usim\Console\Commands\Concerns\InstallsLangStubs;
 use Idei\Usim\Console\Commands\Concerns\InstallsTranslationManagerScaffolding;
 use Idei\Usim\Console\Commands\Concerns\RegistersPackageHelperAutoload;
-use Idei\Usim\Console\Commands\Support\InstallAppScaffoldingManager;
-use Idei\Usim\Console\Commands\Support\InstallAccessSynchronizer;
-use Idei\Usim\Console\Commands\Support\InstallContextResolver;
-use Idei\Usim\Console\Commands\Support\InstallEnvironmentManager;
-use Idei\Usim\Console\Commands\Support\InstallExecutionRollbackManager;
-use Idei\Usim\Console\Commands\Support\InstallMigrationStatusChecker;
 use Idei\Usim\Console\Commands\Support\MissingDatabaseException;
-use Idei\Usim\Console\Commands\Support\InstallScaffoldingManager;
-use Idei\Usim\Console\Commands\Support\InstallStateManager;
-use Idei\Usim\Console\Commands\Support\InstallStubPublisher;
-use Idei\Usim\Console\Commands\Support\InstallWorkflowBuilder;
 use Illuminate\Console\Command;
 use Illuminate\Filesystem\Filesystem;
 use Throwable;
@@ -34,16 +24,26 @@ class InstallCommand extends Command
     protected $description = 'Install the USIM framework scaffolding';
 
     protected Filesystem $files;
-    protected InstallStateManager $installStateManager;
-    protected InstallAppScaffoldingManager $installAppScaffoldingManager;
-    protected InstallAccessSynchronizer $installAccessSynchronizer;
-    protected InstallContextResolver $installContextResolver;
-    protected InstallEnvironmentManager $installEnvironmentManager;
-    protected InstallExecutionRollbackManager $installExecutionRollbackManager;
-    protected InstallMigrationStatusChecker $installMigrationStatusChecker;
-    protected InstallScaffoldingManager $installScaffoldingManager;
-    protected InstallWorkflowBuilder $installWorkflowBuilder;
-    protected InstallStubPublisher $installStubPublisher;
+    /** @var object */
+    protected $installStateManager;
+    /** @var object */
+    protected $installAppScaffoldingManager;
+    /** @var object */
+    protected $installAccessSynchronizer;
+    /** @var object */
+    protected $installContextResolver;
+    /** @var object */
+    protected $installEnvironmentManager;
+    /** @var object */
+    protected $installExecutionRollbackManager;
+    /** @var object */
+    protected $installMigrationStatusChecker;
+    /** @var object */
+    protected $installScaffoldingManager;
+    /** @var object */
+    protected $installWorkflowBuilder;
+    /** @var object */
+    protected $installStubPublisher;
     protected bool $force;
     /** @var array<string, string> */
     protected array $rootUserEnvValues = [];
@@ -69,31 +69,21 @@ class InstallCommand extends Command
     protected string $componentsPath;
 
     public function __construct(
-        Filesystem $files,
-        InstallStateManager $installStateManager,
-        InstallAppScaffoldingManager $installAppScaffoldingManager,
-        InstallAccessSynchronizer $installAccessSynchronizer,
-        InstallContextResolver $installContextResolver,
-        InstallEnvironmentManager $installEnvironmentManager,
-        InstallExecutionRollbackManager $installExecutionRollbackManager,
-        InstallMigrationStatusChecker $installMigrationStatusChecker,
-        InstallScaffoldingManager $installScaffoldingManager,
-        InstallStubPublisher $installStubPublisher,
-        InstallWorkflowBuilder $installWorkflowBuilder
+        Filesystem $files
     )
     {
         parent::__construct();
         $this->files = $files;
-        $this->installStateManager = $installStateManager;
-        $this->installAppScaffoldingManager = $installAppScaffoldingManager;
-        $this->installAccessSynchronizer = $installAccessSynchronizer;
-        $this->installContextResolver = $installContextResolver;
-        $this->installEnvironmentManager = $installEnvironmentManager;
-        $this->installExecutionRollbackManager = $installExecutionRollbackManager;
-        $this->installMigrationStatusChecker = $installMigrationStatusChecker;
-        $this->installScaffoldingManager = $installScaffoldingManager;
-        $this->installStubPublisher = $installStubPublisher;
-        $this->installWorkflowBuilder = $installWorkflowBuilder;
+        $this->installStateManager = app('Idei\\Usim\\Console\\Commands\\Support\\InstallStateManager');
+        $this->installAppScaffoldingManager = app('Idei\\Usim\\Console\\Commands\\Support\\InstallAppScaffoldingManager');
+        $this->installAccessSynchronizer = app('Idei\\Usim\\Console\\Commands\\Support\\InstallAccessSynchronizer');
+        $this->installContextResolver = app('Idei\\Usim\\Console\\Commands\\Support\\InstallContextResolver');
+        $this->installEnvironmentManager = app('Idei\\Usim\\Console\\Commands\\Support\\InstallEnvironmentManager');
+        $this->installExecutionRollbackManager = app('Idei\\Usim\\Console\\Commands\\Support\\InstallExecutionRollbackManager');
+        $this->installMigrationStatusChecker = app('Idei\\Usim\\Console\\Commands\\Support\\InstallMigrationStatusChecker');
+        $this->installScaffoldingManager = app('Idei\\Usim\\Console\\Commands\\Support\\InstallScaffoldingManager');
+        $this->installStubPublisher = app('Idei\\Usim\\Console\\Commands\\Support\\InstallStubPublisher');
+        $this->installWorkflowBuilder = app('Idei\\Usim\\Console\\Commands\\Support\\InstallWorkflowBuilder');
     }
 
     public function handle(): int
