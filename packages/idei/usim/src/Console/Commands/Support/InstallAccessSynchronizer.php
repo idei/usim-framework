@@ -532,7 +532,7 @@ class InstallAccessSynchronizer
 
         $merged = array_replace_recursive($packageConfig, $runtimeConfig, $publishedConfig);
 
-        return is_array($merged) ? $merged : [];
+        return \is_array($merged) ? $merged : [];
     }
 
     /**
@@ -546,6 +546,6 @@ class InstallAccessSynchronizer
 
         $loaded = require $path;
 
-        return is_array($loaded) ? $loaded : [];
+        return \is_array($loaded) ? $loaded : [];
     }
 }

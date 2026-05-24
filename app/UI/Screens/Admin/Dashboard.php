@@ -29,7 +29,7 @@ class Dashboard extends Screen
 
     public static function authorize(): bool
     {
-        return self::requireRole('admin');
+        return self::requireRole('root');
     }
 
     public static function getMenuLabel(): string
@@ -135,7 +135,7 @@ class Dashboard extends Screen
             ->gap('4px')
             ->plain();
 
-        $roles_split = UI::split('roles_split')
+        $this->roles_split = UI::split('roles_split')
             ->horizontal()
             ->splitSize('65%')
             ->minFirstSize('320px')
@@ -191,11 +191,11 @@ class Dashboard extends Screen
             ->add($toolbar)
             ->add($roles_table);
 
-        $roles_split
+        $this->roles_split
             ->addFirst($roles_left_panel)
             ->addSecond($roles_right_panel);
 
-        $roles_container->add($roles_split);
+        $roles_container->add($this->roles_split);
 
         return $roles_container;
     }

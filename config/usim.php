@@ -58,7 +58,7 @@ return [
     | Default Users Configuration
     |--------------------------------------------------------------------------
     |
-    | Centralized role metadata used by scaffolded auth/seed flows.
+    | Centralized role metadata used by scaffolded auth/install flows.
     |
     */
     'users' => [
