@@ -34,10 +34,7 @@
             "App\\": "app/",
             "Database\\Factories\\": "database/factories/",
             "Database\\Seeders\\": "database/seeders/"
-        },
-        "files": [
-            "vendor/idei/usim/src/Support/helpers.php"
-        ]
+        }
     },
     "autoload-dev": {
         "psr-4": {
