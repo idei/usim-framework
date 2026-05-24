@@ -56,8 +56,7 @@ Usa este mapa como contexto por defecto para cualquier chat:
 |        |- Admin/                  # Dashboard.php
 |  |  |  |  \- components/
 |- config/
-|  |- ui-home.php
-|  \- ui-services.php               # configuracion/registro de pantallas USIM en la app
+|  \- usim.php               # configuracion/registro de pantallas USIM en la app
 |- database/
 |- public/
 |- resources/
