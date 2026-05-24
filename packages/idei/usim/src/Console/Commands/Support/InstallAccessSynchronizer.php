@@ -16,7 +16,7 @@ class InstallAccessSynchronizer
      * @param array<string, string> $rootUserEnvValues
      * @return array{permissions_created:int,permissions_total:int,roles_created:int,roles_total:int,users_created:int,users_updated:int,languages_created:int,languages_updated:int}
      */
-    public function sync(array $rootUserEnvValues, string $userModelClass): array
+    public function sync(array $rootUserEnvValues, string $userModelClass, ?callable $line = null): array
     {
         $stats = [
             'permissions_created' => 0,
@@ -29,7 +29,7 @@ class InstallAccessSynchronizer
             'languages_updated' => 0,
         ];
 
-        DB::transaction(function () use (&$stats, $rootUserEnvValues, $userModelClass): void {
+        DB::transaction(function () use (&$stats, $rootUserEnvValues, $userModelClass, $line): void {
             app(PermissionRegistrar::class)->forgetCachedPermissions();
             $guardName = $this->resolveGuardNameForUserModel($userModelClass);
 
@@ -53,6 +53,10 @@ class InstallAccessSynchronizer
 
             foreach ($roles as $roleName => $roleMeta) {
                 $isRootRole = $roleName === 'root';
+                if (is_callable($line)) {
+                    $line("  ↳ Reviewing role [{$roleName}]...");
+                }
+
                 $role = Role::query()
                     ->where('name', $roleName)
                     ->where('guard_name', $guardName)
@@ -61,14 +65,25 @@ class InstallAccessSynchronizer
                 if ($role === null) {
                     $role = Role::findOrCreate($roleName, $guardName);
                     $stats['roles_created']++;
+
+                    if (is_callable($line)) {
+                        $line("    ✓ Role [{$roleName}] created for guard [{$guardName}]");
+                    }
+                } elseif (is_callable($line)) {
+                    $line("    → Role [{$roleName}] already exists for guard [{$guardName}]");
                 }
 
                 /** @var Role $role */
                 $rolePermissions = $this->normalizeRolePermissions($roleMeta, $permissions, $isRootRole);
                 $role->syncPermissions($rolePermissions);
+
+                if (is_callable($line)) {
+                    $line("    ✓ Role [{$roleName}] permissions synced: " . implode(', ', $rolePermissions));
+                }
             }
 
-            $this->upsertDefaultUsers($stats, $rootUserEnvValues, $userModelClass, $guardName);
+            $this->upsertRootUser($stats, $rootUserEnvValues, $userModelClass, $guardName);
+            $this->upsertConfiguredUsers($stats, $userModelClass, $guardName);
             $this->upsertLanguages($stats);
         });
 
@@ -82,7 +97,8 @@ class InstallAccessSynchronizer
      */
     private function collectPermissionNames(): array
     {
-        $permissionConfig = config('usim.permissions', []);
+        $usimConfig = $this->loadUsimConfig();
+        $permissionConfig = $usimConfig['permissions'] ?? config('usim.permissions', []);
         $defined = [];
 
         if (is_array($permissionConfig)) {
@@ -123,7 +139,8 @@ class InstallAccessSynchronizer
      */
     private function normalizeRolesConfig(): array
     {
-        $roles = config('usim.roles', []);
+        $usimConfig = $this->loadUsimConfig();
+        $roles = $usimConfig['roles'] ?? config('usim.roles', []);
         if (!is_array($roles)) {
             $roles = [];
         }
@@ -136,7 +153,7 @@ class InstallAccessSynchronizer
 
         return array_filter(
             $roles,
-            static fn ($key, $value): bool => is_string($key) && trim($key) !== '' && is_array($value),
+            static fn ($value, $key): bool => is_string($key) && trim($key) !== '' && is_array($value),
             ARRAY_FILTER_USE_BOTH
         );
     }
@@ -183,13 +200,14 @@ class InstallAccessSynchronizer
      * @param array<string, int> $stats
      * @param array<string, string> $rootUserEnvValues
      */
-    private function upsertDefaultUsers(array &$stats, array $rootUserEnvValues, string $userModelClass, string $guardName): void
+    private function upsertRootUser(array &$stats, array $rootUserEnvValues, string $userModelClass, string $guardName): void
     {
         if (!class_exists($userModelClass) || !is_subclass_of($userModelClass, Model::class)) {
             throw new \RuntimeException("Configured user model [{$userModelClass}] is invalid.");
         }
 
-        $usersConfig = config('usim.users', []);
+        $usimConfig = $this->loadUsimConfig();
+        $usersConfig = $usimConfig['users'] ?? config('usim.users', []);
         $usersConfig = is_array($usersConfig) ? $usersConfig : [];
 
         $rootConfig = is_array($usersConfig['root'] ?? null) ? $usersConfig['root'] : [];
@@ -218,6 +236,20 @@ class InstallAccessSynchronizer
             forceRootRules: true,
             guardName: $guardName
         );
+    }
+
+    /**
+     * @param array<string, int> $stats
+     */
+    private function upsertConfiguredUsers(array &$stats, string $userModelClass, string $guardName): void
+    {
+        if (!class_exists($userModelClass) || !is_subclass_of($userModelClass, Model::class)) {
+            throw new \RuntimeException("Configured user model [{$userModelClass}] is invalid.");
+        }
+
+        $usimConfig = $this->loadUsimConfig();
+        $usersConfig = $usimConfig['users'] ?? config('usim.users', []);
+        $usersConfig = is_array($usersConfig) ? $usersConfig : [];
 
         foreach ($usersConfig as $key => $userConfig) {
             if (!is_string($key) || $key === '' || $key === 'root' || $key === 'roles') {
@@ -369,12 +401,13 @@ class InstallAccessSynchronizer
      */
     private function upsertLanguages(array &$stats): void
     {
-        $configuredLanguages = config('usim.i18n.languages', []);
+        $usimConfig = $this->loadUsimConfig();
+        $configuredLanguages = $usimConfig['i18n']['languages'] ?? config('usim.i18n.languages', []);
         if (!is_array($configuredLanguages)) {
             $configuredLanguages = [];
         }
 
-        $fallbackCode = config('usim.i18n.fallback_locale', config('app.fallback_locale', 'en'));
+        $fallbackCode = $usimConfig['i18n']['fallback_locale'] ?? config('usim.i18n.fallback_locale', config('app.fallback_locale', 'en'));
         $fallbackCode = is_string($fallbackCode) && trim($fallbackCode) !== '' ? trim($fallbackCode) : 'en';
 
         $touchedFallback = false;
@@ -486,5 +519,33 @@ class InstallAccessSynchronizer
         } catch (\Throwable) {
             return $fallbackGuard;
         }
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function loadUsimConfig(): array
+    {
+        $packageConfig = $this->loadConfigFile(dirname(__DIR__, 4) . '/config/usim.php');
+        $publishedConfig = $this->loadConfigFile(config_path('usim.php'));
+        $runtimeConfig = config('usim', []);
+
+        $merged = array_replace_recursive($packageConfig, $runtimeConfig, $publishedConfig);
+
+        return is_array($merged) ? $merged : [];
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function loadConfigFile(string $path): array
+    {
+        if (!is_file($path)) {
+            return [];
+        }
+
+        $loaded = require $path;
+
+        return is_array($loaded) ? $loaded : [];
     }
 }

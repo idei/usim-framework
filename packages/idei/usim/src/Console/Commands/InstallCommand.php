@@ -351,7 +351,10 @@ class InstallCommand extends Command
 
         $this->syncStats = $this->installAccessSynchronizer->sync(
             rootUserEnvValues: $this->rootUserEnvValues,
-            userModelClass: $this->resolveUserModelImport()
+            userModelClass: $this->resolveUserModelImport(),
+            line: function (string $message): void {
+                $this->line($message);
+            }
         );
 
         $this->line('  <fg=green>✓</> Access and languages upsert completed');

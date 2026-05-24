@@ -11,8 +11,8 @@ class UsimSeeder extends Seeder
     {
         $this->call([
             // UsimRoleSeeder::class,
-            UsimUserSeeder::class,
-            UsimLanguageSeeder::class,
+            // UsimUserSeeder::class,
+            // UsimLanguageSeeder::class,
 
             GenreSeeder::class,
             MovieSeeder::class,
