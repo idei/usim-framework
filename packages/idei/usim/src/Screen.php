@@ -334,7 +334,7 @@ abstract class Screen
     /**
      * Get the route path for this screen.
      * Auto-generates based on namespace location relative to Screen root.
-     * E.g. App\UI\Screens\Admin\Dashboard -> /admin/dashboard
+     * E.g. App\UI\Screens\Admin\UsersManager -> /admin/dashboard
      */
     public static function getRoutePath(): string
     {

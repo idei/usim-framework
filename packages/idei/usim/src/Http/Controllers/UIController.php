@@ -55,7 +55,7 @@ class UIController extends Controller
      * Convert URL route to fully qualified screen class name.
      *
      * Examples:
-     * - 'admin/dashboard' -> 'App\UI\Screens\Admin\Dashboard'
+     * - 'admin/dashboard' -> 'App\UI\Screens\Admin\UsersManager'
      * - 'demos/input-demo' -> 'App\UI\Screens\Demos\InputDemo'
      */
     private function resolveScreenClass(string $screenRoute): string

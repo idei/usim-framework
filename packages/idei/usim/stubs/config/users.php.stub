@@ -21,7 +21,7 @@ return [
                 'es' => 'Gestiona el sistema y usuarios.',
                 'en' => 'Manages the system and users.',
             ],
-            'default_screen' => 'App\\UI\\Screens\\Admin\\Dashboard',
+            'default_screen' => 'App\\UI\\Screens\\Admin\\UsersManager',
             'permissions' => ['*'],
             'seed_user' => [
                 'first_name' => env('ADMIN_FIRST_NAME', 'Admin'),

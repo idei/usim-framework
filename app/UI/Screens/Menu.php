@@ -5,7 +5,7 @@ use App\Services\Auth\AuthSessionService;
 use App\Services\Auth\RegisterService;
 use App\UI\Components\Modals\RegisterDialog;
 use App\UI\Components\Modals\TermsDialog;
-use App\UI\Screens\Admin\Dashboard;
+use App\UI\Screens\Admin\UsersManager;
 use App\UI\Screens\Admin\TranslateManager;
 use App\UI\Screens\Auth\Login;
 use App\UI\Screens\Auth\Profile;
@@ -228,7 +228,7 @@ class Menu extends Screen
     private function populateMainMenu(MenuDropdown $menu): void
     {
         $menu->link(t('screen.menu.items.home'), '/', '🏠');
-        $menu->screen(Dashboard::class);
+        $menu->screen(UsersManager::class);
         $menu->screen(TranslateManager::class);
         $this->buildDemosMenu($menu);
         $menu->separator();

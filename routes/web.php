@@ -20,7 +20,7 @@ if (config('app.env') === 'local') {
 }
 
 // Dynamic UI Screen Catcher (Catch-All)
-// Allows URLs like /admin/dashboard to resolve to Admin\Dashboard screen class
+// Allows URLs like /admin/dashboard to resolve to Admin\UsersManager screen class
 // Now also handles the root path '/' defaulting to 'landing'
 // Must be the LAST route definition to not intercept other specific routes
 Route::get('/{screen?}', function (?string $screen = 'home') {

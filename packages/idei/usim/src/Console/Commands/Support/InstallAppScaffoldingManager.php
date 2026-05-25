@@ -23,7 +23,7 @@ class InstallAppScaffoldingManager
     ): void {
         $this->installScreen('Home.php.stub', 'Home.php', null, $context, $publishStub, $line);
         $this->installScreen('Menu.php.stub', 'Menu.php', null, $context, $publishStub, $line);
-        $this->installScreen('Admin/Dashboard.php.stub', 'Dashboard.php', 'Admin', $context, $publishStub, $line);
+        $this->installScreen('Admin/UsersManager.php.stub', 'UsersManager.php', 'Admin', $context, $publishStub, $line);
 
         $installTranslationManagerScaffolding();
     }

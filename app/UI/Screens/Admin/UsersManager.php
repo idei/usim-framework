@@ -19,7 +19,7 @@ use Idei\Usim\Modals\ConfirmDialogService;
 use Idei\Usim\Screen;
 use Idei\Usim\UI;
 
-class Dashboard extends Screen
+class UsersManager extends Screen
 {
     public function __construct(
         protected RegisterService $registerService,

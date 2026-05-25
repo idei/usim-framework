@@ -1,6 +1,6 @@
 <?php
 
-use App\UI\Screens\Admin\Dashboard;
+use App\UI\Screens\Admin\UsersManager;
 use App\UI\Screens\Admin\TranslateManager;
 use App\UI\Screens\Home;
 
@@ -83,7 +83,7 @@ return [
                     'es' => 'Gestiona el sistema y usuarios.',
                     'en' => 'Manages the system and users.',
                 ],
-                'default_screen' => 'App\\UI\\Screens\\Admin\\Dashboard',
+                'default_screen' => 'App\\UI\\Screens\\Admin\\UsersManager',
                 'permissions' => ['*'],
                 'seed_user' => [
                     'first_name' => env('ADMIN_FIRST_NAME', 'Admin'),
@@ -148,8 +148,8 @@ return [
         ],
         'screen.admin.dashboard.access' => [
             'label' => [
-                'es' => 'Acceso al Dashboard de Admin',
-                'en' => 'Access Admin Dashboard',
+                'es' => 'Acceso al UsersManager de Admin',
+                'en' => 'Access Admin UsersManager',
             ],
             'description' => [
                 'es' => 'Permite acceder al panel de administración.',
@@ -189,7 +189,7 @@ return [
                 'en' => 'User with total and unconditional access to all features.',
             ],
             'priority' => 100,
-            'default_screen' => Dashboard::class,
+            'default_screen' => UsersManager::class,
             'permissions' => ['*'],
         ],
         'admin' => [
@@ -202,7 +202,7 @@ return [
                 'en' => 'Manages the system and users.',
             ],
             'priority' => 80,
-            'default_screen' => Dashboard::class,
+            'default_screen' => UsersManager::class,
             'permissions' => ['screen.admin.dashboard.access'],
         ],
         'registered' => [

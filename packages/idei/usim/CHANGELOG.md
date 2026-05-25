@@ -73,10 +73,10 @@ The format is based on Keep a Changelog, and this project follows Semantic Versi
 
 ### Changed
 - `ConfirmDialogService` and `RegisterDialog` scaffolding updated to use `plain()` container appearance.
-- Admin Dashboard stub significantly refined: improved user feedback handling, clearer table layout, and role management flow.
+- Admin UsersManager stub significantly refined: improved user feedback handling, clearer table layout, and role management flow.
 - `UserService` stub enhanced with stronger field validation and role management logic.
 - All auth screen stubs (`Login`, `EmailVerified`, `ForgotPassword`, `ResetPassword`) updated to use `plain()` container appearance for a consistent look.
-- `EditUserDialog` and `Admin\Dashboard` stubs updated to use `plain()` appearance.
+- `EditUserDialog` and `Admin\UsersManager` stubs updated to use `plain()` appearance.
 
 ### Fixed
 - `Screen` now always persists the container state after `postLoadUI()`, including on `?reset=true` reloads, preventing stale cache snapshots.
@@ -133,16 +133,16 @@ The format is based on Keep a Changelog, and this project follows Semantic Versi
 ## [0.4.0] - 2026-03-15
 
 ### Added
-- Admin Dashboard screen stub (`App\UI\Screens\Admin\Dashboard`) with full user management: search, paginated user table, create, edit, and delete users with role assignment.
-- `EditUserDialog` modal component stub for inline user editing from the Admin Dashboard.
+- Admin UsersManager screen stub (`App\UI\Screens\Admin\UsersManager`) with full user management: search, paginated user table, create, edit, and delete users with role assignment.
+- `EditUserDialog` modal component stub for inline user editing from the Admin UsersManager.
 - `UserTableModel` data table component stub (`App\UI\Components\DataTable`) for paginated, searchable user lists backed by `UserService`.
 - `upload_disk` configuration key (`config/ui-services.php`) to set the filesystem disk used for uploads. Defaults to `local`; override via `UPLOAD_DISK` env variable.
 - `UPLOAD_DISK=local` entry added to the published `.env` template.
 
 ### Changed
 - `usim:install` now exposes a single unified installation flow; the `minimal` preset and `--preset` option were removed.
-- `usim:install` now scaffolds the Admin Dashboard screen in `App\UI\Screens\Admin` alongside the core Home, Menu, and auth screens.
-- Menu scaffold updated to show a link to the Admin Dashboard for authenticated users.
+- `usim:install` now scaffolds the Admin UsersManager screen in `App\UI\Screens\Admin` alongside the core Home, Menu, and auth screens.
+- Menu scaffold updated to show a link to the Admin UsersManager for authenticated users.
 - `UserService` stub significantly expanded with `findUser`, `getUser`, `updateUser`, and `createUser` methods including field validation, role management, and email notification handling.
 - `UploadController` and `UploadService` now use the configurable `upload_disk` key instead of the hardcoded `uploads` disk name.
 

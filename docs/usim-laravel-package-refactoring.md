@@ -92,7 +92,7 @@ Now we must solve "Phase 2: Menu Visibility Automation".
         1.  Modify `toJson` in `MenuDropdown`.
         2.  Implement logic to filter `$this->items` based on comparing `$item['permission']` vs `$this->config['permissions']`.
         3.  Recursive filtering for submenus.
-        4.  This ensures that if a user lacks the 'auth' tag, the "Admin Dashboard" item is physically removed from the JSON payload *before* it leaves the server.
+        4.  This ensures that if a user lacks the 'auth' tag, the "Admin UsersManager" item is physically removed from the JSON payload *before* it leaves the server.
 
 3.  **Productization Strategy (Defaults):**
     *   Define if Landing/Menu should be internal defaults or published stubs.

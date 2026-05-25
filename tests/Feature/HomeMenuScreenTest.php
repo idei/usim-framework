@@ -1,7 +1,7 @@
 <?php
 
 use App\Models\User;
-use App\UI\Screens\Admin\Dashboard;
+use App\UI\Screens\Admin\UsersManager;
 use App\UI\Screens\Home;
 use App\UI\Screens\Menu;
 use App\UI\Screens\Auth\Profile;
@@ -135,7 +135,7 @@ it('shows profile, logout and admin dashboard items after admin login', function
     $mainMenu = $ui->component('main_menu')->data();
     $userMenu = $ui->component('user_menu')->data();
 
-    expect(menuItemsContainLabel($mainMenu['items'] ?? [], Dashboard::getMenuLabel()))->toBeTrue();
+    expect(menuItemsContainLabel($mainMenu['items'] ?? [], UsersManager::getMenuLabel()))->toBeTrue();
     expect(menuItemsContainLabel($userMenu['items'] ?? [], Profile::getMenuLabel()))->toBeTrue();
     expect(menuItemsContainLabel($userMenu['items'] ?? [], t('screen.menu.items.logout')))->toBeTrue();
 
@@ -150,7 +150,7 @@ it('shows profile/logout and hides admin dashboard after regular user login', fu
     $mainMenu = $ui->component('main_menu')->data();
     $userMenu = $ui->component('user_menu')->data();
 
-    expect(menuItemsContainLabel($mainMenu['items'] ?? [], Dashboard::getMenuLabel()))->toBeFalse();
+    expect(menuItemsContainLabel($mainMenu['items'] ?? [], UsersManager::getMenuLabel()))->toBeFalse();
     expect(menuItemsContainLabel($userMenu['items'] ?? [], Profile::getMenuLabel()))->toBeTrue();
     expect(menuItemsContainLabel($userMenu['items'] ?? [], t('screen.menu.items.logout')))->toBeTrue();
 

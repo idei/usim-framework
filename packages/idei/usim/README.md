@@ -148,7 +148,7 @@ class HelloScreen extends Screen
 
         $container->add(
             UI::label('title')
-                ->text('Welcome to the Dashboard')
+                ->text('Welcome to the UsersManager')
                 ->style('h1')
         );
 
@@ -401,7 +401,7 @@ public static function getMenuIcon(): ?string
 Then in your Menu screen, use `$menu->screen(MyScreen::class)` for automatic linking with permission checks:
 
 ```php
-$menu->screen(Dashboard::class);                          // auto label + icon
+$menu->screen(UsersManager::class);                          // auto label + icon
 $menu->screen(Products\List::class, 'All Products', '📦'); // custom label + icon
 ```
 
@@ -702,7 +702,7 @@ public function onSaveProfile(array $params): void
 | `ResetPassword` | `/auth/reset-password` | Reset password form |
 | `EmailVerified` | `/auth/email-verified` | Email verification handler |
 | `Profile` | `/auth/profile` | User profile (name, photo, password change) |
-| `Admin\Dashboard` | `/admin/dashboard` | User management table with CRUD and role assignment (admin only) |
+| `Admin\UsersManager` | `/admin/dashboard` | User management table with CRUD and role assignment (admin only) |
 
 Supporting files:
 
@@ -934,9 +934,9 @@ app/
     │       └── RegisterDialog.php
     └── Screens/
         ├── Home.php              # Landing page
-        ├── Menu.php              # Navigation menu (links Dashboard for admins)
+        ├── Menu.php              # Navigation menu (links UsersManager for admins)
         ├── Admin/
-        │   └── Dashboard.php     # User management (admin only)
+        │   └── UsersManager.php     # User management (admin only)
         └── Auth/
             ├── Login.php
             ├── ForgotPassword.php

@@ -5,7 +5,7 @@ namespace {{ namespace }};
 use App\Services\Auth\AuthSessionService;
 use App\Services\Auth\RegisterService;
 use {{ componentsNamespace }}\Modals\RegisterDialog;
-use {{ screensNamespace }}\Admin\Dashboard;
+use {{ screensNamespace }}\Admin\UsersManager;
 use {{ screensNamespace }}\Admin\TranslateManager;
 use {{ screensNamespace }}\Auth\Login;
 use {{ screensNamespace }}\Auth\Profile;
@@ -215,7 +215,7 @@ class Menu extends Screen
     {
         $menu->link(t('screen.menu.items.home'), '/', '🏠');
         if (Auth::check()) {
-            $menu->screen(Dashboard::class);
+            $menu->screen(UsersManager::class);
             $menu->screen(TranslateManager::class);
         }
         $menu->separator();
