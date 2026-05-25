@@ -126,8 +126,9 @@ class Menu extends Screen
         $parts = parse_url($referer);
         $path = $parts['path'] ?? '/';
         $query = [];
-        if (!empty($parts['query'])) {
-            parse_str($parts['query'], $query);
+        $queryString = $parts['query'] ?? '';
+        if (!empty($queryString)) {
+            parse_str((string) $queryString, $query);
         }
 
         $target = $path;

@@ -297,11 +297,11 @@ abstract class Screen
             return true;
         }
 
-        if (!auth()->check()) {
+        if (!Auth::check()) {
             return false;
         }
 
-        $user = auth()->user();
+        $user = Auth::user();
 
         // If the permission doesn't contain a dot, we assume it's a local permission and resolve
         //  it using the screen's slug.
@@ -309,7 +309,7 @@ abstract class Screen
             $permission = static::getScreenSlug() . '.' . $permission;
         }
 
-        return $user->hasPermissionTo($permission);
+        return method_exists($user, 'hasPermissionTo') && $user->hasPermissionTo($permission);
     }
 
     /**

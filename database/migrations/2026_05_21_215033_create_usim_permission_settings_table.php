@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('usim_permission_settings', function (Blueprint $table) {
             $table->id();
             // One-to-one relationship with Spatie permissions table
-            $table->foreignId('permission_id')->constrained('permissions')->onDelete('cascade');
+            $table->foreignId('permission_id')->constrained('permissions')->cascadeOnDelete();
             $table->string('description')->nullable(); // Optional description for the permission
             $table->timestamps();
         });
