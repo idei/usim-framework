@@ -1,5 +1,9 @@
 <?php
 
+use App\UI\Screens\Admin\Dashboard;
+use App\UI\Screens\Admin\TranslateManager;
+use App\UI\Screens\Home;
+
 return [
 
     /*
@@ -184,24 +188,9 @@ return [
                 'es' => 'Usuario con acceso total e incondicional a todas las funciones.',
                 'en' => 'User with total and unconditional access to all features.',
             ],
-            'default_screen' => 'App\\UI\\Screens\\Admin\\Dashboard',
+            'priority' => 100,
+            'default_screen' => Dashboard::class,
             'permissions' => ['*'],
-        ],
-        'developer' => [
-            'label' => [
-                'es' => 'Desarrollador',
-                'en' => 'Developer',
-            ],
-            'description' => [
-                'es' => 'Usuario con acceso a herramientas de desarrollo y debug.',
-                'en' => 'User with access to development and debug tools.',
-            ],
-            'default_screen' => 'App\\UI\\Screens\\Dev\\Tools',
-            'permissions' => [
-                'debug.access',
-                'screen.dev.tools.access',
-                'view.logs'
-            ],
         ],
         'admin' => [
             'label' => [
@@ -212,7 +201,8 @@ return [
                 'es' => 'Gestiona el sistema y usuarios.',
                 'en' => 'Manages the system and users.',
             ],
-            'default_screen' => 'App\\UI\\Screens\\Admin\\Dashboard',
+            'priority' => 80,
+            'default_screen' => Dashboard::class,
             'permissions' => ['screen.admin.dashboard.access'],
         ],
         'registered' => [
@@ -224,7 +214,8 @@ return [
                 'es' => 'Usuario registrado con permisos limitados.',
                 'en' => 'Registered user with limited permissions.',
             ],
-            'default_screen' => 'App\\UI\\Screens\\User\\Home',
+            'priority' => 60,
+            'default_screen' => Home::class,
             'permissions' => ['screen.user.home.access'],
         ],
         'approved' => [
@@ -236,8 +227,22 @@ return [
                 'es' => 'Usuario aprobado con acceso a funciones adicionales.',
                 'en' => 'Approved user with access to additional features.',
             ],
-            'default_screen' => 'App\\UI\\Screens\\User\\Home',
+            'priority' => 40,
+            'default_screen' => Home::class,
             'permissions' => ['screen.user.home.access', 'feature.premium.access'],
+        ],
+        'translator' => [
+            'label' => [
+                'es' => 'Traductor',
+                'en' => 'Translator',
+            ],
+            'description' => [
+                'es' => 'Usuario encargado de gestionar traducciones.',
+                'en' => 'User responsible for managing translations.',
+            ],
+            'priority' => 20,
+            'default_screen' => TranslateManager::class,
+            'permissions' => [],
         ],
     ],
 

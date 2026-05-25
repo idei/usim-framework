@@ -528,9 +528,8 @@ class InstallAccessSynchronizer
     {
         $packageConfig = $this->loadConfigFile(dirname(__DIR__, 4) . '/config/usim.php');
         $publishedConfig = $this->loadConfigFile(config_path('usim.php'));
-        $runtimeConfig = config('usim', []);
 
-        $merged = array_replace_recursive($packageConfig, $runtimeConfig, $publishedConfig);
+        $merged = array_replace_recursive($packageConfig, $publishedConfig);
 
         return \is_array($merged) ? $merged : [];
     }
