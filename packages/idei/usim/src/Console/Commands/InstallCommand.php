@@ -6,6 +6,16 @@ use Idei\Usim\Console\Commands\Concerns\InstallsDatabaseScaffolding;
 use Idei\Usim\Console\Commands\Concerns\InstallsLangStubs;
 use Idei\Usim\Console\Commands\Concerns\InstallsTranslationManagerScaffolding;
 use Idei\Usim\Console\Commands\Concerns\RegistersPackageHelperAutoload;
+use Idei\Usim\Console\Commands\Support\InstallAccessSynchronizer;
+use Idei\Usim\Console\Commands\Support\InstallAppScaffoldingManager;
+use Idei\Usim\Console\Commands\Support\InstallContextResolver;
+use Idei\Usim\Console\Commands\Support\InstallEnvironmentManager;
+use Idei\Usim\Console\Commands\Support\InstallExecutionRollbackManager;
+use Idei\Usim\Console\Commands\Support\InstallMigrationStatusChecker;
+use Idei\Usim\Console\Commands\Support\InstallScaffoldingManager;
+use Idei\Usim\Console\Commands\Support\InstallStateManager;
+use Idei\Usim\Console\Commands\Support\InstallStubPublisher;
+use Idei\Usim\Console\Commands\Support\InstallWorkflowBuilder;
 use Idei\Usim\Console\Commands\Support\MissingDatabaseException;
 use Illuminate\Console\Command;
 use Illuminate\Filesystem\Filesystem;
@@ -74,16 +84,16 @@ class InstallCommand extends Command
     {
         parent::__construct();
         $this->files = $files;
-        $this->installStateManager = app('Idei\\Usim\\Console\\Commands\\Support\\InstallStateManager');
-        $this->installAppScaffoldingManager = app('Idei\\Usim\\Console\\Commands\\Support\\InstallAppScaffoldingManager');
-        $this->installAccessSynchronizer = app('Idei\\Usim\\Console\\Commands\\Support\\InstallAccessSynchronizer');
-        $this->installContextResolver = app('Idei\\Usim\\Console\\Commands\\Support\\InstallContextResolver');
-        $this->installEnvironmentManager = app('Idei\\Usim\\Console\\Commands\\Support\\InstallEnvironmentManager');
-        $this->installExecutionRollbackManager = app('Idei\\Usim\\Console\\Commands\\Support\\InstallExecutionRollbackManager');
-        $this->installMigrationStatusChecker = app('Idei\\Usim\\Console\\Commands\\Support\\InstallMigrationStatusChecker');
-        $this->installScaffoldingManager = app('Idei\\Usim\\Console\\Commands\\Support\\InstallScaffoldingManager');
-        $this->installStubPublisher = app('Idei\\Usim\\Console\\Commands\\Support\\InstallStubPublisher');
-        $this->installWorkflowBuilder = app('Idei\\Usim\\Console\\Commands\\Support\\InstallWorkflowBuilder');
+        $this->installStateManager = app(InstallStateManager::class);
+        $this->installAppScaffoldingManager = app(InstallAppScaffoldingManager::class);
+        $this->installAccessSynchronizer = app(InstallAccessSynchronizer::class);
+        $this->installContextResolver = app(InstallContextResolver::class);
+        $this->installEnvironmentManager = app(InstallEnvironmentManager::class);
+        $this->installExecutionRollbackManager = app(InstallExecutionRollbackManager::class);
+        $this->installMigrationStatusChecker = app(InstallMigrationStatusChecker::class);
+        $this->installScaffoldingManager = app(InstallScaffoldingManager::class);
+        $this->installStubPublisher = app(InstallStubPublisher::class);
+        $this->installWorkflowBuilder = app(InstallWorkflowBuilder::class);
     }
 
     public function handle(): int

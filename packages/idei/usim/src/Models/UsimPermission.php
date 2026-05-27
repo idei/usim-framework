@@ -3,6 +3,7 @@
 namespace Idei\Usim\Models;
 
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Support\Facades\DB;
 use Spatie\Permission\Models\Permission as SpatiePermission;
 
 class UsimPermission extends SpatiePermission
@@ -12,24 +13,50 @@ class UsimPermission extends SpatiePermission
      */
     public function usimSetting(): HasOne
     {
-        // Asumiendo que creas el modelo básico UsimPermissionSetting
         return $this->hasOne(UsimPermissionSetting::class);
     }
 
     /**
-     * Helper para crear el permiso y su descripción de un solo golpe
+     * El "Hook" del ciclo de vida del modelo para asegurar la creación del setting.
+     */
+    protected static function booted(): void
+    {
+        static::creating(function (UsimPermission $permission) {
+            DB::beginTransaction();
+        });
+
+        // Este evento asegura que SIEMPRE existan los settings por defecto (incluso null)
+        static::created(function (UsimPermission $permission) {
+            try {
+                $permission->usimSetting()->create([
+                    'description' => null,
+                ]);
+                DB::commit();
+            } catch (\Exception $e) {
+                DB::rollBack();
+                throw $e;
+            }
+        });
+    }
+
+    /**
+     * Helper para crear el permiso y actualizar su descripción de un solo golpe
      */
     public static function createWithDescription(string $name, ?string $description = null, string $guardName = 'web'): self
     {
+        // 1. Esto dispara internamente el 'booted' y crea el permiso + sus settings nulos
         /** @var self $permission */
         $permission = static::create([
             'name' => $name,
             'guard_name' => $guardName
         ]);
 
-        $permission->usimSetting()->create([
-            'description' => $description
-        ]);
+        // 2. Como los settings YA EXISTEN obligatoriamente, simplemente los actualizamos
+        if ($description !== null) {
+            $permission->usimSetting()->update([
+                'description' => $description
+            ]);
+        }
 
         return $permission;
     }

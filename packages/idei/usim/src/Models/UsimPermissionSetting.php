@@ -3,8 +3,7 @@
 namespace Idei\Usim\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\HasOne;
-use Spatie\Permission\Models\Permission;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class UsimPermissionSetting extends Model
 {
@@ -13,8 +12,8 @@ class UsimPermissionSetting extends Model
         'description',
     ];
 
-    public function permission() : HasOne
+    public function permission(): BelongsTo
     {
-        return $this->hasOne(Permission::class);
+        return $this->belongsTo(UsimPermission::class);
     }
 }

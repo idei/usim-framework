@@ -6,8 +6,8 @@ use Idei\Usim\Models\UsimLanguage;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
-use Spatie\Permission\Models\Permission;
-use Spatie\Permission\Models\Role;
+use Idei\Usim\Models\UsimPermission;
+use Idei\Usim\Models\UsimRole;
 use Spatie\Permission\PermissionRegistrar;
 
 class InstallAccessSynchronizer
@@ -33,21 +33,46 @@ class InstallAccessSynchronizer
             app(PermissionRegistrar::class)->forgetCachedPermissions();
             $guardName = $this->resolveGuardNameForUserModel($userModelClass);
 
+            // 1. Sincronización de PERMISOS (con descripciones dinámicas)
+            $usimConfig = $this->loadUsimConfig();
+            $permissionConfig = $usimConfig['permissions'] ?? config('usim.permissions', []);
+
             $permissions = $this->collectPermissionNames();
             $stats['permissions_total'] = count($permissions);
 
             foreach ($permissions as $permissionName) {
-                $permission = Permission::query()
+                // Buscamos usando el modelo extendido de USIM
+                $permission = UsimPermission::query()
                     ->where('name', $permissionName)
                     ->where('guard_name', $guardName)
                     ->first();
 
                 if ($permission === null) {
-                    Permission::findOrCreate($permissionName, $guardName);
+                    // ⚡ REFACTORIZACIÓN SEGURA DE LA DESCRIPCIÓN:
+                    $configValue = $permissionConfig[$permissionName] ?? null;
+                    $description = "Permission for $permissionName";
+
+                    if (is_string($configValue)) {
+                        $description = $configValue;
+                    } elseif (is_array($configValue)) {
+                        // Si es un array (como el devuelto por resolvedPermissions),
+                        // intentamos usar la clave de traducción o la aplanamos a JSON/String.
+                        $description = $configValue['translation']
+                            ?? $configValue['description']
+                            ?? "Permission: $permissionName";
+                    }
+
+                    // Creamos usando tu método de abstracción One-to-One sin riesgo de Type Error
+                    UsimPermission::createWithDescription(
+                        name: $permissionName,
+                        description: $description,
+                        guardName: $guardName
+                    );
                     $stats['permissions_created']++;
                 }
             }
 
+            // 2. Sincronización de ROLES (con Screen Home y Priority)
             $roles = $this->normalizeRolesConfig();
             $stats['roles_total'] = count($roles);
 
@@ -57,23 +82,34 @@ class InstallAccessSynchronizer
                     $line("  ↳ Reviewing role [{$roleName}]...");
                 }
 
-                $role = Role::query()
+                // Buscamos usando el modelo extendido de USIM
+                $role = UsimRole::query()
                     ->where('name', $roleName)
                     ->where('guard_name', $guardName)
                     ->first();
 
                 if ($role === null) {
-                    $role = Role::findOrCreate($roleName, $guardName);
+                    // Extraemos la home_screen y prioridad definidas en el config de USIM
+                    $homeScreen = $roleMeta['home_screen'] ?? 'welcome';
+                    $priority = $roleMeta['priority'] ?? 100;
+
+                    // ⚡ Creamos el Rol inyectando su settings automáticamente
+                    $role = UsimRole::createWithHome(
+                        name: $roleName,
+                        homeScreenSlug: $homeScreen,
+                        priority: $priority,
+                        guardName: $guardName
+                    );
                     $stats['roles_created']++;
 
                     if (is_callable($line)) {
-                        $line("    ✓ Role [{$roleName}] created for guard [{$guardName}]");
+                        $line("    ✓ Role [{$roleName}] created for guard [{$guardName}] (Home: {$homeScreen}, Priority: {$priority})");
                     }
                 } elseif (is_callable($line)) {
                     $line("    → Role [{$roleName}] already exists for guard [{$guardName}]");
                 }
 
-                /** @var Role $role */
+                /** @var UsimRole $role */
                 $rolePermissions = $this->normalizeRolePermissions($roleMeta, $permissions, $isRootRole);
                 $role->syncPermissions($rolePermissions);
 
@@ -153,7 +189,7 @@ class InstallAccessSynchronizer
 
         return array_filter(
             $roles,
-            static fn ($value, $key): bool => is_string($key) && trim($key) !== '' && is_array($value),
+            static fn($value, $key): bool => is_string($key) && trim($key) !== '' && is_array($value),
             ARRAY_FILTER_USE_BOTH
         );
     }
@@ -285,8 +321,7 @@ class InstallAccessSynchronizer
         string $fallbackRole,
         bool $forceRootRules,
         string $guardName
-    ): void
-    {
+    ): void {
         $email = isset($userConfig['email']) && is_string($userConfig['email']) ? trim($userConfig['email']) : '';
         $password = isset($userConfig['password']) && is_string($userConfig['password']) ? trim($userConfig['password']) : '';
 
@@ -341,7 +376,7 @@ class InstallAccessSynchronizer
         $effectiveGuard = $this->resolveGuardNameForUser($user, $guardName);
 
         if ($forceRootRules) {
-            Role::findOrCreate('root', $effectiveGuard);
+            UsimRole::findOrCreate('root', $effectiveGuard);
             $user->syncRoles(['root']);
         } else {
             $roles = $this->normalizeUserRoles($userConfig, $fallbackRole, $effectiveGuard);
@@ -390,7 +425,20 @@ class InstallAccessSynchronizer
         $normalized = array_values(array_unique($normalized));
 
         foreach ($normalized as $roleName) {
-            Role::findOrCreate($roleName, $guardName);
+            $exists = UsimRole::query()
+                ->where('name', $roleName)
+                ->where('guard_name', $guardName)
+                ->exists();
+
+            if (!$exists) {
+                // Esto asegura que pase por tu pipeline limpio de UsimRole
+                UsimRole::createWithHome(
+                    name: $roleName,
+                    homeScreenSlug: 'welcome',
+                    priority: 100,
+                    guardName: $guardName
+                );
+            }
         }
 
         return $normalized;

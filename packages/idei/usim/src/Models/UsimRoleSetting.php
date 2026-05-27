@@ -3,8 +3,7 @@
 namespace Idei\Usim\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\HasOne;
-use Spatie\Permission\Models\Role;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class UsimRoleSetting extends Model
 {
@@ -14,12 +13,8 @@ class UsimRoleSetting extends Model
         'priority',
     ];
 
-    protected $casts = [
-        'priority' => 'integer',
-    ];
-
-    public function role(): HasOne
+    public function role(): BelongsTo
     {
-        return $this->hasOne(Role::class);
+        return $this->belongsTo(UsimRole::class);
     }
 }
