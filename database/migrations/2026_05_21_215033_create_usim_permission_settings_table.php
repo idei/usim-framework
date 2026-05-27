@@ -4,8 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration
-{
+return new class extends Migration {
     /**
      * Run the migrations.
      */
@@ -13,9 +12,11 @@ return new class extends Migration
     {
         Schema::create('usim_permission_settings', function (Blueprint $table) {
             $table->id();
-            // One-to-one relationship with Spatie permissions table
-            $table->foreignId('permission_id')->constrained('permissions')->cascadeOnDelete();
-            $table->string('description')->nullable(); // Optional description for the permission
+            $table->foreignId('permission_id')
+                ->constrained('permissions')
+                ->cascadeOnDelete(); // One-to-one FK to Spatie's permissions table
+            $table->string('description')
+                ->nullable(); // Optional description for the permission
             $table->timestamps();
         });
     }

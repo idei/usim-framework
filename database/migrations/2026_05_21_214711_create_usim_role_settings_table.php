@@ -10,10 +10,13 @@ return new class extends Migration {
     {
         Schema::create('usim_role_settings', function (Blueprint $table) {
             $table->id();
-            // Foreign key to Spatie table
-            $table->foreignId('role_id')->constrained('roles')->cascadeOnDelete();
-            $table->string('home_screen')->nullable(); // Store the class name of the home screen
-            $table->integer('priority')->default(0); // For future use, to determine role precedence if needed
+            $table->foreignId('role_id')
+                ->constrained('roles')
+                ->cascadeOnDelete(); // FK to Spatie's roles table
+            $table->string('home_screen')
+                ->nullable(); // Store the class name of the home screen
+            $table->integer('priority')
+                ->default(100); // For determine role precedence if needed
             $table->timestamps();
         });
     }
