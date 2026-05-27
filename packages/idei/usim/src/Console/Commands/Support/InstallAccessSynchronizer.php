@@ -33,7 +33,7 @@ class InstallAccessSynchronizer
             app(PermissionRegistrar::class)->forgetCachedPermissions();
             $guardName = $this->resolveGuardNameForUserModel($userModelClass);
 
-            // 1. Sincronización de PERMISOS (con descripciones dinámicas)
+            // 1. Sincronización de PERMISOS
             $usimConfig = $this->loadUsimConfig();
             $permissionConfig = $usimConfig['permissions'] ?? config('usim.permissions', []);
 
@@ -41,31 +41,18 @@ class InstallAccessSynchronizer
             $stats['permissions_total'] = count($permissions);
 
             foreach ($permissions as $permissionName) {
-                // Buscamos usando el modelo extendido de USIM
                 $permission = UsimPermission::query()
                     ->where('name', $permissionName)
                     ->where('guard_name', $guardName)
                     ->first();
 
                 if ($permission === null) {
-                    // ⚡ REFACTORIZACIÓN SEGURA DE LA DESCRIPCIÓN:
-                    $configValue = $permissionConfig[$permissionName] ?? null;
-                    $description = "Permission for $permissionName";
+                    // Pasamos el valor directo (sea array o string), UsimPermission se encargará de parsearlo
+                    $configValue = $permissionConfig[$permissionName] ?? "Permission for $permissionName";
 
-                    if (is_string($configValue)) {
-                        $description = $configValue;
-                    } elseif (is_array($configValue)) {
-                        // Si es un array (como el devuelto por resolvedPermissions),
-                        // intentamos usar la clave de traducción o la aplanamos a JSON/String.
-                        $description = $configValue['translation']
-                            ?? $configValue['description']
-                            ?? "Permission: $permissionName";
-                    }
-
-                    // Creamos usando tu método de abstracción One-to-One sin riesgo de Type Error
                     UsimPermission::createWithDescription(
                         name: $permissionName,
-                        description: $description,
+                        description: $configValue, // ⚡ Seguro
                         guardName: $guardName
                     );
                     $stats['permissions_created']++;
