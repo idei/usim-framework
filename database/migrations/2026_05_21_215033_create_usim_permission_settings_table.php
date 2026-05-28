@@ -15,8 +15,12 @@ return new class extends Migration {
             $table->foreignId('permission_id')
                 ->constrained('permissions')
                 ->cascadeOnDelete(); // One-to-one FK to Spatie's permissions table
+            $table->string('display_name')
+                ->nullable(); // Optional human-friendly name or i18n key for display purposes
             $table->string('description')
-                ->nullable(); // Optional description for the permission
+                ->nullable(); // Optional description or i18n key for display purposes
+            $table->json('metadata')
+                ->nullable(); // For any future extensibility needs
             $table->timestamps();
         });
     }

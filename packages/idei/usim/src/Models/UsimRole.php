@@ -10,7 +10,7 @@ use Spatie\Permission\Models\Role as SpatieRole;
 class UsimRole extends SpatieRole
 {
 
-    protected $appends = ['home_screen', 'priority'];
+    protected $appends = ['home_screen', 'priority', 'display_name', 'description', 'metadata'];
 
     public function usimSetting(): HasOne
     {
@@ -77,6 +77,27 @@ class UsimRole extends SpatieRole
     {
         return Attribute::make(
             get: fn() => $this->usimSetting?->priority ?? 100,
+        );
+    }
+
+    public function getDisplayNameAttribute(): ?string
+    {
+        return Attribute::make(
+            get: fn() => $this->usimSetting?->display_name ?? null,
+        );
+    }
+
+    public function getDescriptionAttribute(): ?string
+    {
+        return Attribute::make(
+            get: fn() => $this->usimSetting?->description ?? null,
+        );
+    }
+
+    public function getMetadataAttribute(): ?array
+    {
+        return Attribute::make(
+            get: fn() => $this->usimSetting?->metadata ?? null,
         );
     }
 }

@@ -6,7 +6,7 @@ use Idei\Usim\Console\Commands\Concerns\InstallsDatabaseScaffolding;
 use Idei\Usim\Console\Commands\Concerns\InstallsLangStubs;
 use Idei\Usim\Console\Commands\Concerns\InstallsTranslationManagerScaffolding;
 use Idei\Usim\Console\Commands\Concerns\RegistersPackageHelperAutoload;
-use Idei\Usim\Console\Commands\Support\InstallAccessSynchronizer;
+use Idei\Usim\Console\Commands\Support\SeedAccessControl;
 use Idei\Usim\Console\Commands\Support\InstallAppScaffoldingManager;
 use Idei\Usim\Console\Commands\Support\InstallContextResolver;
 use Idei\Usim\Console\Commands\Support\InstallEnvironmentManager;
@@ -86,7 +86,7 @@ class InstallCommand extends Command
         $this->files = $files;
         $this->installStateManager = app(InstallStateManager::class);
         $this->installAppScaffoldingManager = app(InstallAppScaffoldingManager::class);
-        $this->installAccessSynchronizer = app(InstallAccessSynchronizer::class);
+        $this->installAccessSynchronizer = app(SeedAccessControl::class);
         $this->installContextResolver = app(InstallContextResolver::class);
         $this->installEnvironmentManager = app(InstallEnvironmentManager::class);
         $this->installExecutionRollbackManager = app(InstallExecutionRollbackManager::class);
@@ -349,7 +349,7 @@ class InstallCommand extends Command
     {
         $this->ensureRequiredTables();
 
-        $this->syncStats = $this->installAccessSynchronizer->sync(
+        $this->syncStats = $this->installAccessSynchronizer->seed(
             rootUserEnvValues: $this->rootUserEnvValues,
             userModelClass: $this->resolveUserModelImport(),
             line: function (string $message): void {

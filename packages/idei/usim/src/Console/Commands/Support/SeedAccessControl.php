@@ -10,13 +10,13 @@ use Idei\Usim\Models\UsimPermission;
 use Idei\Usim\Models\UsimRole;
 use Spatie\Permission\PermissionRegistrar;
 
-class InstallAccessSynchronizer
+class SeedAccessControl
 {
     /**
      * @param array<string, string> $rootUserEnvValues
      * @return array{permissions_created:int,permissions_total:int,roles_created:int,roles_total:int,users_created:int,users_updated:int,languages_created:int,languages_updated:int}
      */
-    public function sync(array $rootUserEnvValues, string $userModelClass, ?callable $line = null): array
+    public function seed(array $rootUserEnvValues, string $userModelClass, ?callable $line = null): array
     {
         $stats = [
             'permissions_created' => 0,
