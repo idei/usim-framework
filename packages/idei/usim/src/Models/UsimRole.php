@@ -9,9 +9,14 @@ use Spatie\Permission\Models\Role as SpatieRole;
 
 class UsimRole extends SpatieRole
 {
+    protected const DEFAULT_HOME_SCREEN = 'home';
 
+    // Estos atributos virtuales se añadirán al serializar el modelo (Array/JSON)
     protected $appends = ['home_screen', 'priority', 'display_name', 'description', 'metadata'];
 
+    /**
+     * Relación real One-to-One con tu tabla de configuraciones avanzadas
+     */
     public function usimSetting(): HasOne
     {
         return $this->hasOne(UsimRoleSetting::class, 'role_id');
@@ -27,8 +32,11 @@ class UsimRole extends SpatieRole
         static::created(function (UsimRole $role) {
             try {
                 $role->usimSetting()->create([
-                    'home_screen' => 'home',
+                    'home_screen' => self::DEFAULT_HOME_SCREEN,
                     'priority' => 100,
+                    'display_name' => null,
+                    'description' => null,
+                    'metadata' => null,
                 ]);
                 DB::commit();
             } catch (\Exception $e) {
@@ -39,19 +47,16 @@ class UsimRole extends SpatieRole
     }
 
     /**
-     * El método sobrevive, pero ahora es un "Helper de conveniencia"
-     * que actualiza el registro que el evento 'created' ya aseguró.
+     * Helper de conveniencia que crea el rol y actualiza sus configuraciones extendidas
      */
     public static function createWithHome(string $name, string $homeScreenSlug, int $priority = 100, string $guardName = 'web'): self
     {
-        // 1. Esto dispara internamente el 'booted' y crea el rol + sus settings por defecto
         /** @var self $role */
         $role = static::create([
             'name' => $name,
             'guard_name' => $guardName
         ]);
 
-        // 2. Como los settings YA EXISTEN obligatoriamente, simplemente los actualizamos
         $role->usimSetting()->update([
             'home_screen' => $homeScreenSlug,
             'priority' => $priority
@@ -60,44 +65,53 @@ class UsimRole extends SpatieRole
         return $role;
     }
 
-    /**
-     * Acceso directo a la Screen Home: $role->home_screen
-     */
+    // =====================
+    // ACCESSORS & MUTATORS
+    // =====================
+
     protected function homeScreen(): Attribute
     {
         return Attribute::make(
-            get: fn() => $this->usimSetting?->home_screen ?? config('usim.default_home_screen', 'welcome'),
+            get: fn() => $this->usimSetting?->home_screen ?? config('usim.default_home_screen', self::DEFAULT_HOME_SCREEN),
+            set: fn($value) => $this->usimSetting()->updateOrCreate([], ['home_screen' => $value]),
         );
     }
 
-    /**
-     * Acceso directo a la Prioridad: $role->priority
-     */
     protected function priority(): Attribute
     {
         return Attribute::make(
-            get: fn() => $this->usimSetting?->priority ?? 100,
+            get: fn() => (int) ($this->usimSetting?->priority ?? config('usim.default_priority', 100)),
+            set: fn($value) => $this->usimSetting()->updateOrCreate([], ['priority' => (int) $value]),
         );
     }
 
-    public function getDisplayNameAttribute(): ?string
+    protected function displayName(): Attribute
     {
         return Attribute::make(
-            get: fn() => $this->usimSetting?->display_name ?? null,
+            get: fn() => $this->usimSetting?->display_name,
+            set: fn($value) => $this->usimSetting()->updateOrCreate([], ['display_name' => $value]),
         );
     }
 
-    public function getDescriptionAttribute(): ?string
+    protected function description(): Attribute
     {
         return Attribute::make(
-            get: fn() => $this->usimSetting?->description ?? null,
+            get: fn() => $this->usimSetting?->description,
+            set: fn($value) => $this->usimSetting()->updateOrCreate([], ['description' => $value]),
         );
     }
 
-    public function getMetadataAttribute(): ?array
+    protected function metadata(): Attribute
     {
         return Attribute::make(
-            get: fn() => $this->usimSetting?->metadata ?? null,
+            get: function () {
+                $meta = $this->usimSetting?->metadata;
+                // Si viene como string desde la base de datos, lo decodificamos de manera segura
+                return is_string($meta) ? json_decode($meta, true) : $meta;
+            },
+            set: fn($value) => $this->usimSetting()->updateOrCreate([], [
+                'metadata' => is_array($value) ? json_encode($value) : $value
+            ]),
         );
     }
 }
