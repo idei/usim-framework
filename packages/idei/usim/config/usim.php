@@ -71,178 +71,68 @@ return [
             'last_name' => env('ROOT_LAST_NAME', 'User'),
             'email' => env('ROOT_EMAIL', 'root@example.com'),
             'password' => env('ROOT_PASSWORD', 'CHANGE_ME'),
-        ],
-        /** OLD ROLES AND USERS' IT IS DEPRECATED */
-        'roles' => [
-            'admin' => [
-                'label' => [
-                    'es' => 'Administrador',
-                    'en' => 'Administrator',
-                ],
-                'description' => [
-                    'es' => 'Gestiona el sistema y usuarios.',
-                    'en' => 'Manages the system and users.',
-                ],
-                'default_screen' => 'App\\UI\\Screens\\Admin\\UsersManager',
-                'permissions' => ['*'],
-                'seed_user' => [
-                    'first_name' => env('ADMIN_FIRST_NAME', 'Admin'),
-                    'last_name' => env('ADMIN_LAST_NAME', 'User'),
-                    'email' => env('ADMIN_EMAIL', 'admin@example.com'),
-                    'password' => env('ADMIN_PASSWORD', 'password'),
-                ],
-            ],
-        ],
-    ],
-
-    'permissions' => [
-        '*' => [
-            'label' => [
-                'es' => 'Acceso Total',
-                'en' => 'Full Access',
-            ],
-            'description' => [
-                'es' => 'Permite acceso a todas las funciones y pantallas.',
-                'en' => 'Allows access to all features and screens.',
-            ],
-        ],
-        'view.logs' => [
-            'label' => [
-                'es' => 'Ver Logs del Sistema',
-                'en' => 'View System Logs',
-            ],
-            'description' => [
-                'es' => 'Permite ver los registros de actividad y errores del sistema.',
-                'en' => 'Allows viewing system activity and error logs.',
-            ],
-        ],
-        'manage.users' => [
-            'label' => [
-                'es' => 'Gestionar Usuarios',
-                'en' => 'Manage Users',
-            ],
-            'description' => [
-                'es' => 'Permite crear, editar y eliminar usuarios.',
-                'en' => 'Allows creating, editing, and deleting users.',
-            ],
-        ],
-        'manage.roles' => [
-            'label' => [
-                'es' => 'Gestionar Roles',
-                'en' => 'Manage Roles',
-            ],
-            'description' => [
-                'es' => 'Permite crear, editar y eliminar roles y sus permisos.',
-                'en' => 'Allows creating, editing, and deleting roles and their permissions.',
-            ],
-        ],
-        'debug.access' => [
-            'label' => [
-                'es' => 'Acceso a Herramientas de Debug',
-                'en' => 'Access Debug Tools',
-            ],
-            'description' => [
-                'es' => 'Permite acceder a herramientas de depuración y diagnóstico.',
-                'en' => 'Allows access to debugging and diagnostic tools.',
-            ],
-        ],
-        'screen.admin.dashboard.access' => [
-            'label' => [
-                'es' => 'Acceso al UsersManager de Admin',
-                'en' => 'Access Admin UsersManager',
-            ],
-            'description' => [
-                'es' => 'Permite acceder al panel de administración.',
-                'en' => 'Allows access to the admin dashboard.',
-            ],
-        ],
-        'screen.user.home.access' => [
-            'label' => [
-                'es' => 'Acceso a la Home de Usuario',
-                'en' => 'Access User Home',
-            ],
-            'description' => [
-                'es' => 'Permite acceder a la página principal del usuario.',
-                'en' => 'Allows access to the user home page.',
-            ],
-        ],
-        'feature.premium.access' => [
-            'label' => [
-                'es' => 'Acceso a Funciones Premium',
-                'en' => 'Access Premium Features',
-            ],
-            'description' => [
-                'es' => 'Permite acceder a funciones adicionales para usuarios aprobados.',
-                'en' => 'Allows access to additional features for approved users.',
-            ],
+            'roles' => ['root'],
         ],
     ],
 
     'roles' => [
         'root' => [
-            'label' => [
-                'es' => 'Root',
-                'en' => 'Root',
-            ],
-            'description' => [
-                'es' => 'Usuario con acceso total e incondicional a todas las funciones.',
-                'en' => 'User with total and unconditional access to all features.',
-            ],
+            'display_name' => 'Root',
+            'description' => 'User with total and unconditional access to all features.',
             'priority' => 100,
             'default_screen' => UsersManager::class,
             'permissions' => ['*'],
         ],
         'admin' => [
-            'label' => [
-                'es' => 'Administrador',
-                'en' => 'Administrator',
-            ],
-            'description' => [
-                'es' => 'Gestiona el sistema y usuarios.',
-                'en' => 'Manages the system and users.',
-            ],
+            'display_name' => 'Administrator',
+            'description' => 'Manages the system and users.',
             'priority' => 80,
             'default_screen' => UsersManager::class,
             'permissions' => ['screen.admin.dashboard.access'],
         ],
         'registered' => [
-            'label' => [
-                'es' => 'Registrado',
-                'en' => 'Registered',
-            ],
-            'description' => [
-                'es' => 'Usuario registrado con permisos limitados.',
-                'en' => 'Registered user with limited permissions.',
-            ],
+            'display_name' => 'Registered',
+            'description' => 'Registered user with limited permissions.',
             'priority' => 60,
             'default_screen' => Home::class,
             'permissions' => ['screen.user.home.access'],
         ],
         'approved' => [
-            'label' => [
-                'es' => 'Aprobado',
-                'en' => 'Approved',
-            ],
-            'description' => [
-                'es' => 'Usuario aprobado con acceso a funciones adicionales.',
-                'en' => 'Approved user with access to additional features.',
-            ],
+            'display_name' => 'Approved',
+            'description' => 'Approved user with access to additional features.',
             'priority' => 40,
             'default_screen' => Home::class,
             'permissions' => ['screen.user.home.access', 'feature.premium.access'],
         ],
         'translator' => [
-            'label' => [
-                'es' => 'Traductor',
-                'en' => 'Translator',
-            ],
-            'description' => [
-                'es' => 'Usuario encargado de gestionar traducciones.',
-                'en' => 'User responsible for managing translations.',
-            ],
+            'display_name' => 'Translator',
+            'description' => 'User responsible for managing translations.',
             'priority' => 20,
             'default_screen' => TranslateManager::class,
             'permissions' => [],
+        ],
+    ],
+
+    'permissions' => [
+        '*' => [
+            'display_name' => 'Full Access',
+            'description' => 'Allows access to all features and screens.',
+        ],
+        'view.logs' => [
+            'display_name' => 'View System Logs',
+            'description' => 'Allows viewing system activity and error logs.',
+        ],
+        'manage.users' => [
+            'display_name' => 'Manage Users',
+            'description' => 'Allows creating, editing, and deleting users.',
+        ],
+        'manage.roles' => [
+            'display_name' => 'Manage Roles',
+            'description' => 'Allows creating, editing, and deleting roles and their permissions.',
+        ],
+        'debug.access' => [
+            'display_name' => 'Access Debug Tools',
+            'description' => 'Allows access to debugging and diagnostic tools.',
         ],
     ],
 
