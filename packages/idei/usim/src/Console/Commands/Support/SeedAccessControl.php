@@ -5,7 +5,9 @@ namespace Idei\Usim\Console\Commands\Support;
 use Idei\Usim\Models\UsimLanguage;
 use Idei\Usim\Models\UsimRole;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\File;
 use Illuminate\Support\Str;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\PermissionRegistrar;
@@ -106,6 +108,7 @@ class SeedAccessControl
             $this->upsertRootUser($stats, $rootUserEnvValues, $userModelClass, $guardName);
             $this->upsertConfiguredUsers($stats, $userModelClass, $guardName);
             $this->upsertLanguages($stats);
+            $this->upsertRoleAndPermissionTranslations($line);
         });
 
         app(PermissionRegistrar::class)->forgetCachedPermissions();
@@ -511,6 +514,182 @@ class SeedAccessControl
         UsimLanguage::query()
             ->where('code', '!=', $fallbackCode)
             ->update(['is_fallback' => false]);
+    }
+
+    private function upsertRoleAndPermissionTranslations(?callable $line = null): void
+    {
+        $usimConfig = $this->loadUsimConfig();
+
+        $prefixes = $usimConfig['i18n']['i18n_key_prefixes'] ?? config('usim.i18n.i18n_key_prefixes', []);
+        $prefixes = is_array($prefixes) ? $prefixes : [];
+
+        $rolePrefix = $this->normalizeTranslationPrefix($prefixes['role'] ?? 'role.');
+        $permissionPrefix = $this->normalizeTranslationPrefix($prefixes['permission'] ?? 'permission.');
+
+        $roles = $this->normalizeRolesConfig();
+        foreach ($roles as $roleName => $roleMeta) {
+            $translations = $this->normalizeDefaultTranslations($roleMeta['default_translations'] ?? null);
+
+            foreach ($translations as $locale => $meta) {
+                $this->upsertLangValueByKey(
+                    $locale,
+                    $rolePrefix . $roleName . '.name',
+                    $meta['display_name'] ?? $roleName
+                );
+                $this->upsertLangValueByKey(
+                    $locale,
+                    $rolePrefix . $roleName . '.description',
+                    $meta['description'] ?? ''
+                );
+            }
+        }
+
+        $permissions = $usimConfig['permissions'] ?? config('usim.permissions', []);
+        $permissions = is_array($permissions) ? $permissions : [];
+
+        foreach ($permissions as $permissionName => $permissionMeta) {
+            if (!is_string($permissionName) || trim($permissionName) === '') {
+                continue;
+            }
+
+            $permissionName = trim($permissionName);
+            $permissionMeta = is_array($permissionMeta) ? $permissionMeta : [];
+            $translations = $this->normalizeDefaultTranslations($permissionMeta['default_translations'] ?? null);
+
+            foreach ($translations as $locale => $meta) {
+                $this->upsertLangValueByKey(
+                    $locale,
+                    $permissionPrefix . $permissionName . '.name',
+                    $meta['display_name'] ?? $permissionName
+                );
+                $this->upsertLangValueByKey(
+                    $locale,
+                    $permissionPrefix . $permissionName . '.description',
+                    $meta['description'] ?? ''
+                );
+            }
+        }
+
+        if (is_callable($line)) {
+            $line('  ↳ Role and permission default translations synced into lang files.');
+        }
+    }
+
+    /**
+     * @param mixed $translations
+     * @return array<string, array{display_name?: string, description?: string}>
+     */
+    private function normalizeDefaultTranslations(mixed $translations): array
+    {
+        if (!is_array($translations)) {
+            return [];
+        }
+
+        $normalized = [];
+        foreach ($translations as $locale => $meta) {
+            if (!is_string($locale) || trim($locale) === '' || !is_array($meta)) {
+                continue;
+            }
+
+            $locale = trim($locale);
+            $normalized[$locale] = [];
+
+            if (isset($meta['display_name']) && is_string($meta['display_name'])) {
+                $normalized[$locale]['display_name'] = $meta['display_name'];
+            }
+
+            if (isset($meta['description']) && is_string($meta['description'])) {
+                $normalized[$locale]['description'] = $meta['description'];
+            }
+        }
+
+        return $normalized;
+    }
+
+    private function normalizeTranslationPrefix(mixed $prefix): string
+    {
+        if (!is_string($prefix) || trim($prefix) === '') {
+            return '';
+        }
+
+        $prefix = trim($prefix);
+
+        return str_ends_with($prefix, '.') ? $prefix : $prefix . '.';
+    }
+
+    private function upsertLangValueByKey(string $locale, string $translationKey, string $value): void
+    {
+        $locale = trim($locale);
+        $translationKey = trim($translationKey);
+
+        if ($locale === '' || $translationKey === '') {
+            return;
+        }
+
+        $segments = array_values(array_filter(explode('.', $translationKey), static fn($segment): bool => $segment !== ''));
+        if (count($segments) < 2) {
+            return;
+        }
+
+        $file = array_shift($segments);
+        if (!is_string($file) || $file === '') {
+            return;
+        }
+
+        $langDir = lang_path($locale);
+        $langFile = $langDir . '/' . $file . '.php';
+
+        $payload = $this->loadLangArrayFile($langFile);
+        Arr::set($payload, implode('.', $segments), $value);
+
+        if (!File::exists($langDir)) {
+            File::makeDirectory($langDir, 0755, true);
+        }
+
+        $content = "<?php\n\nreturn " . $this->exportPhpArrayShort($payload) . ";\n";
+        File::put($langFile, $content);
+    }
+
+    /**
+     * @param array<mixed> $payload
+     */
+    private function exportPhpArrayShort(array $payload, int $indentLevel = 0): string
+    {
+        if ($payload === []) {
+            return '[]';
+        }
+
+        $indent = str_repeat('    ', $indentLevel);
+        $itemIndent = str_repeat('    ', $indentLevel + 1);
+
+        $lines = ['['];
+
+        foreach ($payload as $key => $value) {
+            $serializedKey = is_int($key) ? (string) $key : var_export((string) $key, true);
+            $serializedValue = is_array($value)
+                ? $this->exportPhpArrayShort($value, $indentLevel + 1)
+                : var_export($value, true);
+
+            $lines[] = $itemIndent . $serializedKey . ' => ' . $serializedValue . ',';
+        }
+
+        $lines[] = $indent . ']';
+
+        return implode("\n", $lines);
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function loadLangArrayFile(string $path): array
+    {
+        if (!is_file($path)) {
+            return [];
+        }
+
+        $loaded = require $path;
+
+        return is_array($loaded) ? $loaded : [];
     }
 
     private function resolveAuthGuardName(): string

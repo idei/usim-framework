@@ -83,7 +83,7 @@ return [
                 'it' => ['display_name' => 'Root', 'description' => 'Utente con accesso totale e incondizionato a tutte le funzionalità.'],
             ],
             'priority' => 100,
-            'default_screen' => UsersManager::class,
+            'home_screen' => UsersManager::class,
             'permissions' => ['*'],
         ],
         'admin' => [
@@ -93,7 +93,7 @@ return [
                 'it' => ['display_name' => 'Administrator', 'description' => 'Gestisce il sistema e gli utenti.'],
             ],
             'priority' => 80,
-            'default_screen' => UsersManager::class,
+            'home_screen' => UsersManager::class,
             'permissions' => ['screen.admin.users_manager.access'],
         ],
         'registered' => [
@@ -103,7 +103,7 @@ return [
                 'it' => ['display_name' => 'Registered', 'description' => 'Utente registrato con permessi limitati.'],
             ],
             'priority' => 60,
-            'default_screen' => Home::class,
+            'home_screen' => Home::class,
             'permissions' => ['screen.user.home.access'],
         ],
         'approved' => [
@@ -113,7 +113,7 @@ return [
                 'it' => ['display_name' => 'Approved', 'description' => 'Utente approvato con accesso a funzionalità aggiuntive.'],
             ],
             'priority' => 40,
-            'default_screen' => Home::class,
+            'home_screen' => Home::class,
             'permissions' => ['screen.user.home.access'],
         ],
         'translator' => [
@@ -123,7 +123,7 @@ return [
                 'it' => ['display_name' => 'Translator', 'description' => 'Utente responsabile della gestione delle traduzioni.'],
             ],
             'priority' => 20,
-            'default_screen' => TranslateManager::class,
+            'home_screen' => TranslateManager::class,
             'permissions' => [],
         ],
         'developer' => [
@@ -133,7 +133,7 @@ return [
                 'it' => ['display_name' => 'Developer', 'description' => 'Utente con accesso a strumenti di sviluppo e debug.'],
             ],
             'priority' => 10,
-            'default_screen' => Home::class,
+            'home_screen' => Home::class,
             'permissions' => ['debug.logs', 'debug.access'],
         ],
     ],

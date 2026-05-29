@@ -47,7 +47,7 @@ class UsimRoleSeeder extends Seeder
             // TODO: this is for "default screen access"
             $defaultScreenPermission = $this->permissionFromScreenClass(
                 manifest: $manifest,
-                screenClass: \is_array($roleMeta) ? ($roleMeta['default_screen'] ?? null) : null
+                screenClass: \is_array($roleMeta) ? ($roleMeta['home_screen'] ?? null) : null
             );
 
             if ($defaultScreenPermission !== null) {

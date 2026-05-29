@@ -83,7 +83,7 @@ return [
                     'es' => 'Gestiona el sistema y usuarios.',
                     'en' => 'Manages the system and users.',
                 ],
-                'default_screen' => 'App\\UI\\Screens\\Admin\\UsersManager',
+                'home_screen' => 'App\\UI\\Screens\\Admin\\UsersManager',
                 'permissions' => ['*'],
                 'seed_user' => [
                     'first_name' => env('ADMIN_FIRST_NAME', 'Admin'),
@@ -189,7 +189,7 @@ return [
                 'en' => 'User with total and unconditional access to all features.',
             ],
             'priority' => 100,
-            'default_screen' => UsersManager::class,
+            'home_screen' => UsersManager::class,
             'permissions' => ['*'],
         ],
         'admin' => [
@@ -202,7 +202,7 @@ return [
                 'en' => 'Manages the system and users.',
             ],
             'priority' => 80,
-            'default_screen' => UsersManager::class,
+            'home_screen' => UsersManager::class,
             'permissions' => ['screen.admin.dashboard.access'],
         ],
         'registered' => [
@@ -215,7 +215,7 @@ return [
                 'en' => 'Registered user with limited permissions.',
             ],
             'priority' => 60,
-            'default_screen' => Home::class,
+            'home_screen' => Home::class,
             'permissions' => ['screen.user.home.access'],
         ],
         'approved' => [
@@ -228,7 +228,7 @@ return [
                 'en' => 'Approved user with access to additional features.',
             ],
             'priority' => 40,
-            'default_screen' => Home::class,
+            'home_screen' => Home::class,
             'permissions' => ['screen.user.home.access', 'feature.premium.access'],
         ],
         'translator' => [
@@ -241,7 +241,7 @@ return [
                 'en' => 'User responsible for managing translations.',
             ],
             'priority' => 20,
-            'default_screen' => TranslateManager::class,
+            'home_screen' => TranslateManager::class,
             'permissions' => [],
         ],
     ],
