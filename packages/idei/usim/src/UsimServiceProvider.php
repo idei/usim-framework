@@ -6,7 +6,6 @@ use Idei\Usim\Console\Commands\DiscoverScreensCommand;
 use Idei\Usim\Console\Commands\InstallCommand;
 use Idei\Usim\Events\UsimEvent;
 use Idei\Usim\Listeners\UsimEventDispatcher;
-use Idei\Usim\Models\UsimPermission;
 use Idei\Usim\Models\UsimRole;
 use Idei\Usim\Support\Translation\TranslationDatasetQuery;
 use Idei\Usim\Support\Translation\TranslationKeyManager;
@@ -76,9 +75,8 @@ class UsimServiceProvider extends ServiceProvider
             __DIR__ . '/../config/usim.php' => config_path('usim.php'),
         ], 'usim-config');
 
-        // Forzamos a Spatie a usar los modelos extendidos de USIM
+        // Forzamos a Spatie a usar el modelo de Roles extendido de USIM
         config([
-            'permission.models.permission' => UsimPermission::class,
             'permission.models.role' => UsimRole::class,
         ]);
 

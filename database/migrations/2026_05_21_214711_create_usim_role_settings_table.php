@@ -17,12 +17,6 @@ return new class extends Migration {
                 ->nullable(); // Store the class name of the home screen
             $table->integer('priority')
                 ->default(100); // For determine role precedence if needed
-            $table->string('display_name')
-                ->nullable(); // Optional human-friendly name or i18n key for display purposes
-            $table->string('description')
-                ->nullable(); // Optional description or i18n key for display purposes
-            $table->json('metadata')
-                ->nullable(); // For any future extensibility needs
             $table->timestamps();
         });
     }

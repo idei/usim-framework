@@ -3,11 +3,11 @@
 namespace Idei\Usim\Console\Commands\Support;
 
 use Idei\Usim\Models\UsimLanguage;
+use Idei\Usim\Models\UsimRole;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
-use Idei\Usim\Models\UsimPermission;
-use Idei\Usim\Models\UsimRole;
+use Spatie\Permission\Models\Permission;
 use Spatie\Permission\PermissionRegistrar;
 
 class SeedAccessControl
@@ -41,19 +41,17 @@ class SeedAccessControl
             $stats['permissions_total'] = count($permissions);
 
             foreach ($permissions as $permissionName) {
-                $permission = UsimPermission::query()
+                $permission = Permission::query()
                     ->where('name', $permissionName)
                     ->where('guard_name', $guardName)
                     ->first();
 
                 if ($permission === null) {
-                    // Pasamos el valor directo (sea array o string), UsimPermission se encargará de parsearlo
+                    // Pasamos el valor directo (sea array o string), Permission se encargará de parsearlo
                     $configValue = $permissionConfig[$permissionName] ?? "Permission for $permissionName";
 
-                    UsimPermission::createWithDescription(
-                        name: $permissionName,
-                        description: $configValue, // ⚡ Seguro
-                        guardName: $guardName
+                    Permission::create(
+                        ['name' => $permissionName, 'guard_name' => $guardName],
                     );
                     $stats['permissions_created']++;
                 }

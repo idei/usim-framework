@@ -12,7 +12,7 @@ class UsimRole extends SpatieRole
     protected const DEFAULT_HOME_SCREEN = 'home';
 
     // Estos atributos virtuales se añadirán al serializar el modelo (Array/JSON)
-    protected $appends = ['home_screen', 'priority', 'display_name', 'description', 'metadata'];
+    protected $appends = ['home_screen', 'priority'];
 
     /**
      * Relación real One-to-One con tu tabla de configuraciones avanzadas
@@ -34,9 +34,6 @@ class UsimRole extends SpatieRole
                 $role->usimSetting()->create([
                     'home_screen' => self::DEFAULT_HOME_SCREEN,
                     'priority' => 100,
-                    'display_name' => null,
-                    'description' => null,
-                    'metadata' => null,
                 ]);
                 DB::commit();
             } catch (\Exception $e) {
@@ -82,36 +79,6 @@ class UsimRole extends SpatieRole
         return Attribute::make(
             get: fn() => (int) ($this->usimSetting?->priority ?? config('usim.default_priority', 100)),
             set: fn($value) => $this->usimSetting()->updateOrCreate([], ['priority' => (int) $value]),
-        );
-    }
-
-    protected function displayName(): Attribute
-    {
-        return Attribute::make(
-            get: fn() => $this->usimSetting?->display_name,
-            set: fn($value) => $this->usimSetting()->updateOrCreate([], ['display_name' => $value]),
-        );
-    }
-
-    protected function description(): Attribute
-    {
-        return Attribute::make(
-            get: fn() => $this->usimSetting?->description,
-            set: fn($value) => $this->usimSetting()->updateOrCreate([], ['description' => $value]),
-        );
-    }
-
-    protected function metadata(): Attribute
-    {
-        return Attribute::make(
-            get: function () {
-                $meta = $this->usimSetting?->metadata;
-                // Si viene como string desde la base de datos, lo decodificamos de manera segura
-                return is_string($meta) ? json_decode($meta, true) : $meta;
-            },
-            set: fn($value) => $this->usimSetting()->updateOrCreate([], [
-                'metadata' => is_array($value) ? json_encode($value) : $value
-            ]),
         );
     }
 }
