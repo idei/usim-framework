@@ -139,7 +139,7 @@ class UploadController extends Controller
         $path = ltrim($path, '/');
 
         // Verificar que el archivo existe en el disco 'uploads'
-        $uploadDisk = config('usim.upload_disk', config('ui-services.upload_disk', 'local'));
+        $uploadDisk = config('usim.upload_disk', 'local');
         if (!Storage::disk($uploadDisk)->exists($path)) {
             abort(404, 'File not found');
         }

@@ -3,7 +3,7 @@
 // Test 1: Default behavior (headless=false) - catch-all serves HTML
 it('catch-all serves html when headless mode is disabled', function () {
     /** @var \Tests\TestCase $this */
-    config(['ui-services.headless_mode' => false]);
+    config(['usim.headless_mode' => false]);
 
     $response = $this->get('/');
 
@@ -14,7 +14,7 @@ it('catch-all serves html when headless mode is disabled', function () {
 // Test 2: Headless mode enabled - catch-all returns 406 JSON
 it('catch-all returns 406 when headless mode is enabled', function () {
     /** @var \Tests\TestCase $this */
-    config(['ui-services.headless_mode' => true]);
+    config(['usim.headless_mode' => true]);
 
     $response = $this->get('/');
 
@@ -29,12 +29,12 @@ it('catch-all returns 406 when headless mode is enabled', function () {
 it('api-ui endpoint works same regardless of headless mode setting', function () {
     /** @var \Tests\TestCase $this */
     // Test with headless=false
-    config(['ui-services.headless_mode' => false]);
+    config(['usim.headless_mode' => false]);
     $response1 = $this->getJson('/api/ui/home');
     $data1 = $response1->json();
 
     // Test with headless=true
-    config(['ui-services.headless_mode' => true]);
+    config(['usim.headless_mode' => true]);
     $response2 = $this->getJson('/api/ui/home');
     $data2 = $response2->json();
 
@@ -63,7 +63,7 @@ it('screen with agent context includes it in api response', function () {
 // Test 5: Backward compatibility - catch-all still works with query params in web mode
 it('catch-all respects query parameters in web mode', function () {
     /** @var \Tests\TestCase $this */
-    config(['ui-services.headless_mode' => false]);
+    config(['usim.headless_mode' => false]);
 
     $response = $this->get('/?reset=true');
 
@@ -74,7 +74,7 @@ it('catch-all respects query parameters in web mode', function () {
 // Test 6: Headless mode rejects nested routes
 it('catch-all returns 406 for nested routes when headless mode enabled', function () {
     /** @var \Tests\TestCase $this */
-    config(['ui-services.headless_mode' => true]);
+    config(['usim.headless_mode' => true]);
 
     $response = $this->get('/admin/dashboard');
 
@@ -87,7 +87,7 @@ it('catch-all returns 406 for nested routes when headless mode enabled', functio
 // Test 7: API still serves nested screens in headless mode
 it('api-ui serves nested screens in headless mode', function () {
     /** @var \Tests\TestCase $this */
-    config(['ui-services.headless_mode' => true]);
+    config(['usim.headless_mode' => true]);
 
     $response = $this->getJson('/api/ui/admin/dashboard');
 

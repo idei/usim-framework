@@ -64,7 +64,7 @@ class UIController extends Controller
             ->map(fn(string $segment) => Str::studly($segment))
             ->join('\\');
 
-        $namespace = config('usim.screens_namespace', config('ui-services.screens_namespace', 'App\\UI\\Screens'));
+        $namespace = config('usim.screens_namespace', 'App\\UI\\Screens');
 
         return "{$namespace}\\{$screenNameSegments}";
     }

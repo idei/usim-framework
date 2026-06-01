@@ -26,11 +26,7 @@ if (config('app.env') === 'local') {
 Route::get('/{screen?}', function (?string $screen = 'home') {
     if ($screen === 'favicon.ico')
         return abort(404);
-    // Keep backward compatibility with legacy ui-services config key.
-    $legacyHeadless = config('ui-services.headless_mode');
-    $headlessMode = is_bool($legacyHeadless)
-        ? $legacyHeadless
-        : (bool) config('usim.headless_mode', false);
+    $headlessMode = (bool) config('usim.headless_mode', false);
 
     // Check if headless mode is enabled.
     if ($headlessMode) {

@@ -8,7 +8,7 @@ The format is based on Keep a Changelog, and this project follows Semantic Versi
 
 ### Changed
 - Unified published package configuration into `config/usim.php` (includes `users.roles`), replacing the previous split publish target (`config/ui-services.php` + `config/users.php`) for new installs.
-- Runtime config resolution now prefers `usim.*` keys while keeping backward compatibility fallbacks for legacy `ui-services.*` and `users.*` keys.
+- Runtime config resolution now uses `usim.*` keys only; legacy `ui-services.*` fallbacks were removed.
 
 ## [v0.12.0] - 2026-04-30
 

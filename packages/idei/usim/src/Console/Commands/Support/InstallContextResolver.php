@@ -11,13 +11,13 @@ class InstallContextResolver
      */
     public function resolveNamespaces(): array
     {
-        $screensNamespace = config('usim.screens_namespace', config('ui-services.screens_namespace', 'App\\UI\\Screens'));
-        $screensPath = config('usim.screens_path', config('ui-services.screens_path', app_path('UI/Screens')));
+        $screensNamespace = config('usim.screens_namespace', 'App\\UI\\Screens');
+        $screensPath = config('usim.screens_path', app_path('UI/Screens'));
 
-        $normalizedScreensNamespace = is_string($screensNamespace) && $screensNamespace !== ''
+        $normalizedScreensNamespace = \is_string($screensNamespace) && $screensNamespace !== ''
             ? $screensNamespace
-            : 'App\\UI\\Screens';
-        $normalizedScreensPath = is_string($screensPath) && $screensPath !== ''
+            : "App\\UI\\Screens";
+        $normalizedScreensPath = \is_string($screensPath) && $screensPath !== ''
             ? $screensPath
             : app_path('UI/Screens');
 

@@ -25,7 +25,7 @@ class UIChangesCollector
 
     public function all(): array
     {
-        $storage_key = config('usim.app_id', config('ui-services.app_id'));
+        $storage_key = config('usim.app_id', 'my-app');
         $this->changes['storage'] = [
             $storage_key => json_encode($this->storage_changes),
         ];
