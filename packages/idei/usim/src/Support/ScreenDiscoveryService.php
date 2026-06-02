@@ -20,7 +20,7 @@ class ScreenDiscoveryService
      */
     public function discover(): array
     {
-        $screensPath = config('usim.screens_path', config('ui-services.screens_path', app_path('UI/Screens')));
+        $screensPath = config('usim.screens_path', app_path('UI/Screens'));
 
         if (!is_dir($screensPath)) {
             return [];
@@ -102,8 +102,8 @@ class ScreenDiscoveryService
         $screenPermissionPrefix = $screenPrefix . 'permissions.';
 
         foreach ($this->resolveTranslationLocales() as $locale) {
-            $langDir = lang_path($locale . '/screen');
-            $langFile = $langDir . '/permissions.php';
+            $langDir = lang_path($locale);
+            $langFile = $langDir . '/permission.php';
 
             $payload = $this->loadLangArrayFile($langFile);
 
@@ -294,7 +294,7 @@ class ScreenDiscoveryService
         // We can optimize this by token parsing if needed, but for now assumption works.
         $relativePath = $file->getRelativePathname();
 
-        $namespace = config('usim.screens_namespace', config('ui-services.screens_namespace', 'App\\UI\\Screens'));
+        $namespace = config('usim.screens_namespace', 'App\\UI\\Screens');
         $namespace = rtrim($namespace, '\\');
 
         $class = $namespace . '\\' . str_replace(['/', '.php'], ['\\', ''], $relativePath);

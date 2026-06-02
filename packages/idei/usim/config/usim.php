@@ -186,7 +186,7 @@ return [
         'languages' => [
             ['code' => 'en', 'name' => 'English', 'native_name' => 'English', 'active' => true],
             ['code' => 'es', 'name' => 'Spanish', 'native_name' => 'Espanol', 'active' => true],
-            ['code' => 'it', 'name' => 'Italian', 'native_name' => 'Italiano', 'active' => true],
+            ['code' => 'it', 'name' => 'Italian', 'native_name' => 'Italiano', 'active' => false],
             ['code' => 'fr', 'name' => 'French', 'native_name' => 'Français', 'active' => false],
             ['code' => 'de', 'name' => 'German', 'native_name' => 'Deutsch', 'active' => false],
             ['code' => 'zh', 'name' => 'Chinese', 'native_name' => '中文', 'active' => false],
