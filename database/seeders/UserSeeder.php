@@ -3,60 +3,35 @@
 namespace Database\Seeders;
 
 use App\Models\User;
-use Illuminate\Support\Str;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Arr;
 
 class UserSeeder extends Seeder
 {
+    protected const USERS_COUNT = 50;
+    protected const MIN_ROLES_BY_USER = 1;
+    protected const MAX_ROLES_BY_USER = 3;
+
     /**
      * Run the database seeds.
      */
     public function run(): void
     {
-        if (User::count() > 1) {
-            return;
-        }
+        $rolesData = config('usim.roles', []);
 
-        $rolesConfig = config('usim.users.roles', config('users.roles', []));
-
-        foreach ($rolesConfig as $roleName => $roleMeta) {
-            if (!\is_string($roleName) || $roleName === '') {
-                continue;
-            }
-
-            $this->createConfigUser($roleName, (array) ($roleMeta['seed_user'] ?? []));
-        }
-
-        User::factory(4)->create()->each(function ($user) {
-            $user->assignRole('user');
+        // We sort roles by priority
+        uasort($rolesData, function ($a, $b) {
+            return $a['priority'] <=> $b['priority'];
         });
-    }
 
-    private function createConfigUser(string $role, array $seedUserConfig = []): void
-    {
-        $legacyUserConfig = (array) config("usim.users.{$role}", config("users.{$role}", []));
-        $userConfig = array_merge($legacyUserConfig, $seedUserConfig);
+        $roles = array_keys($rolesData);
 
-        if (empty($userConfig['email']) || empty($userConfig['password'])) {
-            return;
-        }
-
-        $firstName = $userConfig['first_name'] ?? ucfirst($role);
-        $lastName = $userConfig['last_name'] ?? 'User';
-        $fullName = trim($firstName . ' ' . $lastName);
-        $email = $userConfig['email'];
-        $password = $userConfig['password'];
-
-        $user = User::firstOrCreate(
-            ['email' => $email],
-            [
-                'name' => $fullName,
-                'email_verified_at' => now(),
-                'remember_token' => Str::random(10),
-                'password' => bcrypt($password)
-            ]
-        );
-
-        $user->assignRole($role);
+        User::factory()
+            ->count(self::USERS_COUNT)
+            ->create()
+            ->each(function (User $user) use ($roles) {
+                $rand_roles = Arr::random($roles, rand(self::MIN_ROLES_BY_USER, self::MAX_ROLES_BY_USER));
+                $user->syncRoles($rand_roles);
+            });
     }
 }
