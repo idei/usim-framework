@@ -30,7 +30,8 @@ class UserSeeder extends Seeder
             ->count(self::USERS_COUNT)
             ->create()
             ->each(function (User $user) use ($roles) {
-                $rand_roles = Arr::random($roles, rand(self::MIN_ROLES_BY_USER, self::MAX_ROLES_BY_USER));
+                $roles_to_assign = rand(self::MIN_ROLES_BY_USER, self::MAX_ROLES_BY_USER);
+                $rand_roles = Arr::random($roles, $roles_to_assign);
                 $user->syncRoles($rand_roles);
             });
     }
