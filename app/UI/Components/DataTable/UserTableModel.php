@@ -2,9 +2,10 @@
 
 namespace App\UI\Components\DataTable;
 
+use App\Models\User;
 use App\Services\User\UserListingService;
-use Idei\Usim\DataTable\AbstractTableModel;
 use Idei\Usim\Components\Table;
+use Idei\Usim\DataTable\AbstractTableModel;
 
 class UserTableModel extends AbstractTableModel
 {
@@ -20,12 +21,12 @@ class UserTableModel extends AbstractTableModel
 
     public function getColumns(): array
     {
+        $prefix = 'datatable.user_api.columns';
         return [
-            'name' => ['label' => t('datatable.user_api.columns.name'), 'width' => 250, 'sort_by' => 'name'],
-            'email' => ['label' => t('datatable.user_api.columns.email'), 'width' => 200, 'sort_by' => 'email'],
-            'email_verified' => ['label' => t('datatable.user_api.columns.email_verified'), 'width' => 100, 'sort_by' => 'email_verified_at'],
-            'roles' => ['label' => t('datatable.user_api.columns.roles'), 'width' => 100, 'sort_by' => 'role_name'],
-            'updated_at' => ['label' => t('datatable.user_api.columns.updated_at'), 'width' => 150, 'sort_by' => 'updated_at']
+            'name' => ['label' => t("{$prefix}.name"), 'width' => 250, 'sort_by' => 'name'],
+            'email' => ['label' => t("{$prefix}.email"), 'width' => 200, 'sort_by' => 'email'],
+            'email_verified' => ['label' => t("{$prefix}.email_verified"), 'width' => 100, 'sort_by' => 'email_verified_at'],
+            'roles' => ['label' => t("{$prefix}.roles"), 'width' => 200, 'sort_by' => 'role_name']
         ];
     }
 
@@ -59,14 +60,9 @@ class UserTableModel extends AbstractTableModel
         $formatted = [];
 
         foreach ($users as $user) {
-            $roles = $user->roles
-                ->pluck('name')
-                ->sort()
-                ->values()
-                ->implode(', ');
+            $roles = $this->formatRoles($user);
 
             $emailVerified = $user->email_verified_at ?? false;
-            $updatedAt = $user->updated_at?->diffForHumans() ?? '';
 
             $formatted[] = [
                 '_model_id' => $user->id,
@@ -74,10 +70,16 @@ class UserTableModel extends AbstractTableModel
                 'email' => $user->email ?? '',
                 'email_verified' => $emailVerified ? '✅' : '⚠️',
                 'roles' => $roles,
-                'updated_at' => $updatedAt,
             ];
         }
 
         return $formatted;
+    }
+
+    private function formatRoles(User $user): string
+    {
+        $roles = $user->roles->pluck('name')->map(fn ($name) => t("role.$name.name"))->toArray();
+
+        return $roles ? implode(', ', $roles) : t('role.none');
     }
 }

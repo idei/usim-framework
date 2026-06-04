@@ -2,27 +2,27 @@
 
 return [
     'root' => [
-        'name' => 'Root',
+        'name' => 'Raíz',
         'description' => 'Usuario con acceso total e incondicional a todas las funciones.',
     ],
     'admin' => [
-        'name' => 'Administrator',
+        'name' => 'Administrador',
         'description' => 'Gestiona el sistema y los usuarios.',
     ],
     'registered' => [
-        'name' => 'Registered',
+        'name' => 'Registrado',
         'description' => 'Usuario registrado con permisos limitados.',
     ],
     'approved' => [
-        'name' => 'Approved',
+        'name' => 'Aprobado',
         'description' => 'Usuario aprobado con acceso a funciones adicionales.',
     ],
     'translator' => [
-        'name' => 'Translator',
+        'name' => 'Traductor',
         'description' => 'Usuario responsable de gestionar las traducciones.',
     ],
     'developer' => [
-        'name' => 'Developer',
+        'name' => 'Programador',
         'description' => 'Usuario con acceso a herramientas de desarrollo y depuración.',
     ],
 ];

@@ -79,7 +79,7 @@ return [
         'root' => [
             'default_translations' => [
                 'en' => ['display_name' => 'Root', 'description' => 'User with total and unconditional access to all features.'],
-                'es' => ['display_name' => 'Root', 'description' => 'Usuario con acceso total e incondicional a todas las funciones.'],
+                'es' => ['display_name' => 'Raíz', 'description' => 'Usuario con acceso total e incondicional a todas las funciones.'],
             ],
             'priority' => 100,
             'home_screen' => UsersManager::class,
@@ -88,7 +88,7 @@ return [
         'admin' => [
             'default_translations' => [
                 'en' => ['display_name' => 'Administrator', 'description' => 'Manages the system and users.'],
-                'es' => ['display_name' => 'Administrator', 'description' => 'Gestiona el sistema y los usuarios.'],
+                'es' => ['display_name' => 'Administrador', 'description' => 'Gestiona el sistema y los usuarios.'],
             ],
             'priority' => 80,
             'home_screen' => UsersManager::class,
@@ -97,7 +97,7 @@ return [
         'registered' => [
             'default_translations' => [
                 'en' => ['display_name' => 'Registered', 'description' => 'Registered user with limited permissions.'],
-                'es' => ['display_name' => 'Registered', 'description' => 'Usuario registrado con permisos limitados.'],
+                'es' => ['display_name' => 'Registrado', 'description' => 'Usuario registrado con permisos limitados.'],
             ],
             'priority' => 60,
             'home_screen' => Home::class,
@@ -106,7 +106,7 @@ return [
         'approved' => [
             'default_translations' => [
                 'en' => ['display_name' => 'Approved', 'description' => 'Approved user with access to additional features.'],
-                'es' => ['display_name' => 'Approved', 'description' => 'Usuario aprobado con acceso a funciones adicionales.'],
+                'es' => ['display_name' => 'Aprobado', 'description' => 'Usuario aprobado con acceso a funciones adicionales.'],
             ],
             'priority' => 40,
             'home_screen' => Home::class,
@@ -115,7 +115,7 @@ return [
         'translator' => [
             'default_translations' => [
                 'en' => ['display_name' => 'Translator', 'description' => 'User responsible for managing translations.'],
-                'es' => ['display_name' => 'Translator', 'description' => 'Usuario responsable de gestionar las traducciones.'],
+                'es' => ['display_name' => 'Traductor', 'description' => 'Usuario responsable de gestionar las traducciones.'],
             ],
             'priority' => 20,
             'home_screen' => TranslateManager::class,
@@ -124,7 +124,7 @@ return [
         'developer' => [
             'default_translations' => [
                 'en' => ['display_name' => 'Developer', 'description' => 'User with access to development and debugging tools.'],
-                'es' => ['display_name' => 'Developer', 'description' => 'Usuario con acceso a herramientas de desarrollo y depuración.'],
+                'es' => ['display_name' => 'Programador', 'description' => 'Usuario con acceso a herramientas de desarrollo y depuración.'],
             ],
             'priority' => 10,
             'home_screen' => Home::class,
@@ -136,25 +136,25 @@ return [
         'debug.logs' => [
             'default_translations' => [
                 'en' => ['display_name' => 'View System Logs', 'description' => 'Allows viewing system activity and error logs.'],
-                'es' => ['display_name' => 'View System Logs', 'description' => 'Permite ver los registros de actividad y errores del sistema.'],
+                'es' => ['display_name' => 'Ver Registros del Sistema', 'description' => 'Permite ver los registros de actividad y errores del sistema.'],
             ],
         ],
         'debug.access' => [
             'default_translations' => [
                 'en' => ['display_name' => 'Access Debug Tools', 'description' => 'Allows access to debugging and diagnostic tools.'],
-                'es' => ['display_name' => 'Access Debug Tools', 'description' => 'Permite acceder a herramientas de depuración y diagnóstico.'],
+                'es' => ['display_name' => 'Acceder a Herramientas de Depuración', 'description' => 'Permite acceder a herramientas de depuración y diagnóstico.'],
             ],
         ],
         'manage.users' => [
             'default_translations' => [
                 'en' => ['display_name' => 'Manage Users', 'description' => 'Allows creating, editing, and deleting users.'],
-                'es' => ['display_name' => 'Manage Users', 'description' => 'Permite crear, editar y eliminar usuarios.'],
+                'es' => ['display_name' => 'Gestionar Usuarios', 'description' => 'Permite crear, editar y eliminar usuarios.'],
             ],
         ],
         'manage.roles' => [
             'default_translations' => [
                 'en' => ['display_name' => 'Manage Roles', 'description' => 'Allows creating, editing, and deleting roles and their permissions.'],
-                'es' => ['display_name' => 'Manage Roles', 'description' => 'Permite crear, editar y eliminar roles y sus permisos.'],
+                'es' => ['display_name' => 'Gestionar Roles', 'description' => 'Permite crear, editar y eliminar roles y sus permisos.'],
             ],
         ],
     ],
@@ -175,7 +175,7 @@ return [
         'log_autokey_suggestions' => env('USIM_I18N_LOG_AUTOKEY_SUGGESTIONS', true),
         'languages' => [
             ['code' => 'en', 'name' => 'English', 'native_name' => 'English', 'active' => true],
-            ['code' => 'es', 'name' => 'Spanish', 'native_name' => 'Espanol', 'active' => true],
+            ['code' => 'es', 'name' => 'Spanish', 'native_name' => 'Español', 'active' => true],
             ['code' => 'it', 'name' => 'Italian', 'native_name' => 'Italiano', 'active' => false],
             ['code' => 'fr', 'name' => 'French', 'native_name' => 'Français', 'active' => false],
             ['code' => 'de', 'name' => 'German', 'native_name' => 'Deutsch', 'active' => false],

@@ -3,21 +3,21 @@
 return [
     'debug' => [
         'logs' => [
-            'name' => 'View System Logs',
+            'name' => 'Ver Registros del Sistema',
             'description' => 'Permite ver los registros de actividad y errores del sistema.',
         ],
         'access' => [
-            'name' => 'Access Debug Tools',
+            'name' => 'Acceder a Herramientas de Depuración',
             'description' => 'Permite acceder a herramientas de depuración y diagnóstico.',
         ],
     ],
     'manage' => [
         'users' => [
-            'name' => 'Manage Users',
+            'name' => 'Gestionar Usuarios',
             'description' => 'Permite crear, editar y eliminar usuarios.',
         ],
         'roles' => [
-            'name' => 'Manage Roles',
+            'name' => 'Gestionar Roles',
             'description' => 'Permite crear, editar y eliminar roles y sus permisos.',
         ],
     ],

@@ -54,7 +54,7 @@ class UsersManager extends Screen
     {
         $container
             ->plain()
-            ->maxWidth('900px')
+            ->maxWidth('1280px')
             ->centerHorizontal();
 
         $tabs_container = UI::container('tabs_container')
@@ -111,15 +111,13 @@ class UsersManager extends Screen
         $toolbar->add($search)->add($addBtn);
 
         $users_table = UI::table('users_table')
-            ->pagination(0) // Disable pagination to show all users
+            ->pagination(7) // Disable pagination to show all users
             ->sortedBy('name')
-            ->width('100%')
             ->dataModel(UserTableModel::class)
-            ->rounded(0)
-            ->shadow(0)
+            ->selectionMode(SelectionMode::SINGLE)
             ->bodyOverflowX('hidden')
             ->bodyOverflowY('auto')
-            ->rowMinHeight(45);
+            ->align('center');
 
         $users_crud_container
             ->add($toolbar)

@@ -61,7 +61,7 @@ class RoleTableModel extends AbstractTableModel
         foreach ($roles as $role) {
             $formatted[] = [
                 '_model_id' => $role->id,
-                'name' => $role->name,
+                'name' => t("role.{$role->name}.name"),
             ];
         }
 
