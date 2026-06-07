@@ -6,7 +6,7 @@ class InstallWorkflowBuilder
 {
     /**
      * @param callable(): void $checkEnvironment
-        * @param callable(): void $checkDatabaseReadiness
+     * @param callable(): void $checkDatabaseReadiness
      * @param callable(): void $publishConfig
      * @param callable(): void $publishAssets
      * @param callable(): void $installCoreScreens

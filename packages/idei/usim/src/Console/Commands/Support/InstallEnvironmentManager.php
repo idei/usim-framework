@@ -95,33 +95,38 @@ class InstallEnvironmentManager
         callable $error,
         callable $line
     ): array {
-        $defaults = [
-            'ROOT_FIRST_NAME' => $this->readEnvValue('ROOT_FIRST_NAME', $envPath) ?? ((string) config('usim.users.root.first_name', 'Root')),
-            'ROOT_LAST_NAME' => $this->readEnvValue('ROOT_LAST_NAME', $envPath) ?? ((string) config('usim.users.root.last_name', 'User')),
-            'ROOT_EMAIL' => $this->readEnvValue('ROOT_EMAIL', $envPath) ?? ((string) config('usim.users.root.email', 'root@example.com')),
-            'ROOT_PASSWORD' => $this->readEnvValue('ROOT_PASSWORD', $envPath) ?? '',
-        ];
+        try {
+            $defaults = [
+                'ROOT_FIRST_NAME' => $this->readEnvValue('ROOT_FIRST_NAME', $envPath) ?? ((string) config('usim.users.root.first_name', 'Root')),
+                'ROOT_LAST_NAME' => $this->readEnvValue('ROOT_LAST_NAME', $envPath) ?? ((string) config('usim.users.root.last_name', 'User')),
+                'ROOT_EMAIL' => $this->readEnvValue('ROOT_EMAIL', $envPath) ?? ((string) config('usim.users.root.email', 'root@example.com')),
+                'ROOT_PASSWORD' => $this->readEnvValue('ROOT_PASSWORD', $envPath) ?? '',
+            ];
 
-        $firstName = $this->askRootValue('Root first name', $defaults['ROOT_FIRST_NAME'], $interactive, $ask);
-        $lastName = $this->askRootValue('Root last name', $defaults['ROOT_LAST_NAME'], $interactive, $ask);
-        $email = $this->askRootEmail($defaults['ROOT_EMAIL'], $interactive, $ask, $error);
-        $password = $this->askRootPassword($defaults['ROOT_PASSWORD'], $interactive, $secret, $error);
+            $firstName = $this->askRootValue('Root first name', $defaults['ROOT_FIRST_NAME'], $interactive, $ask);
+            $lastName = $this->askRootValue('Root last name', $defaults['ROOT_LAST_NAME'], $interactive, $ask);
+            $email = $this->askRootEmail($defaults['ROOT_EMAIL'], $interactive, $ask, $error);
+            $password = $this->askRootPassword($defaults['ROOT_PASSWORD'], $interactive, $secret, $line, $error);
 
-        $this->upsertEnvEntries($envPath, [
-            'ROOT_FIRST_NAME' => $firstName,
-            'ROOT_LAST_NAME' => $lastName,
-            'ROOT_EMAIL' => $email,
-            'ROOT_PASSWORD' => $password,
-        ]);
+            $this->upsertEnvEntries($envPath, [
+                'ROOT_FIRST_NAME' => $firstName,
+                'ROOT_LAST_NAME' => $lastName,
+                'ROOT_EMAIL' => $email,
+                'ROOT_PASSWORD' => $password,
+            ]);
 
-        $line('  <fg=green>✓</> Root credentials saved in .env');
+            $line('  <fg=green>✓</> Root credentials saved in .env');
 
-        return [
-            'first_name' => $firstName,
-            'last_name' => $lastName,
-            'email' => $email,
-            'password' => $password,
-        ];
+            return [
+                'first_name' => $firstName,
+                'last_name' => $lastName,
+                'email' => $email,
+                'password' => $password,
+            ];
+        } catch (\RuntimeException $e) {
+            $error($e->getMessage());
+            return [];
+        }
     }
 
     private function readEnvValue(string $key, ?string $envPath = null): ?string
@@ -224,12 +229,12 @@ class InstallEnvironmentManager
         }
     }
 
-    private function askRootPassword(string $default, bool $interactive, callable $secret, callable $error): string
+    private function askRootPassword(string $default, bool $interactive, callable $secret, callable $line, callable $error): string
     {
         if (!$interactive) {
             $value = trim($default);
             if ($value === '' || strtoupper($value) === 'CHANGE_ME') {
-                throw new \RuntimeException('ROOT_PASSWORD must be set in .env for non-interactive install.');
+                throw new \RuntimeException('ROOT_PASSWORD must be set in .env, and cannot be "CHANGE_ME" for non-interactive install.');
             }
 
             return $value;
@@ -241,12 +246,12 @@ class InstallEnvironmentManager
             $value = trim($value) !== '' ? trim($value) : trim($default);
 
             if ($value === '' || strtoupper($value) === 'CHANGE_ME') {
-                $error('Root password is required and cannot be CHANGE_ME.');
+                $line('Root password is required and cannot be CHANGE_ME.');
                 continue;
             }
 
             if (mb_strlen($value) < 8) {
-                $error('Root password must be at least 8 characters.');
+                $line('Root password must be at least 8 characters.');
                 continue;
             }
 

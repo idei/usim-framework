@@ -2,11 +2,11 @@
 
 namespace Idei\Usim\Console\Commands;
 
+use Idei\Usim\Console\Commands\Concerns\ConfiguresRootEnvironment;
 use Idei\Usim\Console\Commands\Concerns\InstallsDatabaseScaffolding;
 use Idei\Usim\Console\Commands\Concerns\InstallsLangStubs;
 use Idei\Usim\Console\Commands\Concerns\InstallsTranslationManagerScaffolding;
 use Idei\Usim\Console\Commands\Concerns\RegistersPackageHelperAutoload;
-use Idei\Usim\Console\Commands\Support\SeedAccessControl;
 use Idei\Usim\Console\Commands\Support\InstallAppScaffoldingManager;
 use Idei\Usim\Console\Commands\Support\InstallContextResolver;
 use Idei\Usim\Console\Commands\Support\InstallEnvironmentManager;
@@ -17,6 +17,7 @@ use Idei\Usim\Console\Commands\Support\InstallStateManager;
 use Idei\Usim\Console\Commands\Support\InstallStubPublisher;
 use Idei\Usim\Console\Commands\Support\InstallWorkflowBuilder;
 use Idei\Usim\Console\Commands\Support\MissingDatabaseException;
+use Idei\Usim\Console\Commands\Support\SeedAccessControl;
 use Illuminate\Console\Command;
 use Illuminate\Filesystem\Filesystem;
 use Throwable;
@@ -27,6 +28,7 @@ class InstallCommand extends Command
     use InstallsLangStubs;
     use InstallsTranslationManagerScaffolding;
     use RegistersPackageHelperAutoload;
+    use ConfiguresRootEnvironment;
 
     protected $signature = 'usim:install
                             {--force : Overwrite existing files}';
@@ -80,8 +82,7 @@ class InstallCommand extends Command
 
     public function __construct(
         Filesystem $files
-    )
-    {
+    ) {
         parent::__construct();
         $this->files = $files;
         $this->installStateManager = app(InstallStateManager::class);
@@ -250,7 +251,7 @@ class InstallCommand extends Command
                     line: function (string $message): void {
                         $this->line($message);
                     },
-                    stubsPath: fn (string $path): string => $this->stubsPath($path),
+                    stubsPath: fn(string $path): string => $this->stubsPath($path),
                     publishStub: function (string $stubPath, string $targetPath, bool $autoForce, array $replacements): void {
                         $this->publishStub($stubPath, $targetPath, $autoForce, $replacements);
                     }
@@ -270,7 +271,7 @@ class InstallCommand extends Command
                     line: function (string $message): void {
                         $this->line($message);
                     },
-                    stubsPath: fn (string $path): string => $this->stubsPath($path)
+                    stubsPath: fn(string $path): string => $this->stubsPath($path)
                 );
             },
             appendEnvVars: function () use (&$envPath): void {
@@ -285,31 +286,7 @@ class InstallCommand extends Command
                 );
             },
             configureRoot: function () use (&$envPath): void {
-                if ($envPath === '') {
-                    $envPath = $this->installEnvironmentManager->resolveEnvPath(
-                        true,
-                        function (string $message): void {
-                            $this->line($message);
-                        }
-                    ) ?? '';
-                }
-
-                if ($envPath === '') {
-                    throw new \RuntimeException('Unable to locate or create a .env file for root configuration.');
-                }
-
-                $this->rootUserEnvValues = $this->installEnvironmentManager->promptAndPersistRootUserEnv(
-                    envPath: $envPath,
-                    interactive: $this->input->isInteractive(),
-                    ask: fn (string $question, string $default): string => (string) $this->ask($question, $default),
-                    secret: fn (string $prompt): string => (string) $this->secret($prompt),
-                    error: function (string $message): void {
-                        $this->components->error($message);
-                    },
-                    line: function (string $message): void {
-                        $this->line($message);
-                    }
-                );
+                $this->configureRootStep($envPath, fn(string $message) => throw new \RuntimeException($message));
             },
             registerHelpers: function (): void {
                 $this->registerPackageHelpersAutoload();
@@ -473,13 +450,7 @@ class InstallCommand extends Command
     {
         $this->installAppScaffoldingManager->installAuthScaffolding(
             context: $this->buildScaffoldingContext(),
-            publishStub: function (
-                string $stubPath,
-                string $targetPath,
-                bool $autoForce,
-                array $replacements,
-                ?callable $postInstallCallback = null
-            ): void {
+            publishStub: function (string $stubPath, string $targetPath, bool $autoForce, array $replacements, ?callable $postInstallCallback = null): void {
                 $this->publishStub($stubPath, $targetPath, $autoForce, $replacements, $postInstallCallback);
             },
             line: function (string $message): void {

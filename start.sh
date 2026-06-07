@@ -49,7 +49,7 @@ if [[ "$*" == *"-r"* ]]; then
     fi
 
     php artisan migrate --force
-    php artisan usim:install --no-interaction
+    php artisan usim:install --no-interaction || exit 1
     php artisan db:seed --no-interaction
 fi
 
