@@ -50,7 +50,7 @@ class PrepareUIContext
             }
         }
 
-        $storage_key = config('usim.app_id', 'my-app');
+        $storage_key = config('usim.front_store_key');
 
         // 2. Si no hay header válido, intentar desde Input storage_key
         if (empty($encrypted) && $request->has($storage_key)) {

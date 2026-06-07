@@ -8,13 +8,14 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | Application ID
+    | Front Store Key
     |--------------------------------------------------------------------------
-    | Un identificador único para esta aplicación, utilizado para diferenciarla
-    | en entornos con múltiples aplicaciones o servicios. Puede ser cualquier slug,
-    | pero se recomienda usar algo descriptivo.
+    | Una clave de almacenamiento del cliente en el header y payload. Esto es
+    | importante para evitar colisiones en entornos con múltiples aplicaciones
+    | o servicios que usan USIM.
+    | Puede ser cualquier slug, pero se recomienda usar algo descriptivo.
     */
-    'app_id' => env('APP_ID', 'my-app'),
+    'front_store_key' => env('FRONT_STORE_KEY', 'change-the-store-key'),
 
     /*
     |--------------------------------------------------------------------------

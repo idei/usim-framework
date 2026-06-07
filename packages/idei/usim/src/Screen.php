@@ -837,7 +837,7 @@ abstract class Screen
      *
      * [
      *   'storage' => [
-     *      [app_id] => 'encrypted_json_string',
+     *      [front_store_key] => 'encrypted_json_string',
      *   ]
      * ]
      *

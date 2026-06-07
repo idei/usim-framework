@@ -776,7 +776,7 @@ This creates `config/usim.php`:
 
 ```php
 return [
-    'app_id'           => env('APP_ID', 'my-app'),
+    'front_store_key'           => env('FRONT_STORE_KEY', 'my-app'),
     'screens_namespace' => 'App\\UI\\Screens',
     'screens_path'      => app_path('UI/Screens'),
     'api_url'           => env('API_BASE_URL', env('APP_URL')),
@@ -795,7 +795,7 @@ return [
 
 | Key | Description | Default |
 |---|---|---|
-| `app_id` | Unique application identifier used to scope persisted UI storage keys | `my-app` (override via `APP_ID`) |
+| `front_store_key` | Unique application identifier used to scope persisted UI storage keys | `my-app` (override via `FRONT_STORE_KEY`) |
 | `screens_namespace` | PSR-4 namespace where screens live | `App\UI\Screens` |
 | `screens_path` | Filesystem path to scan for screens | `app/UI/Screens` |
 | `api_url` | Base URL for internal HTTP calls | `APP_URL` |

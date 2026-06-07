@@ -115,7 +115,7 @@ it('handles movie row click through the table name convention', function () {
     $payload = $response->json();
     $firstRow = firstTableRowComponent($payload, 0);
     $movieId = $firstRow['parameters']['model_id'] ?? null;
-    $storageKey = config('usim.app_id', 'my-app');
+    $storageKey = config('usim.front_store_key', 'my-app');
     $storage = $payload['storage'][$storageKey] ?? null;
 
     expect($movieId)->toBeInt();

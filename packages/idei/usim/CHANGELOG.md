@@ -91,7 +91,7 @@ The format is based on Keep a Changelog, and this project follows Semantic Versi
 - Rich label HTML rendering through `Label::html()`, including safe rendering of existing backend Blade views into label content.
 - New positioning helpers for components and containers, including anchor-based positioning and offset APIs such as `position()`, `positionMode()`, `offsetX()`, `offsetY()`, and directional helpers like `top()` / `right()` / `bottom()` / `left()`.
 - Card theme variants and theme assets for light/dark UI toggles in the default package UI.
-- New `app_id` package configuration (from `APP_ID`) to scope client storage keys per application.
+- New `front_store_key` package configuration (from `FRONT_STORE_KEY`) to scope client storage keys per application.
 
 ### Changed
 - Default USIM styles now rely more heavily on CSS variables for more consistent theming across renderer components and package-provided screens.
