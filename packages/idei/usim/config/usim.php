@@ -15,7 +15,7 @@ return [
     | o servicios que usan USIM.
     | Puede ser cualquier slug, pero se recomienda usar algo descriptivo.
     */
-    'front_store_key' => env('FRONT_STORE_KEY', 'change-the-store-key'),
+    'front_store_key' => env('FRONT_STORE_KEY', 'change-this-store-key'),
 
     /*
     |--------------------------------------------------------------------------
