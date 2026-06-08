@@ -1257,6 +1257,22 @@ class UIRenderer {
             const parsedId = Number.parseInt(jsonKey, 10);
             return Number.isNaN(parsedId) ? jsonKey : parsedId;
         };
+        const canAttemptCreate = (changes) => {
+            if (!changes || typeof changes !== 'object') {
+                return false;
+            }
+
+            // Creating a component from delta requires at least type + parent.
+            if (changes.type === undefined || changes.type === null) {
+                return false;
+            }
+
+            if (changes.parent === undefined || changes.parent === null || changes.parent === 'null') {
+                return false;
+            }
+
+            return true;
+        };
         const processComponentUpdates = (entries) => {
             // 1) Remove first to avoid stale descendants during the same update batch.
             for (const [jsonKey, changes] of entries) {
@@ -1287,7 +1303,9 @@ class UIRenderer {
                 if (element) {
                     this.updateComponent(element, changes);
                 } else {
-                    creates.push([jsonKey, changes]);
+                    if (canAttemptCreate(changes)) {
+                        creates.push([jsonKey, changes]);
+                    }
                 }
             }
 
@@ -1297,9 +1315,12 @@ class UIRenderer {
 
             for (let pass = 0; pass < maxPasses && pendingCreates.length > 0; pass++) {
                 const nextPending = [];
+                const isLastPass = pass === (maxPasses - 1);
 
                 for (const [jsonKey, changes] of pendingCreates) {
-                    const added = this.addComponent(jsonKey, changes);
+                    const added = this.addComponent(jsonKey, changes, {
+                        suppressMissingParentLog: !isLastPass,
+                    });
                     if (!added) {
                         nextPending.push([jsonKey, changes]);
                     }
@@ -1460,7 +1481,7 @@ class UIRenderer {
             }
         }
 
-        console.log(`🗑️ Removed component ${componentId} and ${Math.max(removedIds.size - 1, 0)} descendants`);
+        console.debug(`🗑️ Removed component ${componentId} and ${Math.max(removedIds.size - 1, 0)} descendants`);
     }
 
     /**
@@ -1943,8 +1964,8 @@ class UIRenderer {
                         || component?.config?.pagination?.labels
                         || {};
                     const dLabelPrevious = deltaLabels.previous || '\u00ab Previous';
-                    const dLabelNext     = deltaLabels.next     || 'Next \u00bb';
-                    const dLabelShowing  = deltaLabels.showing  || 'Showing :start-:end of :total items';
+                    const dLabelNext = deltaLabels.next || 'Next \u00bb';
+                    const dLabelShowing = deltaLabels.showing || 'Showing :start-:end of :total items';
 
                     // Update info text
                     const infoDiv = paginationDiv.querySelector('.ui-pagination-info');
@@ -2071,9 +2092,11 @@ class UIRenderer {
      *
      * @param {string} jsonKey - JSON key of the component
      * @param {object} config - Component configuration
+     * @param {object} options - Behavior options
      */
-    addComponent(jsonKey, config) {
+    addComponent(jsonKey, config, options = {}) {
         try {
+            const { suppressMissingParentLog = false } = options;
             const component = ComponentFactory.create(jsonKey, config);
 
             if (!component) {
@@ -2167,10 +2190,18 @@ class UIRenderer {
                 if (!insertByTableOrder(parentElement, element, config)) {
                     parentElement.appendChild(element);
                 }
-                console.log(`➕ Component ${jsonKey} added to parent ${config.parent}`);
+                console.debug(`➕ Component ${jsonKey} added to parent ${config.parent}`);
                 return true;
             } else {
-                console.error(`❌ Parent ${config.parent} not found for component ${jsonKey}`);
+                if (config.parent === undefined || config.parent === null) {
+                    // Incremental deltas can arrive without parent when payload only includes changed fields.
+                    this.components.delete(String(jsonKey));
+                    return false;
+                }
+
+                if (!suppressMissingParentLog) {
+                    console.error(`❌ Parent ${config.parent} not found for component ${jsonKey}`);
+                }
                 this.components.delete(String(jsonKey));
                 return false;
             }

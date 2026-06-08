@@ -111,7 +111,7 @@ class UsersManager extends Screen
         $toolbar->add($search)->add($addBtn);
 
         $users_table = UI::table('users_table')
-            ->pagination(7) // Disable pagination to show all users
+            ->pagination(40)
             ->sortedBy('name')
             ->dataModel(UserTableModel::class)
             ->selectionMode(SelectionMode::SINGLE)
