@@ -6,7 +6,6 @@ use App\Models\User;
 use App\Services\User\UserListingService;
 use Idei\Usim\Components\Table;
 use Idei\Usim\DataTable\AbstractTableModel;
-use Illuminate\Support\Facades\Log;
 
 class UserTableModel extends AbstractTableModel
 {
@@ -51,17 +50,6 @@ class UserTableModel extends AbstractTableModel
             sortField: $sortBy ?: null,
             sortDirection: (string) ($sortDirection ?: 'asc'),
         );
-
-        // Display each row to log
-        foreach ($result['items'] as $user) {
-            Log::debug('User row', [
-                'id' => $user->id,
-                'name' => $user->name,
-                'email' => $user->email,
-                'email_verified_at' => $user->email_verified_at,
-                'roles' => $user->roles->pluck('name')->toArray(),
-            ]);
-        }
 
         return $result['items'];
     }
