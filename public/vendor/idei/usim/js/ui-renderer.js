@@ -772,6 +772,56 @@ const SPECIAL_UI_KEYS = new Set([
     'change_language'
 ]);
 
+function buildModalSubtreePayload(uiUpdate) {
+    if (!uiUpdate || typeof uiUpdate !== 'object') {
+        return {};
+    }
+
+    const payload = {};
+    const queue = [];
+    const includedIds = new Set();
+
+    // Seed with top-level modal roots (components whose parent is the modal DOM node).
+    for (const [key, component] of Object.entries(uiUpdate)) {
+        if (isSpecialUIKey(key) || !component || typeof component !== 'object') {
+            continue;
+        }
+
+        if (component.parent === 'modal') {
+            payload[key] = component;
+            includedIds.add(String(key));
+            queue.push(String(key));
+        }
+    }
+
+    if (queue.length === 0) {
+        return {};
+    }
+
+    // Expand descendants by following parent references inside the same update payload.
+    while (queue.length > 0) {
+        const parentId = queue.shift();
+
+        for (const [key, component] of Object.entries(uiUpdate)) {
+            if (isSpecialUIKey(key) || !component || typeof component !== 'object') {
+                continue;
+            }
+
+            if (includedIds.has(String(key))) {
+                continue;
+            }
+
+            if (component.parent === Number(parentId) || String(component.parent) === parentId) {
+                payload[key] = component;
+                includedIds.add(String(key));
+                queue.push(String(key));
+            }
+        }
+    }
+
+    return payload;
+}
+
 function isSpecialUIKey(key) {
     return SPECIAL_UI_KEYS.has(key);
 }
@@ -1397,8 +1447,9 @@ class UIRenderer {
         }
 
         if (hasModalComponents) {
-            // Open modal with these components
-            openModal(uiUpdate);
+            // Open modal only with modal subtree components, excluding unrelated updates.
+            const modalPayload = buildModalSubtreePayload(uiUpdate);
+            openModal(modalPayload);
             return; // Don't process as regular updates
         }
 

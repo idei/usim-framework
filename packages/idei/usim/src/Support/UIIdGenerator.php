@@ -86,6 +86,15 @@ class UIIdGenerator
         $hash = crc32($name);
         $localId = (abs($hash) % 9999) + 1; // +1 to avoid ID 0
 
+        // Avoid collisions with IDs already used in this request context
+        // (typically deserialized cache components and auto-generated table rows/cells).
+        while (isset(self::$usedLocalIdsPerContext[$context][$localId])) {
+            $localId++;
+            if ($localId > 9999) {
+                $localId = 1;
+            }
+        }
+
         self::$namedLocalIdsPerContext[$context][$name] = $localId;
         self::$usedLocalIdsPerContext[$context][$localId] = true;
 

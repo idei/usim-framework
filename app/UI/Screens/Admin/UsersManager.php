@@ -112,7 +112,7 @@ class UsersManager extends Screen
         $toolbar->add($search)->add($addBtn);
 
         $users_table = UI::table('users_table')
-            ->pagination(40)
+            ->pagination(15)
             ->sortedBy('name')
             ->dataModel(UserTableModel::class)
             ->selectionMode(SelectionMode::SINGLE)
