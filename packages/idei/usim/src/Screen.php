@@ -679,6 +679,13 @@ abstract class Screen
             if (!$className) {
                 throw new RuntimeException("Unknown component type '{$type}'.");
             }
+
+            // Reserve IDs from cached snapshots so future auto-generated IDs
+            // in this request do not collide with already deserialized components.
+            if (is_numeric($id)) {
+                UIIdGenerator::reserveContextId(static::class, (int) $id);
+            }
+
             $components[$id] = $className::deserialize($id, $component);
         }
 

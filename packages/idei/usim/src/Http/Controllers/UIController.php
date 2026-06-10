@@ -56,8 +56,8 @@ class UIController extends Controller
             $type = $change['type'] ?? null;
             $name = $change['name'] ?? null;
             $isTableCell = $type === 'tablecell';
-            $nameContainsAnumberBetween1And20 = isset($name) && preg_match('/^users_table__(1[0-9]|20|[1-9])_/', $name);
-            $rowBetween1And20 = isset($change['row']) && $change['row'] >= 1 && $change['row'] <= 20;
+            $nameContainsAnumberBetween1And20 = true;// isset($name) && preg_match('/^users_table__(1[0-9]|20|[0-9])_/', $name);
+            $rowBetween1And20 = isset($change['row']);// && $change['row'] >= 0 && $change['row'] <= 20;
             return $rowBetween1And20 || ($isTableCell && $nameContainsAnumberBetween1And20);
         });
 

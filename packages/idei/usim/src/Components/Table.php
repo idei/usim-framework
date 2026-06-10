@@ -447,7 +447,8 @@ class Table extends UIComponent
         // Grow structure when needed.
         if ($existingRows < $targetRows) {
             for ($row = $existingRows; $row < $targetRows; $row++) {
-                $rowBuilder = $this->createRow($this->internalComponentName("row_$row"));
+                // Keep table internals unnamed to avoid deterministic ID hash collisions.
+                $rowBuilder = $this->createRow();
                 $rowBuilder->row($row);
 
                 $rowMinHeight = $this->config['row_min_height'] ?? null;
@@ -459,8 +460,7 @@ class Table extends UIComponent
                 $this->cells[$row] = [];
 
                 for ($col = 0; $col < $this->cols; $col++) {
-                    $cellName = $this->internalComponentName("{$row}_{$col}");
-                    $cell = $rowBuilder->createCell($cellName);
+                    $cell = $rowBuilder->createCell();
                     $cell->text('')->column($col);
 
                     if (isset($this->columnWidths[$col])) {
@@ -524,7 +524,8 @@ class Table extends UIComponent
 
         if ($existingRows < $requiredRows) {
             for ($row = $existingRows; $row < $requiredRows; $row++) {
-                $rowBuilder = $this->createRow($this->internalComponentName("row_$row"));
+                // Keep table internals unnamed to avoid deterministic ID hash collisions.
+                $rowBuilder = $this->createRow();
                 $rowBuilder->row($row);
 
                 $rowMinHeight = $this->config['row_min_height'] ?? null;
@@ -536,8 +537,7 @@ class Table extends UIComponent
                 $this->cells[$row] = [];
 
                 for ($col = 0; $col < $this->cols; $col++) {
-                    $cellName = $this->internalComponentName("{$row}_{$col}");
-                    $cell = $rowBuilder->createCell($cellName);
+                    $cell = $rowBuilder->createCell();
                     $cell->text('')->column($col);
 
                     if (isset($this->columnWidths[$col])) {
@@ -810,7 +810,8 @@ class Table extends UIComponent
 
         // Create data rows with empty cells
         for ($row = 0; $row < $this->rows; $row++) {
-            $rowBuilder = $this->createRow($this->internalComponentName("row_$row"));
+            // Keep table internals unnamed to avoid deterministic ID hash collisions.
+            $rowBuilder = $this->createRow();
             $rowBuilder->row($row); // Set row index for ordering
 
             $rowMinHeight = $this->config['row_min_height'] ?? null;
@@ -823,8 +824,7 @@ class Table extends UIComponent
             // Create empty cells for this row with column index
             $this->cells[$row] = [];
             for ($col = 0; $col < $this->cols; $col++) {
-                $cellName = $this->internalComponentName("{$row}_{$col}");
-                $cell = $rowBuilder->createCell($cellName);
+                $cell = $rowBuilder->createCell();
                 $cell->text('')->column($col); // Empty by default with column index
                 $this->cells[$row][$col] = $cell;
             }

@@ -397,14 +397,14 @@ class UsersManager extends Screen
 
     public function onSearchUsers(array $params): void
     {
-        $search = (string) ($params['value'] ?? '');
+        $search = trim((string) ($params['value'] ?? $params['search_users'] ?? ''));
         $this->users_table->setSearchTerm($search);
         $this->search_users->value($search);
     }
 
     public function onSearchRoles(array $params): void
     {
-        $search = (string) ($params['value'] ?? '');
+        $search = trim((string) ($params['value'] ?? $params['search_roles'] ?? ''));
         $this->roles_table->setSearchTerm($search);
         $this->search_roles->value($search);
     }
