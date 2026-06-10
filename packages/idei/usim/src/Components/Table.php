@@ -22,7 +22,7 @@ class Table extends UIComponent
     public const DEFAULT_COLUMN_WIDTH = 160;
     public const DEFAULT_PAGINATION_PER_PAGE = 7;
     public const DEFAULT_ROW_MIN_HEIGHT = 45;
-    public const DEFAULT_BODY_HEIGHT = 320;
+    public const DEFAULT_BODY_HEIGHT = 520;
     public const DEFAULT_BODY_OVERFLOW_X = 'visible';
     public const DEFAULT_BODY_OVERFLOW_Y = 'visible';
 
@@ -109,6 +109,7 @@ class Table extends UIComponent
             'sort_direction' => 'asc', // asc or desc
             'search_term' => null,
             'row_min_height' => self::DEFAULT_ROW_MIN_HEIGHT,
+            'body_height' => self::DEFAULT_BODY_HEIGHT,
             'body_min_height' => self::DEFAULT_BODY_HEIGHT,
             'body_max_height' => self::DEFAULT_BODY_HEIGHT,
             'body_overflow_x' => self::DEFAULT_BODY_OVERFLOW_X,
@@ -203,10 +204,6 @@ class Table extends UIComponent
             return $this->config['selection_mode'];
         }
 
-        if (!($mode instanceof SelectionMode) || !SelectionMode::isValid($mode->value)) {
-            throw new \InvalidArgumentException("Invalid selection mode: " . $mode);
-        }
-
         return $this->setConfig('selection_mode', $mode->value);
     }
 
@@ -221,7 +218,7 @@ class Table extends UIComponent
      * @param array|string|int|null $rows Row identifier or identifiers to select.
      * @return static|array|string|int|null
      */
-    public function select(array|string|int|null $rows = null): static|array|string|int
+    public function select(array|string|int|null $rows = null): static|array|string|int|null
     {
         $selected = $this->config['selected_rows'] ?? [];
         if ($rows === null) {
@@ -1162,6 +1159,26 @@ class Table extends UIComponent
     }
 
     /**
+     * Set the maximum and minimum height for the table body area en pixels.
+     *
+     * @param int|null $height
+     * @return static|string|null
+     */
+    public function bodyHeight(int|string|null $height): static|string|null
+    {
+        if ($height === null) {
+            return $this->config['body_height'] ?? null;
+        }
+
+        $value = $this->normalizeCssSize($height);
+
+        $this->setConfig('body_max_height', $value);
+        $this->setConfig('body_min_height', $value);
+
+        return $this->setConfig('body_height', $value);
+    }
+
+    /**
      * Set or get horizontal overflow mode for table body area.
      *
      * Allowed values: visible, hidden, auto, scroll.
@@ -1458,7 +1475,7 @@ class Table extends UIComponent
      */
     private function normalizeCssSize(int|string $value): string
     {
-        return is_int($value) ? $value . 'px' : trim($value);
+        return \is_int($value) ? "{$value}px" : trim($value);
     }
 
     /**

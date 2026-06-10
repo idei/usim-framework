@@ -67,16 +67,16 @@ class UIController extends Controller
             if ($type === 'tablecell') {
                 return [
                     'column' => $change['column'] ?? null,
-                    'parent' => $change['parent'] ?? null,
+                    // 'parent' => $change['parent'] ?? null,
                     'text' => $change['text'] ?? null,
-                    'type' => $type,
-                    'name' => $change['name'] ?? null,
+                    // 'type' => $type,
+                    // 'name' => $change['name'] ?? null,
                 ];
             }
             return [
                 'row' => $change['row'] ?? null,
-                'parent' => $change['parent'] ?? null,
-                'type' => $change['type'] ?? null,
+                // 'parent' => $change['parent'] ?? null,
+                // 'type' => $change['type'] ?? null,
             ];
         }, $filteredChanges);
 

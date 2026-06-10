@@ -60,7 +60,7 @@ class UsersManager extends Screen
         $tabs_container = UI::container('tabs_container')
             ->width('100%')
             ->padding('10px')
-            ->minHeight('600px')
+            ->minHeight('900px')
             ->rounded(0)
             ->gap('2px')
             ->tabs(
@@ -85,6 +85,7 @@ class UsersManager extends Screen
         $users_crud_container = UI::container('users_crud_container')
             ->layout(LayoutType::VERTICAL)
             ->gap('4px')
+            ->height('400px')
             ->plain();
 
         $toolbar = UI::container('users_toolbar')
@@ -117,6 +118,8 @@ class UsersManager extends Screen
             ->selectionMode(SelectionMode::SINGLE)
             ->bodyOverflowX('hidden')
             ->bodyOverflowY('auto')
+            ->minHeight('730px')
+            ->bodyMinHeight('600px')
             ->align('center');
 
         $users_crud_container
