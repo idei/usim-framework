@@ -1,19 +1,19 @@
 <?php
 
-namespace App\UI\Components\DataTable;
+namespace App\UI\Screens\Admin\TableModels;
 
-use App\Services\Role\RoleListingService;
+use App\Services\Permissions\PermissionListingService;
 use Idei\Usim\Components\Table;
 use Idei\Usim\DataTable\AbstractTableModel;
 
-class RoleTableModel extends AbstractTableModel
+class PermissionTableModel extends AbstractTableModel
 {
-    private RoleListingService $listingService;
+    private PermissionListingService $listingService;
 
     public function __construct(Table $tableBuilder)
     {
         parent::__construct($tableBuilder);
-        $this->listingService = app(RoleListingService::class);
+        $this->listingService = app(PermissionListingService::class);
     }
 
     public function getColumns(): array
@@ -21,7 +21,7 @@ class RoleTableModel extends AbstractTableModel
         return [
             'name' => [
                 'label' =>
-                    t('screen.admin.dashboard.roles_column_name'),
+                    t('screen.admin.users_manager.permissions_column_name'),
                 'width' => 200,
                 'sort_by' => 'name'
             ],

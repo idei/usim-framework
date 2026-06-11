@@ -61,7 +61,8 @@ class InstallAppScaffoldingManager
 
         $newLine();
         $info('Installing DataTable components...');
-        $this->installComponent('DataTable/UserTableModel.php.stub', 'UserTableModel.php', 'DataTable', $context, $publishStub, $line);
+        // TODO: A ESTO HAY QUE MOFIFICARLO
+        // $this->installComponent('DataTable/UserTableModel.php.stub', 'UserTableModel.php', 'DataTable', $context, $publishStub, $line);
 
         $newLine();
         $info('Installing AuthController...');

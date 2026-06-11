@@ -1,6 +1,6 @@
 <?php
 
-namespace App\UI\Components\DataTable;
+namespace App\UI\Screens\Admin\TableModels;
 
 use App\Models\User;
 use App\Services\User\UserListingService;
@@ -21,7 +21,7 @@ class UserTableModel extends AbstractTableModel
 
     public function getColumns(): array
     {
-        $prefix = 'datatable.user_api.columns';
+        $prefix = 'screen.admin.users_manager.table';
         return [
             'name' => ['label' => t("{$prefix}.name"), 'width' => 250, 'sort_by' => 'name'],
             'email' => ['label' => t("{$prefix}.email"), 'width' => 200, 'sort_by' => 'email'],

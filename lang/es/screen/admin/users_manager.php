@@ -9,6 +9,8 @@ return [
     'edit_title' => 'Editar Usuario',
     'edit_verified_label' => 'Correo Verificado',
     'search_placeholder' => 'Buscar usuarios...',
+    'search_role_placeholder' => 'Buscar roles...',
+    'add_role' => 'Agregar Rol',
     'table' => [
         'email' => 'Correo',
         'name' => 'Nombre',
@@ -20,4 +22,8 @@ return [
     'menu_label' => 'Usuarios',
     'user_created' => 'Usuario creado exitosamente',
     'user_updated' => 'Usuario actualizado exitosamente',
+    'users_tab' => 'Usuarios',
+    'roles_tab' => 'Roles',
+    'permissions_tab' => 'Permisos',
+    'roles_column_name' => 'Rol',
 ];

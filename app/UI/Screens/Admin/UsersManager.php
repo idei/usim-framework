@@ -3,10 +3,11 @@ namespace App\UI\Screens\Admin;
 
 use App\Services\Auth\RegisterService;
 use App\Services\User\UserService;
-use App\UI\Components\DataTable\RoleTableModel;
-use App\UI\Components\DataTable\UserTableModel;
 use App\UI\Components\Modals\EditUserDialog;
 use App\UI\Components\Modals\RegisterDialog;
+use App\UI\Screens\Admin\TableModels\PermissionTableModel;
+use App\UI\Screens\Admin\TableModels\RoleTableModel;
+use App\UI\Screens\Admin\TableModels\UserTableModel;
 use Idei\Usim\Components\Button;
 use Idei\Usim\Components\Container;
 use Idei\Usim\Components\Input;
@@ -21,6 +22,8 @@ use Idei\Usim\UI;
 
 class UsersManager extends Screen
 {
+    private const I18N_PREFIX = 'screen.admin.users_manager.';
+
     public function __construct(
         protected RegisterService $registerService,
         protected UserService $userService
@@ -44,6 +47,7 @@ class UsersManager extends Screen
 
     protected Table $users_table;
     protected Table $roles_table;
+    protected Table $permissions_table;
     protected Input $search_users;
     protected Input $search_roles;
     protected Button $add_user_btn;
@@ -65,12 +69,8 @@ class UsersManager extends Screen
             ->gap('2px')
             ->tabs(
                 [
-                    'users_tab' => [
-                        'label' => t('screen.admin.dashboard.users_tab'),
-                    ],
-                    'roles_tab' => [
-                        'label' => t('screen.admin.dashboard.roles_tab'),
-                    ]
+                    'users_tab' => ['label' => t(self::I18N_PREFIX . 'users_tab')],
+                    'roles_tab' => ['label' => t(self::I18N_PREFIX . 'roles_tab')],
                 ],
                 'users_tab'
             );
@@ -191,6 +191,20 @@ class UsersManager extends Screen
         $roles_left_panel
             ->add($toolbar)
             ->add($roles_table);
+
+        $permissions_table = UI::table('permissions_table')
+            ->pagination(0)
+            ->sortedBy('name')
+            ->width('100%')
+            ->dataModel(PermissionTableModel::class)
+            ->rounded(0)
+            ->shadow(0)
+            ->bodyOverflowX('hidden')
+            ->bodyOverflowY('auto')
+            ->selectionMode(SelectionMode::SINGLE);
+
+        $roles_right_panel
+            ->add($permissions_table);
 
         $this->roles_split
             ->addFirst($roles_left_panel)
