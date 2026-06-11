@@ -129,8 +129,8 @@ class Container implements UIElement
             'background_size' => null,
             'background_position' => null,
             'border' => null,
-            'border_radius' => null,
-            'box_shadow' => null,
+            'border_radius' => 0,
+            'box_shadow' => 0,
             'opacity' => null,
 
             // Position
@@ -1886,9 +1886,9 @@ class Container implements UIElement
      */
     public function rounded(string|int|bool $radius = 8): self
     {
-        if (is_int($radius)) {
+        if (\is_int($radius)) {
             $radius = $radius === 0 ? '0' : "{$radius}px";
-        } elseif (is_bool($radius)) {
+        } elseif (\is_bool($radius)) {
             $radius = $radius ? '8px' : '0';
         }
         return $this->borderRadius($radius);
@@ -1902,7 +1902,7 @@ class Container implements UIElement
      */
     public function shadow(string|int $intensity = 1): self
     {
-        if (is_int($intensity)) {
+        if (\is_int($intensity)) {
             $shadows = [
                 0 => 'none',
                 1 => '0 2px 8px rgba(0, 0, 0, 0.1)',

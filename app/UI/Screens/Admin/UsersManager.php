@@ -65,14 +65,13 @@ class UsersManager extends Screen
             ->width('100%')
             ->padding('10px')
             ->minHeight('900px')
-            ->rounded(0)
             ->gap('2px')
             ->tabs(
                 [
                     'users_tab' => ['label' => t(self::I18N_PREFIX . 'users_tab')],
                     'roles_tab' => ['label' => t(self::I18N_PREFIX . 'roles_tab')],
                 ],
-                'users_tab'
+                'roles_tab'
             );
 
         $tabs_container->add($this->buildUsersCrudContainer(), tab: 'users_tab');
@@ -91,8 +90,6 @@ class UsersManager extends Screen
         $toolbar = UI::container('users_toolbar')
             ->layout(LayoutType::HORIZONTAL)
             ->fullWidth()
-            ->rounded(0)
-            ->shadow(0)
             ->padding('10px')
             ->gap("10px");
 
@@ -139,10 +136,8 @@ class UsersManager extends Screen
         $this->roles_split = UI::split('roles_split')
             ->horizontal()
             ->splitSize('65%')
-            ->minFirstSize('320px')
-            ->minSecondSize('220px')
-            ->width('100%')
-            ->height('520px')
+            ->minFirstSize('400px')
+            ->minSecondSize('700px')
             ->plain();
 
         $roles_left_panel = UI::container('roles_left_panel')
@@ -157,19 +152,18 @@ class UsersManager extends Screen
             ->layout(LayoutType::HORIZONTAL)
             ->fullWidth()
             ->rounded(0)
-            ->shadow(0)
             ->padding('10px')
             ->gap("10px");
 
         $search = UI::input('search_roles')
-            ->placeholder(t('screen.admin.dashboard.search_role_placeholder'))
-            ->width('300px')
+            ->placeholder(t('screen.admin.users_manager.search_role_placeholder'))
+            ->width('200px')
             ->autocomplete('off')
             ->onInput('search_roles', [])
             ->debounce(500);
 
         $addBtn = UI::button('add_role_btn')
-            ->label(t('screen.admin.dashboard.add_role'))
+            ->label(t('screen.admin.users_manager.add_role'))
             ->style('primary')
             ->action('add_role_clicked')
             ->icon('plus');
@@ -177,12 +171,9 @@ class UsersManager extends Screen
         $toolbar->add($search)->add($addBtn);
 
         $roles_table = UI::table('roles_table')
-            ->pagination(0) // Disable pagination to show all roles
+            ->pagination(3) // Disable pagination to show all roles
             ->sortedBy('name')
-            ->width('100%')
             ->dataModel(RoleTableModel::class)
-            ->rounded(0)
-            ->shadow(0)
             ->bodyOverflowX('hidden')
             ->bodyOverflowY('auto')
             ->selectionMode(SelectionMode::SINGLE)
@@ -193,12 +184,9 @@ class UsersManager extends Screen
             ->add($roles_table);
 
         $permissions_table = UI::table('permissions_table')
-            ->pagination(0)
+            ->pagination(10)
             ->sortedBy('name')
-            ->width('100%')
             ->dataModel(PermissionTableModel::class)
-            ->rounded(0)
-            ->shadow(0)
             ->bodyOverflowX('hidden')
             ->bodyOverflowY('auto')
             ->selectionMode(SelectionMode::SINGLE);
