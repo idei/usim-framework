@@ -30,10 +30,10 @@ class UsersManager extends Screen
     ) {
     }
 
-    public static function authorize(): bool
-    {
-        return self::requireRole('root');
-    }
+    // public static function authorize(): bool
+    // {
+    //     return self::requireRole('root');
+    // }
 
     public static function getMenuLabel(): string
     {
@@ -136,9 +136,14 @@ class UsersManager extends Screen
         $this->roles_split = UI::split('roles_split')
             ->horizontal()
             ->splitSize('65%')
+            ->splitterSize('8px')
+            ->draggable(true)
+            ->collapsible(true)
             ->minFirstSize('400px')
             ->minSecondSize('700px')
-            ->plain();
+            ->height('500px')
+            ->width('100%')
+            ->card();
 
         $roles_left_panel = UI::container('roles_left_panel')
             ->layout(LayoutType::VERTICAL)
