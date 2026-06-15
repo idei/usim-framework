@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\File;
 
 class DocumentationController extends Controller
@@ -26,7 +25,7 @@ class DocumentationController extends Controller
         return view('documentation.markdown', [
             'title' => 'Documentación del API',
             'content' => $content,
-            'backUrl' => env('API_CLIENT_ROUTE', '/api-client')
+            'backUrl' => config('usim.api_client')
         ]);
     }
 
@@ -49,7 +48,7 @@ class DocumentationController extends Controller
         return view('documentation.markdown', [
             'title' => 'Resumen Completo de Implementaciones',
             'content' => $content,
-            'backUrl' => env('API_CLIENT_ROUTE', '/api-client')
+            'backUrl' => config('usim.api_client')
         ]);
     }
 
@@ -72,7 +71,7 @@ class DocumentationController extends Controller
         return view('documentation.markdown', [
             'title' => 'Documentación de Componentes',
             'content' => $content,
-            'backUrl' => env('API_CLIENT_ROUTE', '/api-client')
+            'backUrl' => config('usim.api_client')
         ]);
     }
 
@@ -95,7 +94,7 @@ class DocumentationController extends Controller
         return view('documentation.markdown', [
             'title' => 'Guía de Personalización de Emails',
             'content' => $content,
-            'backUrl' => env('API_CLIENT_ROUTE', '/api-client')
+            'backUrl' => config('usim.api_client')
         ]);
     }
 
@@ -118,7 +117,7 @@ class DocumentationController extends Controller
         return view('documentation.markdown', [
             'title' => 'Ejemplos y Casos de Uso - Upload de Archivos',
             'content' => $content,
-            'backUrl' => env('API_CLIENT_ROUTE', '/api-client')
+            'backUrl' => config('usim.api_client')
         ]);
     }
 
@@ -168,7 +167,7 @@ class DocumentationController extends Controller
         return view('documentation.index', [
             'title' => 'Índice de Documentación',
             'docs' => collect($availableDocs)->groupBy('category'),
-            'backUrl' => env('API_CLIENT_ROUTE', '/api-client')
+            'backUrl' => config('usim.api_client')
         ]);
     }
 }

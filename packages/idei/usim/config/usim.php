@@ -58,6 +58,16 @@ return [
     */
     'upload_disk' => env('UPLOAD_DISK', 'local'),
 
+
+    /*
+    |--------------------------------------------------------------------------
+    | API Client Route
+    |--------------------------------------------------------------------------
+    |
+    | La ruta para acceder al cliente de la API.
+    */
+    'api_client' => env('API_CLIENT_ROUTE', '/api-client'),
+
     /*
     |--------------------------------------------------------------------------
     | Default Users Configuration

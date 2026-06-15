@@ -5,7 +5,6 @@ namespace App\Services\User;
 use App\Models\User;
 use Idei\Usim\Events\UsimEvent;
 use Illuminate\Auth\Events\Verified;
-use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
@@ -435,14 +434,14 @@ class UserService
         $user->markEmailAsVerified();
 
         // Fire Verified event if user implements MustVerifyEmail
-        if ($user instanceof MustVerifyEmail) {
-            event(new Verified($user));
+        //if ($user instanceof MustVerifyEmail) {
+        event(new Verified($user));
 
-            // Fire custom UsimEvent for updating user data in the UI
-            event(new UsimEvent('email_verified', [
-                'user' => $user
-            ]));
-        }
+        // Fire custom UsimEvent for updating user data in the UI
+        event(new UsimEvent('email_verified', [
+            'user' => $user
+        ]));
+        //}
 
         return [
             'success' => true,
