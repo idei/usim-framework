@@ -1897,11 +1897,14 @@ class Container implements UIElement
     /**
      * Apply shadow effect
      *
-     * @param string|int $intensity Shadow intensity (0=none, 1-3=levels, 'light', 'medium', 'heavy', or custom CSS)
+     * @param string|int|bool $intensity Shadow intensity (0=none, 1-3=levels, 'light', 'medium', 'heavy', or custom CSS)
      * @return self For method chaining
      */
-    public function shadow(string|int $intensity = 1): self
+    public function shadow(string|int|bool $intensity = 1): self
     {
+        if (\is_bool($intensity)) {
+            $intensity = $intensity ? 1 : 0;
+        }
         if (\is_int($intensity)) {
             $shadows = [
                 0 => 'none',

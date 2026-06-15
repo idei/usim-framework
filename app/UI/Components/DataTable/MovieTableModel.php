@@ -65,7 +65,7 @@ class MovieTableModel extends AbstractTableModel
     public function formatRow(object $row): array
     {
         $title = t($row->title);
-        $genreName = $row->genre?->name ?? $row->genre_name ?? 'genre.unknown';
+        $genreName = $row->genre->name ?? $row->genre_name ?? 'genre.unknown';
         $genreName = t($genreName);
         return [
             '_model_id' => $row->id,

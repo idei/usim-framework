@@ -433,15 +433,13 @@ class UserService
         // Mark as verified
         $user->markEmailAsVerified();
 
-        // Fire Verified event if user implements MustVerifyEmail
-        //if ($user instanceof MustVerifyEmail) {
+        // Fire Verified event assuming user implements MustVerifyEmail
         event(new Verified($user));
 
         // Fire custom UsimEvent for updating user data in the UI
         event(new UsimEvent('email_verified', [
             'user' => $user
         ]));
-        //}
 
         return [
             'success' => true,

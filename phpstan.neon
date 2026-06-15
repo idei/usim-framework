@@ -7,4 +7,5 @@ parameters:
 		- config/
 		- database/
 		- routes/
+		- packages/
 	level: 5
