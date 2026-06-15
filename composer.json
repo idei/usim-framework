@@ -21,6 +21,7 @@
         "spiral/roadrunner-http": "^3.3.0"
     },
     "require-dev": {
+        "larastan/larastan": "^3.0",
         "laravel/pail": "^1.2.2",
         "laravel/pint": "^1.13",
         "laravel/sail": "^1.41",
