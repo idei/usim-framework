@@ -49,7 +49,7 @@ class TranslateManager extends Screen
             ->layout(LayoutType::HORIZONTAL)
             ->fullWidth()
             ->shadow(0)
-            ->width('100%')
+            ->width(100, '%')
             ->gap('12px');
 
         $search = UI::input('search_translations')
