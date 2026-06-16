@@ -5,7 +5,7 @@ use Illuminate\Support\Str;
 
 class TermsController extends Controller
 {
-      public function __invoke()
+    public function __invoke(): \Illuminate\View\View
     {
         $locale = app()->getLocale();
 

@@ -28,7 +28,7 @@ class ViewLogsCommand extends Command
     /**
      * Execute the console command.
      */
-    public function handle()
+    public function handle(): int
     {
         $logFile = storage_path('logs/' . $this->option('file'));
 
