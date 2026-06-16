@@ -75,7 +75,7 @@ class DemoUi extends Screen
 
         $counterContainer->add(
             UI::label('lbl_counter')
-                ->text($this->store_counter)
+                ->text((string) $this->store_counter)
                 ->style('primary')
         );
 

@@ -21,7 +21,7 @@ class CalendarDemo extends Screen
 
         $this->academic_calendar = UI::calendar('academic_calendar')
             ->year(2026)
-            ->month(date('n'))
+            ->month((int) date('n'))
             ->showSaturdayInfo(false)
             ->showSundayInfo(false)
             ->cellSize('60px')
@@ -36,7 +36,7 @@ class CalendarDemo extends Screen
 
         $this->onMonthChanged([
             'year' => 2026,
-            'month' => date('n')
+            'month' => (int) date('n')
         ]);
 
         $container->add($this->academic_calendar);

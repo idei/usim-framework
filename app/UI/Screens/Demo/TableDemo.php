@@ -112,6 +112,7 @@ class TableDemo extends Screen
             return;
         }
 
+        /** @var \App\Models\Movie $movie */
         $movie = app(MovieListingService::class)->findById($movieId);
 
         $this->toast(t('screen.demo.table_demo.row_clicked_toast', [

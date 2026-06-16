@@ -378,10 +378,10 @@ class Container implements UIElement
      *
      * @param UIElement $element The element to add
      * @param bool $result Reference parameter to indicate if the element was added (true) or ignored due to duplicate ID (false)
-     * @return self For method chaining
+     * @return static  <-- Cambia 'self' por 'static' y añade este PHPDoc
      * @throws \InvalidArgumentException If element with same ID already exists
      */
-    public function add(UIElement $element, bool &$result = null, int|string|null $tab = null): self
+    public function add(UIElement $element, bool &$result = null, int|string|null $tab = null): static
     {
         $elementId = $element->getId();
 
@@ -1022,35 +1022,49 @@ class Container implements UIElement
     // ========================================================================
 
     /**
-     * Set or get width
+     * Set width
      *
-     * @param string|null $width Width value (px, %, vh, auto, etc), or null to get current value
-     * @return static|string|null For chaining when setting, or current value when getting
+     * @param int $width Width value
+     * @param string $unit Unit for width (default 'px')
+     * @return static For chaining
      */
-    public function width(string | null $width = null): static | string | null
+    public function width(int $width, string $unit = 'px'): static
     {
-        if ($width === null) {
-            return $this->config['width'] ?? null;
-        }
-
-        $this->config['width'] = $width;
+        $this->config['width'] = "$width$unit";
         return $this;
     }
 
     /**
-     * Set or get height
+     * Get current width value
      *
-     * @param string|null $height Height value, or null to get current value
-     * @return static|string|null For chaining when setting, or current value when getting
+     * @return string|null Current width value or null if not set
      */
-    public function height(string | null $height = null): static | string | null
+    public function getWidth(): ?string
     {
-        if ($height === null) {
-            return $this->config['height'] ?? null;
-        }
+        return $this->config['width'] ?? null;
+    }
 
-        $this->config['height'] = $height;
+    /**
+     * Set height
+     *
+     * @param int $height Height value
+     * @param string $unit Unit for height (default 'px')
+     * @return static For chaining
+     */
+    public function height(int $height, string $unit = 'px'): static
+    {
+        $this->config['height'] = "$height$unit";
         return $this;
+    }
+
+    /**
+     * Get current height value
+     *
+     * @return string|null Current height value or null if not set
+     */
+    public function getHeight(): ?string
+    {
+        return $this->config['height'] ?? null;
     }
 
     /**
@@ -1059,7 +1073,7 @@ class Container implements UIElement
      * @param string|null $width Min width value, or null to get current value
      * @return static|string|null For chaining when setting, or current value when getting
      */
-    public function minWidth(string | null $width = null): static | string | null
+    public function minWidth(string|null $width = null): static|string|null
     {
         if ($width === null) {
             return $this->config['min_width'] ?? null;
@@ -1075,7 +1089,7 @@ class Container implements UIElement
      * @param string|null $height Min height value, or null to get current value
      * @return static|string|null For chaining when setting, or current value when getting
      */
-    public function minHeight(string | null $height = null): static | string | null
+    public function minHeight(string|null $height = null): static|string|null
     {
         if ($height === null) {
             return $this->config['min_height'] ?? null;
@@ -1091,7 +1105,7 @@ class Container implements UIElement
      * @param string|null $width Max width value, or null to get current value
      * @return static|string|null For chaining when setting, or current value when getting
      */
-    public function maxWidth(string | null $width = null): static | string | null
+    public function maxWidth(string|null $width = null): static|string|null
     {
         if ($width === null) {
             return $this->config['max_width'] ?? null;
@@ -1112,7 +1126,7 @@ class Container implements UIElement
      * @param string|null $height Max height value, or null to get current value
      * @return static|string|null For chaining when setting, or current value when getting
      */
-    public function maxHeight(string | null $height = null): static | string | null
+    public function maxHeight(string|null $height = null): static|string|null
     {
         if ($height === null) {
             return $this->config['max_height'] ?? null;
@@ -1431,9 +1445,9 @@ class Container implements UIElement
      * Add custom CSS class
      *
      * @param string $appearance CSS class name
-     * @return self For method chaining
+     * @return static For method chaining
      */
-    public function appearance(string $appearance): self
+    public function appearance(string $appearance): static
     {
         $normalized = strtolower(trim($appearance));
         $this->config['appearance'] = in_array($normalized, ['card', 'plain'], true)
@@ -1445,9 +1459,9 @@ class Container implements UIElement
     /**
      * Render container with default card-like chrome.
      *
-     * @return self For method chaining
+     * @return static For method chaining
      */
-    public function card(): self
+    public function card(): static
     {
         $this->config['appearance'] = 'card';
         return $this;
@@ -1456,9 +1470,9 @@ class Container implements UIElement
     /**
      * Render container without default chrome (no bg, border, shadow).
      *
-     * @return self For method chaining
+     * @return static For method chaining
      */
-    public function plain(): self
+    public function plain(): static
     {
         $this->config['appearance'] = 'plain';
         return $this;
@@ -1702,9 +1716,11 @@ class Container implements UIElement
                 return $tabId;
             }
 
-            if (mb_strtolower($search) === mb_strtolower($tabId)
+            if (
+                mb_strtolower($search) === mb_strtolower($tabId)
                 || mb_strtolower($search) === mb_strtolower($tabName)
-                || mb_strtolower($search) === mb_strtolower($tabLabel)) {
+                || mb_strtolower($search) === mb_strtolower($tabLabel)
+            ) {
                 return $tabId;
             }
         }
@@ -1848,7 +1864,7 @@ class Container implements UIElement
      */
     public function fullWidth(): self
     {
-        return $this->width('100%');
+        return $this->width(100, '%');
     }
 
     /**
@@ -1858,7 +1874,7 @@ class Container implements UIElement
      */
     public function fullHeight(): self
     {
-        return $this->height('100%');
+        return $this->height(100, '%');
     }
 
     /**

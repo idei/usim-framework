@@ -89,7 +89,7 @@ class ModalDemo extends Screen
      * Opens a confirmation dialog modal
      *
      * @param array $params
-     * @return array Response with modal UI
+     * @return void
      */
     public function onOpenConfirmation(array $params): void
     {
@@ -113,7 +113,7 @@ class ModalDemo extends Screen
      * Handle user confirmation from modal
      *
      * @param array $params
-     * @return array Response to close modal and update UI
+     * @return void
      */
     public function onHandleConfirm(array $params): void
     {
@@ -130,7 +130,7 @@ class ModalDemo extends Screen
      * Handle user cancellation from modal
      *
      * @param array $params
-     * @return array Response to close modal and update UI
+     * @return void
      */
     public function onHandleCancel(array $params): void
     {

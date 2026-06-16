@@ -50,7 +50,7 @@ class Profile extends Screen
             UI::label('lbl_title')
                 ->text("👤 Configuración de Perfil")
                 ->style('primary')
-                ->fontSize(20)
+                ->fontSize('20px')
                 ->fontWeight('bold')
         );
 

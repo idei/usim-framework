@@ -66,7 +66,7 @@ class SplitDemo extends Screen
             ->layout(LayoutType::VERTICAL)
             ->gap('10px')
             ->padding('14px')
-            ->width('100%');
+            ->width(100, '%');
 
         $controls->add(
             UI::select('sel_split_orientation')
@@ -160,8 +160,8 @@ class SplitDemo extends Screen
             ->collapseTarget($this->store_collapse_target)
             ->minFirstSize('160px')
             ->minSecondSize('160px')
-            ->height('300px')
-            ->width('100%')
+            ->height(300)
+            ->width(100, '%')
             ->card();
 
         if ($this->store_collapsed_panel === 'first') {
@@ -181,7 +181,7 @@ class SplitDemo extends Screen
         $leftPanel->add(UI::label('split_left_copy')->text(t('screen.demo.split_demo.panes.first.description')));
         $leftPanel->add(
             UI::button('btn_collapse_first')
-            ->label(t('screen.demo.split_demo.actions.collapse_first'))
+                ->label(t('screen.demo.split_demo.actions.collapse_first'))
                 ->style('danger')
                 ->action('collapse_first_panel')
         );
@@ -195,7 +195,7 @@ class SplitDemo extends Screen
         $rightPanel->add(UI::label('split_right_copy')->text(t('screen.demo.split_demo.panes.second.description')));
         $rightPanel->add(
             UI::button('btn_collapse_second')
-            ->label(t('screen.demo.split_demo.actions.collapse_second'))
+                ->label(t('screen.demo.split_demo.actions.collapse_second'))
                 ->style('danger')
                 ->action('collapse_second_panel')
         );

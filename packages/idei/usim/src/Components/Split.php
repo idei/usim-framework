@@ -200,8 +200,7 @@ class Split extends Container
         $paneNamePrefix = $this->name !== null ? $this->name : ('split_' . $this->id);
         $paneName = sprintf('%s_%s_pane', $paneNamePrefix, $side);
         $pane = new Container($paneName);
-        $pane->plain()->width('100%')->height('100%');
-
+        $pane->plain()->width(100, '%')->height(100, '%');
         $this->add($pane);
 
         return $pane;

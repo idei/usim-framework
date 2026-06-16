@@ -26,7 +26,7 @@ class ForgotPassword extends Screen
             ->justifyContent('start')
             ->plain()
             ->alignItems('center')
-            ->padding(40)
+            ->padding('40px')
             ->paddingTop('80px')
             ->minHeight('100vh');
 
@@ -64,10 +64,10 @@ class ForgotPassword extends Screen
             ->layout(LayoutType::VERTICAL)
             ->shadow(true)
             ->maxWidth('600px')
-            ->width('100%')
+            ->width(100, '%')
             ->borderRadius('8px')
             ->marginTop('30px')
-            ->padding(30)
+            ->padding('30px')
             ->gap('20px')
             ->backgroundColor('white')
             ->customStyle('border-left: 5px solid #3b82f6; overflow: hidden;');

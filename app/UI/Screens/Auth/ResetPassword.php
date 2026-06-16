@@ -31,7 +31,7 @@ class ResetPassword extends Screen
             ->justifyContent('start')
             ->alignItems('center')
             ->plain()
-            ->padding(40)
+            ->padding('40px')
             ->paddingTop('80px')
             ->minHeight('100vh');
 
@@ -69,10 +69,10 @@ class ResetPassword extends Screen
             ->layout(LayoutType::VERTICAL)
             ->shadow(true)
             ->maxWidth('600px')
-            ->width('100%')
+            ->width(100, '%')
             ->borderRadius('8px')
             ->marginTop('30px')
-            ->padding(30)
+            ->padding('30px')
             ->gap('20px')
             ->backgroundColor('white')
             ->customStyle('border-left: 5px solid #10b981; overflow: hidden;');
@@ -95,10 +95,10 @@ class ResetPassword extends Screen
 
         // Hidden fields for token and email
         $formCard->add(
-             UI::input('reset_token')->type('hidden')->value($token ?? '')
+            UI::input('reset_token')->type('hidden')->value($token ?? '')
         );
         $formCard->add(
-             UI::input('reset_email')->type('hidden')->value($email ?? '')
+            UI::input('reset_email')->type('hidden')->value($email ?? '')
         );
 
         $formCard->add(
@@ -146,8 +146,8 @@ class ResetPassword extends Screen
         $passwordConfirmation = $params['password_confirmation'] ?? '';
 
         if (empty($token) || empty($email)) {
-             $this->showError(t('screen.auth.reset_password.errors.invalid_link'));
-             return;
+            $this->showError(t('screen.auth.reset_password.errors.invalid_link'));
+            return;
         }
 
         if ($expires > 0 && now()->timestamp > $expires) {
@@ -189,8 +189,8 @@ class ResetPassword extends Screen
             } else {
                 // Extract validation errors if any
                 if (isset($response['errors']) && is_array($response['errors'])) {
-                     $firstError = reset($response['errors'])[0] ?? $message;
-                     $this->showError($firstError);
+                    $firstError = reset($response['errors'])[0] ?? $message;
+                    $this->showError($firstError);
                 } else {
                     $this->showError($message);
                 }

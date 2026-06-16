@@ -252,9 +252,9 @@ class Label extends UIComponent
      * Set custom font size
      *
      * @param string $size The font size (e.g., '14px', '1rem')
-     * @return $this For method chaining
+     * @return static For method chaining
      */
-    public function fontSize(string $size): self
+    public function fontSize(string $size): static
     {
         return $this->setConfig('font_size', $size);
     }
@@ -263,9 +263,9 @@ class Label extends UIComponent
      * Set text transformation
      *
      * @param string $transform The transform (none, uppercase, lowercase, capitalize)
-     * @return $this For method chaining
+     * @return static For method chaining
      */
-    public function textTransform(string $transform): self
+    public function textTransform(string $transform): static
     {
         return $this->setConfig('text_transform', $transform);
     }
@@ -273,9 +273,9 @@ class Label extends UIComponent
     /**
      * Make text uppercase
      *
-     * @return $this For method chaining
+     * @return static For method chaining
      */
-    public function uppercase(): self
+    public function uppercase(): static
     {
         return $this->setConfig('text_transform', 'uppercase');
     }
@@ -283,9 +283,9 @@ class Label extends UIComponent
     /**
      * Make text lowercase
      *
-     * @return $this For method chaining
+     * @return static For method chaining
      */
-    public function lowercase(): self
+    public function lowercase(): static
     {
         return $this->setConfig('text_transform', 'lowercase');
     }
@@ -293,9 +293,9 @@ class Label extends UIComponent
     /**
      * Capitalize text
      *
-     * @return $this For method chaining
+     * @return static For method chaining
      */
-    public function capitalize(): self
+    public function capitalize(): static
     {
         return $this->setConfig('text_transform', 'capitalize');
     }
@@ -304,9 +304,9 @@ class Label extends UIComponent
      * Set text alignment
      *
      * @param string $align The alignment (left, center, right, justify)
-     * @return $this For method chaining
+     * @return static For method chaining
      */
-    public function textAlign(string $align): self
+    public function textAlign(string $align): static
     {
         return $this->setConfig('text_align', $align);
     }
@@ -314,9 +314,9 @@ class Label extends UIComponent
     /**
      * Center align text
      *
-     * @return $this For method chaining
+     * @return static For method chaining
      */
-    public function center(): self
+    public function center(): static
     {
         return $this->setConfig('text_align', 'center');
     }
@@ -324,9 +324,9 @@ class Label extends UIComponent
     /**
      * Set text alignment to left
      *
-     * @return $this For method chaining
+     * @return static For method chaining
      */
-    public function left(): self
+    public function left(): static
     {
         return $this->setConfig('text_align', 'left');
     }
@@ -334,9 +334,9 @@ class Label extends UIComponent
     /**
      * Set text alignment to right
      *
-     * @return $this For method chaining
+     * @return static For method chaining
      */
-    public function right(): self
+    public function right(): static
     {
         return $this->setConfig('text_align', 'right');
     }
@@ -345,9 +345,9 @@ class Label extends UIComponent
      * Set custom line height
      *
      * @param string $height The line height (e.g., '1.5', '24px')
-     * @return $this For method chaining
+     * @return static For method chaining
      */
-    public function lineHeight(string $height): self
+    public function lineHeight(string $height): static
     {
         return $this->setConfig('line_height', $height);
     }
@@ -356,9 +356,9 @@ class Label extends UIComponent
      * Truncate text with ellipsis
      *
      * @param bool $truncate True to enable truncation
-     * @return $this For method chaining
+     * @return static For method chaining
      */
-    public function truncate(bool $truncate = true): self
+    public function truncate(bool $truncate = true): static
     {
         return $this->setConfig('truncate', $truncate);
     }
@@ -367,9 +367,9 @@ class Label extends UIComponent
      * Limit text to N lines
      *
      * @param int $lines Number of lines
-     * @return $this For method chaining
+     * @return static For method chaining
      */
-    public function maxLines(int $lines): self
+    public function maxLines(int $lines): static
     {
         return $this->setConfig('max_lines', $lines);
     }
@@ -378,9 +378,9 @@ class Label extends UIComponent
      * Set custom text color
      *
      * @param string $color The color (e.g., '#FF0000', 'red')
-     * @return $this For method chaining
+     * @return static For method chaining
      */
-    public function color(string $color): self
+    public function color(string $color): static
     {
         return $this->setConfig('color', $color);
     }
@@ -389,9 +389,9 @@ class Label extends UIComponent
      * Set custom background color
      *
      * @param string $color The background color
-     * @return $this For method chaining
+     * @return static For method chaining
      */
-    public function backgroundColor(string $color): self
+    public function backgroundColor(string $color): static
     {
         return $this->setConfig('background_color', $color);
     }
@@ -400,9 +400,9 @@ class Label extends UIComponent
      * Set custom border color
      *
      * @param string $color The border color
-     * @return $this For method chaining
+     * @return static For method chaining
      */
-    public function borderColor(string $color): self
+    public function borderColor(string $color): static
     {
         return $this->setConfig('border_color', $color);
     }
@@ -412,9 +412,9 @@ class Label extends UIComponent
      *
      * @param string $icon The icon name
      * @param string $position The position (left, right)
-     * @return $this For method chaining
+     * @return static For method chaining
      */
-    public function icon(string $icon, string $position = 'left'): self
+    public function icon(string $icon, string $position = 'left'): static
     {
         $this->setConfig('icon', $icon);
         $this->setConfig('icon_position', $position);

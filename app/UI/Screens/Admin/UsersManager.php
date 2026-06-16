@@ -62,7 +62,7 @@ class UsersManager extends Screen
             ->centerHorizontal();
 
         $tabs_container = UI::container('tabs_container')
-            ->width('100%')
+            ->width(100, '%')
             ->padding('10px')
             ->minHeight('900px')
             ->gap('2px')
@@ -84,7 +84,7 @@ class UsersManager extends Screen
         $users_crud_container = UI::container('users_crud_container')
             ->layout(LayoutType::VERTICAL)
             ->gap('4px')
-            ->height('400px')
+            ->height(400)
             ->plain();
 
         $toolbar = UI::container('users_toolbar')
@@ -141,8 +141,8 @@ class UsersManager extends Screen
             ->collapsible(true)
             ->minFirstSize('400px')
             ->minSecondSize('700px')
-            ->height('500px')
-            ->width('100%')
+            ->height(500)
+            ->width(100, '%')
             ->card();
 
         $roles_left_panel = UI::container('roles_left_panel')

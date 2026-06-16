@@ -25,7 +25,7 @@ class EmailVerified extends Screen
             ->plain()
             ->justifyContent('start')
             ->alignItems('center')
-            ->padding(40)
+            ->padding('40px')
             ->paddingTop('80px')
             ->minHeight('100vh');
 

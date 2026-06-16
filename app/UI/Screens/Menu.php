@@ -63,7 +63,7 @@ class Menu extends Screen
             ->layout(LayoutType::HORIZONTAL)
             ->justifyContent(JustifyContent::SPACE_BETWEEN)
             ->alignItems(AlignItems::CENTER)
-            ->padding(0)
+            ->padding('0px')
             ->marginBottom('0');
 
         $this->main_menu = $this->buildLeftMenu();
@@ -299,14 +299,16 @@ class Menu extends Screen
         if ($user) {
             $this->updateUserMenuTrigger($user);
         }
-    }    /**
-         * Handler to confirm logout
-         */
+    }
+
+    /**
+     * Handler to confirm logout
+     */
     public function onConfirmLogout(array $params): void
     {
         // Delete Sanctum token if user is authenticated
         $user = request()->user();
-        if ($user && $user->currentAccessToken()) {
+        if ($user) {
             $user->currentAccessToken()->delete();
         }
         Auth::logout();
