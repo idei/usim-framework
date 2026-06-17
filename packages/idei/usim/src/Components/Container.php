@@ -2,11 +2,12 @@
 
 namespace Idei\Usim\Components;
 
-use Idei\Usim\Enums\AlignItems;
-use Idei\Usim\Enums\LayoutType;
 use Idei\Usim\Contracts\UIElement;
+use Idei\Usim\Enums\AlignItems;
 use Idei\Usim\Enums\JustifyContent;
+use Idei\Usim\Enums\LayoutType;
 use Idei\Usim\Support\UIIdGenerator;
+use Idei\Usim\ValueObjects\Size;
 
 /**
  * Composite UI Container that can hold and manage child UI elements
@@ -246,6 +247,15 @@ class Container implements UIElement
     public function setVisible(bool $visible): self
     {
         $this->config['visible'] = $visible;
+        return $this;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    protected function setConfig(string $key, mixed $value): static
+    {
+        $this->config[$key] = $value;
         return $this;
     }
 
@@ -1024,14 +1034,12 @@ class Container implements UIElement
     /**
      * Set width
      *
-     * @param int $width Width value
-     * @param string $unit Unit for width (default 'px')
+     * @param Size|int $width Width value
      * @return static For chaining
      */
-    public function width(int $width, string $unit = 'px'): static
+    public function width(Size|int $width): static
     {
-        $this->config['width'] = "$width$unit";
-        return $this;
+        return $this->setConfig('width', (string) Size::from($width));
     }
 
     /**
@@ -1047,14 +1055,12 @@ class Container implements UIElement
     /**
      * Set height
      *
-     * @param int $height Height value
-     * @param string $unit Unit for height (default 'px')
+     * @param Size|int $height Height value
      * @return static For chaining
      */
-    public function height(int $height, string $unit = 'px'): static
+    public function height(Size|int $height): static
     {
-        $this->config['height'] = "$height$unit";
-        return $this;
+        return $this->setConfig('height', (string) Size::from($height));
     }
 
     /**
@@ -1068,19 +1074,25 @@ class Container implements UIElement
     }
 
     /**
-     * Set or get minimum width
-     *
-     * @param string|null $width Min width value, or null to get current value
-     * @return static|string|null For chaining when setting, or current value when getting
+     * Set the minimun width of the element.
+     * |
+     * @param Size|int $width
+     * @return static For chaining
      */
-    public function minWidth(string|null $width = null): static|string|null
+    public function minWidth(Size|int $width): static
     {
-        if ($width === null) {
-            return $this->config['min_width'] ?? null;
-        }
+        return $this->setConfig('min_width', (string) Size::from($width));
+    }
 
-        $this->config['min_width'] = $width;
-        return $this;
+    /**
+     * Set the maximum width of the element.
+     *
+     * @param Size|int $width The maximum width value
+     * @return static For chaining
+     */
+    public function maxWidth(Size|int $width): static
+    {
+        return $this->setConfig('max_width', (string) Size::from($width));
     }
 
     /**
@@ -1096,27 +1108,6 @@ class Container implements UIElement
         }
 
         $this->config['min_height'] = $height;
-        return $this;
-    }
-
-    /**
-     * Set or get maximum width
-     *
-     * @param string|null $width Max width value, or null to get current value
-     * @return static|string|null For chaining when setting, or current value when getting
-     */
-    public function maxWidth(string|null $width = null): static|string|null
-    {
-        if ($width === null) {
-            return $this->config['max_width'] ?? null;
-        }
-
-        // If width is string and not ends with valid unit, assume pixels
-        if (\is_string($width) && !preg_match('/(px|%|em|rem|vh|vw|vmin|vmax|auto)$/', $width)) {
-            $width .= 'px';
-        }
-
-        $this->config['max_width'] = $width;
         return $this;
     }
 
@@ -1864,7 +1855,7 @@ class Container implements UIElement
      */
     public function fullWidth(): self
     {
-        return $this->width(100, '%');
+        return $this->width(Size::pct(100));
     }
 
     /**
@@ -1874,7 +1865,7 @@ class Container implements UIElement
      */
     public function fullHeight(): self
     {
-        return $this->height(100, '%');
+        return $this->height(Size::pct(100));
     }
 
     /**

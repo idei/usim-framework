@@ -10,6 +10,7 @@ use Idei\Usim\Components\Split;
 use Idei\Usim\Enums\LayoutType;
 use Idei\Usim\Screen;
 use Idei\Usim\UI;
+use Idei\Usim\ValueObjects\Size;
 
 class SplitDemo extends Screen
 {
@@ -42,7 +43,7 @@ class SplitDemo extends Screen
     protected function buildBaseUI(Container $container, ...$params): void
     {
         $container
-            ->maxWidth('1100px')
+            ->maxWidth(1100)
             ->centerHorizontal()
             ->padding('12px 24px 24px 24px')
             ->gap('14px')
@@ -66,7 +67,7 @@ class SplitDemo extends Screen
             ->layout(LayoutType::VERTICAL)
             ->gap('10px')
             ->padding('14px')
-            ->width(100, '%');
+            ->width(Size::pct(100));
 
         $controls->add(
             UI::select('sel_split_orientation')
@@ -161,7 +162,7 @@ class SplitDemo extends Screen
             ->minFirstSize('160px')
             ->minSecondSize('160px')
             ->height(300)
-            ->width(100, '%')
+            ->width(Size::pct(100))
             ->card();
 
         if ($this->store_collapsed_panel === 'first') {

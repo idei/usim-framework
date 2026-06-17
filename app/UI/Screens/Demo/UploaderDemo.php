@@ -9,6 +9,7 @@ use Idei\Usim\Components\Uploader;
 use Idei\Usim\UI;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use Idei\Usim\ValueObjects\Size;
 
 /**
  * Uploader Demo Service
@@ -33,7 +34,7 @@ class UploaderDemo extends Screen
     {
         $container
             ->title(t('screen.demo.uploader_demo.title'))
-            ->maxWidth('800px')
+            ->maxWidth(Size::px(800))
             ->centerHorizontal()
             ->plain()
             ->padding('30px');

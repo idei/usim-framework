@@ -57,7 +57,7 @@ class Login extends Screen
 
         $container
             ->title(t('screen.auth.login.title'))
-            ->maxWidth('450px')
+            ->maxWidth(450)
             ->centerHorizontal()
             ->shadow(3)
             ->padding('30px');

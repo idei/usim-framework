@@ -2,18 +2,19 @@
 
 namespace App\UI\Screens\Admin;
 
-use App\UI\Components\Modals\EditTranslationDialog;
 use App\UI\Components\DataTable\TranslationKeysTableModel;
-use Idei\Usim\Screen;
+use App\UI\Components\Modals\EditTranslationDialog;
+use Idei\Usim\Components\Container;
 use Idei\Usim\Components\Input;
 use Idei\Usim\Components\Select;
 use Idei\Usim\Components\Table;
-use Idei\Usim\Components\Container;
 use Idei\Usim\Enums\DialogType;
 use Idei\Usim\Enums\LayoutType;
 use Idei\Usim\Modals\ConfirmDialogService;
+use Idei\Usim\Screen;
 use Idei\Usim\Support\TranslationService;
 use Idei\Usim\UI;
+use Idei\Usim\ValueObjects\Size;
 
 class TranslateManager extends Screen
 {
@@ -40,7 +41,7 @@ class TranslateManager extends Screen
     protected function buildBaseUI(Container $container, ...$params): void
     {
         $container
-            ->maxWidth('1360px')
+            ->maxWidth(1360)
             ->centerHorizontal()
             ->padding('10px')
             ->plain();
@@ -49,7 +50,7 @@ class TranslateManager extends Screen
             ->layout(LayoutType::HORIZONTAL)
             ->fullWidth()
             ->shadow(0)
-            ->width(100, '%')
+            ->width(Size::pct(100))
             ->gap('12px');
 
         $search = UI::input('search_translations')

@@ -19,6 +19,7 @@ use Idei\Usim\Enums\SelectionMode;
 use Idei\Usim\Modals\ConfirmDialogService;
 use Idei\Usim\Screen;
 use Idei\Usim\UI;
+use Idei\Usim\ValueObjects\Size;
 
 class UsersManager extends Screen
 {
@@ -58,11 +59,11 @@ class UsersManager extends Screen
     {
         $container
             ->plain()
-            ->maxWidth('1280px')
+            ->maxWidth(1280)
             ->centerHorizontal();
 
         $tabs_container = UI::container('tabs_container')
-            ->width(100, '%')
+            ->width(Size::pct(100))
             ->padding('10px')
             ->minHeight('900px')
             ->gap('2px')
@@ -142,7 +143,7 @@ class UsersManager extends Screen
             ->minFirstSize('400px')
             ->minSecondSize('700px')
             ->height(500)
-            ->width(100, '%')
+            ->width(Size::pct(100))
             ->card();
 
         $roles_left_panel = UI::container('roles_left_panel')
@@ -279,7 +280,7 @@ class UsersManager extends Screen
             return;
         }
 
-        $user = $response['data'] ?? null;
+        $user = $response['data'];
         if (!$user) {
             $this->toast(t('User not found'), 'error');
             return;
@@ -357,7 +358,7 @@ class UsersManager extends Screen
             return;
         }
 
-        $user = $response['data'] ?? null;
+        $user = $response['data'];
         if (!$user) {
             $this->toast(t('User not found'), 'error');
             return;

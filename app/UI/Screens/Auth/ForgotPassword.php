@@ -3,11 +3,12 @@
 namespace App\UI\Screens\Auth;
 
 use App\Services\Auth\PasswordService;
-use Idei\Usim\UI;
-use Idei\Usim\Enums\LayoutType;
-use Idei\Usim\Screen;
 use Idei\Usim\Components\Container;
 use Idei\Usim\Components\Label;
+use Idei\Usim\Enums\LayoutType;
+use Idei\Usim\Screen;
+use Idei\Usim\UI;
+use Idei\Usim\ValueObjects\Size;
 
 class ForgotPassword extends Screen
 {
@@ -63,8 +64,8 @@ class ForgotPassword extends Screen
         $formCard = UI::container('forgot_password_card')
             ->layout(LayoutType::VERTICAL)
             ->shadow(true)
-            ->maxWidth('600px')
-            ->width(100, '%')
+            ->maxWidth(600)
+            ->width(Size::pct(100))
             ->borderRadius('8px')
             ->marginTop('30px')
             ->padding('30px')

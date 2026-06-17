@@ -7,6 +7,8 @@ use Idei\Usim\Components\Label;
 use Idei\Usim\Components\Container;
 use Idei\Usim\Enums\LayoutType;
 use Idei\Usim\UI;
+use Idei\Usim\ValueObjects\Size;
+
 
 class DemoUi extends Screen
 {
@@ -20,7 +22,7 @@ class DemoUi extends Screen
     {
         $container
             ->title(t('screen.demo.demo_ui.title'))
-            ->maxWidth('600px')
+            ->maxWidth(Size::px(600))
             ->centerHorizontal()
             ->rounded(false)
             ->padding('10px');

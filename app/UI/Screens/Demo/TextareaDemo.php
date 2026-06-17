@@ -1,10 +1,11 @@
 <?php
 namespace App\UI\Screens\Demo;
 
-use Idei\Usim\UI;
-use Idei\Usim\Screen;
 use Idei\Usim\Components\Container;
 use Idei\Usim\Components\Textarea;
+use Idei\Usim\Screen;
+use Idei\Usim\UI;
+use Idei\Usim\ValueObjects\Size;
 
 /**
  * TextareaDemo
@@ -31,7 +32,7 @@ class TextareaDemo extends Screen
     protected function buildBaseUI(Container $container, ...$params): void
     {
         $container
-            ->maxWidth('1024px')
+            ->maxWidth(Size::px(1024))
             ->centerHorizontal()
             ->plain()
             ->gap('5px')
@@ -46,7 +47,7 @@ class TextareaDemo extends Screen
         // ── Sección 1: texto plano ───────────────────────────────────────────
         $sectionPlain = UI::container('section_plain')
             ->plain()
-            ->width(100, '%')
+            ->width(Size::pct(100))
             ->gap('12px');
 
         /** @var Textarea $plainTextarea */
@@ -69,7 +70,7 @@ class TextareaDemo extends Screen
         // // ── Sección 2: markdown ──────────────────────────────────────────────
         $sectionMd = UI::container('section_md')
             ->plain()
-            ->width(100, '%')
+            ->width(Size::pct(100))
             ->gap('12px');
 
         $defaultMd = "## Bienvenido al editor Markdown\n\nEscribe **negrita**, *cursiva* o `código inline`.\n\n- Viñeta 1\n- Viñeta 2\n\n> Una cita de ejemplo.\n";

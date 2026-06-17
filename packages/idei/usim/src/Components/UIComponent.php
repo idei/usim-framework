@@ -82,6 +82,11 @@ abstract class UIComponent implements UIElement
         // No-op for leaf components
     }
 
+    public function config(string $key, mixed $value): static
+    {
+        return $this->setConfig($key, $value);
+    }
+
     public function toString(): string
     {
         return sprintf(

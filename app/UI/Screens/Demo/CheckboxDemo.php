@@ -7,6 +7,8 @@ use Idei\Usim\Components\Container;
 use Idei\Usim\Components\Label;
 use Idei\Usim\Components\Button;
 use Idei\Usim\Components\Checkbox;
+use Idei\Usim\ValueObjects\Size;
+
 
 class CheckboxDemo extends Screen
 {
@@ -23,7 +25,7 @@ class CheckboxDemo extends Screen
     {
         $container
             ->title(t('screen.demo.checkbox_demo.title'))
-            ->maxWidth('500px')
+            ->maxWidth(Size::px(500))
             ->centerHorizontal()
             ->padding('20px')
             ->shadow(2);

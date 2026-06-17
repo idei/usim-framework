@@ -6,6 +6,7 @@ use Idei\Usim\Enums\JustifyContent;
 use Idei\Usim\Enums\LayoutType;
 use Idei\Usim\UI;
 use Idei\Usim\UIChangesCollector;
+use Idei\Usim\ValueObjects\Size;
 use Illuminate\Support\Str;
 
 class TermsDialog
@@ -41,7 +42,7 @@ class TermsDialog
             ->gap('16px')
             ->padding('5px')
             ->width(680)
-            ->maxWidth('92vw');
+            ->maxWidth(Size::vw(90));
 
         $container->add(
             UI::label('terms_dialog_document')

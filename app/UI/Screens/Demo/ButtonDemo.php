@@ -1,10 +1,11 @@
 <?php
 namespace App\UI\Screens\Demo;
 
-use Idei\Usim\UI;
-use Idei\Usim\Screen;
-use Idei\Usim\Components\Container;
 use Idei\Usim\Components\Button;
+use Idei\Usim\Components\Container;
+use Idei\Usim\Screen;
+use Idei\Usim\UI;
+use Idei\Usim\ValueObjects\Size;
 
 class ButtonDemo extends Screen
 {
@@ -16,7 +17,7 @@ class ButtonDemo extends Screen
         $container
             ->alignContent('center')->alignItems('center')
             ->title(t('screen.demo.button_demo.title'))
-            ->padding('30px')->maxWidth('400px')
+            ->padding('30px')->maxWidth(Size::px(400))
             ->centerHorizontal()->shadow(2)
             ->add(
                 UI::button('btn_toggle')

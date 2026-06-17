@@ -9,6 +9,7 @@ use Idei\Usim\Screen;
 use Idei\Usim\Components\Container;
 use Idei\Usim\Components\Label;
 use Idei\Usim\Modals\ConfirmDialogService;
+use Idei\Usim\ValueObjects\Size;
 
 /**
  * Modal Demo Service
@@ -27,7 +28,7 @@ class ModalDemo extends Screen
     {
         $container
             ->title(t('screen.demo.modal_demo.title'))
-            ->maxWidth('600px')
+            ->maxWidth(Size::px(600))
             ->centerHorizontal()
             ->shadow(2)
             ->padding('30px');

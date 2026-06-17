@@ -7,6 +7,7 @@ use Idei\Usim\Components\Container;
 use Idei\Usim\Components\Input;
 use Idei\Usim\Components\Label;
 use Idei\Usim\Components\Button;
+use Idei\Usim\ValueObjects\Size;
 
 class FormDemo extends Screen
 {
@@ -20,7 +21,7 @@ class FormDemo extends Screen
     {
         $container
             ->title(t('screen.demo.form_demo.title'))
-            ->maxWidth('500px')
+            ->maxWidth(Size::px(500))
             ->centerHorizontal()
             ->shadow(2)
             ->padding('30px');

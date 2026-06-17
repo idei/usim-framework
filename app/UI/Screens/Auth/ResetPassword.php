@@ -3,12 +3,13 @@
 namespace App\UI\Screens\Auth;
 
 use App\Services\Auth\PasswordService;
-use Idei\Usim\UI;
-use Idei\Usim\Enums\LayoutType;
-use Idei\Usim\Screen;
 use Idei\Usim\Components\Container;
 use Idei\Usim\Components\Input;
 use Idei\Usim\Components\Label;
+use Idei\Usim\Enums\LayoutType;
+use Idei\Usim\Screen;
+use Idei\Usim\UI;
+use Idei\Usim\ValueObjects\Size;
 
 class ResetPassword extends Screen
 {
@@ -68,8 +69,8 @@ class ResetPassword extends Screen
         $formCard = UI::container('reset_password_card')
             ->layout(LayoutType::VERTICAL)
             ->shadow(true)
-            ->maxWidth('600px')
-            ->width(100, '%')
+            ->maxWidth(Size::px(600))
+            ->width(Size::pct(100))
             ->borderRadius('8px')
             ->marginTop('30px')
             ->padding('30px')

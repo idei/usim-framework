@@ -1,13 +1,14 @@
 <?php
 namespace App\UI\Screens\Demo;
 
-use Idei\Usim\UI;
-use Idei\Usim\Screen;
 use Idei\Usim\Components\Button;
 use Idei\Usim\Components\Container;
 use Idei\Usim\Components\Input;
 use Idei\Usim\Components\Label;
 use Idei\Usim\Components\Select;
+use Idei\Usim\Screen;
+use Idei\Usim\UI;
+use Idei\Usim\ValueObjects\Size;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use Throwable;
@@ -46,7 +47,7 @@ class AddressForm extends Screen
 
         $container
             ->title('Solicitud de direccion')
-            ->maxWidth('640px')
+            ->maxWidth(Size::px(640))
             ->centerHorizontal()
             ->shadow(2)
             ->padding('30px');

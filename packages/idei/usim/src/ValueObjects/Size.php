@@ -60,13 +60,36 @@ final class Size
         return new self('max-content');
     }
 
-    /**
-     * Resolves Size|int into a Size instance.
-     * An int is always assumed to be in px.
-     */
-    public static function from(Size|int $value): self
+    // Shorthand for common sizes
+
+    public static function full(): self
     {
-        return $value instanceof self ? $value : self::px($value);
+        return self::pct(100);
+    }
+    public static function half(): self
+    {
+        return self::pct(50);
+    }
+    public static function third(): self
+    {
+        return self::pct(33.333);
+    }
+    public static function quarter(): self
+    {
+        return self::pct(25);
+    }
+    public static function screen(): self
+    {
+        return new self('100dvh');
+    }
+
+    public static function from(Size|int|string $value): self
+    {
+        if ($value instanceof self)
+            return $value;
+        if (\is_int($value))
+            return self::px($value);
+        return new self($value);
     }
 
     public function __toString(): string

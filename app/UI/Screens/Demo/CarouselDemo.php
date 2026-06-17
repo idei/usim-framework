@@ -2,11 +2,12 @@
 
 namespace App\UI\Screens\Demo;
 
-use Idei\Usim\Screen;
 use Idei\Usim\Components\Carousel;
 use Idei\Usim\Components\Container;
 use Idei\Usim\Enums\LayoutType;
+use Idei\Usim\Screen;
 use Idei\Usim\UI;
+use Idei\Usim\ValueObjects\Size;
 
 class CarouselDemo extends Screen
 {
@@ -28,7 +29,7 @@ class CarouselDemo extends Screen
 
         $container
             ->title(t('screen.demo.carousel_demo.title'))
-            ->maxWidth('980px')
+            ->maxWidth(Size::px(980))
             ->centerHorizontal()
             ->plain()
             ->padding('24px');

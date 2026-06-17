@@ -2,15 +2,16 @@
 
 namespace App\UI\Screens\Auth;
 
-use Idei\Usim\Events\UsimEvent;
-use Idei\Usim\UI;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Password;
-use Idei\Usim\Screen;
-use Idei\Usim\Upload\UploadService;
 use Idei\Usim\Components\Container;
 use Idei\Usim\Components\Input;
 use Idei\Usim\Components\Uploader;
+use Idei\Usim\Events\UsimEvent;
+use Idei\Usim\Screen;
+use Idei\Usim\UI;
+use Idei\Usim\Upload\UploadService;
+use Idei\Usim\ValueObjects\Size;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Password;
 
 class Profile extends Screen
 {
@@ -40,7 +41,7 @@ class Profile extends Screen
 
         $container
             ->title(t('screen.auth.profile.title'))
-            ->maxWidth('600px')
+            ->maxWidth(Size::px(600))
             ->centerHorizontal()
             ->shadow(2)
             ->padding('30px');

@@ -5,6 +5,7 @@ namespace App\UI\Screens\Demo;
 use Idei\Usim\Components\Container;
 use Idei\Usim\Screen;
 use Idei\Usim\UI;
+use Idei\Usim\ValueObjects\Size;
 
 class TabsDemo extends Screen
 {
@@ -24,7 +25,7 @@ class TabsDemo extends Screen
     {
         $container
             ->plain()
-            ->maxWidth('1024px')
+            ->maxWidth(Size::px(1024))
             ->centerHorizontal()
             ->padding('12px 24px 24px 24px')
             ->gap('14px');
@@ -37,7 +38,7 @@ class TabsDemo extends Screen
         );
 
         $this->tabs_container = UI::container('tabs_container')
-            ->width(100, '%')
+            ->width(Size::pct(100))
             ->padding('16px')
             ->minHeight('300px')
             ->gap('10px');

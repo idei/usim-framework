@@ -11,6 +11,7 @@ use Idei\Usim\Enums\LayoutType;
 use Idei\Usim\Enums\SelectionMode;
 use Idei\Usim\Screen;
 use Idei\Usim\UI;
+use Idei\Usim\ValueObjects\Size;
 use Override;
 
 class TableDemo extends Screen
