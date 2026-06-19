@@ -61,7 +61,6 @@ final class Size
     }
 
     // Shorthand for common sizes
-
     public static function full(): self
     {
         return self::pct(100);
@@ -74,10 +73,12 @@ final class Size
     {
         return self::pct(33.333);
     }
+
     public static function quarter(): self
     {
         return self::pct(25);
     }
+
     public static function screen(): self
     {
         return new self('100dvh');

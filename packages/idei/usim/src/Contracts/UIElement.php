@@ -106,13 +106,4 @@ interface UIElement
 
     public function toString(): string;
 
-    /**
-     * Internal method to update the element's configuration.
-     * This is used by concrete implementations to set specific configuration options.
-     *
-     * @param string $key The configuration key
-     * @param mixed $value The configuration value
-     * @return static For method chaining
-     */
-    protected function setConfig(string $key, mixed $value): static;
 }

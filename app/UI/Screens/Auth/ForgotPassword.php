@@ -29,7 +29,7 @@ class ForgotPassword extends Screen
             ->alignItems('center')
             ->padding('40px')
             ->paddingTop('80px')
-            ->minHeight('100vh');
+            ->minHeight(Size::vh(100));
 
         // Icono superior
         $container->add(
@@ -64,8 +64,8 @@ class ForgotPassword extends Screen
         $formCard = UI::container('forgot_password_card')
             ->layout(LayoutType::VERTICAL)
             ->shadow(true)
-            ->maxWidth(600)
-            ->width(Size::pct(100))
+            ->maxWidth(Size::px(600))
+            ->width(Size::full())
             ->borderRadius('8px')
             ->marginTop('30px')
             ->padding('30px')

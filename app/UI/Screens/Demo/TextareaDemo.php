@@ -47,7 +47,7 @@ class TextareaDemo extends Screen
         // ── Sección 1: texto plano ───────────────────────────────────────────
         $sectionPlain = UI::container('section_plain')
             ->plain()
-            ->width(Size::pct(100))
+            ->width(Size::full())
             ->gap('12px');
 
         /** @var Textarea $plainTextarea */
@@ -70,7 +70,7 @@ class TextareaDemo extends Screen
         // // ── Sección 2: markdown ──────────────────────────────────────────────
         $sectionMd = UI::container('section_md')
             ->plain()
-            ->width(Size::pct(100))
+            ->width(Size::full())
             ->gap('12px');
 
         $defaultMd = "## Bienvenido al editor Markdown\n\nEscribe **negrita**, *cursiva* o `código inline`.\n\n- Viñeta 1\n- Viñeta 2\n\n> Una cita de ejemplo.\n";

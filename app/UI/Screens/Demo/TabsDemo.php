@@ -38,9 +38,9 @@ class TabsDemo extends Screen
         );
 
         $this->tabs_container = UI::container('tabs_container')
-            ->width(Size::pct(100))
+            ->width(Size::full())
             ->padding('16px')
-            ->minHeight('300px')
+            ->minHeight(Size::px(300))
             ->gap('10px');
 
         $this->tabs_container

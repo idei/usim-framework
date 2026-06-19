@@ -34,7 +34,7 @@ class ResetPassword extends Screen
             ->plain()
             ->padding('40px')
             ->paddingTop('80px')
-            ->minHeight('100vh');
+            ->minHeight(Size::vh(100));
 
         // Icono superior
         $container->add(
@@ -70,7 +70,7 @@ class ResetPassword extends Screen
             ->layout(LayoutType::VERTICAL)
             ->shadow(true)
             ->maxWidth(Size::px(600))
-            ->width(Size::pct(100))
+            ->width(Size::full())
             ->borderRadius('8px')
             ->marginTop('30px')
             ->padding('30px')

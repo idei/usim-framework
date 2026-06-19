@@ -67,7 +67,7 @@ class SplitDemo extends Screen
             ->layout(LayoutType::VERTICAL)
             ->gap('10px')
             ->padding('14px')
-            ->width(Size::pct(100));
+            ->width(Size::full());
 
         $controls->add(
             UI::select('sel_split_orientation')
@@ -162,7 +162,7 @@ class SplitDemo extends Screen
             ->minFirstSize('160px')
             ->minSecondSize('160px')
             ->height(300)
-            ->width(Size::pct(100))
+            ->width(Size::full())
             ->card();
 
         if ($this->store_collapsed_panel === 'first') {

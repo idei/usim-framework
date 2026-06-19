@@ -59,13 +59,13 @@ class UsersManager extends Screen
     {
         $container
             ->plain()
-            ->maxWidth(1280)
+            ->maxWidth(Size::px(1280))
             ->centerHorizontal();
 
         $tabs_container = UI::container('tabs_container')
-            ->width(Size::pct(100))
+            ->width(Size::full())
             ->padding('10px')
-            ->minHeight('900px')
+            ->minHeight(Size::px(900))
             ->gap('2px')
             ->tabs(
                 [
@@ -143,7 +143,7 @@ class UsersManager extends Screen
             ->minFirstSize('400px')
             ->minSecondSize('700px')
             ->height(500)
-            ->width(Size::pct(100))
+            ->width(Size::full())
             ->card();
 
         $roles_left_panel = UI::container('roles_left_panel')
