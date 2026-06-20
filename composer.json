@@ -74,6 +74,10 @@
         "test-verbose": [
             "@php artisan config:clear --ansi",
             "@php artisan test"
+        ],
+        "phpstan": [
+            "vendor/bin/phpstan clear-result-cache",
+            "vendor/bin/phpstan analyse"
         ]
     },
     "extra": {

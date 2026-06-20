@@ -111,7 +111,7 @@ class DemoUi extends Screen
             ->rounded(false)
             ->gridTemplateColumns('repeat(auto-fill, minmax(150px, 150px))')
             ->gridTemplateRows('repeat(auto-fill, minmax(40px, 40px))')
-            ->minHeight('100px')
+            ->minHeight(Size::px(100))
             ->justifyContent('start')
             ->fullWidth()
             ->padding('5px')

@@ -3,10 +3,11 @@
 namespace App\UI\Screens\Auth;
 
 use App\Services\User\UserService;
-use Idei\Usim\Screen;
 use Idei\Usim\Components\Container;
 use Idei\Usim\Enums\LayoutType;
+use Idei\Usim\Screen;
 use Idei\Usim\UI;
+use Idei\Usim\ValueObjects\Size;
 
 class EmailVerified extends Screen
 {
@@ -27,7 +28,7 @@ class EmailVerified extends Screen
             ->alignItems('center')
             ->padding('40px')
             ->paddingTop('80px')
-            ->minHeight('100vh');
+            ->minHeight(Size::vh(100));
 
         // Determinar qué mostrar según el estado
         switch ($this->verificationStatus) {
