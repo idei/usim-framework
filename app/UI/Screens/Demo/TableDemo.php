@@ -40,7 +40,7 @@ class TableDemo extends Screen
             ->align('center');
 
         $container
-            ->maxWidth($table->width())
+            ->maxWidth($table->getWidth())
             ->add($label)
             ->add($this->buildToolbar())
             ->add($table);
@@ -62,7 +62,7 @@ class TableDemo extends Screen
 
         $search = UI::input('search_movies')
             ->placeholder(t('screen.demo.table_demo.search_placeholder'))
-            ->width('300px')
+            ->width(Size::px(300))
             ->autocomplete('off')
             ->onInput('search_input_typed', [])
             ->debounce(500);

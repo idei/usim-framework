@@ -55,32 +55,32 @@ class ModalDemo extends Screen
                     ->label(t('screen.demo.modal_demo.actions.open_confirmation'))
                     ->style('primary')
                     ->action('open_confirmation')
-                    ->width('230px')
+                    ->width(Size::px(230))
             )->add(
                 UI::button('btn_error_dialog')
                     ->label(t('screen.demo.modal_demo.actions.open_error'))
                     ->style('danger')
                     ->action('show_error_dialog')
-                    ->width('230px')
+                    ->width(Size::px(230))
             )->add(
                 UI::button('btn_timeout_dialog')
                     ->label(t('screen.demo.modal_demo.actions.open_timeout_with_button'))
                     ->style('warning')
                     ->action('show_timeout_dialog', ['duration' => 10])
-                    ->width('230px')
+                    ->width(Size::px(230))
             )->add(
                 UI::button('btn_timeout_no_button')
                     ->label(t('screen.demo.modal_demo.actions.open_timeout_without_button'))
                     ->style('warning')
                     ->action('show_timeout_no_button')
-                    ->width('230px')
+                    ->width(Size::px(230))
             )->add(
                 UI::button('btn_show_settings')
                     ->label(t('screen.demo.modal_demo.actions.settings'))
                     ->style('secondary')
                     ->icon('settings')
                     ->action('show_settings_confirm')
-                    ->width('230px')
+                    ->width(Size::px(230))
             );
         $container->add($buttonContainer);
     }

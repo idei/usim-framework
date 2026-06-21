@@ -94,7 +94,7 @@ class ForgotPassword extends Screen
                 ->label(t('screen.auth.forgot_password.email.label'))
                 ->type('email')
                 ->placeholder(t('screen.auth.forgot_password.email.placeholder'))
-                ->width('100%')
+                ->width(Size::full())
         );
 
         $formCard->add(

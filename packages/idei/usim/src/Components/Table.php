@@ -7,6 +7,7 @@ use Idei\Usim\Components\TableRow;
 use Idei\Usim\Contracts\UIElement;
 use Idei\Usim\DataTable\AbstractTableModel;
 use Idei\Usim\Enums\SelectionMode;
+use Idei\Usim\ValueObjects\Size;
 
 /**
  * Table Builder
@@ -1117,8 +1118,8 @@ class Table extends UIComponent
      */
     public function rowMinHeight(int $height): self
     {
-        $rowMinHeight = $height . 'px';
-        $this->setConfig('row_min_height', $rowMinHeight);
+        $rowMinHeight = Size::from($height);
+        $this->setConfig('row_min_height', (string) $rowMinHeight);
 
         // Apply min height to all existing rows
         foreach ($this->rowBuilders as $row) {

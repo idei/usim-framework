@@ -41,7 +41,7 @@ class TranslateManager extends Screen
     protected function buildBaseUI(Container $container, ...$params): void
     {
         $container
-            ->maxWidth(1360)
+            ->maxWidth(Size::px(1360))
             ->centerHorizontal()
             ->padding('10px')
             ->plain();
@@ -56,7 +56,7 @@ class TranslateManager extends Screen
         $search = UI::input('search_translations')
             ->label(t('screen.admin.translate_manager.search.label'))
             ->placeholder(t('screen.admin.translate_manager.search.placeholder'))
-            ->width('420px')
+            ->width(Size::px(420))
             ->autocomplete('off')
             ->onInput('search_translations', [])
             ->debounce(500);
@@ -68,7 +68,7 @@ class TranslateManager extends Screen
             ->value('all')
             ->onChange('language_filter_change')
             ->style('primary')
-            ->width('200px');
+            ->width(Size::px(200));
 
         $groupFilter = UI::select('group_filter')
             ->label(t('screen.admin.translate_manager.group.label'))
@@ -78,7 +78,7 @@ class TranslateManager extends Screen
             ->searchable(true, t('screen.admin.translate_manager.group.search_placeholder'))
             ->onChange('group_filter_change')
             ->style('primary')
-            ->width('200px');
+            ->width(Size::px(200));
 
         $toolbar->add($search)->add($languageFilter)->add($groupFilter);
         $container->add($toolbar);
@@ -87,7 +87,7 @@ class TranslateManager extends Screen
             ->pagination(10)
             ->sortedBy('key')
             ->dataModel(TranslationKeysTableModel::class)
-            ->width('100%')
+            ->width(Size::full())
             ->rowMinHeight(40);
 
         $container->add($table);

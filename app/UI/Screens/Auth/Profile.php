@@ -61,7 +61,7 @@ class Profile extends Screen
             ->type('email')
             ->value($user->email)
             ->disabled(true)
-            ->width('100%');
+            ->width(Size::full());
 
         $container->add($this->input_email);
 
@@ -72,7 +72,7 @@ class Profile extends Screen
             ->placeholder(t('screen.auth.profile.name.placeholder'))
             ->value($user->name ?? '')
             ->required(true)
-            ->width('100%');
+            ->width(Size::full());
 
         $container->add($this->input_name);
 
@@ -93,7 +93,7 @@ class Profile extends Screen
                 ->label(t('screen.auth.profile.actions.save'))
                 ->action('save_profile')
                 ->style('primary')
-                ->width('100%')
+                ->width(Size::full())
         );
 
         $container->add(
@@ -101,7 +101,7 @@ class Profile extends Screen
                 ->label(t('screen.auth.profile.actions.change_password'))
                 ->action('change_password')
                 ->style('secondary')
-                ->width('100%')
+                ->width(Size::full())
         );
     }
 

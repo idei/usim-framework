@@ -108,7 +108,7 @@ class ResetPassword extends Screen
                 ->type('password')
                 ->placeholder(t('screen.auth.reset_password.password.placeholder'))
                 ->required(true)
-                ->width('100%')
+                ->width(Size::full())
         );
 
         $formCard->add(
@@ -117,7 +117,7 @@ class ResetPassword extends Screen
                 ->type('password')
                 ->placeholder(t('screen.auth.reset_password.confirm.placeholder'))
                 ->required(true)
-                ->width('100%')
+                ->width(Size::full())
         );
 
         $formCard->add(

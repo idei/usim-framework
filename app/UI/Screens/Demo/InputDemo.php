@@ -40,7 +40,7 @@ class InputDemo extends Screen
             UI::label('lbl_instruction')
                 ->text(t('screen.demo.input_demo.instruction'))
                 ->style('info')
-                ->width('100%')
+                ->width(Size::full())
         );
 
         $container->add(
@@ -50,7 +50,7 @@ class InputDemo extends Screen
                 ->value('')
                 ->required(true)
                 ->type('text')
-                ->width('100%')
+                ->width(Size::full())
         );
 
         $container->add(
@@ -64,7 +64,7 @@ class InputDemo extends Screen
             UI::label('lbl_result')
                 ->text(t('screen.demo.input_demo.result.initial'))
                 ->style('default')
-                ->width('100%')
+                ->width(Size::full())
         );
     }
 

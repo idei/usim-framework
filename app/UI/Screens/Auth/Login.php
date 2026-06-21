@@ -10,6 +10,7 @@ use Idei\Usim\Enums\LayoutType;
 use Idei\Usim\Enums\Visibility;
 use Idei\Usim\Screen;
 use Idei\Usim\UI;
+use Idei\Usim\ValueObjects\Size;
 
 class Login extends Screen
 {
@@ -69,7 +70,7 @@ class Login extends Screen
                 ->value($email)
                 ->type('email')
                 ->required(true)
-                ->width('100%')
+                ->width(Size::full())
         );
 
         $container->add(
@@ -79,7 +80,7 @@ class Login extends Screen
                 ->placeholder(t('screen.auth.login.password.placeholder'))
                 ->value($password)
                 ->required(true)
-                ->width('100%')
+                ->width(Size::full())
         );
 
         $container->add(
@@ -116,7 +117,7 @@ class Login extends Screen
                 ->label(t('screen.auth.login.actions.forgot_password'))
                 ->style('link')
                 ->action('navigate_forgot_password')
-                ->width('100%')
+                ->width(Size::full())
         );
     }
 

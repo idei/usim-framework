@@ -255,25 +255,4 @@ class MenuDropdown extends UIComponent
         $this->config['position'] = $position;
         return $this;
     }
-
-    /**
-     * Set or get menu width.
-     *
-     * Accepts an integer (converted to px) or a CSS string. Omit to read current value.
-     *
-     * @param int|string|null $width Width in pixels (int) or with units (string), or null to get.
-     * @return static|string|null
-     */
-    public function width(int | string | null $width = null): static | string | null
-    {
-        if ($width === null) {
-            return $this->config['width'] ?? null;
-        }
-
-        if (is_int($width)) {
-            $width .= 'px';
-        }
-
-        return $this->setConfig('width', $width);
-    }
 }

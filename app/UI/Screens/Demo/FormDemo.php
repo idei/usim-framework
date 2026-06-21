@@ -39,7 +39,7 @@ class FormDemo extends Screen
                 ->value('')
                 ->required(true)
                 ->type('text')
-                ->width('100%')
+                ->width(Size::full())
         );
 
         $container->add(
@@ -49,7 +49,7 @@ class FormDemo extends Screen
                 ->value('')
                 ->required(true)
                 ->type('email')
-                ->width('100%')
+                ->width(Size::full())
         );
 
         $container->add(
@@ -63,6 +63,7 @@ class FormDemo extends Screen
             UI::label('lbl_result')
                 ->text(t('screen.demo.form_demo.result.initial'))
                 ->style('secondary')
+                ->width(Size::full())
         );
     }
 

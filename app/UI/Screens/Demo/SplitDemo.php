@@ -43,7 +43,7 @@ class SplitDemo extends Screen
     protected function buildBaseUI(Container $container, ...$params): void
     {
         $container
-            ->maxWidth(1100)
+            ->maxWidth(Size::px(1100))
             ->centerHorizontal()
             ->padding('12px 24px 24px 24px')
             ->gap('14px')
@@ -53,14 +53,14 @@ class SplitDemo extends Screen
             UI::label('split_demo_title')
                 ->text(t('screen.demo.split_demo.title'))
                 ->style('h2')
-                ->width('100%')
+                ->width(Size::full())
         );
 
         $container->add(
             UI::label('split_demo_intro')
                 ->text(t('screen.demo.split_demo.intro'))
                 ->style('info')
-                ->width('100%')
+                ->width(Size::full())
         );
 
         $controls = UI::container('split_controls')
@@ -78,7 +78,7 @@ class SplitDemo extends Screen
                 ])
                 ->value($this->store_split_orientation)
                 ->onChange('split_orientation_change')
-                ->width('280px')
+                ->width(Size::px(280))
         );
 
         $controls->add(
@@ -86,7 +86,7 @@ class SplitDemo extends Screen
                 ->label(t('screen.demo.split_demo.split_size.label'))
                 ->value($this->store_split_size)
                 ->placeholder(t('screen.demo.split_demo.split_size.placeholder'))
-                ->width('280px')
+                ->width(Size::px(280))
         );
 
         $controls->add(
@@ -94,7 +94,7 @@ class SplitDemo extends Screen
                 ->label(t('screen.demo.split_demo.splitter_size.label'))
                 ->value($this->store_splitter_size)
                 ->placeholder(t('screen.demo.split_demo.splitter_size.placeholder'))
-                ->width('280px')
+                ->width(Size::px(280))
         );
 
         $controls->add(
@@ -120,7 +120,7 @@ class SplitDemo extends Screen
                 ])
                 ->value($this->store_collapse_target)
                 ->onChange('split_collapse_target_change')
-                ->width('280px')
+                ->width(Size::px(280))
         );
 
         $actions = UI::container('split_actions')

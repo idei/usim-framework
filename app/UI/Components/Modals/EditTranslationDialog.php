@@ -6,6 +6,7 @@ use Idei\Usim\Enums\JustifyContent;
 use Idei\Usim\Enums\LayoutType;
 use Idei\Usim\UI;
 use Idei\Usim\UIChangesCollector;
+use Idei\Usim\ValueObjects\Size;
 
 class EditTranslationDialog
 {
@@ -63,7 +64,7 @@ class EditTranslationDialog
                 ->placeholder('Enter fallback translation')
                 ->value($fallbackText)
                 ->autocomplete('off')
-                ->width('100%')
+                ->width(Size::full())
         );
 
         $container->add(
@@ -79,7 +80,7 @@ class EditTranslationDialog
                     ->placeholder('Enter selected language translation')
                     ->value($selectedText)
                     ->autocomplete('off')
-                    ->width('100%')
+                    ->width(Size::full())
             );
 
             $container->add(

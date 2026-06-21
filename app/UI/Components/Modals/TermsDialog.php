@@ -48,7 +48,7 @@ class TermsDialog
             UI::label('terms_dialog_document')
                 ->html($scrollableDocumentHtml)
                 ->inline(false)
-                ->width('100%')
+                ->width(Size::full())
         );
 
         $buttons = UI::container('terms_dialog_buttons')

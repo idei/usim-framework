@@ -953,7 +953,7 @@ class Container implements UIElement, Sizeable
      * Set margin (all sides)
      *
      * @param string $margin Margin value
-     * @return self For method chaining
+     * @return static For method chaining
      */
     public function margin(string $margin): static
     {
@@ -968,7 +968,7 @@ class Container implements UIElement, Sizeable
      * @param string|null $right Right margin
      * @param string|null $bottom Bottom margin
      * @param string|null $left Left margin
-     * @return self For method chaining
+     * @return static For method chaining
      */
     public function marginEach(?string $top = null, ?string $right = null, ?string $bottom = null, ?string $left = null): static
     {
@@ -987,7 +987,7 @@ class Container implements UIElement, Sizeable
      * Set top margin
      *
      * @param string $margin Margin value
-     * @return self For method chaining
+     * @return static For method chaining
      */
     public function marginTop(string $margin): static
     {
@@ -999,7 +999,7 @@ class Container implements UIElement, Sizeable
      * Set right margin
      *
      * @param string $margin Margin value
-     * @return self For method chaining
+     * @return static For method chaining
      */
     public function marginRight(string $margin): static
     {
@@ -1011,7 +1011,7 @@ class Container implements UIElement, Sizeable
      * Set bottom margin
      *
      * @param string $margin Margin value
-     * @return self For method chaining
+     * @return static For method chaining
      */
     public function marginBottom(string $margin): static
     {
@@ -1023,7 +1023,7 @@ class Container implements UIElement, Sizeable
      * Set left margin
      *
      * @param string $margin Margin value
-     * @return self For method chaining
+     * @return static For method chaining
      */
     public function marginLeft(string $margin): static
     {

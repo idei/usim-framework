@@ -2,6 +2,8 @@
 
 namespace Idei\Usim\Components;
 
+use Idei\Usim\Concerns\HasSizing;
+use Idei\Usim\Contracts\Sizeable;
 use Idei\Usim\Contracts\UIElement;
 use Idei\Usim\Support\UIIdGenerator;
 
@@ -11,8 +13,10 @@ use Idei\Usim\Support\UIIdGenerator;
  * This class implements the common functionality for leaf nodes in the UI tree.
  * Leaf components cannot have children and represent atomic UI elements.
  */
-abstract class UIComponent implements UIElement
+abstract class UIComponent implements UIElement, Sizeable
 {
+    use HasSizing;
+
     protected int $id;
     protected string $type;
     protected ?string $name = null;
@@ -94,7 +98,7 @@ abstract class UIComponent implements UIElement
             ucfirst($this->type),
             $this->id,
             $this->name ?? 'null',
-            $this->parent !== null ? (string)$this->parent : 'null'
+            $this->parent !== null ? (string) $this->parent : 'null'
         );
     }
 
@@ -111,21 +115,21 @@ abstract class UIComponent implements UIElement
         // Buscar en el stack trace la primera clase que NO sea del namespace UI (Legacy o Package)
         foreach ($trace as $frame) {
             if (isset($frame['class'])) {
-                 // Skip internal classes from Legacy Framework (App/UI/Components)
-                 if (str_starts_with($frame['class'], 'App\\UI\\Components\\')) {
-                     continue;
-                 }
-                 // Skip internal classes from the package framework.
-                 if (str_starts_with($frame['class'], 'Idei\\Usim\\')) {
-                     continue;
-                 }
-                 // Skip Http Controllers
-                 if (str_starts_with($frame['class'], 'Idei\\Usim\\Http\\')) {
-                     continue;
-                 }
+                // Skip internal classes from Legacy Framework (App/UI/Components)
+                if (str_starts_with($frame['class'], 'App\\UI\\Components\\')) {
+                    continue;
+                }
+                // Skip internal classes from the package framework.
+                if (str_starts_with($frame['class'], 'Idei\\Usim\\')) {
+                    continue;
+                }
+                // Skip Http Controllers
+                if (str_starts_with($frame['class'], 'Idei\\Usim\\Http\\')) {
+                    continue;
+                }
 
-                 // Found the consumer service!
-                 return $frame['class'];
+                // Found the consumer service!
+                return $frame['class'];
             }
         }
 
@@ -374,11 +378,7 @@ abstract class UIComponent implements UIElement
     }
 
     /**
-     * Set a configuration value
-     *
-     * @param string $key The configuration key
-     * @param mixed $value The configuration value
-     * @return static For method chaining
+     * {@inheritDoc}
      */
     protected function setConfig(string $key, mixed $value): static
     {
@@ -469,100 +469,6 @@ abstract class UIComponent implements UIElement
     public function marginBottom(string $margin): static
     {
         return $this->setConfig('margin_bottom', $margin);
-    }
-
-    // ========================================================================
-    // SIZING METHODS
-    // ========================================================================
-
-    /**
-     * Set width
-     *
-     * @param string $width Width value (px, %, vh, auto, etc)
-     * @return static|string|null For method chaining or current value if called without arguments
-     */
-    public function width(string | null $width = null): static | string | null
-    {
-        if ($width === null) {
-            return $this->config['width'] ?? null;
-        }
-
-        return $this->setConfig('width', $width);
-    }
-
-    /**
-     * Set height
-     *
-     * @param string|null $height Height value (px, %, vh, auto, etc). Omit to read current value.
-     * @return static|string|null
-     */
-    public function height(string | null $height = null): static | string | null
-    {
-        if ($height === null) {
-            return $this->config['height'] ?? null;
-        }
-
-        return $this->setConfig('height', $height);
-    }
-
-    /**
-     * Set maximum width
-     *
-     * @param string|null $width Max width value (px, %, auto, etc). Omit to read current value.
-     * @return static|string|null
-     */
-    public function maxWidth(string | null $width = null): static | string | null
-    {
-        if ($width === null) {
-            return $this->config['max_width'] ?? null;
-        }
-
-        return $this->setConfig('max_width', $width);
-    }
-
-    /**
-     * Set maximum height
-     *
-     * @param string|null $height Max height value (px, %, auto, etc). Omit to read current value.
-     * @return static|string|null
-     */
-    public function maxHeight(string | null $height = null): static | string | null
-    {
-        if ($height === null) {
-            return $this->config['max_height'] ?? null;
-        }
-
-        return $this->setConfig('max_height', $height);
-    }
-
-    /**
-     * Set minimum width
-     *
-     * @param string|null $width Min width value (px, %, auto, etc). Omit to read current value.
-     * @return static|string|null
-     */
-    public function minWidth(string | null $width = null): static | string | null
-    {
-        if ($width === null) {
-            return $this->config['min_width'] ?? null;
-        }
-
-        return $this->setConfig('min_width', $width);
-    }
-
-    /**
-     * Set minimum height
-     *
-     * @param string|null $height Min height value (px, %, auto, etc). Omit to read current value.
-     * @return static|string|null
-     */
-    public function minHeight(string | null $height = null): static | string | null
-    {
-        if ($height === null) {
-            return $this->config['min_height'] ?? null;
-        }
-
-        return $this->setConfig('min_height', $height);
     }
 
     // ========================================================================

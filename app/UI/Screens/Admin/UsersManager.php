@@ -96,7 +96,7 @@ class UsersManager extends Screen
 
         $search = UI::input('search_users')
             ->placeholder(t('screen.admin.dashboard.search_placeholder'))
-            ->width('300px')
+            ->width(Size::px(300))
             ->autocomplete('off')
             ->onInput('search_users', [])
             ->debounce(500);
@@ -116,7 +116,7 @@ class UsersManager extends Screen
             ->selectionMode(SelectionMode::SINGLE)
             ->bodyOverflowX('hidden')
             ->bodyOverflowY('auto')
-            ->minHeight('730px')
+            ->minHeight(Size::px(730))
             ->bodyMinHeight('600px')
             ->align('center');
 
@@ -163,7 +163,7 @@ class UsersManager extends Screen
 
         $search = UI::input('search_roles')
             ->placeholder(t('screen.admin.users_manager.search_role_placeholder'))
-            ->width('200px')
+            ->width(Size::px(200))
             ->autocomplete('off')
             ->onInput('search_roles', [])
             ->debounce(500);

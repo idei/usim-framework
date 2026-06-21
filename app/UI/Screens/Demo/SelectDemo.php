@@ -1,13 +1,14 @@
 <?php
 namespace App\UI\Screens\Demo;
 
-use Idei\Usim\UI;
-use Idei\Usim\Screen;
+use Idei\Usim\Components\Button;
+use Idei\Usim\Components\Checkbox;
 use Idei\Usim\Components\Container;
 use Idei\Usim\Components\Label;
-use Idei\Usim\Components\Button;
 use Idei\Usim\Components\Select;
-use Idei\Usim\Components\Checkbox;
+use Idei\Usim\Screen;
+use Idei\Usim\UI;
+use Idei\Usim\ValueObjects\Size;
 
 /**
  * Select Demo Service
@@ -124,7 +125,7 @@ class SelectDemo extends Screen
             UI::label('lbl_instruction')
                 ->text(t('screen.demo.select_demo.instruction'))
                 ->style('info')
-                ->width('100%')
+                ->width(Size::full())
         );
 
         // Country select
@@ -137,7 +138,7 @@ class SelectDemo extends Screen
                 ->required(true)
                 ->onChange('country_change')
                 ->style('primary')
-                ->width('100%')
+                ->width(Size::full())
         );
 
         // City select (initially disabled)
@@ -150,7 +151,7 @@ class SelectDemo extends Screen
                 ->disabled(true)
                 ->onChange('city_change')
                 ->style('primary')
-                ->width('100%')
+                ->width(Size::full())
         );
 
         // Checkbox to enable multiple language selection
@@ -160,7 +161,7 @@ class SelectDemo extends Screen
                 ->checked(false)
                 ->onChange('toggle_multiple_languages')
                 ->style('default')
-                ->width('100%')
+                ->width(Size::full())
         );
 
         // Languages select (searchable and optionally multiple)
@@ -174,7 +175,7 @@ class SelectDemo extends Screen
                 ->multiple(false)
                 ->onChange('language_change')
                 ->style('info')
-                ->width('100%')
+                ->width(Size::full())
         );
 
         // Result label
@@ -191,6 +192,7 @@ class SelectDemo extends Screen
                 ->action('reset_selections')
                 ->icon('refresh')
                 ->style('secondary')
+                ->width(Size::full())
         );
     }
 
@@ -293,7 +295,7 @@ class SelectDemo extends Screen
         // Get current result text using the public get() method
         $currentResult = $this->lbl_result->get('text', '');
 
-        if (is_array($value)) {
+        if (\is_array($value)) {
             // Multiple languages selected
             $languageNames = collect(self::LANGUAGES)
                 ->whereIn('value', $value)

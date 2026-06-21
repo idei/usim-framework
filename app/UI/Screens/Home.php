@@ -2,9 +2,10 @@
 
 namespace App\UI\Screens;
 
-use Idei\Usim\UI;
-use Idei\Usim\Screen;
 use Idei\Usim\Components\Container;
+use Idei\Usim\Screen;
+use Idei\Usim\UI;
+use Idei\Usim\ValueObjects\Size;
 
 class Home extends Screen
 {
@@ -14,7 +15,7 @@ class Home extends Screen
         $container->add(
             UI::label('welcome_usim')
                 ->html('welcome-usim')
-                ->width('100%')
+                ->width(Size::full())
         );
     }
 

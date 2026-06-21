@@ -34,7 +34,7 @@ class TabsDemo extends Screen
             UI::label('tabs_demo_title')
                 ->text(t('screen.demo.tabs_demo.title'))
                 ->style('h2')
-                ->width('100%')
+                ->width(Size::full())
         );
 
         $this->tabs_container = UI::container('tabs_container')

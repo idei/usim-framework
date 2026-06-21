@@ -56,7 +56,7 @@ class AddressForm extends Screen
             UI::label('lbl_instruction')
                 ->text('Completa los datos de la direccion solicitada.')
                 ->style('info')
-                ->width('100%')
+                ->width(Size::full())
         );
 
         $container->add(
@@ -66,7 +66,7 @@ class AddressForm extends Screen
                 ->value('')
                 ->required(true)
                 ->type('text')
-                ->width('100%')
+                ->width(Size::full())
         );
 
         $container->add(
@@ -79,7 +79,7 @@ class AddressForm extends Screen
                 ->searchable(true, 'Buscar pais')
                 ->onChange('country_change')
                 ->clearable(true)
-                ->width('100%')
+                ->width(Size::full())
         );
 
         $container->add(
@@ -92,7 +92,7 @@ class AddressForm extends Screen
                 ->searchable(true, 'Buscar provincia o estado')
                 ->disabled($this->store_selected_country === null)
                 ->clearable(true)
-                ->width('100%')
+                ->width(Size::full())
         );
 
         $container->add(
@@ -102,7 +102,7 @@ class AddressForm extends Screen
                 ->value('')
                 ->required(true)
                 ->type('text')
-                ->width('100%')
+                ->width(Size::full())
         );
 
         $container->add(
@@ -112,7 +112,7 @@ class AddressForm extends Screen
                 ->value('')
                 ->required(true)
                 ->type('text')
-                ->width('100%')
+                ->width(Size::full())
         );
 
         $container->add(
@@ -126,7 +126,7 @@ class AddressForm extends Screen
             UI::label('lbl_result')
                 ->text('Completa el formulario para enviar la direccion.')
                 ->style('secondary')
-                ->width('100%')
+                ->width(Size::full())
         );
     }
 
