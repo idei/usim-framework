@@ -26,7 +26,7 @@ class TranslationService
         ?string $nativeName = null,
         bool $isActive = true
     ): UsimLanguage {
-        $isFallback = env('APP_FALLBACK_LOCALE', 'en') === $code;
+        $isFallback = config('usim.i18n.fallback_locale') === $code;
         return $this->keyManager->upsertLanguage($code, $name, $nativeName, $isActive, $isFallback);
     }
 

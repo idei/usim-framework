@@ -4,9 +4,17 @@ namespace Idei\Usim\Models;
 
 use Idei\Usim\Models\UsimTextValue;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
+/**
+ * @property int $id
+ * @property string $key
+ * @property string|null $group
+ * @property bool $is_active
+ * @property-read Collection<int, UsimTextValue> $values
+ */
 class UsimTextKey extends Model
 {
     protected $table = 'usim_text_keys';

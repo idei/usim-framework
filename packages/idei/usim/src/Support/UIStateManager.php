@@ -19,11 +19,6 @@ use Illuminate\Support\Str;
 class UIStateManager
 {
     /**
-     * Default cache TTL (30 minutes)
-     */
-    public const DEFAULT_TTL = 1800;
-
-    /**
      * Cookie name for client identification
      */
     public const CLIENT_ID_COOKIE = 'ui_client_id';
@@ -129,7 +124,7 @@ class UIStateManager
         }
 
         // Get TTL from environment or use default
-        $ttl = env('UI_CACHE_TTL', self::DEFAULT_TTL);
+        $ttl = config('usim.ui_cache_ttl');
         $encodedState = json_encode($uiState);
 
         // Store main UI state
@@ -169,7 +164,7 @@ class UIStateManager
     {
         $clientId = self::getOrCreateClientId();
         $cacheKey = "ui_open_screens:{$clientId}";
-        $ttl = env('UI_CACHE_TTL', self::DEFAULT_TTL);
+        $ttl = config('usim.ui_cache_ttl');
         $openedScreens = Cache::get($cacheKey, []);
         if (!\is_array($openedScreens)) {
             $openedScreens = [];
@@ -226,7 +221,8 @@ class UIStateManager
     public static function setAuthToken(string|null $token): bool
     {
         $cacheKey = self::getCacheKey(prefix: 'ui_auth_token');
-        Cache::put($cacheKey, $token, self::DEFAULT_TTL);
+        $ttl = config('usim.ui_cache_ttl');
+        Cache::put($cacheKey, $token, $ttl);
         return true;
     }
 
@@ -240,7 +236,8 @@ class UIStateManager
     public static function storeKeyValue(string $key, mixed $value): bool
     {
         $cacheKey = self::getCacheKey(prefix: "ui_key_{$key}");
-        Cache::put($cacheKey, $value, self::DEFAULT_TTL);
+        $ttl = config('usim.ui_cache_ttl');
+        Cache::put($cacheKey, $value, $ttl);
         return true;
     }
 
@@ -254,23 +251,5 @@ class UIStateManager
     {
         $cacheKey = self::getCacheKey(prefix: "ui_key_{$key}");
         return Cache::forget($cacheKey);
-    }
-
-    private static function getCallerServiceInfo(): string
-    {
-        $stack = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 10);
-        foreach ($stack as $frame) {
-            if (
-                isset($frame['class']) &&
-                str_starts_with($frame['class'], 'App\\UI\\Components\\') &&
-                $frame['class'] !== self::class
-            ) {
-                $className = class_basename($frame['class']);
-                $functionName = $frame['function'] ?? 'unknown';
-                $lineNumber = $frame['line'] ?? null;
-                return $className . '::' . $functionName . ($lineNumber ? " (line {$lineNumber})" : '');
-            }
-        }
-        return 'unknown';
     }
 }

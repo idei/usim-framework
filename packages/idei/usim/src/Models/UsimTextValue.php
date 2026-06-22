@@ -6,6 +6,16 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
+/**
+ * @property int $text_key_id
+ * @property int $language_id
+ * @property string|null $text_value
+ * @property bool $needs_review
+ * @property string|null $media_url
+ * @property array<string, mixed>|null $media_meta
+ * @property-read UsimTextKey|null $textKey
+ * @property-read UsimLanguage|null $language
+ */
 class UsimTextValue extends Model
 {
     protected $table = 'usim_text_values';

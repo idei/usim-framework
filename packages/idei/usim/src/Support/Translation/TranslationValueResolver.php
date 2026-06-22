@@ -110,9 +110,16 @@ class TranslationValueResolver
 
     private function resolveLocale(?string $languageCode): string
     {
-        return $languageCode
-            ?? app()->getLocale()
-            ?? config('usim.i18n.default_locale', 'en');
+        if ($languageCode !== null && $languageCode !== '') {
+            return $languageCode;
+        }
+
+        $locale = app()->getLocale();
+        if ($locale !== '') {
+            return $locale;
+        }
+
+        return (string) config('usim.i18n.default_locale', 'en');
     }
 
     private function resolveFallbackLocale(): string

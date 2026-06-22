@@ -4,6 +4,7 @@ namespace Idei\Usim\Support\Translation;
 
 use Idei\Usim\Models\UsimLanguage;
 use Idei\Usim\Models\UsimTextKey;
+use Illuminate\Database\Eloquent\Builder;
 
 class TranslationDatasetQuery
 {
@@ -12,7 +13,7 @@ class TranslationDatasetQuery
         $items = UsimLanguage::query()
             ->orderByDesc('is_fallback')
             ->orderBy('name')
-            ->when(!$includeInactive, function ($query) {
+            ->when(!$includeInactive, function (Builder $query): void {
                 $query->where('is_active', true);
             })
             ->get()
@@ -73,13 +74,13 @@ class TranslationDatasetQuery
 
         $paginator = UsimTextKey::query()
             ->where('is_active', true)
-            ->when($normalizedGroup !== null, function ($query) use ($normalizedGroup): void {
+            ->when($normalizedGroup !== null, function (Builder $query) use ($normalizedGroup): void {
                 $query->where('group', $normalizedGroup);
             })
-            ->when($filter !== null && trim($filter) !== '', function ($query) use ($filter): void {
+            ->when($filter !== null && trim($filter) !== '', function (Builder $query) use ($filter): void {
                 $like = '%' . trim($filter) . '%';
 
-                $query->where(function ($searchQuery) use ($like): void {
+                $query->where(function (Builder $searchQuery) use ($like): void {
                     $searchQuery->where('key', 'like', $like)
                         ->orWhere('group', 'like', $like);
                 });
@@ -90,22 +91,40 @@ class TranslationDatasetQuery
             ->orderBy($normalizedSortBy, $normalizedDirection)
             ->paginate($normalizedPerPage, ['*'], 'page', $normalizedPage);
 
+        /** @var \Illuminate\Pagination\LengthAwarePaginator<int, UsimTextKey> $paginator */
         $items = $paginator->getCollection()
             ->map(function (UsimTextKey $textKey): array {
-                $value = $textKey->values->first();
-                $hasRepresentation = $value !== null;
+                $values = $textKey->values;
+                $hasRepresentation = $values->isNotEmpty();
+
+                if (!$hasRepresentation) {
+                    return [
+                        'id' => $textKey->id,
+                        'key' => $textKey->key,
+                        'group' => $textKey->group,
+                        'needs_review' => false,
+                        'is_active' => (bool) $textKey->is_active,
+                        'has_representation' => false,
+                        'missing_representation' => true,
+                        'text' => null,
+                        'media_url' => null,
+                        'media_meta' => null,
+                    ];
+                }
+
+                $value = $values->first();
 
                 return [
                     'id' => $textKey->id,
                     'key' => $textKey->key,
                     'group' => $textKey->group,
-                    'needs_review' => (bool) ($value?->needs_review ?? false),
+                    'needs_review' => (bool) $value->needs_review,
                     'is_active' => (bool) $textKey->is_active,
-                    'has_representation' => $hasRepresentation,
-                    'missing_representation' => !$hasRepresentation,
-                    'text' => $value?->text_value,
-                    'media_url' => $value?->media_url,
-                    'media_meta' => $value?->media_meta,
+                    'has_representation' => true,
+                    'missing_representation' => false,
+                    'text' => $value->text_value,
+                    'media_url' => $value->media_url,
+                    'media_meta' => $value->media_meta,
                 ];
             })
             ->values()
