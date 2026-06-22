@@ -87,7 +87,7 @@ class Label extends UIComponent
      * Set the label text content
      *
      * @param string $text The text to display
-     * @return $this For method chaining
+     * @return static For method chaining
      */
     public function text(string $text): self
     {
@@ -102,7 +102,7 @@ class Label extends UIComponent
      *
      * @param string $htmlOrView Raw HTML string or view name (dot notation)
      * @param array $data Optional data for the view
-     * @return $this For method chaining
+     * @return static For method chaining
      */
     public function html(string $htmlOrView, array $data = []): self
     {
@@ -139,7 +139,7 @@ class Label extends UIComponent
      * Set the label style
      *
      * @param string $style The style name (default, primary, secondary, success, danger, warning, info, muted)
-     * @return $this For method chaining
+     * @return static For method chaining
      */
     public function style(string $style): self
     {
@@ -209,7 +209,7 @@ class Label extends UIComponent
      * Set the label variant
      *
      * @param string $variant The variant (text, badge, chip, tag, pill, outlined)
-     * @return $this For method chaining
+     * @return static For method chaining
      */
     public function variant(string $variant): self
     {
@@ -220,7 +220,7 @@ class Label extends UIComponent
      * Set the label size
      *
      * @param string $size The size (xs, small, medium, large, xl)
-     * @return $this For method chaining
+     * @return static For method chaining
      */
     public function size(string $size): self
     {
@@ -231,7 +231,7 @@ class Label extends UIComponent
      * Set the font weight
      *
      * @param string $weight The weight (normal, bold, semibold, light, medium)
-     * @return $this For method chaining
+     * @return static For method chaining
      */
     public function fontWeight(string $weight): self
     {
@@ -241,7 +241,7 @@ class Label extends UIComponent
     /**
      * Make text bold
      *
-     * @return $this For method chaining
+     * @return static For method chaining
      */
     public function bold(): self
     {
@@ -425,7 +425,7 @@ class Label extends UIComponent
      * Set icon color
      *
      * @param string $color The icon color
-     * @return $this For method chaining
+     * @return static For method chaining
      */
     public function iconColor(string $color): self
     {
@@ -437,7 +437,7 @@ class Label extends UIComponent
      *
      * @param string|int $badge The badge content
      * @param string $style The badge style
-     * @return $this For method chaining
+     * @return static For method chaining
      */
     public function badge(string|int $badge, string $style = 'danger'): self
     {
@@ -450,7 +450,7 @@ class Label extends UIComponent
      * Set the HTML tag
      *
      * @param string $tag The HTML tag (span, p, h1-h6, strong, em, small, mark, code, pre)
-     * @return $this For method chaining
+     * @return static For method chaining
      */
     public function tag(string $tag): self
     {
@@ -461,7 +461,7 @@ class Label extends UIComponent
      * Make this a heading (h1-h6)
      *
      * @param int $level The heading level (1-6)
-     * @return $this For method chaining
+     * @return static For method chaining
      */
     public function heading(int $level): self
     {
@@ -471,7 +471,7 @@ class Label extends UIComponent
     /**
      * Make this a paragraph
      *
-     * @return $this For method chaining
+     * @return static For method chaining
      */
     public function paragraph(): self
     {
@@ -481,7 +481,7 @@ class Label extends UIComponent
     /**
      * Make this strong (bold emphasis)
      *
-     * @return $this For method chaining
+     * @return static For method chaining
      */
     public function strong(): self
     {
@@ -491,7 +491,7 @@ class Label extends UIComponent
     /**
      * Make this code
      *
-     * @return $this For method chaining
+     * @return static For method chaining
      */
     public function code(): self
     {
@@ -502,7 +502,7 @@ class Label extends UIComponent
      * Set the 'for' attribute (for label elements)
      *
      * @param string $forId The ID of the associated input
-     * @return $this For method chaining
+     * @return static For method chaining
      */
     public function forInput(string $forId): self
     {
@@ -515,7 +515,7 @@ class Label extends UIComponent
      * Make label clickable
      *
      * @param string|null $action Optional action to trigger
-     * @return $this For method chaining
+     * @return static For method chaining
      */
     public function clickable(?string $action = null): self
     {
@@ -530,7 +530,7 @@ class Label extends UIComponent
      * Set tooltip
      *
      * @param string $tooltip The tooltip text
-     * @return $this For method chaining
+     * @return static For method chaining
      */
     public function tooltip(string $tooltip): self
     {
@@ -541,7 +541,7 @@ class Label extends UIComponent
      * Set animation
      *
      * @param string $animation The animation (fade, slide, bounce, pulse)
-     * @return $this For method chaining
+     * @return static For method chaining
      */
     public function animation(string $animation): self
     {
@@ -552,7 +552,7 @@ class Label extends UIComponent
      * Enable shadow effect
      *
      * @param bool $shadow True to enable shadow
-     * @return $this For method chaining
+     * @return static For method chaining
      */
     public function shadow(bool $shadow = true): self
     {
@@ -563,7 +563,7 @@ class Label extends UIComponent
      * Enable glow effect
      *
      * @param bool $glow True to enable glow
-     * @return $this For method chaining
+     * @return static For method chaining
      */
     public function glow(bool $glow = true): self
     {
@@ -574,7 +574,7 @@ class Label extends UIComponent
      * Set display mode
      *
      * @param bool $inline True for inline, false for block
-     * @return $this For method chaining
+     * @return static For method chaining
      */
     public function inline(bool $inline = true): self
     {
@@ -584,7 +584,7 @@ class Label extends UIComponent
     /**
      * Make block display
      *
-     * @return $this For method chaining
+     * @return static For method chaining
      */
     public function block(): self
     {
@@ -595,7 +595,7 @@ class Label extends UIComponent
      * Set ARIA label
      *
      * @param string $label The ARIA label
-     * @return $this For method chaining
+     * @return static For method chaining
      */
     public function ariaLabel(string $label): self
     {
@@ -606,7 +606,7 @@ class Label extends UIComponent
      * Set ARIA role
      *
      * @param string $role The ARIA role
-     * @return $this For method chaining
+     * @return static For method chaining
      */
     public function role(string $role): self
     {

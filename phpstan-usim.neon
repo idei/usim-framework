@@ -1,7 +1,11 @@
 includes:
-	- vendor/larastan/larastan/extension.neon
+    - vendor/larastan/larastan/extension.neon
 
 parameters:
-	paths:
-		- packages/
-	level: 5
+    paths:
+        - packages/
+    level: 5
+    ignoreErrors:
+        - identifier: larastan.noEnvCallsOutsideOfConfig
+          paths:
+            - packages/idei/usim/config/
