@@ -1,5 +1,7 @@
 <?php
 
+// packages/idei/usim/config/usim.php
+
 use App\UI\Screens\Admin\UsersManager;
 use App\UI\Screens\Admin\TranslateManager;
 use App\UI\Screens\Home;

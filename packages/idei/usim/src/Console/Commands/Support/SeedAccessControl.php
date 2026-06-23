@@ -232,16 +232,16 @@ class SeedAccessControl
 
         $usimConfig = $this->loadUsimConfig();
         $usersConfig = $usimConfig['users'] ?? config('usim.users', []);
-        $usersConfig = is_array($usersConfig) ? $usersConfig : [];
+        $usersConfig = \is_array($usersConfig) ? $usersConfig : [];
 
-        $rootConfig = is_array($usersConfig['root'] ?? null) ? $usersConfig['root'] : [];
+        $rootConfig = \is_array($usersConfig['root'] ?? null) ? $usersConfig['root'] : [];
         $rootValues = $rootUserEnvValues !== []
             ? $rootUserEnvValues
             : [
-                'first_name' => (string) env('ROOT_FIRST_NAME', $rootConfig['first_name'] ?? 'Root'),
-                'last_name' => (string) env('ROOT_LAST_NAME', $rootConfig['last_name'] ?? 'User'),
-                'email' => (string) env('ROOT_EMAIL', $rootConfig['email'] ?? ''),
-                'password' => (string) env('ROOT_PASSWORD', $rootConfig['password'] ?? ''),
+                'first_name' => config('usim.users.root.first_name', $rootConfig['first_name'] ?? 'Root'),
+                'last_name' => config('usim.users.root.last_name', $rootConfig['last_name'] ?? 'User'),
+                'email' => config('usim.users.root.email', $rootConfig['email'] ?? ''),
+                'password' => config('usim.users.root.password', $rootConfig['password'] ?? ''),
             ];
 
         $rootEnv = [
@@ -632,10 +632,6 @@ class SeedAccessControl
         }
 
         $file = array_shift($segments);
-        if (!is_string($file) || $file === '') {
-            return;
-        }
-
         $langDir = lang_path($locale);
         $langFile = $langDir . '/' . $file . '.php';
 
