@@ -80,7 +80,7 @@ class ScreenDiscoveryService
         app()[PermissionRegistrar::class]->forgetCachedPermissions();
 
         $allPermissions = collect($permissions)
-            ->filter(static fn($permission): bool => is_string($permission) && trim($permission) !== '')
+            ->filter(static fn($permission): bool => trim($permission) !== '')
             ->map(static fn($permission): string => trim((string) $permission))
             ->unique();
 
@@ -288,7 +288,7 @@ class ScreenDiscoveryService
         return $bucket * 10000;
     }
 
-    private function getClassNameFromFile(SplFileInfo $file): ?string
+    private function getClassNameFromFile(SplFileInfo $file): string
     {
         // Simple extraction assuming PSR-4 structure inside App\UI\Screens
         // We can optimize this by token parsing if needed, but for now assumption works.

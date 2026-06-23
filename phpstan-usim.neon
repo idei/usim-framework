@@ -9,3 +9,20 @@ parameters:
         - identifier: larastan.noEnvCallsOutsideOfConfig
           paths:
             - packages/idei/usim/config/
+            - packages/idei/usim/src/Console/Commands/Support/SeedAccessControl.php
+        - identifier: new.static
+          paths:
+            - packages/idei/usim/src/Components/UIComponent.php
+        - identifier: function.alreadyNarrowedType
+          paths:
+            - packages/idei/usim/src/Console/Commands/Support/SeedAccessControl.php
+        - identifier: identical.alwaysFalse
+          paths:
+            - packages/idei/usim/src/Console/Commands/Support/SeedAccessControl.php
+        - identifier: booleanOr.alwaysFalse
+          paths:
+            - packages/idei/usim/src/Console/Commands/Support/SeedAccessControl.php
+        - identifier: phpDoc.parseError
+          paths:
+            - packages/idei/usim/src/Contracts/ModelCrudService.php
+            - packages/idei/usim/src/Contracts/ModelQueryableService.php

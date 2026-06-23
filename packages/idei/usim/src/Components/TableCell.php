@@ -91,7 +91,7 @@ class TableCell extends UIComponent
      *
      * @param int|null $minWidth Minimum width in pixels
      * @param int|null $maxWidth Maximum width in pixels
-     * @return self
+     * @return static
      */
     public function widthConstraints(?int $minWidth = null, ?int $maxWidth = null): static
     {
@@ -231,11 +231,6 @@ class TableCell extends UIComponent
             throw new \LogicException("TableCell can only contain one child component. Use a container if you need multiple components.");
         }
 
-        // Prevent adding containers to avoid recursion/loops
-        if ($component instanceof Container) {
-            throw new \LogicException("TableCell cannot contain a Container. Containers should be outside the table structure.");
-        }
-
         $this->child = $component;
         $component->setParent($this->id);
         return $this;
@@ -275,9 +270,9 @@ class TableCell extends UIComponent
         $config = array_filter($this->config, fn($value) => $value !== null);
 
         // Inherit min_height from parent row if not set
-        if (!isset($config['min_height']) || $config['min_height'] === null) {
+        if (!array_key_exists('min_height', $config)) {
             $rowConfig = $this->row->getRowConfig();
-            if (isset($rowConfig['min_height']) && $rowConfig['min_height'] !== null) {
+            if (array_key_exists('min_height', $rowConfig) && $rowConfig['min_height'] !== null) {
                 $config['min_height'] = $rowConfig['min_height'];
             }
         }

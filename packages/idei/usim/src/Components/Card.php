@@ -209,7 +209,7 @@ class Card extends UIComponent
      * @param string $action Action to trigger
      * @param array $parameters Action parameters
      * @param string $style Button style
-     * @return self
+     * @return static
      */
     public function addAction(string $label, string $action, array $parameters = [], string $style = 'primary'): static
     {
@@ -266,23 +266,6 @@ class Card extends UIComponent
         return 'default';
     }
 
-    /**
-     * Get the base service ID for a service class
-     *
-     * @param string $serviceClass Full service class name
-     * @return int Service base ID (offset)
-     */
-    private function getServiceIdFromClass(string $serviceClass): int
-    {
-        if ($serviceClass === 'default') {
-            return 0;
-        }
-
-        // Calculate offset (same logic as UIIdGenerator::getContextOffset)
-        $hash = abs(crc32($serviceClass));
-        $segment = $hash % 9999; // 9999 segments (not 500)
-        return $segment * 10000;
-    }
 
     /**
      * Set card badge

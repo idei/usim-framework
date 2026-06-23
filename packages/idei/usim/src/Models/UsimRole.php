@@ -7,6 +7,10 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Support\Facades\DB;
 use Spatie\Permission\Models\Role as SpatieRole;
 
+/**
+ * @property string $home_screen
+ * @property int $priority
+ */
 class UsimRole extends SpatieRole
 {
     protected const DEFAULT_HOME_SCREEN = 'home';
@@ -69,7 +73,11 @@ class UsimRole extends SpatieRole
     protected function homeScreen(): Attribute
     {
         return Attribute::make(
-            get: fn() => $this->usimSetting?->home_screen ?? config('usim.default_home_screen', self::DEFAULT_HOME_SCREEN),
+            get: function () {
+                /** @var UsimRoleSetting|null $setting */
+                $setting = $this->usimSetting()->first();
+                return $setting->home_screen ?? config('usim.default_home_screen', self::DEFAULT_HOME_SCREEN);
+            },
             set: fn($value) => $this->usimSetting()->updateOrCreate([], ['home_screen' => $value]),
         );
     }
@@ -77,7 +85,11 @@ class UsimRole extends SpatieRole
     protected function priority(): Attribute
     {
         return Attribute::make(
-            get: fn() => (int) ($this->usimSetting?->priority ?? config('usim.default_priority', 100)),
+            get: function () {
+                /** @var UsimRoleSetting|null $setting */
+                $setting = $this->usimSetting()->first();
+                return (int) ($setting->priority ?? config('usim.default_priority', 100));
+            },
             set: fn($value) => $this->usimSetting()->updateOrCreate([], ['priority' => (int) $value]),
         );
     }

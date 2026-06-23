@@ -91,14 +91,14 @@ class ConfirmDialogService implements UIModal
             ->parent('modal')
             ->layout(LayoutType::VERTICAL)
             ->plain()
-            ->gap(8)           // Space between elements
+            ->gap('8')           // Space between elements
             ->centerContent(); // Center content horizontally
 
         // Icon
         $container->add(
             UI::label('icon')
                 ->text($icon)
-                ->fontSize(48) // Large emoji (48px)
+                ->fontSize('48') // Large emoji (48px)
         );
 
         // Title
@@ -206,22 +206,5 @@ class ConfirmDialogService implements UIModal
     private function formatCountdown(int $value, TimeUnit $unit): string
     {
         return "{$value} {$unit->getLabel($value)}";
-    }
-
-    /**
-     * Get emoji character for the specified icon type (legacy support)
-     *
-     * @deprecated Use DialogType->getDefaultIcon() instead
-     */
-    private function getIconEmoji(string $icon): string
-    {
-        return match ($icon) {
-            'question' => '❓',
-            'info'     => 'ℹ️',
-            'warning'  => '⚠️',
-            'error'    => '❌',
-            'success'  => '✅',
-            default    => '❓'
-        };
     }
 }

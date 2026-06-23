@@ -16,8 +16,8 @@ class InstallMigrationStatusChecker
     public function assess(): array
     {
         $databaseStatus = $this->assessDatabaseExistence();
-        if (($databaseStatus['exists'] ?? false) !== true) {
-            $issue = (string) ($databaseStatus['issue'] ?? 'Database is not accessible with current configuration.');
+        if ($databaseStatus['exists'] !== true) {
+            $issue = (string) $databaseStatus['issue'];
 
             return [
                 'is_ready' => false,

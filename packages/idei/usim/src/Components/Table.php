@@ -197,7 +197,7 @@ class Table extends UIComponent
      * If $mode is null, returns current mode.
      *
      * @param SelectionMode|null $mode
-     * @return static|string|null
+     * @return static|string
      */
     public function selectionMode(?SelectionMode $mode = null): static|string
     {

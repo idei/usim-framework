@@ -5,6 +5,11 @@ namespace Idei\Usim\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
+/**
+ * @property int $role_id
+ * @property string $home_screen
+ * @property int $priority
+ */
 class UsimRoleSetting extends Model
 {
     protected $fillable = [

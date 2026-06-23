@@ -61,6 +61,7 @@ abstract class UIComponent implements UIElement, Sizeable
      */
     public static function deserialize(int $id, array $data): self
     {
+        /** @var static $component */
         $component = new static();
         $component->id = $id;
         $component->type = $data['type'] ?? 'unknown';
@@ -136,47 +137,6 @@ abstract class UIComponent implements UIElement, Sizeable
         return 'default';
     }
 
-    /**
-     * Genera ID determinístico basado en contexto + nombre
-     * Siempre retorna el mismo ID para el mismo contexto + nombre
-     *
-     * @param string $context Nombre completo de la clase invocante
-     * @param string $name Nombre del componente
-     * @return int ID determinístico
-     */
-    private function generateDeterministicId(string $context, string $name): int
-    {
-        // Obtener offset del contexto (ej: 56150000)
-        $offset = $this->getContextOffset($context);
-
-        // Hash del nombre (0-9999)
-        $hash = abs(crc32($name)) % 9999;
-
-        // ID final: offset + hash + 1
-        return $offset + $hash + 1;
-    }
-
-    /**
-     * Obtener offset del contexto (mismo cálculo que UIIdGenerator)
-     *
-     * @param string $context Nombre completo de la clase
-     * @return int Offset único para el contexto
-     */
-    private function getContextOffset(string $context): int
-    {
-        if ($context === 'default') {
-            return 0;
-        }
-
-        // Generar un hash numérico único del nombre de la clase usando CRC32
-        $hash = crc32($context);
-
-        // Convertir a positivo si es negativo y escalar al rango deseado
-        // Múltiplos de 10000, máximo 9999 contextos diferentes
-        $offset = (abs($hash) % 9999) * 10000;
-
-        return $offset;
-    }
 
     /**
      * Extract the component type from the class name

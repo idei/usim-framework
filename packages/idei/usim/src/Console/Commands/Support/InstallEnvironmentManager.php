@@ -67,7 +67,7 @@ class InstallEnvironmentManager
             }
 
             $parts = explode('=', $stubLine, 2);
-            $key = trim($parts[0] ?? '');
+            $key = trim($parts[0]);
             if ($key && !preg_match("/(^|\\n)\\s*" . preg_quote($key, '/') . "\\s*=/m", $envContent)) {
                 $appendContent .= $stubLine . "\n";
             }
@@ -142,7 +142,7 @@ class InstallEnvironmentManager
             return null;
         }
 
-        $value = trim((string) ($matches[1] ?? ''));
+        $value = trim((string) $matches[1]);
         if ($value === '') {
             return '';
         }

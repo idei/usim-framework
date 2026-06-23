@@ -862,10 +862,10 @@ class Form extends Container
      * Add shadow to form
      * Uses parent Container shadow method with predefined intensity
      *
-     * @param string|int $intensity Shadow intensity (0-3, or 'light'|'medium'|'heavy', or custom CSS)
+     * @param bool|int|string $intensity Shadow intensity (0-3, or 'light'|'medium'|'heavy', or custom CSS)
      * @return self For method chaining
      */
-    public function shadow(string|int $intensity = 1): self
+    public function shadow(bool|int|string $intensity = 1): self
     {
         // Call parent method which sets box_shadow in config
         parent::shadow($intensity);

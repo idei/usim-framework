@@ -16,7 +16,7 @@ trait InstallsDatabaseScaffolding
         ];
 
         foreach ($migrationStubs as $index => $migrationName) {
-            $autoForce = $migrationName['autoForce'] ?? true;
+            $autoForce = $migrationName['autoForce'];
             $this->installStubMigration($migrationName['name'], $index, $autoForce);
         }
 

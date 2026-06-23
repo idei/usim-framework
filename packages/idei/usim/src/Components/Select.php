@@ -106,7 +106,7 @@ class Select extends UIComponent
      * Set the select options
      *
      * @param array $options Array of options [['value' => 'val', 'label' => 'Label'], ...]
-     * @return $this For method chaining
+     * @return static For method chaining
      */
     public function options(array $options): self
     {
@@ -119,7 +119,7 @@ class Select extends UIComponent
      * @param string $value The option value
      * @param string $label The option label
      * @param array $extra Extra data (icon, avatar, badge, disabled, etc.)
-     * @return $this For method chaining
+     * @return static For method chaining
      */
     public function addOption(string $value, string $label, array $extra = []): self
     {
@@ -133,7 +133,7 @@ class Select extends UIComponent
      * Set option groups
      *
      * @param array $groups Array of groups [['label' => 'Group', 'options' => [...]], ...]
-     * @return $this For method chaining
+     * @return static For method chaining
      */
     public function groups(array $groups): self
     {
@@ -145,7 +145,7 @@ class Select extends UIComponent
      *
      * @param string $label The group label
      * @param array $options The options in this group
-     * @return $this For method chaining
+     * @return static For method chaining
      */
     public function addGroup(string $label, array $options): self
     {
@@ -158,7 +158,7 @@ class Select extends UIComponent
      * Set the selected value
      *
      * @param mixed $value The selected value (string or array for multiple)
-     * @return $this For method chaining
+     * @return static For method chaining
      */
     public function value(mixed $value): self
     {
@@ -169,7 +169,7 @@ class Select extends UIComponent
      * Set the placeholder text
      *
      * @param string $placeholder The placeholder
-     * @return $this For method chaining
+     * @return static For method chaining
      */
     public function placeholder(string $placeholder): self
     {
@@ -180,7 +180,7 @@ class Select extends UIComponent
      * Set the label
      *
      * @param string $label The label text
-     * @return $this For method chaining
+     * @return static For method chaining
      */
     public function label(string $label): self
     {
@@ -192,7 +192,7 @@ class Select extends UIComponent
      *
      * @param bool $multiple True to enable
      * @param int|null $maxSelections Max number of selections
-     * @return $this For method chaining
+     * @return static For method chaining
      */
     public function multiple(bool $multiple = true, ?int $maxSelections = null): self
     {
@@ -208,7 +208,7 @@ class Select extends UIComponent
      *
      * @param bool $searchable True to enable search
      * @param string|null $placeholder Search placeholder
-     * @return $this For method chaining
+     * @return static For method chaining
      */
     public function searchable(bool $searchable = true, ?string $placeholder = null): self
     {
@@ -223,7 +223,7 @@ class Select extends UIComponent
      * Set minimum characters before searching
      *
      * @param int $chars Minimum characters
-     * @return $this For method chaining
+     * @return static For method chaining
      */
     public function minSearchChars(int $chars): self
     {
@@ -234,7 +234,7 @@ class Select extends UIComponent
      * Mark as required
      *
      * @param bool $required True if required
-     * @return $this For method chaining
+     * @return static For method chaining
      */
     public function required(bool $required = true): self
     {
@@ -245,7 +245,7 @@ class Select extends UIComponent
      * Disable the select
      *
      * @param bool $disabled True to disable
-     * @return $this For method chaining
+     * @return static For method chaining
      */
     public function disabled(bool $disabled = true): self
     {
@@ -256,7 +256,7 @@ class Select extends UIComponent
      * Make readonly
      *
      * @param bool $readonly True for readonly
-     * @return $this For method chaining
+     * @return static For method chaining
      */
     public function readonly(bool $readonly = true): self
     {
@@ -267,7 +267,7 @@ class Select extends UIComponent
      * Set loading state
      *
      * @param bool $loading True if loading
-     * @return $this For method chaining
+     * @return static For method chaining
      */
     public function loading(bool $loading = true): self
     {
@@ -278,7 +278,7 @@ class Select extends UIComponent
      * Enable/disable clear button
      *
      * @param bool $clearable True to show clear button
-     * @return $this For method chaining
+     * @return static For method chaining
      */
     public function clearable(bool $clearable = true): self
     {
@@ -289,7 +289,7 @@ class Select extends UIComponent
      * Set error message
      *
      * @param string $message The error message
-     * @return $this For method chaining
+     * @return static For method chaining
      */
     public function errorMessage(string $message): self
     {
@@ -300,7 +300,7 @@ class Select extends UIComponent
      * Set help text
      *
      * @param string $text The help text
-     * @return $this For method chaining
+     * @return static For method chaining
      */
     public function helpText(string $text): self
     {
@@ -311,7 +311,7 @@ class Select extends UIComponent
      * Set the style
      *
      * @param string $style The style (default, primary, success, danger, warning, info)
-     * @return $this For method chaining
+     * @return static For method chaining
      */
     public function style(string $style): self
     {
@@ -322,7 +322,7 @@ class Select extends UIComponent
      * Set the size
      *
      * @param string $size The size (xs, small, medium, large, xl)
-     * @return $this For method chaining
+     * @return static For method chaining
      */
     public function size(string $size): self
     {
@@ -333,7 +333,7 @@ class Select extends UIComponent
      * Set the variant
      *
      * @param string $variant The variant (outlined, filled, underlined)
-     * @return $this For method chaining
+     * @return static For method chaining
      */
     public function variant(string $variant): self
     {
@@ -345,7 +345,7 @@ class Select extends UIComponent
      * Set dropdown position
      *
      * @param string $position The position (auto, top, bottom)
-     * @return $this For method chaining
+     * @return static For method chaining
      */
     public function position(string $position): static
     {
@@ -356,7 +356,7 @@ class Select extends UIComponent
      * Set close on select behavior
      *
      * @param bool $close True to close after selection
-     * @return $this For method chaining
+     * @return static For method chaining
      */
     public function closeOnSelect(bool $close = true): self
     {
@@ -368,7 +368,7 @@ class Select extends UIComponent
      *
      * @param string $icon The icon name
      * @param string $position The position (left, right)
-     * @return $this For method chaining
+     * @return static For method chaining
      */
     public function icon(string $icon, string $position = 'left'): self
     {
@@ -381,7 +381,7 @@ class Select extends UIComponent
      * Set dropdown icon
      *
      * @param string $icon The dropdown icon
-     * @return $this For method chaining
+     * @return static For method chaining
      */
     public function dropdownIcon(string $icon): self
     {
@@ -393,7 +393,7 @@ class Select extends UIComponent
      *
      * @param bool $render True to render as badges
      * @param string $style Badge style
-     * @return $this For method chaining
+     * @return static For method chaining
      */
     public function renderBadges(bool $render = true, string $style = 'primary'): self
     {
@@ -406,7 +406,7 @@ class Select extends UIComponent
      * Enable avatar rendering in options
      *
      * @param bool $render True to show avatars
-     * @return $this For method chaining
+     * @return static For method chaining
      */
     public function renderAvatars(bool $render = true): self
     {
@@ -418,7 +418,7 @@ class Select extends UIComponent
      *
      * @param string $url The remote URL
      * @param array $params Additional parameters
-     * @return $this For method chaining
+     * @return static For method chaining
      */
     public function remote(string $url, array $params = []): self
     {
@@ -431,7 +431,7 @@ class Select extends UIComponent
      * Set empty message
      *
      * @param string $message The message to show when no options
-     * @return $this For method chaining
+     * @return static For method chaining
      */
     public function emptyMessage(string $message): self
     {
@@ -442,7 +442,7 @@ class Select extends UIComponent
      * Set no results message
      *
      * @param string $message The message for no search results
-     * @return $this For method chaining
+     * @return static For method chaining
      */
     public function noResultsMessage(string $message): self
     {
@@ -454,7 +454,7 @@ class Select extends UIComponent
      *
      * @param bool $create True to enable
      * @param string|null $text Template text for create option
-     * @return $this For method chaining
+     * @return static For method chaining
      */
     public function createOption(bool $create = true, ?string $text = null): self
     {
@@ -469,7 +469,7 @@ class Select extends UIComponent
      * Enable virtual scrolling
      *
      * @param bool $virtual True to enable
-     * @return $this For method chaining
+     * @return static For method chaining
      */
     public function virtualScroll(bool $virtual = true): self
     {
@@ -480,7 +480,7 @@ class Select extends UIComponent
      * Set autocomplete
      *
      * @param string $autocomplete The autocomplete value
-     * @return $this For method chaining
+     * @return static For method chaining
      */
     public function autocomplete(string $autocomplete): self
     {
@@ -491,7 +491,7 @@ class Select extends UIComponent
      * Set ARIA label
      *
      * @param string $label The ARIA label
-     * @return $this For method chaining
+     * @return static For method chaining
      */
     public function ariaLabel(string $label): self
     {
@@ -502,7 +502,7 @@ class Select extends UIComponent
      * Set tooltip
      *
      * @param string $tooltip The tooltip text
-     * @return $this For method chaining
+     * @return static For method chaining
      */
     public function tooltip(string $tooltip): self
     {
@@ -513,7 +513,7 @@ class Select extends UIComponent
      * Set onChange action
      *
      * @param string $action The action to trigger
-     * @return $this For method chaining
+     * @return static For method chaining
      */
     public function onChange(string $action): self
     {
@@ -524,7 +524,7 @@ class Select extends UIComponent
      * Set onSearch action
      *
      * @param string $action The action to trigger
-     * @return $this For method chaining
+     * @return static For method chaining
      */
     public function onSearch(string $action): self
     {

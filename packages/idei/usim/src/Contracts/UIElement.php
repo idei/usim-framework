@@ -13,7 +13,7 @@ interface UIElement
     /**
      * Get the unique identifier for this UI element
      *
-     * @return string The element ID (format: "id:type")
+     * @return int The element ID
      */
     public function getId(): int;
 

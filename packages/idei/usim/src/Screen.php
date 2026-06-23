@@ -212,7 +212,7 @@ abstract class Screen
      * Gets a unique identifier for the screen based on its Namespace and Class.
      * Example: App\Usim\Screens\Admin\UserManagerScreen -> admin.user_manager
      */
-    private static function getScreenSlug(): string
+    protected static function getScreenSlug(): string
     {
         // 1. Get the FQCN (Fully Qualified Class Name) of the child class
         $className = static::class;
@@ -358,7 +358,6 @@ abstract class Screen
      * This will be called automatically if the cache expires.
      *
      * @param mixed ...$params Optional parameters for user Interface construction
-     * @return Container Base user Interface structure
      */
     abstract protected function buildBaseUI(Container $container, ...$params): void;
 
@@ -480,7 +479,17 @@ abstract class Screen
             $propertyType = $property->getType();
 
             // Skip if no type hint or is a built-in type
-            if (!$propertyType || $propertyType->isBuiltin()) {
+            if (!$propertyType) {
+                continue;
+            }
+
+            // Check if it's a built-in type (only ReflectionNamedType has isBuiltin)
+            if ($propertyType instanceof \ReflectionNamedType && $propertyType->isBuiltin()) {
+                continue;
+            }
+
+            // Get the type name (only ReflectionNamedType has getName)
+            if (!($propertyType instanceof \ReflectionNamedType)) {
                 continue;
             }
 
@@ -581,7 +590,7 @@ abstract class Screen
         $current_class_slug = strtolower(str_replace('\\', '_', $current_class));
         $container = UI::container($current_class_slug, $current_class)
             ->parent($parent)
-            ->padding(30)
+            ->padding('30')
             ->layout(LayoutType::VERTICAL)
             ->justifyContent('center')
             ->alignItems('center');
@@ -746,7 +755,7 @@ abstract class Screen
             'carousel' => \Idei\Usim\Components\Carousel::class,
             'textarea' => 'Idei\\Usim\\Components\\Textarea',
             'split' => Split::class,
-            'default' => null,
+            default => null,
         };
     }
 
@@ -861,6 +870,10 @@ abstract class Screen
             if (str_starts_with($propertyName, 'store_')) {
                 $propertyType = $property->getType();
                 if ($propertyType && !$propertyType->allowsNull()) {
+                    // Get the type name (only ReflectionNamedType has getName)
+                    if (!($propertyType instanceof \ReflectionNamedType)) {
+                        continue;
+                    }
                     $typeName = $propertyType->getName();
                     $isPrimitive = in_array($typeName, ['int', 'float', 'string', 'bool', 'array']);
                     if ($isPrimitive) {
