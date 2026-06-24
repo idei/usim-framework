@@ -161,7 +161,7 @@ class SplitDemo extends Screen
             ->collapseTarget($this->store_collapse_target)
             ->minFirstSize('160px')
             ->minSecondSize('160px')
-            ->height(300)
+            ->height(Size::px(300))
             ->width(Size::full())
             ->card();
 

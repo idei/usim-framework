@@ -115,7 +115,7 @@ class SelectDemo extends Screen
     {
         $container
             ->title(t('screen.demo.select_demo.title'))
-            ->maxWidth(600)
+            ->maxWidth(Size::px(600))
             ->centerHorizontal()
             ->shadow(2)
             ->padding('30px');

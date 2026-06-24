@@ -5,8 +5,8 @@ use App\Services\Auth\AuthSessionService;
 use App\Services\Auth\RegisterService;
 use App\UI\Components\Modals\RegisterDialog;
 use App\UI\Components\Modals\TermsDialog;
-use App\UI\Screens\Admin\UsersManager;
 use App\UI\Screens\Admin\TranslateManager;
+use App\UI\Screens\Admin\UsersManager;
 use App\UI\Screens\Auth\Login;
 use App\UI\Screens\Auth\Profile;
 use App\UI\Screens\Demo\ButtonDemo;
@@ -33,6 +33,7 @@ use Idei\Usim\Models\UsimLanguage;
 use Idei\Usim\Screen;
 use Idei\Usim\UI;
 use Idei\Usim\Upload\UploadService;
+use Idei\Usim\ValueObjects\Size;
 use Illuminate\Support\Facades\Auth;
 
 /**
@@ -144,7 +145,7 @@ class Menu extends Screen
         $lang_menu = UI::menuDropdown('lang_menu')
             ->trigger(strtoupper($this->store_lang))
             ->position('bottom-right')
-            ->width(160);
+            ->width(Size::px(160));
 
         $this->populateLangMenu($lang_menu);
 
@@ -219,7 +220,7 @@ class Menu extends Screen
         $main_menu = UI::menuDropdown('main_menu')
             ->trigger()
             ->position('bottom-left')
-            ->width(200);
+            ->width(Size::px(200));
 
         $this->populateMainMenu($main_menu);
 
@@ -263,7 +264,7 @@ class Menu extends Screen
     {
         $user_menu = UI::menuDropdown('user_menu')
             ->position('bottom-right')
-            ->width(180);
+            ->width(Size::px(180));
         $user_menu->trigger("⚙️");
         $this->populateUserMenu($user_menu);
         return $user_menu;

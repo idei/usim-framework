@@ -11,7 +11,7 @@ trait HasSizing
     // Explicit contract for setConfig to ensure it's implemented in the using class
     abstract protected function setConfig(string $key, mixed $value): static;
 
-    public function width(Size|int $width): static
+    public function width(Size $width): static
     {
         return $this->setConfig('width', (string) Size::from($width));
     }
@@ -21,7 +21,7 @@ trait HasSizing
         return Size::from($this->config['width'] ?? Size::auto());
     }
 
-    public function height(Size|int $height): static
+    public function height(Size $height): static
     {
         return $this->setConfig('height', (string) Size::from($height));
     }
@@ -31,7 +31,7 @@ trait HasSizing
         return Size::from($this->config['height'] ?? Size::auto());
     }
 
-    public function minWidth(Size|int $width): static
+    public function minWidth(Size $width): static
     {
         return $this->setConfig('min_width', (string) Size::from($width));
     }
@@ -42,7 +42,7 @@ trait HasSizing
         return $v !== null ? Size::from($v) : null;
     }
 
-    public function minHeight(Size|int $height): static
+    public function minHeight(Size $height): static
     {
         return $this->setConfig('min_height', (string) Size::from($height));
     }
@@ -53,7 +53,7 @@ trait HasSizing
         return $v !== null ? Size::from($v) : null;
     }
 
-    public function maxWidth(Size|int $width): static
+    public function maxWidth(Size $width): static
     {
         return $this->setConfig('max_width', (string) Size::from($width));
     }
@@ -64,7 +64,7 @@ trait HasSizing
         return $v !== null ? Size::from($v) : null;
     }
 
-    public function maxHeight(Size|int $height): static
+    public function maxHeight(Size $height): static
     {
         return $this->setConfig('max_height', (string) Size::from($height));
     }

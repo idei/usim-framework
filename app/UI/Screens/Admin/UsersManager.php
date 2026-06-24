@@ -85,7 +85,7 @@ class UsersManager extends Screen
         $users_crud_container = UI::container('users_crud_container')
             ->layout(LayoutType::VERTICAL)
             ->gap('4px')
-            ->height(400)
+            ->height(Size::px(400))
             ->plain();
 
         $toolbar = UI::container('users_toolbar')
@@ -142,7 +142,7 @@ class UsersManager extends Screen
             ->collapsible(true)
             ->minFirstSize('400px')
             ->minSecondSize('700px')
-            ->height(500)
+            ->height(Size::px(500))
             ->width(Size::full())
             ->card();
 

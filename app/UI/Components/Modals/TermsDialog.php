@@ -41,7 +41,7 @@ class TermsDialog
             ->shadow(false)
             ->gap('16px')
             ->padding('5px')
-            ->width(680)
+            ->width(Size::px(680))
             ->maxWidth(Size::vw(90));
 
         $container->add(
