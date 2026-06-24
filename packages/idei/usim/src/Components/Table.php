@@ -452,7 +452,7 @@ class Table extends UIComponent
                 $rowBuilder = $this->createRow();
                 $rowBuilder->row($row);
 
-                $rowMinHeight = $this->config['row_min_height'] ?? null;
+                $rowMinHeight = Size::from($this->config['row_min_height'] ?? null);
                 if ($rowMinHeight !== null) {
                     $rowBuilder->minHeight($rowMinHeight);
                 }
@@ -529,7 +529,7 @@ class Table extends UIComponent
                 $rowBuilder = $this->createRow();
                 $rowBuilder->row($row);
 
-                $rowMinHeight = $this->config['row_min_height'] ?? null;
+                $rowMinHeight = Size::from($this->config['row_min_height'] ?? null);
                 if ($rowMinHeight !== null) {
                     $rowBuilder->minHeight($rowMinHeight);
                 }
@@ -815,7 +815,7 @@ class Table extends UIComponent
             $rowBuilder = $this->createRow();
             $rowBuilder->row($row); // Set row index for ordering
 
-            $rowMinHeight = $this->config['row_min_height'] ?? null;
+            $rowMinHeight = Size::from($this->config['row_min_height'] ?? null);
             if ($rowMinHeight !== null) {
                 $rowBuilder->minHeight($rowMinHeight);
             }
