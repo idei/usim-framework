@@ -12,6 +12,8 @@ use Idei\Usim\Support\UIIdGenerator;
  *
  * This class implements the common functionality for leaf nodes in the UI tree.
  * Leaf components cannot have children and represent atomic UI elements.
+ *
+ * @phpstan-consistent-constructor
  */
 abstract class UIComponent implements UIElement, Sizeable
 {

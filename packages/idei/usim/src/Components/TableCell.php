@@ -2,7 +2,6 @@
 
 namespace Idei\Usim\Components;
 
-use Idei\Usim\Components\Container;
 use Idei\Usim\Enums\Align;
 
 /**
@@ -24,6 +23,7 @@ class TableCell extends UIComponent
      *
      * @param TableRow $row The parent row this cell belongs to
      * @param string|null $name Optional name for the cell
+     * @phpstan-ignore method.childParameterType
      */
     public function __construct(?TableRow $row = null, ?string $name = null)
     {
@@ -49,7 +49,7 @@ class TableCell extends UIComponent
 
     public function toString(): string
     {
-        return "TableCell(id={$this->id}, "  .
+        return "TableCell(id={$this->id}, " .
             //", name={$this->name}, text=" .
             ", column=" . ($this->config['column'] ?? 'null') .
             ", text=" . ($this->config['text'] ?? 'null') .
@@ -243,6 +243,9 @@ class TableCell extends UIComponent
      */
     public function getRow(): TableRow
     {
+        if ($this->row === null) {
+            throw new \LogicException('TableCell has no parent row assigned.');
+        }
         return $this->row;
     }
 

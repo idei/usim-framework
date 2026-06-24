@@ -23,6 +23,7 @@ class TableRow extends UIComponent
      *
      * @param Table|null $table The parent table this row belongs to
      * @param string|null $name Optional name for the row
+     * @phpstan-ignore method.childParameterType
      */
     public function __construct(?Table $table = null, ?string $name = null)
     {
@@ -219,6 +220,9 @@ class TableRow extends UIComponent
      */
     public function getTable(): Table
     {
+        if ($this->table === null) {
+            throw new \LogicException("Row is not associated with a table");
+        }
         return $this->table;
     }
 

@@ -23,6 +23,7 @@ class TableHeaderRow extends UIComponent
      *
      * @param Table $table The parent table this header row belongs to
      * @param string|null $name Optional name for the header row
+     * @phpstan-ignore method.childParameterType
      */
     public function __construct(?Table $table = null, ?string $name = null)
     {
@@ -86,6 +87,9 @@ class TableHeaderRow extends UIComponent
      */
     public function getTable(): Table
     {
+        if ($this->table === null) {
+            throw new \LogicException("Header row is not associated with a table");
+        }
         return $this->table;
     }
 

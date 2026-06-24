@@ -739,7 +739,7 @@ class SeedAccessControl
 
         $merged = array_replace_recursive($packageConfig, $publishedConfig);
 
-        return \is_array($merged) ? $merged : [];
+        return $merged;
     }
 
     /**
