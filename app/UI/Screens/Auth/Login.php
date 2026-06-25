@@ -11,6 +11,7 @@ use Idei\Usim\Enums\Visibility;
 use Idei\Usim\Screen;
 use Idei\Usim\UI;
 use Idei\Usim\ValueObjects\Size;
+use Idei\Usim\ValueObjects\Spacing;
 
 class Login extends Screen
 {
@@ -61,7 +62,7 @@ class Login extends Screen
             ->maxWidth(Size::px(450))
             ->centerHorizontal()
             ->shadow(3)
-            ->padding('30px');
+            ->padding(Spacing::px(30));
 
         $container->add(
             UI::input('login_email')
@@ -91,9 +92,9 @@ class Login extends Screen
             ->layout(LayoutType::HORIZONTAL)
             ->justifyContent(JustifyContent::SPACE_BETWEEN)
             ->plain()
-            ->gap('10px')
+            ->gap(Spacing::px(10))
             ->shadow(false)
-            ->padding('20px 0 0 0');
+            ->padding(Spacing::each(Spacing::px(20)));
 
         $buttonsContainer->add(
             UI::button('btn_cancel_login')

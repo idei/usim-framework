@@ -7,6 +7,7 @@ use Idei\Usim\Components\Container;
 use Idei\Usim\Screen;
 use Idei\Usim\UI;
 use Idei\Usim\ValueObjects\Size;
+use Idei\Usim\ValueObjects\Spacing;
 
 class CalendarDemo extends Screen
 {
@@ -18,7 +19,7 @@ class CalendarDemo extends Screen
             ->maxWidth(Size::px(600))
             ->centerHorizontal()
             ->plain()
-            ->padding('30px');
+            ->padding(Spacing::px(30));
 
         $this->academic_calendar = UI::calendar('academic_calendar')
             ->year(2026)

@@ -9,6 +9,7 @@ use Idei\Usim\Components\Select;
 use Idei\Usim\Screen;
 use Idei\Usim\UI;
 use Idei\Usim\ValueObjects\Size;
+use Idei\Usim\ValueObjects\Spacing;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use Throwable;
@@ -50,7 +51,7 @@ class AddressForm extends Screen
             ->maxWidth(Size::px(640))
             ->centerHorizontal()
             ->shadow(2)
-            ->padding('30px');
+            ->padding(Spacing::px(30));
 
         $container->add(
             UI::label('lbl_instruction')

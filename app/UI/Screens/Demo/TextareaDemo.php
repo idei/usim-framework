@@ -6,6 +6,7 @@ use Idei\Usim\Components\Textarea;
 use Idei\Usim\Screen;
 use Idei\Usim\UI;
 use Idei\Usim\ValueObjects\Size;
+use Idei\Usim\ValueObjects\Spacing;
 
 /**
  * TextareaDemo
@@ -35,8 +36,8 @@ class TextareaDemo extends Screen
             ->maxWidth(Size::px(1024))
             ->centerHorizontal()
             ->plain()
-            ->gap('5px')
-            ->padding('0px');
+            ->gap(Spacing::px(5))
+            ->padding(Spacing::px(0));
 
         $title = UI::label('textarea_demo_title')
             ->text(t('screen.demo.textarea_demo.title'))
@@ -48,7 +49,7 @@ class TextareaDemo extends Screen
         $sectionPlain = UI::container('section_plain')
             ->plain()
             ->width(Size::full())
-            ->gap('12px');
+            ->gap(Spacing::px(12));
 
         /** @var Textarea $plainTextarea */
         $plainTextarea = UI::textarea('plain_textarea');
@@ -71,7 +72,7 @@ class TextareaDemo extends Screen
         $sectionMd = UI::container('section_md')
             ->plain()
             ->width(Size::full())
-            ->gap('12px');
+            ->gap(Spacing::px(12));
 
         $defaultMd = "## Bienvenido al editor Markdown\n\nEscribe **negrita**, *cursiva* o `código inline`.\n\n- Viñeta 1\n- Viñeta 2\n\n> Una cita de ejemplo.\n";
 

@@ -1,15 +1,16 @@
 <?php
 namespace App\UI\Screens\Demo;
 
-use Idei\Usim\UI;
-use Idei\Usim\Enums\TimeUnit;
-use Idei\Usim\Enums\DialogType;
-use Idei\Usim\Enums\LayoutType;
-use Idei\Usim\Screen;
 use Idei\Usim\Components\Container;
 use Idei\Usim\Components\Label;
+use Idei\Usim\Enums\DialogType;
+use Idei\Usim\Enums\LayoutType;
+use Idei\Usim\Enums\TimeUnit;
 use Idei\Usim\Modals\ConfirmDialogService;
+use Idei\Usim\Screen;
+use Idei\Usim\UI;
 use Idei\Usim\ValueObjects\Size;
+use Idei\Usim\ValueObjects\Spacing;
 
 /**
  * Modal Demo Service
@@ -31,7 +32,7 @@ class ModalDemo extends Screen
             ->maxWidth(Size::px(600))
             ->centerHorizontal()
             ->shadow(2)
-            ->padding('30px');
+            ->padding(Spacing::px(30));
 
         $container->add(
             UI::label('lbl_instruction')
@@ -48,7 +49,7 @@ class ModalDemo extends Screen
         $buttonContainer = UI::container('button_container')
             ->layout(LayoutType::HORIZONTAL)
             ->centerContent()
-            ->gap("15px")
+            ->gap(Spacing::px(15))
             ->shadow(false)
             ->add(
                 UI::button('btn_open_modal')

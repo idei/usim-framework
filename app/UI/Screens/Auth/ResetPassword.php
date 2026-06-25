@@ -10,6 +10,7 @@ use Idei\Usim\Enums\LayoutType;
 use Idei\Usim\Screen;
 use Idei\Usim\UI;
 use Idei\Usim\ValueObjects\Size;
+use Idei\Usim\ValueObjects\Spacing;
 
 class ResetPassword extends Screen
 {
@@ -32,8 +33,8 @@ class ResetPassword extends Screen
             ->justifyContent('start')
             ->alignItems('center')
             ->plain()
-            ->padding('40px')
-            ->paddingTop('80px')
+            ->padding(Spacing::px(40))
+            ->paddingTop(Spacing::px(80))
             ->minHeight(Size::vh(100));
 
         // Icono superior
@@ -72,9 +73,9 @@ class ResetPassword extends Screen
             ->maxWidth(Size::px(600))
             ->width(Size::full())
             ->borderRadius('8px')
-            ->marginTop('30px')
-            ->padding('30px')
-            ->gap('20px')
+            ->marginTop(Spacing::px(30))
+            ->padding(Spacing::px(30))
+            ->gap(Spacing::px(20))
             ->backgroundColor('white')
             ->customStyle('border-left: 5px solid #10b981; overflow: hidden;');
 
@@ -83,7 +84,7 @@ class ResetPassword extends Screen
                 ->text(t('screen.auth.reset_password.card_title'))
                 ->style('h3')
                 ->color('#1f2937')
-                ->marginBottom('5px')
+                ->marginBottom(Spacing::px(5))
         );
 
         $formCard->add(
@@ -91,7 +92,7 @@ class ResetPassword extends Screen
                 ->text(t('screen.auth.reset_password.instruction'))
                 ->style('p')
                 ->color('#6b7280')
-                ->marginBottom('15px')
+                ->marginBottom(Spacing::px(15))
         );
 
         // Hidden fields for token and email
@@ -132,7 +133,7 @@ class ResetPassword extends Screen
                 ->label(t('screen.auth.reset_password.actions.submit'))
                 ->style('success')
                 ->action('reset_password')
-                ->marginTop('10px')
+                ->marginTop(Spacing::px(10))
         );
 
         $container->add($formCard);

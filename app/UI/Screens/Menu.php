@@ -34,6 +34,7 @@ use Idei\Usim\Screen;
 use Idei\Usim\UI;
 use Idei\Usim\Upload\UploadService;
 use Idei\Usim\ValueObjects\Size;
+use Idei\Usim\ValueObjects\Spacing;
 use Illuminate\Support\Facades\Auth;
 
 /**
@@ -64,8 +65,8 @@ class Menu extends Screen
             ->layout(LayoutType::HORIZONTAL)
             ->justifyContent(JustifyContent::SPACE_BETWEEN)
             ->alignItems(AlignItems::CENTER)
-            ->padding('0px')
-            ->marginBottom('0');
+            ->padding(Spacing::px(0))
+            ->marginBottom(Spacing::px(0));
 
         $this->main_menu = $this->buildLeftMenu();
         $this->user_menu = $this->buildUserMenu();
@@ -74,13 +75,13 @@ class Menu extends Screen
             $this->store_lang = config('usim.i18n.fallback_locale', 'en');
         }
         $this->lang_menu = $this->buildLangMenu();
-        $this->user_menu->marginLeft('12px');
+        $this->user_menu->marginLeft(Spacing::px(12));
 
         $container->add($this->main_menu);
         $this->theme_toggle = UI::button('theme_toggle')
             ->action('toggleTheme')
             ->plain()
-            ->marginLeft('auto');
+            ->marginLeft(Spacing::auto());
         $container->add($this->theme_toggle);
         $container->add($this->lang_menu);
         $container->add($this->user_menu);

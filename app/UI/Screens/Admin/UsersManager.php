@@ -20,6 +20,7 @@ use Idei\Usim\Modals\ConfirmDialogService;
 use Idei\Usim\Screen;
 use Idei\Usim\UI;
 use Idei\Usim\ValueObjects\Size;
+use Idei\Usim\ValueObjects\Spacing;
 
 class UsersManager extends Screen
 {
@@ -64,9 +65,9 @@ class UsersManager extends Screen
 
         $tabs_container = UI::container('tabs_container')
             ->width(Size::full())
-            ->padding('10px')
+            ->padding(Spacing::px(10))
             ->minHeight(Size::px(900))
-            ->gap('2px')
+            ->gap(Spacing::px(2))
             ->tabs(
                 [
                     'users_tab' => ['label' => t(self::I18N_PREFIX . 'users_tab')],
@@ -84,15 +85,15 @@ class UsersManager extends Screen
     {
         $users_crud_container = UI::container('users_crud_container')
             ->layout(LayoutType::VERTICAL)
-            ->gap('4px')
+            ->gap(Spacing::px(4))
             ->height(Size::px(400))
             ->plain();
 
         $toolbar = UI::container('users_toolbar')
             ->layout(LayoutType::HORIZONTAL)
             ->fullWidth()
-            ->padding('10px')
-            ->gap("10px");
+            ->padding(Spacing::px(10))
+            ->gap(Spacing::px(10));
 
         $search = UI::input('search_users')
             ->placeholder(t('screen.admin.dashboard.search_placeholder'))
@@ -131,7 +132,7 @@ class UsersManager extends Screen
     {
         $roles_container = UI::container('roles_container')
             ->layout(LayoutType::VERTICAL)
-            ->gap('4px')
+            ->gap(Spacing::px(4))
             ->plain();
 
         $this->roles_split = UI::split('roles_split')
@@ -148,7 +149,7 @@ class UsersManager extends Screen
 
         $roles_left_panel = UI::container('roles_left_panel')
             ->layout(LayoutType::VERTICAL)
-            ->gap('4px')
+            ->gap(Spacing::px(4))
             ->plain();
 
         $roles_right_panel = UI::container('roles_right_panel')
@@ -158,8 +159,8 @@ class UsersManager extends Screen
             ->layout(LayoutType::HORIZONTAL)
             ->fullWidth()
             ->rounded(0)
-            ->padding('10px')
-            ->gap("10px");
+            ->padding(Spacing::px(10))
+            ->gap(Spacing::px(10));
 
         $search = UI::input('search_roles')
             ->placeholder(t('screen.admin.users_manager.search_role_placeholder'))

@@ -12,6 +12,7 @@ use Idei\Usim\Enums\SelectionMode;
 use Idei\Usim\Screen;
 use Idei\Usim\UI;
 use Idei\Usim\ValueObjects\Size;
+use Idei\Usim\ValueObjects\Spacing;
 use Override;
 
 class TableDemo extends Screen
@@ -23,7 +24,7 @@ class TableDemo extends Screen
     {
         $container->plain()
             ->centerHorizontal()
-            ->gap('5px');
+            ->gap(Spacing::px(5));
 
         $label = UI::label()
             ->text(t('screen.demo.table_demo.title'))
@@ -58,7 +59,7 @@ class TableDemo extends Screen
             ->layout(LayoutType::HORIZONTAL)
             ->fullWidth()
             ->shadow(0)
-            ->gap("12px");
+            ->gap(Spacing::px(16));
 
         $search = UI::input('search_movies')
             ->placeholder(t('screen.demo.table_demo.search_placeholder'))

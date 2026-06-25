@@ -9,6 +9,7 @@ use Idei\Usim\Components\Select;
 use Idei\Usim\Screen;
 use Idei\Usim\UI;
 use Idei\Usim\ValueObjects\Size;
+use Idei\Usim\ValueObjects\Spacing;
 
 /**
  * Select Demo Service
@@ -118,7 +119,7 @@ class SelectDemo extends Screen
             ->maxWidth(Size::px(600))
             ->centerHorizontal()
             ->shadow(2)
-            ->padding('30px');
+            ->padding(Spacing::px(30));
 
         // Instruction label
         $container->add(

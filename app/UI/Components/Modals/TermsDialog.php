@@ -7,6 +7,7 @@ use Idei\Usim\Enums\LayoutType;
 use Idei\Usim\UI;
 use Idei\Usim\UIChangesCollector;
 use Idei\Usim\ValueObjects\Size;
+use Idei\Usim\ValueObjects\Spacing;
 use Illuminate\Support\Str;
 
 class TermsDialog
@@ -39,8 +40,8 @@ class TermsDialog
             ->layout(LayoutType::VERTICAL)
             ->plain()
             ->shadow(false)
-            ->gap('16px')
-            ->padding('5px')
+            ->gap(Spacing::px(16))
+            ->padding(Spacing::px(5))
             ->width(Size::px(680))
             ->maxWidth(Size::vw(90));
 
@@ -56,7 +57,7 @@ class TermsDialog
             ->justifyContent(JustifyContent::END)
             ->plain()
             ->shadow(false)
-            ->padding('8px 0 0 0');
+            ->padding(Spacing::each(Spacing::px(8)));
 
         if ($cancelAction) {
             $buttons->add(

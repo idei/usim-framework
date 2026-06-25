@@ -2,7 +2,14 @@
 
 namespace Idei\Usim\Components;
 
+use Idei\Usim\Components\UIComponent;
+use Idei\Usim\Concerns\HasGap;
+use Idei\Usim\Concerns\HasMargin;
+use Idei\Usim\Concerns\HasPadding;
 use Idei\Usim\Concerns\HasSizing;
+use Idei\Usim\Contracts\Gapable;
+use Idei\Usim\Contracts\Marginable;
+use Idei\Usim\Contracts\Paddable;
 use Idei\Usim\Contracts\Sizeable;
 use Idei\Usim\Contracts\UIElement;
 use Idei\Usim\Enums\AlignItems;
@@ -18,9 +25,9 @@ use Idei\Usim\ValueObjects\Size;
  * organized in a tree structure. It provides methods to add, remove, update,
  * and find child elements, as well as recursive JSON serialization.
  */
-class Container implements UIElement, Sizeable
+class Container implements UIElement, Sizeable, Paddable, Marginable, Gapable
 {
-    use HasSizing;
+    use HasSizing, HasPadding, HasMargin, HasGap;
 
     protected int $id;
     protected string $type = 'container';
@@ -818,218 +825,6 @@ class Container implements UIElement, Sizeable
     }
 
     // ========================================================================
-    // GAP/SPACING METHODS
-    // ========================================================================
-
-    /**
-     * Set gap (spacing between children)
-     *
-     * @param string $gap Gap value (px, rem, etc)
-     * @return self For method chaining
-     */
-    public function gap(string $gap): self
-    {
-        $this->config['gap'] = $gap;
-        return $this;
-    }
-
-    /**
-     * Set row gap
-     *
-     * @param string $gap Row gap value
-     * @return self For method chaining
-     */
-    public function rowGap(string $gap): self
-    {
-        $this->config['row_gap'] = $gap;
-        return $this;
-    }
-
-    /**
-     * Set column gap
-     *
-     * @param string $gap Column gap value
-     * @return self For method chaining
-     */
-    public function columnGap(string $gap): self
-    {
-        $this->config['column_gap'] = $gap;
-        return $this;
-    }
-
-    // ========================================================================
-    // PADDING METHODS
-    // ========================================================================
-
-    /**
-     * Set padding (all sides)
-     *
-     * @param string $padding Padding value
-     * @return self For method chaining
-     */
-    public function padding(string $padding): self
-    {
-        $this->config['padding'] = $padding;
-        return $this;
-    }
-
-    /**
-     * Set padding for individual sides
-     *
-     * @param string|null $top Top padding
-     * @param string|null $right Right padding
-     * @param string|null $bottom Bottom padding
-     * @param string|null $left Left padding
-     * @return self For method chaining
-     */
-    public function paddingEach(?string $top = null, ?string $right = null, ?string $bottom = null, ?string $left = null): self
-    {
-        if ($top !== null)
-            $this->config['padding_top'] = $top;
-        if ($right !== null)
-            $this->config['padding_right'] = $right;
-        if ($bottom !== null)
-            $this->config['padding_bottom'] = $bottom;
-        if ($left !== null)
-            $this->config['padding_left'] = $left;
-        return $this;
-    }
-
-    /**
-     * Set top padding
-     *
-     * @param string $padding Padding value
-     * @return self For method chaining
-     */
-    public function paddingTop(string $padding): self
-    {
-        $this->config['padding_top'] = $padding;
-        return $this;
-    }
-
-    /**
-     * Set right padding
-     *
-     * @param string $padding Padding value
-     * @return self For method chaining
-     */
-    public function paddingRight(string $padding): self
-    {
-        $this->config['padding_right'] = $padding;
-        return $this;
-    }
-
-    /**
-     * Set bottom padding
-     *
-     * @param string $padding Padding value
-     * @return self For method chaining
-     */
-    public function paddingBottom(string $padding): self
-    {
-        $this->config['padding_bottom'] = $padding;
-        return $this;
-    }
-
-    /**
-     * Set left padding
-     *
-     * @param string $padding Padding value
-     * @return self For method chaining
-     */
-    public function paddingLeft(string $padding): self
-    {
-        $this->config['padding_left'] = $padding;
-        return $this;
-    }
-
-    // ========================================================================
-    // MARGIN METHODS
-    // ========================================================================
-
-    /**
-     * Set margin (all sides)
-     *
-     * @param string $margin Margin value
-     * @return static For method chaining
-     */
-    public function margin(string $margin): static
-    {
-        $this->config['margin'] = $margin;
-        return $this;
-    }
-
-    /**
-     * Set margin for individual sides
-     *
-     * @param string|null $top Top margin
-     * @param string|null $right Right margin
-     * @param string|null $bottom Bottom margin
-     * @param string|null $left Left margin
-     * @return static For method chaining
-     */
-    public function marginEach(?string $top = null, ?string $right = null, ?string $bottom = null, ?string $left = null): static
-    {
-        if ($top !== null)
-            $this->config['margin_top'] = $top;
-        if ($right !== null)
-            $this->config['margin_right'] = $right;
-        if ($bottom !== null)
-            $this->config['margin_bottom'] = $bottom;
-        if ($left !== null)
-            $this->config['margin_left'] = $left;
-        return $this;
-    }
-
-    /**
-     * Set top margin
-     *
-     * @param string $margin Margin value
-     * @return static For method chaining
-     */
-    public function marginTop(string $margin): static
-    {
-        $this->config['margin_top'] = $margin;
-        return $this;
-    }
-
-    /**
-     * Set right margin
-     *
-     * @param string $margin Margin value
-     * @return static For method chaining
-     */
-    public function marginRight(string $margin): static
-    {
-        $this->config['margin_right'] = $margin;
-        return $this;
-    }
-
-    /**
-     * Set bottom margin
-     *
-     * @param string $margin Margin value
-     * @return static For method chaining
-     */
-    public function marginBottom(string $margin): static
-    {
-        $this->config['margin_bottom'] = $margin;
-        return $this;
-    }
-
-    /**
-     * Set left margin
-     *
-     * @param string $margin Margin value
-     * @return static For method chaining
-     */
-    public function marginLeft(string $margin): static
-    {
-        $this->config['margin_left'] = $margin;
-        return $this;
-    }
-
-    // ========================================================================
     // VISUAL STYLING METHODS
     // ========================================================================
 
@@ -1735,17 +1530,6 @@ class Container implements UIElement, Sizeable
     }
 
     /**
-     * Set all spacing (gap and padding) at once
-     *
-     * @param string $value Spacing value
-     * @return self For method chaining
-     */
-    public function spacing(string $value): self
-    {
-        return $this->gap($value)->padding($value);
-    }
-
-    /**
      * Make container full width
      *
      * @return self For method chaining
@@ -1938,9 +1722,6 @@ class Container implements UIElement, Sizeable
 
         return 'default';
     }
-
-
-
 
     /**
      * Buscar componente hijo por nombre (recursivo)

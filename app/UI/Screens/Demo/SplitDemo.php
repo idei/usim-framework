@@ -11,6 +11,7 @@ use Idei\Usim\Enums\LayoutType;
 use Idei\Usim\Screen;
 use Idei\Usim\UI;
 use Idei\Usim\ValueObjects\Size;
+use Idei\Usim\ValueObjects\Spacing;
 
 class SplitDemo extends Screen
 {
@@ -45,8 +46,8 @@ class SplitDemo extends Screen
         $container
             ->maxWidth(Size::px(1100))
             ->centerHorizontal()
-            ->padding('12px 24px 24px 24px')
-            ->gap('14px')
+            ->padding(Spacing::each(Spacing::px(12), Spacing::px(24), Spacing::px(24), Spacing::px(24)))
+            ->gap(Spacing::px(14))
             ->plain();
 
         $container->add(
@@ -65,8 +66,8 @@ class SplitDemo extends Screen
 
         $controls = UI::container('split_controls')
             ->layout(LayoutType::VERTICAL)
-            ->gap('10px')
-            ->padding('14px')
+            ->gap(Spacing::px(10))
+            ->padding(Spacing::px(14))
             ->width(Size::full());
 
         $controls->add(
@@ -125,7 +126,7 @@ class SplitDemo extends Screen
 
         $actions = UI::container('split_actions')
             ->layout(LayoutType::HORIZONTAL)
-            ->gap('8px')
+            ->gap(Spacing::px(8))
             ->plain();
 
         $actions->add(
@@ -175,8 +176,8 @@ class SplitDemo extends Screen
 
         $leftPanel = UI::container('split_left_panel')
             ->plain()
-            ->padding('12px')
-            ->gap('8px');
+            ->padding(Spacing::px(12))
+            ->gap(Spacing::px(8));
 
         $leftPanel->add(UI::label('split_left_title')->text(t('screen.demo.split_demo.panes.first.title'))->style('primary'));
         $leftPanel->add(UI::label('split_left_copy')->text(t('screen.demo.split_demo.panes.first.description')));
@@ -189,8 +190,8 @@ class SplitDemo extends Screen
 
         $rightPanel = UI::container('split_right_panel')
             ->plain()
-            ->padding('12px')
-            ->gap('8px');
+            ->padding(Spacing::px(12))
+            ->gap(Spacing::px(8));
 
         $rightPanel->add(UI::label('split_right_title')->text(t('screen.demo.split_demo.panes.second.title'))->style('success'));
         $rightPanel->add(UI::label('split_right_copy')->text(t('screen.demo.split_demo.panes.second.description')));

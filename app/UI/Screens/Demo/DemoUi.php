@@ -1,13 +1,14 @@
 <?php
 namespace App\UI\Screens\Demo;
 
-use Idei\Usim\Screen;
 use Idei\Usim\Components\Button;
-use Idei\Usim\Components\Label;
 use Idei\Usim\Components\Container;
+use Idei\Usim\Components\Label;
 use Idei\Usim\Enums\LayoutType;
+use Idei\Usim\Screen;
 use Idei\Usim\UI;
 use Idei\Usim\ValueObjects\Size;
+use Idei\Usim\ValueObjects\Spacing;
 
 
 class DemoUi extends Screen
@@ -25,7 +26,7 @@ class DemoUi extends Screen
             ->maxWidth(Size::px(600))
             ->centerHorizontal()
             ->rounded(false)
-            ->padding('10px');
+            ->padding(Spacing::px(10));
 
         $this->buildUIElements($container);
     }
@@ -65,7 +66,7 @@ class DemoUi extends Screen
             ->layout(LayoutType::HORIZONTAL)
             ->shadow(false)
             ->centerContent()
-            ->gap("10px");
+            ->gap(Spacing::px(10));
 
         $counterContainer->add(
             UI::button('btn_decrement')
@@ -114,8 +115,8 @@ class DemoUi extends Screen
             ->minHeight(Size::px(100))
             ->justifyContent('start')
             ->fullWidth()
-            ->padding('5px')
-            ->gap('5px');
+            ->padding(Spacing::px(5))
+            ->gap(Spacing::px(5));
 
         $container->add($this->new_components_container);
     }

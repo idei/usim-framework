@@ -7,6 +7,7 @@ use Idei\Usim\Enums\LayoutType;
 use Idei\Usim\UI;
 use Idei\Usim\UIChangesCollector;
 use Idei\Usim\ValueObjects\Size;
+use Idei\Usim\ValueObjects\Spacing;
 
 class EditTranslationDialog
 {
@@ -34,7 +35,7 @@ class EditTranslationDialog
             ->parent('modal')
             ->shadow(false)
             ->plain()
-            ->padding('20px');
+            ->padding(Spacing::px(20));
 
         $container->add(
             UI::label('translation_dialog_title')
@@ -95,8 +96,8 @@ class EditTranslationDialog
             ->justifyContent(JustifyContent::SPACE_BETWEEN)
             ->shadow(false)
             ->plain()
-            ->gap('10px')
-            ->padding('10px 0 0 0');
+            ->gap(Spacing::px(10))
+            ->padding(Spacing::each(Spacing::px(10)));
 
         if ($cancelAction) {
             $buttons->add(

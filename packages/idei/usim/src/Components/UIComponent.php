@@ -2,7 +2,9 @@
 
 namespace Idei\Usim\Components;
 
+use Idei\Usim\Concerns\HasMargin;
 use Idei\Usim\Concerns\HasSizing;
+use Idei\Usim\Contracts\Marginable;
 use Idei\Usim\Contracts\Sizeable;
 use Idei\Usim\Contracts\UIElement;
 use Idei\Usim\Support\UIIdGenerator;
@@ -15,9 +17,9 @@ use Idei\Usim\Support\UIIdGenerator;
  *
  * @phpstan-consistent-constructor
  */
-abstract class UIComponent implements UIElement, Sizeable
+abstract class UIComponent implements UIElement, Sizeable, Marginable
 {
-    use HasSizing;
+    use HasSizing, HasMargin;
 
     protected int $id;
     protected string $type;
@@ -372,65 +374,6 @@ abstract class UIComponent implements UIElement, Sizeable
     public static function getContextInfo(string $context): array
     {
         return UIIdGenerator::getContextInfo($context);
-    }
-
-    // ========================================================================
-    // MARGIN METHODS
-    // ========================================================================
-
-    /**
-     * Set margin (all sides)
-     *
-     * @param string $margin Margin value
-     * @return static For method chaining
-     */
-    public function margin(string $margin): static
-    {
-        return $this->setConfig('margin', $margin);
-    }
-
-    /**
-     * Set left margin
-     *
-     * @param string $margin Margin value
-     * @return static For method chaining
-     */
-    public function marginLeft(string $margin): static
-    {
-        return $this->setConfig('margin_left', $margin);
-    }
-
-    /**
-     * Set right margin
-     *
-     * @param string $margin Margin value
-     * @return static For method chaining
-     */
-    public function marginRight(string $margin): static
-    {
-        return $this->setConfig('margin_right', $margin);
-    }
-
-    /**
-     * Set top margin
-     *
-     * @param string $margin Margin value
-     * @return static For method chaining
-     */
-    public function marginTop(string $margin): static
-    {
-        return $this->setConfig('margin_top', $margin);
-    }
-
-    /**
-     * Set bottom margin
-     *
-     * @param string $margin Margin value
-     * @return static For method chaining
-     */
-    public function marginBottom(string $margin): static
-    {
-        return $this->setConfig('margin_bottom', $margin);
     }
 
     // ========================================================================

@@ -41,10 +41,10 @@ final class Spacing
 
     // Shorthand multi-value method for spacing, similar to CSS (1/2/3/4 values)
     public static function each(
-        Spacing|int $top,
-        Spacing|int|null $right = null,
-        Spacing|int|null $bottom = null,
-        Spacing|int|null $left = null,
+        Spacing $top,
+        Spacing|null $right = null,
+        Spacing|null $bottom = null,
+        Spacing|null $left = null,
     ): self {
         $t = (string) self::from($top);
         if ($right === null)

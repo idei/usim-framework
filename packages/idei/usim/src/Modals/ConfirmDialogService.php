@@ -1,12 +1,13 @@
 <?php
 namespace Idei\Usim\Modals;
 
-use Idei\Usim\UI;
-use Idei\Usim\Enums\TimeUnit;
+use Idei\Usim\Contracts\UIModal;
 use Idei\Usim\Enums\DialogType;
 use Idei\Usim\Enums\LayoutType;
-use Idei\Usim\Contracts\UIModal;
+use Idei\Usim\Enums\TimeUnit;
+use Idei\Usim\UI;
 use Idei\Usim\UIChangesCollector;
+use Idei\Usim\ValueObjects\Spacing;
 
 /**
  * Dialog Service
@@ -91,7 +92,7 @@ class ConfirmDialogService implements UIModal
             ->parent('modal')
             ->layout(LayoutType::VERTICAL)
             ->plain()
-            ->gap('8')           // Space between elements
+            ->gap(Spacing::px(8))           // Space between elements
             ->centerContent(); // Center content horizontally
 
         // Icon
@@ -128,7 +129,7 @@ class ConfirmDialogService implements UIModal
         $buttonsContainer = UI::container('buttons')
             ->layout(LayoutType::HORIZONTAL)
             ->plain()          // No background or borders on buttons container
-            ->gap("15px")      // Space between buttons
+            ->gap(Spacing::px(15))      // Space between buttons
             ->centerContent(); // Center buttons horizontally
 
         // Build buttons based on dialog type or custom buttons

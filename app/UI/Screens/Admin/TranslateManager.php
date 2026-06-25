@@ -15,6 +15,7 @@ use Idei\Usim\Screen;
 use Idei\Usim\Support\TranslationService;
 use Idei\Usim\UI;
 use Idei\Usim\ValueObjects\Size;
+use Idei\Usim\ValueObjects\Spacing;
 
 class TranslateManager extends Screen
 {
@@ -43,7 +44,7 @@ class TranslateManager extends Screen
         $container
             ->maxWidth(Size::px(1360))
             ->centerHorizontal()
-            ->padding('10px')
+            ->padding(Spacing::px(10))
             ->plain();
 
         $toolbar = UI::container('translations_toolbar')
@@ -51,7 +52,7 @@ class TranslateManager extends Screen
             ->fullWidth()
             ->shadow(0)
             ->width(Size::full())
-            ->gap('12px');
+            ->gap(Spacing::px(12));
 
         $search = UI::input('search_translations')
             ->label(t('screen.admin.translate_manager.search.label'))

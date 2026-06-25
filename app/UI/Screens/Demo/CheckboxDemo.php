@@ -1,13 +1,14 @@
 <?php
 namespace App\UI\Screens\Demo;
 
-use Idei\Usim\UI;
-use Idei\Usim\Screen;
-use Idei\Usim\Components\Container;
-use Idei\Usim\Components\Label;
 use Idei\Usim\Components\Button;
 use Idei\Usim\Components\Checkbox;
+use Idei\Usim\Components\Container;
+use Idei\Usim\Components\Label;
+use Idei\Usim\Screen;
+use Idei\Usim\UI;
 use Idei\Usim\ValueObjects\Size;
+use Idei\Usim\ValueObjects\Spacing;
 
 
 class CheckboxDemo extends Screen
@@ -27,7 +28,7 @@ class CheckboxDemo extends Screen
             ->title(t('screen.demo.checkbox_demo.title'))
             ->maxWidth(Size::px(500))
             ->centerHorizontal()
-            ->padding('20px')
+            ->padding(Spacing::px(20))
             ->shadow(2);
 
         // Instruction label

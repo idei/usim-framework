@@ -2,11 +2,12 @@
 
 namespace App\UI\Components\Modals;
 
-use Idei\Usim\UI;
-use Idei\Usim\Enums\LayoutType;
 use Idei\Usim\Enums\JustifyContent;
-use Idei\Usim\UIChangesCollector;
+use Idei\Usim\Enums\LayoutType;
 use Idei\Usim\Support\FakeDataHelper;
+use Idei\Usim\UI;
+use Idei\Usim\UIChangesCollector;
+use Idei\Usim\ValueObjects\Spacing;
 
 /**
  * Register Dialog Service
@@ -57,7 +58,7 @@ class RegisterDialog
             ->parent('modal')
             ->shadow(false)
             ->plain()
-            ->padding('20px');
+            ->padding(Spacing::px(20));
 
         // Name input
         $registerContainer->add(
@@ -147,8 +148,8 @@ class RegisterDialog
             ->justifyContent(JustifyContent::SPACE_BETWEEN)
             ->shadow(false)
             ->plain()
-            ->gap('10px')
-            ->padding('10px 0 0 0');
+            ->gap(Spacing::px(10))
+            ->padding(Spacing::each(Spacing::px(10)));
 
         // Cancel button
         if ($cancelAction) {

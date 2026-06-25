@@ -25,6 +25,7 @@ use Idei\Usim\Support\UIIdGenerator;
 use Idei\Usim\Support\UIStateManager;
 use Idei\Usim\UI;
 use Idei\Usim\UIChangesCollector;
+use Idei\Usim\ValueObjects\Spacing;
 use Illuminate\Contracts\Encryption\DecryptException;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
@@ -590,7 +591,7 @@ abstract class Screen
         $current_class_slug = strtolower(str_replace('\\', '_', $current_class));
         $container = UI::container($current_class_slug, $current_class)
             ->parent($parent)
-            ->padding('30')
+            ->padding(Spacing::px(30))
             ->layout(LayoutType::VERTICAL)
             ->justifyContent('center')
             ->alignItems('center');

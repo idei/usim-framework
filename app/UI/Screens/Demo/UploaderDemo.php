@@ -2,14 +2,15 @@
 
 namespace App\UI\Screens\Demo;
 
-use Idei\Usim\Screen;
-use Idei\Usim\Components\Label;
 use Idei\Usim\Components\Container;
+use Idei\Usim\Components\Label;
 use Idei\Usim\Components\Uploader;
+use Idei\Usim\Screen;
 use Idei\Usim\UI;
+use Idei\Usim\ValueObjects\Size;
+use Idei\Usim\ValueObjects\Spacing;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
-use Idei\Usim\ValueObjects\Size;
 
 /**
  * Uploader Demo Service
@@ -37,7 +38,7 @@ class UploaderDemo extends Screen
             ->maxWidth(Size::px(800))
             ->centerHorizontal()
             ->plain()
-            ->padding('30px');
+            ->padding(Spacing::px(30));
 
         // Instrucciones
         $container->add(

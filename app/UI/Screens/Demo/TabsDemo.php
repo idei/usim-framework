@@ -6,6 +6,7 @@ use Idei\Usim\Components\Container;
 use Idei\Usim\Screen;
 use Idei\Usim\UI;
 use Idei\Usim\ValueObjects\Size;
+use Idei\Usim\ValueObjects\Spacing;
 
 class TabsDemo extends Screen
 {
@@ -27,8 +28,8 @@ class TabsDemo extends Screen
             ->plain()
             ->maxWidth(Size::px(1024))
             ->centerHorizontal()
-            ->padding('12px 24px 24px 24px')
-            ->gap('14px');
+            ->padding(Spacing::each(Spacing::px(12), Spacing::px(24), Spacing::px(24), Spacing::px(24)))
+            ->gap(Spacing::px(14));
 
         $container->add(
             UI::label('tabs_demo_title')
@@ -39,9 +40,9 @@ class TabsDemo extends Screen
 
         $this->tabs_container = UI::container('tabs_container')
             ->width(Size::full())
-            ->padding('16px')
+            ->padding(Spacing::px(16))
             ->minHeight(Size::px(300))
-            ->gap('10px');
+            ->gap(Spacing::px(10));
 
         $this->tabs_container
             ->tabs($this->tabsDefaultConfig(), 'overview')

@@ -8,6 +8,7 @@ use Idei\Usim\Enums\LayoutType;
 use Idei\Usim\Screen;
 use Idei\Usim\UI;
 use Idei\Usim\ValueObjects\Size;
+use Idei\Usim\ValueObjects\Spacing;
 
 class CarouselDemo extends Screen
 {
@@ -32,7 +33,7 @@ class CarouselDemo extends Screen
             ->maxWidth(Size::px(980))
             ->centerHorizontal()
             ->plain()
-            ->padding('24px');
+            ->padding(Spacing::px(24));
 
         $container->add(
             UI::label('carousel_demo_intro')
@@ -66,7 +67,7 @@ class CarouselDemo extends Screen
             UI::label('auto_title')
                 ->text(t('screen.demo.carousel_demo.auto_mode'))
                 ->style('primary')
-                ->marginTop('16px')
+                ->marginTop(Spacing::px(16))
         );
 
         $container->add(
@@ -87,8 +88,8 @@ class CarouselDemo extends Screen
 
         $buttons = UI::container('carousel_demo_buttons')
             ->layout(LayoutType::HORIZONTAL)
-            ->gap('10px')
-            ->marginTop('16px')
+            ->gap(Spacing::px(10))
+            ->marginTop(Spacing::px(16))
             ->shadow(0);
 
         $buttons->add(

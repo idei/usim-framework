@@ -8,6 +8,7 @@ use Idei\Usim\Enums\LayoutType;
 use Idei\Usim\Screen;
 use Idei\Usim\UI;
 use Idei\Usim\ValueObjects\Size;
+use Idei\Usim\ValueObjects\Spacing;
 
 class EmailVerified extends Screen
 {
@@ -26,8 +27,8 @@ class EmailVerified extends Screen
             ->plain()
             ->justifyContent('start')
             ->alignItems('center')
-            ->padding('40px')
-            ->paddingTop('80px')
+            ->padding(Spacing::px(40))
+            ->paddingTop(Spacing::px(80))
             ->minHeight(Size::vh(100));
 
         // Determinar qué mostrar según el estado
@@ -143,7 +144,7 @@ class EmailVerified extends Screen
                 ->style('p')
                 ->center()
                 ->color('#666')
-                ->marginTop('10px')
+                ->marginTop(Spacing::px(10))
         );
 
         $container->add(
@@ -152,7 +153,7 @@ class EmailVerified extends Screen
                 ->description(t('screen.auth.email_verified.verified.card_description'))
                 ->theme('success')
                 ->maxWidth(Size::px(600))
-                ->marginTop('30px')
+                ->marginTop(Spacing::px(30))
                 ->addAction(t('screen.auth.email_verified.actions.go_to_login'), 'go_to_login', [], 'success')
                 ->addAction(t('screen.auth.email_verified.actions.go_to_home'), 'go_to_home', [], 'outline')
         );
@@ -185,7 +186,7 @@ class EmailVerified extends Screen
                 ->description(t('screen.auth.email_verified.already_verified.card_description'))
                 ->theme('info')
                 ->maxWidth(Size::px(600))
-                ->marginTop('30px')
+                ->marginTop(Spacing::px(30))
                 ->addAction(t('screen.auth.email_verified.actions.go_to_login'), 'go_to_login', [], 'primary')
                 ->addAction(t('screen.auth.email_verified.actions.go_to_home'), 'go_to_home', [], 'outline')
         );
@@ -218,7 +219,7 @@ class EmailVerified extends Screen
                 ->style('p')
                 ->center()
                 ->color('#666')
-                ->marginTop('10px')
+                ->marginTop(Spacing::px(10))
         );
 
         $container->add(
@@ -227,7 +228,7 @@ class EmailVerified extends Screen
                 ->description(t('screen.auth.email_verified.error.card_description'))
                 ->theme('danger')
                 ->maxWidth(Size::px(600))
-                ->marginTop('30px')
+                ->marginTop(Spacing::px(30))
                 ->addAction(t('screen.auth.email_verified.actions.resend'), 'resend_verification', [], 'danger')
                 ->addAction(t('screen.auth.email_verified.actions.go_to_home'), 'go_to_home', [], 'outline')
         );
