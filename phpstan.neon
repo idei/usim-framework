@@ -7,4 +7,9 @@ parameters:
 		- config/
 		- database/
 		- routes/
+		- packages/
 	level: 5
+	ignoreErrors:
+		-
+			identifier: larastan.noEnvCallsOutsideOfConfig
+			path: packages/idei/usim/config/usim.php

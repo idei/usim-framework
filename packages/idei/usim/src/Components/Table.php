@@ -452,9 +452,10 @@ class Table extends UIComponent
                 $rowBuilder = $this->createRow();
                 $rowBuilder->row($row);
 
-                $rowMinHeight = Size::from($this->config['row_min_height'] ?? null);
+                $rowMinHeight = $this->config['row_min_height'] ?? null;
+
                 if ($rowMinHeight !== null) {
-                    $rowBuilder->minHeight($rowMinHeight);
+                    $rowBuilder->minHeight(Size::from($rowMinHeight));
                 }
 
                 $this->rowBuilders[$row] = $rowBuilder;
@@ -529,9 +530,10 @@ class Table extends UIComponent
                 $rowBuilder = $this->createRow();
                 $rowBuilder->row($row);
 
-                $rowMinHeight = Size::from($this->config['row_min_height'] ?? null);
+                $rowMinHeight = $this->config['row_min_height'] ?? null;
+
                 if ($rowMinHeight !== null) {
-                    $rowBuilder->minHeight($rowMinHeight);
+                    $rowBuilder->minHeight(Size::from($rowMinHeight));
                 }
 
                 $this->rowBuilders[$row] = $rowBuilder;
@@ -815,11 +817,11 @@ class Table extends UIComponent
             $rowBuilder = $this->createRow();
             $rowBuilder->row($row); // Set row index for ordering
 
-            $rowMinHeight = Size::from($this->config['row_min_height'] ?? null);
-            if ($rowMinHeight !== null) {
-                $rowBuilder->minHeight($rowMinHeight);
-            }
+            $rowMinHeight = $this->config['row_min_height'] ?? null;
 
+            if ($rowMinHeight !== null) {
+                $rowBuilder->minHeight(Size::from($rowMinHeight));
+            }
             $this->rowBuilders[$row] = $rowBuilder;
 
             // Create empty cells for this row with column index
