@@ -95,6 +95,15 @@ return [
             'home_screen' => UsersManager::class,
             'permissions' => ['screen.admin.users_manager.access'],
         ],
+        'user' => [
+            'default_translations' => [
+                'en' => ['display_name' => 'User', 'description' => 'Registered user with limited permissions.'],
+                'es' => ['display_name' => 'Usuario', 'description' => 'Usuario registrado con permisos limitados.'],
+            ],
+            'priority' => 60,
+            'home_screen' => Home::class,
+            'permissions' => ['screen.user.home.access'],
+        ],
         'registered' => [
             'default_translations' => [
                 'en' => ['display_name' => 'Registered', 'description' => 'Registered user with limited permissions.'],

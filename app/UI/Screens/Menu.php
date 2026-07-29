@@ -311,7 +311,10 @@ class Menu extends Screen
         // Delete Sanctum token if user is authenticated
         $user = request()->user();
         if ($user) {
-            $user->currentAccessToken()->delete();
+            $token = $user->currentAccessToken();
+            if ($token) {
+                $token->delete();
+            }
         }
         Auth::logout();
 

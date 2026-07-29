@@ -32,10 +32,10 @@ class UsersManager extends Screen
     ) {
     }
 
-    // public static function authorize(): bool
-    // {
-    //     return self::requireRole('root');
-    // }
+    public static function authorize(): bool
+    {
+        return self::requireRole(['admin', 'root']);
+    }
 
     public static function getMenuLabel(): string
     {
