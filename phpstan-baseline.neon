@@ -1,0 +1,2809 @@
+parameters:
+	ignoreErrors:
+		-
+			message: '#^Method App\\Http\\Controllers\\Api\\AuthController\:\:forgotPassword\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: app/Http/Controllers/Api/AuthController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\Api\\AuthController\:\:login\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: app/Http/Controllers/Api/AuthController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\Api\\AuthController\:\:logout\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: app/Http/Controllers/Api/AuthController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\Api\\AuthController\:\:register\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: app/Http/Controllers/Api/AuthController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\Api\\AuthController\:\:resendVerificationEmail\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: app/Http/Controllers/Api/AuthController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\Api\\AuthController\:\:resetPassword\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: app/Http/Controllers/Api/AuthController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\Api\\AuthController\:\:user\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: app/Http/Controllers/Api/AuthController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\Api\\AuthController\:\:verifyEmail\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: app/Http/Controllers/Api/AuthController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\Api\\FileController\:\:download\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: app/Http/Controllers/Api/FileController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\DocumentationController\:\:apiCompleteDocs\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: app/Http/Controllers/DocumentationController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\DocumentationController\:\:docsIndex\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: app/Http/Controllers/DocumentationController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\DocumentationController\:\:emailCustomizationDocs\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: app/Http/Controllers/DocumentationController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\DocumentationController\:\:fileUploadExamplesDocs\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: app/Http/Controllers/DocumentationController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\DocumentationController\:\:implementationSummaryDocs\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: app/Http/Controllers/DocumentationController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\DocumentationController\:\:technicalComponentsDocs\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: app/Http/Controllers/DocumentationController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\LogViewerController\:\:clear\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: app/Http/Controllers/LogViewerController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\LogViewerController\:\:content\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: app/Http/Controllers/LogViewerController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\LogViewerController\:\:download\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: app/Http/Controllers/LogViewerController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\LogViewerController\:\:getLogFiles\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Http/Controllers/LogViewerController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\LogViewerController\:\:index\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: app/Http/Controllers/LogViewerController.php
+
+		-
+			message: '#^Class App\\Models\\Genre uses generic trait Illuminate\\Database\\Eloquent\\Factories\\HasFactory but does not specify its types\: TFactory$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/Genre.php
+
+		-
+			message: '#^Method App\\Models\\Genre\:\:movies\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\HasMany does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/Genre.php
+
+		-
+			message: '#^Class App\\Models\\Movie uses generic trait Illuminate\\Database\\Eloquent\\Factories\\HasFactory but does not specify its types\: TFactory$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/Movie.php
+
+		-
+			message: '#^Method App\\Models\\Movie\:\:genre\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/Movie.php
+
+		-
+			message: '#^Class App\\Models\\User uses generic trait Illuminate\\Database\\Eloquent\\Factories\\HasFactory but does not specify its types\: TFactory$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/User.php
+
+		-
+			message: '#^Method App\\Services\\Auth\\LoginService\:\:login\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Services/Auth/LoginService.php
+
+		-
+			message: '#^Method App\\Services\\Auth\\PasswordService\:\:resetPassword\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Services/Auth/PasswordService.php
+
+		-
+			message: '#^Method App\\Services\\Auth\\PasswordService\:\:sendResetLink\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Services/Auth/PasswordService.php
+
+		-
+			message: '#^Method App\\Services\\Auth\\RegisterService\:\:register\(\) has parameter \$roles with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Services/Auth/RegisterService.php
+
+		-
+			message: '#^Method App\\Services\\Auth\\RegisterService\:\:register\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Services/Auth/RegisterService.php
+
+		-
+			message: '#^Class App\\Services\\Movie\\MovieListingService extends generic class Idei\\Usim\\Support\\EloquentListingService but does not specify its types\: TModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Services/Movie/MovieListingService.php
+
+		-
+			message: '#^Class App\\Services\\Permissions\\PermissionListingService extends generic class Idei\\Usim\\Support\\EloquentListingService but does not specify its types\: TModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Services/Permissions/PermissionListingService.php
+
+		-
+			message: '#^Class App\\Services\\Role\\RoleListingService extends generic class Idei\\Usim\\Support\\EloquentListingService but does not specify its types\: TModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Services/Role/RoleListingService.php
+
+		-
+			message: '#^Method App\\UI\\Components\\DataTable\\MovieTableModel\:\:formatRow\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/UI/Components/DataTable/MovieTableModel.php
+
+		-
+			message: '#^Method App\\UI\\Components\\DataTable\\MovieTableModel\:\:getColumns\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/UI/Components/DataTable/MovieTableModel.php
+
+		-
+			message: '#^Method App\\UI\\Components\\DataTable\\MovieTableModel\:\:getFormattedPageData\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/UI/Components/DataTable/MovieTableModel.php
+
+		-
+			message: '#^Method App\\UI\\Components\\DataTable\\MovieTableModel\:\:getPageData\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/UI/Components/DataTable/MovieTableModel.php
+
+		-
+			message: '#^Method App\\UI\\Components\\DataTable\\TranslationKeysTableModel\:\:buildBaseQuery\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: app/UI/Components/DataTable/TranslationKeysTableModel.php
+
+		-
+			message: '#^Method App\\UI\\Components\\DataTable\\TranslationKeysTableModel\:\:getColumns\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/UI/Components/DataTable/TranslationKeysTableModel.php
+
+		-
+			message: '#^Method App\\UI\\Components\\DataTable\\TranslationKeysTableModel\:\:getFormattedPageData\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/UI/Components/DataTable/TranslationKeysTableModel.php
+
+		-
+			message: '#^Method App\\UI\\Components\\DataTable\\TranslationKeysTableModel\:\:getPageData\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/UI/Components/DataTable/TranslationKeysTableModel.php
+
+		-
+			message: '#^Method App\\UI\\Components\\Modals\\EditTranslationDialog\:\:getUI\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/UI/Components/Modals/EditTranslationDialog.php
+
+		-
+			message: '#^Method App\\UI\\Components\\Modals\\EditTranslationDialog\:\:open\(\) has parameter \$params with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: app/UI/Components/Modals/EditTranslationDialog.php
+
+		-
+			message: '#^Method App\\UI\\Components\\Modals\\EditUserDialog\:\:getUI\(\) has parameter \$user with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/UI/Components/Modals/EditUserDialog.php
+
+		-
+			message: '#^Method App\\UI\\Components\\Modals\\EditUserDialog\:\:getUI\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/UI/Components/Modals/EditUserDialog.php
+
+		-
+			message: '#^Method App\\UI\\Components\\Modals\\EditUserDialog\:\:open\(\) has parameter \$params with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: app/UI/Components/Modals/EditUserDialog.php
+
+		-
+			message: '#^Method App\\UI\\Components\\Modals\\LoginDialog\:\:getUI\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/UI/Components/Modals/LoginDialog.php
+
+		-
+			message: '#^Method App\\UI\\Components\\Modals\\RegisterDialog\:\:getUI\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/UI/Components/Modals/RegisterDialog.php
+
+		-
+			message: '#^Method App\\UI\\Components\\Modals\\RegisterDialog\:\:open\(\) has parameter \$params with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: app/UI/Components/Modals/RegisterDialog.php
+
+		-
+			message: '#^Method App\\UI\\Components\\Modals\\TermsDialog\:\:getUI\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/UI/Components/Modals/TermsDialog.php
+
+		-
+			message: '#^Method App\\UI\\Components\\Modals\\TermsDialog\:\:open\(\) has parameter \$params with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: app/UI/Components/Modals/TermsDialog.php
+
+		-
+			message: '#^Method App\\UI\\Screens\\Admin\\TableModels\\PermissionTableModel\:\:getColumns\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/UI/Screens/Admin/TableModels/PermissionTableModel.php
+
+		-
+			message: '#^Method App\\UI\\Screens\\Admin\\TableModels\\PermissionTableModel\:\:getFormattedPageData\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/UI/Screens/Admin/TableModels/PermissionTableModel.php
+
+		-
+			message: '#^Method App\\UI\\Screens\\Admin\\TableModels\\PermissionTableModel\:\:getPageData\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/UI/Screens/Admin/TableModels/PermissionTableModel.php
+
+		-
+			message: '#^Method App\\UI\\Screens\\Admin\\TableModels\\RoleTableModel\:\:getColumns\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/UI/Screens/Admin/TableModels/RoleTableModel.php
+
+		-
+			message: '#^Method App\\UI\\Screens\\Admin\\TableModels\\RoleTableModel\:\:getFormattedPageData\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/UI/Screens/Admin/TableModels/RoleTableModel.php
+
+		-
+			message: '#^Method App\\UI\\Screens\\Admin\\TableModels\\RoleTableModel\:\:getPageData\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/UI/Screens/Admin/TableModels/RoleTableModel.php
+
+		-
+			message: '#^Method App\\UI\\Screens\\Admin\\TableModels\\UserTableModel\:\:getColumns\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/UI/Screens/Admin/TableModels/UserTableModel.php
+
+		-
+			message: '#^Method App\\UI\\Screens\\Admin\\TableModels\\UserTableModel\:\:getFormattedPageData\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/UI/Screens/Admin/TableModels/UserTableModel.php
+
+		-
+			message: '#^Method App\\UI\\Screens\\Admin\\TableModels\\UserTableModel\:\:getPageData\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/UI/Screens/Admin/TableModels/UserTableModel.php
+
+		-
+			message: '#^Method App\\UI\\Screens\\Admin\\TranslateManager\:\:getGroupOptions\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/UI/Screens/Admin/TranslateManager.php
+
+		-
+			message: '#^Method App\\UI\\Screens\\Admin\\TranslateManager\:\:getLanguageOptions\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/UI/Screens/Admin/TranslateManager.php
+
+		-
+			message: '#^Method App\\UI\\Screens\\Admin\\TranslateManager\:\:onChangePage\(\) has parameter \$params with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/UI/Screens/Admin/TranslateManager.php
+
+		-
+			message: '#^Method App\\UI\\Screens\\Admin\\TranslateManager\:\:onConfirmDeleteTranslation\(\) has parameter \$params with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/UI/Screens/Admin/TranslateManager.php
+
+		-
+			message: '#^Method App\\UI\\Screens\\Admin\\TranslateManager\:\:onDeleteTranslation\(\) has parameter \$params with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/UI/Screens/Admin/TranslateManager.php
+
+		-
+			message: '#^Method App\\UI\\Screens\\Admin\\TranslateManager\:\:onEditTranslation\(\) has parameter \$params with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/UI/Screens/Admin/TranslateManager.php
+
+		-
+			message: '#^Method App\\UI\\Screens\\Admin\\TranslateManager\:\:onGroupFilterChange\(\) has parameter \$params with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/UI/Screens/Admin/TranslateManager.php
+
+		-
+			message: '#^Method App\\UI\\Screens\\Admin\\TranslateManager\:\:onLanguageFilterChange\(\) has parameter \$params with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/UI/Screens/Admin/TranslateManager.php
+
+		-
+			message: '#^Method App\\UI\\Screens\\Admin\\TranslateManager\:\:onSearchTranslations\(\) has parameter \$params with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/UI/Screens/Admin/TranslateManager.php
+
+		-
+			message: '#^Method App\\UI\\Screens\\Admin\\TranslateManager\:\:onSubmitUpdateTranslation\(\) has parameter \$params with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/UI/Screens/Admin/TranslateManager.php
+
+		-
+			message: '#^Method App\\UI\\Screens\\Admin\\TranslateManager\:\:onTranslationsTableColumnClicked\(\) has parameter \$params with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/UI/Screens/Admin/TranslateManager.php
+
+		-
+			message: '#^Method App\\UI\\Screens\\Admin\\TranslateManager\:\:resolveEditableLanguages\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/UI/Screens/Admin/TranslateManager.php
+
+		-
+			message: '#^Method App\\UI\\Screens\\Admin\\UsersManager\:\:onAddUserClicked\(\) has parameter \$params with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/UI/Screens/Admin/UsersManager.php
+
+		-
+			message: '#^Method App\\UI\\Screens\\Admin\\UsersManager\:\:onChangePage\(\) has parameter \$params with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/UI/Screens/Admin/UsersManager.php
+
+		-
+			message: '#^Method App\\UI\\Screens\\Admin\\UsersManager\:\:onConfirmDeleteUser\(\) has parameter \$params with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/UI/Screens/Admin/UsersManager.php
+
+		-
+			message: '#^Method App\\UI\\Screens\\Admin\\UsersManager\:\:onDeleteUser\(\) has parameter \$params with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/UI/Screens/Admin/UsersManager.php
+
+		-
+			message: '#^Method App\\UI\\Screens\\Admin\\UsersManager\:\:onRolesTableRowClicked\(\) has parameter \$params with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/UI/Screens/Admin/UsersManager.php
+
+		-
+			message: '#^Method App\\UI\\Screens\\Admin\\UsersManager\:\:onSearchRoles\(\) has parameter \$params with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/UI/Screens/Admin/UsersManager.php
+
+		-
+			message: '#^Method App\\UI\\Screens\\Admin\\UsersManager\:\:onSearchUsers\(\) has parameter \$params with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/UI/Screens/Admin/UsersManager.php
+
+		-
+			message: '#^Method App\\UI\\Screens\\Admin\\UsersManager\:\:onSubmitRegister\(\) has parameter \$params with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/UI/Screens/Admin/UsersManager.php
+
+		-
+			message: '#^Method App\\UI\\Screens\\Admin\\UsersManager\:\:onSubmitUpdateUser\(\) has parameter \$params with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/UI/Screens/Admin/UsersManager.php
+
+		-
+			message: '#^Method App\\UI\\Screens\\Admin\\UsersManager\:\:onUsersTableColumnClicked\(\) has parameter \$params with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/UI/Screens/Admin/UsersManager.php
+
+		-
+			message: '#^Method App\\UI\\Screens\\Admin\\UsersManager\:\:onUsersTableRowClicked\(\) has parameter \$params with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/UI/Screens/Admin/UsersManager.php
+
+		-
+			message: '#^Method App\\UI\\Screens\\Auth\\EmailVerified\:\:onGoToHome\(\) has parameter \$params with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/UI/Screens/Auth/EmailVerified.php
+
+		-
+			message: '#^Method App\\UI\\Screens\\Auth\\EmailVerified\:\:onGoToLogin\(\) has parameter \$params with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/UI/Screens/Auth/EmailVerified.php
+
+		-
+			message: '#^Method App\\UI\\Screens\\Auth\\EmailVerified\:\:onResendVerification\(\) has parameter \$params with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/UI/Screens/Auth/EmailVerified.php
+
+		-
+			message: '#^Method App\\UI\\Screens\\Auth\\ForgotPassword\:\:onNavigateToLogin\(\) has parameter \$params with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/UI/Screens/Auth/ForgotPassword.php
+
+		-
+			message: '#^Method App\\UI\\Screens\\Auth\\ForgotPassword\:\:onSendLink\(\) has parameter \$params with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/UI/Screens/Auth/ForgotPassword.php
+
+		-
+			message: '#^Method App\\UI\\Screens\\Auth\\Login\:\:onNavigateForgotPassword\(\) has parameter \$params with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/UI/Screens/Auth/Login.php
+
+		-
+			message: '#^Method App\\UI\\Screens\\Auth\\Login\:\:onSubmitLogin\(\) has parameter \$params with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/UI/Screens/Auth/Login.php
+
+		-
+			message: '#^Method App\\UI\\Screens\\Auth\\Profile\:\:onChangePassword\(\) has parameter \$params with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/UI/Screens/Auth/Profile.php
+
+		-
+			message: '#^Method App\\UI\\Screens\\Auth\\Profile\:\:onResendVerification\(\) has parameter \$params with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/UI/Screens/Auth/Profile.php
+
+		-
+			message: '#^Method App\\UI\\Screens\\Auth\\Profile\:\:onSaveProfile\(\) has parameter \$params with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/UI/Screens/Auth/Profile.php
+
+		-
+			message: '#^Method App\\UI\\Screens\\Auth\\ResetPassword\:\:onResetPassword\(\) has parameter \$params with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/UI/Screens/Auth/ResetPassword.php
+
+		-
+			message: '#^Method App\\UI\\Screens\\Demo\\AddressForm\:\:fallbackCountryOptions\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/UI/Screens/Demo/AddressForm.php
+
+		-
+			message: '#^Method App\\UI\\Screens\\Demo\\AddressForm\:\:fallbackProvinceOptions\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/UI/Screens/Demo/AddressForm.php
+
+		-
+			message: '#^Method App\\UI\\Screens\\Demo\\AddressForm\:\:fetchCountryOptions\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/UI/Screens/Demo/AddressForm.php
+
+		-
+			message: '#^Method App\\UI\\Screens\\Demo\\AddressForm\:\:fetchProvinceOptions\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/UI/Screens/Demo/AddressForm.php
+
+		-
+			message: '#^Method App\\UI\\Screens\\Demo\\AddressForm\:\:onCountryChange\(\) has parameter \$params with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/UI/Screens/Demo/AddressForm.php
+
+		-
+			message: '#^Method App\\UI\\Screens\\Demo\\AddressForm\:\:onSubmitAddressForm\(\) has parameter \$params with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/UI/Screens/Demo/AddressForm.php
+
+		-
+			message: '#^Unable to resolve the template type TKey in call to function collect$#'
+			identifier: argument.templateType
+			count: 2
+			path: app/UI/Screens/Demo/AddressForm.php
+
+		-
+			message: '#^Unable to resolve the template type TValue in call to function collect$#'
+			identifier: argument.templateType
+			count: 2
+			path: app/UI/Screens/Demo/AddressForm.php
+
+		-
+			message: '#^Method App\\UI\\Screens\\Demo\\ButtonDemo\:\:onToggleLabel\(\) has parameter \$params with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/UI/Screens/Demo/ButtonDemo.php
+
+		-
+			message: '#^Method App\\UI\\Screens\\Demo\\CalendarDemo\:\:onMonthChanged\(\) has parameter \$params with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/UI/Screens/Demo/CalendarDemo.php
+
+		-
+			message: '#^Method App\\UI\\Screens\\Demo\\CalendarioAcadémico\:\:getMonthEvents\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/UI/Screens/Demo/CalendarioAcadémico.php
+
+		-
+			message: '#^Property App\\UI\\Screens\\Demo\\CalendarioAcadémico\:\:\$events has no type specified\.$#'
+			identifier: missingType.property
+			count: 1
+			path: app/UI/Screens/Demo/CalendarioAcadémico.php
+
+		-
+			message: '#^Method App\\UI\\Screens\\Demo\\CarouselDemo\:\:autoItems\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/UI/Screens/Demo/CarouselDemo.php
+
+		-
+			message: '#^Method App\\UI\\Screens\\Demo\\CarouselDemo\:\:manualItems\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/UI/Screens/Demo/CarouselDemo.php
+
+		-
+			message: '#^Method App\\UI\\Screens\\Demo\\CarouselDemo\:\:onCarouselNext\(\) has parameter \$params with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/UI/Screens/Demo/CarouselDemo.php
+
+		-
+			message: '#^Method App\\UI\\Screens\\Demo\\CarouselDemo\:\:onCarouselPrev\(\) has parameter \$params with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/UI/Screens/Demo/CarouselDemo.php
+
+		-
+			message: '#^Method App\\UI\\Screens\\Demo\\CarouselDemo\:\:onCarouselTick\(\) has parameter \$params with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/UI/Screens/Demo/CarouselDemo.php
+
+		-
+			message: '#^Method App\\UI\\Screens\\Demo\\CarouselDemo\:\:onResetCarouselDemo\(\) has parameter \$params with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/UI/Screens/Demo/CarouselDemo.php
+
+		-
+			message: '#^Method App\\UI\\Screens\\Demo\\CarouselDemo\:\:onToggleAutoFullscreen\(\) has parameter \$params with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/UI/Screens/Demo/CarouselDemo.php
+
+		-
+			message: '#^Method App\\UI\\Screens\\Demo\\CheckboxDemo\:\:onSubmitSelection\(\) has parameter \$params with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/UI/Screens/Demo/CheckboxDemo.php
+
+		-
+			message: '#^Method App\\UI\\Screens\\Demo\\CheckboxDemo\:\:onTryChangeJavascript\(\) has parameter \$params with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/UI/Screens/Demo/CheckboxDemo.php
+
+		-
+			message: '#^Method App\\UI\\Screens\\Demo\\CheckboxDemo\:\:onTryChangePython\(\) has parameter \$params with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/UI/Screens/Demo/CheckboxDemo.php
+
+		-
+			message: '#^Method App\\UI\\Screens\\Demo\\DemoUi\:\:buildUIElements\(\) has parameter \$container with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: app/UI/Screens/Demo/DemoUi.php
+
+		-
+			message: '#^Method App\\UI\\Screens\\Demo\\DemoUi\:\:onAddNewComponent\(\) has parameter \$params with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/UI/Screens/Demo/DemoUi.php
+
+		-
+			message: '#^Method App\\UI\\Screens\\Demo\\DemoUi\:\:onDecrementCounter\(\) has parameter \$params with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/UI/Screens/Demo/DemoUi.php
+
+		-
+			message: '#^Method App\\UI\\Screens\\Demo\\DemoUi\:\:onIncrementCounter\(\) has parameter \$params with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/UI/Screens/Demo/DemoUi.php
+
+		-
+			message: '#^Method App\\UI\\Screens\\Demo\\DemoUi\:\:onNewButtonAction\(\) has parameter \$params with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/UI/Screens/Demo/DemoUi.php
+
+		-
+			message: '#^Method App\\UI\\Screens\\Demo\\DemoUi\:\:onResetState\(\) has parameter \$params with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/UI/Screens/Demo/DemoUi.php
+
+		-
+			message: '#^Method App\\UI\\Screens\\Demo\\DemoUi\:\:onTestAction\(\) has parameter \$params with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/UI/Screens/Demo/DemoUi.php
+
+		-
+			message: '#^Method App\\UI\\Screens\\Demo\\FormDemo\:\:onSubmitForm\(\) has parameter \$params with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/UI/Screens/Demo/FormDemo.php
+
+		-
+			message: '#^Method App\\UI\\Screens\\Demo\\InputDemo\:\:onGetValue\(\) has parameter \$params with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/UI/Screens/Demo/InputDemo.php
+
+		-
+			message: '#^Method App\\UI\\Screens\\Demo\\ModalDemo\:\:onCancelSettings\(\) has parameter \$params with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/UI/Screens/Demo/ModalDemo.php
+
+		-
+			message: '#^Method App\\UI\\Screens\\Demo\\ModalDemo\:\:onCloseErrorDialog\(\) has parameter \$params with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/UI/Screens/Demo/ModalDemo.php
+
+		-
+			message: '#^Method App\\UI\\Screens\\Demo\\ModalDemo\:\:onCloseSuccessDialog\(\) has parameter \$params with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/UI/Screens/Demo/ModalDemo.php
+
+		-
+			message: '#^Method App\\UI\\Screens\\Demo\\ModalDemo\:\:onCloseTimeoutDialog\(\) has parameter \$params with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/UI/Screens/Demo/ModalDemo.php
+
+		-
+			message: '#^Method App\\UI\\Screens\\Demo\\ModalDemo\:\:onHandleCancel\(\) has parameter \$params with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/UI/Screens/Demo/ModalDemo.php
+
+		-
+			message: '#^Method App\\UI\\Screens\\Demo\\ModalDemo\:\:onHandleConfirm\(\) has parameter \$params with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/UI/Screens/Demo/ModalDemo.php
+
+		-
+			message: '#^Method App\\UI\\Screens\\Demo\\ModalDemo\:\:onOpenConfirmation\(\) has parameter \$params with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/UI/Screens/Demo/ModalDemo.php
+
+		-
+			message: '#^Method App\\UI\\Screens\\Demo\\ModalDemo\:\:onResetSettings\(\) has parameter \$params with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/UI/Screens/Demo/ModalDemo.php
+
+		-
+			message: '#^Method App\\UI\\Screens\\Demo\\ModalDemo\:\:onShowErrorDialog\(\) has parameter \$params with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/UI/Screens/Demo/ModalDemo.php
+
+		-
+			message: '#^Method App\\UI\\Screens\\Demo\\ModalDemo\:\:onShowSettingsConfirm\(\) has parameter \$params with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/UI/Screens/Demo/ModalDemo.php
+
+		-
+			message: '#^Method App\\UI\\Screens\\Demo\\ModalDemo\:\:onShowTimeoutDialog\(\) has parameter \$params with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/UI/Screens/Demo/ModalDemo.php
+
+		-
+			message: '#^Method App\\UI\\Screens\\Demo\\ModalDemo\:\:onShowTimeoutNoButton\(\) has parameter \$params with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/UI/Screens/Demo/ModalDemo.php
+
+		-
+			message: '#^Method App\\UI\\Screens\\Demo\\SelectDemo\:\:onCityChange\(\) has parameter \$params with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/UI/Screens/Demo/SelectDemo.php
+
+		-
+			message: '#^Method App\\UI\\Screens\\Demo\\SelectDemo\:\:onCountryChange\(\) has parameter \$params with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/UI/Screens/Demo/SelectDemo.php
+
+		-
+			message: '#^Method App\\UI\\Screens\\Demo\\SelectDemo\:\:onLanguageChange\(\) has parameter \$params with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/UI/Screens/Demo/SelectDemo.php
+
+		-
+			message: '#^Method App\\UI\\Screens\\Demo\\SelectDemo\:\:onResetSelections\(\) has parameter \$params with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/UI/Screens/Demo/SelectDemo.php
+
+		-
+			message: '#^Method App\\UI\\Screens\\Demo\\SelectDemo\:\:onToggleMultipleLanguages\(\) has parameter \$params with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/UI/Screens/Demo/SelectDemo.php
+
+		-
+			message: '#^Method App\\UI\\Screens\\Demo\\SplitDemo\:\:onApplySplitSize\(\) has parameter \$params with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/UI/Screens/Demo/SplitDemo.php
+
+		-
+			message: '#^Method App\\UI\\Screens\\Demo\\SplitDemo\:\:onCollapseFirstPanel\(\) has parameter \$params with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/UI/Screens/Demo/SplitDemo.php
+
+		-
+			message: '#^Method App\\UI\\Screens\\Demo\\SplitDemo\:\:onCollapseSecondPanel\(\) has parameter \$params with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/UI/Screens/Demo/SplitDemo.php
+
+		-
+			message: '#^Method App\\UI\\Screens\\Demo\\SplitDemo\:\:onResetSplitDemo\(\) has parameter \$params with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/UI/Screens/Demo/SplitDemo.php
+
+		-
+			message: '#^Method App\\UI\\Screens\\Demo\\SplitDemo\:\:onSplitCollapseTargetChange\(\) has parameter \$params with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/UI/Screens/Demo/SplitDemo.php
+
+		-
+			message: '#^Method App\\UI\\Screens\\Demo\\SplitDemo\:\:onSplitCollapsibleChange\(\) has parameter \$params with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/UI/Screens/Demo/SplitDemo.php
+
+		-
+			message: '#^Method App\\UI\\Screens\\Demo\\SplitDemo\:\:onSplitDraggableChange\(\) has parameter \$params with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/UI/Screens/Demo/SplitDemo.php
+
+		-
+			message: '#^Method App\\UI\\Screens\\Demo\\SplitDemo\:\:onSplitOrientationChange\(\) has parameter \$params with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/UI/Screens/Demo/SplitDemo.php
+
+		-
+			message: '#^Method App\\UI\\Screens\\Demo\\SplitDemo\:\:onToggleSplitCollapse\(\) has parameter \$params with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/UI/Screens/Demo/SplitDemo.php
+
+		-
+			message: '#^Method App\\UI\\Screens\\Demo\\TableDemo\:\:onChangePage\(\) has parameter \$params with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/UI/Screens/Demo/TableDemo.php
+
+		-
+			message: '#^Method App\\UI\\Screens\\Demo\\TableDemo\:\:onMoviesTableColumnClicked\(\) has parameter \$params with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/UI/Screens/Demo/TableDemo.php
+
+		-
+			message: '#^Method App\\UI\\Screens\\Demo\\TableDemo\:\:onMoviesTableRowClicked\(\) has parameter \$params with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/UI/Screens/Demo/TableDemo.php
+
+		-
+			message: '#^Method App\\UI\\Screens\\Demo\\TableDemo\:\:onSearchInputTyped\(\) has parameter \$params with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/UI/Screens/Demo/TableDemo.php
+
+		-
+			message: '#^Method App\\UI\\Screens\\Demo\\TabsDemo\:\:onTabsClose\(\) has parameter \$params with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/UI/Screens/Demo/TabsDemo.php
+
+		-
+			message: '#^Method App\\UI\\Screens\\Demo\\TabsDemo\:\:onTabsSwitch\(\) has parameter \$params with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/UI/Screens/Demo/TabsDemo.php
+
+		-
+			message: '#^Method App\\UI\\Screens\\Demo\\TabsDemo\:\:tabsDefaultConfig\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/UI/Screens/Demo/TabsDemo.php
+
+		-
+			message: '#^Method App\\UI\\Screens\\Demo\\TextareaDemo\:\:onMdSaved\(\) has parameter \$params with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/UI/Screens/Demo/TextareaDemo.php
+
+		-
+			message: '#^Method App\\UI\\Screens\\Demo\\TextareaDemo\:\:onPlainSaved\(\) has parameter \$params with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/UI/Screens/Demo/TextareaDemo.php
+
+		-
+			message: '#^Method App\\UI\\Screens\\Demo\\UploaderDemo\:\:onProcessBanner\(\) has parameter \$params with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/UI/Screens/Demo/UploaderDemo.php
+
+		-
+			message: '#^Method App\\UI\\Screens\\Demo\\UploaderDemo\:\:onProcessDocuments\(\) has parameter \$params with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/UI/Screens/Demo/UploaderDemo.php
+
+		-
+			message: '#^Method App\\UI\\Screens\\Demo\\UploaderDemo\:\:onProcessImages\(\) has parameter \$params with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/UI/Screens/Demo/UploaderDemo.php
+
+		-
+			message: '#^Method App\\UI\\Screens\\Demo\\UploaderDemo\:\:onProcessProfile\(\) has parameter \$params with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/UI/Screens/Demo/UploaderDemo.php
+
+		-
+			message: '#^Method App\\UI\\Screens\\Demo\\UploaderDemo\:\:onProcessStory\(\) has parameter \$params with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/UI/Screens/Demo/UploaderDemo.php
+
+		-
+			message: '#^Property App\\UI\\Screens\\Demo\\UploaderDemo\:\:\$btn_confirm_banner has no type specified\.$#'
+			identifier: missingType.property
+			count: 1
+			path: app/UI/Screens/Demo/UploaderDemo.php
+
+		-
+			message: '#^Property App\\UI\\Screens\\Demo\\UploaderDemo\:\:\$btn_confirm_documents has no type specified\.$#'
+			identifier: missingType.property
+			count: 1
+			path: app/UI/Screens/Demo/UploaderDemo.php
+
+		-
+			message: '#^Property App\\UI\\Screens\\Demo\\UploaderDemo\:\:\$btn_confirm_images has no type specified\.$#'
+			identifier: missingType.property
+			count: 1
+			path: app/UI/Screens/Demo/UploaderDemo.php
+
+		-
+			message: '#^Property App\\UI\\Screens\\Demo\\UploaderDemo\:\:\$btn_confirm_profile has no type specified\.$#'
+			identifier: missingType.property
+			count: 1
+			path: app/UI/Screens/Demo/UploaderDemo.php
+
+		-
+			message: '#^Property App\\UI\\Screens\\Demo\\UploaderDemo\:\:\$btn_confirm_story has no type specified\.$#'
+			identifier: missingType.property
+			count: 1
+			path: app/UI/Screens/Demo/UploaderDemo.php
+
+		-
+			message: '#^Method App\\UI\\Screens\\HolaContexto\:\:getAgentContext\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/UI/Screens/HolaContexto.php
+
+		-
+			message: '#^Method App\\UI\\Screens\\Home\:\:onCustomize\(\) has parameter \$params with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/UI/Screens/Home.php
+
+		-
+			message: '#^Method App\\UI\\Screens\\Home\:\:onViewAllDemos\(\) has parameter \$params with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/UI/Screens/Home.php
+
+		-
+			message: '#^Method App\\UI\\Screens\\Home\:\:onViewCode\(\) has parameter \$params with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/UI/Screens/Home.php
+
+		-
+			message: '#^Method App\\UI\\Screens\\Home\:\:onViewDemos\(\) has parameter \$params with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/UI/Screens/Home.php
+
+		-
+			message: '#^Method App\\UI\\Screens\\Home\:\:onViewDocs\(\) has parameter \$params with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/UI/Screens/Home.php
+
+		-
+			message: '#^Method App\\UI\\Screens\\Menu\:\:handleRegisterError\(\) has parameter \$response with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/UI/Screens/Menu.php
+
+		-
+			message: '#^Method App\\UI\\Screens\\Menu\:\:handleRegisterSuccess\(\) has parameter \$response with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/UI/Screens/Menu.php
+
+		-
+			message: '#^Method App\\UI\\Screens\\Menu\:\:onCancelLogout\(\) has parameter \$params with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/UI/Screens/Menu.php
+
+		-
+			message: '#^Method App\\UI\\Screens\\Menu\:\:onChangeLang\(\) has parameter \$params with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/UI/Screens/Menu.php
+
+		-
+			message: '#^Method App\\UI\\Screens\\Menu\:\:onCloseProfileDialog\(\) has parameter \$params with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/UI/Screens/Menu.php
+
+		-
+			message: '#^Method App\\UI\\Screens\\Menu\:\:onConfirmLogout\(\) has parameter \$params with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/UI/Screens/Menu.php
+
+		-
+			message: '#^Method App\\UI\\Screens\\Menu\:\:onLoggedUser\(\) has parameter \$params with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/UI/Screens/Menu.php
+
+		-
+			message: '#^Method App\\UI\\Screens\\Menu\:\:onLogoutUser\(\) has parameter \$params with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/UI/Screens/Menu.php
+
+		-
+			message: '#^Method App\\UI\\Screens\\Menu\:\:onOpenTermsAndConditions\(\) has parameter \$params with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/UI/Screens/Menu.php
+
+		-
+			message: '#^Method App\\UI\\Screens\\Menu\:\:onShowAboutInfo\(\) has parameter \$params with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/UI/Screens/Menu.php
+
+		-
+			message: '#^Method App\\UI\\Screens\\Menu\:\:onShowErrorInfo\(\) has parameter \$params with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/UI/Screens/Menu.php
+
+		-
+			message: '#^Method App\\UI\\Screens\\Menu\:\:onShowRegisterForm\(\) has parameter \$params with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/UI/Screens/Menu.php
+
+		-
+			message: '#^Method App\\UI\\Screens\\Menu\:\:onSubmitRegister\(\) has parameter \$params with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/UI/Screens/Menu.php
+
+		-
+			message: '#^Method App\\UI\\Screens\\Menu\:\:onToggleTheme\(\) has parameter \$params with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/UI/Screens/Menu.php
+
+		-
+			message: '#^Method App\\UI\\Screens\\Menu\:\:onUpdatedProfile\(\) has parameter \$params with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/UI/Screens/Menu.php
+
+		-
+			message: '#^Method App\\UI\\Screens\\Menu\:\:updateModalValidationErrors\(\) has parameter \$errors with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/UI/Screens/Menu.php
+
+		-
+			message: '#^Method App\\UI\\Screens\\Menu\:\:updateUserMenuTrigger\(\) has parameter \$user with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: app/UI/Screens/Menu.php
+
+		-
+			message: '#^Method Idei\\Usim\\Components\\Button\:\:action\(\) has parameter \$parameters with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: packages/idei/usim/src/Components/Button.php
+
+		-
+			message: '#^Method Idei\\Usim\\Components\\Button\:\:getDefaultConfig\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: packages/idei/usim/src/Components/Button.php
+
+		-
+			message: '#^Method Idei\\Usim\\Components\\Calendar\:\:events\(\) has parameter \$events with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: packages/idei/usim/src/Components/Calendar.php
+
+		-
+			message: '#^Method Idei\\Usim\\Components\\Calendar\:\:getDefaultConfig\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: packages/idei/usim/src/Components/Calendar.php
+
+		-
+			message: '#^Method Idei\\Usim\\Components\\Calendar\:\:numberStyle\(\) has parameter \$style with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: packages/idei/usim/src/Components/Calendar.php
+
+		-
+			message: '#^Method Idei\\Usim\\Components\\Card\:\:action\(\) has parameter \$parameters with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: packages/idei/usim/src/Components/Card.php
+
+		-
+			message: '#^Method Idei\\Usim\\Components\\Card\:\:actions\(\) has parameter \$actions with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: packages/idei/usim/src/Components/Card.php
+
+		-
+			message: '#^Method Idei\\Usim\\Components\\Card\:\:addAction\(\) has parameter \$parameters with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: packages/idei/usim/src/Components/Card.php
+
+		-
+			message: '#^Method Idei\\Usim\\Components\\Card\:\:getDefaultConfig\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: packages/idei/usim/src/Components/Card.php
+
+		-
+			message: '#^Method Idei\\Usim\\Components\\Carousel\:\:currentMedia\(\) has parameter \$media with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: packages/idei/usim/src/Components/Carousel.php
+
+		-
+			message: '#^Method Idei\\Usim\\Components\\Carousel\:\:getDefaultConfig\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: packages/idei/usim/src/Components/Carousel.php
+
+		-
+			message: '#^Method Idei\\Usim\\Components\\Carousel\:\:items\(\) has parameter \$items with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: packages/idei/usim/src/Components/Carousel.php
+
+		-
+			message: '#^Method Idei\\Usim\\Components\\Checkbox\:\:addOption\(\) has parameter \$extra with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: packages/idei/usim/src/Components/Checkbox.php
+
+		-
+			message: '#^Method Idei\\Usim\\Components\\Checkbox\:\:getDefaultConfig\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: packages/idei/usim/src/Components/Checkbox.php
+
+		-
+			message: '#^Method Idei\\Usim\\Components\\Checkbox\:\:options\(\) has parameter \$options with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: packages/idei/usim/src/Components/Checkbox.php
+
+		-
+			message: '#^Method Idei\\Usim\\Components\\Checkbox\:\:selectedValues\(\) has parameter \$values with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: packages/idei/usim/src/Components/Checkbox.php
+
+		-
+			message: '#^Method Idei\\Usim\\Components\\Container\:\:build\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: packages/idei/usim/src/Components/Container.php
+
+		-
+			message: '#^Method Idei\\Usim\\Components\\Container\:\:dataAttributes\(\) has parameter \$attributes with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: packages/idei/usim/src/Components/Container.php
+
+		-
+			message: '#^Method Idei\\Usim\\Components\\Container\:\:deserialize\(\) has parameter \$data with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: packages/idei/usim/src/Components/Container.php
+
+		-
+			message: '#^Method Idei\\Usim\\Components\\Container\:\:gridTemplateAreas\(\) has parameter \$areas with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: packages/idei/usim/src/Components/Container.php
+
+		-
+			message: '#^Method Idei\\Usim\\Components\\Container\:\:hideOn\(\) has parameter \$breakpoints with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: packages/idei/usim/src/Components/Container.php
+
+		-
+			message: '#^Method Idei\\Usim\\Components\\Container\:\:responsive\(\) has parameter \$config with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: packages/idei/usim/src/Components/Container.php
+
+		-
+			message: '#^Method Idei\\Usim\\Components\\Container\:\:showOn\(\) has parameter \$breakpoints with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: packages/idei/usim/src/Components/Container.php
+
+		-
+			message: '#^Method Idei\\Usim\\Components\\Container\:\:tabColors\(\) has parameter \$colors with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: packages/idei/usim/src/Components/Container.php
+
+		-
+			message: '#^Method Idei\\Usim\\Components\\Container\:\:tabItem\(\) has parameter \$options with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: packages/idei/usim/src/Components/Container.php
+
+		-
+			message: '#^Method Idei\\Usim\\Components\\Container\:\:tabs\(\) has parameter \$tabs with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: packages/idei/usim/src/Components/Container.php
+
+		-
+			message: '#^Method Idei\\Usim\\Components\\Container\:\:toJson\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: packages/idei/usim/src/Components/Container.php
+
+		-
+			message: '#^Property Idei\\Usim\\Components\\Container\:\:\$config type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: packages/idei/usim/src/Components/Container.php
+
+		-
+			message: '#^Property Idei\\Usim\\Components\\Container\:\:\$legacyElements type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: packages/idei/usim/src/Components/Container.php
+
+		-
+			message: '#^Method Idei\\Usim\\Components\\Form\:\:allowedFileTypes\(\) has parameter \$types with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: packages/idei/usim/src/Components/Form.php
+
+		-
+			message: '#^Method Idei\\Usim\\Components\\Form\:\:cancelButton\(\) has parameter \$config with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: packages/idei/usim/src/Components/Form.php
+
+		-
+			message: '#^Method Idei\\Usim\\Components\\Form\:\:dataAttributes\(\) has parameter \$attributes with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: packages/idei/usim/src/Components/Form.php
+
+		-
+			message: '#^Method Idei\\Usim\\Components\\Form\:\:getErrorMessages\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: packages/idei/usim/src/Components/Form.php
+
+		-
+			message: '#^Method Idei\\Usim\\Components\\Form\:\:getValidationRules\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: packages/idei/usim/src/Components/Form.php
+
+		-
+			message: '#^Method Idei\\Usim\\Components\\Form\:\:resetButton\(\) has parameter \$config with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: packages/idei/usim/src/Components/Form.php
+
+		-
+			message: '#^Method Idei\\Usim\\Components\\Form\:\:submitButton\(\) has parameter \$config with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: packages/idei/usim/src/Components/Form.php
+
+		-
+			message: '#^Method Idei\\Usim\\Components\\Form\:\:toJson\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: packages/idei/usim/src/Components/Form.php
+
+		-
+			message: '#^Property Idei\\Usim\\Components\\Form\:\:\$errorMessages type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: packages/idei/usim/src/Components/Form.php
+
+		-
+			message: '#^Property Idei\\Usim\\Components\\Form\:\:\$sections type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: packages/idei/usim/src/Components/Form.php
+
+		-
+			message: '#^Property Idei\\Usim\\Components\\Form\:\:\$validationRules type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: packages/idei/usim/src/Components/Form.php
+
+		-
+			message: '#^Method Idei\\Usim\\Components\\Input\:\:getDefaultConfig\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: packages/idei/usim/src/Components/Input.php
+
+		-
+			message: '#^Method Idei\\Usim\\Components\\Input\:\:onChange\(\) has parameter \$parameters with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: packages/idei/usim/src/Components/Input.php
+
+		-
+			message: '#^Method Idei\\Usim\\Components\\Input\:\:onEnter\(\) has parameter \$parameters with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: packages/idei/usim/src/Components/Input.php
+
+		-
+			message: '#^Method Idei\\Usim\\Components\\Input\:\:onInput\(\) has parameter \$parameters with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: packages/idei/usim/src/Components/Input.php
+
+		-
+			message: '#^Method Idei\\Usim\\Components\\Label\:\:getDefaultConfig\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: packages/idei/usim/src/Components/Label.php
+
+		-
+			message: '#^Method Idei\\Usim\\Components\\Label\:\:html\(\) has parameter \$data with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: packages/idei/usim/src/Components/Label.php
+
+		-
+			message: '#^Method Idei\\Usim\\Components\\MenuDropdown\:\:deserialize\(\) has parameter \$config with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: packages/idei/usim/src/Components/MenuDropdown.php
+
+		-
+			message: '#^Method Idei\\Usim\\Components\\MenuDropdown\:\:getDefaultConfig\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: packages/idei/usim/src/Components/MenuDropdown.php
+
+		-
+			message: '#^Method Idei\\Usim\\Components\\MenuDropdown\:\:item\(\) has parameter \$params with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: packages/idei/usim/src/Components/MenuDropdown.php
+
+		-
+			message: '#^Method Idei\\Usim\\Components\\MenuDropdown\:\:item\(\) has parameter \$submenu with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: packages/idei/usim/src/Components/MenuDropdown.php
+
+		-
+			message: '#^Method Idei\\Usim\\Components\\MenuDropdown\:\:toJson\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: packages/idei/usim/src/Components/MenuDropdown.php
+
+		-
+			message: '#^PHPDoc tag @var for variable \$access has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: packages/idei/usim/src/Components/MenuDropdown.php
+
+		-
+			message: '#^Property Idei\\Usim\\Components\\MenuDropdown\:\:\$items type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: packages/idei/usim/src/Components/MenuDropdown.php
+
+		-
+			message: '#^Method Idei\\Usim\\Components\\Select\:\:addGroup\(\) has parameter \$options with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: packages/idei/usim/src/Components/Select.php
+
+		-
+			message: '#^Method Idei\\Usim\\Components\\Select\:\:addOption\(\) has parameter \$extra with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: packages/idei/usim/src/Components/Select.php
+
+		-
+			message: '#^Method Idei\\Usim\\Components\\Select\:\:build\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: packages/idei/usim/src/Components/Select.php
+
+		-
+			message: '#^Method Idei\\Usim\\Components\\Select\:\:getDefaultConfig\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: packages/idei/usim/src/Components/Select.php
+
+		-
+			message: '#^Method Idei\\Usim\\Components\\Select\:\:groups\(\) has parameter \$groups with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: packages/idei/usim/src/Components/Select.php
+
+		-
+			message: '#^Method Idei\\Usim\\Components\\Select\:\:options\(\) has parameter \$options with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: packages/idei/usim/src/Components/Select.php
+
+		-
+			message: '#^Method Idei\\Usim\\Components\\Select\:\:remote\(\) has parameter \$params with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: packages/idei/usim/src/Components/Select.php
+
+		-
+			message: '#^Method Idei\\Usim\\Components\\Split\:\:deserialize\(\) has parameter \$data with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: packages/idei/usim/src/Components/Split.php
+
+		-
+			message: '#^Method Idei\\Usim\\Components\\Table\:\:applyCellMetadata\(\) has parameter \$value with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: packages/idei/usim/src/Components/Table.php
+
+		-
+			message: '#^Method Idei\\Usim\\Components\\Table\:\:columnWidths\(\) has parameter \$widths with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: packages/idei/usim/src/Components/Table.php
+
+		-
+			message: '#^Method Idei\\Usim\\Components\\Table\:\:configureTableColumns\(\) has parameter \$columns with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: packages/idei/usim/src/Components/Table.php
+
+		-
+			message: '#^Method Idei\\Usim\\Components\\Table\:\:configureTableHeaders\(\) has parameter \$columns with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: packages/idei/usim/src/Components/Table.php
+
+		-
+			message: '#^Method Idei\\Usim\\Components\\Table\:\:fillHeaderRow\(\) has parameter \$data with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: packages/idei/usim/src/Components/Table.php
+
+		-
+			message: '#^Method Idei\\Usim\\Components\\Table\:\:fillRow\(\) has parameter \$data with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: packages/idei/usim/src/Components/Table.php
+
+		-
+			message: '#^Method Idei\\Usim\\Components\\Table\:\:getConfig\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: packages/idei/usim/src/Components/Table.php
+
+		-
+			message: '#^Method Idei\\Usim\\Components\\Table\:\:getDefaultConfig\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: packages/idei/usim/src/Components/Table.php
+
+		-
+			message: '#^Method Idei\\Usim\\Components\\Table\:\:getDimensions\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: packages/idei/usim/src/Components/Table.php
+
+		-
+			message: '#^Method Idei\\Usim\\Components\\Table\:\:getExcludedJsonKeys\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: packages/idei/usim/src/Components/Table.php
+
+		-
+			message: '#^Method Idei\\Usim\\Components\\Table\:\:getPaginationData\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: packages/idei/usim/src/Components/Table.php
+
+		-
+			message: '#^Method Idei\\Usim\\Components\\Table\:\:initializeTableDimensions\(\) has parameter \$columns with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: packages/idei/usim/src/Components/Table.php
+
+		-
+			message: '#^Method Idei\\Usim\\Components\\Table\:\:select\(\) has parameter \$rows with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: packages/idei/usim/src/Components/Table.php
+
+		-
+			message: '#^Method Idei\\Usim\\Components\\Table\:\:select\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: packages/idei/usim/src/Components/Table.php
+
+		-
+			message: '#^Method Idei\\Usim\\Components\\Table\:\:splitFormattedRowData\(\) has parameter \$rowData with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: packages/idei/usim/src/Components/Table.php
+
+		-
+			message: '#^Method Idei\\Usim\\Components\\Table\:\:splitFormattedRowData\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: packages/idei/usim/src/Components/Table.php
+
+		-
+			message: '#^Method Idei\\Usim\\Components\\Table\:\:toJson\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: packages/idei/usim/src/Components/Table.php
+
+		-
+			message: '#^Property Idei\\Usim\\Components\\Table\:\:\$cells type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: packages/idei/usim/src/Components/Table.php
+
+		-
+			message: '#^Property Idei\\Usim\\Components\\Table\:\:\$columnWidths type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: packages/idei/usim/src/Components/Table.php
+
+		-
+			message: '#^Property Idei\\Usim\\Components\\Table\:\:\$rowBuilders type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: packages/idei/usim/src/Components/Table.php
+
+		-
+			message: '#^Method Idei\\Usim\\Components\\TableCell\:\:button\(\) has parameter \$button with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: packages/idei/usim/src/Components/TableCell.php
+
+		-
+			message: '#^Method Idei\\Usim\\Components\\TableCell\:\:buttons\(\) has parameter \$buttons with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: packages/idei/usim/src/Components/TableCell.php
+
+		-
+			message: '#^Method Idei\\Usim\\Components\\TableCell\:\:getDefaultConfig\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: packages/idei/usim/src/Components/TableCell.php
+
+		-
+			message: '#^Method Idei\\Usim\\Components\\TableCell\:\:getExcludedJsonKeys\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: packages/idei/usim/src/Components/TableCell.php
+
+		-
+			message: '#^Method Idei\\Usim\\Components\\TableCell\:\:toJson\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: packages/idei/usim/src/Components/TableCell.php
+
+		-
+			message: '#^Method Idei\\Usim\\Components\\TableHeaderCell\:\:getDefaultConfig\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: packages/idei/usim/src/Components/TableHeaderCell.php
+
+		-
+			message: '#^Method Idei\\Usim\\Components\\TableHeaderCell\:\:getExcludedJsonKeys\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: packages/idei/usim/src/Components/TableHeaderCell.php
+
+		-
+			message: '#^Method Idei\\Usim\\Components\\TableHeaderCell\:\:toJson\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: packages/idei/usim/src/Components/TableHeaderCell.php
+
+		-
+			message: '#^Method Idei\\Usim\\Components\\TableHeaderRow\:\:getDefaultConfig\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: packages/idei/usim/src/Components/TableHeaderRow.php
+
+		-
+			message: '#^Method Idei\\Usim\\Components\\TableHeaderRow\:\:getExcludedJsonKeys\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: packages/idei/usim/src/Components/TableHeaderRow.php
+
+		-
+			message: '#^Method Idei\\Usim\\Components\\TableHeaderRow\:\:toJson\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: packages/idei/usim/src/Components/TableHeaderRow.php
+
+		-
+			message: '#^Method Idei\\Usim\\Components\\TableRow\:\:cells\(\) has parameter \$cells with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: packages/idei/usim/src/Components/TableRow.php
+
+		-
+			message: '#^Method Idei\\Usim\\Components\\TableRow\:\:getDefaultConfig\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: packages/idei/usim/src/Components/TableRow.php
+
+		-
+			message: '#^Method Idei\\Usim\\Components\\TableRow\:\:getExcludedJsonKeys\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: packages/idei/usim/src/Components/TableRow.php
+
+		-
+			message: '#^Method Idei\\Usim\\Components\\TableRow\:\:getRowConfig\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: packages/idei/usim/src/Components/TableRow.php
+
+		-
+			message: '#^Method Idei\\Usim\\Components\\TableRow\:\:parameters\(\) has parameter \$parameters with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: packages/idei/usim/src/Components/TableRow.php
+
+		-
+			message: '#^Method Idei\\Usim\\Components\\TableRow\:\:toJson\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: packages/idei/usim/src/Components/TableRow.php
+
+		-
+			message: '#^Method Idei\\Usim\\Components\\Textarea\:\:getDefaultConfig\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: packages/idei/usim/src/Components/Textarea.php
+
+		-
+			message: '#^Method Idei\\Usim\\Components\\Textarea\:\:onChange\(\) has parameter \$parameters with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: packages/idei/usim/src/Components/Textarea.php
+
+		-
+			message: '#^Method Idei\\Usim\\Components\\Textarea\:\:onInput\(\) has parameter \$parameters with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: packages/idei/usim/src/Components/Textarea.php
+
+		-
+			message: '#^Method Idei\\Usim\\Components\\UIComponent\:\:deserialize\(\) has parameter \$data with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: packages/idei/usim/src/Components/UIComponent.php
+
+		-
+			message: '#^Method Idei\\Usim\\Components\\UIComponent\:\:getConfig\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: packages/idei/usim/src/Components/UIComponent.php
+
+		-
+			message: '#^Method Idei\\Usim\\Components\\UIComponent\:\:getContextInfo\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: packages/idei/usim/src/Components/UIComponent.php
+
+		-
+			message: '#^Method Idei\\Usim\\Components\\UIComponent\:\:getDefaultConfig\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: packages/idei/usim/src/Components/UIComponent.php
+
+		-
+			message: '#^Method Idei\\Usim\\Components\\UIComponent\:\:getExcludedJsonKeys\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: packages/idei/usim/src/Components/UIComponent.php
+
+		-
+			message: '#^Method Idei\\Usim\\Components\\UIComponent\:\:toJson\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: packages/idei/usim/src/Components/UIComponent.php
+
+		-
+			message: '#^Property Idei\\Usim\\Components\\UIComponent\:\:\$config type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: packages/idei/usim/src/Components/UIComponent.php
+
+		-
+			message: '#^Method Idei\\Usim\\Components\\Uploader\:\:allowedTypes\(\) has parameter \$types with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: packages/idei/usim/src/Components/Uploader.php
+
+		-
+			message: '#^Method Idei\\Usim\\Components\\Uploader\:\:confirm\(\) has parameter \$oldFiles with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: packages/idei/usim/src/Components/Uploader.php
+
+		-
+			message: '#^Method Idei\\Usim\\Components\\Uploader\:\:confirm\(\) has parameter \$params with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: packages/idei/usim/src/Components/Uploader.php
+
+		-
+			message: '#^Method Idei\\Usim\\Components\\Uploader\:\:confirm\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: packages/idei/usim/src/Components/Uploader.php
+
+		-
+			message: '#^Method Idei\\Usim\\Components\\Uploader\:\:getDefaultConfig\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: packages/idei/usim/src/Components/Uploader.php
+
+		-
+			message: '#^Method Idei\\Usim\\Components\\Uploader\:\:getTempId\(\) has parameter \$params with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: packages/idei/usim/src/Components/Uploader.php
+
+		-
+			message: '#^Method Idei\\Usim\\Components\\Uploader\:\:getTempIds\(\) has parameter \$params with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: packages/idei/usim/src/Components/Uploader.php
+
+		-
+			message: '#^Method Idei\\Usim\\Components\\Uploader\:\:getTempIds\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: packages/idei/usim/src/Components/Uploader.php
+
+		-
+			message: '#^Method Idei\\Usim\\Console\\Commands\\DiscoverScreensCommand\:\:formatArrayToShortSyntax\(\) has parameter \$array with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: packages/idei/usim/src/Console/Commands/DiscoverScreensCommand.php
+
+		-
+			message: '#^Method Idei\\Usim\\Console\\Commands\\DiscoverScreensCommand\:\:handle\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: packages/idei/usim/src/Console/Commands/DiscoverScreensCommand.php
+
+		-
+			message: '#^Method Idei\\Usim\\Console\\Commands\\DiscoverScreensCommand\:\:writeManifest\(\) has parameter \$screens with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: packages/idei/usim/src/Console/Commands/DiscoverScreensCommand.php
+
+		-
+			message: '#^Method Idei\\Usim\\Console\\Commands\\InstallCommand\:\:publishStub\(\) has parameter \$replacements with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: packages/idei/usim/src/Console/Commands/InstallCommand.php
+
+		-
+			message: '#^Method Idei\\Usim\\Console\\Commands\\Support\\InstallContextResolver\:\:buildScaffoldingContext\(\) has parameter \$namespaces with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: packages/idei/usim/src/Console/Commands/Support/InstallContextResolver.php
+
+		-
+			message: '#^Method Idei\\Usim\\Console\\Commands\\Support\\InstallStateManager\:\:read\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: packages/idei/usim/src/Console/Commands/Support/InstallStateManager.php
+
+		-
+			message: '#^Method Idei\\Usim\\Console\\Commands\\Support\\InstallStubPublisher\:\:publish\(\) has parameter \$replacements with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: packages/idei/usim/src/Console/Commands/Support/InstallStubPublisher.php
+
+		-
+			message: '#^Method Idei\\Usim\\Contracts\\UIElement\:\:deserialize\(\) has parameter \$data with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: packages/idei/usim/src/Contracts/UIElement.php
+
+		-
+			message: '#^Method Idei\\Usim\\Contracts\\UIElement\:\:toJson\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: packages/idei/usim/src/Contracts/UIElement.php
+
+		-
+			message: '#^Method Idei\\Usim\\DataTable\\AbstractTableModel\:\:getColumns\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: packages/idei/usim/src/DataTable/AbstractTableModel.php
+
+		-
+			message: '#^Method Idei\\Usim\\DataTable\\AbstractTableModel\:\:getFormattedPageData\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: packages/idei/usim/src/DataTable/AbstractTableModel.php
+
+		-
+			message: '#^Method Idei\\Usim\\DataTable\\AbstractTableModel\:\:getPageData\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: packages/idei/usim/src/DataTable/AbstractTableModel.php
+
+		-
+			message: '#^Method Idei\\Usim\\DataTable\\AbstractTableModel\:\:getPaginationData\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: packages/idei/usim/src/DataTable/AbstractTableModel.php
+
+		-
+			message: '#^Method Idei\\Usim\\DataTable\\AbstractTableModel\:\:getRemovalValues\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: packages/idei/usim/src/DataTable/AbstractTableModel.php
+
+		-
+			message: '#^Method Idei\\Usim\\DataTable\\AbstractTableModel\:\:getRemovedRowConfig\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: packages/idei/usim/src/DataTable/AbstractTableModel.php
+
+		-
+			message: '#^Method Idei\\Usim\\DataTable\\AbstractTableModel\:\:updateRow\(\) has parameter \$newData with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: packages/idei/usim/src/DataTable/AbstractTableModel.php
+
+		-
+			message: '#^Method Idei\\Usim\\Events\\UsimEvent\:\:__construct\(\) has parameter \$params with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: packages/idei/usim/src/Events/UsimEvent.php
+
+		-
+			message: '#^Method Idei\\Usim\\Http\\Controllers\\UIController\:\:accessDeniedResponse\(\) has parameter \$accessResult with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: packages/idei/usim/src/Http/Controllers/UIController.php
+
+		-
+			message: '#^Method Idei\\Usim\\Http\\Controllers\\UIController\:\:extractRequestData\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: packages/idei/usim/src/Http/Controllers/UIController.php
+
+		-
+			message: '#^Method Idei\\Usim\\Http\\Controllers\\UIController\:\:initializeScreenContext\(\) has parameter \$requestData with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: packages/idei/usim/src/Http/Controllers/UIController.php
+
+		-
+			message: '#^Method Idei\\Usim\\Http\\Controllers\\UIController\:\:instantiateScreen\(\) has parameter \$requestData with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: packages/idei/usim/src/Http/Controllers/UIController.php
+
+		-
+			message: '#^Method Idei\\Usim\\Http\\Controllers\\UIEventController\:\:accessDeniedResponse\(\) has parameter \$access with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: packages/idei/usim/src/Http/Controllers/UIEventController.php
+
+		-
+			message: '#^Method Idei\\Usim\\Http\\Controllers\\UIEventController\:\:extractCallerScreenId\(\) has parameter \$parameters with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: packages/idei/usim/src/Http/Controllers/UIEventController.php
+
+		-
+			message: '#^Method Idei\\Usim\\Http\\Controllers\\UIEventController\:\:validateEventRequest\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: packages/idei/usim/src/Http/Controllers/UIEventController.php
+
+		-
+			message: '#^Method Idei\\Usim\\Http\\Middleware\\PrepareUIContext\:\:handle\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: packages/idei/usim/src/Http/Middleware/PrepareUIContext.php
+
+		-
+			message: '#^Property Idei\\Usim\\Listeners\\UsimEventDispatcher\:\:\$eventQueue type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: packages/idei/usim/src/Listeners/UsimEventDispatcher.php
+
+		-
+			message: '#^Method Idei\\Usim\\Modals\\ConfirmDialogService\:\:getUI\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: packages/idei/usim/src/Modals/ConfirmDialogService.php
+
+		-
+			message: '#^Method Idei\\Usim\\Modals\\ConfirmDialogService\:\:open\(\) has parameter \$params with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: packages/idei/usim/src/Modals/ConfirmDialogService.php
+
+		-
+			message: '#^Method Idei\\Usim\\Models\\UsimLanguage\:\:scopeByCode\(\) has parameter \$query with generic class Illuminate\\Database\\Eloquent\\Builder but does not specify its types\: TModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: packages/idei/usim/src/Models/UsimLanguage.php
+
+		-
+			message: '#^Method Idei\\Usim\\Models\\UsimLanguage\:\:scopeByCode\(\) return type with generic class Illuminate\\Database\\Eloquent\\Builder does not specify its types\: TModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: packages/idei/usim/src/Models/UsimLanguage.php
+
+		-
+			message: '#^Method Idei\\Usim\\Models\\UsimLanguage\:\:values\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\HasMany does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: packages/idei/usim/src/Models/UsimLanguage.php
+
+		-
+			message: '#^Method Idei\\Usim\\Models\\UsimRole\:\:homeScreen\(\) return type with generic class Illuminate\\Database\\Eloquent\\Casts\\Attribute does not specify its types\: TGet, TSet$#'
+			identifier: missingType.generics
+			count: 1
+			path: packages/idei/usim/src/Models/UsimRole.php
+
+		-
+			message: '#^Method Idei\\Usim\\Models\\UsimRole\:\:priority\(\) return type with generic class Illuminate\\Database\\Eloquent\\Casts\\Attribute does not specify its types\: TGet, TSet$#'
+			identifier: missingType.generics
+			count: 1
+			path: packages/idei/usim/src/Models/UsimRole.php
+
+		-
+			message: '#^Method Idei\\Usim\\Models\\UsimRole\:\:usimSetting\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\HasOne does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: packages/idei/usim/src/Models/UsimRole.php
+
+		-
+			message: '#^Method Idei\\Usim\\Models\\UsimRoleSetting\:\:role\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: packages/idei/usim/src/Models/UsimRoleSetting.php
+
+		-
+			message: '#^Method Idei\\Usim\\Models\\UsimTextKey\:\:scopeByKey\(\) has parameter \$query with generic class Illuminate\\Database\\Eloquent\\Builder but does not specify its types\: TModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: packages/idei/usim/src/Models/UsimTextKey.php
+
+		-
+			message: '#^Method Idei\\Usim\\Models\\UsimTextKey\:\:scopeByKey\(\) return type with generic class Illuminate\\Database\\Eloquent\\Builder does not specify its types\: TModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: packages/idei/usim/src/Models/UsimTextKey.php
+
+		-
+			message: '#^Method Idei\\Usim\\Models\\UsimTextKey\:\:values\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\HasMany does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: packages/idei/usim/src/Models/UsimTextKey.php
+
+		-
+			message: '#^Method Idei\\Usim\\Models\\UsimTextValue\:\:language\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: packages/idei/usim/src/Models/UsimTextValue.php
+
+		-
+			message: '#^Method Idei\\Usim\\Models\\UsimTextValue\:\:scopeWithLanguage\(\) has parameter \$query with generic class Illuminate\\Database\\Eloquent\\Builder but does not specify its types\: TModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: packages/idei/usim/src/Models/UsimTextValue.php
+
+		-
+			message: '#^Method Idei\\Usim\\Models\\UsimTextValue\:\:scopeWithLanguage\(\) return type with generic class Illuminate\\Database\\Eloquent\\Builder does not specify its types\: TModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: packages/idei/usim/src/Models/UsimTextValue.php
+
+		-
+			message: '#^Method Idei\\Usim\\Models\\UsimTextValue\:\:textKey\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: packages/idei/usim/src/Models/UsimTextValue.php
+
+		-
+			message: '#^Method Idei\\Usim\\Notifications\\CustomVerifyEmailNotification\:\:verificationUrl\(\) has parameter \$notifiable with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: packages/idei/usim/src/Notifications/CustomVerifyEmailNotification.php
+
+		-
+			message: '#^Method Idei\\Usim\\Notifications\\ResetPasswordNotification\:\:__construct\(\) has parameter \$token with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: packages/idei/usim/src/Notifications/ResetPasswordNotification.php
+
+		-
+			message: '#^Property Idei\\Usim\\Notifications\\ResetPasswordNotification\:\:\$token has no type specified\.$#'
+			identifier: missingType.property
+			count: 1
+			path: packages/idei/usim/src/Notifications/ResetPasswordNotification.php
+
+		-
+			message: '#^Method Idei\\Usim\\Screen\:\:buildDiffResponse\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: packages/idei/usim/src/Screen.php
+
+		-
+			message: '#^Method Idei\\Usim\\Screen\:\:checkAccess\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: packages/idei/usim/src/Screen.php
+
+		-
+			message: '#^Method Idei\\Usim\\Screen\:\:getAgentContext\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: packages/idei/usim/src/Screen.php
+
+		-
+			message: '#^Method Idei\\Usim\\Screen\:\:getCachedScreenSnapshot\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: packages/idei/usim/src/Screen.php
+
+		-
+			message: '#^Method Idei\\Usim\\Screen\:\:getStorageVariables\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: packages/idei/usim/src/Screen.php
+
+		-
+			message: '#^Method Idei\\Usim\\Screen\:\:getStoredUI\(\) has parameter \$params with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: packages/idei/usim/src/Screen.php
+
+		-
+			message: '#^Method Idei\\Usim\\Screen\:\:getStoredUI\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: packages/idei/usim/src/Screen.php
+
+		-
+			message: '#^Method Idei\\Usim\\Screen\:\:initializeEventContext\(\) has parameter \$incomingStorage with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: packages/idei/usim/src/Screen.php
+
+		-
+			message: '#^Method Idei\\Usim\\Screen\:\:initializeEventContext\(\) has parameter \$queryParams with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: packages/idei/usim/src/Screen.php
+
+		-
+			message: '#^Method Idei\\Usim\\Screen\:\:injectStorageValues\(\) has parameter \$incomingStorage with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: packages/idei/usim/src/Screen.php
+
+		-
+			message: '#^Method Idei\\Usim\\Screen\:\:isValidCachedScreenSnapshot\(\) has parameter \$ui with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: packages/idei/usim/src/Screen.php
+
+		-
+			message: '#^Method Idei\\Usim\\Screen\:\:onCloseModal\(\) has parameter \$params with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: packages/idei/usim/src/Screen.php
+
+		-
+			message: '#^Method Idei\\Usim\\Screen\:\:reconstructContainerFromJson\(\) has parameter \$jsonUI with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: packages/idei/usim/src/Screen.php
+
+		-
+			message: '#^Method Idei\\Usim\\Screen\:\:requirePermission\(\) has parameter \$permissions with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: packages/idei/usim/src/Screen.php
+
+		-
+			message: '#^Method Idei\\Usim\\Screen\:\:requireRole\(\) has parameter \$roles with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: packages/idei/usim/src/Screen.php
+
+		-
+			message: '#^Method Idei\\Usim\\Screen\:\:updateModal\(\) has parameter \$content with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: packages/idei/usim/src/Screen.php
+
+		-
+			message: '#^Property Idei\\Usim\\Screen\:\:\$newUI type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: packages/idei/usim/src/Screen.php
+
+		-
+			message: '#^Property Idei\\Usim\\Screen\:\:\$oldUI type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: packages/idei/usim/src/Screen.php
+
+		-
+			message: '#^Property Idei\\Usim\\Screen\:\:\$queryParams type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: packages/idei/usim/src/Screen.php
+
+		-
+			message: '#^Method PhpParser\\NodeVisitorAbstract@anonymous/packages/idei/usim/src/Support/CodeModifier/ClassModifier\.php\:166\:\:__construct\(\) has parameter \$className with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: packages/idei/usim/src/Support/CodeModifier/ClassModifier.php
+
+		-
+			message: '#^Method PhpParser\\NodeVisitorAbstract@anonymous/packages/idei/usim/src/Support/CodeModifier/ClassModifier\.php\:166\:\:__construct\(\) has parameter \$interfaceFQN with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: packages/idei/usim/src/Support/CodeModifier/ClassModifier.php
+
+		-
+			message: '#^Method PhpParser\\NodeVisitorAbstract@anonymous/packages/idei/usim/src/Support/CodeModifier/ClassModifier\.php\:166\:\:__construct\(\) has parameter \$interfaceShort with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: packages/idei/usim/src/Support/CodeModifier/ClassModifier.php
+
+		-
+			message: '#^Method PhpParser\\NodeVisitorAbstract@anonymous/packages/idei/usim/src/Support/CodeModifier/ClassModifier\.php\:273\:\:__construct\(\) has parameter \$className with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: packages/idei/usim/src/Support/CodeModifier/ClassModifier.php
+
+		-
+			message: '#^Method PhpParser\\NodeVisitorAbstract@anonymous/packages/idei/usim/src/Support/CodeModifier/ClassModifier\.php\:273\:\:__construct\(\) has parameter \$propertyName with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: packages/idei/usim/src/Support/CodeModifier/ClassModifier.php
+
+		-
+			message: '#^Method PhpParser\\NodeVisitorAbstract@anonymous/packages/idei/usim/src/Support/CodeModifier/ClassModifier\.php\:273\:\:__construct\(\) has parameter \$value with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: packages/idei/usim/src/Support/CodeModifier/ClassModifier.php
+
+		-
+			message: '#^Method PhpParser\\NodeVisitorAbstract@anonymous/packages/idei/usim/src/Support/CodeModifier/ClassModifier\.php\:345\:\:__construct\(\) has parameter \$className with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: packages/idei/usim/src/Support/CodeModifier/ClassModifier.php
+
+		-
+			message: '#^Method PhpParser\\NodeVisitorAbstract@anonymous/packages/idei/usim/src/Support/CodeModifier/ClassModifier\.php\:345\:\:__construct\(\) has parameter \$field with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: packages/idei/usim/src/Support/CodeModifier/ClassModifier.php
+
+		-
+			message: '#^Method PhpParser\\NodeVisitorAbstract@anonymous/packages/idei/usim/src/Support/CodeModifier/ClassModifier\.php\:345\:\:__construct\(\) has parameter \$type with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: packages/idei/usim/src/Support/CodeModifier/ClassModifier.php
+
+		-
+			message: '#^Method PhpParser\\NodeVisitorAbstract@anonymous/packages/idei/usim/src/Support/CodeModifier/ClassModifier\.php\:49\:\:__construct\(\) has parameter \$className with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: packages/idei/usim/src/Support/CodeModifier/ClassModifier.php
+
+		-
+			message: '#^Method PhpParser\\NodeVisitorAbstract@anonymous/packages/idei/usim/src/Support/CodeModifier/ClassModifier\.php\:49\:\:__construct\(\) has parameter \$traitFQN with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: packages/idei/usim/src/Support/CodeModifier/ClassModifier.php
+
+		-
+			message: '#^Method PhpParser\\NodeVisitorAbstract@anonymous/packages/idei/usim/src/Support/CodeModifier/ClassModifier\.php\:49\:\:__construct\(\) has parameter \$traitShort with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: packages/idei/usim/src/Support/CodeModifier/ClassModifier.php
+
+		-
+			message: '#^Method Idei\\Usim\\Support\\EloquentListingService\:\:buildQuery\(\) has parameter \$filters with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: packages/idei/usim/src/Support/EloquentListingService.php
+
+		-
+			message: '#^Method Idei\\Usim\\Support\\EloquentListingService\:\:countMatching\(\) has parameter \$filters with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: packages/idei/usim/src/Support/EloquentListingService.php
+
+		-
+			message: '#^Method Idei\\Usim\\Support\\EloquentListingService\:\:discoverRelations\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\Relation does not specify its types\: TRelatedModel, TDeclaringModel, TResult$#'
+			identifier: missingType.generics
+			count: 2
+			path: packages/idei/usim/src/Support/EloquentListingService.php
+
+		-
+			message: '#^Method Idei\\Usim\\Support\\EloquentListingService\:\:paginate\(\) has parameter \$filters with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: packages/idei/usim/src/Support/EloquentListingService.php
+
+		-
+			message: '#^Property Idei\\Usim\\Support\\EloquentListingService\:\:\$relationCache with generic class Illuminate\\Database\\Eloquent\\Relations\\Relation does not specify its types\: TRelatedModel, TDeclaringModel, TResult$#'
+			identifier: missingType.generics
+			count: 2
+			path: packages/idei/usim/src/Support/EloquentListingService.php
+
+		-
+			message: '#^Method Idei\\Usim\\Support\\FakeDataHelper\:\:fullName\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: packages/idei/usim/src/Support/FakeDataHelper.php
+
+		-
+			message: '#^Method Idei\\Usim\\Support\\FakeDataHelper\:\:nameWithEmail\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: packages/idei/usim/src/Support/FakeDataHelper.php
+
+		-
+			message: '#^Method Idei\\Usim\\Support\\FakeDataHelper\:\:userData\(\) has parameter \$roles with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: packages/idei/usim/src/Support/FakeDataHelper.php
+
+		-
+			message: '#^Method Idei\\Usim\\Support\\FakeDataHelper\:\:userData\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: packages/idei/usim/src/Support/FakeDataHelper.php
+
+		-
+			message: '#^Method Idei\\Usim\\Support\\HttpClient\:\:delete\(\) has parameter \$data with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: packages/idei/usim/src/Support/HttpClient.php
+
+		-
+			message: '#^Method Idei\\Usim\\Support\\HttpClient\:\:delete\(\) has parameter \$routeParams with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: packages/idei/usim/src/Support/HttpClient.php
+
+		-
+			message: '#^Method Idei\\Usim\\Support\\HttpClient\:\:delete\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: packages/idei/usim/src/Support/HttpClient.php
+
+		-
+			message: '#^Method Idei\\Usim\\Support\\HttpClient\:\:get\(\) has parameter \$queryParams with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: packages/idei/usim/src/Support/HttpClient.php
+
+		-
+			message: '#^Method Idei\\Usim\\Support\\HttpClient\:\:get\(\) has parameter \$routeParams with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: packages/idei/usim/src/Support/HttpClient.php
+
+		-
+			message: '#^Method Idei\\Usim\\Support\\HttpClient\:\:get\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: packages/idei/usim/src/Support/HttpClient.php
+
+		-
+			message: '#^Method Idei\\Usim\\Support\\HttpClient\:\:getHeaders\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: packages/idei/usim/src/Support/HttpClient.php
+
+		-
+			message: '#^Method Idei\\Usim\\Support\\HttpClient\:\:getInternalUrl\(\) has parameter \$routeParams with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: packages/idei/usim/src/Support/HttpClient.php
+
+		-
+			message: '#^Method Idei\\Usim\\Support\\HttpClient\:\:getRaw\(\) has parameter \$queryParams with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: packages/idei/usim/src/Support/HttpClient.php
+
+		-
+			message: '#^Method Idei\\Usim\\Support\\HttpClient\:\:patch\(\) has parameter \$data with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: packages/idei/usim/src/Support/HttpClient.php
+
+		-
+			message: '#^Method Idei\\Usim\\Support\\HttpClient\:\:patch\(\) has parameter \$routeParams with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: packages/idei/usim/src/Support/HttpClient.php
+
+		-
+			message: '#^Method Idei\\Usim\\Support\\HttpClient\:\:patch\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: packages/idei/usim/src/Support/HttpClient.php
+
+		-
+			message: '#^Method Idei\\Usim\\Support\\HttpClient\:\:post\(\) has parameter \$data with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: packages/idei/usim/src/Support/HttpClient.php
+
+		-
+			message: '#^Method Idei\\Usim\\Support\\HttpClient\:\:post\(\) has parameter \$routeParams with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: packages/idei/usim/src/Support/HttpClient.php
+
+		-
+			message: '#^Method Idei\\Usim\\Support\\HttpClient\:\:post\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: packages/idei/usim/src/Support/HttpClient.php
+
+		-
+			message: '#^Method Idei\\Usim\\Support\\HttpClient\:\:postRaw\(\) has parameter \$data with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: packages/idei/usim/src/Support/HttpClient.php
+
+		-
+			message: '#^Method Idei\\Usim\\Support\\HttpClient\:\:put\(\) has parameter \$data with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: packages/idei/usim/src/Support/HttpClient.php
+
+		-
+			message: '#^Method Idei\\Usim\\Support\\HttpClient\:\:put\(\) has parameter \$routeParams with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: packages/idei/usim/src/Support/HttpClient.php
+
+		-
+			message: '#^Method Idei\\Usim\\Support\\HttpClient\:\:put\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: packages/idei/usim/src/Support/HttpClient.php
+
+		-
+			message: '#^Method Idei\\Usim\\Support\\HttpClient\:\:request\(\) has parameter \$data with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: packages/idei/usim/src/Support/HttpClient.php
+
+		-
+			message: '#^Method Idei\\Usim\\Support\\HttpClient\:\:request\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: packages/idei/usim/src/Support/HttpClient.php
+
+		-
+			message: '#^Method Idei\\Usim\\Support\\ScreenDiscoveryService\:\:discover\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: packages/idei/usim/src/Support/ScreenDiscoveryService.php
+
+		-
+			message: '#^Method Idei\\Usim\\Support\\Translation\\TranslationDatasetQuery\:\:listKeyGroupsDataset\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: packages/idei/usim/src/Support/Translation/TranslationDatasetQuery.php
+
+		-
+			message: '#^Method Idei\\Usim\\Support\\Translation\\TranslationDatasetQuery\:\:listKeysByLanguageDataset\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: packages/idei/usim/src/Support/Translation/TranslationDatasetQuery.php
+
+		-
+			message: '#^Method Idei\\Usim\\Support\\Translation\\TranslationDatasetQuery\:\:listLanguagesDataset\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: packages/idei/usim/src/Support/Translation/TranslationDatasetQuery.php
+
+		-
+			message: '#^Method Idei\\Usim\\Support\\Translation\\TranslationKeyManager\:\:createOrUpdateKey\(\) has parameter \$attributes with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: packages/idei/usim/src/Support/Translation/TranslationKeyManager.php
+
+		-
+			message: '#^Method Idei\\Usim\\Support\\Translation\\TranslationKeyManager\:\:listKeys\(\) return type with generic interface Illuminate\\Contracts\\Pagination\\LengthAwarePaginator does not specify its types\: TKey, TValue$#'
+			identifier: missingType.generics
+			count: 1
+			path: packages/idei/usim/src/Support/Translation/TranslationKeyManager.php
+
+		-
+			message: '#^Method Idei\\Usim\\Support\\Translation\\TranslationKeyManager\:\:upsertValue\(\) has parameter \$mediaMeta with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: packages/idei/usim/src/Support/Translation/TranslationKeyManager.php
+
+		-
+			message: '#^Method Idei\\Usim\\Support\\Translation\\TranslationValueResolver\:\:getDirectEntry\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: packages/idei/usim/src/Support/Translation/TranslationValueResolver.php
+
+		-
+			message: '#^Method Idei\\Usim\\Support\\Translation\\TranslationValueResolver\:\:getEntry\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: packages/idei/usim/src/Support/Translation/TranslationValueResolver.php
+
+		-
+			message: '#^Method Idei\\Usim\\Support\\Translation\\TranslationValueResolver\:\:getValue\(\) has parameter \$params with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: packages/idei/usim/src/Support/Translation/TranslationValueResolver.php
+
+		-
+			message: '#^Method Idei\\Usim\\Support\\Translation\\TranslationValueResolver\:\:replaceParams\(\) has parameter \$params with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: packages/idei/usim/src/Support/Translation/TranslationValueResolver.php
+
+		-
+			message: '#^Method Idei\\Usim\\Support\\TranslationService\:\:createOrUpdateKey\(\) has parameter \$attributes with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: packages/idei/usim/src/Support/TranslationService.php
+
+		-
+			message: '#^Method Idei\\Usim\\Support\\TranslationService\:\:getDirectEntry\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: packages/idei/usim/src/Support/TranslationService.php
+
+		-
+			message: '#^Method Idei\\Usim\\Support\\TranslationService\:\:getEntry\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: packages/idei/usim/src/Support/TranslationService.php
+
+		-
+			message: '#^Method Idei\\Usim\\Support\\TranslationService\:\:getValue\(\) has parameter \$params with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: packages/idei/usim/src/Support/TranslationService.php
+
+		-
+			message: '#^Method Idei\\Usim\\Support\\TranslationService\:\:listKeyGroupsDataset\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: packages/idei/usim/src/Support/TranslationService.php
+
+		-
+			message: '#^Method Idei\\Usim\\Support\\TranslationService\:\:listKeys\(\) return type with generic interface Illuminate\\Contracts\\Pagination\\LengthAwarePaginator does not specify its types\: TKey, TValue$#'
+			identifier: missingType.generics
+			count: 1
+			path: packages/idei/usim/src/Support/TranslationService.php
+
+		-
+			message: '#^Method Idei\\Usim\\Support\\TranslationService\:\:listKeysByLanguageDataset\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: packages/idei/usim/src/Support/TranslationService.php
+
+		-
+			message: '#^Method Idei\\Usim\\Support\\TranslationService\:\:listLanguagesDataset\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: packages/idei/usim/src/Support/TranslationService.php
+
+		-
+			message: '#^Method Idei\\Usim\\Support\\TranslationService\:\:safeGetValue\(\) has parameter \$params with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: packages/idei/usim/src/Support/TranslationService.php
+
+		-
+			message: '#^Method Idei\\Usim\\Support\\TranslationService\:\:upsertFallbackValue\(\) has parameter \$mediaMeta with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: packages/idei/usim/src/Support/TranslationService.php
+
+		-
+			message: '#^Method Idei\\Usim\\Support\\TranslationService\:\:upsertValue\(\) has parameter \$mediaMeta with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: packages/idei/usim/src/Support/TranslationService.php
+
+		-
+			message: '#^Method Idei\\Usim\\Support\\UIDebug\:\:_log\(\) has parameter \$context with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: packages/idei/usim/src/Support/UIDebug.php
+
+		-
+			message: '#^Method Idei\\Usim\\Support\\UIDebug\:\:debug\(\) has parameter \$context with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: packages/idei/usim/src/Support/UIDebug.php
+
+		-
+			message: '#^Method Idei\\Usim\\Support\\UIDebug\:\:error\(\) has parameter \$context with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: packages/idei/usim/src/Support/UIDebug.php
+
+		-
+			message: '#^Method Idei\\Usim\\Support\\UIDebug\:\:info\(\) has parameter \$context with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: packages/idei/usim/src/Support/UIDebug.php
+
+		-
+			message: '#^Method Idei\\Usim\\Support\\UIDebug\:\:log\(\) has parameter \$context with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: packages/idei/usim/src/Support/UIDebug.php
+
+		-
+			message: '#^Method Idei\\Usim\\Support\\UIDebug\:\:warning\(\) has parameter \$context with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: packages/idei/usim/src/Support/UIDebug.php
+
+		-
+			message: '#^Method Idei\\Usim\\Support\\UIDiffer\:\:compare\(\) has parameter \$newUI with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: packages/idei/usim/src/Support/UIDiffer.php
+
+		-
+			message: '#^Method Idei\\Usim\\Support\\UIDiffer\:\:compare\(\) has parameter \$oldUI with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: packages/idei/usim/src/Support/UIDiffer.php
+
+		-
+			message: '#^Method Idei\\Usim\\Support\\UIDiffer\:\:compare\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: packages/idei/usim/src/Support/UIDiffer.php
+
+		-
+			message: '#^Method Idei\\Usim\\Support\\UIDiffer\:\:diffProperties\(\) has parameter \$new with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: packages/idei/usim/src/Support/UIDiffer.php
+
+		-
+			message: '#^Method Idei\\Usim\\Support\\UIDiffer\:\:diffProperties\(\) has parameter \$old with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: packages/idei/usim/src/Support/UIDiffer.php
+
+		-
+			message: '#^Method Idei\\Usim\\Support\\UIDiffer\:\:diffProperties\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: packages/idei/usim/src/Support/UIDiffer.php
+
+		-
+			message: '#^Method Idei\\Usim\\Support\\UIDiffer\:\:flattenComponents\(\) has parameter \$ui with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: packages/idei/usim/src/Support/UIDiffer.php
+
+		-
+			message: '#^Method Idei\\Usim\\Support\\UIDiffer\:\:flattenComponents\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: packages/idei/usim/src/Support/UIDiffer.php
+
+		-
+			message: '#^Method Idei\\Usim\\Support\\UIIdGenerator\:\:getContextInfo\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: packages/idei/usim/src/Support/UIIdGenerator.php
+
+		-
+			message: '#^Method Idei\\Usim\\Support\\UIStateManager\:\:get\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: packages/idei/usim/src/Support/UIStateManager.php
+
+		-
+			message: '#^Method Idei\\Usim\\Support\\UIStateManager\:\:getClientOpenedScreens\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: packages/idei/usim/src/Support/UIStateManager.php
+
+		-
+			message: '#^Method Idei\\Usim\\Support\\UIStateManager\:\:store\(\) has parameter \$uiState with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: packages/idei/usim/src/Support/UIStateManager.php
+
+		-
+			message: '#^Function t\(\) has parameter \$params with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: packages/idei/usim/src/Support/helpers.php
+
+		-
+			message: '#^Method Idei\\Usim\\UIChangesCollector\:\:add\(\) has parameter \$change with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: packages/idei/usim/src/UIChangesCollector.php
+
+		-
+			message: '#^Method Idei\\Usim\\UIChangesCollector\:\:all\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: packages/idei/usim/src/UIChangesCollector.php
+
+		-
+			message: '#^Method Idei\\Usim\\UIChangesCollector\:\:setStorage\(\) has parameter \$storageChange with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: packages/idei/usim/src/UIChangesCollector.php
+
+		-
+			message: '#^Property Idei\\Usim\\UIChangesCollector\:\:\$changes type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: packages/idei/usim/src/UIChangesCollector.php
+
+		-
+			message: '#^Property Idei\\Usim\\UIChangesCollector\:\:\$storage_changes type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: packages/idei/usim/src/UIChangesCollector.php
+
+		-
+			message: '#^Method Idei\\Usim\\Upload\\UploadService\:\:extractImageMetadata\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: packages/idei/usim/src/Upload/UploadService.php
+
+		-
+			message: '#^Method Idei\\Usim\\Upload\\UploadService\:\:extractMetadata\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: packages/idei/usim/src/Upload/UploadService.php
+
+		-
+			message: '#^Method Idei\\Usim\\Upload\\UploadService\:\:matchesMimePattern\(\) has parameter \$patterns with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: packages/idei/usim/src/Upload/UploadService.php
+
+		-
+			message: '#^Method Idei\\Usim\\Upload\\UploadService\:\:persistMultipleTemporaryUploads\(\) has parameter \$tempIds with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: packages/idei/usim/src/Upload/UploadService.php
+
+		-
+			message: '#^Method Idei\\Usim\\Upload\\UploadService\:\:persistMultipleTemporaryUploads\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: packages/idei/usim/src/Upload/UploadService.php
+
+		-
+			message: '#^Method Idei\\Usim\\Upload\\UploadService\:\:validateFile\(\) has parameter \$config with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: packages/idei/usim/src/Upload/UploadService.php
+
+		-
+			message: '#^Method Idei\\Usim\\Upload\\UploadService\:\:validateFile\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: packages/idei/usim/src/Upload/UploadService.php

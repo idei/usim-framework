@@ -1,15 +1,16 @@
 includes:
-	- vendor/larastan/larastan/extension.neon
+    - vendor/larastan/larastan/extension.neon
+    - phpstan-baseline.neon
 
 parameters:
-	paths:
-		- app/
-		- config/
-		- database/
-		- routes/
-		- packages/
-	level: 5
-	ignoreErrors:
-		-
-			identifier: larastan.noEnvCallsOutsideOfConfig
-			path: packages/idei/usim/config/usim.php
+    paths:
+        - app/
+        - config/
+        - database/
+        - routes/
+        - packages/
+    level: 6
+    ignoreErrors:
+        -
+            identifier: larastan.noEnvCallsOutsideOfConfig
+            path: packages/idei/usim/config/usim.php
