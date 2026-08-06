@@ -39,7 +39,7 @@ abstract class EloquentListingService implements ModelQueryableService
      * @var array<string, array{
      *   type: class-string<Relation>,
      *   related_table: string,
-     *   relation: Relation
+    *   relation: Relation<Model, Model, mixed>
      * }>
      */
     private array $relationCache = [];
@@ -114,6 +114,7 @@ abstract class EloquentListingService implements ModelQueryableService
     /**
      * Generic pagination helper reusable by child services.
      *
+        * @param array<string, mixed> $filters
      * @return array{total: int, items: array<int, TModel>}
      */
     public function paginate(
@@ -145,6 +146,9 @@ abstract class EloquentListingService implements ModelQueryableService
         ];
     }
 
+    /**
+     * @param array<string, mixed> $filters
+     */
     public function countMatching(?string $search = null, array $filters = []): int
     {
         return $this->buildQuery(search: $search, filters: $filters)->count();
@@ -203,6 +207,7 @@ abstract class EloquentListingService implements ModelQueryableService
 
     /**
      * @return Builder<TModel>
+     * @param array<string, mixed> $filters
      */
     protected function buildQuery(
         ?string $search = null,
@@ -377,7 +382,7 @@ abstract class EloquentListingService implements ModelQueryableService
     }
 
     /**
-     * @return array<string, array{type: class-string<Relation>, related_table: string, relation: Relation}>
+     * @return array<string, array{type: class-string<Relation>, related_table: string, relation: Relation<Model, Model, mixed>}>
      */
     private function discoverRelations(): array
     {

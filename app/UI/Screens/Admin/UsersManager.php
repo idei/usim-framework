@@ -210,6 +210,9 @@ class UsersManager extends Screen
         return $roles_container;
     }
 
+    /**
+     * @param array<string, mixed> $params
+     */
     public function onAddUserClicked(array $params): void
     {
         RegisterDialog::open(
@@ -219,6 +222,9 @@ class UsersManager extends Screen
         );
     }
 
+    /**
+     * @param array<string, mixed> $params
+     */
     public function onUsersTableColumnClicked(array $params): void
     {
         $column = $params['sort_by'] ?? null;
@@ -230,6 +236,9 @@ class UsersManager extends Screen
         $this->users_table->page(1);
     }
 
+    /**
+     * @param array<string, mixed> $params
+     */
     public function onSubmitRegister(array $params): void
     {
         $response = $this->registerService->register(
@@ -267,6 +276,9 @@ class UsersManager extends Screen
         }
     }
 
+    /**
+     * @param array<string, mixed> $params
+     */
     public function onUsersTableRowClicked(array $params): void
     {
         $userId = $params['model_id'] ?? null;
@@ -295,6 +307,9 @@ class UsersManager extends Screen
         );
     }
 
+    /**
+     * @param array<string, mixed> $params
+     */
     public function onSubmitUpdateUser(array $params): void
     {
         $userId = $params['user_id'] ?? null;
@@ -345,6 +360,9 @@ class UsersManager extends Screen
         }
     }
 
+    /**
+     * @param array<string, mixed> $params
+     */
     public function onDeleteUser(array $params): void
     {
         $userId = $params['user_id'] ?? null;
@@ -375,6 +393,9 @@ class UsersManager extends Screen
         );
     }
 
+    /**
+     * @param array<string, mixed> $params
+     */
     public function onConfirmDeleteUser(array $params): void
     {
         $userId = $params['user_id'] ?? null;
@@ -398,12 +419,18 @@ class UsersManager extends Screen
         $this->closeModal();
     }
 
+    /**
+     * @param array<string, mixed> $params
+     */
     public function onChangePage(array $params): void
     {
         $page = $params['page'] ?? 1;
         $this->users_table->page($page);
     }
 
+    /**
+     * @param array<string, mixed> $params
+     */
     public function onSearchUsers(array $params): void
     {
         $search = trim((string) ($params['value'] ?? $params['search_users'] ?? ''));
@@ -411,6 +438,9 @@ class UsersManager extends Screen
         $this->search_users->value($search);
     }
 
+    /**
+     * @param array<string, mixed> $params
+     */
     public function onSearchRoles(array $params): void
     {
         $search = trim((string) ($params['value'] ?? $params['search_roles'] ?? ''));
@@ -418,6 +448,9 @@ class UsersManager extends Screen
         $this->search_roles->value($search);
     }
 
+    /**
+     * @param array<string, mixed> $params
+     */
     public function onRolesTableRowClicked(array $params): void
     {
         $roleId = $params['model_id'] ?? null;

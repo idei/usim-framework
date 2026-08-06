@@ -90,7 +90,7 @@ class ModalDemo extends Screen
      * Handle "Open Confirmation" button click
      * Opens a confirmation dialog modal
      *
-     * @param array $params
+    * @param array<string, mixed> $params
      * @return void
      */
     public function onOpenConfirmation(array $params): void
@@ -114,7 +114,7 @@ class ModalDemo extends Screen
     /**
      * Handle user confirmation from modal
      *
-     * @param array $params
+    * @param array<string, mixed> $params
      * @return void
      */
     public function onHandleConfirm(array $params): void
@@ -131,7 +131,7 @@ class ModalDemo extends Screen
     /**
      * Handle user cancellation from modal
      *
-     * @param array $params
+    * @param array<string, mixed> $params
      * @return void
      */
     public function onHandleCancel(array $params): void
@@ -145,6 +145,9 @@ class ModalDemo extends Screen
 
     /**
      * Handler for Error dialog demo
+     */
+    /**
+     * @param array<string, mixed> $params
      */
     public function onShowErrorDialog(array $params): void
     {
@@ -163,11 +166,17 @@ class ModalDemo extends Screen
     /**
      * Handler to close error dialog
      */
+    /**
+     * @param array<string, mixed> $params
+     */
     public function onCloseErrorDialog(array $params): void
     {
         $this->closeModal();
     }
 
+    /**
+     * @param array<string, mixed> $params
+     */
     public function onShowTimeoutDialog(array $params): void
     {
         $screenId = $this->getScreenComponentId();
@@ -185,6 +194,9 @@ class ModalDemo extends Screen
         );
     }
 
+    /**
+     * @param array<string, mixed> $params
+     */
     public function onShowTimeoutNoButton(array $params): void
     {
         $screenId = $this->getScreenComponentId();
@@ -204,11 +216,17 @@ class ModalDemo extends Screen
     /**
      * Handler to close timeout dialog
      */
+    /**
+     * @param array<string, mixed> $params
+     */
     public function onCloseTimeoutDialog(array $params): void
     {
         $this->closeModal();
     }
 
+    /**
+     * @param array<string, mixed> $params
+     */
     public function onShowSettingsConfirm(array $params): void
     {
         // Get this screen ID to receive the callback.
@@ -228,6 +246,9 @@ class ModalDemo extends Screen
     /**
      * Handler for cancel button (closes modal)
      */
+    /**
+     * @param array<string, mixed> $params
+     */
     public function onCancelSettings(array $params): void
     {
         $this->closeModal();
@@ -235,6 +256,9 @@ class ModalDemo extends Screen
 
     /**
      * Handler for reset button - shows success dialog
+     */
+    /**
+     * @param array<string, mixed> $params
      */
     public function onResetSettings(array $params): void
     {
@@ -252,6 +276,9 @@ class ModalDemo extends Screen
 
     /**
      * Handler to close success dialog
+     */
+    /**
+     * @param array<string, mixed> $params
      */
     public function onCloseSuccessDialog(array $params): void
     {

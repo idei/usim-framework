@@ -5,6 +5,7 @@ namespace Idei\Usim\Http\Middleware;
 use Closure;
 use Idei\Usim\Support\UIStateManager;
 use Illuminate\Http\Request;
+use Symfony\Component\HttpFoundation\Response;
 
 /**
  * Middleware PrepareUIContext
@@ -16,7 +17,7 @@ use Illuminate\Http\Request;
  */
 class PrepareUIContext
 {
-    public function handle(Request $request, Closure $next)
+    public function handle(Request $request, Closure $next): Response
     {
         // 1. Desencriptar USIM Storage
         $this->decryptUsimStorage($request);

@@ -31,7 +31,7 @@ class DemoUi extends Screen
         $this->buildUIElements($container);
     }
 
-    private function buildUIElements($container): void
+    private function buildUIElements(Container $container): void
     {
         $container->add(
             UI::button('reset_button')
@@ -126,6 +126,9 @@ class DemoUi extends Screen
         $this->updateCounterLabel($this->lbl_counter, $this->store_counter);
     }
 
+    /**
+     * @param array<string, mixed> $params
+     */
     public function onResetState(array $params): void
     {
         $this->store_counter = 1000;
@@ -137,6 +140,9 @@ class DemoUi extends Screen
         $this->updateCounterLabel($this->lbl_counter, $this->store_counter);
     }
 
+    /**
+     * @param array<string, mixed> $params
+     */
     public function onTestAction(array $params): void
     {
         $this->lbl_welcome
@@ -144,11 +150,17 @@ class DemoUi extends Screen
             ->style('success');
     }
 
+    /**
+     * @param array<string, mixed> $params
+     */
     public function onIncrementCounter(array $params): void
     {
         $this->updateCounterLabel($this->lbl_counter, ++$this->store_counter);
     }
 
+    /**
+     * @param array<string, mixed> $params
+     */
     public function onDecrementCounter(array $params): void
     {
         $this->updateCounterLabel($this->lbl_counter, --$this->store_counter);
@@ -170,6 +182,9 @@ class DemoUi extends Screen
         return $labelBuilder;
     }
 
+    /**
+     * @param array<string, mixed> $params
+     */
     public function onAddNewComponent(array $params): void
     {
         $added = false;
@@ -190,6 +205,9 @@ class DemoUi extends Screen
         }
     }
 
+    /**
+     * @param array<string, mixed> $params
+     */
     public function onNewButtonAction(array $params): void
     {
         $button = $this->findRootComponentAs($params['id'] ?? null, Button::class);

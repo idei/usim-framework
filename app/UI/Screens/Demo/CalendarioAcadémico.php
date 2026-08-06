@@ -6,6 +6,7 @@ use DateTime;
 
 class CalendarioAcadémico
 {
+    /** @var list<array{start?: string, end?: string, date?: string, type: string, title: string}> */
     private static $events = [
         ['start' => '2026-03-09', 'end' => '2026-06-24', 'type' => 'clases', 'title' => '1º Cuatrimestre'],
         ['start' => '2026-08-10', 'end' => '2026-11-20', 'type' => 'clases', 'title' => '2º Cuatrimestre'],

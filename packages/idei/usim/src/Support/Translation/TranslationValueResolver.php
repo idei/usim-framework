@@ -6,6 +6,9 @@ use Idei\Usim\Models\UsimTextValue;
 
 class TranslationValueResolver
 {
+    /**
+     * @return array{text: string|null, needs_review: bool, media_url: string|null, media_meta: array<string, mixed>|null, language_code: string|null, key: string|null}|null
+     */
     public function getDirectEntry(string $key, string $languageCode): ?array
     {
         $entry = UsimTextValue::query()
@@ -32,6 +35,9 @@ class TranslationValueResolver
         ];
     }
 
+    /**
+     * @param array<string, mixed> $params
+     */
     public function getValue(string $key, array $params = [], ?string $languageCode = null): string
     {
         $textValue = $this->resolveTextValue($key, $languageCode);
@@ -43,6 +49,9 @@ class TranslationValueResolver
         return $this->replaceParams($textValue, $params);
     }
 
+    /**
+     * @return array{text: string|null, needs_review: bool, media_url: string|null, media_meta: array<string, mixed>|null, language_code: string|null, key: string|null}|null
+     */
     public function getEntry(string $key, ?string $languageCode = null): ?array
     {
         $entry = $this->resolveValueEntry($key, $languageCode);
@@ -94,6 +103,9 @@ class TranslationValueResolver
         return null;
     }
 
+    /**
+     * @param array<string, mixed> $params
+     */
     private function replaceParams(string $value, array $params): string
     {
         if ($params === []) {

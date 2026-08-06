@@ -16,10 +16,14 @@ class UsimRole extends SpatieRole
     protected const DEFAULT_HOME_SCREEN = 'home';
 
     // Estos atributos virtuales se añadirán al serializar el modelo (Array/JSON)
+    /** @var list<string> */
     protected $appends = ['home_screen', 'priority'];
 
     /**
      * Relación real One-to-One con tu tabla de configuraciones avanzadas
+     */
+    /**
+     * @return HasOne<UsimRoleSetting, $this>
      */
     public function usimSetting(): HasOne
     {

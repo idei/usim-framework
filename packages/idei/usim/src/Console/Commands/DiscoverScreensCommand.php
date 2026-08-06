@@ -10,7 +10,7 @@ class DiscoverScreensCommand extends Command
     protected $signature = 'usim:discover';
     protected $description = 'Discover UI Screens and cache their metadata';
 
-    public function handle(ScreenDiscoveryService $discoveryService)
+    public function handle(ScreenDiscoveryService $discoveryService): int
     {
         $this->checkNotInProduction();
 
@@ -24,6 +24,8 @@ class DiscoverScreensCommand extends Command
         $this->writeManifest($screens);
 
         $this->info('USIM manifest generated successfully!');
+
+        return self::SUCCESS;
     }
 
     private function writeManifest(array $screens): void

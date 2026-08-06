@@ -97,6 +97,9 @@ class Menu extends Screen
         $this->theme_toggle->tooltip(t('screen.menu.theme_switch_to', ['theme' => $this->store_theme === 'light' ? 'dark' : 'light']));
     }
 
+    /**
+     * @param array<string, mixed> $params
+     */
     public function onToggleTheme(array $params): void
     {
         $this->store_theme = $this->store_theme === 'light' ? 'dark' : 'light';
@@ -105,6 +108,9 @@ class Menu extends Screen
         $this->changeTheme($this->store_theme);
     }
 
+    /**
+     * @param array<string, mixed> $params
+     */
     public function onChangeLang(array $params): void
     {
         $lang = $params['lang'] ?? '';
@@ -200,7 +206,7 @@ class Menu extends Screen
     /**
      * Actualizar el trigger del menú de usuario según el estado del perfil
      */
-    private function updateUserMenuTrigger($user): void
+    private function updateUserMenuTrigger(mixed $user): void
     {
         if ($user->profile_image) {
             // Caso 3: Usuario con imagen de perfil
@@ -279,6 +285,9 @@ class Menu extends Screen
         $menu->item(t('screen.menu.items.logout'), 'confirm_logout', [], '🚪', visible: Auth::check());
     }
 
+    /**
+     * @param array<string, mixed> $params
+     */
     public function onLoggedUser(array $params): void
     {
         $user = Auth::user();
@@ -295,6 +304,9 @@ class Menu extends Screen
         }
     }
 
+    /**
+     * @param array<string, mixed> $params
+     */
     public function onUpdatedProfile(array $params): void
     {
         $user = $params['user'] ?? null;
@@ -305,6 +317,9 @@ class Menu extends Screen
 
     /**
      * Handler to confirm logout
+     */
+    /**
+     * @param array<string, mixed> $params
      */
     public function onConfirmLogout(array $params): void
     {
@@ -328,6 +343,9 @@ class Menu extends Screen
     /**
      * Handler for About info dialog
      */
+    /**
+     * @param array<string, mixed> $params
+     */
     public function onShowAboutInfo(array $params): void
     {
         // Get this screen ID to receive the callback.
@@ -346,6 +364,9 @@ class Menu extends Screen
         );
     }
 
+    /**
+     * @param array<string, mixed> $params
+     */
     public function onShowErrorInfo(array $params): void
     {
         $this->abort(500, t('screen.menu.abort_demo_error'));
@@ -353,6 +374,9 @@ class Menu extends Screen
 
     /**
      * Handler for Register form
+     */
+    /**
+     * @param array<string, mixed> $params
      */
     public function onShowRegisterForm(array $params): void
     {
@@ -363,6 +387,9 @@ class Menu extends Screen
         );
     }
 
+    /**
+     * @param array<string, mixed> $params
+     */
     public function onOpenTermsAndConditions(array $params): void
     {
         TermsDialog::open(
@@ -372,6 +399,9 @@ class Menu extends Screen
 
     /**
      * Handler to submit register (receives form data)
+     */
+    /**
+     * @param array<string, mixed> $params
      */
     public function onSubmitRegister(array $params): void
     {
@@ -397,6 +427,9 @@ class Menu extends Screen
         $this->handleRegisterSuccess($response);
     }
 
+    /**
+     * @param array<string, mixed> $response
+     */
     private function handleRegisterSuccess(array $response): void
     {
         $message = (string) ($response['message'] ?? t('screen.menu.register_success_default'));
@@ -413,6 +446,9 @@ class Menu extends Screen
         $this->redirect($redirectTo);
     }
 
+    /**
+     * @param array<string, mixed> $response
+     */
     private function handleRegisterError(array $response): void
     {
         $message = (string) ($response['message'] ?? t('screen.menu.validation_errors_default'));
@@ -420,6 +456,9 @@ class Menu extends Screen
         $this->updateModalValidationErrors((array) ($response['errors'] ?? []));
     }
 
+    /**
+     * @param array<string, mixed> $errors
+     */
     private function updateModalValidationErrors(array $errors): void
     {
         if ($errors === []) {
@@ -439,6 +478,9 @@ class Menu extends Screen
     /**
      * Handler to close profile dialog
      */
+    /**
+     * @param array<string, mixed> $params
+     */
     public function onCloseProfileDialog(array $params): void
     {
         $this->closeModal();
@@ -446,6 +488,9 @@ class Menu extends Screen
 
     /**
      * Handler for Logout
+     */
+    /**
+     * @param array<string, mixed> $params
      */
     public function onLogoutUser(array $params): void
     {
@@ -463,6 +508,9 @@ class Menu extends Screen
 
     /**
      * Handler to cancel logout
+     */
+    /**
+     * @param array<string, mixed> $params
      */
     public function onCancelLogout(array $params): void
     {

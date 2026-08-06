@@ -61,16 +61,22 @@ abstract class Screen
 
     /**
      * State before modifications (for diff calculation)
+        *
+        * @var array<int|string, array<string, mixed>>|null
      */
     protected ?array $oldUI = null;
 
     /**
      * State after modifications (for diff calculation)
+        *
+        * @var array<int|string, array<string, mixed>>|null
      */
     protected ?array $newUI = null;
 
     /**
      * Query parameters from the request
+        *
+        * @var array<string, mixed>
      */
     protected array $queryParams = [];
 
@@ -89,7 +95,7 @@ abstract class Screen
      * Check access permission and return result structure.
      * This method is static to allow checking permissions without instantiating the service.
      *
-     * @return array{allowed: bool, action: ?string, params: array}
+    * @return array{allowed: bool, action: ?string, params: array<string, mixed>}
      */
     public static function checkAccess(): array
     {
@@ -150,7 +156,7 @@ abstract class Screen
      * Helper to require a role (implies authentication).
      * Use this inside your authorize() method.
      *
-     * @param string|array $roles
+    * @param string|list<string> $roles
      * @param string $guard
      * @return bool
      */
@@ -184,7 +190,7 @@ abstract class Screen
      * Helper to require a permission (implies authentication).
      * Use this inside your authorize() method.
      *
-     * @param string|array $permissions
+    * @param string|list<string> $permissions
      * @param string $guard
      * @return bool
      */
@@ -373,7 +379,8 @@ abstract class Screen
      * Loads user Interface container and captures state for diff calculation.
      * Also injects storage values and component references into protected properties.
      *
-     * @param array $incomingStorage Storage data from frontend (decrypted)
+    * @param array<string, mixed> $incomingStorage Storage data from frontend (decrypted)
+    * @param array<string, mixed> $queryParams Query parameters from frontend
      * @return void
      */
     public function initializeEventContext(array $incomingStorage = [], array $queryParams = [], bool $debug = false): void
@@ -401,7 +408,7 @@ abstract class Screen
      * Example: protected int $store_user_id; matches storage['store_user_id']
      * Example: protected string $store_token_crypt; decrypts storage['store_token_crypt'] before injection
      *
-     * @param array $incomingStorage Storage data from frontend
+    * @param array<string, mixed> $incomingStorage Storage data from frontend
      * @return void
      */
     public function injectStorageValues(array $incomingStorage): void
@@ -547,7 +554,7 @@ abstract class Screen
     /**
      * Build diff response in indexed format
      *
-     * @return array Indexed diff response
+    * @return array<int|string, array<string, mixed>> Indexed diff response
      */
     protected function buildDiffResponse(bool $reload = false): array
     {
@@ -571,8 +578,8 @@ abstract class Screen
     /**
      * Get stored user Interface state, regenerate if missing
      *
-     * @param mixed ...$params Optional parameters passed to buildBaseUI
-     * @return array user Interface structure in JSON format
+    * @param mixed ...$params Optional parameters passed to buildBaseUI
+    * @return array<int|string, array<string, mixed>> user Interface structure in JSON format
      */
     protected function getCachedScreenSnapshot(string $parent = 'main', bool $debug = false, ...$params): array
     {
@@ -614,13 +621,12 @@ abstract class Screen
      * Reject snapshots that reference component parents not present in the payload
      * or table internals that no longer form a consistent subtree.
      */
+    /**
+     * @param array<int|string, array<string, mixed>> $ui
+     */
     private function isValidCachedScreenSnapshot(array $ui): bool
     {
         foreach ($ui as $componentId => $component) {
-            if (!\is_array($component)) {
-                continue;
-            }
-
             $parent = $component['parent'] ?? null;
             if (\is_int($parent) && !isset($ui[$parent]) && !isset($ui[(string) $parent])) {
                 return false;
@@ -672,7 +678,7 @@ abstract class Screen
     /**
      * Reconstruct UI container from JSON array
      *
-     * @param array $jsonUI JSON representation of UI
+    * @param array<int|string, array<string, mixed>> $jsonUI JSON representation of UI
      * @return Container Reconstructed container
      */
     private function reconstructContainerFromJson(array $jsonUI): Container
@@ -825,7 +831,11 @@ abstract class Screen
     /**
      * @deprecated Use getCachedScreenSnapshot() instead.
      */
-    protected function getStoredUI(string $parent = 'main', bool $debug = false, ...$params): array
+    /**
+     * @param mixed ...$params
+     * @return array<int|string, array<string, mixed>>
+     */
+    protected function getStoredUI(string $parent = 'main', bool $debug = false, mixed ...$params): array
     {
         return $this->getCachedScreenSnapshot($parent, $debug, ...$params);
     }
@@ -858,7 +868,7 @@ abstract class Screen
      *   ]
      * ]
      *
-     * @return array Associative array with the variables to be stored on the frontend
+    * @return array<string, mixed> Associative array with the variables to be stored on the frontend
      */
     public function getStorageVariables(): array
     {
@@ -893,6 +903,8 @@ abstract class Screen
 
     /**
      * Generic handler for 'close_modal' action
+        *
+        * @param array<string, mixed> $params
      */
     public function onCloseModal(array $params): void
     {
@@ -1012,6 +1024,9 @@ abstract class Screen
         ]);
     }
 
+    /**
+     * @param array<string, mixed> $content
+     */
     protected function updateModal(array $content): void
     {
         $this->uiChanges()->add([
@@ -1080,7 +1095,7 @@ abstract class Screen
      * }
      * ```
      *
-     * @return array Empty array by default. Override to provide agent context metadata.
+    * @return array<string, mixed> Empty array by default. Override to provide agent context metadata.
      */
     public function getAgentContext(): array
     {

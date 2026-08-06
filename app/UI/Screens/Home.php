@@ -22,6 +22,8 @@ class Home extends Screen
 
     /**
      * Handler for viewing demos
+        *
+        * @param array<string, mixed> $params
      */
     public function onViewDemos(array $params): void
     {
@@ -30,6 +32,8 @@ class Home extends Screen
 
     /**
      * Handler for viewing code examples
+        *
+        * @param array<string, mixed> $params
      */
     public function onViewCode(array $params): void
     {
@@ -38,6 +42,8 @@ class Home extends Screen
 
     /**
      * Handler for customization demo
+        *
+        * @param array<string, mixed> $params
      */
     public function onCustomize(array $params): void
     {
@@ -46,6 +52,8 @@ class Home extends Screen
 
     /**
      * Handler for viewing all demos
+        *
+        * @param array<string, mixed> $params
      */
     public function onViewAllDemos(array $params): void
     {
@@ -54,6 +62,8 @@ class Home extends Screen
 
     /**
      * Handler for viewing documentation
+        *
+        * @param array<string, mixed> $params
      */
     public function onViewDocs(array $params): void
     {

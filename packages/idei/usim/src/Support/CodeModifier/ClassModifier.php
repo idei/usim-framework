@@ -49,9 +49,9 @@ class ClassModifier
             new class ($className, $traitFQN, $traitShort) extends NodeVisitorAbstract {
 
             public function __construct(
-            private $className,
-            private $traitFQN,
-            private $traitShort
+            private string $className,
+            private string $traitFQN,
+            private string $traitShort
             ) {}
 
             public function enterNode(Node $node): ?Node
@@ -166,9 +166,9 @@ class ClassModifier
             new class ($className, $interfaceFQN, $interfaceShort) extends NodeVisitorAbstract {
 
             public function __construct(
-            private $className,
-            private $interfaceFQN,
-            private $interfaceShort
+            private string $className,
+            private string $interfaceFQN,
+            private string $interfaceShort
             ) {}
 
             public function enterNode(Node $node): ?Node
@@ -273,9 +273,9 @@ class ClassModifier
             new class ($className, $propertyName, $value) extends NodeVisitorAbstract {
 
             public function __construct(
-            private $className,
-            private $propertyName,
-            private $value
+            private string $className,
+            private string $propertyName,
+            private string $value
             ) {}
 
             public function enterNode(Node $node): ?Node
@@ -345,9 +345,9 @@ class ClassModifier
             new class ($className, $field, $type) extends NodeVisitorAbstract {
 
             public function __construct(
-            private $className,
-            private $field,
-            private $type
+            private string $className,
+            private string $field,
+            private string $type
             ) {}
 
             public function enterNode(Node $node): ?Node

@@ -29,11 +29,18 @@ class UsimTextKey extends Model
         'is_active' => 'boolean',
     ];
 
+    /**
+     * @return HasMany<UsimTextValue, $this>
+     */
     public function values(): HasMany
     {
         return $this->hasMany(UsimTextValue::class, 'text_key_id');
     }
 
+    /**
+     * @param Builder<UsimTextKey> $query
+     * @return Builder<UsimTextKey>
+     */
     public function scopeByKey(Builder $query, string $key): Builder
     {
         return $query->where('key', $key);

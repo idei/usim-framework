@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Http\JsonResponse;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 class FileController extends Controller
 {
@@ -116,7 +117,7 @@ class FileController extends Controller
     /**
      * Descargar archivo
      */
-    public function download(Request $request, string $filename)
+    public function download(Request $request, string $filename): JsonResponse|BinaryFileResponse
     {
         try {
             $folder = $request->input('folder', 'uploads');

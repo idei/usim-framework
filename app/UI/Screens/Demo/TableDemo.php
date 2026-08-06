@@ -72,6 +72,9 @@ class TableDemo extends Screen
         return $toolbar;
     }
 
+    /**
+     * @param array<string, mixed> $params
+     */
     public function onMoviesTableColumnClicked(array $params): void
     {
         $column = $params['sort_by'] ?? null;
@@ -83,18 +86,27 @@ class TableDemo extends Screen
         $this->movies_table->page(1);
     }
 
+    /**
+     * @param array<string, mixed> $params
+     */
     public function onSearchInputTyped(array $params): void
     {
         $value = (string) ($params['value'] ?? '');
         $this->movies_table->setSearchTerm($value);
     }
 
+    /**
+     * @param array<string, mixed> $params
+     */
     public function onChangePage(array $params): void
     {
         $page = $params['page'] ?? 1;
         $this->movies_table->page($page);
     }
 
+    /**
+     * @param array<string, mixed> $params
+     */
     public function onMoviesTableRowClicked(array $params): void
     {
         $modelId = $params['model_id'] ?? null;

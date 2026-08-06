@@ -3,13 +3,15 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Support\Facades\File;
+use Illuminate\View\View;
+use Illuminate\Http\Response;
 
 class DocumentationController extends Controller
 {
     /**
      * Mostrar la documentación completa del API
      */
-    public function apiCompleteDocs()
+    public function apiCompleteDocs(): View|Response
     {
         $readmePath = base_path('docs/API_COMPLETE_DOCUMENTATION.md');
 
@@ -32,7 +34,7 @@ class DocumentationController extends Controller
     /**
      * Mostrar el resumen completo de implementaciones
      */
-    public function implementationSummaryDocs()
+    public function implementationSummaryDocs(): View|Response
     {
         $readmePath = base_path('docs/IMPLEMENTATION_COMPLETE_SUMMARY.md');
 
@@ -55,7 +57,7 @@ class DocumentationController extends Controller
     /**
      * Mostrar la documentación de componentes técnicos
      */
-    public function technicalComponentsDocs()
+    public function technicalComponentsDocs(): View|Response
     {
         $readmePath = base_path('docs/TECHNICAL_COMPONENTS_README.md');
 
@@ -78,7 +80,7 @@ class DocumentationController extends Controller
     /**
      * Mostrar la guía de personalización de emails
      */
-    public function emailCustomizationDocs()
+    public function emailCustomizationDocs(): View|Response
     {
         $readmePath = base_path('docs/EMAIL_CUSTOMIZATION_GUIDE.md');
 
@@ -101,7 +103,7 @@ class DocumentationController extends Controller
     /**
      * Mostrar ejemplos de archivos y uploads
      */
-    public function fileUploadExamplesDocs()
+    public function fileUploadExamplesDocs(): View|Response
     {
         $readmePath = base_path('docs/FILE_UPLOAD_EXAMPLES.md');
 
@@ -124,7 +126,7 @@ class DocumentationController extends Controller
     /**
      * Índice de toda la documentación disponible
      */
-    public function docsIndex()
+    public function docsIndex(): View
     {
         $availableDocs = [
             [

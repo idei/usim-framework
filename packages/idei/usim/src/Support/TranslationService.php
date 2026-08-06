@@ -30,11 +30,17 @@ class TranslationService
         return $this->keyManager->upsertLanguage($code, $name, $nativeName, $isActive, $isFallback);
     }
 
+    /**
+     * @param array<string, mixed> $attributes
+     */
     public function createOrUpdateKey(string $key, array $attributes = []): UsimTextKey
     {
         return $this->keyManager->createOrUpdateKey($key, $attributes);
     }
 
+    /**
+     * @param array<string, mixed>|null $mediaMeta
+     */
     public function upsertValue(
         string $key,
         string $languageCode,
@@ -46,6 +52,9 @@ class TranslationService
         return $this->keyManager->upsertValue($key, $languageCode, $text, $mediaUrl, $mediaMeta, $needsReview);
     }
 
+    /**
+     * @param array<string, mixed>|null $mediaMeta
+     */
     public function upsertFallbackValue(
         string $key,
         ?string $text,
@@ -72,21 +81,33 @@ class TranslationService
         return $this->keyManager->deleteValue($key, $languageCode);
     }
 
+    /**
+     * @return LengthAwarePaginator<int, UsimTextKey>
+     */
     public function listKeys(?string $search = null, int $perPage = 50): LengthAwarePaginator
     {
         return $this->keyManager->listKeys($search, $perPage);
     }
 
+    /**
+     * @return array{items: list<array<string, mixed>>}
+     */
     public function listLanguagesDataset(): array
     {
         return $this->datasetQuery->listLanguagesDataset();
     }
 
+    /**
+     * @return array{items: list<array<string, mixed>>}
+     */
     public function listKeyGroupsDataset(): array
     {
         return $this->datasetQuery->listKeyGroupsDataset();
     }
 
+    /**
+     * @return array{items: list<array<string, mixed>>, meta?: array<string, mixed>}
+     */
     public function listKeysByLanguageDataset(
         string $languageCode,
         ?string $group = null,
@@ -107,21 +128,33 @@ class TranslationService
         );
     }
 
+    /**
+     * @param array<string, mixed> $params
+     */
     public function getValue(string $key, array $params = [], ?string $languageCode = null): string
     {
         return $this->valueResolver->getValue($key, $params, $languageCode);
     }
 
+    /**
+     * @return array<string, mixed>|null
+     */
     public function getEntry(string $key, ?string $languageCode = null): ?array
     {
         return $this->valueResolver->getEntry($key, $languageCode);
     }
 
+    /**
+     * @return array<string, mixed>|null
+     */
     public function getDirectEntry(string $key, string $languageCode): ?array
     {
         return $this->valueResolver->getDirectEntry($key, $languageCode);
     }
 
+    /**
+     * @param array<string, mixed> $params
+     */
     public function safeGetValue(string $key, array $params = [], ?string $languageCode = null): ?string
     {
         try {

@@ -31,7 +31,7 @@ class FakeDataHelper
     /**
      * Generate a fake full name
      *
-     * @return array ['name' => 'John Doe', 'first_name' => 'John', 'last_name' => 'Doe']
+        * @return array{name: string, first_name: string, last_name: string} ['name' => 'John Doe', 'first_name' => 'John', 'last_name' => 'Doe']
      */
     public static function fullName(): array
     {
@@ -48,7 +48,7 @@ class FakeDataHelper
     /**
      * Generate a fake name with compatible email
      *
-     * @return array ['name' => 'John Doe', 'email' => 'john.doe@example.com']
+        * @return array{name: string, first_name: string, last_name: string, email: string} ['name' => 'John Doe', 'email' => 'john.doe@example.com']
      */
     public static function nameWithEmail(): array
     {
@@ -77,8 +77,8 @@ class FakeDataHelper
     /**
      * Generate fake user data for registration forms
      *
-     * @param array $roles Available roles to choose from
-     * @return array User data with name, email, password, and role
+        * @param list<string> $roles Available roles to choose from
+        * @return array{name: string, email: string, password: string, password_confirmation: string, role: string} User data with name, email, password, and role
      */
     public static function userData(array $roles = ['user', 'admin', 'moderator']): array
     {

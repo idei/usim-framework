@@ -7,6 +7,7 @@ use Idei\Usim\Components\Table;
 use Idei\Usim\DataTable\AbstractTableModel;
 use Idei\Usim\Support\TranslationService;
 use Idei\Usim\Support\UIStateManager;
+use Illuminate\Database\Eloquent\Builder;
 
 class TranslationKeysTableModel extends AbstractTableModel
 {
@@ -39,7 +40,7 @@ SVG;
         $this->translationService = app(TranslationService::class);
 
         $dataset = $this->translationService->listLanguagesDataset();
-        foreach (($dataset['items'] ?? []) as $language) {
+        foreach ($dataset['items'] as $language) {
             $code = (string) ($language['code'] ?? '');
             if ($code === '') {
                 continue;
@@ -342,7 +343,10 @@ SVG;
         return 'rgba(230, 126, 34, 0.32)';
     }
 
-    protected function buildBaseQuery()
+    /**
+     * @return Builder<UsimTextKey>
+     */
+    protected function buildBaseQuery(): Builder
     {
         $searchTerm = trim((string) ($this->tableBuilder->getSearchTerm() ?? ''));
         $groupFilter = $this->getGroupFilter();

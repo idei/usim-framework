@@ -106,6 +106,9 @@ class UIController extends Controller
         return "{$namespace}\\{$screenNameSegments}";
     }
 
+    /**
+     * @return array{shouldReset: bool, storage: array<string, mixed>, queryParams: array<string, mixed>}
+     */
     private function extractRequestData(): array
     {
         return [
@@ -123,6 +126,9 @@ class UIController extends Controller
         ], 404);
     }
 
+    /**
+     * @param array{allowed: bool, action: string|null, params: array<string, mixed>} $accessResult
+     */
     private function accessDeniedResponse(array $accessResult): JsonResponse
     {
         $action = $accessResult['action'];
@@ -141,6 +147,9 @@ class UIController extends Controller
         return response()->json($response);
     }
 
+    /**
+     * @param array{shouldReset: bool, storage: array<string, mixed>, queryParams: array<string, mixed>} $requestData
+     */
     private function instantiateScreen(string $screenClass, array $requestData): Screen
     {
         $this->uiChanges->setStorage($requestData['storage']);
@@ -153,6 +162,9 @@ class UIController extends Controller
         return $screen;
     }
 
+    /**
+     * @param array{shouldReset: bool, storage: array<string, mixed>, queryParams: array<string, mixed>} $requestData
+     */
     private function initializeScreenContext(Screen $screen, array $requestData): void
     {
 

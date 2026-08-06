@@ -4,6 +4,7 @@ namespace App\UI\Screens\Demo;
 
 use Idei\Usim\Components\Container;
 use Idei\Usim\Components\Label;
+use Idei\Usim\Components\Button;
 use Idei\Usim\Components\Uploader;
 use Idei\Usim\Screen;
 use Idei\Usim\UI;
@@ -25,11 +26,11 @@ class UploaderDemo extends Screen
     protected Uploader $uploader_images;
     protected Uploader $uploader_documents;
     protected Label $lbl_result;
-    protected $btn_confirm_profile;
-    protected $btn_confirm_banner;
-    protected $btn_confirm_story;
-    protected $btn_confirm_images;
-    protected $btn_confirm_documents;
+    protected Button $btn_confirm_profile;
+    protected Button $btn_confirm_banner;
+    protected Button $btn_confirm_story;
+    protected Button $btn_confirm_images;
+    protected Button $btn_confirm_documents;
 
     protected function buildBaseUI(Container $container, ...$params): void
     {
@@ -208,6 +209,8 @@ class UploaderDemo extends Screen
 
     /**
      * Procesar foto de perfil
+        *
+        * @param array<string, mixed> $params
      */
     public function onProcessProfile(array $params): void
     {
@@ -262,6 +265,8 @@ class UploaderDemo extends Screen
 
     /**
      * Procesar banner
+        *
+        * @param array<string, mixed> $params
      */
     public function onProcessBanner(array $params): void
     {
@@ -307,6 +312,8 @@ class UploaderDemo extends Screen
 
     /**
      * Procesar story
+        *
+        * @param array<string, mixed> $params
      */
     public function onProcessStory(array $params): void
     {
@@ -352,6 +359,8 @@ class UploaderDemo extends Screen
 
     /**
      * Procesar imágenes subidas
+        *
+        * @param array<string, mixed> $params
      */
     public function onProcessImages(array $params): void
     {
@@ -414,6 +423,8 @@ class UploaderDemo extends Screen
 
     /**
      * Procesar documentos subidos
+        *
+        * @param array<string, mixed> $params
      */
     public function onProcessDocuments(array $params): void
     {

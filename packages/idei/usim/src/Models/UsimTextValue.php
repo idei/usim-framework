@@ -34,16 +34,26 @@ class UsimTextValue extends Model
         'media_meta' => 'array',
     ];
 
+    /**
+     * @return BelongsTo<UsimTextKey, $this>
+     */
     public function textKey(): BelongsTo
     {
         return $this->belongsTo(UsimTextKey::class, 'text_key_id');
     }
 
+    /**
+     * @return BelongsTo<UsimLanguage, $this>
+     */
     public function language(): BelongsTo
     {
         return $this->belongsTo(UsimLanguage::class, 'language_id');
     }
 
+    /**
+     * @param Builder<UsimTextValue> $query
+     * @return Builder<UsimTextValue>
+     */
     public function scopeWithLanguage(Builder $query, string $languageCode): Builder
     {
         return $query->whereHas('language', function (Builder $languageQuery) use ($languageCode): void {

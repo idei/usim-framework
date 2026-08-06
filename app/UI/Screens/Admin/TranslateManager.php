@@ -104,12 +104,18 @@ class TranslateManager extends Screen
         $this->group_filter->value($model->getGroupFilter());
     }
 
+    /**
+     * @param array<string, mixed> $params
+     */
     public function onSearchTranslations(array $params): void
     {
         $search = (string) ($params['value'] ?? '');
         $this->translations_table->setSearchTerm($search);
     }
 
+    /**
+     * @param array<string, mixed> $params
+     */
     public function onLanguageFilterChange(array $params): void
     {
         /** @var TranslationKeysTableModel $model */
@@ -119,6 +125,9 @@ class TranslateManager extends Screen
         $this->translations_table->page(1);
     }
 
+    /**
+     * @param array<string, mixed> $params
+     */
     public function onGroupFilterChange(array $params): void
     {
         /** @var TranslationKeysTableModel $model */
@@ -127,6 +136,9 @@ class TranslateManager extends Screen
         $this->translations_table->page(1);
     }
 
+    /**
+     * @param array<string, mixed> $params
+     */
     public function onTranslationsTableColumnClicked(array $params): void
     {
         $column = $params['sort_by'] ?? null;
@@ -138,12 +150,18 @@ class TranslateManager extends Screen
         $this->translations_table->page(1);
     }
 
+    /**
+     * @param array<string, mixed> $params
+     */
     public function onChangePage(array $params): void
     {
         $page = (int) ($params['page'] ?? 1);
         $this->translations_table->page($page);
     }
 
+    /**
+     * @param array<string, mixed> $params
+     */
     public function onEditTranslation(array $params): void
     {
         $key = (string) ($params['key'] ?? '');
@@ -174,6 +192,9 @@ class TranslateManager extends Screen
         );
     }
 
+    /**
+     * @param array<string, mixed> $params
+     */
     public function onDeleteTranslation(array $params): void
     {
         $key = (string) ($params['key'] ?? '');
@@ -192,6 +213,9 @@ class TranslateManager extends Screen
         );
     }
 
+    /**
+     * @param array<string, mixed> $params
+     */
     public function onConfirmDeleteTranslation(array $params): void
     {
         $key = (string) ($params['key'] ?? '');
@@ -214,6 +238,9 @@ class TranslateManager extends Screen
         $this->closeModal();
     }
 
+    /**
+     * @param array<string, mixed> $params
+     */
     public function onSubmitUpdateTranslation(array $params): void
     {
         $key = (string) ($params['translation_key'] ?? '');
@@ -269,6 +296,9 @@ class TranslateManager extends Screen
         return in_array($normalized, ['1', 'true', 'on', 'yes'], true);
     }
 
+    /**
+     * @return list<array{value: string, label: string}>
+     */
     protected function getLanguageOptions(): array
     {
         /** @var TranslationService $translationService */
@@ -281,13 +311,13 @@ class TranslateManager extends Screen
 
         // Resolve fallback code to exclude it from options
         $fallbackCode = 'en';
-        foreach (($dataset['items'] ?? []) as $language) {
+        foreach ($dataset['items'] as $language) {
             if ((bool) ($language['is_fallback'] ?? false)) {
                 $fallbackCode = (string) ($language['code'] ?? 'en');
             }
         }
 
-        foreach (($dataset['items'] ?? []) as $language) {
+        foreach ($dataset['items'] as $language) {
             $code = (string) ($language['code'] ?? '');
             if ($code === '' || $code === $fallbackCode) {
                 continue;
@@ -303,6 +333,9 @@ class TranslateManager extends Screen
         return $options;
     }
 
+    /**
+     * @return list<array{value: string, label: string}>
+     */
     protected function getGroupOptions(): array
     {
         /** @var TranslationService $translationService */
@@ -313,7 +346,7 @@ class TranslateManager extends Screen
             ['value' => 'all', 'label' => t('screen.admin.translate_manager.group.option_all')],
         ];
 
-        foreach (($dataset['items'] ?? []) as $group) {
+        foreach ($dataset['items'] as $group) {
             $value = (string) ($group['group'] ?? '');
             if ($value === '') {
                 continue;
@@ -328,6 +361,9 @@ class TranslateManager extends Screen
         return $options;
     }
 
+    /**
+     * @return array{fallback: string, selected: string|null}
+     */
     protected function resolveEditableLanguages(): array
     {
         /** @var TranslationService $translationService */
@@ -337,7 +373,7 @@ class TranslateManager extends Screen
         $fallbackCode = 'en';
         $firstActiveNonFallback = null;
 
-        foreach (($dataset['items'] ?? []) as $language) {
+        foreach ($dataset['items'] as $language) {
             $code = (string) ($language['code'] ?? '');
             if ($code === '') {
                 continue;

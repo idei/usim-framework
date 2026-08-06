@@ -201,7 +201,7 @@ class SelectDemo extends Screen
      * Handle country selection change
      * Updates city select with cities from selected country
      *
-     * @param array $params Contains 'value' with selected country code
+    * @param array<string, mixed> $params Contains 'value' with selected country code
      * @return void
      */
     public function onCountryChange(array $params): void
@@ -242,7 +242,7 @@ class SelectDemo extends Screen
      * Handle city selection change
      * Displays city information
      *
-     * @param array $params Contains 'value' with selected city code
+    * @param array<string, mixed> $params Contains 'value' with selected city code
      * @return void
      */
     public function onCityChange(array $params): void
@@ -282,7 +282,7 @@ class SelectDemo extends Screen
      * Handle language selection change
      * Displays selected language(s)
      *
-     * @param array $params Contains 'value' with selected language code(s)
+    * @param array<string, mixed> $params Contains 'value' with selected language code(s)
      * @return void
      */
     public function onLanguageChange(array $params): void
@@ -321,7 +321,7 @@ class SelectDemo extends Screen
     /**
      * Toggle multiple language selection mode
      *
-     * @param array $params Contains 'checked' boolean
+    * @param array<string, mixed> $params Contains 'checked' boolean
      * @return void
      */
     public function onToggleMultipleLanguages(array $params): void
@@ -344,7 +344,7 @@ class SelectDemo extends Screen
     /**
      * Reset all selections
      *
-     * @param array $params Event parameters
+    * @param array<string, mixed> $params Event parameters
      * @return void
      */
     public function onResetSelections(array $params): void

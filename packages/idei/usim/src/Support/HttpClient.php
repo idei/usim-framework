@@ -14,6 +14,8 @@ class HttpClient
 {
     /**
      * Get common headers with authentication
+    *
+    * @return array<string, string>
      */
     private static function getHeaders(): array
     {
@@ -41,6 +43,8 @@ class HttpClient
 
     /**
      * Get internal URL for API requests
+        *
+        * @param array<string, int|string> $routeParams
      */
     private static function getInternalUrl(string $route, array $routeParams = []): string
     {
@@ -74,8 +78,9 @@ class HttpClient
      * Execute GET request
      *
      * @param string $route Route name
-     * @param array $queryParams Query parameters
-     * @param array $routeParams Route parameters (e.g., ['user' => 123] for /users/{user})
+        * @param array<string, mixed> $queryParams Query parameters
+        * @param array<string, int|string> $routeParams Route parameters (e.g., ['user' => 123] for /users/{user})
+        * @return array<string, mixed>
      */
     public static function get(string $route, array $queryParams = [], array $routeParams = []): array
     {
@@ -94,8 +99,9 @@ class HttpClient
      * Execute POST request
      *
      * @param string $route Route name
-     * @param array $data Request body data
-     * @param array $routeParams Route parameters (e.g., ['user' => 123] for /users/{user})
+        * @param array<string, mixed> $data Request body data
+        * @param array<string, int|string> $routeParams Route parameters (e.g., ['user' => 123] for /users/{user})
+        * @return array<string, mixed>
      */
     public static function post(string $route, array $data = [], array $routeParams = []): array
     {
@@ -114,8 +120,9 @@ class HttpClient
      * Execute PUT request
      *
      * @param string $route Route name
-     * @param array $data Request body data
-     * @param array $routeParams Route parameters (e.g., ['user' => 123] for /users/{user})
+        * @param array<string, mixed> $data Request body data
+        * @param array<string, int|string> $routeParams Route parameters (e.g., ['user' => 123] for /users/{user})
+        * @return array<string, mixed>
      */
     public static function put(string $route, array $data = [], array $routeParams = []): array
     {
@@ -134,8 +141,9 @@ class HttpClient
      * Execute PATCH request
      *
      * @param string $route Route name
-     * @param array $data Request body data
-     * @param array $routeParams Route parameters (e.g., ['user' => 123] for /users/{user})
+        * @param array<string, mixed> $data Request body data
+        * @param array<string, int|string> $routeParams Route parameters (e.g., ['user' => 123] for /users/{user})
+        * @return array<string, mixed>
      */
     public static function patch(string $route, array $data = [], array $routeParams = []): array
     {
@@ -154,8 +162,9 @@ class HttpClient
      * Execute DELETE request
      *
      * @param string $route Route name
-     * @param array $data Request body data (optional)
-     * @param array $routeParams Route parameters (e.g., ['user' => 123] for /users/{user})
+        * @param array<string, mixed> $data Request body data (optional)
+        * @param array<string, int|string> $routeParams Route parameters (e.g., ['user' => 123] for /users/{user})
+        * @return array<string, mixed>
      */
     public static function delete(string $route, array $data = [], array $routeParams = []): array
     {
@@ -172,6 +181,9 @@ class HttpClient
 
     /**
      * Execute request with custom method
+        *
+        * @param array<string, mixed> $data
+        * @return array<string, mixed>
      */
     public static function request(string $method, string $route, array $data = []): array
     {
@@ -186,6 +198,8 @@ class HttpClient
 
     /**
      * Get raw Response object for GET request
+        *
+        * @param array<string, mixed> $queryParams
      */
     public static function getRaw(string $route, array $queryParams = []): Response
     {
@@ -200,6 +214,8 @@ class HttpClient
 
     /**
      * Get raw Response object for POST request
+        *
+        * @param array<string, mixed> $data
      */
     public static function postRaw(string $route, array $data = []): Response
     {

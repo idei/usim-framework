@@ -156,6 +156,9 @@ class AddressForm extends Screen
             ->style('secondary');
     }
 
+    /**
+     * @param array<string, mixed> $params
+     */
     public function onCountryChange(array $params): void
     {
         $country = trim((string) ($params['value'] ?? ''));
@@ -196,6 +199,9 @@ class AddressForm extends Screen
             ->style($provinceOptions === [] ? 'warning' : 'info');
     }
 
+    /**
+     * @param array<string, mixed> $params
+     */
     public function onSubmitAddressForm(array $params): void
     {
         $address = trim($params['input_address'] ?? '');
@@ -274,6 +280,9 @@ class AddressForm extends Screen
         $this->input_postal_code->value('');
     }
 
+    /**
+     * @return list<array{value: string, label: string}>
+     */
     private function fetchCountryOptions(): array
     {
         return Cache::remember('address_form.country_options', now()->addDay(), function (): array {
@@ -289,7 +298,10 @@ class AddressForm extends Screen
                 return $this->fallbackCountryOptions();
             }
 
-            $options = collect($response->json('data', []))
+            /** @var list<array<string, mixed>> $countryRows */
+            $countryRows = (array) $response->json('data', []);
+
+            $options = collect($countryRows)
                 ->map(function (array $country): ?array {
                     $name = trim((string) ($country['name'] ?? ''));
 
@@ -312,6 +324,9 @@ class AddressForm extends Screen
         });
     }
 
+    /**
+     * @return list<array{value: string, label: string}>
+     */
     private function fetchProvinceOptions(string $country): array
     {
         return Cache::remember('address_form.province_options.' . md5($country), now()->addDay(), function () use ($country): array {
@@ -327,7 +342,10 @@ class AddressForm extends Screen
                 return $this->fallbackProvinceOptions($country);
             }
 
-            $options = collect($response->json('data.states', []))
+            /** @var list<array<string, mixed>> $stateRows */
+            $stateRows = (array) $response->json('data.states', []);
+
+            $options = collect($stateRows)
                 ->map(function (array $state): ?array {
                     $name = trim((string) ($state['name'] ?? ''));
 
@@ -348,6 +366,9 @@ class AddressForm extends Screen
         });
     }
 
+    /**
+     * @return list<array{value: string, label: string}>
+     */
     private function fallbackCountryOptions(): array
     {
         return [
@@ -359,6 +380,9 @@ class AddressForm extends Screen
         ];
     }
 
+    /**
+     * @return list<array{value: string, label: string}>
+     */
     private function fallbackProvinceOptions(string $country): array
     {
         return match ($country) {

@@ -10,6 +10,7 @@ use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use Illuminate\Auth\Events\Verified;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Illuminate\Http\JsonResponse;
 
 class AuthController extends Controller
 {
@@ -17,7 +18,7 @@ class AuthController extends Controller
         protected PasswordService $passwordService
     ) {
     }
-    public function register(Request $request, RegisterService $registerService)
+    public function register(Request $request, RegisterService $registerService): JsonResponse
     {
         $response = $registerService->register(
             name: (string) $request->input('name', ''),
@@ -36,7 +37,7 @@ class AuthController extends Controller
         return response()->json($response, $httpStatus);
     }
 
-    public function login(Request $request, LoginService $loginService)
+    public function login(Request $request, LoginService $loginService): JsonResponse
     {
         $request->validate([
             'email' => 'required|email',
@@ -57,7 +58,7 @@ class AuthController extends Controller
         return response()->json($response, $httpStatus);
     }
 
-    public function logout(Request $request)
+    public function logout(Request $request): JsonResponse
     {
         $request->user()->currentAccessToken()->delete();
         return response()->json([
@@ -67,7 +68,7 @@ class AuthController extends Controller
         ]);
     }
 
-    public function verifyEmail(Request $request)
+    public function verifyEmail(Request $request): JsonResponse
     {
         $user = User::find($request->route('id'));
 
@@ -115,7 +116,7 @@ class AuthController extends Controller
         ], 200);
     }
 
-    public function resendVerificationEmail(Request $request)
+    public function resendVerificationEmail(Request $request): JsonResponse
     {
         if ($request->user()->hasVerifiedEmail()) {
             return response()->json([
@@ -138,7 +139,7 @@ class AuthController extends Controller
     /**
      * Obtener usuario autenticado
      */
-    public function user(Request $request)
+    public function user(Request $request): JsonResponse
     {
         $user = $request->user();
 
@@ -163,7 +164,7 @@ class AuthController extends Controller
     /**
      * Enviar enlace de reset de contraseña
      */
-    public function forgotPassword(Request $request)
+    public function forgotPassword(Request $request): JsonResponse
     {
         $response = $this->passwordService->sendResetLink(
             $request->input('email', '')
@@ -176,7 +177,7 @@ class AuthController extends Controller
     /**
      * Resetear la contraseña
      */
-    public function resetPassword(Request $request)
+    public function resetPassword(Request $request): JsonResponse
     {
         $response = $this->passwordService->resetPassword(
             token: $request->input('token', ''),

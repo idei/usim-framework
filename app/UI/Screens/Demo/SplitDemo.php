@@ -208,6 +208,9 @@ class SplitDemo extends Screen
         $container->add($this->split_workspace);
     }
 
+    /**
+     * @param array<string, mixed> $params
+     */
     public function onSplitOrientationChange(array $params): void
     {
         $value = $params['value'] ?? 'horizontal';
@@ -215,18 +218,27 @@ class SplitDemo extends Screen
         $this->split_workspace->orientation($this->store_split_orientation);
     }
 
+    /**
+     * @param array<string, mixed> $params
+     */
     public function onSplitDraggableChange(array $params): void
     {
         $this->store_split_draggable = (bool) ($params['checked'] ?? false);
         $this->split_workspace->draggable($this->store_split_draggable);
     }
 
+    /**
+     * @param array<string, mixed> $params
+     */
     public function onSplitCollapsibleChange(array $params): void
     {
         $this->store_split_collapsible = (bool) ($params['checked'] ?? false);
         $this->split_workspace->collapsible($this->store_split_collapsible);
     }
 
+    /**
+     * @param array<string, mixed> $params
+     */
     public function onSplitCollapseTargetChange(array $params): void
     {
         $value = $params['value'] ?? 'first';
@@ -234,6 +246,9 @@ class SplitDemo extends Screen
         $this->split_workspace->collapseTarget($this->store_collapse_target);
     }
 
+    /**
+     * @param array<string, mixed> $params
+     */
     public function onApplySplitSize(array $params): void
     {
         $splitSize = trim((string) ($params['inp_split_size'] ?? $this->store_split_size));
@@ -252,6 +267,9 @@ class SplitDemo extends Screen
         }
     }
 
+    /**
+     * @param array<string, mixed> $params
+     */
     public function onToggleSplitCollapse(array $params): void
     {
         if ($this->store_collapsed_panel === 'none') {
@@ -263,18 +281,27 @@ class SplitDemo extends Screen
         $this->applyCollapsedState();
     }
 
+    /**
+     * @param array<string, mixed> $params
+     */
     public function onCollapseFirstPanel(array $params): void
     {
         $this->store_collapsed_panel = 'first';
         $this->applyCollapsedState();
     }
 
+    /**
+     * @param array<string, mixed> $params
+     */
     public function onCollapseSecondPanel(array $params): void
     {
         $this->store_collapsed_panel = 'second';
         $this->applyCollapsedState();
     }
 
+    /**
+     * @param array<string, mixed> $params
+     */
     public function onResetSplitDemo(array $params): void
     {
         $this->store_split_orientation = 'horizontal';

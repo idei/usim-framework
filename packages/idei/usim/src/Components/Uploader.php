@@ -50,7 +50,7 @@ class Uploader extends UIComponent
     /**
      * Tipos de archivo permitidos
      *
-     * @param array $types Ej: ['image/*', 'application/pdf', 'video/mp4']
+        * @param list<string> $types Ej: ['image/*', 'application/pdf', 'video/mp4']
      */
     public function allowedTypes(array $types): self
     {
@@ -196,7 +196,7 @@ class Uploader extends UIComponent
     /**
      * Extraer temp_id único de los parámetros (para uploaders con max_files = 1)
      *
-     * @param array $params Parámetros del request
+    * @param array<string, mixed> $params Parámetros del request
      * @return string|null UUID del archivo temporal o null si no hay
      */
     public function getTempId(array $params): ?string
@@ -208,8 +208,8 @@ class Uploader extends UIComponent
     /**
      * Extraer todos los temp_ids de los parámetros
      *
-     * @param array $params Parámetros del request
-     * @return array Array de UUIDs de archivos temporales
+    * @param array<string, mixed> $params Parámetros del request
+    * @return list<string> Array de UUIDs de archivos temporales
      */
     public function getTempIds(array $params): array
     {
@@ -236,8 +236,8 @@ class Uploader extends UIComponent
      *
      * @param array $params Parámetros del request
      * @param string $category Categoría de archivos (ej: 'images', 'documents', 'videos')
-     * @param string|array|null $oldFiles Archivo(s) anterior(es) a eliminar (solo nombre, sin ruta)
-     * @return string|array|null String si max_files=1, array si max_files>1, null si no hay archivos
+    * @param string|list<string>|null $oldFiles Archivo(s) anterior(es) a eliminar (solo nombre, sin ruta)
+    * @return string|list<string>|null String si max_files=1, array si max_files>1, null si no hay archivos
      *
      * @example
      * // Uploader de imagen única
@@ -252,6 +252,9 @@ class Uploader extends UIComponent
      * foreach ($filenames as $filename) {
      *     Document::create(['filename' => $filename]);
      * }
+     */
+    /**
+     * @param array<string, mixed> $params
      */
     public function confirm(array $params, string $category, string|array|null $oldFiles = null): string|array|null
     {
