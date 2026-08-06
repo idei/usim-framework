@@ -25,4 +25,8 @@ return [
         'name' => 'Developer',
         'description' => 'User with access to development and debugging tools.',
     ],
+    'user' => [
+        'name' => 'User',
+        'description' => 'Registered user with limited permissions.',
+    ],
 ];

@@ -25,4 +25,8 @@ return [
         'name' => 'Programador',
         'description' => 'Usuario con acceso a herramientas de desarrollo y depuración.',
     ],
+    'user' => [
+        'name' => 'Usuario',
+        'description' => 'Usuario registrado con permisos limitados.',
+    ],
 ];
