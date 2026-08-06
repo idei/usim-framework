@@ -312,9 +312,7 @@ class Menu extends Screen
         $user = request()->user();
         if ($user) {
             $token = $user->currentAccessToken();
-            if ($token) {
-                $token->delete();
-            }
+            $token->delete();
         }
         Auth::logout();
 
