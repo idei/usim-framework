@@ -105,7 +105,7 @@ class Select extends UIComponent
     /**
      * Set the select options
      *
-     * @param array $options Array of options [['value' => 'val', 'label' => 'Label'], ...]
+     * @param list<array<string, mixed>> $options Array of options [['value' => 'val', 'label' => 'Label'], ...]
      * @return static For method chaining
      */
     public function options(array $options): self
@@ -118,7 +118,7 @@ class Select extends UIComponent
      *
      * @param string $value The option value
      * @param string $label The option label
-     * @param array $extra Extra data (icon, avatar, badge, disabled, etc.)
+     * @param array<string, mixed> $extra Extra data (icon, avatar, badge, disabled, etc.)
      * @return static For method chaining
      */
     public function addOption(string $value, string $label, array $extra = []): self
@@ -132,7 +132,7 @@ class Select extends UIComponent
     /**
      * Set option groups
      *
-     * @param array $groups Array of groups [['label' => 'Group', 'options' => [...]], ...]
+     * @param list<array{label: string, options: list<array<string, mixed>>}> $groups Array of groups [['label' => 'Group', 'options' => [...]], ...]
      * @return static For method chaining
      */
     public function groups(array $groups): self
@@ -144,7 +144,7 @@ class Select extends UIComponent
      * Add an option group
      *
      * @param string $label The group label
-     * @param array $options The options in this group
+     * @param list<array<string, mixed>> $options The options in this group
      * @return static For method chaining
      */
     public function addGroup(string $label, array $options): self
@@ -417,7 +417,7 @@ class Select extends UIComponent
      * Set remote data URL
      *
      * @param string $url The remote URL
-     * @param array $params Additional parameters
+     * @param array<string, mixed> $params Additional parameters
      * @return static For method chaining
      */
     public function remote(string $url, array $params = []): self
@@ -535,7 +535,7 @@ class Select extends UIComponent
      * Legacy build method for backward compatibility
      * Returns array format instead of object
      *
-     * @return array
+     * @return array<int, array<string, mixed>>
      * @deprecated Use toJson() instead
      */
     public function build(): array

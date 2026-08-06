@@ -38,6 +38,24 @@ class UserTableModel extends AbstractTableModel
 
     public function getPageData(): array
     {
+        $users = $this->getUserItems();
+
+        return array_map(
+            static fn (User $user): array => [
+                'id' => $user->id,
+                'name' => $user->name,
+                'email' => $user->email,
+                'email_verified_at' => $user->email_verified_at,
+            ],
+            $users
+        );
+    }
+
+    /**
+     * @return list<User>
+     */
+    private function getUserItems(): array
+    {
         $paginationData = $this->tableBuilder->getPaginationData();
         $sortBy = $this->tableBuilder->getSortColumn();
         $sortDirection = $this->tableBuilder->getSortDirection();
@@ -51,12 +69,12 @@ class UserTableModel extends AbstractTableModel
             sortDirection: (string) ($sortDirection ?: 'asc'),
         );
 
-        return $result['items'];
+        return array_values($result['items']);
     }
 
     public function getFormattedPageData(int $currentPage, int $perPage): array
     {
-        $users = $this->getPageData();
+        $users = $this->getUserItems();
         $formatted = [];
 
         foreach ($users as $user) {

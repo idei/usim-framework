@@ -4,7 +4,7 @@ namespace Idei\Usim\Components;
 
 /**
  * Builder for Carousel UI component.
- * 
+ *
  * Provides a fluent interface for constructing and configuring carousel components
  * with support for customizable slides, navigation, and display options.
  */
@@ -116,11 +116,19 @@ class Carousel extends UIComponent
         return $this->setConfig('current_index', max(0, $index));
     }
 
+    /**
+     * @param list<array<string, mixed>> $items
+     * @return static
+     */
     public function items(array $items): static
     {
         return $this->setConfig('items', $items);
     }
 
+    /**
+     * @param array<string, mixed> $media
+     * @return static
+     */
     public function currentMedia(array $media): static
     {
         return $this->setConfig('current_media', $media);

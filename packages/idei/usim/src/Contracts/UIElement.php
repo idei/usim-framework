@@ -38,7 +38,7 @@ interface UIElement
      * For composite elements (Container), this recursively calls toJson() on children.
      *
      * @param int|null $order Optional order index relative to parent container (1, 2, 3...)
-     * @return array The JSON-serializable array representation
+     * @return array<int, array<string, mixed>> The JSON-serializable array representation
      */
     public function toJson(?int $order = null): array;
 
@@ -48,7 +48,7 @@ interface UIElement
      * without establishing parent-child relationships.
      *
      * @param int $id The unique identifier for the element
-     * @param array $data The JSON data to create from
+     * @param array<string, mixed> $data The JSON data to create from
      * @return self A new instance of the UI element
      */
     public static function deserialize(int $id, array $data): self;

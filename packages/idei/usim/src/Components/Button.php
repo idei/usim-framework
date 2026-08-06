@@ -85,7 +85,7 @@ class Button extends UIComponent
      * Set the action to trigger when button is clicked
      *
      * @param string $action The action name
-     * @param array $parameters Optional parameters for the action
+     * @param array<string, mixed> $parameters Optional parameters for the action
      * @return static For method chaining
      */
     public function action(string $action, array $parameters = []): static

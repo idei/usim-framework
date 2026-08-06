@@ -25,6 +25,7 @@ abstract class UIComponent implements UIElement, Sizeable, Marginable
     protected string $type;
     protected ?string $name = null;
     protected int|string|null $parent = null;
+    /** @var array<string, mixed> */
     protected array $config = [];
 
     public function __construct(?string $name = null)
@@ -156,7 +157,7 @@ abstract class UIComponent implements UIElement, Sizeable, Marginable
      * Get the default configuration for this component type
      * Must be implemented by each concrete component
      *
-     * @return array Default configuration values
+     * @return array<string, mixed> Default configuration values
      */
     abstract protected function getDefaultConfig(): array;
 
@@ -291,9 +292,8 @@ abstract class UIComponent implements UIElement, Sizeable, Marginable
      *
      * For leaf components, returns the configuration wrapped in the component ID
      * Null values are filtered out from the configuration
-     */
-    /**
-     * {@inheritDoc}
+     *
+     * @return array<int, array<string, mixed>>
      */
     public function toJson(?int $order = null): array
     {
@@ -323,7 +323,7 @@ abstract class UIComponent implements UIElement, Sizeable, Marginable
      * Get list of config keys to exclude from JSON output
      * Override in subclasses to customize
      *
-     * @return array List of keys to exclude
+     * @return list<string> List of keys to exclude
      */
     protected function getExcludedJsonKeys(): array
     {
@@ -334,7 +334,7 @@ abstract class UIComponent implements UIElement, Sizeable, Marginable
      * Get the component configuration (without ID wrapper)
      * Useful for internal operations
      *
-     * @return array The configuration array
+     * @return array<string, mixed> The configuration array
      */
     protected function getConfig(): array
     {
@@ -369,7 +369,7 @@ abstract class UIComponent implements UIElement, Sizeable, Marginable
      * Método de utilidad para debugging - obtiene información del contexto
      *
      * @param string $context Nombre del contexto
-     * @return array Información del contexto (offset, contador, etc)
+     * @return array<string, mixed> Información del contexto (offset, contador, etc)
      */
     public static function getContextInfo(string $context): array
     {

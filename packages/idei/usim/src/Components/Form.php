@@ -17,13 +17,13 @@ class Form extends Container
 {
     protected string $type = 'form';
 
-    /** @var array Form sections for organizing fields */
+    /** @var list<array{title: string, id: int}> Form sections for organizing fields */
     protected array $sections = [];
 
-    /** @var array Form validation rules */
+    /** @var array<string, list<array{rule: string, value: mixed, message: string|null}>> Form validation rules */
     protected array $validationRules = [];
 
-    /** @var array Custom error messages for validation */
+    /** @var array<string, string> Custom error messages for validation */
     protected array $errorMessages = [];
 
     /** @var bool Whether form has file uploads */
@@ -237,7 +237,7 @@ class Form extends Container
      * Add submit button to form
      *
      * @param string $label Button label
-     * @param array $config Button configuration
+     * @param array<string, mixed> $config Button configuration
      * @return self For method chaining
      */
     public function submitButton(string $label, array $config = []): self
@@ -258,7 +258,7 @@ class Form extends Container
      * Add reset button to form
      *
      * @param string $label Button label
-     * @param array $config Button configuration
+     * @param array<string, mixed> $config Button configuration
      * @return self For method chaining
      */
     public function resetButton(string $label, array $config = []): self
@@ -279,7 +279,7 @@ class Form extends Container
      * Add cancel button to form
      *
      * @param string $label Button label
-     * @param array $config Button configuration (should include 'action' or 'onclick')
+     * @param array<string, mixed> $config Button configuration (should include 'action' or 'onclick')
      * @return self For method chaining
      */
     public function cancelButton(string $label, array $config = []): self
@@ -731,7 +731,7 @@ class Form extends Container
     /**
      * Set allowed file types for upload
      *
-     * @param array $types Allowed file types (extensions or MIME types)
+     * @param list<string> $types Allowed file types (extensions or MIME types)
      * @return self For method chaining
      */
     public function allowedFileTypes(array $types): self
@@ -947,7 +947,7 @@ class Form extends Container
     /**
      * Add custom data attributes
      *
-     * @param array $attributes Key-value pairs of data attributes
+     * @param array<string, mixed> $attributes Key-value pairs of data attributes
      * @return self For method chaining
      */
     public function dataAttributes(array $attributes): self
@@ -1104,7 +1104,7 @@ class Form extends Container
     /**
      * Get all validation rules
      *
-     * @return array Validation rules
+     * @return array<string, list<array{rule: string, value: mixed, message: string|null}>> Validation rules
      */
     public function getValidationRules(): array
     {
@@ -1114,7 +1114,7 @@ class Form extends Container
     /**
      * Get all error messages
      *
-     * @return array Error messages
+     * @return array<string, string> Error messages
      */
     public function getErrorMessages(): array
     {

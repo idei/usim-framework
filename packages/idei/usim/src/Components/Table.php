@@ -42,13 +42,13 @@ class Table extends UIComponent
     /** @var int Number of columns */
     private int $cols;
 
-    /** @var array Matrix of cell builders [row][col] */
+    /** @var array<int, array<int, TableCell>> Matrix of cell builders [row][col] */
     private array $cells = [];
 
-    /** @var array Array of row builders */
+    /** @var array<int, TableRow> Array of row builders */
     private array $rowBuilders = [];
 
-    /** @var array Column width configuration [col => int] */
+    /** @var array<int, int> Column width configuration [col => int] */
     private array $columnWidths = [];
 
     /**
@@ -216,7 +216,7 @@ class Table extends UIComponent
      * - a single row identifier in single selection mode
      * - an array of row identifiers in multiple selection mode
      *
-     * @param array|string|int|null $rows Row identifier or identifiers to select.
+     * @param list<int|string>|string|int|null $rows Row identifier or identifiers to select.
      * @return static|array|string|int|null
      */
     public function select(array|string|int|null $rows = null): static|array|string|int|null
@@ -278,9 +278,10 @@ class Table extends UIComponent
         // Rebuild header row labels and sort actions
         $headerData = [];
         foreach ($columns as $column) {
-            $label = is_array($column) ? ($column['label'] ?? '') : (string) $column;
-            $sortBy = is_array($column) ? ($column['sort_by'] ?? null) : null;
-            $headerData[] = ['label' => $label, 'sort_by' => $sortBy];
+            $headerData[] = [
+                'label' => $this->extractColumnLabel($column),
+                'sort_by' => $this->extractSortByKey($column),
+            ];
         }
         $this->fillHeaderRow($headerData);
 
@@ -297,8 +298,8 @@ class Table extends UIComponent
      * - __row_parameters: custom backend parameters for row click
      * - _model_id: model identifier exposed as parameter model_id
      *
-     * @param array $rowData
-     * @return array{0: array, 1: array{style: string, selected: bool, action: ?string, parameters: array<string, mixed>}}
+     * @param array<string, mixed> $rowData
+     * @return array{0: array<string, mixed>, 1: array{style: string, selected: bool, action: ?string, parameters: array<string, mixed>}}
      */
     private function splitFormattedRowData(array $rowData): array
     {
@@ -360,7 +361,7 @@ class Table extends UIComponent
      * Apply inline style metadata declared in a formatted cell array.
      *
      * @param TableCell $cell
-     * @param array $value
+     * @param array<string, mixed> $value
      * @return void
      */
     private function applyCellMetadata(TableCell $cell, array $value): void
@@ -576,7 +577,7 @@ class Table extends UIComponent
     /**
      * Get the current configuration
      *
-     * @return array
+     * @return array<string, mixed>
      */
     public function getConfig(): array
     {
@@ -860,7 +861,7 @@ class Table extends UIComponent
     /**
      * Fill the header row with data
      *
-     * @param array $data Array of header cell data with keys:
+     * @param list<array{label: string, sort_by: string|null}> $data Array of header cell data with keys:
      *                   - 'label': string, the header text
      *                   - 'sort_by': string|null, the column to sort by when clicked
      * @return self
@@ -914,7 +915,7 @@ class Table extends UIComponent
      * Fill a data row with values
      *
      * @param int $row Row index (0-based)
-     * @param array $data Array of cell data
+     * @param list<mixed> $data Array of cell data
      *                    - string: text content
      *                    - array with 'text': text content
      *                    - array with 'button': button config
@@ -1270,7 +1271,7 @@ class Table extends UIComponent
     /**
      * Set fixed widths for all columns at once.
      *
-     * @param array $widths Array of widths in pixels
+     * @param array<int, int|string|array<string|int, mixed>> $widths Array of widths in pixels
      * @return self
      */
     public function columnWidths(array $widths): self
@@ -1297,6 +1298,19 @@ class Table extends UIComponent
         return $this;
     }
 
+    /**
+     * @return array{
+     *   enabled: bool,
+     *   per_page: int,
+     *   current_page: int,
+     *   total_items: int,
+     *   can_next: bool,
+     *   can_prev: bool,
+     *   total_pages: int,
+     *   show_controls: bool,
+     *   labels: array{previous: string, next: string, showing: string}
+     * }
+     */
     public function getPaginationData(): array
     {
         return $this->config['pagination'];
@@ -1351,7 +1365,7 @@ class Table extends UIComponent
     /**
      * Initialize table dimensions from the data model
      *
-     * @param array $columns
+     * @param array<string, array<string, mixed>> $columns
      */
     private function initializeTableDimensions(array $columns): void
     {
@@ -1376,7 +1390,7 @@ class Table extends UIComponent
     /**
      * Configure column widths from the data model
      *
-     * @param array $columns
+     * @param array<string, array<string, mixed>> $columns
      */
     private function configureTableColumns(array $columns): void
     {
@@ -1391,7 +1405,7 @@ class Table extends UIComponent
     /**
      * Configure and fill the table header row
      *
-     * @param array $columns
+     * @param array<string, array<string, mixed>> $columns
      */
     private function configureTableHeaders(array $columns): void
     {
@@ -1547,7 +1561,7 @@ class Table extends UIComponent
     /**
      * Get table dimensions
      *
-     * @return array ['rows' => int, 'cols' => int]
+     * @return array{rows: int, cols: int}
      */
     public function getDimensions(): array
     {

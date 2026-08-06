@@ -127,7 +127,7 @@ class Textarea extends UIComponent
      * Trigger a backend action when the value changes (on blur).
      *
      * @param string $action   Action name (snake_case).
-     * @param array  $parameters Extra parameters merged with the event payload.
+     * @param array<string, mixed> $parameters Extra parameters merged with the event payload.
      */
     public function onChange(string $action, array $parameters = []): self
     {
@@ -141,7 +141,7 @@ class Textarea extends UIComponent
      * Trigger a backend action while the user types.
      *
      * @param string $action   Action name (snake_case).
-     * @param array  $parameters Extra parameters merged with the event payload.
+     * @param array<string, mixed> $parameters Extra parameters merged with the event payload.
      */
     public function onInput(string $action, array $parameters = []): self
     {

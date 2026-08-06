@@ -7,6 +7,8 @@ use Spatie\Permission\Models\Permission;
 
 /**
  * Read-only listing service for permissions.
+ *
+ * @extends EloquentListingService<Permission>
  */
 class PermissionListingService extends EloquentListingService
 {

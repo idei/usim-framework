@@ -5,6 +5,7 @@ namespace App\UI\Screens\Admin\TableModels;
 use App\Services\Permissions\PermissionListingService;
 use Idei\Usim\Components\Table;
 use Idei\Usim\DataTable\AbstractTableModel;
+use Spatie\Permission\Models\Permission;
 
 class PermissionTableModel extends AbstractTableModel
 {
@@ -37,6 +38,22 @@ class PermissionTableModel extends AbstractTableModel
 
     public function getPageData(): array
     {
+        $permissions = $this->getPermissionItems();
+
+        return array_map(
+            static fn (Permission $permission): array => [
+                'id' => $permission->id,
+                'name' => $permission->name,
+            ],
+            $permissions
+        );
+    }
+
+    /**
+     * @return list<Permission>
+     */
+    private function getPermissionItems(): array
+    {
         $pagination = $this->tableBuilder->getPaginationData();
         $sortBy = $this->tableBuilder->getSortColumn();
         $sortDir = $this->tableBuilder->getSortDirection();
@@ -50,18 +67,18 @@ class PermissionTableModel extends AbstractTableModel
             sortDirection: (string) ($sortDir ?: 'asc'),
         );
 
-        return $result['items'];
+        return array_values($result['items']);
     }
 
     public function getFormattedPageData(int $currentPage, int $perPage): array
     {
-        $roles = $this->getPageData();
+        $permissions = $this->getPermissionItems();
         $formatted = [];
 
-        foreach ($roles as $role) {
+        foreach ($permissions as $permission) {
             $formatted[] = [
-                '_model_id' => $role->id,
-                'name' => t("role.{$role->name}.name"),
+                '_model_id' => $permission->id,
+                'name' => t("permission.{$permission->name}.name"),
             ];
         }
 

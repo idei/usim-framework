@@ -15,6 +15,7 @@ namespace Idei\Usim\Components;
  */
 class MenuDropdown extends UIComponent
 {
+    /** @var list<array<string, mixed>> */
     private array $items = [];
 
     public function getDefaultConfig(): array
@@ -51,6 +52,9 @@ class MenuDropdown extends UIComponent
     /**
      * {@inheritDoc}
      */
+    /**
+     * @param array<string, mixed> $config
+     */
     public static function deserialize(int $id, array $config): self
     {
         /** @var MenuDropdown $component */
@@ -66,9 +70,9 @@ class MenuDropdown extends UIComponent
      *
      * @param string $label Item label
      * @param string|null $action Action to trigger (optional if has submenu)
-     * @param array $params Action parameters
+     * @param array<string, mixed> $params Action parameters
      * @param string|null $icon Icon emoji or text
-     * @param array $submenu Submenu items
+     * @param list<array<string, mixed>> $submenu Submenu items
      * @return self
      */
     public function item(
@@ -126,7 +130,7 @@ class MenuDropdown extends UIComponent
         }
 
         // Check if user has access to this screen
-        /** @var array $access */
+        /** @var array{allowed: bool} $access */
         $access = $screenClass::checkAccess();
         if (!$access['allowed']) {
             return $this;

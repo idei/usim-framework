@@ -167,7 +167,7 @@ class Card extends UIComponent
      * Make card clickable with action
      *
      * @param string $action Action to trigger
-     * @param array $parameters Action parameters
+     * @param array<string, mixed> $parameters Action parameters
      * @return static
      */
     public function action(string $action, array $parameters = []): static
@@ -194,7 +194,7 @@ class Card extends UIComponent
     /**
      * Add action buttons to card footer
      *
-     * @param array $actions Array of button configurations
+     * @param list<array<string, mixed>> $actions Array of button configurations
      * @return static
      */
     public function actions(array $actions): static
@@ -207,7 +207,7 @@ class Card extends UIComponent
      *
      * @param string $label Button label
      * @param string $action Action to trigger
-     * @param array $parameters Action parameters
+     * @param array<string, mixed> $parameters Action parameters
      * @param string $style Button style
      * @return static
      */

@@ -325,7 +325,7 @@ class Input extends UIComponent
      * Set action to trigger on input event (while typing)
      *
      * @param string $action Action name to call
-     * @param array $parameters Additional parameters to send
+     * @param array<string, mixed> $parameters Additional parameters to send
      * @return self For method chaining
      */
     public function onInput(string $action, array $parameters = []): self
@@ -340,7 +340,7 @@ class Input extends UIComponent
      * Set action to trigger on change event (after blur)
      *
      * @param string $action Action name to call
-     * @param array $parameters Additional parameters to send
+     * @param array<string, mixed> $parameters Additional parameters to send
      * @return self For method chaining
      */
     public function onChange(string $action, array $parameters = []): self
@@ -355,7 +355,7 @@ class Input extends UIComponent
      * Set action to trigger when Enter key is pressed
      *
      * @param string $action Action name to call
-     * @param array $parameters Additional parameters to send
+     * @param array<string, mixed> $parameters Additional parameters to send
      * @return self For method chaining
      */
     public function onEnter(string $action, array $parameters = []): self

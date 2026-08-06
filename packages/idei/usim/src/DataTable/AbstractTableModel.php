@@ -31,23 +31,36 @@ abstract class AbstractTableModel
      *     ['name' => 'created_at', 'type' => 'datetime'],
      * ]
      *
-     * @return array
+     * @return array<string, array<string, mixed>>
      */
     abstract public function getColumns(): array;
 
+    /**
+     * @return list<array<string, mixed>>
+     */
     abstract public function getFormattedPageData(int $currentPage, int $perPage): array;
 
     /**
      * Get data for the current page
      *
-     * @return array
+     * @return list<array<string, mixed>>
      */
     abstract public function getPageData(): array;
 
     /**
      * Get pagination data from the Table
      *
-     * @return array
+     * @return array{
+     *   enabled: bool,
+     *   per_page: int,
+     *   current_page: int,
+     *   total_items: int,
+     *   can_next: bool,
+     *   can_prev: bool,
+     *   total_pages: int,
+     *   show_controls: bool,
+     *   labels: array{previous: string, next: string, showing: string}
+     * }
      */
     public function getPaginationData(): array
     {
@@ -77,7 +90,7 @@ abstract class AbstractTableModel
      * Updates the content of the row.
      *
      * @param int $rowIndex Row index to update, in the current page
-     * @param array $newData New data for the row.
+     * @param array<string, mixed> $newData New data for the row.
      * @return void
      */
     public function updateRow(int $rowIndex, array $newData): void
@@ -102,7 +115,13 @@ abstract class AbstractTableModel
      * Returns an array that defines how removed rows should appear.
      * Services can override this to customize the removal appearance.
      *
-     * @return array Configuration for removed row display
+     * @return array{
+     *   primary_message: string,
+     *   secondary_message: string,
+     *   id_placeholder: string,
+     *   button_placeholder: string,
+     *   empty_placeholder: string
+     * } Configuration for removed row display
      */
     public function getRemovedRowConfig(): array
     {
@@ -119,7 +138,7 @@ abstract class AbstractTableModel
      * Get removal values for all columns based on configuration
      *
      * @param int $columnCount The number of columns
-     * @return array Values for each column when row is removed
+     * @return list<string> Values for each column when row is removed
      */
     public function getRemovalValues(int $columnCount): array
     {

@@ -101,7 +101,7 @@ class Label extends UIComponent
      * it renders the view and stores the resulting HTML.
      *
      * @param string $htmlOrView Raw HTML string or view name (dot notation)
-     * @param array $data Optional data for the view
+     * @param array<string, mixed> $data Optional data for the view
      * @return static For method chaining
      */
     public function html(string $htmlOrView, array $data = []): self

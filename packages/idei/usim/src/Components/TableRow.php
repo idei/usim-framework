@@ -15,7 +15,7 @@ class TableRow extends UIComponent
     /** @var Table|null The parent table */
     private ?Table $table;
 
-    /** @var array<TableCell> Array of cells in this row */
+    /** @var list<TableCell> Array of cells in this row */
     private array $cellComponents = [];
 
     /**
@@ -67,7 +67,7 @@ class TableRow extends UIComponent
     /**
      * Get the row configuration (public accessor for cells)
      *
-     * @return array The row configuration
+     * @return array<string, mixed> The row configuration
      */
     public function getRowConfig(): array
     {
@@ -104,7 +104,7 @@ class TableRow extends UIComponent
     /**
      * Get all cell components
      *
-     * @return array<TableCell>
+     * @return list<TableCell>
      */
     public function getCells(): array
     {
@@ -115,7 +115,7 @@ class TableRow extends UIComponent
      * Set the cells data for this row
      * Creates TableCell components automatically from the array
      *
-     * @param array $cells Array of cell values (strings, numbers, arrays, or UIComponent instances)
+     * @param list<mixed> $cells Array of cell values (strings, numbers, arrays, or UIComponent instances)
      * @return self For method chaining
      */
     public function cells(array $cells): self
@@ -182,7 +182,7 @@ class TableRow extends UIComponent
     /**
      * Set the parameters to send when the row is clicked.
      *
-     * @param array|null $parameters Parameter payload or null to clear it
+     * @param array<string, mixed>|null $parameters Parameter payload or null to clear it
      * @return self For method chaining
      */
     public function parameters(?array $parameters): self
@@ -270,7 +270,7 @@ class TableRow extends UIComponent
     /**
      * Exclude 'name' and 'cells' from JSON output
      *
-     * @return array List of keys to exclude
+     * @return list<string> List of keys to exclude
      */
     protected function getExcludedJsonKeys(): array
     {

@@ -193,7 +193,7 @@ class Checkbox extends UIComponent
     /**
      * Set multiple checkbox options (creates a checkbox group)
      *
-     * @param array $options Array of options with 'value' and 'label' keys
+     * @param list<array<string, mixed>> $options Array of options with 'value' and 'label' keys
      * @return $this
      */
     public function options(array $options): self
@@ -207,7 +207,7 @@ class Checkbox extends UIComponent
      *
      * @param string $value The option value
      * @param string $label The option label
-     * @param array $extra Extra properties (icon, description, disabled, etc.)
+     * @param array<string, mixed> $extra Extra properties (icon, description, disabled, etc.)
      * @return $this
      */
     public function addOption(string $value, string $label, array $extra = []): self
@@ -222,7 +222,7 @@ class Checkbox extends UIComponent
     /**
      * Set the selected values for checkbox group
      *
-     * @param array $values Array of selected values
+     * @param list<string|int> $values Array of selected values
      * @return $this
      */
     public function selectedValues(array $values): self

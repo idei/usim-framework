@@ -41,6 +41,10 @@ class Calendar extends UIComponent
         return $this->setConfig('month', $month);
     }
 
+    /**
+     * @param list<array<string, mixed>> $events
+     * @return static
+     */
     public function events(array $events): static
     {
         return $this->setConfig('events', $events);
@@ -56,6 +60,10 @@ class Calendar extends UIComponent
         return $this->setConfig('cell_size', $size);
     }
 
+    /**
+     * @param array<string, mixed> $style
+     * @return static
+     */
     public function numberStyle(array $style): static
     {
         return $this->setConfig('number_style', $style);

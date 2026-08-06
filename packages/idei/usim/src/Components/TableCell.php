@@ -174,7 +174,7 @@ class TableCell extends UIComponent
     /**
      * Set button configuration for the cell
      *
-     * @param array $button Button configuration with keys: label, action, style, parameters
+     * @param array<string, mixed> $button Button configuration with keys: label, action, style, parameters
      * @return self For method chaining
      */
     public function button(array $button): self
@@ -185,7 +185,7 @@ class TableCell extends UIComponent
     /**
      * Set multiple buttons configuration for the cell
      *
-     * @param array $buttons Array of button configurations
+     * @param list<array<string, mixed>> $buttons Array of button configurations
      * @return self For method chaining
      */
     public function buttons(array $buttons): self
@@ -311,7 +311,7 @@ class TableCell extends UIComponent
     /**
      * Exclude keys from JSON output
      *
-     * @return array List of keys to exclude
+     * @return list<string> List of keys to exclude
      */
     protected function getExcludedJsonKeys(): array
     {

@@ -17,6 +17,9 @@ class Split extends Container
     /**
      * {@inheritDoc}
      */
+    /**
+     * @param array<string, mixed> $data
+     */
     public static function deserialize(int $id, array $data): Split
     {
         $split = new self();

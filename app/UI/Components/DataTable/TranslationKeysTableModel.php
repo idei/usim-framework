@@ -125,6 +125,22 @@ SVG;
 
     public function getPageData(): array
     {
+        $rows = $this->getTextKeysPageItems();
+
+        return array_map(
+            static fn (UsimTextKey $row): array => [
+                'key' => $row->key,
+                'group' => $row->group,
+            ],
+            $rows
+        );
+    }
+
+    /**
+     * @return list<UsimTextKey>
+     */
+    private function getTextKeysPageItems(): array
+    {
         $pagination = $this->tableBuilder->getPaginationData();
         $sortBy = $this->tableBuilder->getSortColumn();
         $sortDirection = $this->tableBuilder->getSortDirection();
@@ -137,15 +153,17 @@ SVG;
             ->with(['values.language'])
             ->orderBy($sortColumn, $direction);
 
-        return $query
+        $items = $query
             ->forPage((int) $pagination['current_page'], (int) $pagination['per_page'])
             ->get()
             ->all();
+
+        return array_values($items);
     }
 
     public function getFormattedPageData(int $currentPage, int $perPage): array
     {
-        $rows = $this->getPageData();
+        $rows = $this->getTextKeysPageItems();
         $formatted = [];
 
         foreach ($rows as $row) {

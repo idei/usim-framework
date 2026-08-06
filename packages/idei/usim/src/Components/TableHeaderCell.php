@@ -252,7 +252,7 @@ class TableHeaderCell extends UIComponent
     /**
      * Exclude 'name' from JSON output
      *
-     * @return array List of keys to exclude
+     * @return list<string> List of keys to exclude
      */
     protected function getExcludedJsonKeys(): array
     {

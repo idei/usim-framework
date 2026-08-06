@@ -34,12 +34,13 @@ class Container implements UIElement, Sizeable, Paddable, Marginable, Gapable
     protected ?string $name = null;
     public ?string $debugInfo = null;
     protected int|string|null $parent = null;
+    /** @var array<string, mixed> */
     protected array $config = [];
 
     /** @var array<string, UIElement> Map of element ID to UIElement instance */
     protected array $children = [];
 
-    /** @var array|null Legacy elements array for backward compatibility */
+    /** @var array<string, mixed>|null Legacy elements array for backward compatibility */
     public ?array $legacyElements = null;
 
     public function __construct(?string $name = null, ?string $context = null)
@@ -185,6 +186,9 @@ class Container implements UIElement, Sizeable, Paddable, Marginable, Gapable
 
     /**
      * {@inheritDoc}
+     */
+    /**
+     * @param array<string, mixed> $data
      */
     public static function deserialize(int $id, array $data): Container
     {
@@ -740,7 +744,7 @@ class Container implements UIElement, Sizeable, Paddable, Marginable, Gapable
     /**
      * Set grid template areas
      *
-     * @param array|string $areas Area names or array of area strings
+     * @param list<string>|string $areas Area names or array of area strings
      * @return self For method chaining
      */
     public function gridTemplateAreas(array|string $areas): self
@@ -1087,7 +1091,7 @@ class Container implements UIElement, Sizeable, Paddable, Marginable, Gapable
     /**
      * Set responsive configuration for different breakpoints
      *
-     * @param array $config Responsive configuration [breakpoint => config]
+     * @param array<string, array<string, mixed>> $config Responsive configuration [breakpoint => config]
      * @return self For method chaining
      */
     public function responsive(array $config): self
@@ -1099,7 +1103,7 @@ class Container implements UIElement, Sizeable, Paddable, Marginable, Gapable
     /**
      * Hide container on specific breakpoints
      *
-     * @param array $breakpoints Breakpoints to hide on (mobile, tablet, desktop)
+     * @param list<string> $breakpoints Breakpoints to hide on (mobile, tablet, desktop)
      * @return self For method chaining
      */
     public function hideOn(array $breakpoints): self
@@ -1111,7 +1115,7 @@ class Container implements UIElement, Sizeable, Paddable, Marginable, Gapable
     /**
      * Show container only on specific breakpoints
      *
-     * @param array $breakpoints Breakpoints to show on
+     * @param list<string> $breakpoints Breakpoints to show on
      * @return self For method chaining
      */
     public function showOn(array $breakpoints): self
@@ -1222,6 +1226,8 @@ class Container implements UIElement, Sizeable, Paddable, Marginable, Gapable
      * - active_text_color
      * - disabled_color
      * - disabled_text_color
+        *
+     * @param array<string, mixed> $options
      */
     public function tabItem(string $id, ?string $label = null, array $options = []): self
     {
@@ -1283,6 +1289,8 @@ class Container implements UIElement, Sizeable, Paddable, Marginable, Gapable
 
     /**
      * Configure default colors for the tabs chrome.
+      *
+     * @param array<string, mixed> $colors
      */
     public function tabColors(array $colors): self
     {
@@ -1459,7 +1467,7 @@ class Container implements UIElement, Sizeable, Paddable, Marginable, Gapable
     /**
      * Add custom data attributes
      *
-     * @param array $attributes Key-value pairs of data attributes
+     * @param array<string, mixed> $attributes Key-value pairs of data attributes
      * @return self For method chaining
      */
     public function dataAttributes(array $attributes): self
@@ -1682,7 +1690,7 @@ class Container implements UIElement, Sizeable, Paddable, Marginable, Gapable
     /**
      * Convert to array (alias for toJson for backward compatibility)
      *
-     * @return array
+     * @return array<int, array<string, mixed>>
      */
     public function build(): array
     {

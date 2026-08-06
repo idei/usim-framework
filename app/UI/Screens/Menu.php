@@ -308,12 +308,7 @@ class Menu extends Screen
      */
     public function onConfirmLogout(array $params): void
     {
-        // Delete Sanctum token if user is authenticated
-        $user = request()->user();
-        if ($user) {
-            $token = $user->currentAccessToken();
-            $token->delete();
-        }
+        // Menu logout is session-based in this screen context.
         Auth::logout();
 
         $this->user_menu->trigger("⚙️");

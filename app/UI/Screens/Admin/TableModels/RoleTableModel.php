@@ -5,6 +5,7 @@ namespace App\UI\Screens\Admin\TableModels;
 use App\Services\Role\RoleListingService;
 use Idei\Usim\Components\Table;
 use Idei\Usim\DataTable\AbstractTableModel;
+use Spatie\Permission\Models\Role;
 
 class RoleTableModel extends AbstractTableModel
 {
@@ -37,6 +38,22 @@ class RoleTableModel extends AbstractTableModel
 
     public function getPageData(): array
     {
+        $roles = $this->getRoleItems();
+
+        return array_map(
+            static fn (Role $role): array => [
+                'id' => $role->id,
+                'name' => $role->name,
+            ],
+            $roles
+        );
+    }
+
+    /**
+     * @return list<Role>
+     */
+    private function getRoleItems(): array
+    {
         $pagination = $this->tableBuilder->getPaginationData();
         $sortBy = $this->tableBuilder->getSortColumn();
         $sortDir = $this->tableBuilder->getSortDirection();
@@ -50,12 +67,12 @@ class RoleTableModel extends AbstractTableModel
             sortDirection: (string) ($sortDir ?: 'asc'),
         );
 
-        return $result['items'];
+        return array_values($result['items']);
     }
 
     public function getFormattedPageData(int $currentPage, int $perPage): array
     {
-        $roles = $this->getPageData();
+        $roles = $this->getRoleItems();
         $formatted = [];
 
         foreach ($roles as $role) {
