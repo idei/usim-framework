@@ -255,6 +255,8 @@ class Uploader extends UIComponent
      */
     /**
      * @param array<string, mixed> $params
+     * @param list<string>|string|null $oldFiles
+     * @return list<string>|string|null
      */
     public function confirm(array $params, string $category, string|array|null $oldFiles = null): string|array|null
     {

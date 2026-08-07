@@ -47,7 +47,7 @@ class CalendarDemo extends Screen
     /**
      * Handle month change event
      *
-     * @param array $params Contains 'year' and 'month'
+     * @param array<string, mixed> $params Contains 'year' and 'month'
      */
     public function onMonthChanged(array $params): void
     {

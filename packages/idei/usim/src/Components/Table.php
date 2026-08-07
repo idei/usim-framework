@@ -217,7 +217,7 @@ class Table extends UIComponent
      * - an array of row identifiers in multiple selection mode
      *
      * @param list<int|string>|string|int|null $rows Row identifier or identifiers to select.
-     * @return static|array|string|int|null
+     * @return static|list<int|string>|string|int|null
      */
     public function select(array|string|int|null $rows = null): static|array|string|int|null
     {

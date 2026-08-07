@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Movie extends Model
 {
+    /** @use HasFactory<\Illuminate\Database\Eloquent\Factories\Factory<static>> */
     use HasFactory;
 
     protected $fillable = [
@@ -19,6 +20,7 @@ class Movie extends Model
         'synopsis',
     ];
 
+    /** @return BelongsTo<Genre, $this> */
     public function genre(): BelongsTo
     {
         return $this->belongsTo(Genre::class);

@@ -74,6 +74,7 @@ class UsimRole extends SpatieRole
     // ACCESSORS & MUTATORS
     // =====================
 
+    /** @return Attribute<string, string> */
     protected function homeScreen(): Attribute
     {
         return Attribute::make(
@@ -86,6 +87,7 @@ class UsimRole extends SpatieRole
         );
     }
 
+    /** @return Attribute<int, int> */
     protected function priority(): Attribute
     {
         return Attribute::make(

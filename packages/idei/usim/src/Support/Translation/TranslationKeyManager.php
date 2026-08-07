@@ -35,6 +35,7 @@ class TranslationKeyManager
         return $language;
     }
 
+    /** @param array<string, mixed> $attributes */
     public function createOrUpdateKey(string $key, array $attributes = []): UsimTextKey
     {
         $textKey = UsimTextKey::query()->firstOrNew(['key' => $key]);
@@ -56,6 +57,9 @@ class TranslationKeyManager
         return $textKey;
     }
 
+    /**
+     * @param array<string, mixed>|null $mediaMeta
+     */
     public function upsertValue(
         string $key,
         string $languageCode,
@@ -109,6 +113,7 @@ class TranslationKeyManager
             ->delete();
     }
 
+    /** @return \Illuminate\Contracts\Pagination\LengthAwarePaginator<int, UsimTextKey> */
     public function listKeys(?string $search = null, int $perPage = 50): LengthAwarePaginator
     {
         return UsimTextKey::query()

@@ -28,6 +28,7 @@ class DiscoverScreensCommand extends Command
         return self::SUCCESS;
     }
 
+    /** @param array<string, mixed> $screens */
     private function writeManifest(array $screens): void
     {
         $path = $this->getManifestPath();
@@ -41,6 +42,7 @@ class DiscoverScreensCommand extends Command
         }
     }
 
+    /** @param array<array-key, mixed> $array */
     private function formatArrayToShortSyntax(array $array, int $indentLevel = 0): string
     {
         $indent = str_repeat("\t", $indentLevel);

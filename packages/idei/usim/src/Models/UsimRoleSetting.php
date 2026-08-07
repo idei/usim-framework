@@ -18,6 +18,7 @@ class UsimRoleSetting extends Model
         'priority',
     ];
 
+    /** @return BelongsTo<UsimRole, $this> */
     public function role(): BelongsTo
     {
         return $this->belongsTo(UsimRole::class);

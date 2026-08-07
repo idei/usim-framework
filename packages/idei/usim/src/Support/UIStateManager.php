@@ -114,7 +114,7 @@ class UIStateManager
      * Store UI state in cache
      *
      * @param string $serviceClass Service class name
-     * @param array $uiState UI state array (indexed by component ID)
+     * @param array<array-key, mixed> $uiState UI state array (indexed by component ID)
      * @return bool Success
      */
     public static function store(string $serviceClass, array $uiState): bool
@@ -173,6 +173,7 @@ class UIStateManager
         Cache::put($cacheKey, $openedScreens, $ttl);
     }
 
+    /** @return list<string> */
     public static function getClientOpenedScreens(string $clientId = null): array
     {
         $clientId ??= self::getOrCreateClientId();
@@ -185,7 +186,7 @@ class UIStateManager
      * Get UI state from cache
      *
      * @param string $serviceClass Service class name
-     * @return array|null UI state array or null if not found
+     * @return array<string, mixed>|null UI state array or null if not found
      */
     public static function get(string $serviceClass): ?array
     {

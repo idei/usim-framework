@@ -49,7 +49,7 @@ class Checkbox extends UIComponent
     /**
      * Get the default configuration for a checkbox component
      *
-     * @return array
+     * @return array<string, mixed>
      */
     protected function getDefaultConfig(): array
     {

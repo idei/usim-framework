@@ -1172,6 +1172,8 @@ class Container implements UIElement, Sizeable, Paddable, Marginable, Gapable
      * - 'General'
      * - ['id' => 'general', 'label' => 'General']
      * - ['general' => ['label' => 'General']]
+     *
+     * @param array<int|string, string|array<string, mixed>> $tabs
      */
     public function tabs(array $tabs, int|string|null $activeTab = null): self
     {
@@ -1185,10 +1187,6 @@ class Container implements UIElement, Sizeable, Paddable, Marginable, Gapable
                 }
 
                 $this->tabItem($tab, $tab);
-                continue;
-            }
-
-            if (!is_array($tab)) {
                 continue;
             }
 

@@ -9,6 +9,7 @@ use Idei\Usim\Support\UIStateManager;
 class UsimEventDispatcher
 {
     // Cola estática para mantener los eventos pendientes en esta petición
+    /** @var list<UsimEvent> */
     protected static array $eventQueue = [];
     protected static bool $isProcessing = false;
     protected static bool $deferProcessing = false;
@@ -74,7 +75,7 @@ class UsimEventDispatcher
         $incomingStorage = request()->storage ?? [];
 
         foreach ($openedScreens as $rootComponentId) {
-            $screenClass = UIIdGenerator::getContextFromId($rootComponentId);
+            $screenClass = UIIdGenerator::getContextFromId((int) $rootComponentId);
             $screen = $this->instantiateScreen($screenClass);
 
             if ($methodName === 'onResetScreen') {

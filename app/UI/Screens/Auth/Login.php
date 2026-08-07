@@ -127,11 +127,13 @@ class Login extends Screen
         $this->lbl_login_result->text('')->style('');
     }
 
+    /** @param array<string, mixed> $params */
     public function onNavigateForgotPassword(array $params): void
     {
         $this->redirect('/auth/forgot-password');
     }
 
+    /** @param array<string, mixed> $params */
     public function onSubmitLogin(array $params): void
     {
         $email = $params['login_email'] ?? '';
@@ -140,8 +142,8 @@ class Login extends Screen
 
         $response = $this->loginService->login($email, $password, (bool) $remember);
 
-        $message = $response['message'] ?? 'Login failed.';
-        $status = $response['status'] ?? 'error';
+        $message = $response['message'];
+        $status = $response['status'];
         $this->toast($message, $status);
         $this->lbl_login_result->text($message)->style($status);
 
@@ -149,14 +151,10 @@ class Login extends Screen
             return;
         }
 
-        $this->store_token = $response['data']['token'] ?? '';
+        $this->store_token = $response['data']['token'];
         $this->store_email = $email;
 
-        $user = $response['user'] ?? null;
-        if (!$user) {
-            $this->toast(t('screen.auth.login.errors.resolve_user'), 'error');
-            return;
-        }
+        $user = $response['user'];
 
         $redirectTo = $this->authSessionService->start($user, $this->store_token);
         $this->redirect($redirectTo);

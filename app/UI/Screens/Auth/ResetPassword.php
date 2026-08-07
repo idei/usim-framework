@@ -139,6 +139,7 @@ class ResetPassword extends Screen
         $container->add($formCard);
     }
 
+    /** @param array<string, mixed> $params */
     public function onResetPassword(array $params): void
     {
         $token = $params['reset_token'] ?? '';
@@ -175,8 +176,8 @@ class ResetPassword extends Screen
                 passwordConfirmation: $passwordConfirmation
             );
 
-            $status = $response['status'] ?? 'error';
-            $message = $response['message'] ?? t('screen.auth.reset_password.errors.unknown');
+            $status = $response['status'];
+            $message = $response['message'];
 
             if ($status === 'success') {
                 $this->lbl_result
@@ -190,12 +191,8 @@ class ResetPassword extends Screen
                 $this->redirect('/auth/login');
             } else {
                 // Extract validation errors if any
-                if (isset($response['errors']) && is_array($response['errors'])) {
-                    $firstError = reset($response['errors'])[0] ?? $message;
-                    $this->showError($firstError);
-                } else {
-                    $this->showError($message);
-                }
+                $firstError = reset($response['errors'])[0] ?? $message;
+                $this->showError($firstError);
             }
 
         } catch (\Exception $e) {

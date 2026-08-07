@@ -17,6 +17,9 @@ use Idei\Usim\ValueObjects\Spacing;
 class RegisterDialog
 {
 
+    /**
+     * @param mixed ...$params
+     */
     public static function open(...$params): void
     {
         $dialog = new self();
@@ -31,7 +34,7 @@ class RegisterDialog
      * @param string $submitAction Action to call when form is submitted
      * @param string|null $cancelAction Action to call when cancel is clicked
      * @param int|null $callerServiceId Service ID that will receive callbacks
-     * @return array UI components for the modal
+     * @return array<int, array<string, mixed>> UI components for the modal
      */
     public function getUI(
         string $submitAction = 'submit_register',

@@ -12,6 +12,7 @@ if (!function_exists('t')) {
      *       usim::b/c.rest so the package lang files act as default fallback.
      *  2. DB-backed TranslationService.
      *  3. The key itself as last-resort fallback.
+     * @param array<string, mixed> $params
      */
     function t(string $key, array $params = [], ?string $language = null): string
     {

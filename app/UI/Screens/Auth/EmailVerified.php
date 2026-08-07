@@ -237,6 +237,7 @@ class EmailVerified extends Screen
     /**
      * Handle login button click
      */
+    /** @param array<string, mixed> $params */
     public function onGoToLogin(array $params): void
     {
         $this->redirect('/auth/login');
@@ -245,6 +246,7 @@ class EmailVerified extends Screen
     /**
      * Handle home button click
      */
+    /** @param array<string, mixed> $params */
     public function onGoToHome(array $params): void
     {
         $this->redirect('/');
@@ -253,6 +255,7 @@ class EmailVerified extends Screen
     /**
      * Handle resend verification email
      */
+    /** @param array<string, mixed> $params */
     public function onResendVerification(array $params): void
     {
         $this->toast(t('screen.auth.email_verified.toast.redirect_to_login'), 'info');

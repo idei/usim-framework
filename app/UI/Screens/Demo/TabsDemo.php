@@ -85,6 +85,7 @@ class TabsDemo extends Screen
         $container->add($this->tabs_container);
     }
 
+    /** @param array<string, mixed> $params */
     public function onTabsSwitch(array $params): void
     {
         $requested = (string) ($params['tab_id'] ?? 'overview');
@@ -92,6 +93,7 @@ class TabsDemo extends Screen
         $this->tabs_container->activeTab($activeTab);
     }
 
+    /** @param array<string, mixed> $params */
     public function onTabsClose(array $params): void
     {
         $tabId = (string) ($params['tab_id'] ?? '');
@@ -102,6 +104,7 @@ class TabsDemo extends Screen
         $this->toast(t('screen.demo.tabs_demo.toasts.tab_closed', ['tab' => $tabId]), 'success');
     }
 
+    /** @return array<string, array<string, mixed>> */
     private function tabsDefaultConfig(): array
     {
         return [

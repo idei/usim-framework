@@ -22,6 +22,7 @@ class InstallStateManager
         return storage_path('framework/cache/.usim-install-state.json');
     }
 
+    /** @return array<string, mixed>|null */
     public function read(): ?array
     {
         $path = $this->getPath();

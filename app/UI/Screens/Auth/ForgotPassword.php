@@ -130,11 +130,13 @@ class ForgotPassword extends Screen
         $container->add($formCard);
     }
 
+    /** @param array<string, mixed> $params */
     public function onNavigateToLogin(array $params): void
     {
         $this->redirect('/auth/login');
     }
 
+    /** @param array<string, mixed> $params */
     public function onSendLink(array $params): void
     {
         $email = $params['email'] ?? '';
@@ -148,8 +150,8 @@ class ForgotPassword extends Screen
 
         try {
             $result = $this->passwordService->sendResetLink($email);
-            $status = $result['status'] ?? 'error';
-            $message = $result['message'] ?? 'No se pudo enviar el enlace de recuperación.';
+            $status = $result['status'];
+            $message = $result['message'];
 
             if ($status === 'success') {
                 $this->lbl_result->text(t('screen.auth.forgot_password.success'))->style('success')->visible(true);

@@ -566,6 +566,7 @@ class InstallCommand extends Command
         return $this->installContextResolver->stubsPath($path);
     }
 
+    /** @param array<string, string> $replacements */
     protected function publishStub(string $stubPath, string $targetPath, bool $autoForce = false, array $replacements = [], ?callable $postInstallCallback = null): void
     {
         $this->installStubPublisher->publish(

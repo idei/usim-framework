@@ -81,6 +81,7 @@ class CheckboxDemo extends Screen
      * Handle JavaScript checkbox change attempt
      * Backend validates and confirms or rejects the change
      */
+    /** @param array<string, mixed> $params */
     public function onTryChangeJavascript(array $params): void
     {
         $wantsChecked = $params['checked'] ?? false;
@@ -108,6 +109,7 @@ class CheckboxDemo extends Screen
      * Handle Python checkbox change attempt
      * Backend validates and confirms or rejects the change
      */
+    /** @param array<string, mixed> $params */
     public function onTryChangePython(array $params): void
     {
         $wantsChecked = $params['checked'] ?? false;
@@ -144,6 +146,7 @@ class CheckboxDemo extends Screen
      * Handle form submission
      * Reads checkbox states from frontend parameters
      */
+    /** @param array<string, mixed> $params */
     public function onSubmitSelection(array $params): void
     {
         // Get checkbox states from frontend parameters (sent by collectContextValues)

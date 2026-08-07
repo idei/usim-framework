@@ -81,6 +81,7 @@ class FormDemo extends Screen
      * Handle form submission with validation
      * Reads input values from frontend parameters (sent by collectContextValues)
      */
+    /** @param array<string, mixed> $params */
     public function onSubmitForm(array $params): void
     {
         // Get input values from frontend parameters (sent by collectContextValues)

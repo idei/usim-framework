@@ -419,7 +419,7 @@ class Menu extends Screen
             sendVerificationEmail: (bool) ($params['send_verification_email'] ?? true)
         );
 
-        if (($response['status'] ?? 'error') !== 'success') {
+        if ($response['status'] !== 'success') {
             $this->handleRegisterError($response);
             return;
         }

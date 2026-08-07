@@ -133,6 +133,7 @@ class Profile extends Screen
     /**
      * Guardar cambios del perfil
      */
+    /** @param array<string, mixed> $params */
     public function onSaveProfile(array $params): void
     {
         try {
@@ -174,6 +175,7 @@ class Profile extends Screen
     /**
      * Reenviar email de verificación
      */
+    /** @param array<string, mixed> $params */
     public function onResendVerification(array $params): void
     {
         /** @var \App\Models\User $user */
@@ -193,6 +195,7 @@ class Profile extends Screen
     /**
      * Cambiar contraseña
      */
+    /** @param array<string, mixed> $params */
     public function onChangePassword(array $params): void
     {
         $user = Auth::user();

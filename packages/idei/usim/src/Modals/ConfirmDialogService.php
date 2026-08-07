@@ -19,6 +19,9 @@ use Idei\Usim\ValueObjects\Spacing;
 class ConfirmDialogService implements UIModal
 {
 
+    /**
+     * @param mixed ...$params
+     */
     public static function open(...$params): void
     {
         $dialog = new self();
@@ -50,7 +53,8 @@ class ConfirmDialogService implements UIModal
      *   - showCloseButton: bool - Show manual close button (default: true)
      *   - timeoutAction: Action to execute when timeout completes (default: 'close_modal')
      *
-     * @return array UI configuration array
+    * @param mixed ...$params
+    * @return array<int, array<string, mixed>> UI configuration array
      */
     private function getUI(...$params): array
     {

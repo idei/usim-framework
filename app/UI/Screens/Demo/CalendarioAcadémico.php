@@ -50,6 +50,7 @@ class CalendarioAcadémico
         ['start' => '2026-08-03', 'end' => '2026-08-28', 'type' => 'admin', 'title' => 'Inscrip. 2º Cuat.']
     ];
 
+    /** @return list<array<string, mixed>> */
     public static function getMonthEvents(int $year, int $month): array
     {
         $monthEvents = [];

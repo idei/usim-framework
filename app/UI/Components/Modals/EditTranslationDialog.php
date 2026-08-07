@@ -11,6 +11,9 @@ use Idei\Usim\ValueObjects\Spacing;
 
 class EditTranslationDialog
 {
+    /**
+     * @param mixed ...$params
+     */
     public static function open(...$params): void
     {
         $dialog = new self();
@@ -18,6 +21,9 @@ class EditTranslationDialog
         app(UIChangesCollector::class)->add($format);
     }
 
+    /**
+     * @return array<int, array<string, mixed>>
+     */
     public function getUI(
         string $key,
         string $group,

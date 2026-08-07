@@ -10,6 +10,9 @@ class InstallStubPublisher
     {
     }
 
+    /**
+     * @param array<string, string> $replacements
+     */
     public function publish(
         string $stubPath,
         string $targetPath,

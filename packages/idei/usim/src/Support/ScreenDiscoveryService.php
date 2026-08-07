@@ -16,7 +16,7 @@ class ScreenDiscoveryService
     /**
      * Scan the application for UI Screens and generate a manifest.
      *
-     * @return array<string, array>
+     * @return array<string, array<string, mixed>>
      */
     public function discover(): array
     {

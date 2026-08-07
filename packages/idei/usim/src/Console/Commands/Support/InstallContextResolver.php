@@ -30,6 +30,7 @@ class InstallContextResolver
     }
 
     /**
+     * @param array<string, string> $namespaces
      * @return array<string, string|bool>
      */
     public function buildScaffoldingContext(

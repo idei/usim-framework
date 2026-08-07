@@ -11,6 +11,7 @@ class UsimEvent
 
     public function __construct(
         public string $eventName,
+        /** @var array<string, mixed> */
         public array $params = []
     ) {
     }

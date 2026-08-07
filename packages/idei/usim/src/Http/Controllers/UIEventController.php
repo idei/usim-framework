@@ -89,6 +89,7 @@ class UIEventController extends Controller
         }
     }
 
+    /** @return array<string, mixed> */
     private function validateEventRequest(Request $request): array
     {
         return $request->validate([
@@ -99,6 +100,7 @@ class UIEventController extends Controller
         ]);
     }
 
+    /** @param array<string, mixed> $parameters */
     private function extractCallerScreenId(array &$parameters): ?int
     {
         // Backward-compatible: prefer _caller_screen_id, fallback to legacy _caller_service_id.
@@ -140,6 +142,7 @@ class UIEventController extends Controller
         ], 404);
     }
 
+    /** @param array<string, mixed> $access */
     private function accessDeniedResponse(array $access): JsonResponse
     {
         $action = $access['action'];

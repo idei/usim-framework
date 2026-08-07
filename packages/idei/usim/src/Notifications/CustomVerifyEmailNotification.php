@@ -48,6 +48,8 @@ class CustomVerifyEmailNotification extends Notification implements ShouldQueue
 
     /**
      * Get the verification URL for the given notifiable.
+     *
+     * @param \Illuminate\Database\Eloquent\Model&\Illuminate\Contracts\Auth\MustVerifyEmail $notifiable
      */
     protected function verificationUrl($notifiable): string
     {

@@ -108,7 +108,7 @@ class UIIdGenerator
      * Get context information for debugging
      *
      * @param string $context Context name
-     * @return array Context information
+     * @return array<string, mixed> Context information
      */
     public static function getContextInfo(string $context): array
     {

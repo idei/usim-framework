@@ -4,7 +4,7 @@ namespace Idei\Usim;
 
 class UIChangesCollector
 {
-    /** @var array<string, mixed> */
+    /** @var array<array-key, mixed> */
     protected array $changes = [];
 
     /** @var array<string, mixed> */
@@ -17,7 +17,7 @@ class UIChangesCollector
     }
 
     /**
-     * @param array<string, mixed> $change
+     * @param array<array-key, mixed> $change
      */
     public function add(array $change = []): void
     {

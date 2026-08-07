@@ -95,11 +95,13 @@ class TextareaDemo extends Screen
         $container->add($sectionMd);
     }
 
+    /** @param array<string, mixed> $params */
     public function onPlainSaved(array $params): void
     {
         $value = trim($params['value'] ?? '');
     }
 
+    /** @param array<string, mixed> $params */
     public function onMdSaved(array $params): void
     {
         $value = $params['value'] ?? '';

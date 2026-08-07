@@ -40,6 +40,7 @@ interface UIElement
      * @param int|null $order Optional order index relative to parent container (1, 2, 3...)
      * @return array<int, array<string, mixed>> The JSON-serializable array representation
      */
+    /** @return array<int, array<string, mixed>> */
     public function toJson(?int $order = null): array;
 
     /**

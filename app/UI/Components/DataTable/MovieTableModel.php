@@ -82,6 +82,7 @@ class MovieTableModel extends AbstractTableModel
         return $formatted;
     }
 
+    /** @return array<string, mixed> */
     public function formatRow(Movie $row): array
     {
         $title = t($row->title);

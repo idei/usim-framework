@@ -33,6 +33,7 @@ class ButtonDemo extends Screen
         $this->updateButtonState();
     }
 
+    /** @param array<string, mixed> $params */
     public function onToggleLabel(array $params): void
     {
         $this->store_state = !$this->store_state;

@@ -12,6 +12,9 @@ use Illuminate\Support\Str;
 
 class TermsDialog
 {
+    /**
+     * @param mixed ...$params
+     */
     public static function open(...$params): void
     {
         $dialog = new self();
@@ -19,6 +22,9 @@ class TermsDialog
         app(UIChangesCollector::class)->add($format);
     }
 
+    /**
+     * @return array<int, array<string, mixed>>
+     */
     public function getUI(
         ?string $cancelAction = 'close_modal',
         ?int $callerServiceId = null

@@ -83,7 +83,7 @@ class InputDemo extends Screen
      * Validates the input and shows errors using the error() method with tooltip.
      * No return needed - Screen handles diff calculation and response.
      *
-     * @param array $params Event parameters (should include 'input_text' from input)
+     * @param array<string, mixed> $params Event parameters (should include 'input_text' from input)
      * @return void
      */
     public function onGetValue(array $params): void

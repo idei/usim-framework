@@ -22,9 +22,27 @@ class RegisterService
      * @param string $email
      * @param string $password
      * @param string $passwordConfirmation
-     * @param array $roles Roles to assign (default: ['user'])
+     * @param list<string> $roles Roles to assign (default: ['user'])
      * @param bool $sendVerificationEmail Whether to fire the Registered event
-     * @return array Response array with status, message, data, errors, and user
+     * @return array{
+     *     status: 'error',
+     *     message: string,
+     *     errors: array<string, list<string>>
+     * }|array{
+     *     status: 'success',
+     *     message: string,
+     *     data: array{
+     *         user: array{
+     *             id: int,
+     *             name: string,
+     *             email: string,
+     *             roles: list<string>,
+     *             permissions: list<string>
+     *         },
+     *         token: string
+     *     },
+     *     user: User
+     * }
      */
     public function register(
         string $name,

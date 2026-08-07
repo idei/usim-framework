@@ -37,7 +37,7 @@ abstract class EloquentListingService implements ModelQueryableService
 
     /**
      * @var array<string, array{
-     *   type: class-string<Relation>,
+     *   type: class-string<Relation<Model, Model, mixed>>,
      *   related_table: string,
     *   relation: Relation<Model, Model, mixed>
      * }>
@@ -382,7 +382,7 @@ abstract class EloquentListingService implements ModelQueryableService
     }
 
     /**
-     * @return array<string, array{type: class-string<Relation>, related_table: string, relation: Relation<Model, Model, mixed>}>
+     * @return array<string, array{type: class-string<Relation<Model, Model, mixed>>, related_table: string, relation: Relation<Model, Model, mixed>}>
      */
     private function discoverRelations(): array
     {

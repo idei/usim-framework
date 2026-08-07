@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Builder;
 
 class TranslationDatasetQuery
 {
+    /** @return array<string, mixed> */
     public function listLanguagesDataset(bool $includeInactive = false): array
     {
         $items = UsimLanguage::query()
@@ -37,6 +38,7 @@ class TranslationDatasetQuery
         ];
     }
 
+    /** @return array<string, mixed> */
     public function listKeyGroupsDataset(): array
     {
         $items = UsimTextKey::query()
@@ -56,6 +58,7 @@ class TranslationDatasetQuery
         ];
     }
 
+    /** @return array<string, mixed> */
     public function listKeysByLanguageDataset(
         string $languageCode,
         ?string $group = null,
