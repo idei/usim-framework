@@ -67,60 +67,6 @@ parameters:
 			path: app/Http/Controllers/Api/AuthController.php
 
 		-
-			message: '#^Cannot cast mixed to string\.$#'
-			identifier: cast.string
-			count: 4
-			path: app/Http/Controllers/Api/AuthController.php
-
-		-
-			message: '#^Parameter \#1 \$email of method App\\Services\\Auth\\LoginService\:\:login\(\) expects string, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: app/Http/Controllers/Api/AuthController.php
-
-		-
-			message: '#^Parameter \#1 \$email of method App\\Services\\Auth\\PasswordService\:\:sendResetLink\(\) expects string, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: app/Http/Controllers/Api/AuthController.php
-
-		-
-			message: '#^Parameter \#2 \$password of method App\\Services\\Auth\\LoginService\:\:login\(\) expects string, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: app/Http/Controllers/Api/AuthController.php
-
-		-
-			message: '#^Parameter \$email of method App\\Services\\Auth\\PasswordService\:\:resetPassword\(\) expects string, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: app/Http/Controllers/Api/AuthController.php
-
-		-
-			message: '#^Parameter \$password of method App\\Services\\Auth\\PasswordService\:\:resetPassword\(\) expects string, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: app/Http/Controllers/Api/AuthController.php
-
-		-
-			message: '#^Parameter \$passwordConfirmation of method App\\Services\\Auth\\PasswordService\:\:resetPassword\(\) expects string, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: app/Http/Controllers/Api/AuthController.php
-
-		-
-			message: '#^Parameter \$roles of method App\\Services\\Auth\\RegisterService\:\:register\(\) expects list\<string\>, array\<mixed, mixed\> given\.$#'
-			identifier: argument.type
-			count: 1
-			path: app/Http/Controllers/Api/AuthController.php
-
-		-
-			message: '#^Parameter \$token of method App\\Services\\Auth\\PasswordService\:\:resetPassword\(\) expects string, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: app/Http/Controllers/Api/AuthController.php
-
-		-
 			message: '#^Binary operation "\." between mixed and ''/'' results in an error\.$#'
 			identifier: binaryOp.invalid
 			count: 2
@@ -373,80 +319,8 @@ parameters:
 			path: app/UI/Screens/Admin/UsersManager.php
 
 		-
-			message: '#^Cannot cast mixed to string\.$#'
-			identifier: cast.string
-			count: 2
-			path: app/UI/Screens/Admin/UsersManager.php
-
-		-
-			message: '#^Parameter \#1 \$column of method Idei\\Usim\\Components\\Table\:\:sortedBy\(\) expects string\|null, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: app/UI/Screens/Admin/UsersManager.php
-
-		-
 			message: '#^Parameter \#1 \$element of method Idei\\Usim\\Components\\Container\:\:add\(\) expects Idei\\Usim\\Contracts\\UIElement, Idei\\Usim\\Components\\Table\|string given\.$#'
 			identifier: argument.type
-			count: 1
-			path: app/UI/Screens/Admin/UsersManager.php
-
-		-
-			message: '#^Parameter \#1 \$page of method Idei\\Usim\\Components\\Table\:\:page\(\) expects int\|null, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: app/UI/Screens/Admin/UsersManager.php
-
-		-
-			message: '#^Parameter \#1 \$rows of method Idei\\Usim\\Components\\Table\:\:select\(\) expects int\|list\<int\|string\>\|string\|null, mixed given\.$#'
-			identifier: argument.type
-			count: 2
-			path: app/UI/Screens/Admin/UsersManager.php
-
-		-
-			message: '#^Parameter \#1 \$userId of method App\\Services\\User\\UserService\:\:findUser\(\) expects int, mixed given\.$#'
-			identifier: argument.type
-			count: 2
-			path: app/UI/Screens/Admin/UsersManager.php
-
-		-
-			message: '#^Parameter \#1 \$userId of method App\\Services\\User\\UserService\:\:getUser\(\) expects int, mixed given\.$#'
-			identifier: argument.type
-			count: 2
-			path: app/UI/Screens/Admin/UsersManager.php
-
-		-
-			message: '#^Parameter \$email of method App\\Services\\Auth\\RegisterService\:\:register\(\) expects string, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: app/UI/Screens/Admin/UsersManager.php
-
-		-
-			message: '#^Parameter \$name of method App\\Services\\Auth\\RegisterService\:\:register\(\) expects string, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: app/UI/Screens/Admin/UsersManager.php
-
-		-
-			message: '#^Parameter \$password of method App\\Services\\Auth\\RegisterService\:\:register\(\) expects string, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: app/UI/Screens/Admin/UsersManager.php
-
-		-
-			message: '#^Parameter \$passwordConfirmation of method App\\Services\\Auth\\RegisterService\:\:register\(\) expects string, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: app/UI/Screens/Admin/UsersManager.php
-
-		-
-			message: '#^Parameter \$roles of method App\\Services\\Auth\\RegisterService\:\:register\(\) expects list\<string\>, array\{mixed\} given\.$#'
-			identifier: argument.type
-			count: 1
-			path: app/UI/Screens/Admin/UsersManager.php
-
-		-
-			message: '#^Part \$user\[''name''\] \(mixed\) of encapsed string cannot be cast to string\.$#'
-			identifier: encapsedStringPart.nonString
 			count: 1
 			path: app/UI/Screens/Admin/UsersManager.php
 
@@ -745,6 +619,12 @@ parameters:
 			path: app/UI/Screens/Demo/UploaderDemo.php
 
 		-
+			message: '#^Call to function is_string\(\) with string will always evaluate to true\.$#'
+			identifier: function.alreadyNarrowedType
+			count: 1
+			path: app/UI/Screens/Menu.php
+
+		-
 			message: '#^Cannot access property \$name on mixed\.$#'
 			identifier: property.nonObject
 			count: 3
@@ -754,72 +634,6 @@ parameters:
 			message: '#^Cannot access property \$profile_image on mixed\.$#'
 			identifier: property.nonObject
 			count: 2
-			path: app/UI/Screens/Menu.php
-
-		-
-			message: '#^Cannot cast mixed to string\.$#'
-			identifier: cast.string
-			count: 2
-			path: app/UI/Screens/Menu.php
-
-		-
-			message: '#^Parameter \#1 \$errors of method App\\UI\\Screens\\Menu\:\:updateModalValidationErrors\(\) expects array\<string, mixed\>, array\<mixed, mixed\> given\.$#'
-			identifier: argument.type
-			count: 1
-			path: app/UI/Screens/Menu.php
-
-		-
-			message: '#^Parameter \#1 \$language of method Idei\\Usim\\Screen\:\:changeLanguage\(\) expects string, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: app/UI/Screens/Menu.php
-
-		-
-			message: '#^Parameter \#1 \$user of method App\\Services\\Auth\\AuthSessionService\:\:start\(\) expects App\\Models\\User, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: app/UI/Screens/Menu.php
-
-		-
-			message: '#^Parameter \#2 \$array of function implode expects array\<string\>, array\<mixed, mixed\> given\.$#'
-			identifier: argument.type
-			count: 1
-			path: app/UI/Screens/Menu.php
-
-		-
-			message: '#^Parameter \$email of method App\\Services\\Auth\\RegisterService\:\:register\(\) expects string, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: app/UI/Screens/Menu.php
-
-		-
-			message: '#^Parameter \$name of method App\\Services\\Auth\\RegisterService\:\:register\(\) expects string, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: app/UI/Screens/Menu.php
-
-		-
-			message: '#^Parameter \$password of method App\\Services\\Auth\\RegisterService\:\:register\(\) expects string, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: app/UI/Screens/Menu.php
-
-		-
-			message: '#^Parameter \$passwordConfirmation of method App\\Services\\Auth\\RegisterService\:\:register\(\) expects string, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: app/UI/Screens/Menu.php
-
-		-
-			message: '#^Parameter \$roles of method App\\Services\\Auth\\RegisterService\:\:register\(\) expects list\<string\>, array\<mixed, mixed\> given\.$#'
-			identifier: argument.type
-			count: 1
-			path: app/UI/Screens/Menu.php
-
-		-
-			message: '#^Property App\\UI\\Screens\\Menu\:\:\$store_lang \(string\) does not accept mixed\.$#'
-			identifier: assign.propertyType
-			count: 3
 			path: app/UI/Screens/Menu.php
 
 		-
@@ -985,43 +799,13 @@ parameters:
 			path: packages/idei/usim/src/Components/Checkbox.php
 
 		-
-			message: '#^Argument of an invalid type mixed supplied for foreach, only iterables are supported\.$#'
-			identifier: foreach.nonIterable
-			count: 3
-			path: packages/idei/usim/src/Components/Container.php
-
-		-
-			message: '#^Cannot access an offset on mixed\.$#'
-			identifier: offsetAccess.nonOffsetAccessible
-			count: 1
-			path: packages/idei/usim/src/Components/Container.php
-
-		-
 			message: '#^Cannot access offset ''disabled'' on mixed\.$#'
 			identifier: offsetAccess.nonOffsetAccessible
-			count: 2
+			count: 1
 			path: packages/idei/usim/src/Components/Container.php
 
 		-
 			message: '#^Cannot access offset ''id'' on mixed\.$#'
-			identifier: offsetAccess.nonOffsetAccessible
-			count: 6
-			path: packages/idei/usim/src/Components/Container.php
-
-		-
-			message: '#^Cannot access offset ''label'' on mixed\.$#'
-			identifier: offsetAccess.nonOffsetAccessible
-			count: 1
-			path: packages/idei/usim/src/Components/Container.php
-
-		-
-			message: '#^Cannot access offset ''name'' on mixed\.$#'
-			identifier: offsetAccess.nonOffsetAccessible
-			count: 1
-			path: packages/idei/usim/src/Components/Container.php
-
-		-
-			message: '#^Cannot access offset 0 on mixed\.$#'
 			identifier: offsetAccess.nonOffsetAccessible
 			count: 1
 			path: packages/idei/usim/src/Components/Container.php
@@ -1029,19 +813,13 @@ parameters:
 		-
 			message: '#^Cannot access offset int on mixed\.$#'
 			identifier: offsetAccess.nonOffsetAccessible
-			count: 4
+			count: 1
 			path: packages/idei/usim/src/Components/Container.php
 
 		-
 			message: '#^Cannot cast mixed to string\.$#'
 			identifier: cast.string
 			count: 6
-			path: packages/idei/usim/src/Components/Container.php
-
-		-
-			message: '#^Method Idei\\Usim\\Components\\Container\:\:findTabIndex\(\) should return int\|null but returns mixed\.$#'
-			identifier: return.type
-			count: 1
 			path: packages/idei/usim/src/Components/Container.php
 
 		-
@@ -1063,27 +841,9 @@ parameters:
 			path: packages/idei/usim/src/Components/Container.php
 
 		-
-			message: '#^Parameter \#1 \$array of function array_splice expects array, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: packages/idei/usim/src/Components/Container.php
-
-		-
-			message: '#^Parameter \#1 \$value of function count expects array\|Countable, mixed given\.$#'
-			identifier: argument.type
-			count: 2
-			path: packages/idei/usim/src/Components/Container.php
-
-		-
 			message: '#^Parameter \#1 \$value of static method Idei\\Usim\\ValueObjects\\Size\:\:from\(\) expects Idei\\Usim\\ValueObjects\\Size\|int\|string, mixed given\.$#'
 			identifier: argument.type
 			count: 6
-			path: packages/idei/usim/src/Components/Container.php
-
-		-
-			message: '#^Parameter \#1 \.\.\.\$arrays of function array_merge expects array, mixed given\.$#'
-			identifier: argument.type
-			count: 1
 			path: packages/idei/usim/src/Components/Container.php
 
 		-
@@ -1167,7 +927,7 @@ parameters:
 		-
 			message: '#^Cannot access offset ''current_page'' on mixed\.$#'
 			identifier: offsetAccess.nonOffsetAccessible
-			count: 7
+			count: 6
 			path: packages/idei/usim/src/Components/Table.php
 
 		-
@@ -1179,7 +939,7 @@ parameters:
 		-
 			message: '#^Cannot access offset ''per_page'' on mixed\.$#'
 			identifier: offsetAccess.nonOffsetAccessible
-			count: 6
+			count: 5
 			path: packages/idei/usim/src/Components/Table.php
 
 		-
@@ -1221,12 +981,6 @@ parameters:
 		-
 			message: '#^Cannot call method getTotalItems\(\) on Idei\\Usim\\DataTable\\AbstractTableModel\|null\.$#'
 			identifier: method.nonObject
-			count: 1
-			path: packages/idei/usim/src/Components/Table.php
-
-		-
-			message: '#^Cannot cast mixed to int\.$#'
-			identifier: cast.int
 			count: 1
 			path: packages/idei/usim/src/Components/Table.php
 
@@ -1315,66 +1069,6 @@ parameters:
 			path: packages/idei/usim/src/Components/Table.php
 
 		-
-			message: '#^Parameter \#1 \$button of method Idei\\Usim\\Components\\TableCell\:\:button\(\) expects array\<string, mixed\>, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: packages/idei/usim/src/Components/Table.php
-
-		-
-			message: '#^Parameter \#1 \$currentPage of method Idei\\Usim\\DataTable\\AbstractTableModel\:\:getFormattedPageData\(\) expects int, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: packages/idei/usim/src/Components/Table.php
-
-		-
-			message: '#^Parameter \#1 \$requiredRows of method Idei\\Usim\\Components\\Table\:\:ensureRowCapacity\(\) expects int, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: packages/idei/usim/src/Components/Table.php
-
-		-
-			message: '#^Parameter \#1 \$text of method Idei\\Usim\\Components\\TableCell\:\:text\(\) expects float\|int\|string\|null, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: packages/idei/usim/src/Components/Table.php
-
-		-
-			message: '#^Parameter \#1 \$url of method Idei\\Usim\\Components\\TableCell\:\:urlImage\(\) expects string, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: packages/idei/usim/src/Components/Table.php
-
-		-
-			message: '#^Parameter \#1 \$value of static method Idei\\Usim\\ValueObjects\\Size\:\:from\(\) expects Idei\\Usim\\ValueObjects\\Size\|int\|string, mixed given\.$#'
-			identifier: argument.type
-			count: 3
-			path: packages/idei/usim/src/Components/Table.php
-
-		-
-			message: '#^Parameter \#2 \$alt of method Idei\\Usim\\Components\\TableCell\:\:urlImage\(\) expects string\|null, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: packages/idei/usim/src/Components/Table.php
-
-		-
-			message: '#^Parameter \#2 \$perPage of method Idei\\Usim\\DataTable\\AbstractTableModel\:\:getFormattedPageData\(\) expects int, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: packages/idei/usim/src/Components/Table.php
-
-		-
-			message: '#^Parameter \#3 \$width of method Idei\\Usim\\Components\\TableCell\:\:urlImage\(\) expects string\|null, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: packages/idei/usim/src/Components/Table.php
-
-		-
-			message: '#^Parameter \#4 \$height of method Idei\\Usim\\Components\\TableCell\:\:urlImage\(\) expects string\|null, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: packages/idei/usim/src/Components/Table.php
-
-		-
 			message: '#^Property Idei\\Usim\\Components\\Table\:\:\$cols \(int\) does not accept mixed\.$#'
 			identifier: assign.propertyType
 			count: 1
@@ -1389,6 +1083,12 @@ parameters:
 		-
 			message: '#^Property Idei\\Usim\\Components\\Table\:\:\$rows \(int\) does not accept mixed\.$#'
 			identifier: assign.propertyType
+			count: 1
+			path: packages/idei/usim/src/Components/Table.php
+
+		-
+			message: '#^Strict comparison using \=\=\= between mixed and null will always evaluate to false\.$#'
+			identifier: identical.alwaysFalse
 			count: 1
 			path: packages/idei/usim/src/Components/Table.php
 

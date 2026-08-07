@@ -21,6 +21,7 @@ use Idei\Usim\Screen;
 use Idei\Usim\UI;
 use Idei\Usim\ValueObjects\Size;
 use Idei\Usim\ValueObjects\Spacing;
+use InvalidArgumentException;
 
 class UsersManager extends Screen
 {
@@ -110,7 +111,7 @@ class UsersManager extends Screen
 
         $toolbar->add($search)->add($addBtn);
 
-        $users_table = UI::table('users_table')
+        $users_table = $this->requireTable(UI::table('users_table'))
             ->pagination(15)
             ->sortedBy('name')
             ->dataModel(UserTableModel::class)
@@ -177,7 +178,7 @@ class UsersManager extends Screen
 
         $toolbar->add($search)->add($addBtn);
 
-        $roles_table = UI::table('roles_table')
+        $roles_table = $this->requireTable(UI::table('roles_table'))
             ->pagination(3) // Disable pagination to show all roles
             ->sortedBy('name')
             ->dataModel(RoleTableModel::class)
@@ -190,7 +191,7 @@ class UsersManager extends Screen
             ->add($toolbar)
             ->add($roles_table);
 
-        $permissions_table = UI::table('permissions_table')
+        $permissions_table = $this->requireTable(UI::table('permissions_table'))
             ->pagination(10)
             ->sortedBy('name')
             ->dataModel(PermissionTableModel::class)
@@ -227,8 +228,8 @@ class UsersManager extends Screen
      */
     public function onUsersTableColumnClicked(array $params): void
     {
-        $column = $params['sort_by'] ?? null;
-        if (!$column) {
+        $column = $this->optionalStringParam($params, 'sort_by');
+        if ($column === null || $column === '') {
             return;
         }
 
@@ -242,12 +243,12 @@ class UsersManager extends Screen
     public function onSubmitRegister(array $params): void
     {
         $response = $this->registerService->register(
-            name: $params['name'] ?? '',
-            email: $params['email'] ?? '',
-            password: $params['password'] ?? '',
-            passwordConfirmation: $params['password_confirmation'] ?? '',
-            roles: isset($params['roles']) ? [$params['roles']] : ['user'],
-            sendVerificationEmail: (bool) ($params['send_verification_email'] ?? true)
+            name: $this->stringParamOrDefault($params, 'name', ''),
+            email: $this->stringParamOrDefault($params, 'email', ''),
+            password: $this->stringParamOrDefault($params, 'password', ''),
+            passwordConfirmation: $this->stringParamOrDefault($params, 'password_confirmation', ''),
+            roles: $this->normalizeRoles($params['roles'] ?? null),
+            sendVerificationEmail: $this->boolParamOrDefault($params, 'send_verification_email', true)
         );
 
         $status = $response['status'];
@@ -281,8 +282,8 @@ class UsersManager extends Screen
      */
     public function onUsersTableRowClicked(array $params): void
     {
-        $userId = $params['model_id'] ?? null;
-        if (!$userId) {
+        $userId = $this->optionalIntParam($params, 'model_id');
+        if ($userId === null) {
             $this->toast(t('User ID is required'), 'error');
             return;
         }
@@ -312,8 +313,8 @@ class UsersManager extends Screen
      */
     public function onSubmitUpdateUser(array $params): void
     {
-        $userId = $params['user_id'] ?? null;
-        if (!$userId) {
+        $userId = $this->optionalIntParam($params, 'user_id');
+        if ($userId === null) {
             $this->toast(t('User ID is required for update'), 'error');
             return;
         }
@@ -365,8 +366,8 @@ class UsersManager extends Screen
      */
     public function onDeleteUser(array $params): void
     {
-        $userId = $params['user_id'] ?? null;
-        if (!$userId) {
+        $userId = $this->optionalIntParam($params, 'user_id');
+        if ($userId === null) {
             $this->toast(t('User ID is required'), 'error');
             return;
         }
@@ -386,9 +387,9 @@ class UsersManager extends Screen
         ConfirmDialogService::open(
             type: DialogType::WARNING,
             title: t("Delete User"),
-            message: t("Are you sure you want to delete user '{$user['name']}'?"),
+            message: t("Are you sure you want to delete user '{$this->userNameForDeleteMessage($user)}'?"),
             confirmAction: 'confirm_delete_user',
-            confirmParams: ['user_id' => $params['user_id']],
+            confirmParams: ['user_id' => $userId],
             callerServiceId: $this->getScreenComponentId()
         );
     }
@@ -398,8 +399,8 @@ class UsersManager extends Screen
      */
     public function onConfirmDeleteUser(array $params): void
     {
-        $userId = $params['user_id'] ?? null;
-        if (!$userId) {
+        $userId = $this->optionalIntParam($params, 'user_id');
+        if ($userId === null) {
             $this->toast(t('User ID is required for deletion'), 'error');
             return;
         }
@@ -424,7 +425,7 @@ class UsersManager extends Screen
      */
     public function onChangePage(array $params): void
     {
-        $page = $params['page'] ?? 1;
+        $page = $this->intParamOrDefault($params, 'page', 1);
         $this->users_table->page($page);
     }
 
@@ -433,7 +434,7 @@ class UsersManager extends Screen
      */
     public function onSearchUsers(array $params): void
     {
-        $search = trim((string) ($params['value'] ?? $params['search_users'] ?? ''));
+        $search = trim($this->searchParam($params, ['value', 'search_users']));
         $this->users_table->setSearchTerm($search);
         $this->search_users->value($search);
     }
@@ -443,7 +444,7 @@ class UsersManager extends Screen
      */
     public function onSearchRoles(array $params): void
     {
-        $search = trim((string) ($params['value'] ?? $params['search_roles'] ?? ''));
+        $search = trim($this->searchParam($params, ['value', 'search_roles']));
         $this->roles_table->setSearchTerm($search);
         $this->search_roles->value($search);
     }
@@ -453,12 +454,140 @@ class UsersManager extends Screen
      */
     public function onRolesTableRowClicked(array $params): void
     {
-        $roleId = $params['model_id'] ?? null;
-        if (!$roleId) {
+        $roleId = $this->selectableId($params, 'model_id');
+        if ($roleId === null) {
             $this->toast(t('Role ID is required'), 'error');
             return;
         }
 
         $this->roles_table->select($roleId);
+    }
+
+    private function requireTable(mixed $component): Table
+    {
+        if (!$component instanceof Table) {
+            throw new InvalidArgumentException('Expected table component instance.');
+        }
+
+        return $component;
+    }
+
+    /**
+     * @param array<string, mixed> $params
+     */
+    private function optionalStringParam(array $params, string $key): ?string
+    {
+        $value = $params[$key] ?? null;
+        return is_string($value) ? $value : null;
+    }
+
+    /**
+     * @param array<string, mixed> $params
+     */
+    private function stringParamOrDefault(array $params, string $key, string $default): string
+    {
+        $value = $params[$key] ?? null;
+        return is_string($value) ? $value : $default;
+    }
+
+    /**
+     * @param array<string, mixed> $params
+     */
+    private function optionalIntParam(array $params, string $key): ?int
+    {
+        $value = $params[$key] ?? null;
+        if (is_int($value)) {
+            return $value;
+        }
+
+        if (is_string($value) && ctype_digit($value)) {
+            return (int) $value;
+        }
+
+        return null;
+    }
+
+    /**
+     * @param array<string, mixed> $params
+     */
+    private function intParamOrDefault(array $params, string $key, int $default): int
+    {
+        $value = $this->optionalIntParam($params, $key);
+        return $value ?? $default;
+    }
+
+    /**
+     * @param array<string, mixed> $params
+     */
+    private function boolParamOrDefault(array $params, string $key, bool $default): bool
+    {
+        $value = $params[$key] ?? null;
+        return is_bool($value) ? $value : $default;
+    }
+
+    /**
+     * @param list<string> $keys
+     * @param array<string, mixed> $params
+     */
+    private function searchParam(array $params, array $keys): string
+    {
+        foreach ($keys as $key) {
+            $value = $params[$key] ?? null;
+            if (is_string($value)) {
+                return $value;
+            }
+        }
+
+        return '';
+    }
+
+    /**
+     * @param array<string, mixed> $params
+     */
+    private function selectableId(array $params, string $key): int|string|null
+    {
+        $value = $params[$key] ?? null;
+        if (is_int($value) || is_string($value)) {
+            return $value;
+        }
+
+        return null;
+    }
+
+    /**
+     * @param mixed $roles
+     * @return list<string>
+     */
+    private function normalizeRoles(mixed $roles): array
+    {
+        if (is_string($roles)) {
+            return [$roles];
+        }
+
+        if (!is_array($roles)) {
+            return ['user'];
+        }
+
+        $normalized = [];
+        foreach ($roles as $role) {
+            if (is_string($role)) {
+                $normalized[] = $role;
+            }
+        }
+
+        return $normalized !== [] ? $normalized : ['user'];
+    }
+
+    /**
+     * @param mixed $user
+     */
+    private function userNameForDeleteMessage(mixed $user): string
+    {
+        if (!is_array($user)) {
+            return '';
+        }
+
+        $name = $user['name'] ?? null;
+        return is_string($name) ? $name : '';
     }
 }

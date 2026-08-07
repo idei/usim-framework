@@ -390,7 +390,7 @@ class Table extends UIComponent
             return;
         }
 
-        $pagination = $this->config['pagination'];
+        $pagination = $this->paginationConfig();
         $currentPage = $pagination['current_page'];
         $perPage = $pagination['per_page'];
 
@@ -406,7 +406,7 @@ class Table extends UIComponent
         // Protocol-driven row structure sync:
         // - shrinking rows => mark extra TableRow as parent=null (frontend removes from DOM)
         // - growing rows => create/re-attach rows and cells with proper parents
-        $targetRows = min(count($formattedData), max(0, (int) $perPage));
+        $targetRows = min(count($formattedData), max(0, $perPage));
         $this->syncRowStructure($targetRows);
 
         $this->rows = $targetRows;
@@ -455,8 +455,9 @@ class Table extends UIComponent
 
                 $rowMinHeight = $this->config['row_min_height'] ?? null;
 
-                if ($rowMinHeight !== null) {
-                    $rowBuilder->minHeight(Size::from($rowMinHeight));
+                $rowMinHeightValue = $this->normalizeSizeInput($rowMinHeight);
+                if ($rowMinHeightValue !== null) {
+                    $rowBuilder->minHeight(Size::from($rowMinHeightValue));
                 }
 
                 $this->rowBuilders[$row] = $rowBuilder;
@@ -533,8 +534,9 @@ class Table extends UIComponent
 
                 $rowMinHeight = $this->config['row_min_height'] ?? null;
 
-                if ($rowMinHeight !== null) {
-                    $rowBuilder->minHeight(Size::from($rowMinHeight));
+                $rowMinHeightValue = $this->normalizeSizeInput($rowMinHeight);
+                if ($rowMinHeightValue !== null) {
+                    $rowBuilder->minHeight(Size::from($rowMinHeightValue));
                 }
 
                 $this->rowBuilders[$row] = $rowBuilder;
@@ -820,8 +822,9 @@ class Table extends UIComponent
 
             $rowMinHeight = $this->config['row_min_height'] ?? null;
 
-            if ($rowMinHeight !== null) {
-                $rowBuilder->minHeight(Size::from($rowMinHeight));
+            $rowMinHeightValue = $this->normalizeSizeInput($rowMinHeight);
+            if ($rowMinHeightValue !== null) {
+                $rowBuilder->minHeight(Size::from($rowMinHeightValue));
             }
             $this->rowBuilders[$row] = $rowBuilder;
 
@@ -948,16 +951,29 @@ class Table extends UIComponent
                 $cell->text((string) $value)->padding(4); // Compact padding for text cells
             } elseif (is_array($value)) {
                 if (isset($value['text'])) {
-                    $cell->text($value['text'])->padding(4); // Compact padding for text cells
+                    $text = $value['text'];
+                    if (is_string($text) || is_int($text) || is_float($text) || $text === null) {
+                        $cell->text($text)->padding(4); // Compact padding for text cells
+                    }
                 } elseif (isset($value['button'])) {
-                    $cell->button($value['button'])->padding(2); // Even more compact for buttons
+                    $button = $value['button'];
+                    if (is_array($button)) {
+                        $cell->button($this->normalizeAssocArray($button))->padding(2); // Even more compact for buttons
+                    }
                 } elseif (isset($value['url_image'])) {
-                    $cell->urlImage(
-                        $value['url_image'],
-                        $value['alt'] ?? null,
-                        $value['width'] ?? null,
-                        $value['height'] ?? null
-                    )->padding(2); // Compact for images
+                    $urlImage = $value['url_image'];
+                    $alt = $value['alt'] ?? null;
+                    $width = $value['width'] ?? null;
+                    $height = $value['height'] ?? null;
+
+                    if (is_string($urlImage)) {
+                        $cell->urlImage(
+                            $urlImage,
+                            is_string($alt) ? $alt : null,
+                            is_string($width) ? $width : null,
+                            is_string($height) ? $height : null
+                        )->padding(2); // Compact for images
+                    }
                 }
 
                 $this->applyCellMetadata($cell, $value);
@@ -965,6 +981,67 @@ class Table extends UIComponent
         }
 
         return $this;
+    }
+
+    /**
+     * @return array{enabled: bool, per_page: int, current_page: int, total_items: int, can_next: bool, can_prev: bool, total_pages: int, show_controls: bool, labels: array<string, string>}
+     */
+    private function paginationConfig(): array
+    {
+        $pagination = $this->config['pagination'] ?? [];
+        if (!is_array($pagination)) {
+            $pagination = [];
+        }
+
+        $labels = $pagination['labels'] ?? [];
+        if (!is_array($labels)) {
+            $labels = [];
+        }
+
+        return [
+            'enabled' => is_bool($pagination['enabled'] ?? null) ? $pagination['enabled'] : true,
+            'per_page' => is_int($pagination['per_page'] ?? null) ? $pagination['per_page'] : self::DEFAULT_PAGINATION_PER_PAGE,
+            'current_page' => is_int($pagination['current_page'] ?? null) ? $pagination['current_page'] : 1,
+            'total_items' => is_int($pagination['total_items'] ?? null) ? $pagination['total_items'] : 0,
+            'can_next' => is_bool($pagination['can_next'] ?? null) ? $pagination['can_next'] : true,
+            'can_prev' => is_bool($pagination['can_prev'] ?? null) ? $pagination['can_prev'] : false,
+            'total_pages' => is_int($pagination['total_pages'] ?? null) ? $pagination['total_pages'] : 0,
+            'show_controls' => is_bool($pagination['show_controls'] ?? null) ? $pagination['show_controls'] : true,
+            'labels' => [
+                'previous' => is_string($labels['previous'] ?? null) ? $labels['previous'] : t('usim.table.pagination.previous'),
+                'next' => is_string($labels['next'] ?? null) ? $labels['next'] : t('usim.table.pagination.next'),
+                'showing' => is_string($labels['showing'] ?? null) ? $labels['showing'] : t('usim.table.pagination.showing'),
+            ],
+        ];
+    }
+
+    /**
+     * @param mixed $value
+     * @return Size|int|string|null
+     */
+    private function normalizeSizeInput(mixed $value): Size|int|string|null
+    {
+        if ($value instanceof Size || is_int($value) || is_string($value)) {
+            return $value;
+        }
+
+        return null;
+    }
+
+    /**
+     * @param array<mixed> $value
+     * @return array<string, mixed>
+     */
+    private function normalizeAssocArray(array $value): array
+    {
+        $normalized = [];
+        foreach ($value as $key => $item) {
+            if (is_string($key)) {
+                $normalized[$key] = $item;
+            }
+        }
+
+        return $normalized;
     }
 
     /**

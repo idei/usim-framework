@@ -1243,12 +1243,15 @@ class Container implements UIElement, Sizeable, Paddable, Marginable, Gapable
             'disabled_text_color' => $options['disabled_text_color'] ?? null,
         ];
 
+        $tabs = $this->tabsConfig();
         $index = $this->findTabIndex($normalizedId);
         if ($index === null) {
-            $this->config['tabs'][] = $tab;
+            $tabs[] = $tab;
         } else {
-            $this->config['tabs'][$index] = array_merge($this->config['tabs'][$index], $tab);
+            $currentTab = $tabs[$index] ?? [];
+            $tabs[$index] = array_merge($currentTab, $tab);
         }
+        $this->config['tabs'] = $tabs;
 
         if (($this->config['tabs_active'] ?? null) === null && !$tab['disabled']) {
             $this->config['tabs_active'] = $tab['id'];
@@ -1345,8 +1348,10 @@ class Container implements UIElement, Sizeable, Paddable, Marginable, Gapable
             return $this;
         }
 
-        $removed = $this->config['tabs'][$index]['id'] ?? null;
-        array_splice($this->config['tabs'], $index, 1);
+        $tabs = $this->tabsConfig();
+        $removed = $tabs[$index]['id'] ?? null;
+        array_splice($tabs, $index, 1);
+        $this->config['tabs'] = $tabs;
 
         if (($this->config['tabs_active'] ?? null) === $removed) {
             $this->config['tabs_active'] = $this->getFirstAvailableTabId();
@@ -1396,7 +1401,7 @@ class Container implements UIElement, Sizeable, Paddable, Marginable, Gapable
             return null;
         }
 
-        foreach ($this->config['tabs'] as $tabConfig) {
+        foreach ($this->tabsConfig() as $tabConfig) {
             $tabId = trim((string) ($tabConfig['id'] ?? ''));
             $tabName = trim((string) ($tabConfig['name'] ?? ''));
             $tabLabel = trim((string) ($tabConfig['label'] ?? ''));
@@ -1429,7 +1434,7 @@ class Container implements UIElement, Sizeable, Paddable, Marginable, Gapable
             return null;
         }
 
-        foreach ($this->config['tabs'] as $index => $tabConfig) {
+        foreach ($this->tabsConfig() as $index => $tabConfig) {
             if (($tabConfig['id'] ?? null) === $resolved) {
                 return $index;
             }
@@ -1440,26 +1445,47 @@ class Container implements UIElement, Sizeable, Paddable, Marginable, Gapable
 
     private function getFirstAvailableTabId(): ?string
     {
-        foreach ($this->config['tabs'] as $tabConfig) {
+        $tabs = $this->tabsConfig();
+        foreach ($tabs as $tabConfig) {
             if (($tabConfig['disabled'] ?? false) !== true) {
                 return $tabConfig['id'] ?? null;
             }
         }
 
-        return $this->config['tabs'][0]['id'] ?? null;
+        return $tabs[0]['id'] ?? null;
     }
 
     private function normalizeTabId(string $value): string
     {
         $trimmed = trim($value);
         if ($trimmed === '') {
-            return 'tab_' . $this->id . '_' . (count($this->config['tabs']) + 1);
+            return 'tab_' . $this->id . '_' . (count($this->tabsConfig()) + 1);
         }
 
         $normalized = preg_replace('/[^a-zA-Z0-9]+/', '_', mb_strtolower($trimmed));
         $normalized = trim((string) $normalized, '_');
 
-        return $normalized !== '' ? $normalized : 'tab_' . $this->id . '_' . (count($this->config['tabs']) + 1);
+        return $normalized !== '' ? $normalized : 'tab_' . $this->id . '_' . (count($this->tabsConfig()) + 1);
+    }
+
+    /**
+     * @return array<int, array<string, mixed>>
+     */
+    private function tabsConfig(): array
+    {
+        $tabs = $this->config['tabs'] ?? [];
+        if (!is_array($tabs)) {
+            return [];
+        }
+
+        $normalized = [];
+        foreach ($tabs as $tab) {
+            if (is_array($tab)) {
+                $normalized[] = $tab;
+            }
+        }
+
+        return $normalized;
     }
 
     /**

@@ -1,6 +1,7 @@
 <?php
 namespace App\UI\Screens;
 
+use App\Models\User;
 use App\Services\Auth\AuthSessionService;
 use App\Services\Auth\RegisterService;
 use App\UI\Components\Modals\RegisterDialog;
@@ -35,6 +36,7 @@ use Idei\Usim\UI;
 use Idei\Usim\Upload\UploadService;
 use Idei\Usim\ValueObjects\Size;
 use Idei\Usim\ValueObjects\Spacing;
+use InvalidArgumentException;
 use Illuminate\Support\Facades\Auth;
 
 /**
@@ -72,7 +74,7 @@ class Menu extends Screen
         $this->user_menu = $this->buildUserMenu();
 
         if (empty($this->store_lang)) {
-            $this->store_lang = config('usim.i18n.fallback_locale', 'en');
+            $this->store_lang = $this->normalizeLocale(config('usim.i18n.fallback_locale', 'en'));
         }
         $this->lang_menu = $this->buildLangMenu();
         $this->user_menu->marginLeft(Spacing::px(12));
@@ -113,7 +115,7 @@ class Menu extends Screen
      */
     public function onChangeLang(array $params): void
     {
-        $lang = $params['lang'] ?? '';
+        $lang = $this->stringParamOrDefault($params, 'lang', '');
         if (empty($lang) || $lang === $this->store_lang) {
             return;
         }
@@ -175,7 +177,7 @@ class Menu extends Screen
     private function updateLangMenu(): void
     {
         if (empty($this->store_lang)) {
-            $this->store_lang = config('usim.i18n.fallback_locale', 'en');
+            $this->store_lang = $this->normalizeLocale(config('usim.i18n.fallback_locale', 'en'));
         }
 
         $this->lang_menu->trigger(strtoupper($this->store_lang));
@@ -405,18 +407,18 @@ class Menu extends Screen
      */
     public function onSubmitRegister(array $params): void
     {
-        if ($params['accept_terms'] == false) {
+        if ($this->boolParamOrDefault($params, 'accept_terms', false) === false) {
             $this->toast(t('screen.menu.register_terms_required'), type: 'error');
             return;
         }
 
         $response = $this->registerService->register(
-            name: $params['name'] ?? '',
-            email: $params['email'] ?? '',
-            password: $params['password'] ?? '',
-            passwordConfirmation: $params['password_confirmation'] ?? '',
-            roles: (array) ($params['roles'] ?? ['user']),
-            sendVerificationEmail: (bool) ($params['send_verification_email'] ?? true)
+            name: $this->stringParamOrDefault($params, 'name', ''),
+            email: $this->stringParamOrDefault($params, 'email', ''),
+            password: $this->stringParamOrDefault($params, 'password', ''),
+            passwordConfirmation: $this->stringParamOrDefault($params, 'password_confirmation', ''),
+            roles: $this->normalizeRoles($params['roles'] ?? ['user']),
+            sendVerificationEmail: $this->boolParamOrDefault($params, 'send_verification_email', true)
         );
 
         if ($response['status'] !== 'success') {
@@ -432,11 +434,12 @@ class Menu extends Screen
      */
     private function handleRegisterSuccess(array $response): void
     {
-        $message = (string) ($response['message'] ?? t('screen.menu.register_success_default'));
+        $messageValue = $response['message'] ?? t('screen.menu.register_success_default');
+        $message = is_string($messageValue) ? $messageValue : t('screen.menu.register_success_default');
         $this->toast($message, 'success');
 
         $user = $response['user'] ?? null;
-        if (!$user) {
+        if (!$user instanceof User) {
             $this->closeModal();
             return;
         }
@@ -451,9 +454,10 @@ class Menu extends Screen
      */
     private function handleRegisterError(array $response): void
     {
-        $message = (string) ($response['message'] ?? t('screen.menu.validation_errors_default'));
+        $messageValue = $response['message'] ?? t('screen.menu.validation_errors_default');
+        $message = is_string($messageValue) ? $messageValue : t('screen.menu.validation_errors_default');
         $this->toast($message, 'error');
-        $this->updateModalValidationErrors((array) ($response['errors'] ?? []));
+        $this->updateModalValidationErrors($this->normalizeErrors($response['errors'] ?? []));
     }
 
     /**
@@ -467,8 +471,12 @@ class Menu extends Screen
 
         $modalUpdates = [];
         foreach ($errors as $fieldName => $messages) {
+            if (!is_string($fieldName)) {
+                continue;
+            }
+
             $modalUpdates[$fieldName] = [
-                'error' => implode(' ', (array) $messages),
+                'error' => implode(' ', $this->normalizeStringList($messages)),
             ];
         }
 
@@ -515,5 +523,95 @@ class Menu extends Screen
     public function onCancelLogout(array $params): void
     {
         $this->closeModal();
+    }
+
+    /**
+     * @param array<string, mixed> $params
+     */
+    private function stringParamOrDefault(array $params, string $key, string $default): string
+    {
+        $value = $params[$key] ?? null;
+        return is_string($value) ? $value : $default;
+    }
+
+    /**
+     * @param array<string, mixed> $params
+     */
+    private function boolParamOrDefault(array $params, string $key, bool $default): bool
+    {
+        $value = $params[$key] ?? null;
+        return is_bool($value) ? $value : $default;
+    }
+
+    /**
+     * @param mixed $roles
+     * @return list<string>
+     */
+    private function normalizeRoles(mixed $roles): array
+    {
+        if (is_string($roles)) {
+            return [$roles];
+        }
+
+        if (!is_array($roles)) {
+            return ['user'];
+        }
+
+        return $this->normalizeStringList($roles) ?: ['user'];
+    }
+
+    /**
+     * @param mixed $value
+     * @return array<string, mixed>
+     */
+    private function normalizeErrors(mixed $value): array
+    {
+        if (!is_array($value)) {
+            return [];
+        }
+
+        $normalized = [];
+        foreach ($value as $key => $messages) {
+            if (!is_string($key)) {
+                continue;
+            }
+
+            $normalized[$key] = $messages;
+        }
+
+        return $normalized;
+    }
+
+    /**
+     * @param mixed $value
+     * @return list<string>
+     */
+    private function normalizeStringList(mixed $value): array
+    {
+        if (is_string($value)) {
+            return [$value];
+        }
+
+        if (!is_array($value)) {
+            return [];
+        }
+
+        $normalized = [];
+        foreach ($value as $item) {
+            if (is_string($item)) {
+                $normalized[] = $item;
+            }
+        }
+
+        return $normalized;
+    }
+
+    private function normalizeLocale(mixed $locale): string
+    {
+        if (is_string($locale) && $locale !== '') {
+            return $locale;
+        }
+
+        throw new InvalidArgumentException('Fallback locale must be a non-empty string.');
     }
 }

@@ -21,12 +21,12 @@ class AuthController extends Controller
     public function register(Request $request, RegisterService $registerService): JsonResponse
     {
         $response = $registerService->register(
-            name: (string) $request->input('name', ''),
-            email: (string) $request->input('email', ''),
-            password: (string) $request->input('password', ''),
-            passwordConfirmation: (string) $request->input('password_confirmation', ''),
-            roles: (array) $request->input('roles', ['user']),
-            sendVerificationEmail: (bool) $request->boolean('send_verification_email', true),
+            name: $request->string('name')->toString(),
+            email: $request->string('email')->toString(),
+            password: $request->string('password')->toString(),
+            passwordConfirmation: $request->string('password_confirmation')->toString(),
+            roles: $this->normalizeRoles($request->input('roles', ['user'])),
+            sendVerificationEmail: $request->boolean('send_verification_email', true),
         );
 
         $httpStatus = $response['status'] === 'success' ? 201 : 422;
@@ -46,8 +46,8 @@ class AuthController extends Controller
         ]);
 
         $response = $loginService->login(
-            $request->email,
-            $request->password,
+            $request->string('email')->toString(),
+            $request->string('password')->toString(),
             $request->boolean('remember')
         );
 
@@ -167,7 +167,7 @@ class AuthController extends Controller
     public function forgotPassword(Request $request): JsonResponse
     {
         $response = $this->passwordService->sendResetLink(
-            $request->input('email', '')
+            $request->string('email')->toString()
         );
 
         $httpStatus = $response['status'] === 'success' ? 200 : 400;
@@ -180,13 +180,37 @@ class AuthController extends Controller
     public function resetPassword(Request $request): JsonResponse
     {
         $response = $this->passwordService->resetPassword(
-            token: $request->input('token', ''),
-            email: $request->input('email', ''),
-            password: $request->input('password', ''),
-            passwordConfirmation: $request->input('password_confirmation', '')
+            token: $request->string('token')->toString(),
+            email: $request->string('email')->toString(),
+            password: $request->string('password')->toString(),
+            passwordConfirmation: $request->string('password_confirmation')->toString()
         );
 
         $httpStatus = $response['status'] === 'success' ? 200 : 422;
         return response()->json($response, $httpStatus);
+    }
+
+    /**
+     * @param mixed $roles
+     * @return list<string>
+     */
+    private function normalizeRoles(mixed $roles): array
+    {
+        if (is_string($roles)) {
+            return [$roles];
+        }
+
+        if (!is_array($roles)) {
+            return ['user'];
+        }
+
+        $normalized = [];
+        foreach ($roles as $role) {
+            if (is_string($role)) {
+                $normalized[] = $role;
+            }
+        }
+
+        return $normalized !== [] ? $normalized : ['user'];
     }
 }
