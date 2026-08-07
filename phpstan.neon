@@ -8,7 +8,7 @@ parameters:
         - database/
         - routes/
         - packages/
-    level: 6
+    level: 9
     ignoreErrors:
         -
             identifier: larastan.noEnvCallsOutsideOfConfig
