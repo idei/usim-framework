@@ -56,22 +56,22 @@ abstract class EloquentListingService implements ModelQueryableService
 
     public function all(): array
     {
-        return $this->newBaseQuery()->get()->all();
+        return $this->collectTypedItems($this->newBaseQuery());
     }
 
     public function filter(array $filters): array
     {
-        return $this->buildQuery(filters: $filters)->get()->all();
+        return $this->collectTypedItems($this->buildQuery(filters: $filters));
     }
 
     public function sortBy(string $field, string $direction = 'asc'): array
     {
-        return $this->buildQuery(sortField: $field, sortDirection: $direction)->get()->all();
+        return $this->collectTypedItems($this->buildQuery(sortField: $field, sortDirection: $direction));
     }
 
     public function search(string $term, array $filters = []): array
     {
-        return $this->buildQuery(search: $term, filters: $filters)->get()->all();
+        return $this->collectTypedItems($this->buildQuery(search: $term, filters: $filters));
     }
 
     public function getModelStructure(): array
@@ -134,11 +134,11 @@ abstract class EloquentListingService implements ModelQueryableService
 
         $total = (clone $query)->count();
 
-        $items = $query
+        $pagedQuery = $query
             ->offset(($page - 1) * $perPage)
-            ->limit($perPage)
-            ->get()
-            ->all();
+            ->limit($perPage);
+
+        $items = $this->collectTypedItems($pagedQuery);
 
         return [
             'total' => $total,
@@ -180,11 +180,13 @@ abstract class EloquentListingService implements ModelQueryableService
         ];
     }
 
+    /**
+     * @return TModel
+     */
     protected function newModel(): Model
     {
         $class = $this->modelClass;
 
-        /** @var Model $model */
         $model = new $class();
 
         return $model;
@@ -464,7 +466,7 @@ abstract class EloquentListingService implements ModelQueryableService
     private function normalizeFieldDefinition(int|string $key, string|array $value, string $defaultOperator): array
     {
         $field = is_int($key)
-            ? (string) $value
+            ? (is_string($value) ? $value : (string) $key)
             : (string) $key;
 
         if (is_string($value)) {
@@ -475,7 +477,7 @@ abstract class EloquentListingService implements ModelQueryableService
 
         $path = (string) ($value['path'] ?? $field);
         $operator = (string) ($value['operator'] ?? $defaultOperator);
-        $cast = $value['cast'] ?? null;
+        $cast = $this->normalizeCast($value['cast'] ?? null);
 
         return $this->buildNormalizedDefinition($field, $path, $operator, $cast);
     }
@@ -488,6 +490,11 @@ abstract class EloquentListingService implements ModelQueryableService
         $relation = null;
         $column = $path;
 
+        $normalizedCast = match ($cast) {
+            'int', 'float', 'bool', 'string' => $cast,
+            default => null,
+        };
+
         if (str_contains($path, '.')) {
             [$relation, $column] = explode('.', $path, 2);
         }
@@ -498,8 +505,26 @@ abstract class EloquentListingService implements ModelQueryableService
             'relation' => $relation,
             'column' => $column,
             'operator' => $this->normalizeOperator($operator),
-            'cast' => $cast,
+            'cast' => $normalizedCast,
         ];
+    }
+
+    /**
+     * @param Builder<TModel> $query
+     * @return array<int, TModel>
+     */
+    private function collectTypedItems(Builder $query): array
+    {
+        $items = [];
+        $modelClass = $this->modelClass;
+
+        foreach ($query->get() as $item) {
+            if ($item instanceof $modelClass) {
+                $items[] = $item;
+            }
+        }
+
+        return $items;
     }
 
     /**
@@ -535,7 +560,9 @@ abstract class EloquentListingService implements ModelQueryableService
     private function normalizeOperatorValue(string $operator, mixed $value): mixed
     {
         if ($operator === 'like') {
-            return '%'.$value.'%';
+            $stringValue = is_scalar($value) ? (string) $value : '';
+
+            return '%'.$stringValue.'%';
         }
 
         return $value;
@@ -544,11 +571,26 @@ abstract class EloquentListingService implements ModelQueryableService
     private function castValue(mixed $value, ?string $cast): mixed
     {
         return match ($cast) {
-            'int' => (int) $value,
-            'float' => (float) $value,
+            'int' => is_numeric($value) ? (int) $value : 0,
+            'float' => is_numeric($value) ? (float) $value : 0.0,
             'bool' => filter_var($value, FILTER_VALIDATE_BOOL),
-            'string' => (string) $value,
+            'string' => is_scalar($value) ? (string) $value : '',
             default => $value,
+        };
+    }
+
+    /**
+     * @return 'int'|'float'|'bool'|'string'|null
+     */
+    private function normalizeCast(mixed $cast): ?string
+    {
+        if (!is_string($cast)) {
+            return null;
+        }
+
+        return match ($cast) {
+            'int', 'float', 'bool', 'string' => $cast,
+            default => null,
         };
     }
 }

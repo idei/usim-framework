@@ -1,0 +1,10 @@
+vendor/
+node_modules/
+storage/
+bootstrap/cache/
+.git/
+public/build/
+public/hot
+*.min.js
+*.map
+phpstan-9-baseline.neon

@@ -11,13 +11,29 @@ return new class extends Migration {
     public function up(): void
     {
         $teams = config('permission.teams');
+
+        /** @var array<string, string> $tableNames */
         $tableNames = config('permission.table_names');
+
+        /**
+         * @var array{
+         *     role_pivot_key: string|null,
+         *     permission_pivot_key: string|null,
+         *     model_morph_key: string,
+         *     team_foreign_key: string,
+         * } $columnNames
+         */
         $columnNames = config('permission.column_names');
         $pivotRole = $columnNames['role_pivot_key'] ?? 'role_id';
         $pivotPermission = $columnNames['permission_pivot_key'] ?? 'permission_id';
 
-        throw_if($tableNames == null || empty($tableNames), new Exception('Error: config/permission.php not loaded. Run [php artisan config:clear] and try again.'));
-        throw_if($teams && empty($columnNames['team_foreign_key'] ?? null), new Exception('Error: team_foreign_key on config/permission.php not loaded. Run [php artisan config:clear] and try again.'));
+        if ($tableNames == null || empty($tableNames)) {
+            throw new Exception('Error: config/permission.php not loaded. Run [php artisan config:clear] and try again.');
+        }
+
+        if ($teams && empty($columnNames['team_foreign_key'] ?? null)) {
+            throw new Exception('Error: team_foreign_key on config/permission.php not loaded. Run [php artisan config:clear] and try again.');
+        }
 
         Schema::create($tableNames['permissions'], static function (Blueprint $table) {
             // $table->engine('InnoDB');
@@ -119,8 +135,8 @@ return new class extends Migration {
         });
 
         app('cache')
-            ->store(config('permission.cache.store') != 'default' ? config('permission.cache.store') : null)
-            ->forget(config('permission.cache.key'));
+            ->store(config('permission.cache.store') != 'default' ? (string) config('permission.cache.store') : null)
+            ->forget((string) config('permission.cache.key'));
     }
 
     /**
@@ -128,6 +144,7 @@ return new class extends Migration {
      */
     public function down(): void
     {
+        /** @var array<string, string> $tableNames */
         $tableNames = config('permission.table_names');
 
         if (empty($tableNames)) {

@@ -122,11 +122,11 @@ class Table extends UIComponent
 
     public function page(?int $page): self
     {
+        $pagination = $this->paginationConfig();
+
         if ($page === null) {
-            $pagination = $this->config['pagination'];
             $page = $pagination['current_page'];
         }
-        $pagination = $this->config['pagination'];
 
         if ($page < 1) {
             $page = 1;
@@ -151,7 +151,7 @@ class Table extends UIComponent
         $model = $this->getModel();
         if ($model) {
             // Reset to first page and force pagination recalculation after search.
-            $pagination = $this->config['pagination'];
+            $pagination = $this->paginationConfig();
             $pagination['current_page'] = 1;
             $this->setConfig('pagination', $pagination);
 
@@ -163,7 +163,7 @@ class Table extends UIComponent
 
     public function getSearchTerm(): ?string
     {
-        return $this->config['search_term'];
+        return $this->configStringOrNull('search_term');
     }
 
     public function sortedBy(?string $column, ?string $direction = 'asc'): self
@@ -183,12 +183,12 @@ class Table extends UIComponent
 
     public function getSortColumn(): ?string
     {
-        return $this->config['sort_column'];
+        return $this->configStringOrNull('sort_column');
     }
 
     public function getSortDirection(): ?string
     {
-        return $this->config['sort_direction'];
+        return $this->configStringOrNull('sort_direction');
     }
 
     /**
@@ -202,7 +202,11 @@ class Table extends UIComponent
     public function selectionMode(?SelectionMode $mode = null): static|string
     {
         if ($mode === null) {
-            return $this->config['selection_mode'];
+            $selectionMode = $this->config['selection_mode'] ?? null;
+
+            return is_string($selectionMode)
+                ? $selectionMode
+                : SelectionMode::NONE->value;
         }
 
         return $this->setConfig('selection_mode', $mode->value);
@@ -221,13 +225,13 @@ class Table extends UIComponent
      */
     public function select(array|string|int|null $rows = null): static|array|string|int|null
     {
-        $selected = $this->config['selected_rows'] ?? [];
+        $selected = $this->normalizeSelectedRows($this->config['selected_rows'] ?? []);
         if ($rows === null) {
             if ($this->config['selection_mode'] === SelectionMode::NONE->value) {
                 return null;
             }
             if ($this->config['selection_mode'] === SelectionMode::SINGLE->value) {
-                $singleSelected = !empty($selected) ? $selected[0] : null;
+                $singleSelected = $selected[0] ?? null;
                 return $singleSelected;
             }
             return $selected;
@@ -303,7 +307,8 @@ class Table extends UIComponent
      */
     private function splitFormattedRowData(array $rowData): array
     {
-        $style = (string) ($rowData['__row_style'] ?? 'default');
+        $rawStyle = $rowData['__row_style'] ?? null;
+        $style = is_string($rawStyle) && $rawStyle !== '' ? $rawStyle : 'default';
         $action = $rowData['__row_action'] ?? null;
 
         $parameters = $rowData['__row_parameters'] ?? [];
@@ -366,16 +371,16 @@ class Table extends UIComponent
      */
     private function applyCellMetadata(TableCell $cell, array $value): void
     {
-        if (isset($value['background_color']) && $value['background_color'] !== '') {
-            $cell->backgroundColor((string) $value['background_color']);
+        if (isset($value['background_color']) && is_string($value['background_color']) && $value['background_color'] !== '') {
+            $cell->backgroundColor($value['background_color']);
         }
 
-        if (isset($value['text_color']) && $value['text_color'] !== '') {
-            $cell->textColor((string) $value['text_color']);
+        if (isset($value['text_color']) && is_string($value['text_color']) && $value['text_color'] !== '') {
+            $cell->textColor($value['text_color']);
         }
 
-        if (isset($value['border_color']) && $value['border_color'] !== '') {
-            $cell->borderColor((string) $value['border_color']);
+        if (isset($value['border_color']) && is_string($value['border_color']) && $value['border_color'] !== '') {
+            $cell->borderColor($value['border_color']);
         }
     }
 
@@ -569,7 +574,8 @@ class Table extends UIComponent
     {
         if ($this->model === null) {
             $modelClass = $this->config['data_model'] ?? null;
-            if ($modelClass) {
+            if (is_string($modelClass) && is_subclass_of($modelClass, AbstractTableModel::class)) {
+                /** @var class-string<AbstractTableModel> $modelClass */
                 $this->model = new $modelClass($this);
             }
         }
@@ -589,17 +595,21 @@ class Table extends UIComponent
     public function updatePaginationData(): void
     {
         $model = $this->getModel();
+        if ($model === null) {
+            return;
+        }
+
         $totalItems = $model->getTotalItems();
         // por compatibilidad momentánea paara testing
         $this->config['total_items'] = $totalItems;
 
-        $pagination = $this->config['pagination'];
+        $pagination = $this->paginationConfig();
         $currentPage = $pagination['current_page'];
         $perPage = $pagination['per_page'];
 
         // If pagination is disabled (per_page = 0), render all rows in a single logical page.
         // Use total item count as effective page size to keep existing flows intact.
-        if (($pagination['enabled'] ?? true) === false || $perPage <= 0) {
+        if (!$pagination['enabled'] || $perPage <= 0) {
             $perPage = max(1, $totalItems);
             $pagination['per_page'] = $perPage;
         }
@@ -647,7 +657,8 @@ class Table extends UIComponent
      */
     public function postConnect(): void
     {
-        $this->cols = $this->config['cols'];
+        $cols = $this->config['cols'] ?? 0;
+        $this->cols = is_int($cols) ? $cols : 0;
 
         // Recover persisted column widths after cache deserialization so
         // dynamically re-created rows keep the same fixed widths.
@@ -952,7 +963,7 @@ class Table extends UIComponent
             } elseif (is_array($value)) {
                 if (isset($value['text'])) {
                     $text = $value['text'];
-                    if (is_string($text) || is_int($text) || is_float($text) || $text === null) {
+                    if (is_string($text) || is_int($text) || is_float($text)) {
                         $cell->text($text)->padding(4); // Compact padding for text cells
                     }
                 } elseif (isset($value['button'])) {
@@ -984,7 +995,7 @@ class Table extends UIComponent
     }
 
     /**
-     * @return array{enabled: bool, per_page: int, current_page: int, total_items: int, can_next: bool, can_prev: bool, total_pages: int, show_controls: bool, labels: array<string, string>}
+    * @return array{enabled: bool, per_page: int, current_page: int, total_items: int, can_next: bool, can_prev: bool, total_pages: int, show_controls: bool, labels: array{previous: string, next: string, showing: string}}
      */
     private function paginationConfig(): array
     {
@@ -1218,7 +1229,7 @@ class Table extends UIComponent
     public function bodyMinHeight(int|string|null $height = null): static|string|null
     {
         if ($height === null) {
-            return $this->config['body_min_height'] ?? null;
+            return $this->configNullableCssSize('body_min_height');
         }
 
         return $this->setConfig('body_min_height', $this->normalizeCssSize($height));
@@ -1233,7 +1244,7 @@ class Table extends UIComponent
     public function bodyMaxHeight(int|string|null $height = null): static|string|null
     {
         if ($height === null) {
-            return $this->config['body_max_height'] ?? null;
+            return $this->configNullableCssSize('body_max_height');
         }
 
         return $this->setConfig('body_max_height', $this->normalizeCssSize($height));
@@ -1248,7 +1259,7 @@ class Table extends UIComponent
     public function bodyHeight(int|string|null $height): static|string|null
     {
         if ($height === null) {
-            return $this->config['body_height'] ?? null;
+            return $this->configNullableCssSize('body_height');
         }
 
         $value = $this->normalizeCssSize($height);
@@ -1270,7 +1281,7 @@ class Table extends UIComponent
     public function bodyOverflowX(?string $overflow = null): static|string|null
     {
         if ($overflow === null) {
-            return $this->config['body_overflow_x'] ?? null;
+            return $this->configStringOrNull('body_overflow_x');
         }
 
         return $this->setConfig('body_overflow_x', $this->normalizeOverflowValue($overflow));
@@ -1287,7 +1298,7 @@ class Table extends UIComponent
     public function bodyOverflowY(?string $overflow = null): static|string|null
     {
         if ($overflow === null) {
-            return $this->config['body_overflow_y'] ?? null;
+            return $this->configStringOrNull('body_overflow_y');
         }
 
         return $this->setConfig('body_overflow_y', $this->normalizeOverflowValue($overflow));
@@ -1368,7 +1379,7 @@ class Table extends UIComponent
      */
     public function pagination(int $perPage = self::DEFAULT_PAGINATION_PER_PAGE): self
     {
-        $pagination = $this->config['pagination'];
+        $pagination = $this->paginationConfig();
         $pagination['enabled'] = $perPage > 0;
         $pagination['per_page'] = $perPage;
         $this->setConfig('pagination', $pagination);
@@ -1390,7 +1401,7 @@ class Table extends UIComponent
      */
     public function getPaginationData(): array
     {
-        return $this->config['pagination'];
+        return $this->paginationConfig();
     }
 
     /**
@@ -1407,10 +1418,12 @@ class Table extends UIComponent
     public function dataModel(string $dataModel): self
     {
         $this->validateDataModel($dataModel);
-        $this->model = new $dataModel($this);
+        /** @var class-string<AbstractTableModel> $dataModel */
+        $model = new $dataModel($this);
+        $this->model = $model;
         $this->setConfig('data_model', $dataModel);
 
-        $columns = $this->model->getColumns();
+        $columns = $model->getColumns();
         $this->initializeTableDimensions($columns);
 
         if ($this->hasValidDimensions()) {
@@ -1450,7 +1463,8 @@ class Table extends UIComponent
         $this->setConfig('cols', $this->cols);
 
         $this->updatePaginationData();
-        $this->rows = $this->config['pagination']['per_page'];
+        $pagination = $this->paginationConfig();
+        $this->rows = $pagination['per_page'];
         $this->setConfig('rows', $this->rows);
     }
 
@@ -1505,7 +1519,12 @@ class Table extends UIComponent
      */
     private function extractColumnLabel(mixed $column): string
     {
-        return \is_array($column) ? ($column['label'] ?? '') : (string) $column;
+        if (!\is_array($column)) {
+            return is_scalar($column) ? (string) $column : '';
+        }
+
+        $label = $column['label'] ?? '';
+        return is_scalar($label) ? (string) $label : '';
     }
 
     /**
@@ -1516,7 +1535,12 @@ class Table extends UIComponent
      */
     private function extractSortByKey(mixed $column): ?string
     {
-        return \is_array($column) ? ($column['sort_by'] ?? null) : null;
+        if (!\is_array($column)) {
+            return null;
+        }
+
+        $sortBy = $column['sort_by'] ?? null;
+        return is_string($sortBy) ? $sortBy : null;
     }
 
     /**
@@ -1524,11 +1548,16 @@ class Table extends UIComponent
      */
     private function fillTableData(): void
     {
-        $pagination = $this->config['pagination'];
+        $model = $this->getModel();
+        if ($model === null) {
+            return;
+        }
+
+        $pagination = $this->paginationConfig();
         $currentPage = $pagination['current_page'];
         $perPage = $pagination['per_page'];
 
-        $formattedData = $this->model->getFormattedPageData($currentPage, $perPage);
+        $formattedData = $model->getFormattedPageData($currentPage, $perPage);
 
         $row = 0;
         foreach ($formattedData as $rowData) {
@@ -1632,6 +1661,43 @@ class Table extends UIComponent
         }
 
         return self::DEFAULT_COLUMN_WIDTH;
+    }
+
+    private function configStringOrNull(string $key): ?string
+    {
+        $value = $this->config[$key] ?? null;
+
+        return is_string($value) ? $value : null;
+    }
+
+    private function configNullableCssSize(string $key): ?string
+    {
+        $value = $this->config[$key] ?? null;
+        if ($value === null) {
+            return null;
+        }
+
+        return is_string($value) ? $value : (is_int($value) ? "{$value}px" : null);
+    }
+
+    /**
+     * @param mixed $selected
+     * @return list<int|string>
+     */
+    private function normalizeSelectedRows(mixed $selected): array
+    {
+        if (!is_array($selected)) {
+            return [];
+        }
+
+        $normalized = [];
+        foreach ($selected as $item) {
+            if (is_int($item) || is_string($item)) {
+                $normalized[] = $item;
+            }
+        }
+
+        return $normalized;
     }
 
 

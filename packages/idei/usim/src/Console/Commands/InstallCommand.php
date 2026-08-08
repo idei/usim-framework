@@ -36,26 +36,16 @@ class InstallCommand extends Command
     protected $description = 'Install the USIM framework scaffolding';
 
     protected Filesystem $files;
-    /** @var object */
-    protected $installStateManager;
-    /** @var object */
-    protected $installAppScaffoldingManager;
-    /** @var object */
-    protected $installAccessSynchronizer;
-    /** @var object */
-    protected $installContextResolver;
-    /** @var object */
-    protected $installEnvironmentManager;
-    /** @var object */
-    protected $installExecutionRollbackManager;
-    /** @var object */
-    protected $installMigrationStatusChecker;
-    /** @var object */
-    protected $installScaffoldingManager;
-    /** @var object */
-    protected $installWorkflowBuilder;
-    /** @var object */
-    protected $installStubPublisher;
+    protected InstallStateManager $installStateManager;
+    protected InstallAppScaffoldingManager $installAppScaffoldingManager;
+    protected SeedAccessControl $installAccessSynchronizer;
+    protected InstallContextResolver $installContextResolver;
+    protected InstallEnvironmentManager $installEnvironmentManager;
+    protected InstallExecutionRollbackManager $installExecutionRollbackManager;
+    protected InstallMigrationStatusChecker $installMigrationStatusChecker;
+    protected InstallScaffoldingManager $installScaffoldingManager;
+    protected InstallWorkflowBuilder $installWorkflowBuilder;
+    protected InstallStubPublisher $installStubPublisher;
     protected bool $force;
     /** @var array<string, string> */
     protected array $rootUserEnvValues = [];
@@ -317,8 +307,15 @@ class InstallCommand extends Command
             return;
         }
 
-        $status = (string) ($state['status'] ?? 'unknown');
-        $current = (string) ($state['current_step']['label'] ?? 'n/a');
+        $statusValue = $state['status'] ?? 'unknown';
+        $status = is_string($statusValue) ? $statusValue : 'unknown';
+
+        $currentStep = $state['current_step'] ?? null;
+        $current = 'n/a';
+        if (is_array($currentStep) && isset($currentStep['label']) && is_string($currentStep['label'])) {
+            $current = $currentStep['label'];
+        }
+
         $this->line("Previous install state detected: <fg=blue>{$status}</> (last step: {$current})");
     }
 
@@ -346,47 +343,42 @@ class InstallCommand extends Command
     {
         $assessment = $this->installMigrationStatusChecker->assess();
 
-        $databaseExists = (bool) ($assessment['database_exists'] ?? true);
-        if (!$databaseExists) {
-            $databaseIssue = (string) ($assessment['database_issue'] ?? 'Database does not exist or is not reachable with current .env settings.');
+        if (!$assessment['database_exists']) {
+            $databaseIssue = $assessment['database_issue'] ?? 'Database does not exist or is not reachable with current .env settings.';
             throw new MissingDatabaseException(
                 $databaseIssue . ' Migration is not completed for this environment. Create/configure the database and run `php artisan migrate` before continuing with `php artisan usim:install`.'
             );
         }
 
-        if (($assessment['is_ready'] ?? false) === true) {
+        if ($assessment['is_ready'] === true) {
             return;
         }
 
         $details = [];
 
-        $missingTables = $assessment['missing_tables'] ?? [];
-        if (is_array($missingTables) && $missingTables !== []) {
+        $missingTables = $assessment['missing_tables'];
+        if ($missingTables !== []) {
             $details[] = 'missing tables: ' . implode(', ', $missingTables);
         }
 
-        $missingColumns = $assessment['missing_columns'] ?? [];
-        if (is_array($missingColumns)) {
-            foreach ($missingColumns as $table => $columns) {
-                if (!is_string($table) || !is_array($columns) || $columns === []) {
-                    continue;
-                }
-
-                $details[] = 'missing columns in ' . $table . ': ' . implode(', ', $columns);
+        $missingColumns = $assessment['missing_columns'];
+        foreach ($missingColumns as $table => $columns) {
+            if ($columns === []) {
+                continue;
             }
+
+            $details[] = 'missing columns in ' . $table . ': ' . implode(', ', $columns);
         }
 
-        $missingMigrations = $assessment['missing_migrations'] ?? [];
-        if (is_array($missingMigrations) && $missingMigrations !== []) {
+        $missingMigrations = $assessment['missing_migrations'];
+        if ($missingMigrations !== []) {
             $details[] = 'critical migrations not executed: ' . implode(', ', $missingMigrations);
         }
 
-        $notes = $assessment['notes'] ?? [];
-        if (is_array($notes)) {
-            foreach ($notes as $note) {
-                if (is_string($note) && trim($note) !== '') {
-                    $details[] = trim($note);
-                }
+        $notes = $assessment['notes'];
+        foreach ($notes as $note) {
+            if (trim($note) !== '') {
+                $details[] = trim($note);
             }
         }
 
