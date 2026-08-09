@@ -20,6 +20,7 @@ class SeedAccessControl
      */
     public function seed(array $rootUserEnvValues, string $userModelClass, ?callable $line = null): array
     {
+        /** @var array{permissions_created:int, permissions_total:int, roles_created:int, roles_total:int, users_created:int, users_updated:int, languages_created:int, languages_updated:int} $stats */
         $stats = [
             'permissions_created' => 0,
             'permissions_total' => 0,
@@ -38,6 +39,9 @@ class SeedAccessControl
             // 1. Sincronización de PERMISOS
             $usimConfig = $this->loadUsimConfig();
             $permissionConfig = $usimConfig['permissions'] ?? config('usim.permissions', []);
+            if (!is_array($permissionConfig)) {
+                $permissionConfig = [];
+            }
 
             $permissions = $this->collectPermissionNames();
             $stats['permissions_total'] = count($permissions);
@@ -77,8 +81,18 @@ class SeedAccessControl
 
                 if ($role === null) {
                     // Extraemos la home_screen y prioridad definidas en el config de USIM
-                    $homeScreen = $roleMeta['home_screen'] ?? 'welcome';
-                    $priority = $roleMeta['priority'] ?? 100;
+                    $homeScreenValue = $roleMeta['home_screen'] ?? 'welcome';
+                    $priorityValue = $roleMeta['priority'] ?? 100;
+                    $homeScreen = is_string($homeScreenValue) && trim($homeScreenValue) !== ''
+                        ? trim($homeScreenValue)
+                        : 'welcome';
+                    if (is_int($priorityValue)) {
+                        $priority = $priorityValue;
+                    } elseif (is_string($priorityValue) || is_float($priorityValue)) {
+                        $priority = (int) $priorityValue;
+                    } else {
+                        $priority = 100;
+                    }
 
                     // ⚡ Creamos el Rol inyectando su settings automáticamente
                     $role = UsimRole::createWithHome(
@@ -113,7 +127,7 @@ class SeedAccessControl
 
         app(PermissionRegistrar::class)->forgetCachedPermissions();
 
-        return $stats;
+        return $this->normalizeSeedStats($stats);
     }
 
     /**
@@ -169,17 +183,23 @@ class SeedAccessControl
             $roles = [];
         }
 
-        if (!array_key_exists('root', $roles) || !is_array($roles['root'])) {
-            $roles['root'] = ['permissions' => ['*']];
+        $normalizedRoles = [];
+        foreach ($roles as $roleName => $roleMeta) {
+            if (!is_string($roleName) || trim($roleName) === '' || !is_array($roleMeta)) {
+                continue;
+            }
+
+            $normalizedRoles[$roleName] = $roleMeta;
         }
 
-        $roles['root']['permissions'] = ['*'];
+        if (!array_key_exists('root', $normalizedRoles)) {
+            $normalizedRoles['root'] = ['permissions' => ['*']];
+        }
 
-        return array_filter(
-            $roles,
-            static fn($value, $key): bool => is_string($key) && trim($key) !== '' && is_array($value),
-            ARRAY_FILTER_USE_BOTH
-        );
+        $normalizedRoles['root']['permissions'] = ['*'];
+
+        /** @var array<string, array<string, mixed>> $normalizedRoles */
+        return $normalizedRoles;
     }
 
     /**
@@ -193,8 +213,9 @@ class SeedAccessControl
             return $allPermissions;
         }
 
-        $permissions = $roleMeta['permissions'] ?? [];
-        $permissions = is_array($permissions) ? $permissions : [];
+        $permissionsValue = $roleMeta['permissions'] ?? [];
+        /** @var array<int, mixed> $permissions */
+        $permissions = is_array($permissionsValue) ? $permissionsValue : [];
 
         $normalized = [];
         foreach ($permissions as $permissionName) {
@@ -234,14 +255,15 @@ class SeedAccessControl
         $usersConfig = $usimConfig['users'] ?? config('usim.users', []);
         $usersConfig = \is_array($usersConfig) ? $usersConfig : [];
 
+        /** @var array<string, mixed> $rootConfig */
         $rootConfig = \is_array($usersConfig['root'] ?? null) ? $usersConfig['root'] : [];
         $rootValues = $rootUserEnvValues !== []
             ? $rootUserEnvValues
             : [
-                'first_name' => config('usim.users.root.first_name', $rootConfig['first_name'] ?? 'Root'),
-                'last_name' => config('usim.users.root.last_name', $rootConfig['last_name'] ?? 'User'),
-                'email' => config('usim.users.root.email', $rootConfig['email'] ?? ''),
-                'password' => config('usim.users.root.password', $rootConfig['password'] ?? ''),
+                'first_name' => $this->normalizeStringConfigValue($rootConfig['first_name'] ?? config('usim.users.root.first_name', 'Root'), 'Root'),
+                'last_name' => $this->normalizeStringConfigValue($rootConfig['last_name'] ?? config('usim.users.root.last_name', 'User'), 'User'),
+                'email' => $this->normalizeStringConfigValue($rootConfig['email'] ?? config('usim.users.root.email', ''), ''),
+                'password' => $this->normalizeStringConfigValue($rootConfig['password'] ?? config('usim.users.root.password', ''), ''),
             ];
 
         $rootEnv = [
@@ -275,12 +297,9 @@ class SeedAccessControl
         $usersConfig = $usimConfig['users'] ?? config('usim.users', []);
         $usersConfig = is_array($usersConfig) ? $usersConfig : [];
 
+        /** @var array<string, array<string, mixed>> $usersConfig */
         foreach ($usersConfig as $key => $userConfig) {
-            if (!is_string($key) || $key === '' || $key === 'root' || $key === 'roles') {
-                continue;
-            }
-
-            if (!is_array($userConfig)) {
+            if ($key === '' || $key === 'root' || $key === 'roles') {
                 continue;
             }
 
@@ -438,12 +457,17 @@ class SeedAccessControl
     private function upsertLanguages(array &$stats): void
     {
         $usimConfig = $this->loadUsimConfig();
-        $configuredLanguages = $usimConfig['i18n']['languages'] ?? config('usim.i18n.languages', []);
+        $i18nConfig = $usimConfig['i18n'] ?? [];
+        if (!is_array($i18nConfig)) {
+            $i18nConfig = [];
+        }
+
+        $configuredLanguages = $i18nConfig['languages'] ?? config('usim.i18n.languages', []);
         if (!is_array($configuredLanguages)) {
             $configuredLanguages = [];
         }
 
-        $fallbackCode = $usimConfig['i18n']['fallback_locale'] ?? config('usim.i18n.fallback_locale', config('app.fallback_locale', 'en'));
+        $fallbackCode = $i18nConfig['fallback_locale'] ?? config('usim.i18n.fallback_locale', config('app.fallback_locale', 'en'));
         $fallbackCode = is_string($fallbackCode) && trim($fallbackCode) !== '' ? trim($fallbackCode) : 'en';
 
         $touchedFallback = false;
@@ -519,8 +543,12 @@ class SeedAccessControl
     private function upsertRoleAndPermissionTranslations(?callable $line = null): void
     {
         $usimConfig = $this->loadUsimConfig();
+        $i18nConfig = $usimConfig['i18n'] ?? [];
+        if (!is_array($i18nConfig)) {
+            $i18nConfig = [];
+        }
 
-        $prefixes = $usimConfig['i18n']['i18n_key_prefixes'] ?? config('usim.i18n.i18n_key_prefixes', []);
+        $prefixes = $i18nConfig['i18n_key_prefixes'] ?? config('usim.i18n.i18n_key_prefixes', []);
         $prefixes = is_array($prefixes) ? $prefixes : [];
 
         $rolePrefix = $this->normalizeTranslationPrefix($prefixes['role'] ?? 'role.');
@@ -615,6 +643,37 @@ class SeedAccessControl
         $prefix = trim($prefix);
 
         return str_ends_with($prefix, '.') ? $prefix : $prefix . '.';
+    }
+
+    /**
+     * @param array<string, int> $stats
+     * @return array{permissions_created:int, permissions_total:int, roles_created:int, roles_total:int, users_created:int, users_updated:int, languages_created:int, languages_updated:int}
+     */
+    private function normalizeSeedStats(array $stats): array
+    {
+        return [
+            'permissions_created' => (int) ($stats['permissions_created'] ?? 0),
+            'permissions_total' => (int) ($stats['permissions_total'] ?? 0),
+            'roles_created' => (int) ($stats['roles_created'] ?? 0),
+            'roles_total' => (int) ($stats['roles_total'] ?? 0),
+            'users_created' => (int) ($stats['users_created'] ?? 0),
+            'users_updated' => (int) ($stats['users_updated'] ?? 0),
+            'languages_created' => (int) ($stats['languages_created'] ?? 0),
+            'languages_updated' => (int) ($stats['languages_updated'] ?? 0),
+        ];
+    }
+
+    private function normalizeStringConfigValue(mixed $value, string $default): string
+    {
+        if (is_string($value)) {
+            return $value;
+        }
+
+        if (is_int($value) || is_float($value)) {
+            return (string) $value;
+        }
+
+        return $default;
     }
 
     private function upsertLangValueByKey(string $locale, string $translationKey, string $value): void
