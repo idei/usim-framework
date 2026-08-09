@@ -41,7 +41,7 @@ class UIEventController extends Controller
     public function handleEvent(Request $request): JsonResponse
     {
         $this->uiChanges->reset();
-        $incomingStorage = $request->storage ?? [];
+        $incomingStorage = $this->normalizeArray($request->input('storage', []));
         $validated = $this->validateEventRequest($request);
 
         $componentId = (int) $validated['component_id'];
@@ -89,7 +89,14 @@ class UIEventController extends Controller
         }
     }
 
-    /** @return array<string, mixed> */
+    /**
+     * @return array{
+     *     component_id: int|string,
+     *     event: string,
+     *     action: string,
+     *     parameters?: array<string, mixed>
+     * }
+     */
     private function validateEventRequest(Request $request): array
     {
         return $request->validate([
@@ -113,7 +120,7 @@ class UIEventController extends Controller
             unset($parameters['_caller_service_id']);
         }
 
-        return $callerScreenId !== null ? (int) $callerScreenId : null;
+        return $this->normalizeNullableInt($callerScreenId);
     }
 
     /**
@@ -121,11 +128,15 @@ class UIEventController extends Controller
      */
     private function resolveScreenClass(int $componentId, ?int $callerScreenId): ?string
     {
+        $context = null;
+
         if ($callerScreenId !== null) {
-            return UIIdGenerator::getContextFromId($callerScreenId);
+            $context = UIIdGenerator::getContextFromId($callerScreenId);
+        } else {
+            $context = UIIdGenerator::getContextFromId($componentId);
         }
 
-        return UIIdGenerator::getContextFromId($componentId);
+        return is_string($context) && is_a($context, Screen::class, true) ? $context : null;
     }
 
     private function screenNotFoundResponse(): JsonResponse
@@ -146,21 +157,21 @@ class UIEventController extends Controller
     private function accessDeniedResponse(array $access): JsonResponse
     {
         $action = $access['action'];
-        $params = $access['params'];
+        $params = $this->normalizeArray($access['params'] ?? []);
         $response = [];
 
         if ($action === 'abort') {
             $response['abort'] = [
-                'code' => $params['code'],
-                'message' => $params['message'],
+                'code' => $this->normalizeInt($params['code'] ?? 0),
+                'message' => $this->normalizeString($params['message'] ?? ''),
             ];
         } elseif ($action === 'toast') {
             $response['toast'] = [
-                'message' => $params['message'],
-                'type' => $params['type'] ?? 'warning',
+                'message' => $this->normalizeString($params['message'] ?? ''),
+                'type' => $this->normalizeString($params['type'] ?? 'warning', 'warning'),
             ];
         } elseif ($action === 'redirect') {
-            $response['redirect'] = $params['url'];
+            $response['redirect'] = $this->normalizeString($params['url'] ?? '');
         } else {
             $response['error'] = 'Access denied';
         }
@@ -220,5 +231,54 @@ class UIEventController extends Controller
         $pascalCase = str_replace(' ', '', ucwords(str_replace('_', ' ', $action)));
 
         return 'on' . $pascalCase;
+    }
+
+    /** @return array<string, mixed> */
+    private function normalizeArray(mixed $value): array
+    {
+        return is_array($value) ? $value : [];
+    }
+
+    private function normalizeInt(mixed $value): int
+    {
+        if (is_int($value)) {
+            return $value;
+        }
+
+        if (is_string($value) || is_float($value) || is_bool($value)) {
+            return (int) $value;
+        }
+
+        return 0;
+    }
+
+    private function normalizeNullableInt(mixed $value): ?int
+    {
+        if ($value === null) {
+            return null;
+        }
+
+        if (is_int($value)) {
+            return $value;
+        }
+
+        if (is_string($value) || is_float($value) || is_bool($value)) {
+            return (int) $value;
+        }
+
+        return null;
+    }
+
+    private function normalizeString(mixed $value, string $default = ''): string
+    {
+        if (is_string($value)) {
+            return $value;
+        }
+
+        if (is_int($value) || is_float($value) || is_bool($value)) {
+            return (string) $value;
+        }
+
+        return $default;
     }
 }

@@ -28,7 +28,8 @@ class UserService
      * Get user with roles
      *
      * @param int $userId
-     * @return array{status: 'success', message: string, data: array<string, mixed>} | array{status: 'error', message: string, errors: array<string, string[]>}     */
+     * @return array{status: 'success', message: string, data: array<string, mixed>} | array{status: 'error', message: string, errors: array<string, string[]>}
+     */
     public function getUser(int $userId): array
     {
         $user = User::find($userId);
@@ -64,6 +65,7 @@ class UserService
 
         $updateDataResult = $this->buildUpdateData($user, $data);
         if (isset($updateDataResult['status']) && $updateDataResult['status'] === 'error') {
+            /** @var array{status: 'error', message: string, errors: array<string, string[]>} $updateDataResult */
             return $updateDataResult;
         }
 
@@ -72,7 +74,9 @@ class UserService
         }
 
         if (array_key_exists('roles', $data)) {
-            $rolesError = $this->syncRoles($user, $data['roles']);
+            /** @var array<int, string> $roles */
+            $roles = $data['roles'];
+            $rolesError = $this->syncRoles($user, $roles);
             if ($rolesError) {
                 return $rolesError;
             }
@@ -101,7 +105,7 @@ class UserService
         return [
             'status' => 'success',
             'message' => 'Usuario actualizado exitosamente',
-            'data' => $user->fresh()->load('roles')->toArray(),
+            'data' => $this->freshUserWithRoles($user)->toArray(),
         ];
     }
 
@@ -253,7 +257,7 @@ class UserService
      *
      * @param string $field
      * @param string $message
-     * @return array{status: string, message: string, errors?: array<string, string[]>}
+     * @return array{status: 'error', message: string, errors: array<string, string[]>}
      */
     private function validationError(string $field, string $message): array
     {
@@ -293,7 +297,7 @@ class UserService
      * Get paginated users list with search and sorting
      *
      * @param array{per_page?: int, search?: string|null, sort_by?: string, sort_direction?: string, page?: int} $params
-     * @return array{status: string, message: string, data: array{users: array<int, array<string, mixed>>, pagination: array<string, int>}}
+        * @return array{status: 'success', message: string, data: array{users: array<int, array<string, mixed>>, pagination: array{current_page: int, total_pages: int, per_page: int, total_items: int}}}
      */
     public function getUsersList(array $params = []): array
     {
@@ -323,7 +327,7 @@ class UserService
         $users = $query->paginate($perPage, ['*'], 'page', $page);
 
         // Transformar los datos para incluir roles como string
-        $transformedUsers = $users->getCollection()->map(function ($user) {
+        $transformedUsers = $users->getCollection()->map(static function (User $user): array {
             $rolesString = $user->roles
                 ->pluck('name')
                 ->sort()
@@ -336,22 +340,28 @@ class UserService
                 'email' => $user->email,
                 'email_verified' => $user->email_verified_at ? true : false,
                 'roles' => $rolesString,
-                'created_at' => $user->created_at->diffForHumans(),
-                'updated_at' => $user->updated_at->diffForHumans(),
+                'created_at' => $user->created_at?->diffForHumans() ?? '',
+                'updated_at' => $user->updated_at?->diffForHumans() ?? '',
             ];
         });
+
+        /** @var array<int, array<string, mixed>> $usersList */
+        $usersList = $transformedUsers->toArray();
+
+        /** @var array{current_page: int, total_pages: int, per_page: int, total_items: int} $pagination */
+        $pagination = [
+            'current_page' => $users->currentPage(),
+            'total_pages' => $users->lastPage(),
+            'per_page' => $users->perPage(),
+            'total_items' => $users->total(),
+        ];
 
         return [
             'status' => 'success',
             'message' => 'Usuarios recuperados exitosamente',
             'data' => [
-                'users' => $transformedUsers->toArray(),
-                'pagination' => [
-                    'current_page' => $users->currentPage(),
-                    'total_pages' => $users->lastPage(),
-                    'per_page' => $users->perPage(),
-                    'total_items' => $users->total()
-                ],
+                'users' => $usersList,
+                'pagination' => $pagination,
             ]
         ];
     }
@@ -391,6 +401,23 @@ class UserService
                     });
             });
         });
+    }
+
+    /**
+     * Get a fresh user instance with roles loaded, falling back to the current model when refresh is unavailable.
+     *
+     * @param User $user
+     * @return User
+     */
+    private function freshUserWithRoles(User $user): User
+    {
+        $freshUser = $user->fresh();
+
+        if ($freshUser === null) {
+            $freshUser = $user;
+        }
+
+        return $freshUser->load('roles');
     }
 
     /**

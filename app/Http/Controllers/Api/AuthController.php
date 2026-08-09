@@ -9,8 +9,8 @@ use App\Services\Auth\PasswordService;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use Illuminate\Auth\Events\Verified;
-use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Http\JsonResponse;
+use Laravel\Sanctum\PersonalAccessToken;
 
 class AuthController extends Controller
 {
@@ -60,7 +60,13 @@ class AuthController extends Controller
 
     public function logout(Request $request): JsonResponse
     {
-        $request->user()->currentAccessToken()->delete();
+        /** @var User $user */
+        $user = $request->user();
+
+        /** @var PersonalAccessToken|null $accessToken */
+        $accessToken = $user->currentAccessToken();
+        $accessToken?->delete();
+
         return response()->json([
             'status' => 'success',
             'data' => null,
@@ -70,7 +76,9 @@ class AuthController extends Controller
 
     public function verifyEmail(Request $request): JsonResponse
     {
-        $user = User::find($request->route('id'));
+        /** @var int $userId */
+        $userId = (int) $request->route('id');
+        $user = User::query()->find($userId);
 
         if (!$user) {
             return response()->json([
@@ -82,7 +90,8 @@ class AuthController extends Controller
 
         // Verificar que el hash coincida con el email del usuario
         $expectedHash = sha1($user->email);
-        $providedHash = $request->route('hash');
+        /** @var string $providedHash */
+        $providedHash = (string) $request->route('hash');
 
         if ($expectedHash !== $providedHash) {
             return response()->json([
@@ -104,9 +113,7 @@ class AuthController extends Controller
         }
 
         if ($user->markEmailAsVerified()) {
-            if ($user instanceof MustVerifyEmail) {
-                event(new Verified($user));
-            }
+            event(new Verified($user));
         }
 
         return response()->json([
@@ -118,7 +125,10 @@ class AuthController extends Controller
 
     public function resendVerificationEmail(Request $request): JsonResponse
     {
-        if ($request->user()->hasVerifiedEmail()) {
+        /** @var User $user */
+        $user = $request->user();
+
+        if ($user->hasVerifiedEmail()) {
             return response()->json([
                 'status' => 'success',
                 'data' => null,
@@ -126,7 +136,7 @@ class AuthController extends Controller
             ], 200);
         }
 
-        $request->user()->sendEmailVerificationNotification();
+        $user->sendEmailVerificationNotification();
 
         return response()->json([
             'status' => 'success',
@@ -141,6 +151,7 @@ class AuthController extends Controller
      */
     public function user(Request $request): JsonResponse
     {
+        /** @var User $user */
         $user = $request->user();
 
         // Obtener permisos usando Spatie
