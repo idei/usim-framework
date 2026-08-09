@@ -153,6 +153,25 @@ abstract class Screen
     }
 
     /**
+     * Safely call a boolean-like method on a possibly unknown auth user object.
+     *
+     * @param mixed ...$args
+     */
+    private static function callUserBoolMethod(mixed $user, string $method, mixed ...$args): bool
+    {
+        if (!\is_object($user)) {
+            return false;
+        }
+
+        $callback = [$user, $method];
+        if (!\is_callable($callback)) {
+            return false;
+        }
+
+        return (bool) $callback(...$args);
+    }
+
+    /**
      * Helper to require a role (implies authentication).
      * Use this inside your authorize() method.
      *
@@ -167,15 +186,9 @@ abstract class Screen
             return false;
         }
 
-        /** @var mixed $user */
         $user = Auth::guard($guard)->user();
 
-        if (!$user || !method_exists($user, 'hasAnyRole')) {
-            // user exists but trait is missing or logic fails
-            return false;
-        }
-
-        if (!$user->hasAnyRole($roles)) {
+        if (!self::callUserBoolMethod($user, 'hasAnyRole', $roles)) {
             // user is authenticated but lacks role
             // Instead of aborting, we return false.
             // The framework will catch this in authorize() and call failedAuthorization()
@@ -201,14 +214,9 @@ abstract class Screen
             return false;
         }
 
-        /** @var mixed $user */
         $user = Auth::guard($guard)->user();
 
-        if (!$user || !method_exists($user, 'hasAnyPermission')) {
-            return false;
-        }
-
-        if (!$user->hasAnyPermission($permissions)) {
+        if (!self::callUserBoolMethod($user, 'hasAnyPermission', $permissions)) {
             return false;
         }
 
@@ -316,7 +324,7 @@ abstract class Screen
             $permission = static::getScreenSlug() . '.' . $permission;
         }
 
-        return method_exists($user, 'hasPermissionTo') && $user->hasPermissionTo($permission);
+        return self::callUserBoolMethod($user, 'hasPermissionTo', $permission);
     }
 
     /**
@@ -346,7 +354,8 @@ abstract class Screen
     public static function getRoutePath(): string
     {
         $class = static::class;
-        $prefix = config('usim.screens_namespace', 'App\\UI\\Screens');
+        $prefixConfig = config('usim.screens_namespace', 'App\\UI\\Screens');
+        $prefix = \is_string($prefixConfig) ? $prefixConfig : 'App\\UI\\Screens';
 
         if (str_starts_with($class, $prefix)) {
             $relative = substr($class, strlen($prefix));
@@ -446,6 +455,10 @@ abstract class Screen
             // if the propertyName ends with '_crypt' we attempt to decrypt it before injecting
             if (str_ends_with($propertyName, '_crypt')) {
                 try {
+                    if (!\is_string($value)) {
+                        continue;
+                    }
+
                     $value = decrypt($value);
                 } catch (DecryptException $e) {
                     Log::warning("Failed to decrypt storage variable '{$propertyName}': " . $e->getMessage());
@@ -558,9 +571,12 @@ abstract class Screen
      */
     protected function buildDiffResponse(bool $reload = false): array
     {
+        $oldUI = $this->oldUI ?? [];
+        $newUI = $this->newUI ?? [];
+
         $diff = $reload ?
-            UIDiffer::compare([], $this->newUI) :
-            UIDiffer::compare($this->oldUI, $this->newUI);
+            UIDiffer::compare([], $newUI) :
+            UIDiffer::compare($oldUI, $newUI);
 
         $result = [];
         foreach ($diff as $componentId => $changes) {
@@ -586,7 +602,7 @@ abstract class Screen
         // Check if user Interface exists in cache
         $cachedUI = UIStateManager::get(static::class);
 
-        if ($cachedUI !== null && $this->isValidCachedScreenSnapshot($cachedUI)) {
+        if ($this->isTypedCachedScreenSnapshot($cachedUI) && $this->isValidCachedScreenSnapshot($cachedUI)) {
             return $cachedUI;
         }
 
@@ -614,6 +630,25 @@ abstract class Screen
         UIStateManager::store(static::class, $ui);
 
         return $ui;
+    }
+
+    /**
+     * @param mixed $ui
+     * @phpstan-assert-if-true array<int|string, array<string, mixed>> $ui
+     */
+    private function isTypedCachedScreenSnapshot(mixed $ui): bool
+    {
+        if (!\is_array($ui)) {
+            return false;
+        }
+
+        foreach ($ui as $component) {
+            if (!\is_array($component)) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     /**
@@ -683,6 +718,7 @@ abstract class Screen
      */
     private function reconstructContainerFromJson(array $jsonUI): Container
     {
+        /** @var array<int|string, UIElement> $components */
         $components = [];
         $rootContainer = null;
 
@@ -690,7 +726,11 @@ abstract class Screen
 
         // First pass: instantiate all components
         foreach ($jsonUI as $id => $component) {
-            $type = $component['type'];
+            $type = $component['type'] ?? null;
+            if (!\is_string($type) || $type === '') {
+                throw new RuntimeException('Unknown component type.');
+            }
+
             $className = $this->mapTypeToClass($type);
             if (!$className) {
                 throw new RuntimeException("Unknown component type '{$type}'.");
@@ -709,13 +749,17 @@ abstract class Screen
         foreach ($components as $id => $component) {
             $parentId = $jsonUI[$id]['parent'] ?? null;
 
-            if ($component->isContainer() && $component->isRoot()) {
+            if ($component instanceof Container && $component->isRoot()) {
                 $rootContainer = $component;
             }
 
             // Detached components (parent=null) are valid during incremental remove operations.
             // Ignore them while rebuilding the live tree from cache.
             if ($parentId === null || $parentId === '') {
+                continue;
+            }
+
+            if (!\is_int($parentId) && !\is_string($parentId)) {
                 continue;
             }
 
