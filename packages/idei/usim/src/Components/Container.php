@@ -37,7 +37,7 @@ class Container implements UIElement, Sizeable, Paddable, Marginable, Gapable
     /** @var array<string, mixed> */
     protected array $config = [];
 
-    /** @var array<string, UIElement> Map of element ID to UIElement instance */
+    /** @var array<int|string, UIElement> Map of element ID to UIElement instance */
     protected array $children = [];
 
     /** @var array<string, mixed>|null Legacy elements array for backward compatibility */
@@ -194,9 +194,16 @@ class Container implements UIElement, Sizeable, Paddable, Marginable, Gapable
     {
         $container = new self();
         $container->id = $id;
-        $container->type = $data['type'] ?? 'container';
-        $container->name = $data['name'] ?? null;
-        $container->parent = $data['parent'] ?? null;
+
+        $type = $data['type'] ?? 'container';
+        $container->type = is_string($type) ? $type : 'container';
+
+        $name = $data['name'] ?? null;
+        $container->name = is_string($name) ? $name : null;
+
+        $parent = $data['parent'] ?? null;
+        $container->parent = is_int($parent) || is_string($parent) || $parent === null ? $parent : null;
+
         $container->config = array_merge($container->config, $data);
         return $container;
     }
@@ -253,7 +260,7 @@ class Container implements UIElement, Sizeable, Paddable, Marginable, Gapable
      */
     public function isVisible(): bool
     {
-        return $this->config['visible'] ?? true;
+        return (bool) ($this->config['visible'] ?? true);
     }
 
     /**
@@ -301,7 +308,7 @@ class Container implements UIElement, Sizeable, Paddable, Marginable, Gapable
      */
     public function isRoot(): bool
     {
-        return $this->config['root'] ?? false;
+        return (bool) ($this->config['root'] ?? false);
     }
 
     /**
@@ -396,6 +403,84 @@ class Container implements UIElement, Sizeable, Paddable, Marginable, Gapable
     {
         $this->config['title'] = $title;
         return $this;
+    }
+
+    public function width(Size $width): static
+    {
+        return $this->setConfig('width', (string) Size::from($width));
+    }
+
+    public function getWidth(): Size
+    {
+        /** @var Size|int|string $widthValue */
+        $widthValue = $this->config['width'] ?? Size::auto();
+
+        return Size::from($widthValue);
+    }
+
+    public function height(Size $height): static
+    {
+        return $this->setConfig('height', (string) Size::from($height));
+    }
+
+    public function getHeight(): Size
+    {
+        /** @var Size|int|string $heightValue */
+        $heightValue = $this->config['height'] ?? Size::auto();
+
+        return Size::from($heightValue);
+    }
+
+    public function minWidth(Size $width): static
+    {
+        return $this->setConfig('min_width', (string) Size::from($width));
+    }
+
+    public function getMinWidth(): ?Size
+    {
+        /** @var Size|int|string|null $value */
+        $value = $this->config['min_width'] ?? null;
+
+        return $value !== null ? Size::from($value) : null;
+    }
+
+    public function minHeight(Size $height): static
+    {
+        return $this->setConfig('min_height', (string) Size::from($height));
+    }
+
+    public function getMinHeight(): ?Size
+    {
+        /** @var Size|int|string|null $value */
+        $value = $this->config['min_height'] ?? null;
+
+        return $value !== null ? Size::from($value) : null;
+    }
+
+    public function maxWidth(Size $width): static
+    {
+        return $this->setConfig('max_width', (string) Size::from($width));
+    }
+
+    public function getMaxWidth(): ?Size
+    {
+        /** @var Size|int|string|null $value */
+        $value = $this->config['max_width'] ?? null;
+
+        return $value !== null ? Size::from($value) : null;
+    }
+
+    public function maxHeight(Size $height): static
+    {
+        return $this->setConfig('max_height', (string) Size::from($height));
+    }
+
+    public function getMaxHeight(): ?Size
+    {
+        /** @var Size|int|string|null $value */
+        $value = $this->config['max_height'] ?? null;
+
+        return $value !== null ? Size::from($value) : null;
     }
 
     /**
@@ -593,7 +678,10 @@ class Container implements UIElement, Sizeable, Paddable, Marginable, Gapable
         foreach ($this->children as $child) {
             $child->setParent(null);
         }
-        $this->children = [];
+
+        /** @var array<string, UIElement> $emptyChildren */
+        $emptyChildren = [];
+        $this->children = $emptyChildren;
         return $this;
     }
 
@@ -1190,16 +1278,20 @@ class Container implements UIElement, Sizeable, Paddable, Marginable, Gapable
                 continue;
             }
 
-            $tabId = $tab['id'] ?? (is_string($key) ? $key : null) ?? $tab['label'] ?? null;
-            if ($tabId === null) {
+            /** @var array<string, mixed> $tabConfig */
+            $tabConfig = $tab;
+            $tabIdValue = $tabConfig['id'] ?? (is_string($key) ? $key : null) ?? $tabConfig['label'] ?? null;
+            if (!is_string($tabIdValue) && !is_int($tabIdValue)) {
                 continue;
             }
 
-            $label = (string) ($tab['label'] ?? $tabId);
-            $options = $tab;
+            $tabId = is_string($tabIdValue) ? $tabIdValue : (string) $tabIdValue;
+            $labelValue = $tabConfig['label'] ?? $tabId;
+            $label = is_string($labelValue) ? $labelValue : $tabId;
+            $options = $tabConfig;
             unset($options['id'], $options['label'], $options['name']);
 
-            $this->tabItem((string) $tabId, $label, $options);
+            $this->tabItem($tabId, $label, $options);
         }
 
         if ($activeTab !== null) {
@@ -1230,9 +1322,12 @@ class Container implements UIElement, Sizeable, Paddable, Marginable, Gapable
     public function tabItem(string $id, ?string $label = null, array $options = []): self
     {
         $normalizedId = $this->normalizeTabId($id);
+        $labelValue = $label ?? ($options['label'] ?? $id);
+        $labelText = is_string($labelValue) ? $labelValue : (string) $id;
+
         $tab = [
             'id' => $normalizedId,
-            'label' => trim((string) ($label ?? $options['label'] ?? $id)),
+            'label' => trim($labelText),
             'disabled' => (bool) ($options['disabled'] ?? false),
             'closable' => (bool) ($options['closable'] ?? false),
             'color' => $options['color'] ?? null,
@@ -1329,9 +1424,13 @@ class Container implements UIElement, Sizeable, Paddable, Marginable, Gapable
             return $this;
         }
 
-        $this->config['tabs'][$index]['disabled'] = $disabled;
+        $tabs = $this->tabsConfig();
+        $tabs[$index]['disabled'] = $disabled;
+        $this->config['tabs'] = $tabs;
 
-        if ($disabled && ($this->config['tabs_active'] ?? null) === $this->config['tabs'][$index]['id']) {
+        /** @var string|int|null $activeTabId */
+        $activeTabId = $tabs[$index]['id'] ?? null;
+        if ($disabled && ($this->config['tabs_active'] ?? null) === $activeTabId) {
             $this->config['tabs_active'] = $this->getFirstAvailableTabId();
         }
 
@@ -1402,9 +1501,9 @@ class Container implements UIElement, Sizeable, Paddable, Marginable, Gapable
         }
 
         foreach ($this->tabsConfig() as $tabConfig) {
-            $tabId = trim((string) ($tabConfig['id'] ?? ''));
-            $tabName = trim((string) ($tabConfig['name'] ?? ''));
-            $tabLabel = trim((string) ($tabConfig['label'] ?? ''));
+            $tabId = $this->sanitizeTabString($tabConfig['id'] ?? '');
+            $tabName = $this->sanitizeTabString($tabConfig['name'] ?? '');
+            $tabLabel = $this->sanitizeTabString($tabConfig['label'] ?? '');
 
             if ($search === $tabId || $search === $tabName || $search === $tabLabel) {
                 return $tabId;
@@ -1448,11 +1547,17 @@ class Container implements UIElement, Sizeable, Paddable, Marginable, Gapable
         $tabs = $this->tabsConfig();
         foreach ($tabs as $tabConfig) {
             if (($tabConfig['disabled'] ?? false) !== true) {
-                return $tabConfig['id'] ?? null;
+                /** @var string|int|null $tabId */
+                $tabId = $tabConfig['id'] ?? null;
+
+                return is_string($tabId) || is_int($tabId) ? (string) $tabId : null;
             }
         }
 
-        return $tabs[0]['id'] ?? null;
+        /** @var string|int|null $firstTabId */
+        $firstTabId = $tabs[0]['id'] ?? null;
+
+        return is_string($firstTabId) || is_int($firstTabId) ? (string) $firstTabId : null;
     }
 
     private function normalizeTabId(string $value): string
@@ -1463,9 +1568,18 @@ class Container implements UIElement, Sizeable, Paddable, Marginable, Gapable
         }
 
         $normalized = preg_replace('/[^a-zA-Z0-9]+/', '_', mb_strtolower($trimmed));
-        $normalized = trim((string) $normalized, '_');
+        if (!is_string($normalized)) {
+            return 'tab_' . $this->id . '_' . (count($this->tabsConfig()) + 1);
+        }
+
+        $normalized = trim($normalized, '_');
 
         return $normalized !== '' ? $normalized : 'tab_' . $this->id . '_' . (count($this->tabsConfig()) + 1);
+    }
+
+    private function sanitizeTabString(mixed $value): string
+    {
+        return is_string($value) ? trim($value) : '';
     }
 
     /**
@@ -1473,15 +1587,15 @@ class Container implements UIElement, Sizeable, Paddable, Marginable, Gapable
      */
     private function tabsConfig(): array
     {
+        /** @var array<int|string, mixed> $tabs */
         $tabs = $this->config['tabs'] ?? [];
-        if (!is_array($tabs)) {
-            return [];
-        }
 
         $normalized = [];
         foreach ($tabs as $tab) {
             if (is_array($tab)) {
-                $normalized[] = $tab;
+                /** @var array<string, mixed> $tabConfig */
+                $tabConfig = $tab;
+                $normalized[] = $tabConfig;
             }
         }
 

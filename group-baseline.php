@@ -151,9 +151,11 @@ Analizá el archivo y los errores de abajo, y mostrame primero un resumen corto 
 No toques archivos fuera de `{$filterFile}`.
 
 Al terminar:
-- Corré `vendor/bin/phpstan analyze --level 9` sobre este archivo y verificá que la cantidad de errores se redujo (idealmente a 0) respecto a los {$total} iniciales.
-- Corré `php artisan test` y confirmá que no queda ningún test roto por tus cambios.
-- Si algo de esto falla, no lo des por terminado: mostrame el error y corregilo antes de cerrar el lote.
+- Corré, con límite de tiempo para que el comando no quede colgado: `timeout 120 vendor/bin/phpstan analyze --level 9 {$filterFile}` y verificá que la cantidad de errores se redujo (idealmente a 0) respecto a los {$total} iniciales.
+- Corré, también con límite de tiempo: `timeout 300 php artisan test` y confirmá que no queda ningún test roto por tus cambios.
+- Si un comando se corta por el timeout sin devolver resultado, NO lo reintentes en loop: avisame que se cortó, mostrame el output parcial que haya, y esperá indicación mía antes de seguir.
+- Si te quedás iterando más de 2 veces sobre el mismo error puntual sin resolverlo, no sigas insistiendo: dejalo documentado en el resumen final (archivo, línea, qué probaste) y seguí con el resto de los errores del lote.
+- Si algo de esto falla por un error real (no por timeout), no lo des por terminado: mostrame el error y corregilo antes de cerrar el lote.
 - Devolveme un resumen breve de qué se cambió, sin explicaciones largas.
 
 Errores a corregir:

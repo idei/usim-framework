@@ -18,6 +18,39 @@ use Idei\Usim\ValueObjects\Spacing;
  */
 class ConfirmDialogService implements UIModal
 {
+    private static function toStringValue(mixed $value): string
+    {
+        if (is_string($value)) {
+            return $value;
+        }
+
+        if (is_int($value) || is_float($value) || is_bool($value) || $value === null) {
+            return (string) $value;
+        }
+
+        if ($value instanceof \Stringable) {
+            return (string) $value;
+        }
+
+        return '';
+    }
+
+    private static function toIntValue(mixed $value): int
+    {
+        if (is_int($value)) {
+            return $value;
+        }
+
+        if (is_float($value) || is_bool($value) || is_string($value) || $value === null) {
+            return (int) $value;
+        }
+
+        if (is_array($value)) {
+            return $value === [] ? 0 : 1;
+        }
+
+        return 0;
+    }
 
     /**
      * @param mixed ...$params
@@ -63,22 +96,27 @@ class ConfirmDialogService implements UIModal
             $params = $params[0];
         }
 
+        /** @var array<string, mixed> $params */
+
         // Extract dialog type (default to CONFIRM for backward compatibility)
         $type = $params['type'] ?? DialogType::CONFIRM;
         if (\is_string($type)) {
             $type = DialogType::from($type);
         }
+        /** @var DialogType $type */
 
         // Extract parameters with defaults from DialogType
-        $title           = $params['title'] ?? t('usim.dialog.default.title');
-        $message         = $params['message'] ?? t('usim.dialog.default.message');
-        $icon            = $params['icon'] ?? $type->getDefaultIcon();
-        $confirmAction   = $params['confirmAction'] ?? 'close_modal';
+        $title           = self::toStringValue($params['title'] ?? t('usim.dialog.default.title'));
+        $message         = self::toStringValue($params['message'] ?? t('usim.dialog.default.message'));
+        $icon            = self::toStringValue($params['icon'] ?? $type->getDefaultIcon());
+        $confirmAction   = self::toStringValue($params['confirmAction'] ?? 'close_modal');
+        /** @var array<string, mixed> $confirmParams */
         $confirmParams   = $params['confirmParams'] ?? [];
-        $confirmLabel    = $params['confirmLabel'] ?? $type->getDefaultConfirmLabel();
-        $cancelAction    = $params['cancelAction'] ?? 'close_modal';
-        $cancelLabel     = $params['cancelLabel'] ?? $type->getDefaultCancelLabel();
+        $confirmLabel    = self::toStringValue($params['confirmLabel'] ?? $type->getDefaultConfirmLabel());
+        $cancelAction    = self::toStringValue($params['cancelAction'] ?? 'close_modal');
+        $cancelLabel     = self::toStringValue($params['cancelLabel'] ?? $type->getDefaultCancelLabel());
         $callerServiceId = $params['callerServiceId'] ?? null;
+        /** @var list<array<string, mixed>>|null $customButtons */
         $customButtons   = $params['buttons'] ?? null;
 
         // TIMEOUT specific parameters
@@ -87,9 +125,11 @@ class ConfirmDialogService implements UIModal
         if (is_string($timeUnit)) {
             $timeUnit = TimeUnit::from($timeUnit);
         }
+        /** @var TimeUnit $timeUnit */
         $showCountdown   = $params['showCountdown'] ?? true;
         $showCloseButton = $params['showCloseButton'] ?? true;
-        $timeoutAction   = $params['timeoutAction'] ?? 'close_modal';
+        $timeoutAction   = self::toStringValue($params['timeoutAction'] ?? 'close_modal');
+
 
         // Build container - use 'modal' as parent to indicate it should be rendered in the modal overlay
         $container = UI::container('confirm_dialog')
@@ -124,9 +164,10 @@ class ConfirmDialogService implements UIModal
         if ($type === DialogType::TIMEOUT && $showCountdown && $timeout !== null) {
             $container->add(
                 UI::label('countdown')
-                    ->text($this->formatCountdown($timeout, $timeUnit))
+                    ->text($this->formatCountdown(self::toIntValue($timeout), $timeUnit))
                     ->style('h2')
             );
+
         }
 
         // Buttons container (horizontal layout)
@@ -140,15 +181,22 @@ class ConfirmDialogService implements UIModal
         if ($customButtons && $type === DialogType::CHOICE) {
             // Custom buttons for CHOICE type
             foreach ($customButtons as $button) {
+                $buttonLabel  = self::toStringValue($button['label'] ?? null);
+                $buttonStyle  = self::toStringValue($button['style'] ?? 'secondary');
+                $buttonAction = self::toStringValue($button['action'] ?? null);
+                /** @var array<string, mixed> $buttonParams */
+                $buttonParams = $button['params'] ?? [];
+
                 $buttonsContainer->add(
-                    UI::button('btn_' . strtolower(str_replace(' ', '_', $button['label'])))
-                        ->label($button['label'])
-                        ->style($button['style'] ?? 'secondary')
-                        ->action($button['action'], array_merge($button['params'] ?? [], [
+                    UI::button('btn_' . strtolower(str_replace(' ', '_', $buttonLabel)))
+                        ->label($buttonLabel)
+                        ->style($buttonStyle)
+                        ->action($buttonAction, array_merge($buttonParams, [
                             '_caller_service_id' => $callerServiceId,
                         ]))
                 );
             }
+
         } elseif ($type === DialogType::TIMEOUT && ! $showCloseButton) {
             // TIMEOUT type without close button - no buttons at all
             // Don't add any buttons, just the countdown
@@ -188,6 +236,7 @@ class ConfirmDialogService implements UIModal
             $builtContainer = $container->build();
 
             // Get the container ID from the built structure
+            /** @var int $containerId */
             $containerId = array_key_first($builtContainer);
 
             // Add timeout configuration to the container
@@ -196,8 +245,9 @@ class ConfirmDialogService implements UIModal
             $builtContainer[$containerId]['_time_unit_label']   = $timeUnit->getPluralLabel();
             $builtContainer[$containerId]['_show_countdown']    = $showCountdown;
             $builtContainer[$containerId]['_timeout_action']    = $timeoutAction;
-            $builtContainer[$containerId]['_timeout_ms']        = $timeUnit->toMilliseconds($timeout);
+            $builtContainer[$containerId]['_timeout_ms']        = $timeUnit->toMilliseconds(self::toIntValue($timeout));
             $builtContainer[$containerId]['_caller_service_id'] = $callerServiceId;
+
 
             return $builtContainer;
         }
