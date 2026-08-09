@@ -265,24 +265,6 @@ parameters:
 			path: app/UI/Screens/Admin/TableModels/UserTableModel.php
 
 		-
-			message: '#^Cannot cast mixed to int\.$#'
-			identifier: cast.int
-			count: 1
-			path: app/UI/Screens/Admin/TranslateManager.php
-
-		-
-			message: '#^Cannot cast mixed to string\.$#'
-			identifier: cast.string
-			count: 20
-			path: app/UI/Screens/Admin/TranslateManager.php
-
-		-
-			message: '#^Parameter \#1 \$column of method Idei\\Usim\\Components\\Table\:\:sortedBy\(\) expects string\|null, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: app/UI/Screens/Admin/TranslateManager.php
-
-		-
 			message: '#^Cannot call method align\(\) on Idei\\Usim\\Components\\Table\|string\|null\.$#'
 			identifier: method.nonObject
 			count: 1
@@ -713,78 +695,6 @@ parameters:
 			identifier: return.type
 			count: 1
 			path: packages/idei/usim/src/Components/Checkbox.php
-
-		-
-			message: '#^Cannot access offset ''disabled'' on mixed\.$#'
-			identifier: offsetAccess.nonOffsetAccessible
-			count: 1
-			path: packages/idei/usim/src/Components/Container.php
-
-		-
-			message: '#^Cannot access offset ''id'' on mixed\.$#'
-			identifier: offsetAccess.nonOffsetAccessible
-			count: 1
-			path: packages/idei/usim/src/Components/Container.php
-
-		-
-			message: '#^Cannot access offset int on mixed\.$#'
-			identifier: offsetAccess.nonOffsetAccessible
-			count: 1
-			path: packages/idei/usim/src/Components/Container.php
-
-		-
-			message: '#^Cannot cast mixed to string\.$#'
-			identifier: cast.string
-			count: 6
-			path: packages/idei/usim/src/Components/Container.php
-
-		-
-			message: '#^Method Idei\\Usim\\Components\\Container\:\:getFirstAvailableTabId\(\) should return string\|null but returns mixed\.$#'
-			identifier: return.type
-			count: 2
-			path: packages/idei/usim/src/Components/Container.php
-
-		-
-			message: '#^Method Idei\\Usim\\Components\\Container\:\:isRoot\(\) should return bool but returns mixed\.$#'
-			identifier: return.type
-			count: 1
-			path: packages/idei/usim/src/Components/Container.php
-
-		-
-			message: '#^Method Idei\\Usim\\Components\\Container\:\:isVisible\(\) should return bool but returns mixed\.$#'
-			identifier: return.type
-			count: 1
-			path: packages/idei/usim/src/Components/Container.php
-
-		-
-			message: '#^Parameter \#1 \$value of static method Idei\\Usim\\ValueObjects\\Size\:\:from\(\) expects Idei\\Usim\\ValueObjects\\Size\|int\|string, mixed given\.$#'
-			identifier: argument.type
-			count: 6
-			path: packages/idei/usim/src/Components/Container.php
-
-		-
-			message: '#^Property Idei\\Usim\\Components\\Container\:\:\$children \(array\<string, Idei\\Usim\\Contracts\\UIElement\>\) does not accept array\<int\|string, Idei\\Usim\\Contracts\\UIElement\>\.$#'
-			identifier: assign.propertyType
-			count: 1
-			path: packages/idei/usim/src/Components/Container.php
-
-		-
-			message: '#^Property Idei\\Usim\\Components\\Container\:\:\$name \(string\|null\) does not accept mixed\.$#'
-			identifier: assign.propertyType
-			count: 1
-			path: packages/idei/usim/src/Components/Container.php
-
-		-
-			message: '#^Property Idei\\Usim\\Components\\Container\:\:\$parent \(int\|string\|null\) does not accept mixed\.$#'
-			identifier: assign.propertyType
-			count: 1
-			path: packages/idei/usim/src/Components/Container.php
-
-		-
-			message: '#^Property Idei\\Usim\\Components\\Container\:\:\$type \(string\) does not accept mixed\.$#'
-			identifier: assign.propertyType
-			count: 1
-			path: packages/idei/usim/src/Components/Container.php
 
 		-
 			message: '#^Cannot access an offset on mixed\.$#'

@@ -109,7 +109,7 @@ class TranslateManager extends Screen
      */
     public function onSearchTranslations(array $params): void
     {
-        $search = (string) ($params['value'] ?? '');
+        $search = $this->normalizeToString($params['value'] ?? null);
         $this->translations_table->setSearchTerm($search);
     }
 
@@ -120,7 +120,7 @@ class TranslateManager extends Screen
     {
         /** @var TranslationKeysTableModel $model */
         $model = $this->translations_table->getModel();
-        $model->setLanguageFilter((string) ($params['value'] ?? 'all'));
+        $model->setLanguageFilter($this->normalizeToString($params['value'] ?? null, 'all'));
         $this->translations_table->refreshColumns();
         $this->translations_table->page(1);
     }
@@ -132,7 +132,7 @@ class TranslateManager extends Screen
     {
         /** @var TranslationKeysTableModel $model */
         $model = $this->translations_table->getModel();
-        $model->setGroupFilter((string) ($params['value'] ?? 'all'));
+        $model->setGroupFilter($this->normalizeToString($params['value'] ?? null, 'all'));
         $this->translations_table->page(1);
     }
 
@@ -141,8 +141,8 @@ class TranslateManager extends Screen
      */
     public function onTranslationsTableColumnClicked(array $params): void
     {
-        $column = $params['sort_by'] ?? null;
-        if (!$column) {
+        $column = $this->normalizeToNullableString($params['sort_by'] ?? null);
+        if ($column === null || $column === '') {
             return;
         }
 
@@ -155,7 +155,7 @@ class TranslateManager extends Screen
      */
     public function onChangePage(array $params): void
     {
-        $page = (int) ($params['page'] ?? 1);
+        $page = $this->normalizeToInt($params['page'] ?? null, 1);
         $this->translations_table->page($page);
     }
 
@@ -164,7 +164,7 @@ class TranslateManager extends Screen
      */
     public function onEditTranslation(array $params): void
     {
-        $key = (string) ($params['key'] ?? '');
+        $key = $this->normalizeToString($params['key'] ?? null);
         if ($key === '') {
             $this->toast(t('screen.admin.translate_manager.errors.key_required'), 'error');
             return;
@@ -181,11 +181,11 @@ class TranslateManager extends Screen
 
         EditTranslationDialog::open(
             key: $key,
-            group: (string) ($params['group'] ?? ''),
+            group: $this->normalizeToString($params['group'] ?? null),
             fallbackLanguageCode: $fallbackCode,
             selectedLanguageCode: $selectedCode,
-            fallbackText: (string) ($fallbackEntry['text'] ?? ''),
-            selectedText: (string) ($selectedEntry['text'] ?? ''),
+            fallbackText: $this->normalizeToString($fallbackEntry['text'] ?? null),
+            selectedText: $this->normalizeToString($selectedEntry['text'] ?? null),
             fallbackNeedsReview: (bool) ($fallbackEntry['needs_review'] ?? false),
             selectedNeedsReview: (bool) ($selectedEntry['needs_review'] ?? false),
             callerServiceId: $this->getScreenComponentId()
@@ -197,7 +197,7 @@ class TranslateManager extends Screen
      */
     public function onDeleteTranslation(array $params): void
     {
-        $key = (string) ($params['key'] ?? '');
+        $key = $this->normalizeToString($params['key'] ?? null);
         if ($key === '') {
             $this->toast(t('screen.admin.translate_manager.errors.key_required'), 'error');
             return;
@@ -218,7 +218,7 @@ class TranslateManager extends Screen
      */
     public function onConfirmDeleteTranslation(array $params): void
     {
-        $key = (string) ($params['key'] ?? '');
+        $key = $this->normalizeToString($params['key'] ?? null);
         if ($key === '') {
             $this->toast(t('screen.admin.translate_manager.errors.key_required_for_deletion'), 'error');
             return;
@@ -243,9 +243,9 @@ class TranslateManager extends Screen
      */
     public function onSubmitUpdateTranslation(array $params): void
     {
-        $key = (string) ($params['translation_key'] ?? '');
-        $fallbackLanguageCode = (string) ($params['fallback_language_code'] ?? '');
-        $selectedLanguageCode = (string) ($params['selected_language_code'] ?? '');
+        $key = $this->normalizeToString($params['translation_key'] ?? null);
+        $fallbackLanguageCode = $this->normalizeToString($params['fallback_language_code'] ?? null);
+        $selectedLanguageCode = $this->normalizeToString($params['selected_language_code'] ?? null);
 
         if ($key === '' || $fallbackLanguageCode === '') {
             $this->toast(t('screen.admin.translate_manager.errors.update_payload_incomplete'), 'error');
@@ -260,7 +260,7 @@ class TranslateManager extends Screen
         $translationService->upsertValue(
             $key,
             $fallbackLanguageCode,
-            (string) ($params['fallback_text'] ?? ''),
+            $this->normalizeToString($params['fallback_text'] ?? null),
             needsReview: $fallbackNeedsReview
         );
 
@@ -271,7 +271,7 @@ class TranslateManager extends Screen
             $translationService->upsertValue(
                 $key,
                 $selectedLanguageCode,
-                (string) ($params['selected_text'] ?? ''),
+                $this->normalizeToString($params['selected_text'] ?? null),
                 needsReview: $selectedNeedsReview
             );
         }
@@ -291,9 +291,17 @@ class TranslateManager extends Screen
             return (int) $value === 1;
         }
 
-        $normalized = strtolower(trim((string) $value));
+        if (is_string($value)) {
+            $normalized = strtolower(trim($value));
+            return in_array($normalized, ['1', 'true', 'on', 'yes'], true);
+        }
 
-        return in_array($normalized, ['1', 'true', 'on', 'yes'], true);
+        if ($value instanceof \Stringable) {
+            $normalized = strtolower(trim((string) $value));
+            return in_array($normalized, ['1', 'true', 'on', 'yes'], true);
+        }
+
+        return false;
     }
 
     /**
@@ -313,17 +321,17 @@ class TranslateManager extends Screen
         $fallbackCode = 'en';
         foreach ($dataset['items'] as $language) {
             if ((bool) ($language['is_fallback'] ?? false)) {
-                $fallbackCode = (string) ($language['code'] ?? 'en');
+                $fallbackCode = $this->normalizeToString($language['code'] ?? null, 'en');
             }
         }
 
         foreach ($dataset['items'] as $language) {
-            $code = (string) ($language['code'] ?? '');
+            $code = $this->normalizeToString($language['code'] ?? null);
             if ($code === '' || $code === $fallbackCode) {
                 continue;
             }
 
-            $label = (string) ($language['native_name'] ?? $language['name'] ?? strtoupper($code));
+            $label = $this->normalizeToString($language['native_name'] ?? $language['name'] ?? null, strtoupper($code));
             $options[] = [
                 'value' => $code,
                 'label' => strtoupper($code) . ' - ' . $label,
@@ -347,7 +355,7 @@ class TranslateManager extends Screen
         ];
 
         foreach ($dataset['items'] as $group) {
-            $value = (string) ($group['group'] ?? '');
+            $value = $this->normalizeToString($group['group'] ?? null);
             if ($value === '') {
                 continue;
             }
@@ -374,7 +382,7 @@ class TranslateManager extends Screen
         $firstActiveNonFallback = null;
 
         foreach ($dataset['items'] as $language) {
-            $code = (string) ($language['code'] ?? '');
+            $code = $this->normalizeToString($language['code'] ?? null);
             if ($code === '') {
                 continue;
             }
@@ -399,5 +407,56 @@ class TranslateManager extends Screen
             'fallback' => $fallbackCode,
             'selected' => $selectedCode,
         ];
+    }
+
+    protected function normalizeToString(mixed $value, string $default = ''): string
+    {
+        if (is_string($value)) {
+            return $value;
+        }
+
+        if (is_int($value) || is_float($value)) {
+            return (string) $value;
+        }
+
+        if (is_bool($value)) {
+            return $value ? '1' : '';
+        }
+
+        if ($value instanceof \Stringable) {
+            return (string) $value;
+        }
+
+        return $default;
+    }
+
+    protected function normalizeToNullableString(mixed $value): ?string
+    {
+        if ($value === null) {
+            return null;
+        }
+
+        return $this->normalizeToString($value);
+    }
+
+    protected function normalizeToInt(mixed $value, int $default = 0): int
+    {
+        if (is_int($value)) {
+            return $value;
+        }
+
+        if (is_float($value)) {
+            return (int) $value;
+        }
+
+        if (is_string($value) && is_numeric($value)) {
+            return (int) $value;
+        }
+
+        if (is_bool($value)) {
+            return $value ? 1 : 0;
+        }
+
+        return $default;
     }
 }
