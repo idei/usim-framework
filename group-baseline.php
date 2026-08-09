@@ -150,7 +150,11 @@ Analizá el archivo y los errores de abajo, y mostrame primero un resumen corto 
 
 No toques archivos fuera de `{$filterFile}`.
 
-Al terminar, devolveme un resumen breve de qué se cambió, sin explicaciones largas.
+Al terminar:
+- Corré `vendor/bin/phpstan analyze --level 9` sobre este archivo y verificá que la cantidad de errores se redujo (idealmente a 0) respecto a los {$total} iniciales.
+- Corré `php artisan test` y confirmá que no queda ningún test roto por tus cambios.
+- Si algo de esto falla, no lo des por terminado: mostrame el error y corregilo antes de cerrar el lote.
+- Devolveme un resumen breve de qué se cambió, sin explicaciones largas.
 
 Errores a corregir:
 
