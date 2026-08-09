@@ -5,25 +5,39 @@
  * mismo archivo en tareas separadas por cada identifier distinto).
  *
  * Uso:
- *   php group-baseline.php phpstan-9-baseline.neon
+ *   php group-baseline.php
  *       -> resumen: cuántos errores tiene cada archivo, ordenado de mayor a menor
  *
- *   php group-baseline.php phpstan-9-baseline.neon app/Http/Controllers/Api/FileController.php
+ *   php group-baseline.php app/Http/Controllers/Api/FileController.php
  *       -> detalle completo de ese archivo (todos los identifiers), listo para
  *          pegar como prompt en Cline
+ *
+ * En ambos casos, antes de leer nada, el script corre:
+ *   vendor/bin/phpstan analyze --level 9 --generate-baseline phpstan-9-baseline.neon
+ * y sobreescribe siempre ese archivo, así no hace falta generarlo en un paso
+ * aparte ni pasarlo como argumento.
  */
 
-if ($argc < 2) {
-    fwrite(STDERR, "Uso: php group-baseline.php <baseline.neon> [ruta/al/archivo.php]\n");
+const BASELINE_PATH = 'phpstan-9-baseline.neon';
+
+$filterFile = $argv[1] ?? null;
+
+echo "Generando baseline con PHPStan (nivel 9)...\n";
+$command = sprintf(
+    'vendor/bin/phpstan analyze --level 9 --generate-baseline %s 2>&1',
+    escapeshellarg(BASELINE_PATH)
+);
+passthru($command, $exitCode);
+echo "\n";
+
+if (!file_exists(BASELINE_PATH)) {
+    fwrite(STDERR, "PHPStan no generó el baseline en: " . BASELINE_PATH . " (código de salida: $exitCode)\n");
     exit(1);
 }
 
-$path = $argv[1];
-$filterFile = $argv[2] ?? null;
-
-$content = file_get_contents($path);
+$content = file_get_contents(BASELINE_PATH);
 if ($content === false) {
-    fwrite(STDERR, "No se pudo leer: $path\n");
+    fwrite(STDERR, "No se pudo leer: " . BASELINE_PATH . "\n");
     exit(1);
 }
 
@@ -77,7 +91,7 @@ if ($filterFile === null) {
         printf("%5d  %s%s\n", $sum, $filePath, $flag);
     }
     echo "\nTotal de archivos con errores: " . count($totals) . "\n";
-    echo "Ejecutá: php group-baseline.php $path <ruta/al/archivo.php> para ver el detalle de uno.\n";
+    echo "Ejecutá: php group-baseline.php <ruta/al/archivo.php> para ver el detalle de uno.\n";
     exit(0);
 }
 
@@ -90,23 +104,59 @@ if (!isset($grouped[$filterFile])) {
 $entries = $grouped[$filterFile];
 $total = array_sum(array_column($entries, 'count'));
 
-echo "# Archivo: $filterFile ($total errores)\n\n";
-
 // Agrupo por identifier dentro del archivo, para que el prompt sea legible
 $byIdentifier = [];
 foreach ($entries as $e) {
     $byIdentifier[$e['identifier']][] = $e;
 }
 
+$errorsBlock = '';
 foreach ($byIdentifier as $identifier => $items) {
-    echo "## identifier: $identifier\n";
+    $errorsBlock .= "## identifier: $identifier\n";
     foreach ($items as $e) {
-        echo "- ({$e['count']}x) {$e['message']}\n";
+        $errorsBlock .= "- ({$e['count']}x) {$e['message']}\n";
     }
-    echo "\n";
+    $errorsBlock .= "\n";
 }
 
+$splitNote = '';
 if ($total > 15) {
-    echo "NOTA: este archivo tiene más de 15 errores. Considerá dividirlo en 2-3 tandas\n";
-    echo "(por ejemplo, por identifier) para que el diff sea más fácil de revisar.\n";
+    $splitNote = "\nNota: este archivo tiene más de 15 errores. Si el diff queda muy grande para\n"
+        . "revisar de una, dividí el trabajo en 2-3 tandas (por ejemplo, por identifier).\n";
 }
+
+$prompt = <<<PROMPT
+Corregí los errores de PHPStan nivel 9 del archivo `{$filterFile}` ({$total} errores), siguiendo estas convenciones del proyecto (Idei\\Usim):
+
+Reglas generales:
+- No modifiques lógica de negocio. Solo agregá o corregí anotaciones de tipo (PHPDoc) o casteos seguros para satisfacer PHPStan nivel 9.
+- No uses `@phpstan-ignore-line` ni agregues entradas manuales al baseline salvo que yo lo indique explícitamente.
+- Preferí el casteo explícito y seguro (`(string)`, `(int)`, etc.) antes que `@phpstan-ignore`.
+
+Convenciones de arrays:
+- Configuración de componentes: `array<string, mixed>`
+- Listas secuenciales de strings: `list<string>`
+
+Patrones conocidos para `argument.type`:
+- `Request::input()`, `config()`, `session()->get()` y `Cache::get()` devuelven `mixed`. Si el punto de uso espera un tipo concreto, casteá ahí mismo (`(string) \$request->input('campo')`), o usá el segundo argumento como valor por defecto cuando ayude a la inferencia.
+- Si `config()` se usa para obtener un array que después se accede por offset o se itera, NO castees cada acceso individual. Poné una anotación `@var` precisa en el punto donde se asigna la variable, ej. `/** @var array<string, string> \$nombre */ \$nombre = config('x.y');`. Revisá el archivo de config real para elegir el tipo correcto del value, no lo asumas.
+
+Cuándo NO castear automáticamente:
+- Si el error dice `mixed given`, aplicá el cast directo según las reglas de arriba.
+- Si el error dice `string|false given` (o cualquier unión que NO sea `mixed`), NO apliques un cast ciego. Mostrame la línea y el contexto, explicá de dónde viene ese valor no-mixed, y proponé el fix sin aplicarlo todavía.
+
+Antes de tocar nada:
+Analizá el archivo y los errores de abajo, y mostrame primero un resumen corto pero explícito de qué vas a cambiar y por qué (línea o método afectado, tipo de fix a aplicar). Recién después de mostrar ese resumen, aplicá los cambios.
+
+No toques archivos fuera de `{$filterFile}`.
+
+Al terminar, devolveme un resumen breve de qué se cambió, sin explicaciones largas.
+
+Errores a corregir:
+
+{$errorsBlock}{$splitNote}
+PROMPT;
+
+echo "===== PROMPT (copiá y pegá en Cline) =====\n\n";
+echo $prompt . "\n";
+echo "===== FIN DEL PROMPT =====\n";
