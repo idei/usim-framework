@@ -25,48 +25,6 @@ parameters:
 			path: app/Http/Controllers/Api/FileController.php
 
 		-
-			message: '#^Cannot cast mixed to int\.$#'
-			identifier: cast.int
-			count: 1
-			path: app/Http/Controllers/LogViewerController.php
-
-		-
-			message: '#^Parameter \#1 \$haystack of function stripos expects string, array\|string\|false given\.$#'
-			identifier: argument.type
-			count: 1
-			path: app/Http/Controllers/LogViewerController.php
-
-		-
-			message: '#^Parameter \#1 \$path of function basename expects string, mixed given\.$#'
-			identifier: argument.type
-			count: 3
-			path: app/Http/Controllers/LogViewerController.php
-
-		-
-			message: '#^Parameter \#2 \$array of function implode expects array\<string\>, list\<array\|string\|false\> given\.$#'
-			identifier: argument.type
-			count: 1
-			path: app/Http/Controllers/LogViewerController.php
-
-		-
-			message: '#^Parameter \#2 \$name of static method Illuminate\\Support\\Facades\\Response\:\:download\(\) expects string\|null, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: app/Http/Controllers/LogViewerController.php
-
-		-
-			message: '#^Parameter \#2 \$search of method App\\Http\\Controllers\\LogViewerController\:\:filterContent\(\) expects string, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: app/Http/Controllers/LogViewerController.php
-
-		-
-			message: '#^Parameter \#3 \$search of method App\\Http\\Controllers\\LogViewerController\:\:getLastLines\(\) expects string, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: app/Http/Controllers/LogViewerController.php
-
-		-
 			message: '#^Parameter \#1 \$string of static method Illuminate\\Support\\Str\:\:markdown\(\) expects string, string\|false given\.$#'
 			identifier: argument.type
 			count: 1
@@ -155,48 +113,6 @@ parameters:
 			identifier: encapsedStringPart.nonString
 			count: 1
 			path: app/UI/Screens/Admin/TableModels/UserTableModel.php
-
-		-
-			message: '#^Cannot call method align\(\) on Idei\\Usim\\Components\\Table\|string\|null\.$#'
-			identifier: method.nonObject
-			count: 1
-			path: app/UI/Screens/Admin/UsersManager.php
-
-		-
-			message: '#^Cannot call method bodyOverflowX\(\) on Idei\\Usim\\Components\\Table\|string\.$#'
-			identifier: method.nonObject
-			count: 1
-			path: app/UI/Screens/Admin/UsersManager.php
-
-		-
-			message: '#^Cannot call method bodyOverflowY\(\) on Idei\\Usim\\Components\\Table\|string\|null\.$#'
-			identifier: method.nonObject
-			count: 3
-			path: app/UI/Screens/Admin/UsersManager.php
-
-		-
-			message: '#^Cannot call method minHeight\(\) on Idei\\Usim\\Components\\Table\|string\|null\.$#'
-			identifier: method.nonObject
-			count: 1
-			path: app/UI/Screens/Admin/UsersManager.php
-
-		-
-			message: '#^Cannot call method rowMinHeight\(\) on Idei\\Usim\\Components\\Table\|string\.$#'
-			identifier: method.nonObject
-			count: 1
-			path: app/UI/Screens/Admin/UsersManager.php
-
-		-
-			message: '#^Cannot call method selectionMode\(\) on Idei\\Usim\\Components\\Table\|string\|null\.$#'
-			identifier: method.nonObject
-			count: 2
-			path: app/UI/Screens/Admin/UsersManager.php
-
-		-
-			message: '#^Parameter \#1 \$element of method Idei\\Usim\\Components\\Container\:\:add\(\) expects Idei\\Usim\\Contracts\\UIElement, Idei\\Usim\\Components\\Table\|string given\.$#'
-			identifier: argument.type
-			count: 1
-			path: app/UI/Screens/Admin/UsersManager.php
 
 		-
 			message: '#^Cannot cast mixed to int\.$#'
@@ -307,30 +223,6 @@ parameters:
 			path: app/UI/Screens/Auth/ResetPassword.php
 
 		-
-			message: '#^Cannot cast mixed to string\.$#'
-			identifier: cast.string
-			count: 3
-			path: app/UI/Screens/Demo/AddressForm.php
-
-		-
-			message: '#^Method App\\UI\\Screens\\Demo\\AddressForm\:\:fetchCountryOptions\(\) should return list\<array\{value\: string, label\: string\}\> but returns array\<int, array\{value\: string, label\: string\}\>\.$#'
-			identifier: return.type
-			count: 1
-			path: app/UI/Screens/Demo/AddressForm.php
-
-		-
-			message: '#^Method App\\UI\\Screens\\Demo\\AddressForm\:\:fetchProvinceOptions\(\) should return list\<array\{value\: string, label\: string\}\> but returns array\<int, array\{value\: string, label\: string\}\>\.$#'
-			identifier: return.type
-			count: 1
-			path: app/UI/Screens/Demo/AddressForm.php
-
-		-
-			message: '#^Parameter \#1 \$string of function trim expects string, mixed given\.$#'
-			identifier: argument.type
-			count: 5
-			path: app/UI/Screens/Demo/AddressForm.php
-
-		-
 			message: '#^Parameter \#1 \$year of static method App\\UI\\Screens\\Demo\\CalendarioAcadémico\:\:getMonthEvents\(\) expects int, mixed given\.$#'
 			identifier: argument.type
 			count: 1
@@ -415,54 +307,6 @@ parameters:
 			path: app/UI/Screens/Demo/SplitDemo.php
 
 		-
-			message: '#^Cannot call method align\(\) on Idei\\Usim\\Components\\Table\|string\.$#'
-			identifier: method.nonObject
-			count: 1
-			path: app/UI/Screens/Demo/TableDemo.php
-
-		-
-			message: '#^Cannot call method bodyOverflowY\(\) on Idei\\Usim\\Components\\Table\|string\|null\.$#'
-			identifier: method.nonObject
-			count: 1
-			path: app/UI/Screens/Demo/TableDemo.php
-
-		-
-			message: '#^Cannot call method selectionMode\(\) on Idei\\Usim\\Components\\Table\|string\|null\.$#'
-			identifier: method.nonObject
-			count: 1
-			path: app/UI/Screens/Demo/TableDemo.php
-
-		-
-			message: '#^Cannot cast mixed to int\.$#'
-			identifier: cast.int
-			count: 1
-			path: app/UI/Screens/Demo/TableDemo.php
-
-		-
-			message: '#^Cannot cast mixed to string\.$#'
-			identifier: cast.string
-			count: 2
-			path: app/UI/Screens/Demo/TableDemo.php
-
-		-
-			message: '#^Parameter \#1 \$column of method Idei\\Usim\\Components\\Table\:\:sortedBy\(\) expects string\|null, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: app/UI/Screens/Demo/TableDemo.php
-
-		-
-			message: '#^Parameter \#1 \$page of method Idei\\Usim\\Components\\Table\:\:page\(\) expects int\|null, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: app/UI/Screens/Demo/TableDemo.php
-
-		-
-			message: '#^Parameter \#1 \$rows of method Idei\\Usim\\Components\\Table\:\:select\(\) expects int\|list\<int\|string\>\|string\|null, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: app/UI/Screens/Demo/TableDemo.php
-
-		-
 			message: '#^Cannot cast mixed to string\.$#'
 			identifier: cast.string
 			count: 2
@@ -479,18 +323,6 @@ parameters:
 			identifier: argument.type
 			count: 1
 			path: app/UI/Screens/Demo/TextareaDemo.php
-
-		-
-			message: '#^Cannot access offset 0 on mixed\.$#'
-			identifier: offsetAccess.nonOffsetAccessible
-			count: 3
-			path: app/UI/Screens/Demo/UploaderDemo.php
-
-		-
-			message: '#^Parameter \#1 \$json of function json_decode expects string, mixed given\.$#'
-			identifier: argument.type
-			count: 5
-			path: app/UI/Screens/Demo/UploaderDemo.php
 
 		-
 			message: '#^Call to function is_string\(\) with string will always evaluate to true\.$#'
@@ -661,33 +493,9 @@ parameters:
 			path: packages/idei/usim/src/Components/TableRow.php
 
 		-
-			message: '#^Method Idei\\Usim\\Components\\UIComponent\:\:isVisible\(\) should return bool but returns mixed\.$#'
-			identifier: return.type
-			count: 1
-			path: packages/idei/usim/src/Components/UIComponent.php
-
-		-
 			message: '#^Parameter \#1 \$value of static method Idei\\Usim\\ValueObjects\\Size\:\:from\(\) expects Idei\\Usim\\ValueObjects\\Size\|int\|string, mixed given\.$#'
 			identifier: argument.type
 			count: 6
-			path: packages/idei/usim/src/Components/UIComponent.php
-
-		-
-			message: '#^Property Idei\\Usim\\Components\\UIComponent\:\:\$name \(string\|null\) does not accept mixed\.$#'
-			identifier: assign.propertyType
-			count: 1
-			path: packages/idei/usim/src/Components/UIComponent.php
-
-		-
-			message: '#^Property Idei\\Usim\\Components\\UIComponent\:\:\$parent \(int\|string\|null\) does not accept mixed\.$#'
-			identifier: assign.propertyType
-			count: 1
-			path: packages/idei/usim/src/Components/UIComponent.php
-
-		-
-			message: '#^Property Idei\\Usim\\Components\\UIComponent\:\:\$type \(string\) does not accept mixed\.$#'
-			identifier: assign.propertyType
-			count: 1
 			path: packages/idei/usim/src/Components/UIComponent.php
 
 		-
@@ -853,24 +661,6 @@ parameters:
 			path: packages/idei/usim/src/Notifications/ResetPasswordNotification.php
 
 		-
-			message: '#^Argument of an invalid type array\<PhpParser\\Node\\Stmt\>\|null supplied for foreach, only iterables are supported\.$#'
-			identifier: foreach.nonIterable
-			count: 1
-			path: packages/idei/usim/src/Support/CodeModifier/ClassModifier.php
-
-		-
-			message: '#^Cannot call method toString\(\) on PhpParser\\Node\\Identifier\|null\.$#'
-			identifier: method.nonObject
-			count: 4
-			path: packages/idei/usim/src/Support/CodeModifier/ClassModifier.php
-
-		-
-			message: '#^Parameter \#1 \$code of method PhpParser\\Parser\:\:parse\(\) expects string, string\|false given\.$#'
-			identifier: argument.type
-			count: 4
-			path: packages/idei/usim/src/Support/CodeModifier/ClassModifier.php
-
-		-
 			message: '#^Method Idei\\Usim\\Support\\FakeDataHelper\:\:sanitizeForEmail\(\) should return string but returns string\|null\.$#'
 			identifier: return.type
 			count: 1
@@ -887,60 +677,6 @@ parameters:
 			identifier: argument.type
 			count: 1
 			path: packages/idei/usim/src/Support/FakeDataHelper.php
-
-		-
-			message: '#^Binary operation "\." between ''Bearer '' and mixed results in an error\.$#'
-			identifier: binaryOp.invalid
-			count: 1
-			path: packages/idei/usim/src/Support/HttpClient.php
-
-		-
-			message: '#^Binary operation "\." between ''ui_client_id\='' and non\-empty\-array\|non\-falsy\-string results in an error\.$#'
-			identifier: binaryOp.invalid
-			count: 1
-			path: packages/idei/usim/src/Support/HttpClient.php
-
-		-
-			message: '#^Method Idei\\Usim\\Support\\HttpClient\:\:delete\(\) should return array\<string, mixed\> but returns array\<mixed, mixed\>\.$#'
-			identifier: return.type
-			count: 1
-			path: packages/idei/usim/src/Support/HttpClient.php
-
-		-
-			message: '#^Method Idei\\Usim\\Support\\HttpClient\:\:get\(\) should return array\<string, mixed\> but returns array\<mixed, mixed\>\.$#'
-			identifier: return.type
-			count: 1
-			path: packages/idei/usim/src/Support/HttpClient.php
-
-		-
-			message: '#^Method Idei\\Usim\\Support\\HttpClient\:\:patch\(\) should return array\<string, mixed\> but returns array\<mixed, mixed\>\.$#'
-			identifier: return.type
-			count: 1
-			path: packages/idei/usim/src/Support/HttpClient.php
-
-		-
-			message: '#^Method Idei\\Usim\\Support\\HttpClient\:\:post\(\) should return array\<string, mixed\> but returns array\<mixed, mixed\>\.$#'
-			identifier: return.type
-			count: 1
-			path: packages/idei/usim/src/Support/HttpClient.php
-
-		-
-			message: '#^Method Idei\\Usim\\Support\\HttpClient\:\:put\(\) should return array\<string, mixed\> but returns array\<mixed, mixed\>\.$#'
-			identifier: return.type
-			count: 1
-			path: packages/idei/usim/src/Support/HttpClient.php
-
-		-
-			message: '#^Method Idei\\Usim\\Support\\HttpClient\:\:request\(\) should return array\<string, mixed\> but returns array\<mixed, mixed\>\.$#'
-			identifier: return.type
-			count: 1
-			path: packages/idei/usim/src/Support/HttpClient.php
-
-		-
-			message: '#^Parameter \#1 \$string of function rtrim expects string, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: packages/idei/usim/src/Support/HttpClient.php
 
 		-
 			message: '#^Parameter \#1 \$dirs of method Symfony\\Component\\Finder\\Finder\:\:in\(\) expects array\<string\>\|string, mixed given\.$#'

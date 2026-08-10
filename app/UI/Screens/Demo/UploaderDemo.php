@@ -215,8 +215,11 @@ class UploaderDemo extends Screen
     public function onProcessProfile(array $params): void
     {
         // Obtener temp_ids del input hidden del uploader
-        $tempIdsJson = $params['uploader_profile_temp_ids'] ?? '[]';
-        $tempIds = json_decode($tempIdsJson, true) ?: [];
+        $tempIdsRaw = $params['uploader_profile_temp_ids'] ?? '[]';
+        $tempIdsJson = is_string($tempIdsRaw) ? $tempIdsRaw : '[]';
+        $decodedTempIds = json_decode($tempIdsJson, true);
+        /** @var list<string|int> $tempIds */
+        $tempIds = is_array($decodedTempIds) ? array_values($decodedTempIds) : [];
 
         if (empty($tempIds)) {
             $this->lbl_result
@@ -270,8 +273,11 @@ class UploaderDemo extends Screen
      */
     public function onProcessBanner(array $params): void
     {
-        $tempIdsJson = $params['uploader_banner_temp_ids'] ?? '[]';
-        $tempIds = json_decode($tempIdsJson, true) ?: [];
+        $tempIdsRaw = $params['uploader_banner_temp_ids'] ?? '[]';
+        $tempIdsJson = is_string($tempIdsRaw) ? $tempIdsRaw : '[]';
+        $decodedTempIds = json_decode($tempIdsJson, true);
+        /** @var list<string|int> $tempIds */
+        $tempIds = is_array($decodedTempIds) ? array_values($decodedTempIds) : [];
 
         if (empty($tempIds)) {
             $this->lbl_result
@@ -317,8 +323,11 @@ class UploaderDemo extends Screen
      */
     public function onProcessStory(array $params): void
     {
-        $tempIdsJson = $params['uploader_story_temp_ids'] ?? '[]';
-        $tempIds = json_decode($tempIdsJson, true) ?: [];
+        $tempIdsRaw = $params['uploader_story_temp_ids'] ?? '[]';
+        $tempIdsJson = is_string($tempIdsRaw) ? $tempIdsRaw : '[]';
+        $decodedTempIds = json_decode($tempIdsJson, true);
+        /** @var list<string|int> $tempIds */
+        $tempIds = is_array($decodedTempIds) ? array_values($decodedTempIds) : [];
 
         if (empty($tempIds)) {
             $this->lbl_result
@@ -365,8 +374,11 @@ class UploaderDemo extends Screen
     public function onProcessImages(array $params): void
     {
         // Obtener temp_ids del input hidden del uploader
-        $tempIdsJson = $params['uploader_images_temp_ids'] ?? '[]';
-        $tempIds = json_decode($tempIdsJson, true) ?: [];
+        $tempIdsRaw = $params['uploader_images_temp_ids'] ?? '[]';
+        $tempIdsJson = is_string($tempIdsRaw) ? $tempIdsRaw : '[]';
+        $decodedTempIds = json_decode($tempIdsJson, true);
+        /** @var list<string|int> $tempIds */
+        $tempIds = is_array($decodedTempIds) ? array_values($decodedTempIds) : [];
 
         if (empty($tempIds)) {
             $this->lbl_result
@@ -429,8 +441,11 @@ class UploaderDemo extends Screen
     public function onProcessDocuments(array $params): void
     {
         // Obtener temp_ids del input hidden del uploader
-        $tempIdsJson = $params['uploader_documents_temp_ids'] ?? '[]';
-        $tempIds = json_decode($tempIdsJson, true) ?: [];
+        $tempIdsRaw = $params['uploader_documents_temp_ids'] ?? '[]';
+        $tempIdsJson = is_string($tempIdsRaw) ? $tempIdsRaw : '[]';
+        $decodedTempIds = json_decode($tempIdsJson, true);
+        /** @var list<string|int> $tempIds */
+        $tempIds = is_array($decodedTempIds) ? array_values($decodedTempIds) : [];
 
         if (empty($tempIds)) {
             $this->lbl_result

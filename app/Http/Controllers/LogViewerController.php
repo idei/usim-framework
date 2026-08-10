@@ -32,9 +32,20 @@ class LogViewerController extends Controller
      */
     public function content(Request $request): JsonResponse
     {
-        $fileName = $request->input('file', 'laravel.log');
-        $lines = (int) $request->input('lines', self::DEFAULT_LINES);
-        $search = $request->input('search', '');
+        $fileInput = $request->input('file', 'laravel.log');
+        $fileName = is_string($fileInput) ? $fileInput : 'laravel.log';
+
+        $linesInput = $request->input('lines', self::DEFAULT_LINES);
+        if (is_int($linesInput)) {
+            $lines = $linesInput;
+        } elseif (is_numeric($linesInput)) {
+            $lines = (int) $linesInput;
+        } else {
+            $lines = self::DEFAULT_LINES;
+        }
+
+        $searchInput = $request->input('search', '');
+        $search = is_string($searchInput) ? $searchInput : '';
 
         $logPath = storage_path('logs/' . basename($fileName));
 
@@ -75,7 +86,8 @@ class LogViewerController extends Controller
      */
     public function download(Request $request): BinaryFileResponse
     {
-        $fileName = $request->input('file', 'laravel.log');
+        $fileInput = $request->input('file', 'laravel.log');
+        $fileName = is_string($fileInput) ? $fileInput : 'laravel.log';
         $logPath = storage_path('logs/' . basename($fileName));
 
         if (!File::exists($logPath)) {
@@ -92,7 +104,8 @@ class LogViewerController extends Controller
     {
         try {
             // Accept both JSON and form data
-            $fileName = $request->input('file') ?? $request->get('file', 'laravel.log');
+            $fileNameInput = $request->input('file') ?? $request->get('file', 'laravel.log');
+            $fileName = is_string($fileNameInput) && $fileNameInput !== '' ? $fileNameInput : 'laravel.log';
             $logPath = storage_path('logs/' . basename($fileName));
 
             if (!File::exists($logPath)) {
@@ -167,6 +180,11 @@ class LogViewerController extends Controller
         $content = [];
         while (!$file->eof()) {
             $line = $file->current();
+            if (!is_string($line)) {
+                $file->next();
+                continue;
+            }
+
             if ($search === '' || stripos($line, $search) !== false) {
                 $content[] = $line;
             }
@@ -182,7 +200,7 @@ class LogViewerController extends Controller
     private function filterContent(string $content, string $search): string
     {
         $lines = explode("\n", $content);
-        $filtered = array_filter($lines, function($line) use ($search) {
+        $filtered = array_filter($lines, static function (string $line) use ($search): bool {
             return stripos($line, $search) !== false;
         });
 

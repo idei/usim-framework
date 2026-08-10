@@ -34,11 +34,12 @@ class TableDemo extends Screen
             ->title(t('screen.demo.table_demo.table_title'))
             ->sortedBy('title')
             ->pagination(7)
-            ->dataModel(MovieTableModel::class)
-            ->bodyOverflowX('hidden')
-            ->bodyOverflowY('auto')
-            ->selectionMode(SelectionMode::SINGLE)
-            ->align('center');
+            ->dataModel(MovieTableModel::class);
+
+        $table->bodyOverflowX('hidden');
+        $table->bodyOverflowY('auto');
+        $table->selectionMode(SelectionMode::SINGLE);
+        $table->align('center');
 
         $container
             ->maxWidth($table->getWidth())
@@ -78,7 +79,7 @@ class TableDemo extends Screen
     public function onMoviesTableColumnClicked(array $params): void
     {
         $column = $params['sort_by'] ?? null;
-        if (!$column) {
+        if (!is_string($column) || $column === '') {
             return;
         }
 
@@ -91,7 +92,8 @@ class TableDemo extends Screen
      */
     public function onSearchInputTyped(array $params): void
     {
-        $value = (string) ($params['value'] ?? '');
+        $raw = $params['value'] ?? null;
+        $value = is_string($raw) ? $raw : '';
         $this->movies_table->setSearchTerm($value);
     }
 
@@ -100,7 +102,8 @@ class TableDemo extends Screen
      */
     public function onChangePage(array $params): void
     {
-        $page = $params['page'] ?? 1;
+        $rawPage = $params['page'] ?? 1;
+        $page = is_int($rawPage) ? $rawPage : 1;
         $this->movies_table->page($page);
     }
 
@@ -111,6 +114,9 @@ class TableDemo extends Screen
     {
         $modelId = $params['model_id'] ?? null;
         if ($modelId === null || $modelId === '') {
+            return;
+        }
+        if (!is_int($modelId) && !is_string($modelId)) {
             return;
         }
 

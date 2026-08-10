@@ -161,7 +161,9 @@ class AddressForm extends Screen
      */
     public function onCountryChange(array $params): void
     {
-        $country = trim((string) ($params['value'] ?? ''));
+        $rawCountry = $params['value'] ?? '';
+        $countryValue = is_string($rawCountry) ? $rawCountry : '';
+        $country = trim($countryValue);
 
         $this->store_selected_country = $country !== '' ? $country : null;
         $this->store_selected_province = null;
@@ -204,11 +206,17 @@ class AddressForm extends Screen
      */
     public function onSubmitAddressForm(array $params): void
     {
-        $address = trim($params['input_address'] ?? '');
-        $country = trim($params['input_country'] ?? '');
-        $province = trim($params['input_province'] ?? '');
-        $streetNumber = trim($params['input_street_number'] ?? '');
-        $postalCode = trim($params['input_postal_code'] ?? '');
+        $addressValue = $params['input_address'] ?? '';
+        $countryValue = $params['input_country'] ?? '';
+        $provinceValue = $params['input_province'] ?? '';
+        $streetNumberValue = $params['input_street_number'] ?? '';
+        $postalCodeValue = $params['input_postal_code'] ?? '';
+
+        $address = trim(is_string($addressValue) ? $addressValue : '');
+        $country = trim(is_string($countryValue) ? $countryValue : '');
+        $province = trim(is_string($provinceValue) ? $provinceValue : '');
+        $streetNumber = trim(is_string($streetNumberValue) ? $streetNumberValue : '');
+        $postalCode = trim(is_string($postalCodeValue) ? $postalCodeValue : '');
 
         $this->input_address->error(null);
         $this->input_country->errorMessage('');
@@ -301,9 +309,12 @@ class AddressForm extends Screen
             /** @var list<array<string, mixed>> $countryRows */
             $countryRows = (array) $response->json('data', []);
 
+            /** @var list<array{value: string, label: string}> $options */
             $options = collect($countryRows)
                 ->map(function (array $country): ?array {
-                    $name = trim((string) ($country['name'] ?? ''));
+                    /** @var mixed $rawName */
+                    $rawName = $country['name'] ?? '';
+                    $name = trim(is_string($rawName) ? $rawName : '');
 
                     if ($name === '') {
                         return null;
@@ -345,9 +356,12 @@ class AddressForm extends Screen
             /** @var list<array<string, mixed>> $stateRows */
             $stateRows = (array) $response->json('data.states', []);
 
+            /** @var list<array{value: string, label: string}> $options */
             $options = collect($stateRows)
                 ->map(function (array $state): ?array {
-                    $name = trim((string) ($state['name'] ?? ''));
+                    /** @var mixed $rawName */
+                    $rawName = $state['name'] ?? '';
+                    $name = trim(is_string($rawName) ? $rawName : '');
 
                     if ($name === '') {
                         return null;

@@ -69,9 +69,14 @@ abstract class UIComponent implements UIElement, Sizeable, Marginable
         /** @var static $component */
         $component = new static();
         $component->id = $id;
-        $component->type = $data['type'] ?? 'unknown';
-        $component->name = $data['name'] ?? null;
-        $component->parent = $data['parent'] ?? null;
+        $type = $data['type'] ?? null;
+        $component->type = is_string($type) ? $type : 'unknown';
+
+        $name = $data['name'] ?? null;
+        $component->name = is_string($name) ? $name : null;
+
+        $parent = $data['parent'] ?? null;
+        $component->parent = is_int($parent) || is_string($parent) ? $parent : null;
         $component->config = array_merge($component->config, $data);
 
         return $component;
@@ -192,7 +197,7 @@ abstract class UIComponent implements UIElement, Sizeable, Marginable
      */
     public function isVisible(): bool
     {
-        return $this->config['visible'] ?? true;
+        return (bool) ($this->config['visible'] ?? true);
     }
 
     /**

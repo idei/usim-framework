@@ -3,6 +3,7 @@
 namespace Idei\Usim\Support\CodeModifier;
 
 use PhpParser\Node;
+use PhpParser\Node\Identifier;
 use PhpParser\Node\Stmt\Class_;
 use PhpParser\Node\Stmt\TraitUse;
 use PhpParser\Node\Stmt\Use_;
@@ -25,13 +26,18 @@ class ClassModifier
         }
 
         $code = file_get_contents($filePath);
+        if ($code === false) {
+            return;
+        }
 
         $parser = (new ParserFactory())->createForNewestSupportedVersion();
         $ast = $parser->parse($code);
 
-        if (!$ast) {
+        if ($ast === null) {
             return;
         }
+
+        /** @var array<int, Node> $ast */
 
         $traitShort = class_basename($traitFQN);
 
@@ -78,7 +84,11 @@ class ClassModifier
                 }
 
                 // Agregar trait a la clase
-                if ($node instanceof Class_ && $node->name->toString() === $this->className) {
+                if (
+                    $node instanceof Class_
+                    && $node->name instanceof Identifier
+                    && $node->name->toString() === $this->className
+                ) {
 
                     $hasTrait = false;
 
@@ -142,13 +152,18 @@ class ClassModifier
         }
 
         $code = file_get_contents($filePath);
+        if ($code === false) {
+            return;
+        }
 
         $parser = (new ParserFactory())->createForNewestSupportedVersion();
         $ast = $parser->parse($code);
 
-        if (!$ast) {
+        if ($ast === null) {
             return;
         }
+
+        /** @var array<int, Node> $ast */
 
         $interfaceShort = class_basename($interfaceFQN);
 
@@ -196,16 +211,19 @@ class ClassModifier
 
                 // Agregar interface a la clase
                 if (
-                $node instanceof Class_
-                && $node->name->toString() === $this->className
+                    $node instanceof Class_
+                    && $node->name instanceof Identifier
+                    && $node->name->toString() === $this->className
                 ) {
 
                     $hasInterface = false;
 
                     foreach ($node->implements as $impl) {
                         if (
-                            $impl->toString() === $this->interfaceShort ||
-                            $impl->toString() === $this->interfaceFQN
+                            (
+                                $impl->toString() === $this->interfaceShort ||
+                                $impl->toString() === $this->interfaceFQN
+                            )
                         ) {
                             $hasInterface = true;
                         }
@@ -259,13 +277,18 @@ class ClassModifier
         }
 
         $code = file_get_contents($filePath);
+        if ($code === false) {
+            return;
+        }
 
         $parser = (new ParserFactory())->createForNewestSupportedVersion();
         $ast = $parser->parse($code);
 
-        if (!$ast) {
+        if ($ast === null) {
             return;
         }
+
+        /** @var array<int, Node> $ast */
 
         $traverser = new NodeTraverser();
 
@@ -280,13 +303,19 @@ class ClassModifier
 
             public function enterNode(Node $node): ?Node
             {
-                if ($node instanceof Class_ && $node->name->toString() === $this->className) {
+                if (
+                    $node instanceof Class_
+                    && $node->name instanceof Identifier
+                    && $node->name->toString() === $this->className
+                ) {
 
                     foreach ($node->stmts as $stmt) {
 
                         if ($stmt instanceof \PhpParser\Node\Stmt\Property) {
 
-                            if ($stmt->props[0]->name->toString() === $this->propertyName) {
+                            if (
+                                $stmt->props[0]->name->toString() === $this->propertyName
+                            ) {
 
                                 $prop = $stmt->props[0];
 
@@ -331,13 +360,18 @@ class ClassModifier
         }
 
         $code = file_get_contents($filePath);
+        if ($code === false) {
+            return;
+        }
 
         $parser = (new ParserFactory())->createForNewestSupportedVersion();
         $ast = $parser->parse($code);
 
-        if (!$ast) {
+        if ($ast === null) {
             return;
         }
+
+        /** @var array<int, Node> $ast */
 
         $traverser = new NodeTraverser();
 
@@ -352,7 +386,11 @@ class ClassModifier
 
             public function enterNode(Node $node): ?Node
             {
-                if ($node instanceof Class_ && $node->name->toString() === $this->className) {
+                if (
+                    $node instanceof Class_
+                    && $node->name instanceof Identifier
+                    && $node->name->toString() === $this->className
+                ) {
 
                     foreach ($node->stmts as $stmt) {
 
@@ -361,6 +399,10 @@ class ClassModifier
                         $stmt instanceof \PhpParser\Node\Stmt\ClassMethod
                         && $stmt->name->toString() === 'casts'
                         ) {
+
+                            if ($stmt->stmts === null) {
+                                continue;
+                            }
 
                             foreach ($stmt->stmts as $methodStmt) {
 

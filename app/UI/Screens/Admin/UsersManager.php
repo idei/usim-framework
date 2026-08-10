@@ -111,16 +111,16 @@ class UsersManager extends Screen
 
         $toolbar->add($search)->add($addBtn);
 
-        $users_table = $this->requireTable(UI::table('users_table'))
-            ->pagination(15)
-            ->sortedBy('name')
-            ->dataModel(UserTableModel::class)
-            ->selectionMode(SelectionMode::SINGLE)
-            ->bodyOverflowX('hidden')
-            ->bodyOverflowY('auto')
-            ->minHeight(Size::px(730))
-            ->bodyMinHeight('600px')
-            ->align('center');
+        $users_table = $this->requireTable(UI::table('users_table'));
+        $users_table->pagination(15);
+        $users_table->sortedBy('name');
+        $users_table->dataModel(UserTableModel::class);
+        $users_table->selectionMode(SelectionMode::SINGLE);
+        $users_table->bodyOverflowX('hidden');
+        $users_table->bodyOverflowY('auto');
+        $users_table->minHeight(Size::px(730));
+        $users_table->bodyMinHeight('600px');
+        $users_table->align('center');
 
         $users_crud_container
             ->add($toolbar)
@@ -178,26 +178,26 @@ class UsersManager extends Screen
 
         $toolbar->add($search)->add($addBtn);
 
-        $roles_table = $this->requireTable(UI::table('roles_table'))
-            ->pagination(3) // Disable pagination to show all roles
-            ->sortedBy('name')
-            ->dataModel(RoleTableModel::class)
-            ->bodyOverflowX('hidden')
-            ->bodyOverflowY('auto')
-            ->selectionMode(SelectionMode::SINGLE)
-            ->rowMinHeight(45);
+        $roles_table = $this->requireTable(UI::table('roles_table'));
+        $roles_table->pagination(3); // Disable pagination to show all roles
+        $roles_table->sortedBy('name');
+        $roles_table->dataModel(RoleTableModel::class);
+        $roles_table->bodyOverflowX('hidden');
+        $roles_table->bodyOverflowY('auto');
+        $roles_table->selectionMode(SelectionMode::SINGLE);
+        $roles_table->rowMinHeight(45);
 
         $roles_left_panel
             ->add($toolbar)
             ->add($roles_table);
 
-        $permissions_table = $this->requireTable(UI::table('permissions_table'))
-            ->pagination(10)
-            ->sortedBy('name')
-            ->dataModel(PermissionTableModel::class)
-            ->bodyOverflowX('hidden')
-            ->bodyOverflowY('auto')
-            ->selectionMode(SelectionMode::SINGLE);
+        $permissions_table = $this->requireTable(UI::table('permissions_table'));
+        $permissions_table->pagination(10);
+        $permissions_table->sortedBy('name');
+        $permissions_table->dataModel(PermissionTableModel::class);
+        $permissions_table->bodyOverflowX('hidden');
+        $permissions_table->bodyOverflowY('auto');
+        $permissions_table->selectionMode(SelectionMode::SINGLE);
 
         $roles_right_panel
             ->add($permissions_table);
