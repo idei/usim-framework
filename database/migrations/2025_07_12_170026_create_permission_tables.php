@@ -12,7 +12,7 @@ return new class extends Migration {
     {
         $teams = config('permission.teams');
 
-        /** @var array<string, string> $tableNames */
+        /** @var array<string, string>|null $tableNames */
         $tableNames = config('permission.table_names');
 
         /**
@@ -27,11 +27,11 @@ return new class extends Migration {
         $pivotRole = $columnNames['role_pivot_key'] ?? 'role_id';
         $pivotPermission = $columnNames['permission_pivot_key'] ?? 'permission_id';
 
-        if ($tableNames == null || empty($tableNames)) {
+        if ($tableNames == null) {
             throw new Exception('Error: config/permission.php not loaded. Run [php artisan config:clear] and try again.');
         }
 
-        if ($teams && empty($columnNames['team_foreign_key'] ?? null)) {
+        if ($teams && empty($columnNames['team_foreign_key'])) {
             throw new Exception('Error: team_foreign_key on config/permission.php not loaded. Run [php artisan config:clear] and try again.');
         }
 
@@ -134,9 +134,15 @@ return new class extends Migration {
             $table->primary([$pivotPermission, $pivotRole], 'role_has_permissions_permission_id_role_id_primary');
         });
 
+        $cacheStoreConfig = config('permission.cache.store');
+        $cacheStore = is_string($cacheStoreConfig) ? $cacheStoreConfig : 'default';
+
+        $cacheKeyConfig = config('permission.cache.key');
+        $cacheKey = is_string($cacheKeyConfig) ? $cacheKeyConfig : 'spatie.permission.cache';
+
         app('cache')
-            ->store(config('permission.cache.store') != 'default' ? (string) config('permission.cache.store') : null)
-            ->forget((string) config('permission.cache.key'));
+            ->store($cacheStore !== 'default' ? $cacheStore : null)
+            ->forget($cacheKey);
     }
 
     /**

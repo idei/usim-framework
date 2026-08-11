@@ -250,7 +250,10 @@ class Form extends Container
             'full_width' => $this->config['full_width_buttons'],
         ], $config);
 
-        $this->config['buttons'][] = $button;
+        /** @var list<array<string, mixed>> $buttons */
+        $buttons = is_array($this->config['buttons'] ?? null) ? $this->config['buttons'] : [];
+        $buttons[] = $button;
+        $this->config['buttons'] = $buttons;
         return $this;
     }
 
@@ -271,7 +274,10 @@ class Form extends Container
             'full_width' => $this->config['full_width_buttons'],
         ], $config);
 
-        $this->config['buttons'][] = $button;
+        /** @var list<array<string, mixed>> $buttons */
+        $buttons = is_array($this->config['buttons'] ?? null) ? $this->config['buttons'] : [];
+        $buttons[] = $button;
+        $this->config['buttons'] = $buttons;
         return $this;
     }
 
@@ -292,7 +298,10 @@ class Form extends Container
             'full_width' => $this->config['full_width_buttons'],
         ], $config);
 
-        $this->config['buttons'][] = $button;
+        /** @var list<array<string, mixed>> $buttons */
+        $buttons = is_array($this->config['buttons'] ?? null) ? $this->config['buttons'] : [];
+        $buttons[] = $button;
+        $this->config['buttons'] = $buttons;
         return $this;
     }
 
@@ -312,10 +321,13 @@ class Form extends Container
         $callback($fieldset);
 
         $this->add($fieldset);
-        $this->config['fieldsets'][] = [
+        /** @var list<array{legend: string, id: int}> $fieldsets */
+        $fieldsets = is_array($this->config['fieldsets'] ?? null) ? $this->config['fieldsets'] : [];
+        $fieldsets[] = [
             'legend' => $legend,
             'id' => $fieldset->getId(),
         ];
+        $this->config['fieldsets'] = $fieldsets;
 
         return $this;
     }
@@ -336,10 +348,13 @@ class Form extends Container
         $callback($section);
 
         $this->add($section);
-        $this->config['sections'][] = [
+        /** @var list<array{title: string, id: int}> $sections */
+        $sections = is_array($this->config['sections'] ?? null) ? $this->config['sections'] : [];
+        $sections[] = [
             'title' => $title,
             'id' => $section->getId(),
         ];
+        $this->config['sections'] = $sections;
 
         return $this;
     }

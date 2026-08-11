@@ -62,7 +62,9 @@ class TranslationService
         ?array $mediaMeta = null,
         ?bool $needsReview = null
     ): UsimTextValue {
-        $fallbackLanguageCode = (string) config('usim.i18n.fallback_locale', 'en');
+        /** @var string|null $fallbackLocale */
+        $fallbackLocale = config('usim.i18n.fallback_locale', 'en');
+        $fallbackLanguageCode = is_string($fallbackLocale) ? $fallbackLocale : 'en';
         $group = $this->inferGroupFromKey($key);
 
         $this->keyManager->ensureLanguageExists($fallbackLanguageCode);
@@ -94,7 +96,10 @@ class TranslationService
      */
     public function listLanguagesDataset(): array
     {
-        return $this->datasetQuery->listLanguagesDataset();
+        /** @var array{items: list<array<string, mixed>>} $dataset */
+        $dataset = $this->datasetQuery->listLanguagesDataset();
+
+        return $dataset;
     }
 
     /**
@@ -102,7 +107,10 @@ class TranslationService
      */
     public function listKeyGroupsDataset(): array
     {
-        return $this->datasetQuery->listKeyGroupsDataset();
+        /** @var array{items: list<array<string, mixed>>} $dataset */
+        $dataset = $this->datasetQuery->listKeyGroupsDataset();
+
+        return $dataset;
     }
 
     /**
@@ -117,7 +125,8 @@ class TranslationService
         int $perPage = 50,
         int $page = 1
     ): array {
-        return $this->datasetQuery->listKeysByLanguageDataset(
+        /** @var array{items: list<array<string, mixed>>, meta?: array<string, mixed>} $dataset */
+        $dataset = $this->datasetQuery->listKeysByLanguageDataset(
             $languageCode,
             $group,
             $filter,
@@ -126,6 +135,8 @@ class TranslationService
             $perPage,
             $page
         );
+
+        return $dataset;
     }
 
     /**

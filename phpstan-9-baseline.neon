@@ -193,24 +193,6 @@ parameters:
 			path: config/sanctum.php
 
 		-
-			message: '#^Cannot cast mixed to string\.$#'
-			identifier: cast.string
-			count: 2
-			path: database/migrations/2025_07_12_170026_create_permission_tables.php
-
-		-
-			message: '#^Offset ''team_foreign_key'' on array\{role_pivot_key\: string\|null, permission_pivot_key\: string\|null, model_morph_key\: string, team_foreign_key\: string\} on left side of \?\? always exists and is not nullable\.$#'
-			identifier: nullCoalesce.offset
-			count: 1
-			path: database/migrations/2025_07_12_170026_create_permission_tables.php
-
-		-
-			message: '#^Variable \$tableNames in empty\(\) always exists and is not falsy\.$#'
-			identifier: empty.variable
-			count: 1
-			path: database/migrations/2025_07_12_170026_create_permission_tables.php
-
-		-
 			message: '#^Parameter \#1 \$array of function array_keys expects array, mixed given\.$#'
 			identifier: argument.type
 			count: 1
@@ -235,24 +217,6 @@ parameters:
 			path: packages/idei/usim/src/Components/Card.php
 
 		-
-			message: '#^Cannot access offset ''action'' on mixed\.$#'
-			identifier: offsetAccess.nonOffsetAccessible
-			count: 1
-			path: packages/idei/usim/src/Components/Carousel.php
-
-		-
-			message: '#^Cannot access offset ''enabled'' on mixed\.$#'
-			identifier: offsetAccess.nonOffsetAccessible
-			count: 2
-			path: packages/idei/usim/src/Components/Carousel.php
-
-		-
-			message: '#^Cannot access offset ''timeout_ms'' on mixed\.$#'
-			identifier: offsetAccess.nonOffsetAccessible
-			count: 1
-			path: packages/idei/usim/src/Components/Carousel.php
-
-		-
 			message: '#^Cannot access an offset on mixed\.$#'
 			identifier: offsetAccess.nonOffsetAccessible
 			count: 1
@@ -263,12 +227,6 @@ parameters:
 			identifier: return.type
 			count: 1
 			path: packages/idei/usim/src/Components/Checkbox.php
-
-		-
-			message: '#^Cannot access an offset on mixed\.$#'
-			identifier: offsetAccess.nonOffsetAccessible
-			count: 5
-			path: packages/idei/usim/src/Components/Form.php
 
 		-
 			message: '#^Property Idei\\Usim\\Components\\MenuDropdown\:\:\$items \(list\<array\<string, mixed\>\>\) does not accept array\<mixed, mixed\>\.$#'
@@ -299,24 +257,6 @@ parameters:
 			identifier: assign.propertyType
 			count: 1
 			path: packages/idei/usim/src/Components/Split.php
-
-		-
-			message: '#^Binary operation "\." between non\-falsy\-string and mixed results in an error\.$#'
-			identifier: binaryOp.invalid
-			count: 2
-			path: packages/idei/usim/src/Components/TableCell.php
-
-		-
-			message: '#^Cannot call method getRowConfig\(\) on Idei\\Usim\\Components\\TableRow\|null\.$#'
-			identifier: method.nonObject
-			count: 1
-			path: packages/idei/usim/src/Components/TableCell.php
-
-		-
-			message: '#^Method Idei\\Usim\\Components\\TableCell\:\:getText\(\) should return string\|null but returns mixed\.$#'
-			identifier: return.type
-			count: 1
-			path: packages/idei/usim/src/Components/TableCell.php
 
 		-
 			message: '#^Cannot access offset int on mixed\.$#'
@@ -527,30 +467,6 @@ parameters:
 			identifier: return.type
 			count: 1
 			path: packages/idei/usim/src/Support/Translation/TranslationValueResolver.php
-
-		-
-			message: '#^Cannot cast mixed to string\.$#'
-			identifier: cast.string
-			count: 1
-			path: packages/idei/usim/src/Support/TranslationService.php
-
-		-
-			message: '#^Method Idei\\Usim\\Support\\TranslationService\:\:listKeyGroupsDataset\(\) should return array\{items\: list\<array\<string, mixed\>\>\} but returns array\<string, mixed\>\.$#'
-			identifier: return.type
-			count: 1
-			path: packages/idei/usim/src/Support/TranslationService.php
-
-		-
-			message: '#^Method Idei\\Usim\\Support\\TranslationService\:\:listKeysByLanguageDataset\(\) should return array\{items\: list\<array\<string, mixed\>\>, meta\?\: array\<string, mixed\>\} but returns array\<string, mixed\>\.$#'
-			identifier: return.type
-			count: 1
-			path: packages/idei/usim/src/Support/TranslationService.php
-
-		-
-			message: '#^Method Idei\\Usim\\Support\\TranslationService\:\:listLanguagesDataset\(\) should return array\{items\: list\<array\<string, mixed\>\>\} but returns array\<string, mixed\>\.$#'
-			identifier: return.type
-			count: 1
-			path: packages/idei/usim/src/Support/TranslationService.php
 
 		-
 			message: '#^Parameter \#2 \$replace of function __ expects array\<string, bool\|float\|int\|string\|null\>, array\<string, mixed\> given\.$#'

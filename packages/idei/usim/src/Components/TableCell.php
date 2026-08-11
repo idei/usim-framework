@@ -49,10 +49,13 @@ class TableCell extends UIComponent
 
     public function toString(): string
     {
+        $column = $this->config['column'] ?? null;
+        $text = $this->config['text'] ?? null;
+
         return "TableCell(id={$this->id}, " .
             //", name={$this->name}, text=" .
-            ", column=" . ($this->config['column'] ?? 'null') .
-            ", text=" . ($this->config['text'] ?? 'null') .
+            ", column=" . (is_scalar($column) ? (string) $column : 'null') .
+            ", text=" . (is_scalar($text) ? (string) $text : 'null') .
             ")";
     }
 
@@ -157,7 +160,9 @@ class TableCell extends UIComponent
      */
     public function getText(): ?string
     {
-        return $this->config['text'];
+        $text = $this->config['text'] ?? null;
+
+        return $text === null ? null : (is_scalar($text) ? (string) $text : null);
     }
 
     /**
@@ -273,7 +278,8 @@ class TableCell extends UIComponent
         $config = array_filter($this->config, fn($value) => $value !== null);
 
         // Inherit min_height from parent row if not set
-        if (!array_key_exists('min_height', $config)) {
+        if (!array_key_exists('min_height', $config) && $this->row !== null) {
+            /** @var array<string, mixed> $rowConfig */
             $rowConfig = $this->row->getRowConfig();
             if (array_key_exists('min_height', $rowConfig) && $rowConfig['min_height'] !== null) {
                 $config['min_height'] = $rowConfig['min_height'];

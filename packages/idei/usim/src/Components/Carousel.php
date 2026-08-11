@@ -42,6 +42,7 @@ class Carousel extends UIComponent
 
         $this->setConfig('mode', $safeMode);
 
+        /** @var array<string, mixed> $autoplay */
         $autoplay = $this->get('autoplay', []);
         $autoplay['enabled'] = $safeMode === 'auto';
         return $this->setConfig('autoplay', $autoplay);
@@ -136,6 +137,7 @@ class Carousel extends UIComponent
 
     public function autoplay(bool $enabled = true): static
     {
+        /** @var array<string, mixed> $autoplay */
         $autoplay = $this->get('autoplay', []);
         $autoplay['enabled'] = $enabled;
 
@@ -148,6 +150,7 @@ class Carousel extends UIComponent
 
     public function autoAction(string $action): static
     {
+        /** @var array<string, mixed> $autoplay */
         $autoplay = $this->get('autoplay', []);
         $autoplay['action'] = $action;
         return $this->setConfig('autoplay', $autoplay);
@@ -155,6 +158,7 @@ class Carousel extends UIComponent
 
     public function autoTimeoutMs(int $timeoutMs): static
     {
+        /** @var array<string, mixed> $autoplay */
         $autoplay = $this->get('autoplay', []);
         $autoplay['timeout_ms'] = max(1, $timeoutMs);
         return $this->setConfig('autoplay', $autoplay);
