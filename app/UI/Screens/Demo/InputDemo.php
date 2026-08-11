@@ -88,7 +88,7 @@ class InputDemo extends Screen
      */
     public function onGetValue(array $params): void
     {
-        $inputValue = trim($params['input_text'] ?? '');
+        $inputValue = is_string($params['input_text'] ?? null) ? trim($params['input_text']) : '';
 
         // Clear previous error
         $this->input_text->error(null);

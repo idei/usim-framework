@@ -143,7 +143,7 @@ class Checkbox extends UIComponent
      */
     public function isChecked(): bool
     {
-        return $this->config['checked'] ?? false;
+        return (bool) ($this->config['checked'] ?? false);
     }
 
     /**
@@ -212,10 +212,17 @@ class Checkbox extends UIComponent
      */
     public function addOption(string $value, string $label, array $extra = []): self
     {
-        $this->config['options'][] = array_merge([
+        $options = $this->config['options'] ?? [];
+        if (!is_array($options)) {
+            $options = [];
+        }
+
+        $options[] = array_merge([
             'value' => $value,
             'label' => $label,
         ], $extra);
+
+        $this->config['options'] = $options;
         return $this;
     }
 

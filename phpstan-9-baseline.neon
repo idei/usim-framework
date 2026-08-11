@@ -1,162 +1,6 @@
 parameters:
 	ignoreErrors:
 		-
-			message: '#^Parameter \#1 \$string of static method Illuminate\\Support\\Str\:\:markdown\(\) expects string, string\|false given\.$#'
-			identifier: argument.type
-			count: 1
-			path: app/Http/Controllers/TermsController.php
-
-		-
-			message: '#^Parameter \#2 \$haystack of function in_array expects array, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: app/Http/Middleware/LogViewerAccess.php
-
-		-
-			message: '#^Part \$roleName \(mixed\) of encapsed string cannot be cast to string\.$#'
-			identifier: encapsedStringPart.nonString
-			count: 1
-			path: app/Services/Auth/AuthSessionService.php
-
-		-
-			message: '#^Method App\\Services\\Auth\\LoginService\:\:login\(\) should return array\{status\: ''error'', message\: string, errors\: array\<string, list\<string\>\>\}\|array\{status\: ''success'', message\: string, data\: array\{user\: array\{id\: int, name\: string, email\: string, roles\: list\<string\>, permissions\: list\<string\>\}, token\: string, remember\: bool\}, user\: App\\Models\\User\} but returns array\{status\: ''success'', message\: string, data\: array\{user\: array\{id\: int, name\: string, email\: string, roles\: array\<mixed\>, permissions\: array\<mixed\>\}, token\: string, remember\: bool\}, user\: App\\Models\\User\}\.$#'
-			identifier: return.type
-			count: 1
-			path: app/Services/Auth/LoginService.php
-
-		-
-			message: '#^Parameter \#1 \$key of function __ expects string\|null, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: app/Services/Auth/PasswordService.php
-
-		-
-			message: '#^Method App\\Services\\Auth\\RegisterService\:\:register\(\) should return array\{status\: ''error'', message\: string, errors\: array\<string, list\<string\>\>\}\|array\{status\: ''success'', message\: string, data\: array\{user\: array\{id\: int, name\: string, email\: string, roles\: list\<string\>, permissions\: list\<string\>\}, token\: string\}, user\: App\\Models\\User\} but returns array\{status\: ''success'', message\: string, data\: array\{user\: array\{id\: int, name\: string, email\: string, roles\: array\<mixed\>, permissions\: array\<mixed\>\}, token\: string\}, user\: App\\Models\\User\}\.$#'
-			identifier: return.type
-			count: 1
-			path: app/Services/Auth/RegisterService.php
-
-		-
-			message: '#^Parameter \#1 \$key of method App\\UI\\Components\\Modals\\EditTranslationDialog\:\:getUI\(\) expects string, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: app/UI/Components/Modals/EditTranslationDialog.php
-
-		-
-			message: '#^Offset ''email_verified_at'' might not exist on array\{id\: int\|string, name\: string, email\: string, roles\?\: list\<array\{name\?\: string\}\>, email_verified_at\?\: mixed\}\.$#'
-			identifier: offsetAccess.notFound
-			count: 1
-			path: app/UI/Components/Modals/EditUserDialog.php
-
-		-
-			message: '#^Parameter \#1 \$submitAction of method App\\UI\\Components\\Modals\\EditUserDialog\:\:getUI\(\) expects string, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: app/UI/Components/Modals/EditUserDialog.php
-
-		-
-			message: '#^Parameter \#1 \$submitAction of method App\\UI\\Components\\Modals\\RegisterDialog\:\:getUI\(\) expects string, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: app/UI/Components/Modals/RegisterDialog.php
-
-		-
-			message: '#^Parameter \#1 \$cancelAction of method App\\UI\\Components\\Modals\\TermsDialog\:\:getUI\(\) expects string\|null, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: app/UI/Components/Modals/TermsDialog.php
-
-		-
-			message: '#^Parameter \#2 \$array of function implode expects array\<string\>, array\<mixed\> given\.$#'
-			identifier: argument.type
-			count: 1
-			path: app/UI/Screens/Admin/TableModels/UserTableModel.php
-
-		-
-			message: '#^Part \$name \(mixed\) of encapsed string cannot be cast to string\.$#'
-			identifier: encapsedStringPart.nonString
-			count: 1
-			path: app/UI/Screens/Admin/TableModels/UserTableModel.php
-
-		-
-			message: '#^Parameter \#1 \$email of method App\\Services\\Auth\\PasswordService\:\:sendResetLink\(\) expects string, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: app/UI/Screens/Auth/ForgotPassword.php
-
-		-
-			message: '#^Parameter \#1 \$year of static method App\\UI\\Screens\\Demo\\CalendarioAcadémico\:\:getMonthEvents\(\) expects int, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: app/UI/Screens/Demo/CalendarDemo.php
-
-		-
-			message: '#^Parameter \#2 \$month of static method App\\UI\\Screens\\Demo\\CalendarioAcadémico\:\:getMonthEvents\(\) expects int, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: app/UI/Screens/Demo/CalendarDemo.php
-
-		-
-			message: '#^Offset ''end'' might not exist on array\{start\?\: string, end\?\: string, date\?\: string, type\: string, title\: string\}\.$#'
-			identifier: offsetAccess.notFound
-			count: 1
-			path: app/UI/Screens/Demo/CalendarioAcadémico.php
-
-		-
-			message: '#^Offset ''start'' might not exist on array\{start\?\: string, end\?\: string, date\?\: string, type\: string, title\: string\}\.$#'
-			identifier: offsetAccess.notFound
-			count: 1
-			path: app/UI/Screens/Demo/CalendarioAcadémico.php
-
-		-
-			message: '#^Parameter \#1 \$checked of method Idei\\Usim\\Components\\Checkbox\:\:checked\(\) expects bool, mixed given\.$#'
-			identifier: argument.type
-			count: 2
-			path: app/UI/Screens/Demo/CheckboxDemo.php
-
-		-
-			message: '#^Parameter \#1 \$id of method Idei\\Usim\\Screen\:\:findRootComponentAs\(\) expects int\|string\|null, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: app/UI/Screens/Demo/DemoUi.php
-
-		-
-			message: '#^Parameter \#1 \$string of function trim expects string, mixed given\.$#'
-			identifier: argument.type
-			count: 2
-			path: app/UI/Screens/Demo/FormDemo.php
-
-		-
-			message: '#^Parameter \#1 \$string of function trim expects string, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: app/UI/Screens/Demo/InputDemo.php
-
-		-
-			message: '#^Cannot cast mixed to string\.$#'
-			identifier: cast.string
-			count: 2
-			path: app/UI/Screens/Demo/SplitDemo.php
-
-		-
-			message: '#^Cannot cast mixed to string\.$#'
-			identifier: cast.string
-			count: 2
-			path: app/UI/Screens/Demo/TabsDemo.php
-
-		-
-			message: '#^Parameter \#1 \$string of function mb_strlen expects string, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: app/UI/Screens/Demo/TextareaDemo.php
-
-		-
-			message: '#^Parameter \#1 \$string of function trim expects string, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: app/UI/Screens/Demo/TextareaDemo.php
-
-		-
 			message: '#^Parameter \#2 \$string of function explode expects string, bool\|string given\.$#'
 			identifier: argument.type
 			count: 1
@@ -169,28 +13,10 @@ parameters:
 			path: packages/idei/usim/src/Components/Card.php
 
 		-
-			message: '#^Cannot access an offset on mixed\.$#'
-			identifier: offsetAccess.nonOffsetAccessible
-			count: 1
-			path: packages/idei/usim/src/Components/Checkbox.php
-
-		-
-			message: '#^Method Idei\\Usim\\Components\\Checkbox\:\:isChecked\(\) should return bool but returns mixed\.$#'
-			identifier: return.type
-			count: 1
-			path: packages/idei/usim/src/Components/Checkbox.php
-
-		-
 			message: '#^Property Idei\\Usim\\Components\\MenuDropdown\:\:\$items \(list\<array\<string, mixed\>\>\) does not accept array\<mixed, mixed\>\.$#'
 			identifier: assign.propertyType
 			count: 1
 			path: packages/idei/usim/src/Components/MenuDropdown.php
-
-		-
-			message: '#^Cannot access an offset on mixed\.$#'
-			identifier: offsetAccess.nonOffsetAccessible
-			count: 2
-			path: packages/idei/usim/src/Components/Select.php
 
 		-
 			message: '#^Parameter \#1 \$string of function addslashes expects string, mixed given\.$#'
@@ -217,34 +43,10 @@ parameters:
 			path: packages/idei/usim/src/DataTable/AbstractTableModel.php
 
 		-
-			message: '#^Method Idei\\Usim\\Http\\Controllers\\UIController\:\:extractRequestData\(\) should return array\{shouldReset\: bool, storage\: array\<string, mixed\>, queryParams\: array\<string, mixed\>\} but returns array\{shouldReset\: \(array\|string\|false\), storage\: mixed, queryParams\: array\}\.$#'
-			identifier: return.type
-			count: 1
-			path: packages/idei/usim/src/Http/Controllers/UIController.php
-
-		-
-			message: '#^Part \$namespace \(mixed\) of encapsed string cannot be cast to string\.$#'
-			identifier: encapsedStringPart.nonString
-			count: 1
-			path: packages/idei/usim/src/Http/Controllers/UIController.php
-
-		-
 			message: '#^Cannot cast mixed to int\.$#'
 			identifier: cast.int
 			count: 1
 			path: packages/idei/usim/src/Models/UsimRole.php
-
-		-
-			message: '#^Parameter \#1 \$callback of method Illuminate\\Support\\Collection\<\(int\|string\),mixed\>\:\:map\(\) expects callable\(mixed, int\|string\)\: array\{group\: string\}, Closure\(string\)\: array\{group\: string\} given\.$#'
-			identifier: argument.type
-			count: 1
-			path: packages/idei/usim/src/Support/Translation/TranslationDatasetQuery.php
-
-		-
-			message: '#^Parameter \#1 \$string of function trim expects string, string\|null given\.$#'
-			identifier: argument.type
-			count: 1
-			path: packages/idei/usim/src/Support/Translation/TranslationDatasetQuery.php
 
 		-
 			message: '#^Property Idei\\Usim\\Models\\UsimTextKey\:\:\$group \(string\|null\) does not accept mixed\.$#'

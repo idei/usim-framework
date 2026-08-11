@@ -68,7 +68,9 @@ class LoginService
 
         $token = $this->authSessionService->issueToken($user, $remember);
 
+        /** @var list<string> $permissions */
         $permissions = $user->getAllPermissions()->pluck('name')->toArray();
+        /** @var list<string> $roles */
         $roles = $user->getRoleNames()->toArray();
 
         return [

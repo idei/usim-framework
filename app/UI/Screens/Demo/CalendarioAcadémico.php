@@ -60,14 +60,19 @@ class CalendarioAcadémico
                 if ((int)$eventDate->format('Y') === $year && (int)$eventDate->format('n') === $month) {
                     $monthEvents[] = $event;
                 }
-            } else {
-                $startDate = new DateTime($event['start']);
-                $endDate = new DateTime($event['end']);
-                // Check if the event overlaps with the month
-                if (($startDate->format('Y') < $year || ($startDate->format('Y') == $year && (int)$startDate->format('n') <= $month)) &&
-                    ($endDate->format('Y') > $year || ($endDate->format('Y') == $year && (int)$endDate->format('n') >= $month))) {
-                    $monthEvents[] = $event;
-                }
+                continue;
+            }
+
+            if (!isset($event['start'], $event['end'])) {
+                continue;
+            }
+
+            $startDate = new DateTime($event['start']);
+            $endDate = new DateTime($event['end']);
+            // Check if the event overlaps with the month
+            if (($startDate->format('Y') < $year || ($startDate->format('Y') == $year && (int)$startDate->format('n') <= $month)) &&
+                ($endDate->format('Y') > $year || ($endDate->format('Y') == $year && (int)$endDate->format('n') >= $month))) {
+                $monthEvents[] = $event;
             }
         }
         // Si el mes y año coinciden con now, agregar evento "hoy" al día actual

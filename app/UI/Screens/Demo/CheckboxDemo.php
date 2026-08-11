@@ -84,7 +84,7 @@ class CheckboxDemo extends Screen
     /** @param array<string, mixed> $params */
     public function onTryChangeJavascript(array $params): void
     {
-        $wantsChecked = $params['checked'] ?? false;
+        $wantsChecked = (bool) ($params['checked'] ?? false);
 
         // // Example validation: you could check any condition here
         // // For now, we'll allow the change
@@ -112,7 +112,7 @@ class CheckboxDemo extends Screen
     /** @param array<string, mixed> $params */
     public function onTryChangePython(array $params): void
     {
-        $wantsChecked = $params['checked'] ?? false;
+        $wantsChecked = (bool) ($params['checked'] ?? false);
         $jsChecked    = $this->chk_javascript->isChecked();
 
         // Example validation: only allow Python if JavaScript is also selected

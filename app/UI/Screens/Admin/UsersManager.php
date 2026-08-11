@@ -302,8 +302,11 @@ class UsersManager extends Screen
 
         $this->users_table->select($userId);
 
+        /** @var array{id:int|string,name:string,email:string,roles?:list<array{name?:string}>,email_verified_at?:mixed} $modalUser */
+        $modalUser = $user;
+
         EditUserDialog::open(
-            user: $user,
+            user: $modalUser,
             callerServiceId: $this->getScreenComponentId()
         );
     }

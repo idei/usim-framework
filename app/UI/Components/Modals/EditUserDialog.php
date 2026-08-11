@@ -17,12 +17,23 @@ class EditUserDialog
 {
 
     /**
-     * @param mixed ...$params
+     * @param array{
+     *     id: int|string,
+     *     name: string,
+     *     email: string,
+     *     roles?: list<array{name?: string}>,
+     *     email_verified_at?: mixed
+     * }|null $user
      */
-    public static function open(...$params): void
+    public static function open(
+        string $submitAction = 'submit_update_user',
+        ?string $cancelAction = 'close_modal',
+        ?array $user = null,
+        ?int $callerServiceId = null
+    ): void
     {
         $dialog = new self();
-        $format = $dialog->getUI(...$params);
+        $format = $dialog->getUI($submitAction, $cancelAction, $user, $callerServiceId);
         $uiChanges = app(UIChangesCollector::class);
         $uiChanges->add($format);
     }
@@ -51,7 +62,9 @@ class EditUserDialog
         $name = $user ? $user['name'] : '';
         $email = $user ? $user['email'] : '';
         $role = $user ? $user['roles'][0]['name'] ?? 'user' : 'user';
-        $emailVerified = $user ? $user['email_verified_at'] !== null : false;
+        $emailVerified = $user
+            ? (array_key_exists('email_verified_at', $user) && $user['email_verified_at'] !== null)
+            : false;
 
         // Main container for the modal
         $registerContainer = UI::container('register_dialog')

@@ -210,7 +210,12 @@ class DemoUi extends Screen
      */
     public function onNewButtonAction(array $params): void
     {
-        $button = $this->findRootComponentAs($params['id'] ?? null, Button::class);
+        $id = $params['id'] ?? null;
+        if (!is_int($id) && !is_string($id)) {
+            return;
+        }
+
+        $button = $this->findRootComponentAs($id, Button::class);
 
         if (!$button) {
             return;

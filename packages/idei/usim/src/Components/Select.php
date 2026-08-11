@@ -124,6 +124,7 @@ class Select extends UIComponent
     public function addOption(string $value, string $label, array $extra = []): self
     {
         $option = array_merge(['value' => $value, 'label' => $label], $extra);
+        /** @var list<array<string, mixed>> $options */
         $options = $this->config['options'];
         $options[] = $option;
         return $this->setConfig('options', $options);
@@ -149,6 +150,7 @@ class Select extends UIComponent
      */
     public function addGroup(string $label, array $options): self
     {
+        /** @var list<array{label: string, options: list<array<string, mixed>>}> $groups */
         $groups = $this->config['groups'];
         $groups[] = ['label' => $label, 'options' => $options];
         return $this->setConfig('groups', $groups);

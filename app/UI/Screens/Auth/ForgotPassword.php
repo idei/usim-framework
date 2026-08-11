@@ -139,7 +139,7 @@ class ForgotPassword extends Screen
     /** @param array<string, mixed> $params */
     public function onSendLink(array $params): void
     {
-        $email = $params['email'] ?? '';
+        $email = is_string($params['email'] ?? null) ? $params['email'] : '';
 
         if (empty($email)) {
             if (isset($this->lbl_result)) {

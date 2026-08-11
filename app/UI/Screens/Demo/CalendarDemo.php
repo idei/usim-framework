@@ -51,8 +51,17 @@ class CalendarDemo extends Screen
      */
     public function onMonthChanged(array $params): void
     {
-        $year = $params['year'];
-        $month = $params['month'];
+        $yearParam = $params['year'] ?? null;
+        $monthParam = $params['month'] ?? null;
+
+        $year = is_int($yearParam)
+            ? $yearParam
+            : ((is_string($yearParam) && is_numeric($yearParam)) ? (int) $yearParam : 2026);
+
+        $month = is_int($monthParam)
+            ? $monthParam
+            : ((is_string($monthParam) && is_numeric($monthParam)) ? (int) $monthParam : (int) date('n'));
+
         $monthEvents = CalendarioAcadémico::getMonthEvents($year, $month);
         $this->academic_calendar->events($monthEvents);
     }

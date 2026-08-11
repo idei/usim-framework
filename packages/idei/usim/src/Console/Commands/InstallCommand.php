@@ -100,6 +100,7 @@ class InstallCommand extends Command
 
         $this->installExecutionRollbackManager->begin($this->rollbackTrackedPaths());
 
+        /** @var array<int, array{key:string,label:string,run:callable():void}> $steps */
         $steps = $this->buildWorkflowSteps($envPath);
 
         $this->installStateManager->start(count($steps));
@@ -108,9 +109,10 @@ class InstallCommand extends Command
             $totalSteps = count($steps);
 
             foreach ($steps as $index => $step) {
+                /** @var array{key:string,label:string,run:callable():void} $step */
                 $this->runInstallStep(
-                    stepKey: (string) $step['key'],
-                    label: (string) $step['label'],
+                    stepKey: $step['key'],
+                    label: $step['label'],
                     index: $index + 1,
                     total: $totalSteps,
                     callback: $step['run']

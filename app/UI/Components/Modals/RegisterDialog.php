@@ -18,12 +18,21 @@ class RegisterDialog
 {
 
     /**
-     * @param mixed ...$params
+     * @param string $submitAction
+     * @param string|null $cancelAction
+     * @param bool $fakeData
+     * @param bool $askForRole
+     * @param int|null $callerServiceId
      */
-    public static function open(...$params): void
-    {
+    public static function open(
+        string $submitAction = 'submit_register',
+        ?string $cancelAction = 'close_modal',
+        bool $fakeData = false,
+        bool $askForRole = false,
+        ?int $callerServiceId = null
+    ): void {
         $dialog = new self();
-        $format = $dialog->getUI(...$params);
+        $format = $dialog->getUI($submitAction, $cancelAction, $fakeData, $askForRole, $callerServiceId);
         $uiChanges = app(UIChangesCollector::class);
         $uiChanges->add($format);
     }

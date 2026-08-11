@@ -96,7 +96,15 @@ class UserTableModel extends AbstractTableModel
 
     private function formatRoles(User $user): string
     {
-        $roles = $user->roles->pluck('name')->map(fn ($name) => t("role.$name.name"))->toArray();
+        /** @var list<string> $roleNames */
+        $roleNames = $user->roles
+            ->pluck('name')
+            ->filter(static fn ($name): bool => is_string($name))
+            ->values()
+            ->toArray();
+
+        /** @var list<string> $roles */
+        $roles = array_map(static fn (string $name): string => t("role.$name.name"), $roleNames);
 
         return $roles ? implode(', ', $roles) : t('role.none');
     }

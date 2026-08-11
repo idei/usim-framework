@@ -88,7 +88,8 @@ class TabsDemo extends Screen
     /** @param array<string, mixed> $params */
     public function onTabsSwitch(array $params): void
     {
-        $requested = (string) ($params['tab_id'] ?? 'overview');
+        $rawRequested = $params['tab_id'] ?? 'overview';
+        $requested = is_scalar($rawRequested) || $rawRequested instanceof \Stringable ? (string) $rawRequested : '';
         $activeTab = $requested !== '' ? $requested : 'overview';
         $this->tabs_container->activeTab($activeTab);
     }
@@ -96,7 +97,8 @@ class TabsDemo extends Screen
     /** @param array<string, mixed> $params */
     public function onTabsClose(array $params): void
     {
-        $tabId = (string) ($params['tab_id'] ?? '');
+        $rawTabId = $params['tab_id'] ?? '';
+        $tabId = is_scalar($rawTabId) || $rawTabId instanceof \Stringable ? (string) $rawTabId : '';
         if ($tabId === '') {
             return;
         }

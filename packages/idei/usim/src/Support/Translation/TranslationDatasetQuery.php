@@ -47,7 +47,7 @@ class TranslationDatasetQuery
             ->distinct()
             ->orderBy('group')
             ->pluck('group')
-            ->map(static fn (string $group): array => ['group' => $group])
+            ->map(static fn (mixed $group): array => ['group' => is_string($group) ? $group : ''])
             ->values()
             ->all();
 
@@ -74,14 +74,15 @@ class TranslationDatasetQuery
         $normalizedPerPage = max(1, min($perPage, 200));
         $normalizedPage = max(1, $page);
         $normalizedGroup = $group !== null && strtolower($group) !== 'all' ? $group : null;
+        $normalizedFilter = is_string($filter) ? trim($filter) : '';
 
         $paginator = UsimTextKey::query()
             ->where('is_active', true)
             ->when($normalizedGroup !== null, function (Builder $query) use ($normalizedGroup): void {
                 $query->where('group', $normalizedGroup);
             })
-            ->when($filter !== null && trim($filter) !== '', function (Builder $query) use ($filter): void {
-                $like = '%' . trim($filter) . '%';
+            ->when($normalizedFilter !== '', function (Builder $query) use ($normalizedFilter): void {
+                $like = '%' . $normalizedFilter . '%';
 
                 $query->where(function (Builder $searchQuery) use ($like): void {
                     $searchQuery->where('key', 'like', $like)

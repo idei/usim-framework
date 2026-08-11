@@ -101,7 +101,8 @@ class UIController extends Controller
             ->map(fn(string $segment) => Str::studly($segment))
             ->join('\\');
 
-        $namespace = config('usim.screens_namespace', 'App\\UI\\Screens');
+        $namespaceValue = config('usim.screens_namespace', 'App\\UI\\Screens');
+        $namespace = is_string($namespaceValue) ? $namespaceValue : 'App\\UI\\Screens';
 
         return "{$namespace}\\{$screenNameSegments}";
     }
@@ -111,10 +112,17 @@ class UIController extends Controller
      */
     private function extractRequestData(): array
     {
+        $storageCandidate = request()->input('storage', []);
+        /** @var array<string, mixed> $storage */
+        $storage = is_array($storageCandidate) ? $storageCandidate : [];
+
+        /** @var array<string, mixed> $queryParams */
+        $queryParams = request()->query();
+
         return [
-            'shouldReset' => request()->query('reset', false),
-            'storage' => request()->storage ?? [],
-            'queryParams' => request()->query(),
+            'shouldReset' => (bool) request()->query('reset', false),
+            'storage' => $storage,
+            'queryParams' => $queryParams,
         ];
     }
 

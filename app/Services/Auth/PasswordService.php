@@ -138,7 +138,7 @@ class PasswordService
         return [
             'status' => 'error',
             'message' => t('service.auth.password.reset_failed'),
-            'errors' => ['email' => [__($status)]],
+            'errors' => ['email' => [__(is_string($status) ? $status : null)]],
         ];
     }
 }

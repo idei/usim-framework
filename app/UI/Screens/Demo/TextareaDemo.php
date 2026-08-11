@@ -98,13 +98,15 @@ class TextareaDemo extends Screen
     /** @param array<string, mixed> $params */
     public function onPlainSaved(array $params): void
     {
-        $value = trim($params['value'] ?? '');
+        $rawValue = $params['value'] ?? '';
+        $value = trim(is_scalar($rawValue) || $rawValue instanceof \Stringable ? (string) $rawValue : '');
     }
 
     /** @param array<string, mixed> $params */
     public function onMdSaved(array $params): void
     {
-        $value = $params['value'] ?? '';
+        $rawValue = $params['value'] ?? '';
+        $value = is_scalar($rawValue) || $rawValue instanceof \Stringable ? (string) $rawValue : '';
         $len = mb_strlen($value);
 
         $this->toast("Markdown guardado ({$len} car.)");

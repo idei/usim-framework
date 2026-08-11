@@ -90,7 +90,10 @@ class RegisterService
 
         $token = $this->authSessionService->issueToken($user);
 
+        /** @var list<string> $permissions */
         $permissions = $user->getAllPermissions()->pluck('name')->toArray();
+        /** @var list<string> $roles */
+        $roles = $user->getRoleNames()->toArray();
 
         return [
             'status' => 'success',
@@ -100,7 +103,7 @@ class RegisterService
                     'id' => $user->id,
                     'name' => $user->name,
                     'email' => $user->email,
-                    'roles' => $user->getRoleNames()->toArray(),
+                    'roles' => $roles,
                     'permissions' => $permissions,
                 ],
                 'token' => $token,

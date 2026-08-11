@@ -85,8 +85,11 @@ class FormDemo extends Screen
     public function onSubmitForm(array $params): void
     {
         // Get input values from frontend parameters (sent by collectContextValues)
-        $name = trim($params['input_name'] ?? '');
-        $email = trim($params['input_email'] ?? '');
+        $rawName = $params['input_name'] ?? '';
+        $name = trim(is_scalar($rawName) || $rawName instanceof \Stringable ? (string) $rawName : '');
+
+        $rawEmail = $params['input_email'] ?? '';
+        $email = trim(is_scalar($rawEmail) || $rawEmail instanceof \Stringable ? (string) $rawEmail : '');
 
         // Clear previous errors
         $this->input_name->error(null);

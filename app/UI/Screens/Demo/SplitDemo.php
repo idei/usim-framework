@@ -251,8 +251,11 @@ class SplitDemo extends Screen
      */
     public function onApplySplitSize(array $params): void
     {
-        $splitSize = trim((string) ($params['inp_split_size'] ?? $this->store_split_size));
-        $splitterSize = trim((string) ($params['inp_splitter_size'] ?? $this->store_splitter_size));
+        $rawSplitSize = $params['inp_split_size'] ?? $this->store_split_size;
+        $splitSize = trim(is_scalar($rawSplitSize) || $rawSplitSize instanceof \Stringable ? (string) $rawSplitSize : '');
+
+        $rawSplitterSize = $params['inp_splitter_size'] ?? $this->store_splitter_size;
+        $splitterSize = trim(is_scalar($rawSplitterSize) || $rawSplitterSize instanceof \Stringable ? (string) $rawSplitterSize : '');
 
         if ($splitSize !== '') {
             $this->store_split_size = $splitSize;

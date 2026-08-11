@@ -40,6 +40,10 @@ class AuthSessionService
         $rolesConfig = config('usim.roles', config('users.roles', []));
 
         foreach ($user->getRoleNames() as $roleName) {
+            if (!is_string($roleName)) {
+                continue;
+            }
+
             $screenClass = data_get($rolesConfig, "{$roleName}.home_screen");
 
             if (

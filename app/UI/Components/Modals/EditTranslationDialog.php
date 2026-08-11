@@ -12,12 +12,45 @@ use Idei\Usim\ValueObjects\Spacing;
 class EditTranslationDialog
 {
     /**
-     * @param mixed ...$params
+     * @param string $key
+     * @param string $group
+     * @param string $fallbackLanguageCode
+     * @param string|null $selectedLanguageCode
+     * @param string $fallbackText
+     * @param string $selectedText
+     * @param bool $fallbackNeedsReview
+     * @param bool $selectedNeedsReview
+     * @param string $submitAction
+     * @param string|null $cancelAction
+     * @param int|null $callerServiceId
      */
-    public static function open(...$params): void
-    {
+    public static function open(
+        string $key,
+        string $group,
+        string $fallbackLanguageCode,
+        ?string $selectedLanguageCode = null,
+        string $fallbackText = '',
+        string $selectedText = '',
+        bool $fallbackNeedsReview = false,
+        bool $selectedNeedsReview = false,
+        string $submitAction = 'submit_update_translation',
+        ?string $cancelAction = 'close_modal',
+        ?int $callerServiceId = null
+    ): void {
         $dialog = new self();
-        $format = $dialog->getUI(...$params);
+        $format = $dialog->getUI(
+            $key,
+            $group,
+            $fallbackLanguageCode,
+            $selectedLanguageCode,
+            $fallbackText,
+            $selectedText,
+            $fallbackNeedsReview,
+            $selectedNeedsReview,
+            $submitAction,
+            $cancelAction,
+            $callerServiceId
+        );
         app(UIChangesCollector::class)->add($format);
     }
 
