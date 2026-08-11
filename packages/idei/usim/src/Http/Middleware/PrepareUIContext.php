@@ -34,6 +34,7 @@ class PrepareUIContext
      */
     private function decryptUsimStorage(Request $request): void
     {
+        /** @var array<string, mixed> $storage */
         $storage = [];
         $encrypted = null;
 
@@ -51,14 +52,15 @@ class PrepareUIContext
             }
         }
 
-        $storage_key = config('usim.front_store_key');
+        $storageKeyConfig = config('usim.front_store_key');
+        $storageKey = is_string($storageKeyConfig) ? $storageKeyConfig : '';
 
         // 2. Si no hay header válido, intentar desde Input storage_key
-        if (empty($encrypted) && $request->has($storage_key)) {
-            $encrypted = $request->input($storage_key);
+        if (empty($encrypted) && $request->has($storageKey)) {
+            $encrypted = $request->input($storageKey);
         }
 
-        if ($encrypted) {
+        if (is_string($encrypted) && $encrypted !== '') {
             $decodedStorage = json_decode($encrypted, true);
             $storage = \is_array($decodedStorage) ? $decodedStorage : [];
         }
@@ -66,14 +68,16 @@ class PrepareUIContext
         $request->merge(['storage' => $storage]);
 
         // Apply locale from store_lang so all t() calls in this request use the user's selected language
-        if (!empty($storage['store_lang'])) {
-            app()->setLocale($storage['store_lang']);
+        $storageLang = $storage['store_lang'] ?? null;
+        if (is_scalar($storageLang) && $storageLang !== '') {
+            app()->setLocale((string) $storageLang);
         }
 
-        $store_token = $storage['store_token'] ?? '';
+        $storeTokenValue = $storage['store_token'] ?? null;
+        $storeToken = is_scalar($storeTokenValue) ? (string) $storeTokenValue : null;
 
-        $request->headers->set('Authorization', "Bearer $store_token");
-        UIStateManager::setAuthToken($store_token);
+        $request->headers->set('Authorization', 'Bearer ' . ($storeToken ?? ''));
+        UIStateManager::setAuthToken($storeToken);
     }
 
     /**

@@ -1,30 +1,6 @@
 parameters:
 	ignoreErrors:
 		-
-			message: '#^Binary operation "\." between mixed and ''/'' results in an error\.$#'
-			identifier: binaryOp.invalid
-			count: 2
-			path: app/Http/Controllers/Api/FileController.php
-
-		-
-			message: '#^Parameter \#1 \$directory of method Illuminate\\Filesystem\\FilesystemAdapter\:\:files\(\) expects string\|null, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: app/Http/Controllers/Api/FileController.php
-
-		-
-			message: '#^Parameter \#1 \$path of method Illuminate\\Http\\UploadedFile\:\:storeAs\(\) expects string, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: app/Http/Controllers/Api/FileController.php
-
-		-
-			message: '#^Parameter \#1 \$path of static method Illuminate\\Filesystem\\FilesystemAdapter\:\:url\(\) expects string, string\|false given\.$#'
-			identifier: argument.type
-			count: 1
-			path: app/Http/Controllers/Api/FileController.php
-
-		-
 			message: '#^Parameter \#1 \$string of static method Illuminate\\Support\\Str\:\:markdown\(\) expects string, string\|false given\.$#'
 			identifier: argument.type
 			count: 1
@@ -211,24 +187,6 @@ parameters:
 			path: app/UI/Screens/Demo/TextareaDemo.php
 
 		-
-			message: '#^Call to function is_string\(\) with string will always evaluate to true\.$#'
-			identifier: function.alreadyNarrowedType
-			count: 1
-			path: app/UI/Screens/Menu.php
-
-		-
-			message: '#^Cannot access property \$name on mixed\.$#'
-			identifier: property.nonObject
-			count: 3
-			path: app/UI/Screens/Menu.php
-
-		-
-			message: '#^Cannot access property \$profile_image on mixed\.$#'
-			identifier: property.nonObject
-			count: 2
-			path: app/UI/Screens/Menu.php
-
-		-
 			message: '#^Parameter \#2 \$string of function explode expects string, bool\|string given\.$#'
 			identifier: argument.type
 			count: 1
@@ -379,12 +337,6 @@ parameters:
 			path: packages/idei/usim/src/Components/TableRow.php
 
 		-
-			message: '#^Parameter \#1 \$value of static method Idei\\Usim\\ValueObjects\\Size\:\:from\(\) expects Idei\\Usim\\ValueObjects\\Size\|int\|string, mixed given\.$#'
-			identifier: argument.type
-			count: 6
-			path: packages/idei/usim/src/Components/UIComponent.php
-
-		-
 			message: '#^Method Idei\\Usim\\Components\\Uploader\:\:getTempIds\(\) should return list\<string\> but returns array\<mixed\>\.$#'
 			identifier: return.type
 			count: 1
@@ -455,42 +407,6 @@ parameters:
 			identifier: argument.type
 			count: 2
 			path: packages/idei/usim/src/Http/Controllers/UploadController.php
-
-		-
-			message: '#^Parameter \#1 \$json of function json_decode expects string, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: packages/idei/usim/src/Http/Middleware/PrepareUIContext.php
-
-		-
-			message: '#^Parameter \#1 \$key of method Illuminate\\Http\\Request\:\:has\(\) expects array\|string, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: packages/idei/usim/src/Http/Middleware/PrepareUIContext.php
-
-		-
-			message: '#^Parameter \#1 \$key of method Illuminate\\Http\\Request\:\:input\(\) expects string\|null, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: packages/idei/usim/src/Http/Middleware/PrepareUIContext.php
-
-		-
-			message: '#^Parameter \#1 \$locale of method Illuminate\\Foundation\\Application\:\:setLocale\(\) expects string, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: packages/idei/usim/src/Http/Middleware/PrepareUIContext.php
-
-		-
-			message: '#^Parameter \#1 \$token of static method Idei\\Usim\\Support\\UIStateManager\:\:setAuthToken\(\) expects string\|null, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: packages/idei/usim/src/Http/Middleware/PrepareUIContext.php
-
-		-
-			message: '#^Part \$store_token \(mixed\) of encapsed string cannot be cast to string\.$#'
-			identifier: encapsedStringPart.nonString
-			count: 1
-			path: packages/idei/usim/src/Http/Middleware/PrepareUIContext.php
 
 		-
 			message: '#^Parameter \#1 \$incomingStorage of method Idei\\Usim\\Screen\:\:initializeEventContext\(\) expects array\<string, mixed\>, mixed given\.$#'

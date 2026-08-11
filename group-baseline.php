@@ -141,6 +141,7 @@ Reglas generales:
 - No modifiques lógica de negocio. Solo agregá o corregí anotaciones de tipo (PHPDoc) o casteos seguros para satisfacer PHPStan nivel 9.
 - No uses `@phpstan-ignore-line` ni agregues entradas manuales al baseline salvo que yo lo indique explícitamente.
 - Preferí el casteo explícito y seguro (`(string)`, `(int)`, etc.) antes que `@phpstan-ignore`.
+- Si no encontrás el origen de un error directamente en el archivo indicado, verificá los **Traits** que dicho archivo utiliza. Si el error proviene de un Trait, tenés permitido modificarlo para solucionar el problema.
 
 Convenciones de arrays:
 - Configuración de componentes: `array<string, mixed>`
@@ -157,7 +158,7 @@ Cuándo NO castear automáticamente:
 Antes de tocar nada:
 Analizá el/los archivo(s) y los errores de abajo, y mostrame primero un resumen corto pero explícito de qué vas a cambiar y por qué (línea o método afectado, tipo de fix a aplicar). Recién después de mostrar ese resumen, aplicá los cambios.
 
-No toques archivos fuera de: {$affectedFilesFormatted}.
+No toques archivos fuera de: {$affectedFilesFormatted} (salvo Traits utilizados directamente por ellos si allí reside el error).
 
 Al terminar:
 - Corré, con límite de tiempo para que el comando no quede colgado: `timeout 120 vendor/bin/phpstan analyze --level 9 {$affectedFilesCLI}` y verificá que la cantidad de errores en estos archivos se redujo o eliminó.

@@ -18,7 +18,13 @@ trait HasSizing
 
     public function getWidth(): Size
     {
-        return Size::from($this->config['width'] ?? Size::auto());
+        $value = $this->config['width'] ?? Size::auto();
+
+        if ($value instanceof Size || is_int($value) || is_string($value)) {
+            return Size::from($value);
+        }
+
+        return Size::auto();
     }
 
     public function height(Size $height): static
@@ -28,7 +34,13 @@ trait HasSizing
 
     public function getHeight(): Size
     {
-        return Size::from($this->config['height'] ?? Size::auto());
+        $value = $this->config['height'] ?? Size::auto();
+
+        if ($value instanceof Size || is_int($value) || is_string($value)) {
+            return Size::from($value);
+        }
+
+        return Size::auto();
     }
 
     public function minWidth(Size $width): static
@@ -39,7 +51,11 @@ trait HasSizing
     public function getMinWidth(): ?Size
     {
         $v = $this->config['min_width'] ?? null;
-        return $v !== null ? Size::from($v) : null;
+        if ($v instanceof Size || is_int($v) || is_string($v)) {
+            return Size::from($v);
+        }
+
+        return null;
     }
 
     public function minHeight(Size $height): static
@@ -50,7 +66,11 @@ trait HasSizing
     public function getMinHeight(): ?Size
     {
         $v = $this->config['min_height'] ?? null;
-        return $v !== null ? Size::from($v) : null;
+        if ($v instanceof Size || is_int($v) || is_string($v)) {
+            return Size::from($v);
+        }
+
+        return null;
     }
 
     public function maxWidth(Size $width): static
@@ -61,7 +81,11 @@ trait HasSizing
     public function getMaxWidth(): ?Size
     {
         $v = $this->config['max_width'] ?? null;
-        return $v !== null ? Size::from($v) : null;
+        if ($v instanceof Size || is_int($v) || is_string($v)) {
+            return Size::from($v);
+        }
+
+        return null;
     }
 
     public function maxHeight(Size $height): static
@@ -72,6 +96,10 @@ trait HasSizing
     public function getMaxHeight(): ?Size
     {
         $v = $this->config['max_height'] ?? null;
-        return $v !== null ? Size::from($v) : null;
+        if ($v instanceof Size || is_int($v) || is_string($v)) {
+            return Size::from($v);
+        }
+
+        return null;
     }
 }

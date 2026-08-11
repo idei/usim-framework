@@ -191,7 +191,11 @@ class Menu extends Screen
 
         if (Auth::check()) {
             $user = Auth::user();
-            $this->updateUserMenuTrigger($user);
+            if ($user instanceof User) {
+                $this->updateUserMenuTrigger($user);
+            } else {
+                $this->user_menu->trigger("⚙️");
+            }
             // Rebuild main menu to check permissions for screen() items
             $this->main_menu->clearItems();
             $this->populateMainMenu($this->main_menu);
@@ -208,7 +212,7 @@ class Menu extends Screen
     /**
      * Actualizar el trigger del menú de usuario según el estado del perfil
      */
-    private function updateUserMenuTrigger(mixed $user): void
+    private function updateUserMenuTrigger(User $user): void
     {
         if ($user->profile_image) {
             // Caso 3: Usuario con imagen de perfil
@@ -293,7 +297,7 @@ class Menu extends Screen
     public function onLoggedUser(array $params): void
     {
         $user = Auth::user();
-        if ($user) {
+        if ($user instanceof User) {
             $this->updateUserMenuTrigger($user);
 
             // Rebuild user menu to check permissions for items
@@ -312,7 +316,7 @@ class Menu extends Screen
     public function onUpdatedProfile(array $params): void
     {
         $user = $params['user'] ?? null;
-        if ($user) {
+        if ($user instanceof User) {
             $this->updateUserMenuTrigger($user);
         }
     }
@@ -471,10 +475,6 @@ class Menu extends Screen
 
         $modalUpdates = [];
         foreach ($errors as $fieldName => $messages) {
-            if (!is_string($fieldName)) {
-                continue;
-            }
-
             $modalUpdates[$fieldName] = [
                 'error' => implode(' ', $this->normalizeStringList($messages)),
             ];
