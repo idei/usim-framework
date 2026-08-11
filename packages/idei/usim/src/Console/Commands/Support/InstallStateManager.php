@@ -33,7 +33,18 @@ class InstallStateManager
         $raw = $this->files->get($path);
         $decoded = json_decode($raw, true);
 
-        return is_array($decoded) ? $decoded : null;
+        if (!is_array($decoded)) {
+            return null;
+        }
+
+        $state = [];
+        foreach ($decoded as $key => $value) {
+            if (is_string($key)) {
+                $state[$key] = $value;
+            }
+        }
+
+        return $state;
     }
 
     public function start(int $totalSteps): void

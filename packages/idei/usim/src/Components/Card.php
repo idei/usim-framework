@@ -226,7 +226,17 @@ class Card extends UIComponent
             $parameters['_caller_service_id'] = $serviceId;
         }
 
-        $currentActions = $this->config['actions'] ?? [];
+        $currentActions = [];
+        $existingActions = $this->config['actions'] ?? null;
+
+        if (is_array($existingActions)) {
+            foreach ($existingActions as $existingAction) {
+                if (is_array($existingAction)) {
+                    $currentActions[] = $existingAction;
+                }
+            }
+        }
+
         $currentActions[] = [
             'label' => __($label),
             'action' => $action,

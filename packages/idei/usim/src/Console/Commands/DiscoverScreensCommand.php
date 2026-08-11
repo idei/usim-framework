@@ -61,7 +61,7 @@ class DiscoverScreensCommand extends Command
             if (\is_array($value)) {
                 $formattedValue = $this->formatArrayToShortSyntax($value, $indentLevel + 1);
             } else {
-                $formattedValue = \is_int($value) || \is_float($value) ? $value : "'" . addslashes($value) . "'";
+                $formattedValue = var_export($value, true);
             }
 
             $parts[] = "{$subIndent}{$formattedKey} => {$formattedValue},";

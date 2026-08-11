@@ -147,13 +147,13 @@ abstract class AbstractTableModel
 
         for ($i = 0; $i < $columnCount; $i++) {
             if ($i === 0) {
-                $values[$i] = $config['id_placeholder']; // ID column
+                $values[] = $config['id_placeholder']; // ID column
             } elseif ($i === 1) {
-                $values[$i] = $config['primary_message']; // Main content column
+                $values[] = $config['primary_message']; // Main content column
             } elseif ($i >= $columnCount - 2) {
-                $values[$i] = $config['button_placeholder']; // Button columns (usually last 2)
+                $values[] = $config['button_placeholder']; // Button columns (usually last 2)
             } else {
-                $values[$i] = $config['secondary_message']; // Data columns
+                $values[] = $config['secondary_message']; // Data columns
             }
         }
 

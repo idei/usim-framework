@@ -94,7 +94,13 @@ class UsimRole extends SpatieRole
             get: function () {
                 /** @var UsimRoleSetting|null $setting */
                 $setting = $this->usimSetting()->first();
-                return (int) ($setting->priority ?? config('usim.default_priority', 100));
+
+                $defaultPriority = config('usim.default_priority', 100);
+                if (!is_int($defaultPriority)) {
+                    $defaultPriority = 100;
+                }
+
+                return $setting->priority ?? $defaultPriority;
             },
             set: fn($value) => $this->usimSetting()->updateOrCreate([], ['priority' => (int) $value]),
         );

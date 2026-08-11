@@ -45,7 +45,10 @@ class TranslationKeyManager
         }
 
         if (array_key_exists('group', $attributes)) {
-            $textKey->group = $attributes['group'];
+            $group = $attributes['group'];
+            if (is_string($group) || $group === null) {
+                $textKey->group = $group;
+            }
         }
 
         if (array_key_exists('is_active', $attributes)) {

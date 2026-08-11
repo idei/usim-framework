@@ -30,8 +30,14 @@ trait ConfiguresRootEnvironment
          $this->rootUserEnvValues = $this->installEnvironmentManager->promptAndPersistRootUserEnv(
             envPath: $envPath,
             interactive: $this->input->isInteractive(),
-            ask: fn(string $question, string $default): string => (string) $this->ask($question, $default),
-            secret: fn(string $prompt): string => (string) $this->secret($prompt),
+            ask: function (string $question, string $default): string {
+                $answer = $this->ask($question, $default);
+                return is_string($answer) ? $answer : $default;
+            },
+            secret: function (string $prompt): string {
+                $secret = $this->secret($prompt);
+                return is_string($secret) ? $secret : '';
+            },
             error: $error,
             line: $this->line(...),
         );
