@@ -206,7 +206,8 @@ class SelectDemo extends Screen
      */
     public function onCountryChange(array $params): void
     {
-        $countryCode = $params['value'] ?? null;
+        $rawCountryCode = $params['value'] ?? null;
+        $countryCode = is_string($rawCountryCode) ? $rawCountryCode : null;
 
         if (empty($countryCode)) {
             // No country selected - disable city select
@@ -229,8 +230,7 @@ class SelectDemo extends Screen
                 ->disabled(false)
                 ->placeholder(t('screen.demo.select_demo.city.placeholder.choose_city'));
 
-            $countryName = collect(self::COUNTRIES)
-                ->firstWhere('value', $countryCode)['label'] ?? $countryCode;
+            $countryName = $this->findOptionLabel(self::COUNTRIES, $countryCode, $countryCode);
 
             $this->lbl_result
                 ->text(t('screen.demo.select_demo.result.country_selected', ['country' => $countryName]))
@@ -247,7 +247,8 @@ class SelectDemo extends Screen
      */
     public function onCityChange(array $params): void
     {
-        $cityCode = $params['value'] ?? null;
+        $rawCityCode = $params['value'] ?? null;
+        $cityCode = is_string($rawCityCode) ? $rawCityCode : null;
 
         if (empty($cityCode)) {
             $this->lbl_result
@@ -257,8 +258,7 @@ class SelectDemo extends Screen
             $info = self::CITY_INFO[$cityCode] ?? null;
 
             if ($info) {
-                $cityName = collect(array_merge(...array_values(self::CITIES)))
-                    ->firstWhere('value', $cityCode)['label'] ?? $cityCode;
+                $cityName = $this->findCityLabel($cityCode);
 
                 $text = t('screen.demo.select_demo.result.city_info.header', [
                     'city' => $cityName,
@@ -294,20 +294,19 @@ class SelectDemo extends Screen
         }
 
         // Get current result text using the public get() method
-        $currentResult = $this->lbl_result->get('text', '');
+        $currentResultRaw = $this->lbl_result->get('text', '');
+        $currentResult = is_string($currentResultRaw) ? $currentResultRaw : '';
 
         if (\is_array($value)) {
             // Multiple languages selected
-            $languageNames = collect(self::LANGUAGES)
-                ->whereIn('value', $value)
-                ->pluck('label')
-                ->join(', ');
+            $languageCodes = array_values(array_filter($value, static fn (mixed $item): bool => is_string($item)));
+            $languageNames = $this->findLanguageLabels($languageCodes);
 
-            $languageText = "\n🗣️ Languages: {$languageNames}";
+            $languageText = "\n🗣️ Languages: " . implode(', ', $languageNames);
         } else {
             // Single language selected
-            $languageName = collect(self::LANGUAGES)
-                ->firstWhere('value', $value)['label'] ?? $value;
+            $languageCode = is_string($value) ? $value : '';
+            $languageName = $this->findOptionLabel(self::LANGUAGES, $languageCode, $languageCode);
 
             $languageText = "\n🗣️ Language: {$languageName}";
         }
@@ -316,6 +315,46 @@ class SelectDemo extends Screen
         if (str_contains($currentResult, '📍')) {
             $this->lbl_result->text($currentResult . $languageText);
         }
+    }
+
+    /**
+     * @param list<array{value: string, label: string}> $options
+     */
+    private function findOptionLabel(array $options, string $value, string $default): string
+    {
+        foreach ($options as $option) {
+            if ($option['value'] === $value) {
+                return $option['label'];
+            }
+        }
+
+        return $default;
+    }
+
+    private function findCityLabel(string $cityCode): string
+    {
+        foreach (self::CITIES as $cities) {
+            $label = $this->findOptionLabel($cities, $cityCode, '');
+            if ($label !== '') {
+                return $label;
+            }
+        }
+
+        return $cityCode;
+    }
+
+    /**
+     * @param list<string> $languageCodes
+     * @return list<string>
+     */
+    private function findLanguageLabels(array $languageCodes): array
+    {
+        $labels = [];
+        foreach ($languageCodes as $languageCode) {
+            $labels[] = $this->findOptionLabel(self::LANGUAGES, $languageCode, $languageCode);
+        }
+
+        return $labels;
     }
 
     /**

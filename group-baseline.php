@@ -1,26 +1,24 @@
 <?php
 /**
- * Agrupa las entradas de un baseline de PHPStan por ARCHIVO, para poder atacar
- * "todos los errores de un archivo" en un solo lote de Cline (evita releer el
- * mismo archivo en tareas separadas por cada identifier distinto).
+ * Analiza el proyecto con PHPStan, regenera el baseline, muestra un resumen
+ * general de todos los errores por archivo y genera el prompt con los N
+ * errores más prioritarios del proyecto.
  *
  * Uso:
  *   php group-baseline.php
- *       -> resumen: cuántos errores tiene cada archivo, ordenado de mayor a menor
+ *       -> Toma por defecto 10 errores
  *
- *   php group-baseline.php app/Http/Controllers/Api/FileController.php
- *       -> detalle completo de ese archivo (todos los identifiers), listo para
- *          pegar como prompt en Cline
+ *   php group-baseline.php 5
+ *       -> Toma máximo 5 errores
  *
- * En ambos casos, antes de leer nada, el script corre:
- *   vendor/bin/phpstan analyze --level 9 --generate-baseline phpstan-9-baseline.neon
- * y sobreescribe siempre ese archivo, así no hace falta generarlo en un paso
- * aparte ni pasarlo como argumento.
+ *   php group-baseline.php 15
+ *       -> Toma máximo 15 errores
  */
 
 const BASELINE_PATH = 'phpstan-9-baseline.neon';
 
-$filterFile = $argv[1] ?? null;
+// Permite pasar la cantidad máxima de errores por consola (por defecto 10)
+$maxErrors = isset($argv[1]) && is_numeric($argv[1]) ? max(1, (int) $argv[1]) : 10;
 
 echo "Generando baseline con PHPStan (nivel 9)...\n";
 $command = sprintf(
@@ -41,12 +39,7 @@ if ($content === false) {
     exit(1);
 }
 
-// Cada entrada del baseline tiene esta forma (indentación con tabs):
-//   -
-//       message: "..."
-//       identifier: argument.type
-//       count: N
-//       path: app/Foo.php
+// Extraer entradas del baseline
 preg_match_all(
     '/-\s*\n\s*message:\s*(?P<message>.+?)\n\s*identifier:\s*(?P<identifier>[^\n]+)\n\s*count:\s*(?P<count>\d+)\n\s*path:\s*(?P<path>[^\n]+)/s',
     $content,
@@ -55,78 +48,94 @@ preg_match_all(
 );
 
 if (empty($matches)) {
-    fwrite(STDERR, "No se encontraron entradas. Revisá el formato del baseline (puede variar entre versiones de PHPStan).\n");
-    exit(1);
+    echo "¡No se encontraron errores en el baseline! El proyecto está 100% limpio en Nivel 9.\n";
+    exit(0);
 }
 
-$grouped = [];
+// 1. Agrupar por archivo
+$groupedByFile = [];
 foreach ($matches as $m) {
     $identifier = trim($m['identifier']);
     $filePath = trim($m['path']);
     $count = (int) $m['count'];
     $message = trim($m['message'], " \t\n\r\"");
 
-    $grouped[$filePath][] = [
+    $groupedByFile[$filePath][] = [
         'identifier' => $identifier,
         'message' => $message,
         'count' => $count,
     ];
 }
 
-if ($filterFile === null) {
-    // Resumen general: total de errores por archivo, de mayor a menor
-    $totals = [];
-    foreach ($grouped as $filePath => $entries) {
-        $sum = 0;
-        foreach ($entries as $e) {
-            $sum += $e['count'];
+// 2. Ordenar archivos de MAYOR a MENOR cantidad de errores
+$fileTotals = [];
+foreach ($groupedByFile as $filePath => $entries) {
+    $fileTotals[$filePath] = array_sum(array_column($entries, 'count'));
+}
+arsort($fileTotals);
+
+$grandTotalErrors = array_sum($fileTotals);
+
+// --- RESUMEN GENERAL POR ARCHIVO ---
+echo "--- Resumen por archivo (mayor a menor cantidad de errores) ---\n\n";
+foreach ($fileTotals as $filePath => $sum) {
+    printf("%5d  %s\n", $sum, $filePath);
+}
+echo "\nTotal de errores: {$grandTotalErrors} en " . count($fileTotals) . " archivo(s).\n";
+echo "---------------------------------------------------------------\n\n";
+
+// 3. Tomar acumulativamente hasta $maxErrors para el prompt
+$promptTree = [];
+$collected = 0;
+
+foreach ($fileTotals as $filePath => $total) {
+    foreach ($groupedByFile[$filePath] as $entry) {
+        $remainingSpace = $maxErrors - $collected;
+        $take = min($entry['count'], $remainingSpace);
+
+        if ($take > 0) {
+            $promptTree[$filePath][$entry['identifier']][] = [
+                'message' => $entry['message'],
+                'count' => $take,
+            ];
+            $collected += $take;
         }
-        $totals[$filePath] = $sum;
+
+        if ($collected >= $maxErrors) {
+            break 2; // Salir de ambos bucles
+        }
     }
-    arsort($totals);
-
-    echo "Resumen por archivo (mayor a menor cantidad de errores):\n\n";
-    foreach ($totals as $filePath => $sum) {
-        $flag = $sum > 15 ? '  <- considerar dividir en sub-lotes' : '';
-        printf("%5d  %s%s\n", $sum, $filePath, $flag);
-    }
-    echo "\nTotal de archivos con errores: " . count($totals) . "\n";
-    echo "Ejecutá: php group-baseline.php <ruta/al/archivo.php> para ver el detalle de uno.\n";
-    exit(0);
 }
 
-// Detalle completo de un archivo puntual, con todos sus identifiers
-if (!isset($grouped[$filterFile])) {
-    fwrite(STDERR, "No hay entradas para archivo: $filterFile\n");
-    exit(1);
-}
+// 4. Formatear listas de archivos
+$affectedFiles = array_keys($promptTree);
+$affectedFilesFormatted = implode(", ", array_map(fn($f) => "`$f`", $affectedFiles));
+$affectedFilesCLI = implode(' ', array_map('escapeshellarg', $affectedFiles));
 
-$entries = $grouped[$filterFile];
-$total = array_sum(array_column($entries, 'count'));
-
-// Agrupo por identifier dentro del archivo, para que el prompt sea legible
-$byIdentifier = [];
-foreach ($entries as $e) {
-    $byIdentifier[$e['identifier']][] = $e;
-}
-
+// 5. Formatear bloque de errores
 $errorsBlock = '';
-foreach ($byIdentifier as $identifier => $items) {
-    $errorsBlock .= "## identifier: $identifier\n";
-    foreach ($items as $e) {
-        $errorsBlock .= "- ({$e['count']}x) {$e['message']}\n";
+foreach ($promptTree as $filePath => $byIdent) {
+    $fileErrorSum = 0;
+    foreach ($byIdent as $items) {
+        $fileErrorSum += array_sum(array_column($items, 'count'));
+    }
+
+    $errorsBlock .= "### Archivo: `{$filePath}` ({$fileErrorSum} error(es))\n";
+    foreach ($byIdent as $identifier => $items) {
+        $errorsBlock .= "## identifier: {$identifier}\n";
+        foreach ($items as $e) {
+            $errorsBlock .= "- ({$e['count']}x) {$e['message']}\n";
+        }
     }
     $errorsBlock .= "\n";
 }
 
-$splitNote = '';
-if ($total > 15) {
-    $splitNote = "\nNota: este archivo tiene más de 15 errores. Si el diff queda muy grande para\n"
-        . "revisar de una, dividí el trabajo en 2-3 tandas (por ejemplo, por identifier).\n";
-}
-
+// 6. Construir el prompt para GitHub Copilot
 $prompt = <<<PROMPT
-Corregí los errores de PHPStan nivel 9 del archivo `{$filterFile}` ({$total} errores), siguiendo estas convenciones del proyecto (Idei\\Usim):
+Corregí los siguientes {$collected} errores de PHPStan nivel 9 (total de errores restantes en el proyecto: {$grandTotalErrors}).
+
+Archivos a modificar:
+{$affectedFilesFormatted}
 
 Reglas generales:
 - No modifiques lógica de negocio. Solo agregá o corregí anotaciones de tipo (PHPDoc) o casteos seguros para satisfacer PHPStan nivel 9.
@@ -146,23 +155,33 @@ Cuándo NO castear automáticamente:
 - Si el error dice `string|false given` (o cualquier unión que NO sea `mixed`), NO apliques un cast ciego. Mostrame la línea y el contexto, explicá de dónde viene ese valor no-mixed, y proponé el fix sin aplicarlo todavía.
 
 Antes de tocar nada:
-Analizá el archivo y los errores de abajo, y mostrame primero un resumen corto pero explícito de qué vas a cambiar y por qué (línea o método afectado, tipo de fix a aplicar). Recién después de mostrar ese resumen, aplicá los cambios.
+Analizá el/los archivo(s) y los errores de abajo, y mostrame primero un resumen corto pero explícito de qué vas a cambiar y por qué (línea o método afectado, tipo de fix a aplicar). Recién después de mostrar ese resumen, aplicá los cambios.
 
-No toques archivos fuera de `{$filterFile}`.
+No toques archivos fuera de: {$affectedFilesFormatted}.
 
 Al terminar:
-- Corré, con límite de tiempo para que el comando no quede colgado: `timeout 120 vendor/bin/phpstan analyze --level 9 {$filterFile}` y verificá que la cantidad de errores se redujo (idealmente a 0) respecto a los {$total} iniciales.
+- Corré, con límite de tiempo para que el comando no quede colgado: `timeout 120 vendor/bin/phpstan analyze --level 9 {$affectedFilesCLI}` y verificá que la cantidad de errores en estos archivos se redujo o eliminó.
 - Corré, también con límite de tiempo: `timeout 300 php artisan test` y confirmá que no queda ningún test roto por tus cambios.
 - Si un comando se corta por el timeout sin devolver resultado, NO lo reintentes en loop: avisame que se cortó, mostrame el output parcial que haya, y esperá indicación mía antes de seguir.
-- Si te quedás iterando más de 2 veces sobre el mismo error puntual sin resolverlo, no sigas insistiendo: dejalo documentado en el resumen final (archivo, línea, qué probaste) y seguí con el resto de los errores del lote.
-- Si algo de esto falla por un error real (no por timeout), no lo des por terminado: mostrame el error y corregilo antes de cerrar el lote.
+- Si te quedás iterando más de 2 veces sobre el mismo error puntual sin resolverlo, no sigas insistiendo: dejalo documentado en el resumen final (archivo, línea, qué probaste) y seguí con el resto de los errores.
+- Si algo de esto falla por un error real (no por timeout), no lo des por terminado: mostrame el error y corregilo antes de terminar.
 - Devolveme un resumen breve de qué se cambió, sin explicaciones largas.
 
 Errores a corregir:
 
-{$errorsBlock}{$splitNote}
+{$errorsBlock}
 PROMPT;
 
-echo "===== PROMPT (copiá y pegá en Cline) =====\n\n";
+echo "===== RESUMEN DE ERRORES SELECCIONADOS PARA ESTE PROMPT ({$collected} de {$grandTotalErrors} totales, límite: {$maxErrors}) =====\n";
+foreach ($promptTree as $f => $byIdent) {
+    $cnt = 0;
+    foreach ($byIdent as $items) {
+        $cnt += array_sum(array_column($items, 'count'));
+    }
+    echo " - {$cnt} error(es) -> {$f}\n";
+}
+echo "=========================================================================\n\n";
+
+echo "===== PROMPT (copiá y pegá en GitHub Copilot) =====\n\n";
 echo $prompt . "\n";
 echo "===== FIN DEL PROMPT =====\n";

@@ -61,18 +61,6 @@ parameters:
 			path: app/Services/Auth/RegisterService.php
 
 		-
-			message: '#^Cannot cast mixed to string\.$#'
-			identifier: cast.string
-			count: 4
-			path: app/UI/Components/DataTable/TranslationKeysTableModel.php
-
-		-
-			message: '#^Parameter \#1 \$value of method App\\UI\\Components\\DataTable\\TranslationKeysTableModel\:\:normalizeFilterValue\(\) expects string\|null, mixed given\.$#'
-			identifier: argument.type
-			count: 2
-			path: app/UI/Components/DataTable/TranslationKeysTableModel.php
-
-		-
 			message: '#^Parameter \#1 \$key of method App\\UI\\Components\\Modals\\EditTranslationDialog\:\:getUI\(\) expects string, mixed given\.$#'
 			identifier: argument.type
 			count: 1
@@ -151,78 +139,6 @@ parameters:
 			path: app/UI/Screens/Auth/Login.php
 
 		-
-			message: '#^Cannot access property \$email on App\\Models\\User\|null\.$#'
-			identifier: property.nonObject
-			count: 2
-			path: app/UI/Screens/Auth/Profile.php
-
-		-
-			message: '#^Cannot access property \$email_verified_at on App\\Models\\User\|null\.$#'
-			identifier: property.nonObject
-			count: 1
-			path: app/UI/Screens/Auth/Profile.php
-
-		-
-			message: '#^Cannot access property \$profile_image on App\\Models\\User\|null\.$#'
-			identifier: property.nonObject
-			count: 2
-			path: app/UI/Screens/Auth/Profile.php
-
-		-
-			message: '#^Parameter \#1 \$string of function trim expects string, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: app/UI/Screens/Auth/Profile.php
-
-		-
-			message: '#^Property App\\Models\\User\:\:\$profile_image \(string\|null\) does not accept list\<string\>\|string\.$#'
-			identifier: assign.propertyType
-			count: 1
-			path: app/UI/Screens/Auth/Profile.php
-
-		-
-			message: '#^Cannot cast mixed to int\.$#'
-			identifier: cast.int
-			count: 1
-			path: app/UI/Screens/Auth/ResetPassword.php
-
-		-
-			message: '#^Offset ''errors'' might not exist on array\{status\: ''error'', message\: string, errors\: array\<string, list\<string\>\>\}\|array\{status\: ''success'', data\: null, message\: string\}\.$#'
-			identifier: offsetAccess.notFound
-			count: 1
-			path: app/UI/Screens/Auth/ResetPassword.php
-
-		-
-			message: '#^Parameter \#1 \$string of function strlen expects string, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: app/UI/Screens/Auth/ResetPassword.php
-
-		-
-			message: '#^Parameter \$email of method App\\Services\\Auth\\PasswordService\:\:resetPassword\(\) expects string, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: app/UI/Screens/Auth/ResetPassword.php
-
-		-
-			message: '#^Parameter \$password of method App\\Services\\Auth\\PasswordService\:\:resetPassword\(\) expects string, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: app/UI/Screens/Auth/ResetPassword.php
-
-		-
-			message: '#^Parameter \$passwordConfirmation of method App\\Services\\Auth\\PasswordService\:\:resetPassword\(\) expects string, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: app/UI/Screens/Auth/ResetPassword.php
-
-		-
-			message: '#^Parameter \$token of method App\\Services\\Auth\\PasswordService\:\:resetPassword\(\) expects string, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: app/UI/Screens/Auth/ResetPassword.php
-
-		-
 			message: '#^Parameter \#1 \$year of static method App\\UI\\Screens\\Demo\\CalendarioAcadémico\:\:getMonthEvents\(\) expects int, mixed given\.$#'
 			identifier: argument.type
 			count: 1
@@ -269,36 +185,6 @@ parameters:
 			identifier: argument.type
 			count: 1
 			path: app/UI/Screens/Demo/InputDemo.php
-
-		-
-			message: '#^Binary operation "\." between mixed and non\-falsy\-string results in an error\.$#'
-			identifier: binaryOp.invalid
-			count: 1
-			path: app/UI/Screens/Demo/SelectDemo.php
-
-		-
-			message: '#^Parameter \#1 \$haystack of function str_contains expects string, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: app/UI/Screens/Demo/SelectDemo.php
-
-		-
-			message: '#^Part \$languageName \(mixed\) of encapsed string cannot be cast to string\.$#'
-			identifier: encapsedStringPart.nonString
-			count: 1
-			path: app/UI/Screens/Demo/SelectDemo.php
-
-		-
-			message: '#^Part \$languageNames \(mixed\) of encapsed string cannot be cast to string\.$#'
-			identifier: encapsedStringPart.nonString
-			count: 1
-			path: app/UI/Screens/Demo/SelectDemo.php
-
-		-
-			message: '#^Possibly invalid array key type mixed\.$#'
-			identifier: offsetAccess.invalidOffset
-			count: 2
-			path: app/UI/Screens/Demo/SelectDemo.php
 
 		-
 			message: '#^Cannot cast mixed to string\.$#'
@@ -751,30 +637,6 @@ parameters:
 			path: packages/idei/usim/src/Support/TranslationService.php
 
 		-
-			message: '#^Method Idei\\Usim\\Support\\UIStateManager\:\:get\(\) should return array\<string, mixed\>\|null but returns array\<mixed, mixed\>\|null\.$#'
-			identifier: return.type
-			count: 1
-			path: packages/idei/usim/src/Support/UIStateManager.php
-
-		-
-			message: '#^Method Idei\\Usim\\Support\\UIStateManager\:\:getAuthToken\(\) should return string\|null but returns mixed\.$#'
-			identifier: return.type
-			count: 1
-			path: packages/idei/usim/src/Support/UIStateManager.php
-
-		-
-			message: '#^Parameter \#1 \$json of function json_decode expects string, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: packages/idei/usim/src/Support/UIStateManager.php
-
-		-
-			message: '#^Parameter \#3 \$ttl of static method Illuminate\\Cache\\Repository\:\:put\(\) expects DateInterval\|DateTimeInterface\|int\|null, mixed given\.$#'
-			identifier: argument.type
-			count: 4
-			path: packages/idei/usim/src/Support/UIStateManager.php
-
-		-
 			message: '#^Parameter \#2 \$replace of function __ expects array\<string, bool\|float\|int\|string\|null\>, array\<string, mixed\> given\.$#'
 			identifier: argument.type
 			count: 1
@@ -785,33 +647,3 @@ parameters:
 			identifier: array.invalidKey
 			count: 1
 			path: packages/idei/usim/src/UIChangesCollector.php
-
-		-
-			message: '#^Parameter \#1 \$mimeType of static method Idei\\Usim\\Upload\\UploadService\:\:detectFileType\(\) expects string, string\|null given\.$#'
-			identifier: argument.type
-			count: 1
-			path: packages/idei/usim/src/Upload/UploadService.php
-
-		-
-			message: '#^Parameter \#1 \$mimeType of static method Idei\\Usim\\Upload\\UploadService\:\:matchesMimePattern\(\) expects string, string\|null given\.$#'
-			identifier: argument.type
-			count: 1
-			path: packages/idei/usim/src/Upload/UploadService.php
-
-		-
-			message: '#^Parameter \#1 \$name of static method Illuminate\\Filesystem\\FilesystemManager\:\:disk\(\) expects string\|UnitEnum\|null, mixed given\.$#'
-			identifier: argument.type
-			count: 3
-			path: packages/idei/usim/src/Upload/UploadService.php
-
-		-
-			message: '#^Parameter \#2 \$contents of method Illuminate\\Filesystem\\FilesystemAdapter\:\:put\(\) expects Illuminate\\Http\\File\|Illuminate\\Http\\UploadedFile\|Psr\\Http\\Message\\StreamInterface\|resource\|string, string\|null given\.$#'
-			identifier: argument.type
-			count: 1
-			path: packages/idei/usim/src/Upload/UploadService.php
-
-		-
-			message: '#^Possibly invalid array key type float\|int\.$#'
-			identifier: offsetAccess.invalidOffset
-			count: 1
-			path: packages/idei/usim/src/Upload/UploadService.php

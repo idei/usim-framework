@@ -142,11 +142,16 @@ class ResetPassword extends Screen
     /** @param array<string, mixed> $params */
     public function onResetPassword(array $params): void
     {
-        $token = $params['reset_token'] ?? '';
-        $email = $params['reset_email'] ?? '';
-        $expires = (int) ($params['expires'] ?? request()->query('expires', 0));
-        $password = $params['password'] ?? '';
-        $passwordConfirmation = $params['password_confirmation'] ?? '';
+        $tokenRaw = $params['reset_token'] ?? '';
+        $token = is_scalar($tokenRaw) ? (string) $tokenRaw : '';
+        $emailRaw = $params['reset_email'] ?? '';
+        $email = is_scalar($emailRaw) ? (string) $emailRaw : '';
+        $expiresRaw = $params['expires'] ?? request()->query('expires', 0);
+        $expires = is_numeric($expiresRaw) ? (int) $expiresRaw : 0;
+        $passwordRaw = $params['password'] ?? '';
+        $password = is_scalar($passwordRaw) ? (string) $passwordRaw : '';
+        $passwordConfirmationRaw = $params['password_confirmation'] ?? '';
+        $passwordConfirmation = is_scalar($passwordConfirmationRaw) ? (string) $passwordConfirmationRaw : '';
 
         if (empty($token) || empty($email)) {
             $this->showError(t('screen.auth.reset_password.errors.invalid_link'));
@@ -191,7 +196,9 @@ class ResetPassword extends Screen
                 $this->redirect('/auth/login');
             } else {
                 // Extract validation errors if any
-                $firstError = reset($response['errors'])[0] ?? $message;
+                $errors = $response['errors'] ?? [];
+                $firstErrorGroup = reset($errors);
+                $firstError = is_array($firstErrorGroup) ? ($firstErrorGroup[0] ?? $message) : $message;
                 $this->showError($firstError);
             }
 

@@ -124,7 +124,11 @@ class UIStateManager
         }
 
         // Get TTL from environment or use default
-        $ttl = config('usim.ui_cache_ttl');
+        $ttlConfig = config('usim.ui_cache_ttl', 60);
+        $ttl = \is_int($ttlConfig) ? $ttlConfig : 60;
+        if (\is_string($ttlConfig) && ctype_digit($ttlConfig)) {
+            $ttl = (int) $ttlConfig;
+        }
         $encodedState = json_encode($uiState);
 
         // Store main UI state
@@ -164,7 +168,11 @@ class UIStateManager
     {
         $clientId = self::getOrCreateClientId();
         $cacheKey = "ui_open_screens:{$clientId}";
-        $ttl = config('usim.ui_cache_ttl');
+        $ttlConfig = config('usim.ui_cache_ttl', 60);
+        $ttl = \is_int($ttlConfig) ? $ttlConfig : 60;
+        if (\is_string($ttlConfig) && ctype_digit($ttlConfig)) {
+            $ttl = (int) $ttlConfig;
+        }
         $openedScreens = Cache::get($cacheKey, []);
         if (!\is_array($openedScreens)) {
             $openedScreens = [];
@@ -192,9 +200,14 @@ class UIStateManager
     {
         $cacheKey = self::getCacheKey($serviceClass);
         $content = Cache::get($cacheKey);
-        $cache = ($content === null || $content === '') ? null : json_decode($content, true);
+        $result = null;
 
-        $result = \is_array($cache) ? $cache : null;
+        if (\is_string($content) && $content !== '') {
+            /** @var array<string, mixed>|null $decodedState */
+            $decodedState = json_decode($content, true);
+            $result = \is_array($decodedState) ? $decodedState : null;
+        }
+
         $logLevel = $result !== null ? 'info' : 'error';
 
         // UIDebug::$logLevel("Retrieving UI State of {$serviceClass}", [
@@ -222,7 +235,11 @@ class UIStateManager
     public static function setAuthToken(string|null $token): bool
     {
         $cacheKey = self::getCacheKey(prefix: 'ui_auth_token');
-        $ttl = config('usim.ui_cache_ttl');
+        $ttlConfig = config('usim.ui_cache_ttl', 60);
+        $ttl = \is_int($ttlConfig) ? $ttlConfig : 60;
+        if (\is_string($ttlConfig) && ctype_digit($ttlConfig)) {
+            $ttl = (int) $ttlConfig;
+        }
         Cache::put($cacheKey, $token, $ttl);
         return true;
     }
@@ -231,13 +248,17 @@ class UIStateManager
     {
         $cacheKey = self::getCacheKey(prefix: 'ui_auth_token');
         $token = Cache::get($cacheKey);
-        return $token;
+        return \is_string($token) ? $token : null;
     }
 
     public static function storeKeyValue(string $key, mixed $value): bool
     {
         $cacheKey = self::getCacheKey(prefix: "ui_key_{$key}");
-        $ttl = config('usim.ui_cache_ttl');
+        $ttlConfig = config('usim.ui_cache_ttl', 60);
+        $ttl = \is_int($ttlConfig) ? $ttlConfig : 60;
+        if (\is_string($ttlConfig) && ctype_digit($ttlConfig)) {
+            $ttl = (int) $ttlConfig;
+        }
         Cache::put($cacheKey, $value, $ttl);
         return true;
     }

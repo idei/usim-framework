@@ -41,12 +41,18 @@ SVG;
 
         $dataset = $this->translationService->listLanguagesDataset();
         foreach ($dataset['items'] as $language) {
-            $code = (string) ($language['code'] ?? '');
+            $code = $this->mixedToString($language['code'] ?? null);
             if ($code === '') {
                 continue;
             }
 
-            $name = (string) ($language['native_name'] ?? $language['name'] ?? strtoupper($code));
+            $name = $this->mixedToString($language['native_name'] ?? null);
+            if ($name === '') {
+                $name = $this->mixedToString($language['name'] ?? null);
+            }
+            if ($name === '') {
+                $name = strtoupper($code);
+            }
             $this->languages[$code] = $name;
             $this->languageCodes[] = $code;
 
@@ -111,7 +117,9 @@ SVG;
 
     public function getLanguageFilter(): string
     {
-        return $this->normalizeFilterValue(UIStateManager::getKeyValue(self::LANGUAGE_FILTER_KEY));
+        $value = UIStateManager::getKeyValue(self::LANGUAGE_FILTER_KEY);
+
+        return $this->normalizeFilterValue($this->mixedToNullableString($value));
     }
 
     public function setGroupFilter(?string $group): void
@@ -121,7 +129,9 @@ SVG;
 
     public function getGroupFilter(): string
     {
-        return $this->normalizeFilterValue(UIStateManager::getKeyValue(self::GROUP_FILTER_KEY));
+        $value = UIStateManager::getKeyValue(self::GROUP_FILTER_KEY);
+
+        return $this->normalizeFilterValue($this->mixedToNullableString($value));
     }
 
     public function getPageData(): array
@@ -249,7 +259,7 @@ SVG;
      */
     protected function buildTranslationCell(?array $entry): string|array
     {
-        $text = trim((string) ($entry['text'] ?? ''));
+        $text = trim($this->mixedToString($entry['text'] ?? null));
         if ($text === '') {
             return '—';
         }
@@ -286,7 +296,7 @@ SVG;
 
         foreach ($this->languageCodes as $code) {
             $entry = $valuesByCode[$code] ?? null;
-            $text = trim((string) ($entry['text'] ?? ''));
+            $text = trim($this->mixedToString($entry['text'] ?? null));
             if ($text !== '') {
                 $completedTranslations++;
             }
@@ -375,5 +385,23 @@ SVG;
     protected function svgDataUri(string $svg): string
     {
         return 'data:image/svg+xml;utf8,' . rawurlencode($svg);
+    }
+
+    private function mixedToNullableString(mixed $value): ?string
+    {
+        if (is_string($value)) {
+            return $value;
+        }
+
+        if (is_int($value) || is_float($value) || is_bool($value)) {
+            return (string) $value;
+        }
+
+        return null;
+    }
+
+    private function mixedToString(mixed $value): string
+    {
+        return $this->mixedToNullableString($value) ?? '';
     }
 }

@@ -64,7 +64,7 @@ class UploadService
      */
     public static function validateFile(UploadedFile $file, array $config): ?array
     {
-        $mimeType = $file->getMimeType();
+        $mimeType = (string) $file->getMimeType();
         $sizeMB = $file->getSize() / 1024 / 1024;
 
         // Validar tipo
@@ -117,7 +117,7 @@ class UploadService
      */
     public static function extractMetadata(UploadedFile $file): array
     {
-        $type = self::detectFileType($file->getMimeType());
+        $type = self::detectFileType((string) $file->getMimeType());
 
         switch ($type) {
             case 'image':
@@ -167,7 +167,7 @@ class UploadService
     public static function formatFileSize(int $bytes): string
     {
         $units = ['B', 'KB', 'MB', 'GB'];
-        $power = $bytes > 0 ? floor(log($bytes, 1024)) : 0;
+        $power = $bytes > 0 ? (int) floor(log($bytes, 1024)) : 0;
 
         return round($bytes / pow(1024, $power), 2) . ' ' . $units[$power];
     }
@@ -223,8 +223,9 @@ class UploadService
             $finalPath = "uploads/{$category}/{$file->stored_filename}";
 
             // Mover de temporal a definitivo
-            $uploadDisk = config('usim.upload_disk', 'local');
-            $content = Storage::disk('local')->get($file->path);
+            $uploadDiskConfig = config('usim.upload_disk', 'local');
+            $uploadDisk = is_string($uploadDiskConfig) ? $uploadDiskConfig : 'local';
+            $content = (string) Storage::disk('local')->get($file->path);
             Storage::disk($uploadDisk)->put($finalPath, $content);
 
             // Eliminar temporal del storage
@@ -257,7 +258,8 @@ class UploadService
         try {
             $path = "uploads/{$category}/{$filename}";
 
-            $uploadDisk = config('usim.upload_disk', 'local');
+            $uploadDiskConfig = config('usim.upload_disk', 'local');
+            $uploadDisk = is_string($uploadDiskConfig) ? $uploadDiskConfig : 'local';
             if (Storage::disk($uploadDisk)->exists($path)) {
                 return Storage::disk($uploadDisk)->delete($path);
             }
