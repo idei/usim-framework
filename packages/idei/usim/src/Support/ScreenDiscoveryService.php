@@ -20,7 +20,8 @@ class ScreenDiscoveryService
      */
     public function discover(): array
     {
-        $screensPath = config('usim.screens_path', app_path('UI/Screens'));
+        $rawScreensPath = config('usim.screens_path', app_path('UI/Screens'));
+        $screensPath = is_string($rawScreensPath) ? $rawScreensPath : app_path('UI/Screens');
 
         if (!is_dir($screensPath)) {
             return [];
@@ -295,6 +296,7 @@ class ScreenDiscoveryService
         $relativePath = $file->getRelativePathname();
 
         $namespace = config('usim.screens_namespace', 'App\\UI\\Screens');
+        $namespace = is_string($namespace) ? $namespace : 'App\\UI\\Screens';
         $namespace = rtrim($namespace, '\\');
 
         $class = $namespace . '\\' . str_replace(['/', '.php'], ['\\', ''], $relativePath);

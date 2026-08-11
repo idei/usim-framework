@@ -96,10 +96,14 @@ class InstallEnvironmentManager
         callable $line
     ): array {
         try {
+            $rootFirstName = config('usim.users.root.first_name', 'Root');
+            $rootLastName = config('usim.users.root.last_name', 'User');
+            $rootEmail = config('usim.users.root.email', 'root@example.com');
+
             $defaults = [
-                'ROOT_FIRST_NAME' => $this->readEnvValue('ROOT_FIRST_NAME', $envPath) ?? ((string) config('usim.users.root.first_name', 'Root')),
-                'ROOT_LAST_NAME' => $this->readEnvValue('ROOT_LAST_NAME', $envPath) ?? ((string) config('usim.users.root.last_name', 'User')),
-                'ROOT_EMAIL' => $this->readEnvValue('ROOT_EMAIL', $envPath) ?? ((string) config('usim.users.root.email', 'root@example.com')),
+                'ROOT_FIRST_NAME' => $this->readEnvValue('ROOT_FIRST_NAME', $envPath) ?? (is_string($rootFirstName) ? $rootFirstName : 'Root'),
+                'ROOT_LAST_NAME' => $this->readEnvValue('ROOT_LAST_NAME', $envPath) ?? (is_string($rootLastName) ? $rootLastName : 'User'),
+                'ROOT_EMAIL' => $this->readEnvValue('ROOT_EMAIL', $envPath) ?? (is_string($rootEmail) ? $rootEmail : 'root@example.com'),
                 'ROOT_PASSWORD' => $this->readEnvValue('ROOT_PASSWORD', $envPath) ?? '',
             ];
 

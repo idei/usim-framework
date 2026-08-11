@@ -72,10 +72,21 @@ class UsimEventDispatcher
     {
         $methodName = 'on' . str_replace('_', '', ucwords($event->eventName, '_'));
         $openedScreens = UIStateManager::getClientOpenedScreens();
-        $incomingStorage = request()->storage ?? [];
+        $incomingStorageRaw = request()->storage ?? [];
+        $incomingStorage = [];
+        if (is_array($incomingStorageRaw)) {
+            foreach ($incomingStorageRaw as $key => $value) {
+                if (is_string($key)) {
+                    $incomingStorage[$key] = $value;
+                }
+            }
+        }
 
         foreach ($openedScreens as $rootComponentId) {
             $screenClass = UIIdGenerator::getContextFromId((int) $rootComponentId);
+            if (!is_string($screenClass) || $screenClass === '') {
+                continue;
+            }
             $screen = $this->instantiateScreen($screenClass);
 
             if ($methodName === 'onResetScreen') {

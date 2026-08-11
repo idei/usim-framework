@@ -85,13 +85,18 @@ class FakeDataHelper
         $firstName = fake()->firstName();
         $lastName = fake()->lastName();
         $password = self::password(8);
+        $role = fake()->randomElement($roles);
+
+        if (!is_string($role)) {
+            $role = $roles[0] ?? 'user';
+        }
 
         return [
             'name' => "$firstName $lastName",
             'email' => self::email($firstName, $lastName),
             'password' => $password,
             'password_confirmation' => $password,
-            'role' => fake()->randomElement($roles),
+            'role' => $role,
         ];
     }
 
@@ -107,12 +112,15 @@ class FakeDataHelper
         $string = strtolower($string);
 
         // Remove accents using transliteration
-        $string = iconv('UTF-8', 'ASCII//TRANSLIT', $string);
+        $transliterated = iconv('UTF-8', 'ASCII//TRANSLIT', $string);
+        if ($transliterated !== false) {
+            $string = $transliterated;
+        }
 
         // Remove any non-alphanumeric characters
-        $string = preg_replace('/[^a-z0-9]/', '', $string);
+        $sanitized = preg_replace('/[^a-z0-9]/', '', $string);
 
-        return $string;
+        return $sanitized ?? '';
     }
 
     /**

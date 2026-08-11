@@ -136,8 +136,10 @@ class Login extends Screen
     /** @param array<string, mixed> $params */
     public function onSubmitLogin(array $params): void
     {
-        $email = $params['login_email'] ?? '';
-        $password = $params['login_password'] ?? '';
+        $emailValue = $params['login_email'] ?? '';
+        $passwordValue = $params['login_password'] ?? '';
+        $email = is_string($emailValue) ? $emailValue : '';
+        $password = is_string($passwordValue) ? $passwordValue : '';
         $remember = $params['remember'] ?? false;
 
         $response = $this->loginService->login($email, $password, (bool) $remember);

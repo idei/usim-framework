@@ -41,23 +41,42 @@ class ResetPasswordNotification extends Notification implements ShouldQueue
     /**
      * Get the mail representation of the notification.
      * Usando vista Blade completamente personalizada
+     *
+     * @param \Illuminate\Database\Eloquent\Model&\Illuminate\Contracts\Auth\CanResetPassword $notifiable
      */
     public function toMail(object $notifiable): MailMessage
     {
-        $expiresAt = now()->addMinutes((int) config('auth.passwords.users.expire', 60));
+        $expireConfig = config('auth.passwords.users.expire', 60);
+        $expiresAt = now()->addMinutes($this->resolveExpireMinutes($expireConfig, 60));
         $resetUrl = URL::temporarySignedRoute('ui.catchall', $expiresAt, [
             'screen' => 'auth/reset-password',
             'token' => $this->token,
-            'email' => $notifiable->email,
+            'email' => $notifiable->getEmailForPasswordReset(),
         ]);
 
+        $appName = config('app.name');
+        $appName = is_string($appName) ? $appName : 'Laravel';
+
         return (new MailMessage)
-            ->subject('🔐 Restablecer Contraseña - ' . config('app.name'))
+            ->subject('🔐 Restablecer Contraseña - ' . $appName)
             ->view('emails.reset-password', [
                 'user' => $notifiable,
                 'resetUrl' => $resetUrl,
                 'token' => $this->token
             ]);
+    }
+
+    private function resolveExpireMinutes(mixed $value, int $default): int
+    {
+        if (is_int($value)) {
+            return $value;
+        }
+
+        if (is_string($value) && is_numeric($value)) {
+            return (int) $value;
+        }
+
+        return $default;
     }
 
     /**

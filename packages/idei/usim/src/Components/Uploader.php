@@ -216,12 +216,23 @@ class Uploader extends UIComponent
         $inputName = "{$this->name}_temp_ids";
         $tempIdsJson = $params[$inputName] ?? '[]';
 
-        if (empty($tempIdsJson)) {
+        if (!is_string($tempIdsJson) || $tempIdsJson === '') {
             return [];
         }
 
         $tempIds = json_decode($tempIdsJson, true);
-        return is_array($tempIds) ? $tempIds : [];
+        if (!is_array($tempIds)) {
+            return [];
+        }
+
+        $result = [];
+        foreach ($tempIds as $tempId) {
+            if (is_string($tempId)) {
+                $result[] = $tempId;
+            }
+        }
+
+        return $result;
     }
 
     /**
@@ -270,10 +281,11 @@ class Uploader extends UIComponent
 
         if ($isSingle) {
             // Archivo único
+            $oldFilename = is_array($oldFiles) ? ($oldFiles[0] ?? null) : $oldFiles;
             $filename = \Idei\Usim\Upload\UploadService::persistTemporaryUpload(
                 $tempIds[0],
                 $category,
-                $oldFiles
+                $oldFilename
             );
 
             if ($filename) {

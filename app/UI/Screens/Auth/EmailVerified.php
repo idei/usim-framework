@@ -57,10 +57,11 @@ class EmailVerified extends Screen
         }
 
         // Obtener parámetros de la URL (id y hash)
-        $id = request('id');
-        $hash = request('hash');
+        $id = request()->integer('id', 0);
+        $hashInput = request()->input('hash', '');
+        $hash = is_string($hashInput) ? $hashInput : '';
 
-        if (!$id || !$hash) {
+        if ($id <= 0 || $hash === '') {
             $this->errorMessage = t('screen.auth.email_verified.errors.invalid_params');
             $this->verificationStatus = 'error';
             $this->container->clear();
@@ -69,7 +70,7 @@ class EmailVerified extends Screen
         }
 
         // Enforce link expiration using signed URL expires timestamp.
-        $expires = (int) request('expires', 0);
+        $expires = request()->integer('expires', 0);
         if ($expires > 0 && now()->timestamp > $expires) {
             $this->errorMessage = t('screen.auth.email_verified.errors.expired');
             $this->verificationStatus = 'error';
@@ -80,7 +81,7 @@ class EmailVerified extends Screen
 
         // Verificación a través del servicio
         try {
-            $result = $this->userService->verifyEmail((int)$id, $hash);
+            $result = $this->userService->verifyEmail($id, $hash);
 
             if (!$result['success']) {
                 $this->errorMessage = $result['message'];

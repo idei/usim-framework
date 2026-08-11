@@ -17,13 +17,20 @@ class UserSeeder extends Seeder
      */
     public function run(): void
     {
+        /** @var array<string, array<string, mixed>> $rolesData */
         $rolesData = config('usim.roles', []);
 
         // We sort roles by priority
-        uasort($rolesData, function ($a, $b) {
-            return $a['priority'] <=> $b['priority'];
+        uasort($rolesData, static function (array $a, array $b): int {
+            $aPriority = $a['priority'] ?? 0;
+            $bPriority = $b['priority'] ?? 0;
+            $aPriority = is_int($aPriority) ? $aPriority : 0;
+            $bPriority = is_int($bPriority) ? $bPriority : 0;
+
+            return $aPriority <=> $bPriority;
         });
 
+        /** @var list<string> $roles */
         $roles = array_keys($rolesData);
 
         User::factory()
@@ -32,7 +39,15 @@ class UserSeeder extends Seeder
             ->each(function (User $user) use ($roles) {
                 $roles_to_assign = rand(self::MIN_ROLES_BY_USER, self::MAX_ROLES_BY_USER);
                 $rand_roles = Arr::random($roles, $roles_to_assign);
-                $user->syncRoles($rand_roles);
+
+                if (is_array($rand_roles)) {
+                    /** @var list<string> $rolesForSync */
+                    $rolesForSync = array_values($rand_roles);
+                } else {
+                    $rolesForSync = is_string($rand_roles) ? [$rand_roles] : [];
+                }
+
+                $user->syncRoles($rolesForSync);
             });
     }
 }

@@ -114,10 +114,31 @@ class TranslationValueResolver
 
         $replacePairs = [];
         foreach ($params as $name => $replacement) {
-            $replacePairs[':' . $name] = (string) $replacement;
+            $replacePairs[':' . $name] = $this->stringifyReplacement($replacement);
         }
 
         return strtr($value, $replacePairs);
+    }
+
+    private function stringifyReplacement(mixed $replacement): string
+    {
+        if (is_string($replacement)) {
+            return $replacement;
+        }
+
+        if (is_int($replacement) || is_float($replacement) || is_bool($replacement) || $replacement === null) {
+            return strval($replacement);
+        }
+
+        if (is_object($replacement) && method_exists($replacement, '__toString')) {
+            return (string) $replacement;
+        }
+
+        if (is_array($replacement)) {
+            return 'Array';
+        }
+
+        return '';
     }
 
     private function resolveLocale(?string $languageCode): string
@@ -131,11 +152,19 @@ class TranslationValueResolver
             return $locale;
         }
 
-        return (string) config('usim.i18n.default_locale', 'en');
+        $defaultLocale = config('usim.i18n.default_locale', 'en');
+
+        if (is_string($defaultLocale) && $defaultLocale !== '') {
+            return $defaultLocale;
+        }
+
+        return 'en';
     }
 
     private function resolveFallbackLocale(): string
     {
-        return config('usim.i18n.fallback_locale', 'en');
+        $fallbackLocale = config('usim.i18n.fallback_locale', 'en');
+
+        return is_string($fallbackLocale) && $fallbackLocale !== '' ? $fallbackLocale : 'en';
     }
 }

@@ -79,40 +79,10 @@ parameters:
 			path: app/UI/Screens/Admin/TableModels/UserTableModel.php
 
 		-
-			message: '#^Cannot cast mixed to int\.$#'
-			identifier: cast.int
-			count: 2
-			path: app/UI/Screens/Auth/EmailVerified.php
-
-		-
-			message: '#^Parameter \#2 \$hash of method App\\Services\\User\\UserService\:\:verifyEmail\(\) expects string, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: app/UI/Screens/Auth/EmailVerified.php
-
-		-
 			message: '#^Parameter \#1 \$email of method App\\Services\\Auth\\PasswordService\:\:sendResetLink\(\) expects string, mixed given\.$#'
 			identifier: argument.type
 			count: 1
 			path: app/UI/Screens/Auth/ForgotPassword.php
-
-		-
-			message: '#^Parameter \#1 \$email of method App\\Services\\Auth\\LoginService\:\:login\(\) expects string, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: app/UI/Screens/Auth/Login.php
-
-		-
-			message: '#^Parameter \#2 \$password of method App\\Services\\Auth\\LoginService\:\:login\(\) expects string, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: app/UI/Screens/Auth/Login.php
-
-		-
-			message: '#^Property App\\UI\\Screens\\Auth\\Login\:\:\$store_email \(string\) does not accept mixed\.$#'
-			identifier: assign.propertyType
-			count: 1
-			path: app/UI/Screens/Auth/Login.php
 
 		-
 			message: '#^Parameter \#1 \$year of static method App\\UI\\Screens\\Demo\\CalendarioAcadémico\:\:getMonthEvents\(\) expects int, mixed given\.$#'
@@ -193,24 +163,6 @@ parameters:
 			path: config/sanctum.php
 
 		-
-			message: '#^Parameter \#1 \$array of function array_keys expects array, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: database/seeders/UserSeeder.php
-
-		-
-			message: '#^Parameter \#1 \$array of function uasort expects TArray of array\<TKey of int\|string, mixed\>, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: database/seeders/UserSeeder.php
-
-		-
-			message: '#^Parameter \#1 \.\.\.\$roles of method App\\Models\\User\:\:syncRoles\(\) expects array\|BackedEnum\|Illuminate\\Support\\Collection\|int\|Spatie\\Permission\\Contracts\\Role\|string, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: database/seeders/UserSeeder.php
-
-		-
 			message: '#^Cannot access an offset on mixed\.$#'
 			identifier: offsetAccess.nonOffsetAccessible
 			count: 1
@@ -241,60 +193,6 @@ parameters:
 			path: packages/idei/usim/src/Components/Select.php
 
 		-
-			message: '#^Property Idei\\Usim\\Components\\Container\:\:\$name \(string\|null\) does not accept mixed\.$#'
-			identifier: assign.propertyType
-			count: 1
-			path: packages/idei/usim/src/Components/Split.php
-
-		-
-			message: '#^Property Idei\\Usim\\Components\\Container\:\:\$parent \(int\|string\|null\) does not accept mixed\.$#'
-			identifier: assign.propertyType
-			count: 1
-			path: packages/idei/usim/src/Components/Split.php
-
-		-
-			message: '#^Property Idei\\Usim\\Components\\Split\:\:\$type \(string\) does not accept mixed\.$#'
-			identifier: assign.propertyType
-			count: 1
-			path: packages/idei/usim/src/Components/Split.php
-
-		-
-			message: '#^Cannot access offset int on mixed\.$#'
-			identifier: offsetAccess.nonOffsetAccessible
-			count: 1
-			path: packages/idei/usim/src/Components/TableRow.php
-
-		-
-			message: '#^Parameter \#1 \$text of method Idei\\Usim\\Components\\TableCell\:\:text\(\) expects float\|int\|string\|null, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: packages/idei/usim/src/Components/TableRow.php
-
-		-
-			message: '#^Parameter \#1 \$text of method Idei\\Usim\\Components\\TableCell\:\:text\(\) expects float\|int\|string\|null, string\|false given\.$#'
-			identifier: argument.type
-			count: 1
-			path: packages/idei/usim/src/Components/TableRow.php
-
-		-
-			message: '#^Method Idei\\Usim\\Components\\Uploader\:\:getTempIds\(\) should return list\<string\> but returns array\<mixed\>\.$#'
-			identifier: return.type
-			count: 1
-			path: packages/idei/usim/src/Components/Uploader.php
-
-		-
-			message: '#^Parameter \#1 \$json of function json_decode expects string, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: packages/idei/usim/src/Components/Uploader.php
-
-		-
-			message: '#^Parameter \#3 \$oldFilename of static method Idei\\Usim\\Upload\\UploadService\:\:persistTemporaryUpload\(\) expects string\|null, list\<string\>\|string\|null given\.$#'
-			identifier: argument.type
-			count: 1
-			path: packages/idei/usim/src/Components/Uploader.php
-
-		-
 			message: '#^Parameter \#1 \$string of function addslashes expects string, mixed given\.$#'
 			identifier: argument.type
 			count: 1
@@ -305,12 +203,6 @@ parameters:
 			identifier: cast.string
 			count: 2
 			path: packages/idei/usim/src/Console/Commands/InstallCommand.php
-
-		-
-			message: '#^Cannot cast mixed to string\.$#'
-			identifier: cast.string
-			count: 3
-			path: packages/idei/usim/src/Console/Commands/Support/InstallEnvironmentManager.php
 
 		-
 			message: '#^Method Idei\\Usim\\Console\\Commands\\Support\\InstallStateManager\:\:read\(\) should return array\<string, mixed\>\|null but returns array\<mixed, mixed\>\|null\.$#'
@@ -337,106 +229,10 @@ parameters:
 			path: packages/idei/usim/src/Http/Controllers/UIController.php
 
 		-
-			message: '#^Parameter \#1 \$mimeType of static method Idei\\Usim\\Upload\\UploadService\:\:detectFileType\(\) expects string, string\|null given\.$#'
-			identifier: argument.type
-			count: 1
-			path: packages/idei/usim/src/Http/Controllers/UploadController.php
-
-		-
-			message: '#^Parameter \#1 \$name of static method Illuminate\\Filesystem\\FilesystemManager\:\:disk\(\) expects string\|UnitEnum\|null, mixed given\.$#'
-			identifier: argument.type
-			count: 2
-			path: packages/idei/usim/src/Http/Controllers/UploadController.php
-
-		-
-			message: '#^Parameter \#1 \$incomingStorage of method Idei\\Usim\\Screen\:\:initializeEventContext\(\) expects array\<string, mixed\>, mixed given\.$#'
-			identifier: argument.type
-			count: 2
-			path: packages/idei/usim/src/Listeners/UsimEventDispatcher.php
-
-		-
-			message: '#^Parameter \#1 \$screenClass of method Idei\\Usim\\Listeners\\UsimEventDispatcher\:\:instantiateScreen\(\) expects string, string\|null given\.$#'
-			identifier: argument.type
-			count: 1
-			path: packages/idei/usim/src/Listeners/UsimEventDispatcher.php
-
-		-
 			message: '#^Cannot cast mixed to int\.$#'
 			identifier: cast.int
 			count: 1
 			path: packages/idei/usim/src/Models/UsimRole.php
-
-		-
-			message: '#^Binary operation "\." between ''✉️ Verifica tu…'' and mixed results in an error\.$#'
-			identifier: binaryOp.invalid
-			count: 1
-			path: packages/idei/usim/src/Notifications/CustomVerifyEmailNotification.php
-
-		-
-			message: '#^Cannot cast mixed to int\.$#'
-			identifier: cast.int
-			count: 1
-			path: packages/idei/usim/src/Notifications/CustomVerifyEmailNotification.php
-
-		-
-			message: '#^Parameter \#1 \$notifiable of method Idei\\Usim\\Notifications\\CustomVerifyEmailNotification\:\:verificationUrl\(\) expects Illuminate\\Contracts\\Auth\\MustVerifyEmail&Illuminate\\Database\\Eloquent\\Model, object given\.$#'
-			identifier: argument.type
-			count: 1
-			path: packages/idei/usim/src/Notifications/CustomVerifyEmailNotification.php
-
-		-
-			message: '#^Access to an undefined property object\:\:\$email\.$#'
-			identifier: property.notFound
-			count: 1
-			path: packages/idei/usim/src/Notifications/ResetPasswordNotification.php
-
-		-
-			message: '#^Binary operation "\." between ''🔐 Restablecer…'' and mixed results in an error\.$#'
-			identifier: binaryOp.invalid
-			count: 1
-			path: packages/idei/usim/src/Notifications/ResetPasswordNotification.php
-
-		-
-			message: '#^Cannot cast mixed to int\.$#'
-			identifier: cast.int
-			count: 1
-			path: packages/idei/usim/src/Notifications/ResetPasswordNotification.php
-
-		-
-			message: '#^Method Idei\\Usim\\Support\\FakeDataHelper\:\:sanitizeForEmail\(\) should return string but returns string\|null\.$#'
-			identifier: return.type
-			count: 1
-			path: packages/idei/usim/src/Support/FakeDataHelper.php
-
-		-
-			message: '#^Method Idei\\Usim\\Support\\FakeDataHelper\:\:userData\(\) should return array\{name\: string, email\: string, password\: string, password_confirmation\: string, role\: string\} but returns array\{name\: non\-falsy\-string, email\: string, password\: string, password_confirmation\: string, role\: mixed\}\.$#'
-			identifier: return.type
-			count: 1
-			path: packages/idei/usim/src/Support/FakeDataHelper.php
-
-		-
-			message: '#^Parameter \#3 \$subject of function preg_replace expects array\<float\|int\|string\>\|string, string\|false given\.$#'
-			identifier: argument.type
-			count: 1
-			path: packages/idei/usim/src/Support/FakeDataHelper.php
-
-		-
-			message: '#^Parameter \#1 \$dirs of method Symfony\\Component\\Finder\\Finder\:\:in\(\) expects array\<string\>\|string, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: packages/idei/usim/src/Support/ScreenDiscoveryService.php
-
-		-
-			message: '#^Parameter \#1 \$filename of function is_dir expects string, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: packages/idei/usim/src/Support/ScreenDiscoveryService.php
-
-		-
-			message: '#^Parameter \#1 \$string of function rtrim expects string, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: packages/idei/usim/src/Support/ScreenDiscoveryService.php
 
 		-
 			message: '#^Parameter \#1 \$callback of method Illuminate\\Support\\Collection\<\(int\|string\),mixed\>\:\:map\(\) expects callable\(mixed, int\|string\)\: array\{group\: string\}, Closure\(string\)\: array\{group\: string\} given\.$#'
@@ -455,18 +251,6 @@ parameters:
 			identifier: assign.propertyType
 			count: 1
 			path: packages/idei/usim/src/Support/Translation/TranslationKeyManager.php
-
-		-
-			message: '#^Cannot cast mixed to string\.$#'
-			identifier: cast.string
-			count: 2
-			path: packages/idei/usim/src/Support/Translation/TranslationValueResolver.php
-
-		-
-			message: '#^Method Idei\\Usim\\Support\\Translation\\TranslationValueResolver\:\:resolveFallbackLocale\(\) should return string but returns mixed\.$#'
-			identifier: return.type
-			count: 1
-			path: packages/idei/usim/src/Support/Translation/TranslationValueResolver.php
 
 		-
 			message: '#^Parameter \#2 \$replace of function __ expects array\<string, bool\|float\|int\|string\|null\>, array\<string, mixed\> given\.$#'

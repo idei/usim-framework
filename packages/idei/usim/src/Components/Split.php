@@ -24,9 +24,16 @@ class Split extends Container
     {
         $split = new self();
         $split->id = $id;
-        $split->type = $data['type'] ?? 'split';
-        $split->name = $data['name'] ?? null;
-        $split->parent = $data['parent'] ?? null;
+
+        $type = $data['type'] ?? 'split';
+        $split->type = is_string($type) ? $type : 'split';
+
+        $name = $data['name'] ?? null;
+        $split->name = is_string($name) ? $name : null;
+
+        $parent = $data['parent'] ?? null;
+        $split->parent = is_int($parent) || is_string($parent) || $parent === null ? $parent : null;
+
         $split->config = array_merge($split->config, $data);
         return $split;
     }

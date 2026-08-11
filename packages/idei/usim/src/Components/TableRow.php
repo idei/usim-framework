@@ -134,10 +134,18 @@ class TableRow extends UIComponent
                 // If it's an array (like build() output), store as raw data
                 // For now, just store as text representation
                 // In the future, this could be handled differently by the client
-                $cell->text(json_encode($value));
+                $encodedValue = json_encode($value);
+                $cell->text($encodedValue === false ? null : $encodedValue);
             } else {
                 // Otherwise, treat it as text (string, number, etc)
-                $cell->text($value);
+                if (is_string($value) || is_int($value) || is_float($value) || $value === null) {
+                    $cell->text($value);
+                } elseif (is_bool($value)) {
+                    $cell->text($value ? '1' : '0');
+                } else {
+                    $encodedValue = json_encode($value);
+                    $cell->text($encodedValue === false ? null : $encodedValue);
+                }
             }
         }
 
@@ -153,7 +161,13 @@ class TableRow extends UIComponent
      */
     public function setCell(int $index, mixed $value): self
     {
-        $this->config['cells'][$index] = $value;
+        $cells = $this->config['cells'] ?? [];
+        if (!is_array($cells)) {
+            $cells = [];
+        }
+
+        $cells[$index] = $value;
+        $this->config['cells'] = $cells;
         return $this;
     }
 

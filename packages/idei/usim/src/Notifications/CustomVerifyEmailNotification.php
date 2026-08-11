@@ -33,13 +33,17 @@ class CustomVerifyEmailNotification extends Notification implements ShouldQueue
 
     /**
      * Get the mail representation of the notification.
+     *
+     * @param \Illuminate\Database\Eloquent\Model&\Illuminate\Contracts\Auth\MustVerifyEmail $notifiable
      */
     public function toMail(object $notifiable): MailMessage
     {
         $verificationUrl = $this->verificationUrl($notifiable);
+        $appName = config('app.name');
+        $appName = is_string($appName) ? $appName : 'Laravel';
 
         return (new MailMessage)
-            ->subject('✉️ Verifica tu dirección de email - ' . config('app.name'))
+            ->subject('✉️ Verifica tu dirección de email - ' . $appName)
             ->view('emails.verify-email', [
                 'user' => $notifiable,
                 'verificationUrl' => $verificationUrl,
@@ -55,13 +59,27 @@ class CustomVerifyEmailNotification extends Notification implements ShouldQueue
     {
         $id = $notifiable->getKey();
         $hash = sha1($notifiable->getEmailForVerification());
-        $expiresAt = now()->addMinutes((int) config('auth.verification.expire', 60));
+        $expireConfig = config('auth.verification.expire', 60);
+        $expiresAt = now()->addMinutes($this->resolveExpireMinutes($expireConfig, 60));
 
         return URL::temporarySignedRoute('ui.catchall', $expiresAt, [
             'screen' => 'auth/email-verified',
             'id' => $id,
             'hash' => $hash,
         ]);
+    }
+
+    private function resolveExpireMinutes(mixed $value, int $default): int
+    {
+        if (is_int($value)) {
+            return $value;
+        }
+
+        if (is_string($value) && is_numeric($value)) {
+            return (int) $value;
+        }
+
+        return $default;
     }
 
     /**
