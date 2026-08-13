@@ -40,8 +40,8 @@ if [ ! -f "app/UI/Screens/Menu.php" ]; then
     echo "❌ Error: Menu.php no se creó."
     exit 1
 fi
-if [ ! -f "app/UI/Screens/Admin/Dashboard.php" ]; then
-    echo "❌ Error: Admin/Dashboard.php no se creó."
+if [ ! -f "app/UI/Screens/Admin/UsersManager.php" ]; then
+    echo "❌ Error: Admin/UsersManager.php no se creó."
     exit 1
 fi
 if [ ! -f "app/UI/Components/DataTable/UserTableModel.php" ]; then

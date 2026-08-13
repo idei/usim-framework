@@ -6,6 +6,10 @@ The format is based on Keep a Changelog, and this project follows Semantic Versi
 
 ## [Unreleased]
 
+### Changed
+- Unified published package configuration into `config/usim.php` (includes `users.roles`), replacing the previous split publish target (`config/ui-services.php` + `config/users.php`) for new installs.
+- Runtime config resolution now uses `usim.*` keys only; legacy `ui-services.*` fallbacks were removed.
+
 ## [v0.12.0] - 2026-04-30
 
 ### Added
@@ -69,10 +73,10 @@ The format is based on Keep a Changelog, and this project follows Semantic Versi
 
 ### Changed
 - `ConfirmDialogService` and `RegisterDialog` scaffolding updated to use `plain()` container appearance.
-- Admin Dashboard stub significantly refined: improved user feedback handling, clearer table layout, and role management flow.
+- Admin UsersManager stub significantly refined: improved user feedback handling, clearer table layout, and role management flow.
 - `UserService` stub enhanced with stronger field validation and role management logic.
 - All auth screen stubs (`Login`, `EmailVerified`, `ForgotPassword`, `ResetPassword`) updated to use `plain()` container appearance for a consistent look.
-- `EditUserDialog` and `Admin\Dashboard` stubs updated to use `plain()` appearance.
+- `EditUserDialog` and `Admin\UsersManager` stubs updated to use `plain()` appearance.
 
 ### Fixed
 - `Screen` now always persists the container state after `postLoadUI()`, including on `?reset=true` reloads, preventing stale cache snapshots.
@@ -87,7 +91,7 @@ The format is based on Keep a Changelog, and this project follows Semantic Versi
 - Rich label HTML rendering through `Label::html()`, including safe rendering of existing backend Blade views into label content.
 - New positioning helpers for components and containers, including anchor-based positioning and offset APIs such as `position()`, `positionMode()`, `offsetX()`, `offsetY()`, and directional helpers like `top()` / `right()` / `bottom()` / `left()`.
 - Card theme variants and theme assets for light/dark UI toggles in the default package UI.
-- New `app_id` package configuration (from `APP_ID`) to scope client storage keys per application.
+- New `front_store_key` package configuration (from `FRONT_STORE_KEY`) to scope client storage keys per application.
 
 ### Changed
 - Default USIM styles now rely more heavily on CSS variables for more consistent theming across renderer components and package-provided screens.
@@ -109,33 +113,36 @@ The format is based on Keep a Changelog, and this project follows Semantic Versi
 - `ClassModifier` utility now exposes four new static methods: `addTraitToClass()`, `addInterface()`, `addPropertyArrayValue()`, and `addCast()` — enabling programmatic, AST-based modification of any PHP class during installation.
 - `Screen` component lookup helpers: `findComponentAs()` and `findRootComponentAs()` for typed retrieval of child components.
 - Test scaffolding stubs: `stubs/tests/Support/usim_bootstrap.php.stub` and `stubs/tests/Traits/UsimTestHelpers.php.stub`.
-- `UsimSeeder` stub (`stubs/seeders/UsimSeeder.php.stub`) to orchestrate `UsimRoleSeeder` and `UsimUserSeeder` in a single seeder call.
+- Default access provisioning now runs from `usim:install`, which upserts roles, permissions, users, and languages from configuration.
 - New required composer dependencies: `nikic/php-parser: ^5.7`, `symfony/var-dumper: ^6.0|^7.0`, `illuminate/contracts: ^10.0|^11.0|^12.0`.
 - `UserService` stub emits email verification and profile update events for UI synchronization.
 - UI renderer (`ui-renderer.js`) now supports comprehensive CSS grid properties (`grid-template-columns/rows/areas`, `grid-auto-columns/rows/flow`) and flex layout properties (`flex-direction`, `flex-wrap`), as well as background image/size/position styling.
 
 ### Changed
 - **Breaking:** Seeder stubs renamed from `RoleSeeder` → `UsimRoleSeeder` and `UserSeeder` → `UsimUserSeeder` to avoid class-name collisions in consumer projects.
+- The installer now provisions the default root/admin/user access data directly from configuration and no longer depends on package seeder stubs.
 - User model stub now uses the `UsimUser` trait for password reset and email verification notifications instead of inline method overrides.
 - User model stub adds `terms_accepted_at` to `$fillable` and `$casts` (as `datetime`).
 - `usim:install` now programmatically modifies the consumer's `User` model (adds traits, interfaces, properties, casts) via `ClassModifier` instead of overwriting the file.
-- `usim:install` post-install guidance improved with clearer migration and seeding instructions.
+- `usim:install` post-install guidance now reflects config-driven provisioning and migration-first installation.
 - API auth routes installation commented out in `InstallCommand` pending a dedicated auth-routes refactor.
-- `UsimUserSeeder` now only skips seeding when `User::count() > 0` (was `> 1`), so a single existing user prevents re-seeding.
+
+### Removed
+- Seeder scaffolding and installer references for `UsimSeeder`, `UsimRoleSeeder`, and `UsimUserSeeder`.
 
 ## [0.4.0] - 2026-03-15
 
 ### Added
-- Admin Dashboard screen stub (`App\UI\Screens\Admin\Dashboard`) with full user management: search, paginated user table, create, edit, and delete users with role assignment.
-- `EditUserDialog` modal component stub for inline user editing from the Admin Dashboard.
+- Admin UsersManager screen stub (`App\UI\Screens\Admin\UsersManager`) with full user management: search, paginated user table, create, edit, and delete users with role assignment.
+- `EditUserDialog` modal component stub for inline user editing from the Admin UsersManager.
 - `UserTableModel` data table component stub (`App\UI\Components\DataTable`) for paginated, searchable user lists backed by `UserService`.
 - `upload_disk` configuration key (`config/ui-services.php`) to set the filesystem disk used for uploads. Defaults to `local`; override via `UPLOAD_DISK` env variable.
 - `UPLOAD_DISK=local` entry added to the published `.env` template.
 
 ### Changed
 - `usim:install` now exposes a single unified installation flow; the `minimal` preset and `--preset` option were removed.
-- `usim:install` now scaffolds the Admin Dashboard screen in `App\UI\Screens\Admin` alongside the core Home, Menu, and auth screens.
-- Menu scaffold updated to show a link to the Admin Dashboard for authenticated users.
+- `usim:install` now scaffolds the Admin UsersManager screen in `App\UI\Screens\Admin` alongside the core Home, Menu, and auth screens.
+- Menu scaffold updated to show a link to the Admin UsersManager for authenticated users.
 - `UserService` stub significantly expanded with `findUser`, `getUser`, `updateUser`, and `createUser` methods including field validation, role management, and email notification handling.
 - `UploadController` and `UploadService` now use the configurable `upload_disk` key instead of the hardcoded `uploads` disk name.
 
@@ -164,14 +171,14 @@ The format is based on Keep a Changelog, and this project follows Semantic Versi
 ### Changed
 - Refreshed core scaffolding stubs to match the current working app architecture: `Home`, `Menu`, auth screens, `AuthController`, `User` model, and web catch-all route stubs.
 - Installer full preset now publishes service stubs before auth screens to keep generated code dependencies coherent.
-- Seeder scaffolding updated from `UsimUserSeeder` to `UserSeeder`, including installer references and post-install guidance.
+- Seeder scaffolding was removed; default access provisioning is handled by `usim:install`.
 - User model scaffolding no longer injects the `UsimUser` trait automatically; default model stub now uses explicit notification methods for reset/verification flows.
 
 ## [0.2.0] - 2026-03-12
 
 ### Added
 - `usim:install` command with `minimal` and `full` presets.
-- Scaffolding stubs for screens, auth screens, modals, routes, config, seeders, and migrations.
+- Scaffolding stubs for screens, auth screens, modals, routes, config, and migrations.
 - `Idei\Usim\Traits\UsimUser` trait for user notification integration.
 - Carousel, uploader, calendar, image crop editor, and expanded table/form UI components.
 - Upload handling, temporary upload cleanup job, and package routes/controllers for UI and upload flows.

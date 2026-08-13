@@ -21,6 +21,7 @@
         "spiral/roadrunner-http": "^3.3.0"
     },
     "require-dev": {
+        "larastan/larastan": "^3.0",
         "laravel/pail": "^1.2.2",
         "laravel/pint": "^1.13",
         "laravel/sail": "^1.41",
@@ -34,10 +35,7 @@
             "App\\": "app/",
             "Database\\Factories\\": "database/factories/",
             "Database\\Seeders\\": "database/seeders/"
-        },
-        "files": [
-            "vendor/idei/usim/src/Support/helpers.php"
-        ]
+        }
     },
     "autoload-dev": {
         "psr-4": {
@@ -76,6 +74,14 @@
         "test-verbose": [
             "@php artisan config:clear --ansi",
             "@php artisan test"
+        ],
+        "phpstan": [
+            "vendor/bin/phpstan clear-result-cache",
+            "vendor/bin/phpstan analyse"
+        ],
+        "phpstan-usim": [
+            "vendor/bin/phpstan clear-result-cache --configuration=phpstan-usim.neon",
+            "vendor/bin/phpstan analyse --configuration=phpstan-usim.neon"
         ]
     },
     "extra": {

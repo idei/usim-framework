@@ -31,7 +31,7 @@ class FakeDataHelper
     /**
      * Generate a fake full name
      *
-     * @return array ['name' => 'John Doe', 'first_name' => 'John', 'last_name' => 'Doe']
+        * @return array{name: string, first_name: string, last_name: string} ['name' => 'John Doe', 'first_name' => 'John', 'last_name' => 'Doe']
      */
     public static function fullName(): array
     {
@@ -48,7 +48,7 @@ class FakeDataHelper
     /**
      * Generate a fake name with compatible email
      *
-     * @return array ['name' => 'John Doe', 'email' => 'john.doe@example.com']
+        * @return array{name: string, first_name: string, last_name: string, email: string} ['name' => 'John Doe', 'email' => 'john.doe@example.com']
      */
     public static function nameWithEmail(): array
     {
@@ -77,21 +77,26 @@ class FakeDataHelper
     /**
      * Generate fake user data for registration forms
      *
-     * @param array $roles Available roles to choose from
-     * @return array User data with name, email, password, and role
+        * @param list<string> $roles Available roles to choose from
+        * @return array{name: string, email: string, password: string, password_confirmation: string, role: string} User data with name, email, password, and role
      */
     public static function userData(array $roles = ['user', 'admin', 'moderator']): array
     {
         $firstName = fake()->firstName();
         $lastName = fake()->lastName();
         $password = self::password(8);
+        $role = fake()->randomElement($roles);
+
+        if (!is_string($role)) {
+            $role = $roles[0] ?? 'user';
+        }
 
         return [
             'name' => "$firstName $lastName",
             'email' => self::email($firstName, $lastName),
             'password' => $password,
             'password_confirmation' => $password,
-            'role' => fake()->randomElement($roles),
+            'role' => $role,
         ];
     }
 
@@ -107,12 +112,15 @@ class FakeDataHelper
         $string = strtolower($string);
 
         // Remove accents using transliteration
-        $string = iconv('UTF-8', 'ASCII//TRANSLIT', $string);
+        $transliterated = iconv('UTF-8', 'ASCII//TRANSLIT', $string);
+        if ($transliterated !== false) {
+            $string = $transliterated;
+        }
 
         // Remove any non-alphanumeric characters
-        $string = preg_replace('/[^a-z0-9]/', '', $string);
+        $sanitized = preg_replace('/[^a-z0-9]/', '', $string);
 
-        return $string;
+        return $sanitized ?? '';
     }
 
     /**

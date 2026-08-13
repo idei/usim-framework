@@ -37,10 +37,14 @@ class AuthSessionService
 
     public function resolvePostLoginRedirect(User $user): string
     {
-        $rolesConfig = config('users.roles', []);
+        $rolesConfig = config('usim.roles', config('users.roles', []));
 
         foreach ($user->getRoleNames() as $roleName) {
-            $screenClass = data_get($rolesConfig, "{$roleName}.default_screen");
+            if (!is_string($roleName)) {
+                continue;
+            }
+
+            $screenClass = data_get($rolesConfig, "{$roleName}.home_screen");
 
             if (
                 is_string($screenClass)

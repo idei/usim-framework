@@ -5,6 +5,8 @@ namespace App\UI\Screens\Demo;
 use Idei\Usim\Components\Container;
 use Idei\Usim\Screen;
 use Idei\Usim\UI;
+use Idei\Usim\ValueObjects\Size;
+use Idei\Usim\ValueObjects\Spacing;
 
 class TabsDemo extends Screen
 {
@@ -24,23 +26,23 @@ class TabsDemo extends Screen
     {
         $container
             ->plain()
-            ->maxWidth('1024px')
+            ->maxWidth(Size::px(1024))
             ->centerHorizontal()
-            ->padding('12px 24px 24px 24px')
-            ->gap('14px');
+            ->padding(Spacing::each(Spacing::px(12), Spacing::px(24), Spacing::px(24), Spacing::px(24)))
+            ->gap(Spacing::px(14));
 
         $container->add(
             UI::label('tabs_demo_title')
                 ->text(t('screen.demo.tabs_demo.title'))
                 ->style('h2')
-                ->width('100%')
+                ->width(Size::full())
         );
 
         $this->tabs_container = UI::container('tabs_container')
-            ->width('100%')
-            ->padding('16px')
-            ->minHeight('300px')
-            ->gap('10px');
+            ->width(Size::full())
+            ->padding(Spacing::px(16))
+            ->minHeight(Size::px(300))
+            ->gap(Spacing::px(10));
 
         $this->tabs_container
             ->tabs($this->tabsDefaultConfig(), 'overview')
@@ -83,16 +85,20 @@ class TabsDemo extends Screen
         $container->add($this->tabs_container);
     }
 
+    /** @param array<string, mixed> $params */
     public function onTabsSwitch(array $params): void
     {
-        $requested = (string) ($params['tab_id'] ?? 'overview');
+        $rawRequested = $params['tab_id'] ?? 'overview';
+        $requested = is_scalar($rawRequested) || $rawRequested instanceof \Stringable ? (string) $rawRequested : '';
         $activeTab = $requested !== '' ? $requested : 'overview';
         $this->tabs_container->activeTab($activeTab);
     }
 
+    /** @param array<string, mixed> $params */
     public function onTabsClose(array $params): void
     {
-        $tabId = (string) ($params['tab_id'] ?? '');
+        $rawTabId = $params['tab_id'] ?? '';
+        $tabId = is_scalar($rawTabId) || $rawTabId instanceof \Stringable ? (string) $rawTabId : '';
         if ($tabId === '') {
             return;
         }
@@ -100,6 +106,7 @@ class TabsDemo extends Screen
         $this->toast(t('screen.demo.tabs_demo.toasts.tab_closed', ['tab' => $tabId]), 'success');
     }
 
+    /** @return array<string, array<string, mixed>> */
     private function tabsDefaultConfig(): array
     {
         return [

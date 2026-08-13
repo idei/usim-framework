@@ -2,10 +2,12 @@
 
 namespace App\UI\Screens\Demo;
 
-use Idei\Usim\UI;
-use Idei\Usim\Screen;
-use Idei\Usim\Components\Container;
 use Idei\Usim\Components\Calendar;
+use Idei\Usim\Components\Container;
+use Idei\Usim\Screen;
+use Idei\Usim\UI;
+use Idei\Usim\ValueObjects\Size;
+use Idei\Usim\ValueObjects\Spacing;
 
 class CalendarDemo extends Screen
 {
@@ -14,14 +16,14 @@ class CalendarDemo extends Screen
     protected function buildBaseUI(Container $container, ...$params): void
     {
         $container
-            ->maxWidth('600px')
+            ->maxWidth(Size::px(600))
             ->centerHorizontal()
             ->plain()
-            ->padding('30px');
+            ->padding(Spacing::px(30));
 
         $this->academic_calendar = UI::calendar('academic_calendar')
             ->year(2026)
-            ->month(date('n'))
+            ->month((int) date('n'))
             ->showSaturdayInfo(false)
             ->showSundayInfo(false)
             ->cellSize('60px')
@@ -36,7 +38,7 @@ class CalendarDemo extends Screen
 
         $this->onMonthChanged([
             'year' => 2026,
-            'month' => date('n')
+            'month' => (int) date('n')
         ]);
 
         $container->add($this->academic_calendar);
@@ -45,12 +47,21 @@ class CalendarDemo extends Screen
     /**
      * Handle month change event
      *
-     * @param array $params Contains 'year' and 'month'
+     * @param array<string, mixed> $params Contains 'year' and 'month'
      */
     public function onMonthChanged(array $params): void
     {
-        $year = $params['year'];
-        $month = $params['month'];
+        $yearParam = $params['year'] ?? null;
+        $monthParam = $params['month'] ?? null;
+
+        $year = is_int($yearParam)
+            ? $yearParam
+            : ((is_string($yearParam) && is_numeric($yearParam)) ? (int) $yearParam : 2026);
+
+        $month = is_int($monthParam)
+            ? $monthParam
+            : ((is_string($monthParam) && is_numeric($monthParam)) ? (int) $monthParam : (int) date('n'));
+
         $monthEvents = CalendarioAcadémico::getMonthEvents($year, $month);
         $this->academic_calendar->events($monthEvents);
     }

@@ -16,26 +16,41 @@ class UIDebug
     public const LEVEL_ERROR = 'error';
     public const LEVEL_WARNING = 'warning';
 
+    /**
+     * @param array<string, mixed>|string $context
+     */
     public static function log(string $message, array | string $context = []): void
     {
         self::_log(self::LEVEL_DEBUG, $message, $context);
     }
 
+    /**
+     * @param array<string, mixed> $context
+     */
     public static function info(string $message, array $context = []): void
     {
         self::_log(self::LEVEL_INFO, $message, $context);
     }
 
+    /**
+     * @param array<string, mixed>|string $context
+     */
     public static function debug(string $message, array | string $context = []): void
     {
         self::_log(self::LEVEL_DEBUG, $message, $context);
     }
 
+    /**
+     * @param array<string, mixed>|string $context
+     */
     public static function error(string $message, array | string $context = []): void
     {
         self::_log(self::LEVEL_ERROR, $message, $context);
     }
 
+    /**
+     * @param array<string, mixed>|string $context
+     */
     public static function warning(string $message, array | string $context = []): void
     {
         self::_log(self::LEVEL_WARNING, $message, $context);
@@ -44,7 +59,7 @@ class UIDebug
     /**
      * Log a debug message
      * @param string $message Debug message
-     * @param array $context Additional context data
+        * @param array<string, mixed>|string $context Additional context data
      * @return void
      */
     private static function _log(string $level,string $message, array | string $context = []): void

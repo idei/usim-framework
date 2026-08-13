@@ -11,7 +11,6 @@ use Illuminate\Database\Eloquent\Model;
  * @extends ModelCreateService<TModel>
  * @extends ModelQueryableService<TModel>
  * @extends ModelUpdateService<TModel>
- * @extends ModelDeleteService
  */
 interface ModelCrudService extends ModelCreateService, ModelQueryableService, ModelUpdateService, ModelDeleteService
 {

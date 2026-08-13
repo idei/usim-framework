@@ -4,9 +4,17 @@ namespace Idei\Usim\Models;
 
 use Idei\Usim\Models\UsimTextValue;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
+/**
+ * @property int $id
+ * @property string $key
+ * @property string|null $group
+ * @property bool $is_active
+ * @property-read Collection<int, UsimTextValue> $values
+ */
 class UsimTextKey extends Model
 {
     protected $table = 'usim_text_keys';
@@ -21,11 +29,18 @@ class UsimTextKey extends Model
         'is_active' => 'boolean',
     ];
 
+    /**
+     * @return HasMany<UsimTextValue, $this>
+     */
     public function values(): HasMany
     {
         return $this->hasMany(UsimTextValue::class, 'text_key_id');
     }
 
+    /**
+     * @param Builder<UsimTextKey> $query
+     * @return Builder<UsimTextKey>
+     */
     public function scopeByKey(Builder $query, string $key): Builder
     {
         return $query->where('key', $key);

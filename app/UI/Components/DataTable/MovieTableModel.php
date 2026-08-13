@@ -2,6 +2,7 @@
 
 namespace App\UI\Components\DataTable;
 
+use App\Models\Movie;
 use App\Services\Movie\MovieListingService;
 use Idei\Usim\Components\Table;
 use Idei\Usim\DataTable\AbstractTableModel;
@@ -37,6 +38,25 @@ class MovieTableModel extends AbstractTableModel
 
     public function getPageData(): array
     {
+        $movies = $this->getMovieItems();
+
+        return array_map(
+            static fn (Movie $movie): array => [
+                'id' => $movie->id,
+                'title' => $movie->title,
+                'genre_name' => $movie->genre->name ?? null,
+                'release_year' => $movie->release_year,
+                'cast_members' => $movie->cast_members,
+            ],
+            $movies
+        );
+    }
+
+    /**
+     * @return list<Movie>
+     */
+    private function getMovieItems(): array
+    {
         $pagination = $this->tableBuilder->getPaginationData();
 
         $result = $this->listingService->paginate(
@@ -47,12 +67,12 @@ class MovieTableModel extends AbstractTableModel
             sortDirection: (string) ($this->tableBuilder->getSortDirection() ?: 'asc'),
         );
 
-        return $result['items'];
+        return array_values($result['items']);
     }
 
     public function getFormattedPageData(int $currentPage, int $perPage): array
     {
-        $movies = $this->getPageData();
+        $movies = $this->getMovieItems();
         $formatted = [];
 
         foreach ($movies as $movie) {
@@ -62,10 +82,11 @@ class MovieTableModel extends AbstractTableModel
         return $formatted;
     }
 
-    public function formatRow(object $row): array
+    /** @return array<string, mixed> */
+    public function formatRow(Movie $row): array
     {
         $title = t($row->title);
-        $genreName = $row->genre?->name ?? $row->genre_name ?? 'genre.unknown';
+        $genreName = $row->genre->name ?? $row->genre_name ?? 'genre.unknown';
         $genreName = t($genreName);
         return [
             '_model_id' => $row->id,

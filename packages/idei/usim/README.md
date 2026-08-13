@@ -79,7 +79,7 @@ Laravel's package auto-discovery will register `UsimServiceProvider` automatical
 
 ### Quick Start
 
-Run the install command to scaffold a complete working application with authentication, profile, menus, seeders, and routes:
+Run the install command to scaffold a complete working application with authentication, profile, menus, configuration, and routes:
 
 ```bash
 php artisan usim:install
@@ -89,7 +89,6 @@ Then follow the printed instructions:
 
 ```bash
 php artisan migrate
-php artisan db:seed --class=UsimSeeder        # creates default admin/user from .env
 ./start.sh [-r]
 ```
 
@@ -149,7 +148,7 @@ class HelloScreen extends Screen
 
         $container->add(
             UI::label('title')
-                ->text('Welcome to the Dashboard')
+                ->text('Welcome to the UsersManager')
                 ->style('h1')
         );
 
@@ -402,7 +401,7 @@ public static function getMenuIcon(): ?string
 Then in your Menu screen, use `$menu->screen(MyScreen::class)` for automatic linking with permission checks:
 
 ```php
-$menu->screen(Dashboard::class);                          // auto label + icon
+$menu->screen(UsersManager::class);                          // auto label + icon
 $menu->screen(Products\List::class, 'All Products', '📦'); // custom label + icon
 ```
 
@@ -549,7 +548,7 @@ Translation values support placeholders (`:name`, `:count`, etc.) and optional m
 
 Auto-key behavior for human-readable text (`t('Some text')`):
 
-- key length limit is configurable via `ui-services.i18n.auto_key_max_length` (env: `USIM_I18N_AUTO_KEY_MAX_LENGTH`, default `20`)
+- key length limit is configurable via `usim.i18n.auto_key_max_length` (env: `USIM_I18N_AUTO_KEY_MAX_LENGTH`, default `20`)
 - when truncation is needed, USIM tries to continue to the next separator so the current word is not cut mid-word
 - escaped and real line breaks are normalized before key generation and fallback text storage
 
@@ -557,8 +556,8 @@ I18n suggestion logging:
 
 - when a key is auto-generated from human-readable text, USIM emits an i18n warning suggesting to replace the literal text with the generated key
 - log context includes generated key, source text, group, file, line, and best-effort character position
-- configure channel with `ui-services.i18n.log_channel` (env: `USIM_I18N_LOG_CHANNEL`, default `i18n`)
-- enable/disable with `ui-services.i18n.log_autokey_suggestions` (env: `USIM_I18N_LOG_AUTOKEY_SUGGESTIONS`, default `true`)
+- configure channel with `usim.i18n.log_channel` (env: `USIM_I18N_LOG_CHANNEL`, default `i18n`)
+- enable/disable with `usim.i18n.log_autokey_suggestions` (env: `USIM_I18N_LOG_AUTOKEY_SUGGESTIONS`, default `true`)
 
 Recommended key naming for package and scaffolded code:
 
@@ -703,14 +702,14 @@ public function onSaveProfile(array $params): void
 | `ResetPassword` | `/auth/reset-password` | Reset password form |
 | `EmailVerified` | `/auth/email-verified` | Email verification handler |
 | `Profile` | `/auth/profile` | User profile (name, photo, password change) |
-| `Admin\Dashboard` | `/admin/dashboard` | User management table with CRUD and role assignment (admin only) |
+| `Admin\UsersManager` | `/admin/dashboard` | User management table with CRUD and role assignment (admin only) |
 
 Supporting files:
 
 - **AuthController** — API endpoints for register, login, logout, verify email, reset password
 - **UsimUser trait** — Custom notification methods for password reset and email verification
 - **UserService** — Full user management: find, get, create, update (with role sync, email validation, notifications)
-- **UsimSeeder / UsimRoleSeeder / UsimUserSeeder** — Default roles (admin/user/verified) and seed users from `.env`
+- Default root/admin/user provisioning is now handled during `php artisan usim:install` through config-driven database upsert.
 - **EventServiceProvider** — App-level event/listener registration scaffold
 - **Email view stubs** — Styled Blade views for password reset and email verification emails
 - **Terms view** — Blade view for terms and conditions display
@@ -732,7 +731,7 @@ USER_EMAIL=user@example.com
 USER_PASSWORD=your-secure-password
 ```
 
-Then run `php artisan db:seed`.
+The installer now provisions the default access data during `php artisan usim:install`; no separate package seeder is required.
 
 ---
 
@@ -773,15 +772,20 @@ Publish the config file (done automatically by `usim:install`):
 php artisan vendor:publish --tag=usim-config
 ```
 
-This creates `config/ui-services.php`:
+This creates `config/usim.php`:
 
 ```php
 return [
-    'app_id'           => env('APP_ID', 'my-app'),
+    'front_store_key'           => env('FRONT_STORE_KEY', 'my-app'),
     'screens_namespace' => 'App\\UI\\Screens',
     'screens_path'      => app_path('UI/Screens'),
     'api_url'           => env('API_BASE_URL', env('APP_URL')),
     'upload_disk'       => env('UPLOAD_DISK', 'local'),
+    'users'             => [
+        'roles' => [
+            // admin/user role metadata + seed_user defaults
+        ],
+    ],
     'i18n'              => [
         'default_locale'  => env('USIM_DEFAULT_LOCALE', env('APP_LOCALE', 'en')),
         'fallback_locale' => env('USIM_FALLBACK_LOCALE', 'en'),
@@ -791,11 +795,12 @@ return [
 
 | Key | Description | Default |
 |---|---|---|
-| `app_id` | Unique application identifier used to scope persisted UI storage keys | `my-app` (override via `APP_ID`) |
+| `front_store_key` | Unique application identifier used to scope persisted UI storage keys | `my-app` (override via `FRONT_STORE_KEY`) |
 | `screens_namespace` | PSR-4 namespace where screens live | `App\UI\Screens` |
 | `screens_path` | Filesystem path to scan for screens | `app/UI/Screens` |
 | `api_url` | Base URL for internal HTTP calls | `APP_URL` |
 | `upload_disk` | Laravel filesystem disk for uploaded files | `local` (override via `UPLOAD_DISK`) |
+| `users.roles` | Role metadata and default seeded users | `admin` / `user` roles scaffold |
 | `i18n.default_locale` | Preferred locale for DB translation lookup | `APP_LOCALE` or `en` |
 | `i18n.fallback_locale` | Fallback locale for DB translations | `en` |
 ---
@@ -847,7 +852,7 @@ if (screen.agent_context) {
 
 ```php
 // Use Laravel HTTP client or GuzzleHttp to consume API directly
-$response = Http::get(config('ui-services.api_url') . '/api/ui/admin/dashboard');
+$response = Http::get(config('usim.api_url') . '/api/ui/admin/dashboard');
 $screen = $response->json();
 
 if (isset($screen['agent_context'])) {
@@ -929,9 +934,9 @@ app/
     │       └── RegisterDialog.php
     └── Screens/
         ├── Home.php              # Landing page
-        ├── Menu.php              # Navigation menu (links Dashboard for admins)
+        ├── Menu.php              # Navigation menu (links UsersManager for admins)
         ├── Admin/
-        │   └── Dashboard.php     # User management (admin only)
+        │   └── UsersManager.php     # User management (admin only)
         └── Auth/
             ├── Login.php
             ├── ForgotPassword.php
@@ -939,17 +944,14 @@ app/
             ├── EmailVerified.php
             └── Profile.php
 config/
-├── ui-services.php               # USIM configuration
-└── users.php                     # Default users for seeding
+└── usim.php                      # USIM configuration (includes users.roles)
 database/
 ├── migrations/
 │   ├── *_create_temporary_uploads_table.php
 │   ├── *_add_profile_image_to_users_table.php
 │   └── *_add_terms_accepted_at_to_users_table.php
 └── seeders/
-    ├── UsimSeeder.php           # Entry point — calls role and user seeders
-    ├── UsimRoleSeeder.php
-    └── UsimUserSeeder.php
+    └── (consumer-defined seeders only; USIM no longer ships package seeders)
 providers/
 └── EventServiceProvider.php
 resources/views/emails/

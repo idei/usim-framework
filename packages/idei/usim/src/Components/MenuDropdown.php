@@ -15,6 +15,7 @@ namespace Idei\Usim\Components;
  */
 class MenuDropdown extends UIComponent
 {
+    /** @var list<array<string, mixed>> */
     private array $items = [];
 
     public function getDefaultConfig(): array
@@ -51,12 +52,21 @@ class MenuDropdown extends UIComponent
     /**
      * {@inheritDoc}
      */
+    /**
+     * @param array<string, mixed> $config
+     */
     public static function deserialize(int $id, array $config): self
     {
         /** @var MenuDropdown $component */
         $component = parent::deserialize($id, $config);
         if (isset($config['items']) && is_array($config['items'])) {
-            $component->items = $config['items'];
+            $items = [];
+            foreach ($config['items'] as $item) {
+                if (is_array($item)) {
+                    $items[] = $item;
+                }
+            }
+            $component->items = $items;
         }
         return $component;
     }
@@ -66,9 +76,9 @@ class MenuDropdown extends UIComponent
      *
      * @param string $label Item label
      * @param string|null $action Action to trigger (optional if has submenu)
-     * @param array $params Action parameters
+     * @param array<string, mixed> $params Action parameters
      * @param string|null $icon Icon emoji or text
-     * @param array $submenu Submenu items
+     * @param list<array<string, mixed>> $submenu Submenu items
      * @return self
      */
     public function item(
@@ -126,7 +136,7 @@ class MenuDropdown extends UIComponent
         }
 
         // Check if user has access to this screen
-        /** @var array $access */
+        /** @var array{allowed: bool} $access */
         $access = $screenClass::checkAccess();
         if (!$access['allowed']) {
             return $this;
@@ -254,26 +264,5 @@ class MenuDropdown extends UIComponent
     {
         $this->config['position'] = $position;
         return $this;
-    }
-
-    /**
-     * Set or get menu width.
-     *
-     * Accepts an integer (converted to px) or a CSS string. Omit to read current value.
-     *
-     * @param int|string|null $width Width in pixels (int) or with units (string), or null to get.
-     * @return static|string|null
-     */
-    public function width(int | string | null $width = null): static | string | null
-    {
-        if ($width === null) {
-            return $this->config['width'] ?? null;
-        }
-
-        if (is_int($width)) {
-            $width .= 'px';
-        }
-
-        return $this->setConfig('width', $width);
     }
 }

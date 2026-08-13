@@ -17,13 +17,23 @@ class Split extends Container
     /**
      * {@inheritDoc}
      */
+    /**
+     * @param array<string, mixed> $data
+     */
     public static function deserialize(int $id, array $data): Split
     {
         $split = new self();
         $split->id = $id;
-        $split->type = $data['type'] ?? 'split';
-        $split->name = $data['name'] ?? null;
-        $split->parent = $data['parent'] ?? null;
+
+        $type = $data['type'] ?? 'split';
+        $split->type = is_string($type) ? $type : 'split';
+
+        $name = $data['name'] ?? null;
+        $split->name = is_string($name) ? $name : null;
+
+        $parent = $data['parent'] ?? null;
+        $split->parent = is_int($parent) || is_string($parent) || $parent === null ? $parent : null;
+
         $split->config = array_merge($split->config, $data);
         return $split;
     }
@@ -200,8 +210,7 @@ class Split extends Container
         $paneNamePrefix = $this->name !== null ? $this->name : ('split_' . $this->id);
         $paneName = sprintf('%s_%s_pane', $paneNamePrefix, $side);
         $pane = new Container($paneName);
-        $pane->plain()->width('100%')->height('100%');
-
+        $pane->plain()->width(\Idei\Usim\ValueObjects\Size::pct(100))->height(\Idei\Usim\ValueObjects\Size::pct(100));
         $this->add($pane);
 
         return $pane;

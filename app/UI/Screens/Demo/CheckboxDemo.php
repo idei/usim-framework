@@ -1,12 +1,15 @@
 <?php
 namespace App\UI\Screens\Demo;
 
-use Idei\Usim\UI;
-use Idei\Usim\Screen;
-use Idei\Usim\Components\Container;
-use Idei\Usim\Components\Label;
 use Idei\Usim\Components\Button;
 use Idei\Usim\Components\Checkbox;
+use Idei\Usim\Components\Container;
+use Idei\Usim\Components\Label;
+use Idei\Usim\Screen;
+use Idei\Usim\UI;
+use Idei\Usim\ValueObjects\Size;
+use Idei\Usim\ValueObjects\Spacing;
+
 
 class CheckboxDemo extends Screen
 {
@@ -23,9 +26,9 @@ class CheckboxDemo extends Screen
     {
         $container
             ->title(t('screen.demo.checkbox_demo.title'))
-            ->maxWidth('500px')
+            ->maxWidth(Size::px(500))
             ->centerHorizontal()
-            ->padding('20px')
+            ->padding(Spacing::px(20))
             ->shadow(2);
 
         // Instruction label
@@ -78,9 +81,10 @@ class CheckboxDemo extends Screen
      * Handle JavaScript checkbox change attempt
      * Backend validates and confirms or rejects the change
      */
+    /** @param array<string, mixed> $params */
     public function onTryChangeJavascript(array $params): void
     {
-        $wantsChecked = $params['checked'] ?? false;
+        $wantsChecked = (bool) ($params['checked'] ?? false);
 
         // // Example validation: you could check any condition here
         // // For now, we'll allow the change
@@ -105,9 +109,10 @@ class CheckboxDemo extends Screen
      * Handle Python checkbox change attempt
      * Backend validates and confirms or rejects the change
      */
+    /** @param array<string, mixed> $params */
     public function onTryChangePython(array $params): void
     {
-        $wantsChecked = $params['checked'] ?? false;
+        $wantsChecked = (bool) ($params['checked'] ?? false);
         $jsChecked    = $this->chk_javascript->isChecked();
 
         // Example validation: only allow Python if JavaScript is also selected
@@ -141,6 +146,7 @@ class CheckboxDemo extends Screen
      * Handle form submission
      * Reads checkbox states from frontend parameters
      */
+    /** @param array<string, mixed> $params */
     public function onSubmitSelection(array $params): void
     {
         // Get checkbox states from frontend parameters (sent by collectContextValues)

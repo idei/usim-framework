@@ -7,6 +7,8 @@ use Spatie\Permission\Models\Role;
 
 /**
  * Read-only listing service for roles.
+ *
+ * @extends EloquentListingService<Role>
  */
 class RoleListingService extends EloquentListingService
 {

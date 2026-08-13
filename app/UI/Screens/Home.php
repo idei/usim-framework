@@ -2,24 +2,28 @@
 
 namespace App\UI\Screens;
 
-use Idei\Usim\UI;
-use Idei\Usim\Screen;
 use Idei\Usim\Components\Container;
+use Idei\Usim\Screen;
+use Idei\Usim\UI;
+use Idei\Usim\ValueObjects\Size;
+use Idei\Usim\ValueObjects\Spacing;
 
 class Home extends Screen
 {
     protected function buildBaseUI(Container $container, ...$params): void
     {
-        $container->shadow(0)->padding("0px");
+        $container->shadow(0)->padding(Spacing::px(0));
         $container->add(
             UI::label('welcome_usim')
                 ->html('welcome-usim')
-                ->width('100%')
+                ->width(Size::full())
         );
     }
 
     /**
      * Handler for viewing demos
+        *
+        * @param array<string, mixed> $params
      */
     public function onViewDemos(array $params): void
     {
@@ -28,6 +32,8 @@ class Home extends Screen
 
     /**
      * Handler for viewing code examples
+        *
+        * @param array<string, mixed> $params
      */
     public function onViewCode(array $params): void
     {
@@ -36,6 +42,8 @@ class Home extends Screen
 
     /**
      * Handler for customization demo
+        *
+        * @param array<string, mixed> $params
      */
     public function onCustomize(array $params): void
     {
@@ -44,6 +52,8 @@ class Home extends Screen
 
     /**
      * Handler for viewing all demos
+        *
+        * @param array<string, mixed> $params
      */
     public function onViewAllDemos(array $params): void
     {
@@ -52,6 +62,8 @@ class Home extends Screen
 
     /**
      * Handler for viewing documentation
+        *
+        * @param array<string, mixed> $params
      */
     public function onViewDocs(array $params): void
     {

@@ -2,11 +2,12 @@
 
 namespace App\UI\Components\Modals;
 
-use Idei\Usim\UI;
-use Idei\Usim\Enums\LayoutType;
 use Idei\Usim\Enums\JustifyContent;
-use Idei\Usim\UIChangesCollector;
+use Idei\Usim\Enums\LayoutType;
 use Idei\Usim\Support\FakeDataHelper;
+use Idei\Usim\UI;
+use Idei\Usim\UIChangesCollector;
+use Idei\Usim\ValueObjects\Spacing;
 
 /**
  * Register Dialog Service
@@ -16,10 +17,22 @@ use Idei\Usim\Support\FakeDataHelper;
 class RegisterDialog
 {
 
-    public static function open(...$params): void
-    {
+    /**
+     * @param string $submitAction
+     * @param string|null $cancelAction
+     * @param bool $fakeData
+     * @param bool $askForRole
+     * @param int|null $callerServiceId
+     */
+    public static function open(
+        string $submitAction = 'submit_register',
+        ?string $cancelAction = 'close_modal',
+        bool $fakeData = false,
+        bool $askForRole = false,
+        ?int $callerServiceId = null
+    ): void {
         $dialog = new self();
-        $format = $dialog->getUI(...$params);
+        $format = $dialog->getUI($submitAction, $cancelAction, $fakeData, $askForRole, $callerServiceId);
         $uiChanges = app(UIChangesCollector::class);
         $uiChanges->add($format);
     }
@@ -30,7 +43,7 @@ class RegisterDialog
      * @param string $submitAction Action to call when form is submitted
      * @param string|null $cancelAction Action to call when cancel is clicked
      * @param int|null $callerServiceId Service ID that will receive callbacks
-     * @return array UI components for the modal
+     * @return array<int, array<string, mixed>> UI components for the modal
      */
     public function getUI(
         string $submitAction = 'submit_register',
@@ -57,7 +70,7 @@ class RegisterDialog
             ->parent('modal')
             ->shadow(false)
             ->plain()
-            ->padding('20px');
+            ->padding(Spacing::px(20));
 
         // Name input
         $registerContainer->add(
@@ -147,8 +160,8 @@ class RegisterDialog
             ->justifyContent(JustifyContent::SPACE_BETWEEN)
             ->shadow(false)
             ->plain()
-            ->gap('10px')
-            ->padding('10px 0 0 0');
+            ->gap(Spacing::px(10))
+            ->padding(Spacing::each(Spacing::px(10)));
 
         // Cancel button
         if ($cancelAction) {

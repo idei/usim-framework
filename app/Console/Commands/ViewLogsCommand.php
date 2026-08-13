@@ -12,7 +12,7 @@ class ViewLogsCommand extends Command
      *
      * @var string
      */
-    protected $signature = 'logs:view 
+    protected $signature = 'logs:view
                             {--lines=50 : Number of lines to display}
                             {--tail : Follow log file in real-time}
                             {--clear : Clear the log file}
@@ -28,7 +28,7 @@ class ViewLogsCommand extends Command
     /**
      * Execute the console command.
      */
-    public function handle()
+    public function handle(): int
     {
         $logFile = storage_path('logs/' . $this->option('file'));
 
@@ -45,7 +45,7 @@ class ViewLogsCommand extends Command
             return $this->tailLogs($logFile);
         }
 
-        return $this->viewLogs($logFile, $this->option('lines'));
+        return $this->viewLogs($logFile, (int) $this->option('lines'));
     }
 
     /**

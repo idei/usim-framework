@@ -2,10 +2,11 @@
 
 namespace App\UI\Components\Modals;
 
-use Idei\Usim\UI;
-use Idei\Usim\Enums\LayoutType;
 use Idei\Usim\Enums\JustifyContent;
+use Idei\Usim\Enums\LayoutType;
+use Idei\Usim\UI;
 use Idei\Usim\UIChangesCollector;
+use Idei\Usim\ValueObjects\Spacing;
 
 /**
  * Register Dialog Service
@@ -15,10 +16,24 @@ use Idei\Usim\UIChangesCollector;
 class EditUserDialog
 {
 
-    public static function open(...$params): void
+    /**
+     * @param array{
+     *     id: int|string,
+     *     name: string,
+     *     email: string,
+     *     roles?: list<array{name?: string}>,
+     *     email_verified_at?: mixed
+     * }|null $user
+     */
+    public static function open(
+        string $submitAction = 'submit_update_user',
+        ?string $cancelAction = 'close_modal',
+        ?array $user = null,
+        ?int $callerServiceId = null
+    ): void
     {
         $dialog = new self();
-        $format = $dialog->getUI(...$params);
+        $format = $dialog->getUI($submitAction, $cancelAction, $user, $callerServiceId);
         $uiChanges = app(UIChangesCollector::class);
         $uiChanges->add($format);
     }
@@ -28,8 +43,15 @@ class EditUserDialog
      *
      * @param string $submitAction Action to call when form is submitted
      * @param string|null $cancelAction Action to call when cancel is clicked
+     * @param array{
+     *     id: int|string,
+     *     name: string,
+     *     email: string,
+     *     roles?: list<array{name?: string}>,
+     *     email_verified_at?: mixed
+     * }|null $user
      * @param int|null $callerServiceId Service ID that will receive callbacks
-     * @return array UI components for the modal
+     * @return array<int, array<string, mixed>> UI components for the modal
      */
     public function getUI(
         string $submitAction = 'submit_update_user',
@@ -40,14 +62,16 @@ class EditUserDialog
         $name = $user ? $user['name'] : '';
         $email = $user ? $user['email'] : '';
         $role = $user ? $user['roles'][0]['name'] ?? 'user' : 'user';
-        $emailVerified = $user ? $user['email_verified_at'] !== null : false;
+        $emailVerified = $user
+            ? (array_key_exists('email_verified_at', $user) && $user['email_verified_at'] !== null)
+            : false;
 
         // Main container for the modal
         $registerContainer = UI::container('register_dialog')
             ->parent('modal')
             ->shadow(false)
             ->plain()
-            ->padding('20px');
+            ->padding(Spacing::px(20));
 
         // Id input (hidden)
         $registerContainer->add(
@@ -110,8 +134,8 @@ class EditUserDialog
             ->justifyContent(JustifyContent::SPACE_BETWEEN)
             ->shadow(false)
             ->plain()
-            ->gap('10px')
-            ->padding('10px 0 0 0');
+            ->gap(Spacing::px(10))
+            ->padding(Spacing::each(Spacing::px(10)));
 
         // Cancel button
         if ($cancelAction) {

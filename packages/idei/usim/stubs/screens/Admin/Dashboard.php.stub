@@ -16,7 +16,7 @@ use {{ componentsNamespace }}\DataTable\UserTableModel;
 use {{ componentsNamespace }}\Modals\EditUserDialog;
 use {{ componentsNamespace }}\Modals\RegisterDialog;
 
-class Dashboard extends Screen
+class UsersManager extends Screen
 {
     public function __construct(
         protected RegisterService $registerService,

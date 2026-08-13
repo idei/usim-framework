@@ -59,12 +59,12 @@ class UploadService
      * Validar archivo según configuración
      *
      * @param UploadedFile $file
-     * @param array $config ['allowed_types' => [...], 'max_size' => int]
-     * @return array|null ['error' => 'mensaje'] si hay error, null si es válido
+        * @param array{allowed_types?: list<string>, max_size?: int} $config ['allowed_types' => [...], 'max_size' => int]
+        * @return array{error: string}|null ['error' => 'mensaje'] si hay error, null si es válido
      */
     public static function validateFile(UploadedFile $file, array $config): ?array
     {
-        $mimeType = $file->getMimeType();
+        $mimeType = (string) $file->getMimeType();
         $sizeMB = $file->getSize() / 1024 / 1024;
 
         // Validar tipo
@@ -86,7 +86,7 @@ class UploadService
      * Verificar si MIME type coincide con patrones permitidos
      *
      * @param string $mimeType Ej: 'image/jpeg'
-     * @param array $patterns Ej: ['image/*', 'application/pdf']
+    * @param list<string> $patterns Ej: ['image/*', 'application/pdf']
      * @return bool
      */
     private static function matchesMimePattern(string $mimeType, array $patterns): bool
@@ -113,11 +113,11 @@ class UploadService
      * Extraer metadata según tipo de archivo
      *
      * @param UploadedFile $file
-     * @return array
+    * @return array<string, mixed>
      */
     public static function extractMetadata(UploadedFile $file): array
     {
-        $type = self::detectFileType($file->getMimeType());
+        $type = self::detectFileType((string) $file->getMimeType());
 
         switch ($type) {
             case 'image':
@@ -138,7 +138,7 @@ class UploadService
      * Extraer metadata de imagen (dimensiones)
      *
      * @param UploadedFile $file
-     * @return array ['width' => int, 'height' => int]
+    * @return array{width?: int, height?: int} ['width' => int, 'height' => int]
      */
     private static function extractImageMetadata(UploadedFile $file): array
     {
@@ -167,7 +167,7 @@ class UploadService
     public static function formatFileSize(int $bytes): string
     {
         $units = ['B', 'KB', 'MB', 'GB'];
-        $power = $bytes > 0 ? floor(log($bytes, 1024)) : 0;
+        $power = $bytes > 0 ? (int) floor(log($bytes, 1024)) : 0;
 
         return round($bytes / pow(1024, $power), 2) . ' ' . $units[$power];
     }
@@ -223,8 +223,9 @@ class UploadService
             $finalPath = "uploads/{$category}/{$file->stored_filename}";
 
             // Mover de temporal a definitivo
-            $uploadDisk = config('ui-services.upload_disk', 'local');
-            $content = Storage::disk('local')->get($file->path);
+            $uploadDiskConfig = config('usim.upload_disk', 'local');
+            $uploadDisk = is_string($uploadDiskConfig) ? $uploadDiskConfig : 'local';
+            $content = (string) Storage::disk('local')->get($file->path);
             Storage::disk($uploadDisk)->put($finalPath, $content);
 
             // Eliminar temporal del storage
@@ -257,7 +258,8 @@ class UploadService
         try {
             $path = "uploads/{$category}/{$filename}";
 
-            $uploadDisk = config('ui-services.upload_disk', 'local');
+            $uploadDiskConfig = config('usim.upload_disk', 'local');
+            $uploadDisk = is_string($uploadDiskConfig) ? $uploadDiskConfig : 'local';
             if (Storage::disk($uploadDisk)->exists($path)) {
                 return Storage::disk($uploadDisk)->delete($path);
             }
@@ -276,9 +278,9 @@ class UploadService
     /**
      * Procesar múltiples archivos temporales (útil para uploaders con max_files > 1)
      *
-     * @param array $tempIds Array de UUIDs de archivos temporales
+    * @param list<string> $tempIds Array de UUIDs de archivos temporales
      * @param string $category Categoría de archivos
-     * @return array Array de nombres de archivos guardados
+    * @return list<string> Array de nombres de archivos guardados
      */
     public static function persistMultipleTemporaryUploads(array $tempIds, string $category): array
     {

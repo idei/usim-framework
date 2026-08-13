@@ -3,10 +3,12 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use RuntimeException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Http\JsonResponse;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 class FileController extends Controller
 {
@@ -32,7 +34,8 @@ class FileController extends Controller
             }
 
             $uploadedFiles = [];
-            $folder = $request->input('folder', 'uploads');
+            $folderInput = $request->input('folder', 'uploads');
+            $folder = is_scalar($folderInput) && $folderInput !== '' ? (string) $folderInput : 'uploads';
 
             foreach ($request->file('files') as $file) {
                 // Generar nombre único
@@ -42,6 +45,9 @@ class FileController extends Controller
 
                 // Almacenar archivo
                 $path = $file->storeAs($folder, $filename, 'public');
+                if ($path === false) {
+                    throw new RuntimeException('Failed to store uploaded file.');
+                }
 
                 $uploadedFiles[] = [
                     'original_name' => $originalName,
@@ -80,7 +86,8 @@ class FileController extends Controller
     public function index(Request $request): JsonResponse
     {
         try {
-            $folder = $request->input('folder', 'uploads');
+            $folderInput = $request->input('folder', 'uploads');
+            $folder = is_scalar($folderInput) && $folderInput !== '' ? (string) $folderInput : 'uploads';
             $files = Storage::disk('public')->files($folder);
 
             $fileList = [];
@@ -116,10 +123,11 @@ class FileController extends Controller
     /**
      * Descargar archivo
      */
-    public function download(Request $request, string $filename)
+    public function download(Request $request, string $filename): JsonResponse|BinaryFileResponse
     {
         try {
-            $folder = $request->input('folder', 'uploads');
+            $folderInput = $request->input('folder', 'uploads');
+            $folder = is_scalar($folderInput) && $folderInput !== '' ? (string) $folderInput : 'uploads';
             $path = $folder . '/' . $filename;
 
             if (!Storage::disk('public')->exists($path)) {
@@ -149,7 +157,8 @@ class FileController extends Controller
     public function delete(Request $request, string $filename): JsonResponse
     {
         try {
-            $folder = $request->input('folder', 'uploads');
+            $folderInput = $request->input('folder', 'uploads');
+            $folder = is_scalar($folderInput) && $folderInput !== '' ? (string) $folderInput : 'uploads';
             $path = $folder . '/' . $filename;
 
             if (!Storage::disk('public')->exists($path)) {

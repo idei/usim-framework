@@ -51,7 +51,7 @@ class UploadController extends Controller
         );
 
         // Detectar tipo y extraer metadata
-        $mimeType = $file->getMimeType();
+        $mimeType = $file->getMimeType() ?? 'application/octet-stream';
         $type = UploadService::detectFileType($mimeType);
         $metadata = UploadService::extractMetadata($file);
 
@@ -139,7 +139,10 @@ class UploadController extends Controller
         $path = ltrim($path, '/');
 
         // Verificar que el archivo existe en el disco 'uploads'
-        $uploadDisk = config('ui-services.upload_disk', 'local');
+        $uploadDiskConfig = config('usim.upload_disk', 'local');
+        $uploadDisk = is_string($uploadDiskConfig) || $uploadDiskConfig instanceof \UnitEnum
+            ? $uploadDiskConfig
+            : 'local';
         if (!Storage::disk($uploadDisk)->exists($path)) {
             abort(404, 'File not found');
         }

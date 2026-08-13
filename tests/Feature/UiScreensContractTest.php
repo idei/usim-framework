@@ -1,7 +1,7 @@
 <?php
 
 use App\Models\User;
-use App\UI\Screens\Admin\Dashboard;
+use App\UI\Screens\Admin\UsersManager;
 use App\UI\Screens\Auth\Login;
 use App\UI\Screens\Auth\Profile;
 use Spatie\Permission\Models\Role;
@@ -29,7 +29,7 @@ it('redirects guest when requesting profile screen', function () {
 
 it('redirects guest when requesting admin dashboard screen', function () {
     /** @var \Tests\TestCase $this */
-    $response = getScreenJson($this, Dashboard::class);
+    $response = getScreenJson($this, UsersManager::class);
 
     $response->assertOk();
     expect($response->json('redirect'))->toContain('/auth/login');
@@ -41,7 +41,7 @@ it('returns abort 403 when authenticated user has no admin role', function () {
     /** @var User $user */
     $this->actingAs($user);
 
-    $response = getScreenJson($this, Dashboard::class);
+    $response = getScreenJson($this, UsersManager::class);
 
     $response->assertOk();
     expect($response->json('abort.code'))->toBe(403);
@@ -56,7 +56,7 @@ it('returns admin dashboard components for admin user without redirect or abort'
     /** @var User $admin */
     $this->actingAs($admin);
 
-    $response = getScreenJson($this, Dashboard::class);
+    $response = getScreenJson($this, UsersManager::class);
 
     $response->assertOk();
     expect($response->json('redirect'))->toBeNull();

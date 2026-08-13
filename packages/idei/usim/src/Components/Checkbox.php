@@ -49,7 +49,7 @@ class Checkbox extends UIComponent
     /**
      * Get the default configuration for a checkbox component
      *
-     * @return array
+     * @return array<string, mixed>
      */
     protected function getDefaultConfig(): array
     {
@@ -143,7 +143,7 @@ class Checkbox extends UIComponent
      */
     public function isChecked(): bool
     {
-        return $this->config['checked'] ?? false;
+        return (bool) ($this->config['checked'] ?? false);
     }
 
     /**
@@ -193,7 +193,7 @@ class Checkbox extends UIComponent
     /**
      * Set multiple checkbox options (creates a checkbox group)
      *
-     * @param array $options Array of options with 'value' and 'label' keys
+     * @param list<array<string, mixed>> $options Array of options with 'value' and 'label' keys
      * @return $this
      */
     public function options(array $options): self
@@ -207,22 +207,29 @@ class Checkbox extends UIComponent
      *
      * @param string $value The option value
      * @param string $label The option label
-     * @param array $extra Extra properties (icon, description, disabled, etc.)
+     * @param array<string, mixed> $extra Extra properties (icon, description, disabled, etc.)
      * @return $this
      */
     public function addOption(string $value, string $label, array $extra = []): self
     {
-        $this->config['options'][] = array_merge([
+        $options = $this->config['options'] ?? [];
+        if (!is_array($options)) {
+            $options = [];
+        }
+
+        $options[] = array_merge([
             'value' => $value,
             'label' => $label,
         ], $extra);
+
+        $this->config['options'] = $options;
         return $this;
     }
 
     /**
      * Set the selected values for checkbox group
      *
-     * @param array $values Array of selected values
+     * @param list<string|int> $values Array of selected values
      * @return $this
      */
     public function selectedValues(array $values): self

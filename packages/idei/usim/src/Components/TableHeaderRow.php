@@ -15,7 +15,7 @@ class TableHeaderRow extends UIComponent
     /** @var Table|null The parent table */
     private ?Table $table;
 
-    /** @var array<TableHeaderCell> Array of header cells in this row */
+    /** @var list<TableHeaderCell> Array of header cells in this row */
     private array $cellComponents = [];
 
     /**
@@ -23,6 +23,7 @@ class TableHeaderRow extends UIComponent
      *
      * @param Table $table The parent table this header row belongs to
      * @param string|null $name Optional name for the header row
+     * @phpstan-ignore method.childParameterType
      */
     public function __construct(?Table $table = null, ?string $name = null)
     {
@@ -72,7 +73,7 @@ class TableHeaderRow extends UIComponent
     /**
      * Get all header cell components
      *
-     * @return array<TableHeaderCell>
+     * @return list<TableHeaderCell>
      */
     public function getCells(): array
     {
@@ -86,6 +87,9 @@ class TableHeaderRow extends UIComponent
      */
     public function getTable(): Table
     {
+        if ($this->table === null) {
+            throw new \LogicException("Header row is not associated with a table");
+        }
         return $this->table;
     }
 
@@ -128,7 +132,7 @@ class TableHeaderRow extends UIComponent
     /**
      * Exclude 'name' from JSON output
      *
-     * @return array List of keys to exclude
+     * @return list<string> List of keys to exclude
      */
     protected function getExcludedJsonKeys(): array
     {

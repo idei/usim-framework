@@ -5,6 +5,7 @@ namespace App\UI\Screens;
 use Idei\Usim\Components\Container;
 use Idei\Usim\Screen;
 use Idei\Usim\UI;
+use Idei\Usim\ValueObjects\Spacing;
 
 class HolaContexto extends Screen
 {
@@ -12,7 +13,7 @@ class HolaContexto extends Screen
     {
         $container
             ->title('Hola Contexto')
-            ->padding('24px')
+            ->padding(Spacing::px(24))
             ->add(
                 UI::label('hola_contexto_label')
                     ->text('Hola Contexto')

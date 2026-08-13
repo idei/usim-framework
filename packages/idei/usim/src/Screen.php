@@ -19,11 +19,13 @@ use Idei\Usim\Components\TableRow;
 use Idei\Usim\Components\Uploader;
 use Idei\Usim\Contracts\UIElement;
 use Idei\Usim\Enums\LayoutType;
+use Idei\Usim\Enums\Visibility;
 use Idei\Usim\Support\UIDiffer;
 use Idei\Usim\Support\UIIdGenerator;
 use Idei\Usim\Support\UIStateManager;
 use Idei\Usim\UI;
 use Idei\Usim\UIChangesCollector;
+use Idei\Usim\ValueObjects\Spacing;
 use Illuminate\Contracts\Encryption\DecryptException;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
@@ -59,18 +61,30 @@ abstract class Screen
 
     /**
      * State before modifications (for diff calculation)
+        *
+        * @var array<int|string, array<string, mixed>>|null
      */
     protected ?array $oldUI = null;
 
     /**
      * State after modifications (for diff calculation)
+        *
+        * @var array<int|string, array<string, mixed>>|null
      */
     protected ?array $newUI = null;
 
     /**
      * Query parameters from the request
+        *
+        * @var array<string, mixed>
      */
     protected array $queryParams = [];
+
+    /**
+     * Screen visibility level. Used by the framework to determine access and menu display.
+     * @var Visibility
+     */
+    public static Visibility $visibility = Visibility::AUTHENTICATED;
 
     protected function uiChanges(): UIChangesCollector
     {
@@ -81,7 +95,7 @@ abstract class Screen
      * Check access permission and return result structure.
      * This method is static to allow checking permissions without instantiating the service.
      *
-     * @return array{allowed: bool, action: ?string, params: array}
+    * @return array{allowed: bool, action: ?string, params: array<string, mixed>}
      */
     public static function checkAccess(): array
     {
@@ -139,10 +153,29 @@ abstract class Screen
     }
 
     /**
+     * Safely call a boolean-like method on a possibly unknown auth user object.
+     *
+     * @param mixed ...$args
+     */
+    private static function callUserBoolMethod(mixed $user, string $method, mixed ...$args): bool
+    {
+        if (!\is_object($user)) {
+            return false;
+        }
+
+        $callback = [$user, $method];
+        if (!\is_callable($callback)) {
+            return false;
+        }
+
+        return (bool) $callback(...$args);
+    }
+
+    /**
      * Helper to require a role (implies authentication).
      * Use this inside your authorize() method.
      *
-     * @param string|array $roles
+    * @param string|list<string> $roles
      * @param string $guard
      * @return bool
      */
@@ -153,15 +186,9 @@ abstract class Screen
             return false;
         }
 
-        /** @var mixed $user */
         $user = Auth::guard($guard)->user();
 
-        if (!$user || !method_exists($user, 'hasAnyRole')) {
-            // user exists but trait is missing or logic fails
-            return false;
-        }
-
-        if (!$user->hasAnyRole($roles)) {
+        if (!self::callUserBoolMethod($user, 'hasAnyRole', $roles)) {
             // user is authenticated but lacks role
             // Instead of aborting, we return false.
             // The framework will catch this in authorize() and call failedAuthorization()
@@ -176,7 +203,7 @@ abstract class Screen
      * Helper to require a permission (implies authentication).
      * Use this inside your authorize() method.
      *
-     * @param string|array $permissions
+    * @param string|list<string> $permissions
      * @param string $guard
      * @return bool
      */
@@ -187,18 +214,117 @@ abstract class Screen
             return false;
         }
 
-        /** @var mixed $user */
         $user = Auth::guard($guard)->user();
 
-        if (!$user || !method_exists($user, 'hasAnyPermission')) {
-            return false;
-        }
-
-        if (!$user->hasAnyPermission($permissions)) {
+        if (!self::callUserBoolMethod($user, 'hasAnyPermission', $permissions)) {
             return false;
         }
 
         return true;
+    }
+
+    /**
+     * Gets a unique identifier for the screen based on its Namespace and Class.
+     * Example: App\Usim\Screens\Admin\UserManagerScreen -> admin.user_manager
+     */
+    protected static function getScreenSlug(): string
+    {
+        // 1. Get the FQCN (Fully Qualified Class Name) of the child class
+        $className = static::class;
+
+        // For example, remove 'App\Usim\Screens\\' if you want to shorten it
+        // 2. We remove the base namespace of the project (optional, to clean up the prefix)
+        // For example, remove 'App\Usim\Screens\\' if you want to shorten it
+        $cleanPath = Str::after($className, 'Screens\\');
+
+        // 3. We convert 'Admin\UserManagerScreen' into ['Admin', 'UserManagerScreen']
+        $segments = explode('\\', $cleanPath);
+
+        // 4. We transform each segment to snake_case and join them with dots
+        $dotted = collect($segments)
+            ->map(fn($segment) => Str::snake(Str::replaceLast('Screen', '', $segment))) // Opcional: remover el sufijo 'Screen' si lo usan
+            ->implode('.');
+
+        return $dotted; // Returns "admin.user_manager"
+    }
+
+    /**
+     * The required permissions to access this screen.
+     * Override this in child classes to customize.
+     *
+     * @return array<string>
+     */
+    public static function requiredPermissions(): array
+    {
+        return ['access'];
+    }
+
+    /**
+     * Extra screen's permissions can be defined overriding this.
+     *
+     * @return string[]
+     */
+    public static function permissions(): array
+    {
+        return [];
+    }
+
+    /**
+     * Dynamically generates
+     * "[slug].access" permission based on the screen's namespace and class name.
+     *
+     * @return array<string> Array of resolved permission strings
+     */
+    final public static function resolvedPermissions(): array
+    {
+        $ret = [];
+
+        if (static::$visibility !== Visibility::AUTHENTICATED) {
+            return $ret; // No permissions for guest-only or public screens
+        }
+
+        // We force 'access' to always be present by combining it with the extras. This ensures
+        // the base permission is always generated, even if the child class forgets to include
+        // it in permissions().
+        $allPermissions = array_unique(['access', ...static::permissions()]);
+
+        $screenContextPart = static::getScreenSlug(); // e.g., "admin.user_manager"
+
+        foreach ($allPermissions as $permission) {
+            $permission = "$screenContextPart.$permission"; // e.g., "admin.user_manager.access"
+            $translationKey = "screen.permissions.$permission";
+            $ret[$permission] = $translationKey;
+        }
+
+        return $ret;
+    }
+
+    /**
+     * Determinates if the currently authenticated user has a specific permission within the context of this screen.
+     *
+     * @param string $permission The short permission name (e.g., "publish") that will be resolved to a full permission
+     * string based on the screen's slug (e.g., "blog.post_management.publish").
+     * @return bool
+     */
+    public function userCan(string $permission): bool
+    {
+        if (static::$visibility === Visibility::PUBLIC) {
+            return true;
+        }
+
+        if (!Auth::check()) {
+            return false;
+        }
+
+        $user = Auth::user();
+
+        // If the permission doesn't contain a dot, we assume it's a local permission and resolve
+        //  it using the screen's slug.
+        if (!str_contains($permission, '.')) {
+            $permission = static::getScreenSlug() . '.' . $permission;
+        }
+
+        return self::callUserBoolMethod($user, 'hasPermissionTo', $permission);
     }
 
     /**
@@ -223,12 +349,13 @@ abstract class Screen
     /**
      * Get the route path for this screen.
      * Auto-generates based on namespace location relative to Screen root.
-     * E.g. App\UI\Screens\Admin\Dashboard -> /admin/dashboard
+     * E.g. App\UI\Screens\Admin\UsersManager -> /admin/dashboard
      */
     public static function getRoutePath(): string
     {
         $class = static::class;
-        $prefix = config('ui-services.screens_namespace', 'App\\UI\\Screens');
+        $prefixConfig = config('usim.screens_namespace', 'App\\UI\\Screens');
+        $prefix = \is_string($prefixConfig) ? $prefixConfig : 'App\\UI\\Screens';
 
         if (str_starts_with($class, $prefix)) {
             $relative = substr($class, strlen($prefix));
@@ -247,7 +374,6 @@ abstract class Screen
      * This will be called automatically if the cache expires.
      *
      * @param mixed ...$params Optional parameters for user Interface construction
-     * @return Container Base user Interface structure
      */
     abstract protected function buildBaseUI(Container $container, ...$params): void;
 
@@ -262,7 +388,8 @@ abstract class Screen
      * Loads user Interface container and captures state for diff calculation.
      * Also injects storage values and component references into protected properties.
      *
-     * @param array $incomingStorage Storage data from frontend (decrypted)
+    * @param array<string, mixed> $incomingStorage Storage data from frontend (decrypted)
+    * @param array<string, mixed> $queryParams Query parameters from frontend
      * @return void
      */
     public function initializeEventContext(array $incomingStorage = [], array $queryParams = [], bool $debug = false): void
@@ -290,7 +417,7 @@ abstract class Screen
      * Example: protected int $store_user_id; matches storage['store_user_id']
      * Example: protected string $store_token_crypt; decrypts storage['store_token_crypt'] before injection
      *
-     * @param array $incomingStorage Storage data from frontend
+    * @param array<string, mixed> $incomingStorage Storage data from frontend
      * @return void
      */
     public function injectStorageValues(array $incomingStorage): void
@@ -328,6 +455,10 @@ abstract class Screen
             // if the propertyName ends with '_crypt' we attempt to decrypt it before injecting
             if (str_ends_with($propertyName, '_crypt')) {
                 try {
+                    if (!\is_string($value)) {
+                        continue;
+                    }
+
                     $value = decrypt($value);
                 } catch (DecryptException $e) {
                     Log::warning("Failed to decrypt storage variable '{$propertyName}': " . $e->getMessage());
@@ -369,7 +500,17 @@ abstract class Screen
             $propertyType = $property->getType();
 
             // Skip if no type hint or is a built-in type
-            if (!$propertyType || $propertyType->isBuiltin()) {
+            if (!$propertyType) {
+                continue;
+            }
+
+            // Check if it's a built-in type (only ReflectionNamedType has isBuiltin)
+            if ($propertyType instanceof \ReflectionNamedType && $propertyType->isBuiltin()) {
+                continue;
+            }
+
+            // Get the type name (only ReflectionNamedType has getName)
+            if (!($propertyType instanceof \ReflectionNamedType)) {
                 continue;
             }
 
@@ -426,13 +567,16 @@ abstract class Screen
     /**
      * Build diff response in indexed format
      *
-     * @return array Indexed diff response
+    * @return array<int|string, array<string, mixed>> Indexed diff response
      */
     protected function buildDiffResponse(bool $reload = false): array
     {
+        $oldUI = $this->oldUI ?? [];
+        $newUI = $this->newUI ?? [];
+
         $diff = $reload ?
-            UIDiffer::compare([], $this->newUI) :
-            UIDiffer::compare($this->oldUI, $this->newUI);
+            UIDiffer::compare([], $newUI) :
+            UIDiffer::compare($oldUI, $newUI);
 
         $result = [];
         foreach ($diff as $componentId => $changes) {
@@ -450,15 +594,15 @@ abstract class Screen
     /**
      * Get stored user Interface state, regenerate if missing
      *
-     * @param mixed ...$params Optional parameters passed to buildBaseUI
-     * @return array user Interface structure in JSON format
+    * @param mixed ...$params Optional parameters passed to buildBaseUI
+    * @return array<int|string, array<string, mixed>> user Interface structure in JSON format
      */
     protected function getCachedScreenSnapshot(string $parent = 'main', bool $debug = false, ...$params): array
     {
         // Check if user Interface exists in cache
         $cachedUI = UIStateManager::get(static::class);
 
-        if ($cachedUI !== null && $this->isValidCachedScreenSnapshot($cachedUI)) {
+        if ($this->isTypedCachedScreenSnapshot($cachedUI) && $this->isValidCachedScreenSnapshot($cachedUI)) {
             return $cachedUI;
         }
 
@@ -470,7 +614,7 @@ abstract class Screen
         $current_class_slug = strtolower(str_replace('\\', '_', $current_class));
         $container = UI::container($current_class_slug, $current_class)
             ->parent($parent)
-            ->padding(30)
+            ->padding(Spacing::px(30))
             ->layout(LayoutType::VERTICAL)
             ->justifyContent('center')
             ->alignItems('center');
@@ -489,17 +633,35 @@ abstract class Screen
     }
 
     /**
+     * @param mixed $ui
+     * @phpstan-assert-if-true array<int|string, array<string, mixed>> $ui
+     */
+    private function isTypedCachedScreenSnapshot(mixed $ui): bool
+    {
+        if (!\is_array($ui)) {
+            return false;
+        }
+
+        foreach ($ui as $component) {
+            if (!\is_array($component)) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /**
      * Cached snapshots can become stale after structural screen changes.
      * Reject snapshots that reference component parents not present in the payload
      * or table internals that no longer form a consistent subtree.
      */
+    /**
+     * @param array<int|string, array<string, mixed>> $ui
+     */
     private function isValidCachedScreenSnapshot(array $ui): bool
     {
         foreach ($ui as $componentId => $component) {
-            if (!\is_array($component)) {
-                continue;
-            }
-
             $parent = $component['parent'] ?? null;
             if (\is_int($parent) && !isset($ui[$parent]) && !isset($ui[(string) $parent])) {
                 return false;
@@ -551,11 +713,12 @@ abstract class Screen
     /**
      * Reconstruct UI container from JSON array
      *
-     * @param array $jsonUI JSON representation of UI
+    * @param array<int|string, array<string, mixed>> $jsonUI JSON representation of UI
      * @return Container Reconstructed container
      */
     private function reconstructContainerFromJson(array $jsonUI): Container
     {
+        /** @var array<int|string, UIElement> $components */
         $components = [];
         $rootContainer = null;
 
@@ -563,11 +726,22 @@ abstract class Screen
 
         // First pass: instantiate all components
         foreach ($jsonUI as $id => $component) {
-            $type = $component['type'];
+            $type = $component['type'] ?? null;
+            if (!\is_string($type) || $type === '') {
+                throw new RuntimeException('Unknown component type.');
+            }
+
             $className = $this->mapTypeToClass($type);
             if (!$className) {
                 throw new RuntimeException("Unknown component type '{$type}'.");
             }
+
+            // Reserve IDs from cached snapshots so future auto-generated IDs
+            // in this request do not collide with already deserialized components.
+            if (is_numeric($id)) {
+                UIIdGenerator::reserveContextId(static::class, (int) $id);
+            }
+
             $components[$id] = $className::deserialize($id, $component);
         }
 
@@ -575,13 +749,17 @@ abstract class Screen
         foreach ($components as $id => $component) {
             $parentId = $jsonUI[$id]['parent'] ?? null;
 
-            if ($component->isContainer() && $component->isRoot()) {
+            if ($component instanceof Container && $component->isRoot()) {
                 $rootContainer = $component;
             }
 
             // Detached components (parent=null) are valid during incremental remove operations.
             // Ignore them while rebuilding the live tree from cache.
             if ($parentId === null || $parentId === '') {
+                continue;
+            }
+
+            if (!\is_int($parentId) && !\is_string($parentId)) {
                 continue;
             }
 
@@ -628,7 +806,7 @@ abstract class Screen
             'carousel' => \Idei\Usim\Components\Carousel::class,
             'textarea' => 'Idei\\Usim\\Components\\Textarea',
             'split' => Split::class,
-            'default' => null,
+            default => null,
         };
     }
 
@@ -697,7 +875,11 @@ abstract class Screen
     /**
      * @deprecated Use getCachedScreenSnapshot() instead.
      */
-    protected function getStoredUI(string $parent = 'main', bool $debug = false, ...$params): array
+    /**
+     * @param mixed ...$params
+     * @return array<int|string, array<string, mixed>>
+     */
+    protected function getStoredUI(string $parent = 'main', bool $debug = false, mixed ...$params): array
     {
         return $this->getCachedScreenSnapshot($parent, $debug, ...$params);
     }
@@ -726,11 +908,11 @@ abstract class Screen
      *
      * [
      *   'storage' => [
-     *      [app_id] => 'encrypted_json_string',
+     *      [front_store_key] => 'encrypted_json_string',
      *   ]
      * ]
      *
-     * @return array Associative array with the variables to be stored on the frontend
+    * @return array<string, mixed> Associative array with the variables to be stored on the frontend
      */
     public function getStorageVariables(): array
     {
@@ -743,6 +925,10 @@ abstract class Screen
             if (str_starts_with($propertyName, 'store_')) {
                 $propertyType = $property->getType();
                 if ($propertyType && !$propertyType->allowsNull()) {
+                    // Get the type name (only ReflectionNamedType has getName)
+                    if (!($propertyType instanceof \ReflectionNamedType)) {
+                        continue;
+                    }
                     $typeName = $propertyType->getName();
                     $isPrimitive = in_array($typeName, ['int', 'float', 'string', 'bool', 'array']);
                     if ($isPrimitive) {
@@ -761,6 +947,8 @@ abstract class Screen
 
     /**
      * Generic handler for 'close_modal' action
+        *
+        * @param array<string, mixed> $params
      */
     public function onCloseModal(array $params): void
     {
@@ -880,6 +1068,9 @@ abstract class Screen
         ]);
     }
 
+    /**
+     * @param array<string, mixed> $content
+     */
     protected function updateModal(array $content): void
     {
         $this->uiChanges()->add([
@@ -948,7 +1139,7 @@ abstract class Screen
      * }
      * ```
      *
-     * @return array Empty array by default. Override to provide agent context metadata.
+    * @return array<string, mixed> Empty array by default. Override to provide agent context metadata.
      */
     public function getAgentContext(): array
     {

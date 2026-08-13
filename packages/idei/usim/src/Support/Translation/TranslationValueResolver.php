@@ -6,6 +6,9 @@ use Idei\Usim\Models\UsimTextValue;
 
 class TranslationValueResolver
 {
+    /**
+     * @return array{text: string|null, needs_review: bool, media_url: string|null, media_meta: array<string, mixed>|null, language_code: string|null, key: string|null}|null
+     */
     public function getDirectEntry(string $key, string $languageCode): ?array
     {
         $entry = UsimTextValue::query()
@@ -32,6 +35,9 @@ class TranslationValueResolver
         ];
     }
 
+    /**
+     * @param array<string, mixed> $params
+     */
     public function getValue(string $key, array $params = [], ?string $languageCode = null): string
     {
         $textValue = $this->resolveTextValue($key, $languageCode);
@@ -43,6 +49,9 @@ class TranslationValueResolver
         return $this->replaceParams($textValue, $params);
     }
 
+    /**
+     * @return array{text: string|null, needs_review: bool, media_url: string|null, media_meta: array<string, mixed>|null, language_code: string|null, key: string|null}|null
+     */
     public function getEntry(string $key, ?string $languageCode = null): ?array
     {
         $entry = $this->resolveValueEntry($key, $languageCode);
@@ -94,6 +103,9 @@ class TranslationValueResolver
         return null;
     }
 
+    /**
+     * @param array<string, mixed> $params
+     */
     private function replaceParams(string $value, array $params): string
     {
         if ($params === []) {
@@ -102,21 +114,57 @@ class TranslationValueResolver
 
         $replacePairs = [];
         foreach ($params as $name => $replacement) {
-            $replacePairs[':' . $name] = (string) $replacement;
+            $replacePairs[':' . $name] = $this->stringifyReplacement($replacement);
         }
 
         return strtr($value, $replacePairs);
     }
 
+    private function stringifyReplacement(mixed $replacement): string
+    {
+        if (is_string($replacement)) {
+            return $replacement;
+        }
+
+        if (is_int($replacement) || is_float($replacement) || is_bool($replacement) || $replacement === null) {
+            return strval($replacement);
+        }
+
+        if (is_object($replacement) && method_exists($replacement, '__toString')) {
+            return (string) $replacement;
+        }
+
+        if (is_array($replacement)) {
+            return 'Array';
+        }
+
+        return '';
+    }
+
     private function resolveLocale(?string $languageCode): string
     {
-        return $languageCode
-            ?? app()->getLocale()
-            ?? config('ui-services.i18n.default_locale', 'en');
+        if ($languageCode !== null && $languageCode !== '') {
+            return $languageCode;
+        }
+
+        $locale = app()->getLocale();
+        if ($locale !== '') {
+            return $locale;
+        }
+
+        $defaultLocale = config('usim.i18n.default_locale', 'en');
+
+        if (is_string($defaultLocale) && $defaultLocale !== '') {
+            return $defaultLocale;
+        }
+
+        return 'en';
     }
 
     private function resolveFallbackLocale(): string
     {
-        return config('ui-services.i18n.fallback_locale', 'en');
+        $fallbackLocale = config('usim.i18n.fallback_locale', 'en');
+
+        return is_string($fallbackLocale) && $fallbackLocale !== '' ? $fallbackLocale : 'en';
     }
 }

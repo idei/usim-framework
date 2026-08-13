@@ -53,11 +53,10 @@ Usa este mapa como contexto por defecto para cualquier chat:
 |  |  |  |  \- components/
 |        |- Home.php
 |        |- Menu.php
-|        |- Admin/                  # Dashboard.php
+|        |- Admin/                  # UsersManager.php
 |  |  |  |  \- components/
 |- config/
-|  |- ui-home.php
-|  \- ui-services.php               # configuracion/registro de pantallas USIM en la app
+|  \- usim.php               # configuracion/registro de pantallas USIM en la app
 |- database/
 |- public/
 |- resources/
@@ -176,7 +175,7 @@ packages/idei/usim/
 |  |- screens/
 |  |  |- Home.php.stub
 |  |  |- Menu.php.stub
-|  |  |- Admin/Dashboard.php.stub
+|  |  |- Admin/UsersManager.php.stub
 |  |  \- Auth/                     # Login, Profile, ForgotPassword, ResetPassword, EmailVerified
 |  |- tests/
 |  |  |- Feature/
@@ -268,11 +267,11 @@ Implicancias para tus respuestas y cambios:
 
 ## Cuando crees una Screen
 
-Cuando el usuario te pida "crear una Screen" o "agregar una screen", debes entender que se refiere a crear una clase PHP que herede de `Screen` (no solo una vista pasiva). Sigue estos patrones observados en [Dashboard.php](app/UI/Screens/Admin/Dashboard.php) y [TranslateManager.php](app/UI/Screens/Admin/TranslateManager.php):
+Cuando el usuario te pida "crear una Screen" o "agregar una screen", debes entender que se refiere a crear una clase PHP que herede de `Screen` (no solo una vista pasiva). Sigue estos patrones observados en [UsersManager.php](app/UI/Screens/Admin/UsersManager.php) y [TranslateManager.php](app/UI/Screens/Admin/TranslateManager.php):
 
 ### Estructura base y ciclo de vida
 
-1. **Namespace y clase**: ubica la Screen en `App\UI\Screens\{Category}\{ScreenName}` (e.g., `App\UI\Screens\Admin\Dashboard`).
+1. **Namespace y clase**: ubica la Screen en `App\UI\Screens\{Category}\{ScreenName}` (e.g., `App\UI\Screens\Admin\UsersManager`).
 2. **Heredar de Screen**: `extends Screen` e implementar obligatoriamente:
    - `buildBaseUI(Container $container, ...$params): void` - construir la interfaz inicial
    - `getMenuLabel(): string` - etiqueta para el menu de navegacion
@@ -303,7 +302,7 @@ Las claves de traduccion siguen un patrón jerarquico por pantalla:
 - `lang/{locale}/screen/{category}/{screen_name}.php`
 
 **Ejemplos reales**:
-- `lang/en/screen/admin/dashboard.php` → claves para `App\UI\Screens\Admin\Dashboard`
+- `lang/en/screen/admin/dashboard.php` → claves para `App\UI\Screens\Admin\UsersManager`
 - `lang/en/screen/admin/translate_manager.php` → claves para `App\UI\Screens\Admin\TranslateManager`
 
 **Estructura de archivos de traduccion** (retorna array asociativo):

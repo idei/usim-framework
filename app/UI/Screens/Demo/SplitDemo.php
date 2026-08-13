@@ -10,6 +10,8 @@ use Idei\Usim\Components\Split;
 use Idei\Usim\Enums\LayoutType;
 use Idei\Usim\Screen;
 use Idei\Usim\UI;
+use Idei\Usim\ValueObjects\Size;
+use Idei\Usim\ValueObjects\Spacing;
 
 class SplitDemo extends Screen
 {
@@ -42,31 +44,31 @@ class SplitDemo extends Screen
     protected function buildBaseUI(Container $container, ...$params): void
     {
         $container
-            ->maxWidth('1100px')
+            ->maxWidth(Size::px(1100))
             ->centerHorizontal()
-            ->padding('12px 24px 24px 24px')
-            ->gap('14px')
+            ->padding(Spacing::each(Spacing::px(12), Spacing::px(24), Spacing::px(24), Spacing::px(24)))
+            ->gap(Spacing::px(14))
             ->plain();
 
         $container->add(
             UI::label('split_demo_title')
                 ->text(t('screen.demo.split_demo.title'))
                 ->style('h2')
-                ->width('100%')
+                ->width(Size::full())
         );
 
         $container->add(
             UI::label('split_demo_intro')
                 ->text(t('screen.demo.split_demo.intro'))
                 ->style('info')
-                ->width('100%')
+                ->width(Size::full())
         );
 
         $controls = UI::container('split_controls')
             ->layout(LayoutType::VERTICAL)
-            ->gap('10px')
-            ->padding('14px')
-            ->width('100%');
+            ->gap(Spacing::px(10))
+            ->padding(Spacing::px(14))
+            ->width(Size::full());
 
         $controls->add(
             UI::select('sel_split_orientation')
@@ -77,7 +79,7 @@ class SplitDemo extends Screen
                 ])
                 ->value($this->store_split_orientation)
                 ->onChange('split_orientation_change')
-                ->width('280px')
+                ->width(Size::px(280))
         );
 
         $controls->add(
@@ -85,7 +87,7 @@ class SplitDemo extends Screen
                 ->label(t('screen.demo.split_demo.split_size.label'))
                 ->value($this->store_split_size)
                 ->placeholder(t('screen.demo.split_demo.split_size.placeholder'))
-                ->width('280px')
+                ->width(Size::px(280))
         );
 
         $controls->add(
@@ -93,7 +95,7 @@ class SplitDemo extends Screen
                 ->label(t('screen.demo.split_demo.splitter_size.label'))
                 ->value($this->store_splitter_size)
                 ->placeholder(t('screen.demo.split_demo.splitter_size.placeholder'))
-                ->width('280px')
+                ->width(Size::px(280))
         );
 
         $controls->add(
@@ -119,12 +121,12 @@ class SplitDemo extends Screen
                 ])
                 ->value($this->store_collapse_target)
                 ->onChange('split_collapse_target_change')
-                ->width('280px')
+                ->width(Size::px(280))
         );
 
         $actions = UI::container('split_actions')
             ->layout(LayoutType::HORIZONTAL)
-            ->gap('8px')
+            ->gap(Spacing::px(8))
             ->plain();
 
         $actions->add(
@@ -160,8 +162,8 @@ class SplitDemo extends Screen
             ->collapseTarget($this->store_collapse_target)
             ->minFirstSize('160px')
             ->minSecondSize('160px')
-            ->height('300px')
-            ->width('100%')
+            ->height(Size::px(300))
+            ->width(Size::full())
             ->card();
 
         if ($this->store_collapsed_panel === 'first') {
@@ -174,28 +176,28 @@ class SplitDemo extends Screen
 
         $leftPanel = UI::container('split_left_panel')
             ->plain()
-            ->padding('12px')
-            ->gap('8px');
+            ->padding(Spacing::px(12))
+            ->gap(Spacing::px(8));
 
         $leftPanel->add(UI::label('split_left_title')->text(t('screen.demo.split_demo.panes.first.title'))->style('primary'));
         $leftPanel->add(UI::label('split_left_copy')->text(t('screen.demo.split_demo.panes.first.description')));
         $leftPanel->add(
             UI::button('btn_collapse_first')
-            ->label(t('screen.demo.split_demo.actions.collapse_first'))
+                ->label(t('screen.demo.split_demo.actions.collapse_first'))
                 ->style('danger')
                 ->action('collapse_first_panel')
         );
 
         $rightPanel = UI::container('split_right_panel')
             ->plain()
-            ->padding('12px')
-            ->gap('8px');
+            ->padding(Spacing::px(12))
+            ->gap(Spacing::px(8));
 
         $rightPanel->add(UI::label('split_right_title')->text(t('screen.demo.split_demo.panes.second.title'))->style('success'));
         $rightPanel->add(UI::label('split_right_copy')->text(t('screen.demo.split_demo.panes.second.description')));
         $rightPanel->add(
             UI::button('btn_collapse_second')
-            ->label(t('screen.demo.split_demo.actions.collapse_second'))
+                ->label(t('screen.demo.split_demo.actions.collapse_second'))
                 ->style('danger')
                 ->action('collapse_second_panel')
         );
@@ -206,6 +208,9 @@ class SplitDemo extends Screen
         $container->add($this->split_workspace);
     }
 
+    /**
+     * @param array<string, mixed> $params
+     */
     public function onSplitOrientationChange(array $params): void
     {
         $value = $params['value'] ?? 'horizontal';
@@ -213,18 +218,27 @@ class SplitDemo extends Screen
         $this->split_workspace->orientation($this->store_split_orientation);
     }
 
+    /**
+     * @param array<string, mixed> $params
+     */
     public function onSplitDraggableChange(array $params): void
     {
         $this->store_split_draggable = (bool) ($params['checked'] ?? false);
         $this->split_workspace->draggable($this->store_split_draggable);
     }
 
+    /**
+     * @param array<string, mixed> $params
+     */
     public function onSplitCollapsibleChange(array $params): void
     {
         $this->store_split_collapsible = (bool) ($params['checked'] ?? false);
         $this->split_workspace->collapsible($this->store_split_collapsible);
     }
 
+    /**
+     * @param array<string, mixed> $params
+     */
     public function onSplitCollapseTargetChange(array $params): void
     {
         $value = $params['value'] ?? 'first';
@@ -232,10 +246,16 @@ class SplitDemo extends Screen
         $this->split_workspace->collapseTarget($this->store_collapse_target);
     }
 
+    /**
+     * @param array<string, mixed> $params
+     */
     public function onApplySplitSize(array $params): void
     {
-        $splitSize = trim((string) ($params['inp_split_size'] ?? $this->store_split_size));
-        $splitterSize = trim((string) ($params['inp_splitter_size'] ?? $this->store_splitter_size));
+        $rawSplitSize = $params['inp_split_size'] ?? $this->store_split_size;
+        $splitSize = trim(is_scalar($rawSplitSize) || $rawSplitSize instanceof \Stringable ? (string) $rawSplitSize : '');
+
+        $rawSplitterSize = $params['inp_splitter_size'] ?? $this->store_splitter_size;
+        $splitterSize = trim(is_scalar($rawSplitterSize) || $rawSplitterSize instanceof \Stringable ? (string) $rawSplitterSize : '');
 
         if ($splitSize !== '') {
             $this->store_split_size = $splitSize;
@@ -250,6 +270,9 @@ class SplitDemo extends Screen
         }
     }
 
+    /**
+     * @param array<string, mixed> $params
+     */
     public function onToggleSplitCollapse(array $params): void
     {
         if ($this->store_collapsed_panel === 'none') {
@@ -261,18 +284,27 @@ class SplitDemo extends Screen
         $this->applyCollapsedState();
     }
 
+    /**
+     * @param array<string, mixed> $params
+     */
     public function onCollapseFirstPanel(array $params): void
     {
         $this->store_collapsed_panel = 'first';
         $this->applyCollapsedState();
     }
 
+    /**
+     * @param array<string, mixed> $params
+     */
     public function onCollapseSecondPanel(array $params): void
     {
         $this->store_collapsed_panel = 'second';
         $this->applyCollapsedState();
     }
 
+    /**
+     * @param array<string, mixed> $params
+     */
     public function onResetSplitDemo(array $params): void
     {
         $this->store_split_orientation = 'horizontal';

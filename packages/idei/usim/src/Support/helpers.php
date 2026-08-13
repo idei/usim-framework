@@ -12,9 +12,37 @@ if (!function_exists('t')) {
      *       usim::b/c.rest so the package lang files act as default fallback.
      *  2. DB-backed TranslationService.
      *  3. The key itself as last-resort fallback.
+     * @param array<string, mixed> $params
      */
     function t(string $key, array $params = [], ?string $language = null): string
     {
+        /** @var array<string, bool|float|int|string|null> $translatorParams */
+        $translatorParams = [];
+        foreach ($params as $replaceKey => $replaceValue) {
+            if (is_bool($replaceValue) || is_float($replaceValue) || is_int($replaceValue) || is_string($replaceValue) || $replaceValue === null) {
+                $translatorParams[$replaceKey] = $replaceValue;
+                continue;
+            }
+
+            if (is_array($replaceValue)) {
+                $encodedValue = json_encode($replaceValue);
+                $translatorParams[$replaceKey] = $encodedValue === false ? '' : $encodedValue;
+                continue;
+            }
+
+            if (is_object($replaceValue) && method_exists($replaceValue, '__toString')) {
+                $translatorParams[$replaceKey] = $replaceValue->__toString();
+                continue;
+            }
+
+            if (is_resource($replaceValue)) {
+                $translatorParams[$replaceKey] = get_resource_type($replaceValue);
+                continue;
+            }
+
+            $translatorParams[$replaceKey] = get_debug_type($replaceValue);
+        }
+
         // 1. Laravel translator (__).
         try {
             /** @var \Illuminate\Translation\Translator $translator */
@@ -51,7 +79,7 @@ if (!function_exists('t')) {
                     : $translator->has($candidate);
 
                 if ($hasLaravelTranslation) {
-                    return __($candidate, $params, $language);
+                    return __($candidate, $translatorParams, $language);
                 }
             }
         } catch (Throwable) {

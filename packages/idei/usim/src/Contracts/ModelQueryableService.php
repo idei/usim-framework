@@ -12,7 +12,6 @@ use Illuminate\Database\Eloquent\Model;
  * @extends ModelSearchService<TModel>
  * @extends ModelFilterService<TModel>
  * @extends ModelSortService<TModel>
- * @extends ModelStructureService
  */
 interface ModelQueryableService extends ModelReadService, ModelSearchService, ModelFilterService, ModelSortService, ModelStructureService
 {

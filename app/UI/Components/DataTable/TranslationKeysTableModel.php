@@ -7,6 +7,7 @@ use Idei\Usim\Components\Table;
 use Idei\Usim\DataTable\AbstractTableModel;
 use Idei\Usim\Support\TranslationService;
 use Idei\Usim\Support\UIStateManager;
+use Illuminate\Database\Eloquent\Builder;
 
 class TranslationKeysTableModel extends AbstractTableModel
 {
@@ -39,13 +40,19 @@ SVG;
         $this->translationService = app(TranslationService::class);
 
         $dataset = $this->translationService->listLanguagesDataset();
-        foreach (($dataset['items'] ?? []) as $language) {
-            $code = (string) ($language['code'] ?? '');
+        foreach ($dataset['items'] as $language) {
+            $code = $this->mixedToString($language['code'] ?? null);
             if ($code === '') {
                 continue;
             }
 
-            $name = (string) ($language['native_name'] ?? $language['name'] ?? strtoupper($code));
+            $name = $this->mixedToString($language['native_name'] ?? null);
+            if ($name === '') {
+                $name = $this->mixedToString($language['name'] ?? null);
+            }
+            if ($name === '') {
+                $name = strtoupper($code);
+            }
             $this->languages[$code] = $name;
             $this->languageCodes[] = $code;
 
@@ -110,7 +117,9 @@ SVG;
 
     public function getLanguageFilter(): string
     {
-        return $this->normalizeFilterValue(UIStateManager::getKeyValue(self::LANGUAGE_FILTER_KEY));
+        $value = UIStateManager::getKeyValue(self::LANGUAGE_FILTER_KEY);
+
+        return $this->normalizeFilterValue($this->mixedToNullableString($value));
     }
 
     public function setGroupFilter(?string $group): void
@@ -120,10 +129,28 @@ SVG;
 
     public function getGroupFilter(): string
     {
-        return $this->normalizeFilterValue(UIStateManager::getKeyValue(self::GROUP_FILTER_KEY));
+        $value = UIStateManager::getKeyValue(self::GROUP_FILTER_KEY);
+
+        return $this->normalizeFilterValue($this->mixedToNullableString($value));
     }
 
     public function getPageData(): array
+    {
+        $rows = $this->getTextKeysPageItems();
+
+        return array_map(
+            static fn (UsimTextKey $row): array => [
+                'key' => $row->key,
+                'group' => $row->group,
+            ],
+            $rows
+        );
+    }
+
+    /**
+     * @return list<UsimTextKey>
+     */
+    private function getTextKeysPageItems(): array
     {
         $pagination = $this->tableBuilder->getPaginationData();
         $sortBy = $this->tableBuilder->getSortColumn();
@@ -137,15 +164,17 @@ SVG;
             ->with(['values.language'])
             ->orderBy($sortColumn, $direction);
 
-        return $query
+        $items = $query
             ->forPage((int) $pagination['current_page'], (int) $pagination['per_page'])
             ->get()
             ->all();
+
+        return array_values($items);
     }
 
     public function getFormattedPageData(int $currentPage, int $perPage): array
     {
-        $rows = $this->getPageData();
+        $rows = $this->getTextKeysPageItems();
         $formatted = [];
 
         foreach ($rows as $row) {
@@ -230,7 +259,7 @@ SVG;
      */
     protected function buildTranslationCell(?array $entry): string|array
     {
-        $text = trim((string) ($entry['text'] ?? ''));
+        $text = trim($this->mixedToString($entry['text'] ?? null));
         if ($text === '') {
             return '—';
         }
@@ -267,7 +296,7 @@ SVG;
 
         foreach ($this->languageCodes as $code) {
             $entry = $valuesByCode[$code] ?? null;
-            $text = trim((string) ($entry['text'] ?? ''));
+            $text = trim($this->mixedToString($entry['text'] ?? null));
             if ($text !== '') {
                 $completedTranslations++;
             }
@@ -324,7 +353,10 @@ SVG;
         return 'rgba(230, 126, 34, 0.32)';
     }
 
-    protected function buildBaseQuery()
+    /**
+     * @return Builder<UsimTextKey>
+     */
+    protected function buildBaseQuery(): Builder
     {
         $searchTerm = trim((string) ($this->tableBuilder->getSearchTerm() ?? ''));
         $groupFilter = $this->getGroupFilter();
@@ -353,5 +385,23 @@ SVG;
     protected function svgDataUri(string $svg): string
     {
         return 'data:image/svg+xml;utf8,' . rawurlencode($svg);
+    }
+
+    private function mixedToNullableString(mixed $value): ?string
+    {
+        if (is_string($value)) {
+            return $value;
+        }
+
+        if (is_int($value) || is_float($value) || is_bool($value)) {
+            return (string) $value;
+        }
+
+        return null;
+    }
+
+    private function mixedToString(mixed $value): string
+    {
+        return $this->mixedToNullableString($value) ?? '';
     }
 }

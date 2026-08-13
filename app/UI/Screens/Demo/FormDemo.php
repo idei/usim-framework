@@ -1,12 +1,14 @@
 <?php
 namespace App\UI\Screens\Demo;
 
-use Idei\Usim\UI;
-use Idei\Usim\Screen;
+use Idei\Usim\Components\Button;
 use Idei\Usim\Components\Container;
 use Idei\Usim\Components\Input;
 use Idei\Usim\Components\Label;
-use Idei\Usim\Components\Button;
+use Idei\Usim\Screen;
+use Idei\Usim\UI;
+use Idei\Usim\ValueObjects\Size;
+use Idei\Usim\ValueObjects\Spacing;
 
 class FormDemo extends Screen
 {
@@ -20,10 +22,10 @@ class FormDemo extends Screen
     {
         $container
             ->title(t('screen.demo.form_demo.title'))
-            ->maxWidth('500px')
+            ->maxWidth(Size::px(500))
             ->centerHorizontal()
             ->shadow(2)
-            ->padding('30px');
+            ->padding(Spacing::px(30));
 
         $container->add(
             UI::label('lbl_instruction')
@@ -38,7 +40,7 @@ class FormDemo extends Screen
                 ->value('')
                 ->required(true)
                 ->type('text')
-                ->width('100%')
+                ->width(Size::full())
         );
 
         $container->add(
@@ -48,7 +50,7 @@ class FormDemo extends Screen
                 ->value('')
                 ->required(true)
                 ->type('email')
-                ->width('100%')
+                ->width(Size::full())
         );
 
         $container->add(
@@ -62,6 +64,7 @@ class FormDemo extends Screen
             UI::label('lbl_result')
                 ->text(t('screen.demo.form_demo.result.initial'))
                 ->style('secondary')
+                ->width(Size::full())
         );
     }
 
@@ -78,11 +81,15 @@ class FormDemo extends Screen
      * Handle form submission with validation
      * Reads input values from frontend parameters (sent by collectContextValues)
      */
+    /** @param array<string, mixed> $params */
     public function onSubmitForm(array $params): void
     {
         // Get input values from frontend parameters (sent by collectContextValues)
-        $name = trim($params['input_name'] ?? '');
-        $email = trim($params['input_email'] ?? '');
+        $rawName = $params['input_name'] ?? '';
+        $name = trim(is_scalar($rawName) || $rawName instanceof \Stringable ? (string) $rawName : '');
+
+        $rawEmail = $params['input_email'] ?? '';
+        $email = trim(is_scalar($rawEmail) || $rawEmail instanceof \Stringable ? (string) $rawEmail : '');
 
         // Clear previous errors
         $this->input_name->error(null);

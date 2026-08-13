@@ -13,6 +13,12 @@ class UIIdGenerator
     /** @var array<string, int> Auto-increment counter per context */
     private static array $autoIncPerContext = [];
 
+    /** @var array<string, array<int, true>> Reserved local IDs per context */
+    private static array $usedLocalIdsPerContext = [];
+
+    /** @var array<string, array<string, int>> Stable local ID per named component and context */
+    private static array $namedLocalIdsPerContext = [];
+
     /** @var array<int, string> Mapping from offset to context class name */
     private static array $offsetToContext = [];
 
@@ -35,7 +41,14 @@ class UIIdGenerator
             self::$autoIncPerContext[$context] = 0;
         }
 
-        $localId = ++self::$autoIncPerContext[$context];
+        $localId = self::$autoIncPerContext[$context];
+        do {
+            $localId++;
+        } while (isset(self::$usedLocalIdsPerContext[$context][$localId]));
+
+        self::$autoIncPerContext[$context] = $localId;
+        self::$usedLocalIdsPerContext[$context][$localId] = true;
+
         $offset = self::getContextOffset($context);
 
         // Register offset → context mapping for reverse lookup
@@ -56,12 +69,34 @@ class UIIdGenerator
      */
     public static function generateFromName(string $context, string $name): int
     {
+        if (isset(self::$namedLocalIdsPerContext[$context][$name])) {
+            $localId = self::$namedLocalIdsPerContext[$context][$name];
+            $offset = self::getContextOffset($context);
+
+            // Register offset → context mapping for reverse lookup
+            self::$offsetToContext[$offset] = $context;
+
+            return $offset + $localId;
+        }
+
         $offset = self::getContextOffset($context);
 
         // Generate deterministic local ID from component name
         // Use crc32 to get a hash, then limit to 9999 to avoid offset collision
         $hash = crc32($name);
         $localId = (abs($hash) % 9999) + 1; // +1 to avoid ID 0
+
+        // Avoid collisions with IDs already used in this request context
+        // (typically deserialized cache components and auto-generated table rows/cells).
+        while (isset(self::$usedLocalIdsPerContext[$context][$localId])) {
+            $localId++;
+            if ($localId > 9999) {
+                $localId = 1;
+            }
+        }
+
+        self::$namedLocalIdsPerContext[$context][$name] = $localId;
+        self::$usedLocalIdsPerContext[$context][$localId] = true;
 
         // Register offset → context mapping for reverse lookup
         self::$offsetToContext[$offset] = $context;
@@ -73,7 +108,7 @@ class UIIdGenerator
      * Get context information for debugging
      *
      * @param string $context Context name
-     * @return array Context information
+     * @return array<string, mixed> Context information
      */
     public static function getContextInfo(string $context): array
     {
@@ -82,6 +117,28 @@ class UIIdGenerator
             'offset' => self::getContextOffset($context),
             'current_count' => self::$autoIncPerContext[$context] ?? 0,
         ];
+    }
+
+    /**
+     * Reserve an already-existing component ID for a context.
+     *
+     * This is required when rebuilding component trees from cached snapshots,
+     * so subsequent auto-generated IDs do not collide with deserialized IDs.
+     */
+    public static function reserveContextId(string $context, int $id): void
+    {
+        $offset = self::getContextOffset($context);
+        $localId = $id - $offset;
+
+        if ($localId < 1) {
+            return;
+        }
+
+        self::$usedLocalIdsPerContext[$context][$localId] = true;
+
+        if (!isset(self::$autoIncPerContext[$context]) || self::$autoIncPerContext[$context] < $localId) {
+            self::$autoIncPerContext[$context] = $localId;
+        }
     }
 
     /**
@@ -140,6 +197,8 @@ class UIIdGenerator
     public static function reset(): void
     {
         self::$autoIncPerContext = [];
+        self::$usedLocalIdsPerContext = [];
+        self::$namedLocalIdsPerContext = [];
     }
 
     /**

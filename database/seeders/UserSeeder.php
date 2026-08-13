@@ -3,60 +3,51 @@
 namespace Database\Seeders;
 
 use App\Models\User;
-use Illuminate\Support\Str;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Arr;
 
 class UserSeeder extends Seeder
 {
+    protected const USERS_COUNT = 50;
+    protected const MIN_ROLES_BY_USER = 1;
+    protected const MAX_ROLES_BY_USER = 3;
+
     /**
      * Run the database seeds.
      */
     public function run(): void
     {
-        if (User::count() > 1) {
-            return;
-        }
+        /** @var array<string, array<string, mixed>> $rolesData */
+        $rolesData = config('usim.roles', []);
 
-        $rolesConfig = config('users.roles', []);
+        // We sort roles by priority
+        uasort($rolesData, static function (array $a, array $b): int {
+            $aPriority = $a['priority'] ?? 0;
+            $bPriority = $b['priority'] ?? 0;
+            $aPriority = is_int($aPriority) ? $aPriority : 0;
+            $bPriority = is_int($bPriority) ? $bPriority : 0;
 
-        foreach ($rolesConfig as $roleName => $roleMeta) {
-            if (!\is_string($roleName) || $roleName === '') {
-                continue;
-            }
-
-            $this->createConfigUser($roleName, (array) ($roleMeta['seed_user'] ?? []));
-        }
-
-        User::factory(4)->create()->each(function ($user) {
-            $user->assignRole('user');
+            return $aPriority <=> $bPriority;
         });
-    }
 
-    private function createConfigUser(string $role, array $seedUserConfig = []): void
-    {
-        $legacyUserConfig = (array) config("users.{$role}", []);
-        $userConfig = array_merge($legacyUserConfig, $seedUserConfig);
+        /** @var list<string> $roles */
+        $roles = array_keys($rolesData);
 
-        if (empty($userConfig['email']) || empty($userConfig['password'])) {
-            return;
-        }
+        User::factory()
+            ->count(self::USERS_COUNT)
+            ->create()
+            ->each(function (User $user) use ($roles) {
+                $roles_to_assign = rand(self::MIN_ROLES_BY_USER, self::MAX_ROLES_BY_USER);
+                $rand_roles = Arr::random($roles, $roles_to_assign);
 
-        $firstName = $userConfig['first_name'] ?? ucfirst($role);
-        $lastName = $userConfig['last_name'] ?? 'User';
-        $fullName = trim($firstName . ' ' . $lastName);
-        $email = $userConfig['email'];
-        $password = $userConfig['password'];
+                if (is_array($rand_roles)) {
+                    /** @var list<string> $rolesForSync */
+                    $rolesForSync = array_values($rand_roles);
+                } else {
+                    $rolesForSync = is_string($rand_roles) ? [$rand_roles] : [];
+                }
 
-        $user = User::firstOrCreate(
-            ['email' => $email],
-            [
-                'name' => $fullName,
-                'email_verified_at' => now(),
-                'remember_token' => Str::random(10),
-                'password' => bcrypt($password)
-            ]
-        );
-
-        $user->assignRole($role);
+                $user->syncRoles($rolesForSync);
+            });
     }
 }

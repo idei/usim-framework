@@ -7,6 +7,8 @@ use Idei\Usim\Support\EloquentListingService;
 
 /**
  * Read-only listing service for users.
+ *
+ * @extends EloquentListingService<User>
  */
 class UserListingService extends EloquentListingService
 {

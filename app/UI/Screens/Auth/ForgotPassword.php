@@ -3,11 +3,13 @@
 namespace App\UI\Screens\Auth;
 
 use App\Services\Auth\PasswordService;
-use Idei\Usim\UI;
-use Idei\Usim\Enums\LayoutType;
-use Idei\Usim\Screen;
 use Idei\Usim\Components\Container;
 use Idei\Usim\Components\Label;
+use Idei\Usim\Enums\LayoutType;
+use Idei\Usim\Screen;
+use Idei\Usim\UI;
+use Idei\Usim\ValueObjects\Size;
+use Idei\Usim\ValueObjects\Spacing;
 
 class ForgotPassword extends Screen
 {
@@ -26,9 +28,9 @@ class ForgotPassword extends Screen
             ->justifyContent('start')
             ->plain()
             ->alignItems('center')
-            ->padding(40)
-            ->paddingTop('80px')
-            ->minHeight('100vh');
+            ->padding(Spacing::px(40))
+            ->paddingTop(Spacing::px(80))
+            ->minHeight(Size::vh(100));
 
         // Icono superior
         $container->add(
@@ -63,12 +65,12 @@ class ForgotPassword extends Screen
         $formCard = UI::container('forgot_password_card')
             ->layout(LayoutType::VERTICAL)
             ->shadow(true)
-            ->maxWidth('600px')
-            ->width('100%')
+            ->maxWidth(Size::px(600))
+            ->width(Size::full())
             ->borderRadius('8px')
-            ->marginTop('30px')
-            ->padding(30)
-            ->gap('20px')
+            ->marginTop(Spacing::px(30))
+            ->padding(Spacing::px(30))
+            ->gap(Spacing::px(20))
             ->backgroundColor('white')
             ->customStyle('border-left: 5px solid #3b82f6; overflow: hidden;');
 
@@ -77,7 +79,7 @@ class ForgotPassword extends Screen
                 ->text(t('screen.auth.forgot_password.card_title'))
                 ->style('h3')
                 ->color('#1f2937')
-                ->marginBottom('5px')
+                ->marginBottom(Spacing::px(5))
         );
 
         $formCard->add(
@@ -85,7 +87,7 @@ class ForgotPassword extends Screen
                 ->text(t('screen.auth.forgot_password.instruction'))
                 ->style('p')
                 ->color('#6b7280')
-                ->marginBottom('15px')
+                ->marginBottom(Spacing::px(15))
         );
 
         $formCard->add(
@@ -93,7 +95,7 @@ class ForgotPassword extends Screen
                 ->label(t('screen.auth.forgot_password.email.label'))
                 ->type('email')
                 ->placeholder(t('screen.auth.forgot_password.email.placeholder'))
-                ->width('100%')
+                ->width(Size::full())
         );
 
         $formCard->add(
@@ -106,8 +108,8 @@ class ForgotPassword extends Screen
         $buttons = UI::container('buttons')
             ->layout(LayoutType::HORIZONTAL)
             ->justifyContent('start')
-            ->gap('15px')
-            ->marginTop('10px');
+            ->gap(Spacing::px(15))
+            ->marginTop(Spacing::px(10));
 
         $buttons->add(
             UI::button('btn_send')
@@ -128,14 +130,16 @@ class ForgotPassword extends Screen
         $container->add($formCard);
     }
 
+    /** @param array<string, mixed> $params */
     public function onNavigateToLogin(array $params): void
     {
         $this->redirect('/auth/login');
     }
 
+    /** @param array<string, mixed> $params */
     public function onSendLink(array $params): void
     {
-        $email = $params['email'] ?? '';
+        $email = is_string($params['email'] ?? null) ? $params['email'] : '';
 
         if (empty($email)) {
             if (isset($this->lbl_result)) {
@@ -146,8 +150,8 @@ class ForgotPassword extends Screen
 
         try {
             $result = $this->passwordService->sendResetLink($email);
-            $status = $result['status'] ?? 'error';
-            $message = $result['message'] ?? 'No se pudo enviar el enlace de recuperación.';
+            $status = $result['status'];
+            $message = $result['message'];
 
             if ($status === 'success') {
                 $this->lbl_result->text(t('screen.auth.forgot_password.success'))->style('success')->visible(true);

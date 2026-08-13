@@ -2,9 +2,10 @@
 
 namespace App\UI\Components\Modals;
 
-use Idei\Usim\UI;
-use Idei\Usim\Enums\LayoutType;
 use Idei\Usim\Enums\JustifyContent;
+use Idei\Usim\Enums\LayoutType;
+use Idei\Usim\UI;
+use Idei\Usim\ValueObjects\Spacing;
 
 /**
  * Login Dialog Service
@@ -19,7 +20,7 @@ class LoginDialog
      * @param string $submitAction Action to call when form is submitted
      * @param string|null $cancelAction Action to call when cancel is clicked
      * @param int|null $callerServiceId Service ID that will receive callbacks
-     * @return array UI components for the modal
+     * @return array<int, array<string, mixed>> UI components for the modal
      */
     public function getUI(
         ?int $callerServiceId = null,
@@ -32,7 +33,7 @@ class LoginDialog
         $loginContainer = UI::container('login_dialog')
             ->parent('modal')
             ->shadow(false)
-            ->padding('30px');
+            ->padding(Spacing::px(30));
 
         // Email input
         $loginContainer->add(
@@ -57,9 +58,9 @@ class LoginDialog
         $buttonsContainer = UI::container('login_buttons')
             ->layout(LayoutType::HORIZONTAL)
             ->justifyContent(JustifyContent::SPACE_BETWEEN)
-            ->gap('10px')
+            ->gap(Spacing::px(10))
             ->shadow(false)
-            ->padding('20px 0 0 0');
+            ->padding(Spacing::each(Spacing::px(20)));
 
         // Cancel button
         if ($cancelAction) {

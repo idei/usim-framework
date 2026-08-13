@@ -9,7 +9,8 @@ use App\Services\Auth\PasswordService;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use Illuminate\Auth\Events\Verified;
-use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Illuminate\Http\JsonResponse;
+use Laravel\Sanctum\PersonalAccessToken;
 
 class AuthController extends Controller
 {
@@ -17,15 +18,15 @@ class AuthController extends Controller
         protected PasswordService $passwordService
     ) {
     }
-    public function register(Request $request, RegisterService $registerService)
+    public function register(Request $request, RegisterService $registerService): JsonResponse
     {
         $response = $registerService->register(
-            name: (string) $request->input('name', ''),
-            email: (string) $request->input('email', ''),
-            password: (string) $request->input('password', ''),
-            passwordConfirmation: (string) $request->input('password_confirmation', ''),
-            roles: (array) $request->input('roles', ['user']),
-            sendVerificationEmail: (bool) $request->boolean('send_verification_email', true),
+            name: $request->string('name')->toString(),
+            email: $request->string('email')->toString(),
+            password: $request->string('password')->toString(),
+            passwordConfirmation: $request->string('password_confirmation')->toString(),
+            roles: $this->normalizeRoles($request->input('roles', ['user'])),
+            sendVerificationEmail: $request->boolean('send_verification_email', true),
         );
 
         $httpStatus = $response['status'] === 'success' ? 201 : 422;
@@ -36,7 +37,7 @@ class AuthController extends Controller
         return response()->json($response, $httpStatus);
     }
 
-    public function login(Request $request, LoginService $loginService)
+    public function login(Request $request, LoginService $loginService): JsonResponse
     {
         $request->validate([
             'email' => 'required|email',
@@ -45,8 +46,8 @@ class AuthController extends Controller
         ]);
 
         $response = $loginService->login(
-            $request->email,
-            $request->password,
+            $request->string('email')->toString(),
+            $request->string('password')->toString(),
             $request->boolean('remember')
         );
 
@@ -57,9 +58,15 @@ class AuthController extends Controller
         return response()->json($response, $httpStatus);
     }
 
-    public function logout(Request $request)
+    public function logout(Request $request): JsonResponse
     {
-        $request->user()->currentAccessToken()->delete();
+        /** @var User $user */
+        $user = $request->user();
+
+        /** @var PersonalAccessToken|null $accessToken */
+        $accessToken = $user->currentAccessToken();
+        $accessToken?->delete();
+
         return response()->json([
             'status' => 'success',
             'data' => null,
@@ -67,9 +74,11 @@ class AuthController extends Controller
         ]);
     }
 
-    public function verifyEmail(Request $request)
+    public function verifyEmail(Request $request): JsonResponse
     {
-        $user = User::find($request->route('id'));
+        /** @var int $userId */
+        $userId = (int) $request->route('id');
+        $user = User::query()->find($userId);
 
         if (!$user) {
             return response()->json([
@@ -81,7 +90,8 @@ class AuthController extends Controller
 
         // Verificar que el hash coincida con el email del usuario
         $expectedHash = sha1($user->email);
-        $providedHash = $request->route('hash');
+        /** @var string $providedHash */
+        $providedHash = (string) $request->route('hash');
 
         if ($expectedHash !== $providedHash) {
             return response()->json([
@@ -103,9 +113,7 @@ class AuthController extends Controller
         }
 
         if ($user->markEmailAsVerified()) {
-            if ($user instanceof MustVerifyEmail) {
-                event(new Verified($user));
-            }
+            event(new Verified($user));
         }
 
         return response()->json([
@@ -115,9 +123,12 @@ class AuthController extends Controller
         ], 200);
     }
 
-    public function resendVerificationEmail(Request $request)
+    public function resendVerificationEmail(Request $request): JsonResponse
     {
-        if ($request->user()->hasVerifiedEmail()) {
+        /** @var User $user */
+        $user = $request->user();
+
+        if ($user->hasVerifiedEmail()) {
             return response()->json([
                 'status' => 'success',
                 'data' => null,
@@ -125,7 +136,7 @@ class AuthController extends Controller
             ], 200);
         }
 
-        $request->user()->sendEmailVerificationNotification();
+        $user->sendEmailVerificationNotification();
 
         return response()->json([
             'status' => 'success',
@@ -138,8 +149,9 @@ class AuthController extends Controller
     /**
      * Obtener usuario autenticado
      */
-    public function user(Request $request)
+    public function user(Request $request): JsonResponse
     {
+        /** @var User $user */
         $user = $request->user();
 
         // Obtener permisos usando Spatie
@@ -163,10 +175,10 @@ class AuthController extends Controller
     /**
      * Enviar enlace de reset de contraseña
      */
-    public function forgotPassword(Request $request)
+    public function forgotPassword(Request $request): JsonResponse
     {
         $response = $this->passwordService->sendResetLink(
-            $request->input('email', '')
+            $request->string('email')->toString()
         );
 
         $httpStatus = $response['status'] === 'success' ? 200 : 400;
@@ -176,16 +188,40 @@ class AuthController extends Controller
     /**
      * Resetear la contraseña
      */
-    public function resetPassword(Request $request)
+    public function resetPassword(Request $request): JsonResponse
     {
         $response = $this->passwordService->resetPassword(
-            token: $request->input('token', ''),
-            email: $request->input('email', ''),
-            password: $request->input('password', ''),
-            passwordConfirmation: $request->input('password_confirmation', '')
+            token: $request->string('token')->toString(),
+            email: $request->string('email')->toString(),
+            password: $request->string('password')->toString(),
+            passwordConfirmation: $request->string('password_confirmation')->toString()
         );
 
         $httpStatus = $response['status'] === 'success' ? 200 : 422;
         return response()->json($response, $httpStatus);
+    }
+
+    /**
+     * @param mixed $roles
+     * @return list<string>
+     */
+    private function normalizeRoles(mixed $roles): array
+    {
+        if (is_string($roles)) {
+            return [$roles];
+        }
+
+        if (!is_array($roles)) {
+            return ['user'];
+        }
+
+        $normalized = [];
+        foreach ($roles as $role) {
+            if (is_string($role)) {
+                $normalized[] = $role;
+            }
+        }
+
+        return $normalized !== [] ? $normalized : ['user'];
     }
 }

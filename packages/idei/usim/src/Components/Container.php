@@ -2,11 +2,21 @@
 
 namespace Idei\Usim\Components;
 
-use Idei\Usim\Enums\AlignItems;
-use Idei\Usim\Enums\LayoutType;
+use Idei\Usim\Components\UIComponent;
+use Idei\Usim\Concerns\HasGap;
+use Idei\Usim\Concerns\HasMargin;
+use Idei\Usim\Concerns\HasPadding;
+use Idei\Usim\Concerns\HasSizing;
+use Idei\Usim\Contracts\Gapable;
+use Idei\Usim\Contracts\Marginable;
+use Idei\Usim\Contracts\Paddable;
+use Idei\Usim\Contracts\Sizeable;
 use Idei\Usim\Contracts\UIElement;
+use Idei\Usim\Enums\AlignItems;
 use Idei\Usim\Enums\JustifyContent;
+use Idei\Usim\Enums\LayoutType;
 use Idei\Usim\Support\UIIdGenerator;
+use Idei\Usim\ValueObjects\Size;
 
 /**
  * Composite UI Container that can hold and manage child UI elements
@@ -15,19 +25,22 @@ use Idei\Usim\Support\UIIdGenerator;
  * organized in a tree structure. It provides methods to add, remove, update,
  * and find child elements, as well as recursive JSON serialization.
  */
-class Container implements UIElement
+class Container implements UIElement, Sizeable, Paddable, Marginable, Gapable
 {
+    use HasSizing, HasPadding, HasMargin, HasGap;
+
     protected int $id;
     protected string $type = 'container';
     protected ?string $name = null;
     public ?string $debugInfo = null;
     protected int|string|null $parent = null;
+    /** @var array<string, mixed> */
     protected array $config = [];
 
-    /** @var array<string, UIElement> Map of element ID to UIElement instance */
+    /** @var array<int|string, UIElement> Map of element ID to UIElement instance */
     protected array $children = [];
 
-    /** @var array|null Legacy elements array for backward compatibility */
+    /** @var array<string, mixed>|null Legacy elements array for backward compatibility */
     public ?array $legacyElements = null;
 
     public function __construct(?string $name = null, ?string $context = null)
@@ -129,8 +142,8 @@ class Container implements UIElement
             'background_size' => null,
             'background_position' => null,
             'border' => null,
-            'border_radius' => null,
-            'box_shadow' => null,
+            'border_radius' => 0,
+            'box_shadow' => 0,
             'opacity' => null,
 
             // Position
@@ -174,13 +187,23 @@ class Container implements UIElement
     /**
      * {@inheritDoc}
      */
+    /**
+     * @param array<string, mixed> $data
+     */
     public static function deserialize(int $id, array $data): Container
     {
         $container = new self();
         $container->id = $id;
-        $container->type = $data['type'] ?? 'container';
-        $container->name = $data['name'] ?? null;
-        $container->parent = $data['parent'] ?? null;
+
+        $type = $data['type'] ?? 'container';
+        $container->type = is_string($type) ? $type : 'container';
+
+        $name = $data['name'] ?? null;
+        $container->name = is_string($name) ? $name : null;
+
+        $parent = $data['parent'] ?? null;
+        $container->parent = is_int($parent) || is_string($parent) || $parent === null ? $parent : null;
+
         $container->config = array_merge($container->config, $data);
         return $container;
     }
@@ -237,7 +260,7 @@ class Container implements UIElement
      */
     public function isVisible(): bool
     {
-        return $this->config['visible'] ?? true;
+        return (bool) ($this->config['visible'] ?? true);
     }
 
     /**
@@ -246,6 +269,15 @@ class Container implements UIElement
     public function setVisible(bool $visible): self
     {
         $this->config['visible'] = $visible;
+        return $this;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    protected function setConfig(string $key, mixed $value): static
+    {
+        $this->config[$key] = $value;
         return $this;
     }
 
@@ -276,7 +308,7 @@ class Container implements UIElement
      */
     public function isRoot(): bool
     {
-        return $this->config['root'] ?? false;
+        return (bool) ($this->config['root'] ?? false);
     }
 
     /**
@@ -373,19 +405,97 @@ class Container implements UIElement
         return $this;
     }
 
+    public function width(Size $width): static
+    {
+        return $this->setConfig('width', (string) Size::from($width));
+    }
+
+    public function getWidth(): Size
+    {
+        /** @var Size|int|string $widthValue */
+        $widthValue = $this->config['width'] ?? Size::auto();
+
+        return Size::from($widthValue);
+    }
+
+    public function height(Size $height): static
+    {
+        return $this->setConfig('height', (string) Size::from($height));
+    }
+
+    public function getHeight(): Size
+    {
+        /** @var Size|int|string $heightValue */
+        $heightValue = $this->config['height'] ?? Size::auto();
+
+        return Size::from($heightValue);
+    }
+
+    public function minWidth(Size $width): static
+    {
+        return $this->setConfig('min_width', (string) Size::from($width));
+    }
+
+    public function getMinWidth(): ?Size
+    {
+        /** @var Size|int|string|null $value */
+        $value = $this->config['min_width'] ?? null;
+
+        return $value !== null ? Size::from($value) : null;
+    }
+
+    public function minHeight(Size $height): static
+    {
+        return $this->setConfig('min_height', (string) Size::from($height));
+    }
+
+    public function getMinHeight(): ?Size
+    {
+        /** @var Size|int|string|null $value */
+        $value = $this->config['min_height'] ?? null;
+
+        return $value !== null ? Size::from($value) : null;
+    }
+
+    public function maxWidth(Size $width): static
+    {
+        return $this->setConfig('max_width', (string) Size::from($width));
+    }
+
+    public function getMaxWidth(): ?Size
+    {
+        /** @var Size|int|string|null $value */
+        $value = $this->config['max_width'] ?? null;
+
+        return $value !== null ? Size::from($value) : null;
+    }
+
+    public function maxHeight(Size $height): static
+    {
+        return $this->setConfig('max_height', (string) Size::from($height));
+    }
+
+    public function getMaxHeight(): ?Size
+    {
+        /** @var Size|int|string|null $value */
+        $value = $this->config['max_height'] ?? null;
+
+        return $value !== null ? Size::from($value) : null;
+    }
+
     /**
      * Add a child element to this container
      *
      * @param UIElement $element The element to add
      * @param bool $result Reference parameter to indicate if the element was added (true) or ignored due to duplicate ID (false)
-     * @return self For method chaining
+     * @return static For method chaining
      * @throws \InvalidArgumentException If element with same ID already exists
      */
-    public function add(UIElement $element, bool &$result = null, int|string|null $tab = null): self
+    public function add(UIElement $element, bool &$result = null, int|string|null $tab = null): static
     {
-        $elementId = $element->getId();
+        $elementId = (string) $element->getId();
 
-        if (isset($this->children[$elementId])) {
+        if (array_key_exists($elementId, $this->children)) {
             $result = false;
             return $this;
         }
@@ -424,9 +534,7 @@ class Container implements UIElement
     public function addMany(array $elements): self
     {
         foreach ($elements as $element) {
-            if ($element instanceof UIElement) {
-                $this->add($element);
-            }
+            $this->add($element);
         }
         return $this;
     }
@@ -570,7 +678,10 @@ class Container implements UIElement
         foreach ($this->children as $child) {
             $child->setParent(null);
         }
-        $this->children = [];
+
+        /** @var array<string, UIElement> $emptyChildren */
+        $emptyChildren = [];
+        $this->children = $emptyChildren;
         return $this;
     }
 
@@ -721,7 +832,7 @@ class Container implements UIElement
     /**
      * Set grid template areas
      *
-     * @param array|string $areas Area names or array of area strings
+     * @param list<string>|string $areas Area names or array of area strings
      * @return self For method chaining
      */
     public function gridTemplateAreas(array|string $areas): self
@@ -802,328 +913,6 @@ class Container implements UIElement
     public function gridArea(string $area): self
     {
         $this->config['grid_area'] = $area;
-        return $this;
-    }
-
-    // ========================================================================
-    // GAP/SPACING METHODS
-    // ========================================================================
-
-    /**
-     * Set gap (spacing between children)
-     *
-     * @param string $gap Gap value (px, rem, etc)
-     * @return self For method chaining
-     */
-    public function gap(string $gap): self
-    {
-        $this->config['gap'] = $gap;
-        return $this;
-    }
-
-    /**
-     * Set row gap
-     *
-     * @param string $gap Row gap value
-     * @return self For method chaining
-     */
-    public function rowGap(string $gap): self
-    {
-        $this->config['row_gap'] = $gap;
-        return $this;
-    }
-
-    /**
-     * Set column gap
-     *
-     * @param string $gap Column gap value
-     * @return self For method chaining
-     */
-    public function columnGap(string $gap): self
-    {
-        $this->config['column_gap'] = $gap;
-        return $this;
-    }
-
-    // ========================================================================
-    // PADDING METHODS
-    // ========================================================================
-
-    /**
-     * Set padding (all sides)
-     *
-     * @param string $padding Padding value
-     * @return self For method chaining
-     */
-    public function padding(string $padding): self
-    {
-        $this->config['padding'] = $padding;
-        return $this;
-    }
-
-    /**
-     * Set padding for individual sides
-     *
-     * @param string|null $top Top padding
-     * @param string|null $right Right padding
-     * @param string|null $bottom Bottom padding
-     * @param string|null $left Left padding
-     * @return self For method chaining
-     */
-    public function paddingEach(?string $top = null, ?string $right = null, ?string $bottom = null, ?string $left = null): self
-    {
-        if ($top !== null)
-            $this->config['padding_top'] = $top;
-        if ($right !== null)
-            $this->config['padding_right'] = $right;
-        if ($bottom !== null)
-            $this->config['padding_bottom'] = $bottom;
-        if ($left !== null)
-            $this->config['padding_left'] = $left;
-        return $this;
-    }
-
-    /**
-     * Set top padding
-     *
-     * @param string $padding Padding value
-     * @return self For method chaining
-     */
-    public function paddingTop(string $padding): self
-    {
-        $this->config['padding_top'] = $padding;
-        return $this;
-    }
-
-    /**
-     * Set right padding
-     *
-     * @param string $padding Padding value
-     * @return self For method chaining
-     */
-    public function paddingRight(string $padding): self
-    {
-        $this->config['padding_right'] = $padding;
-        return $this;
-    }
-
-    /**
-     * Set bottom padding
-     *
-     * @param string $padding Padding value
-     * @return self For method chaining
-     */
-    public function paddingBottom(string $padding): self
-    {
-        $this->config['padding_bottom'] = $padding;
-        return $this;
-    }
-
-    /**
-     * Set left padding
-     *
-     * @param string $padding Padding value
-     * @return self For method chaining
-     */
-    public function paddingLeft(string $padding): self
-    {
-        $this->config['padding_left'] = $padding;
-        return $this;
-    }
-
-    // ========================================================================
-    // MARGIN METHODS
-    // ========================================================================
-
-    /**
-     * Set margin (all sides)
-     *
-     * @param string $margin Margin value
-     * @return self For method chaining
-     */
-    public function margin(string $margin): static
-    {
-        $this->config['margin'] = $margin;
-        return $this;
-    }
-
-    /**
-     * Set margin for individual sides
-     *
-     * @param string|null $top Top margin
-     * @param string|null $right Right margin
-     * @param string|null $bottom Bottom margin
-     * @param string|null $left Left margin
-     * @return self For method chaining
-     */
-    public function marginEach(?string $top = null, ?string $right = null, ?string $bottom = null, ?string $left = null): static
-    {
-        if ($top !== null)
-            $this->config['margin_top'] = $top;
-        if ($right !== null)
-            $this->config['margin_right'] = $right;
-        if ($bottom !== null)
-            $this->config['margin_bottom'] = $bottom;
-        if ($left !== null)
-            $this->config['margin_left'] = $left;
-        return $this;
-    }
-
-    /**
-     * Set top margin
-     *
-     * @param string $margin Margin value
-     * @return self For method chaining
-     */
-    public function marginTop(string $margin): static
-    {
-        $this->config['margin_top'] = $margin;
-        return $this;
-    }
-
-    /**
-     * Set right margin
-     *
-     * @param string $margin Margin value
-     * @return self For method chaining
-     */
-    public function marginRight(string $margin): static
-    {
-        $this->config['margin_right'] = $margin;
-        return $this;
-    }
-
-    /**
-     * Set bottom margin
-     *
-     * @param string $margin Margin value
-     * @return self For method chaining
-     */
-    public function marginBottom(string $margin): static
-    {
-        $this->config['margin_bottom'] = $margin;
-        return $this;
-    }
-
-    /**
-     * Set left margin
-     *
-     * @param string $margin Margin value
-     * @return self For method chaining
-     */
-    public function marginLeft(string $margin): static
-    {
-        $this->config['margin_left'] = $margin;
-        return $this;
-    }
-
-    // ========================================================================
-    // SIZING METHODS
-    // ========================================================================
-
-    /**
-     * Set or get width
-     *
-     * @param string|null $width Width value (px, %, vh, auto, etc), or null to get current value
-     * @return static|string|null For chaining when setting, or current value when getting
-     */
-    public function width(string | null $width = null): static | string | null
-    {
-        if ($width === null) {
-            return $this->config['width'] ?? null;
-        }
-
-        $this->config['width'] = $width;
-        return $this;
-    }
-
-    /**
-     * Set or get height
-     *
-     * @param string|null $height Height value, or null to get current value
-     * @return static|string|null For chaining when setting, or current value when getting
-     */
-    public function height(string | null $height = null): static | string | null
-    {
-        if ($height === null) {
-            return $this->config['height'] ?? null;
-        }
-
-        $this->config['height'] = $height;
-        return $this;
-    }
-
-    /**
-     * Set or get minimum width
-     *
-     * @param string|null $width Min width value, or null to get current value
-     * @return static|string|null For chaining when setting, or current value when getting
-     */
-    public function minWidth(string | null $width = null): static | string | null
-    {
-        if ($width === null) {
-            return $this->config['min_width'] ?? null;
-        }
-
-        $this->config['min_width'] = $width;
-        return $this;
-    }
-
-    /**
-     * Set or get minimum height
-     *
-     * @param string|null $height Min height value, or null to get current value
-     * @return static|string|null For chaining when setting, or current value when getting
-     */
-    public function minHeight(string | null $height = null): static | string | null
-    {
-        if ($height === null) {
-            return $this->config['min_height'] ?? null;
-        }
-
-        $this->config['min_height'] = $height;
-        return $this;
-    }
-
-    /**
-     * Set or get maximum width
-     *
-     * @param string|null $width Max width value, or null to get current value
-     * @return static|string|null For chaining when setting, or current value when getting
-     */
-    public function maxWidth(string | null $width = null): static | string | null
-    {
-        if ($width === null) {
-            return $this->config['max_width'] ?? null;
-        }
-
-        // If width is string and not ends with valid unit, assume pixels
-        if (\is_string($width) && !preg_match('/(px|%|em|rem|vh|vw|vmin|vmax|auto)$/', $width)) {
-            $width .= 'px';
-        }
-
-        $this->config['max_width'] = $width;
-        return $this;
-    }
-
-    /**
-     * Set or get maximum height
-     *
-     * @param string|null $height Max height value, or null to get current value
-     * @return static|string|null For chaining when setting, or current value when getting
-     */
-    public function maxHeight(string | null $height = null): static | string | null
-    {
-        if ($height === null) {
-            return $this->config['max_height'] ?? null;
-        }
-
-        // If height is string and not ends with valid unit, assume pixels
-        if (\is_string($height) && !preg_match('/(px|%|em|rem|vh|vw|vmin|vmax|auto)$/', $height)) {
-            $height .= 'px';
-        }
-
-        $this->config['max_height'] = $height;
         return $this;
     }
 
@@ -1390,7 +1179,7 @@ class Container implements UIElement
     /**
      * Set responsive configuration for different breakpoints
      *
-     * @param array $config Responsive configuration [breakpoint => config]
+     * @param array<string, array<string, mixed>> $config Responsive configuration [breakpoint => config]
      * @return self For method chaining
      */
     public function responsive(array $config): self
@@ -1402,7 +1191,7 @@ class Container implements UIElement
     /**
      * Hide container on specific breakpoints
      *
-     * @param array $breakpoints Breakpoints to hide on (mobile, tablet, desktop)
+     * @param list<string> $breakpoints Breakpoints to hide on (mobile, tablet, desktop)
      * @return self For method chaining
      */
     public function hideOn(array $breakpoints): self
@@ -1414,7 +1203,7 @@ class Container implements UIElement
     /**
      * Show container only on specific breakpoints
      *
-     * @param array $breakpoints Breakpoints to show on
+     * @param list<string> $breakpoints Breakpoints to show on
      * @return self For method chaining
      */
     public function showOn(array $breakpoints): self
@@ -1431,9 +1220,9 @@ class Container implements UIElement
      * Add custom CSS class
      *
      * @param string $appearance CSS class name
-     * @return self For method chaining
+     * @return static For method chaining
      */
-    public function appearance(string $appearance): self
+    public function appearance(string $appearance): static
     {
         $normalized = strtolower(trim($appearance));
         $this->config['appearance'] = in_array($normalized, ['card', 'plain'], true)
@@ -1445,9 +1234,9 @@ class Container implements UIElement
     /**
      * Render container with default card-like chrome.
      *
-     * @return self For method chaining
+     * @return static For method chaining
      */
-    public function card(): self
+    public function card(): static
     {
         $this->config['appearance'] = 'card';
         return $this;
@@ -1456,9 +1245,9 @@ class Container implements UIElement
     /**
      * Render container without default chrome (no bg, border, shadow).
      *
-     * @return self For method chaining
+     * @return static For method chaining
      */
-    public function plain(): self
+    public function plain(): static
     {
         $this->config['appearance'] = 'plain';
         return $this;
@@ -1471,6 +1260,8 @@ class Container implements UIElement
      * - 'General'
      * - ['id' => 'general', 'label' => 'General']
      * - ['general' => ['label' => 'General']]
+     *
+     * @param array<int|string, string|array<string, mixed>> $tabs
      */
     public function tabs(array $tabs, int|string|null $activeTab = null): self
     {
@@ -1487,20 +1278,20 @@ class Container implements UIElement
                 continue;
             }
 
-            if (!is_array($tab)) {
+            /** @var array<string, mixed> $tabConfig */
+            $tabConfig = $tab;
+            $tabIdValue = $tabConfig['id'] ?? (is_string($key) ? $key : null) ?? $tabConfig['label'] ?? null;
+            if (!is_string($tabIdValue) && !is_int($tabIdValue)) {
                 continue;
             }
 
-            $tabId = $tab['id'] ?? (is_string($key) ? $key : null) ?? $tab['label'] ?? null;
-            if ($tabId === null) {
-                continue;
-            }
-
-            $label = (string) ($tab['label'] ?? $tabId);
-            $options = $tab;
+            $tabId = is_string($tabIdValue) ? $tabIdValue : (string) $tabIdValue;
+            $labelValue = $tabConfig['label'] ?? $tabId;
+            $label = is_string($labelValue) ? $labelValue : $tabId;
+            $options = $tabConfig;
             unset($options['id'], $options['label'], $options['name']);
 
-            $this->tabItem((string) $tabId, $label, $options);
+            $this->tabItem($tabId, $label, $options);
         }
 
         if ($activeTab !== null) {
@@ -1525,13 +1316,18 @@ class Container implements UIElement
      * - active_text_color
      * - disabled_color
      * - disabled_text_color
+        *
+     * @param array<string, mixed> $options
      */
     public function tabItem(string $id, ?string $label = null, array $options = []): self
     {
         $normalizedId = $this->normalizeTabId($id);
+        $labelValue = $label ?? ($options['label'] ?? $id);
+        $labelText = is_string($labelValue) ? $labelValue : (string) $id;
+
         $tab = [
             'id' => $normalizedId,
-            'label' => trim((string) ($label ?? $options['label'] ?? $id)),
+            'label' => trim($labelText),
             'disabled' => (bool) ($options['disabled'] ?? false),
             'closable' => (bool) ($options['closable'] ?? false),
             'color' => $options['color'] ?? null,
@@ -1542,12 +1338,15 @@ class Container implements UIElement
             'disabled_text_color' => $options['disabled_text_color'] ?? null,
         ];
 
+        $tabs = $this->tabsConfig();
         $index = $this->findTabIndex($normalizedId);
         if ($index === null) {
-            $this->config['tabs'][] = $tab;
+            $tabs[] = $tab;
         } else {
-            $this->config['tabs'][$index] = array_merge($this->config['tabs'][$index], $tab);
+            $currentTab = $tabs[$index] ?? [];
+            $tabs[$index] = array_merge($currentTab, $tab);
         }
+        $this->config['tabs'] = $tabs;
 
         if (($this->config['tabs_active'] ?? null) === null && !$tab['disabled']) {
             $this->config['tabs_active'] = $tab['id'];
@@ -1586,6 +1385,8 @@ class Container implements UIElement
 
     /**
      * Configure default colors for the tabs chrome.
+      *
+     * @param array<string, mixed> $colors
      */
     public function tabColors(array $colors): self
     {
@@ -1623,9 +1424,13 @@ class Container implements UIElement
             return $this;
         }
 
-        $this->config['tabs'][$index]['disabled'] = $disabled;
+        $tabs = $this->tabsConfig();
+        $tabs[$index]['disabled'] = $disabled;
+        $this->config['tabs'] = $tabs;
 
-        if ($disabled && ($this->config['tabs_active'] ?? null) === $this->config['tabs'][$index]['id']) {
+        /** @var string|int|null $activeTabId */
+        $activeTabId = $tabs[$index]['id'] ?? null;
+        if ($disabled && ($this->config['tabs_active'] ?? null) === $activeTabId) {
             $this->config['tabs_active'] = $this->getFirstAvailableTabId();
         }
 
@@ -1642,8 +1447,10 @@ class Container implements UIElement
             return $this;
         }
 
-        $removed = $this->config['tabs'][$index]['id'] ?? null;
-        array_splice($this->config['tabs'], $index, 1);
+        $tabs = $this->tabsConfig();
+        $removed = $tabs[$index]['id'] ?? null;
+        array_splice($tabs, $index, 1);
+        $this->config['tabs'] = $tabs;
 
         if (($this->config['tabs_active'] ?? null) === $removed) {
             $this->config['tabs_active'] = $this->getFirstAvailableTabId();
@@ -1693,18 +1500,20 @@ class Container implements UIElement
             return null;
         }
 
-        foreach ($this->config['tabs'] as $tabConfig) {
-            $tabId = trim((string) ($tabConfig['id'] ?? ''));
-            $tabName = trim((string) ($tabConfig['name'] ?? ''));
-            $tabLabel = trim((string) ($tabConfig['label'] ?? ''));
+        foreach ($this->tabsConfig() as $tabConfig) {
+            $tabId = $this->sanitizeTabString($tabConfig['id'] ?? '');
+            $tabName = $this->sanitizeTabString($tabConfig['name'] ?? '');
+            $tabLabel = $this->sanitizeTabString($tabConfig['label'] ?? '');
 
             if ($search === $tabId || $search === $tabName || $search === $tabLabel) {
                 return $tabId;
             }
 
-            if (mb_strtolower($search) === mb_strtolower($tabId)
+            if (
+                mb_strtolower($search) === mb_strtolower($tabId)
                 || mb_strtolower($search) === mb_strtolower($tabName)
-                || mb_strtolower($search) === mb_strtolower($tabLabel)) {
+                || mb_strtolower($search) === mb_strtolower($tabLabel)
+            ) {
                 return $tabId;
             }
         }
@@ -1724,7 +1533,7 @@ class Container implements UIElement
             return null;
         }
 
-        foreach ($this->config['tabs'] as $index => $tabConfig) {
+        foreach ($this->tabsConfig() as $index => $tabConfig) {
             if (($tabConfig['id'] ?? null) === $resolved) {
                 return $index;
             }
@@ -1735,32 +1544,68 @@ class Container implements UIElement
 
     private function getFirstAvailableTabId(): ?string
     {
-        foreach ($this->config['tabs'] as $tabConfig) {
+        $tabs = $this->tabsConfig();
+        foreach ($tabs as $tabConfig) {
             if (($tabConfig['disabled'] ?? false) !== true) {
-                return $tabConfig['id'] ?? null;
+                /** @var string|int|null $tabId */
+                $tabId = $tabConfig['id'] ?? null;
+
+                return is_string($tabId) || is_int($tabId) ? (string) $tabId : null;
             }
         }
 
-        return $this->config['tabs'][0]['id'] ?? null;
+        /** @var string|int|null $firstTabId */
+        $firstTabId = $tabs[0]['id'] ?? null;
+
+        return is_string($firstTabId) || is_int($firstTabId) ? (string) $firstTabId : null;
     }
 
     private function normalizeTabId(string $value): string
     {
         $trimmed = trim($value);
         if ($trimmed === '') {
-            return 'tab_' . $this->id . '_' . (count($this->config['tabs']) + 1);
+            return 'tab_' . $this->id . '_' . (count($this->tabsConfig()) + 1);
         }
 
         $normalized = preg_replace('/[^a-zA-Z0-9]+/', '_', mb_strtolower($trimmed));
-        $normalized = trim((string) $normalized, '_');
+        if (!is_string($normalized)) {
+            return 'tab_' . $this->id . '_' . (count($this->tabsConfig()) + 1);
+        }
 
-        return $normalized !== '' ? $normalized : 'tab_' . $this->id . '_' . (count($this->config['tabs']) + 1);
+        $normalized = trim($normalized, '_');
+
+        return $normalized !== '' ? $normalized : 'tab_' . $this->id . '_' . (count($this->tabsConfig()) + 1);
+    }
+
+    private function sanitizeTabString(mixed $value): string
+    {
+        return is_string($value) ? trim($value) : '';
+    }
+
+    /**
+     * @return array<int, array<string, mixed>>
+     */
+    private function tabsConfig(): array
+    {
+        /** @var array<int|string, mixed> $tabs */
+        $tabs = $this->config['tabs'] ?? [];
+
+        $normalized = [];
+        foreach ($tabs as $tab) {
+            if (is_array($tab)) {
+                /** @var array<string, mixed> $tabConfig */
+                $tabConfig = $tab;
+                $normalized[] = $tabConfig;
+            }
+        }
+
+        return $normalized;
     }
 
     /**
      * Add custom data attributes
      *
-     * @param array $attributes Key-value pairs of data attributes
+     * @param array<string, mixed> $attributes Key-value pairs of data attributes
      * @return self For method chaining
      */
     public function dataAttributes(array $attributes): self
@@ -1831,24 +1676,13 @@ class Container implements UIElement
     }
 
     /**
-     * Set all spacing (gap and padding) at once
-     *
-     * @param string $value Spacing value
-     * @return self For method chaining
-     */
-    public function spacing(string $value): self
-    {
-        return $this->gap($value)->padding($value);
-    }
-
-    /**
      * Make container full width
      *
      * @return self For method chaining
      */
     public function fullWidth(): self
     {
-        return $this->width('100%');
+        return $this->width(Size::full());
     }
 
     /**
@@ -1858,7 +1692,7 @@ class Container implements UIElement
      */
     public function fullHeight(): self
     {
-        return $this->height('100%');
+        return $this->height(Size::full());
     }
 
     /**
@@ -1886,9 +1720,9 @@ class Container implements UIElement
      */
     public function rounded(string|int|bool $radius = 8): self
     {
-        if (is_int($radius)) {
+        if (\is_int($radius)) {
             $radius = $radius === 0 ? '0' : "{$radius}px";
-        } elseif (is_bool($radius)) {
+        } elseif (\is_bool($radius)) {
             $radius = $radius ? '8px' : '0';
         }
         return $this->borderRadius($radius);
@@ -1897,12 +1731,15 @@ class Container implements UIElement
     /**
      * Apply shadow effect
      *
-     * @param string|int $intensity Shadow intensity (0=none, 1-3=levels, 'light', 'medium', 'heavy', or custom CSS)
+     * @param string|int|bool $intensity Shadow intensity (0=none, 1-3=levels, 'light', 'medium', 'heavy', or custom CSS)
      * @return self For method chaining
      */
-    public function shadow(string|int $intensity = 1): self
+    public function shadow(string|int|bool $intensity = 1): self
     {
-        if (is_int($intensity)) {
+        if (\is_bool($intensity)) {
+            $intensity = $intensity ? 1 : 0;
+        }
+        if (\is_int($intensity)) {
             $shadows = [
                 0 => 'none',
                 1 => '0 2px 8px rgba(0, 0, 0, 0.1)',
@@ -1991,7 +1828,7 @@ class Container implements UIElement
     /**
      * Convert to array (alias for toJson for backward compatibility)
      *
-     * @return array
+     * @return array<int, array<string, mixed>>
      */
     public function build(): array
     {
@@ -2030,48 +1867,6 @@ class Container implements UIElement
         }
 
         return 'default';
-    }
-
-    /**
-     * Genera ID determinístico basado en contexto + nombre
-     * Siempre retorna el mismo ID para el mismo contexto + nombre
-     *
-     * @param string $context Nombre completo de la clase invocante
-     * @param string $name Nombre del contenedor
-     * @return int ID determinístico
-     */
-    private function generateDeterministicId(string $context, string $name): int
-    {
-        // Obtener offset del contexto (ej: 56150000)
-        $offset = $this->getContextOffset($context);
-
-        // Hash del nombre (0-9999)
-        $hash = abs(crc32($name)) % 9999;
-
-        // ID final: offset + hash + 1
-        return $offset + $hash + 1;
-    }
-
-    /**
-     * Obtener offset del contexto (mismo cálculo que UIIdGenerator)
-     *
-     * @param string $context Nombre completo de la clase
-     * @return int Offset único para el contexto
-     */
-    private function getContextOffset(string $context): int
-    {
-        if ($context === 'default') {
-            return 0;
-        }
-
-        // Generar un hash numérico único del nombre de la clase usando CRC32
-        $hash = crc32($context);
-
-        // Convertir a positivo si es negativo y escalar al rango deseado
-        // Múltiplos de 10000, máximo 9999 contextos diferentes
-        $offset = (abs($hash) % 9999) * 10000;
-
-        return $offset;
     }
 
     /**

@@ -1,10 +1,12 @@
 <?php
 namespace App\UI\Screens\Demo;
 
-use Idei\Usim\UI;
-use Idei\Usim\Screen;
 use Idei\Usim\Components\Container;
 use Idei\Usim\Components\Textarea;
+use Idei\Usim\Screen;
+use Idei\Usim\UI;
+use Idei\Usim\ValueObjects\Size;
+use Idei\Usim\ValueObjects\Spacing;
 
 /**
  * TextareaDemo
@@ -31,11 +33,11 @@ class TextareaDemo extends Screen
     protected function buildBaseUI(Container $container, ...$params): void
     {
         $container
-            ->maxWidth('1024px')
+            ->maxWidth(Size::px(1024))
             ->centerHorizontal()
             ->plain()
-            ->gap('5px')
-            ->padding('0px');
+            ->gap(Spacing::px(5))
+            ->padding(Spacing::px(0));
 
         $title = UI::label('textarea_demo_title')
             ->text(t('screen.demo.textarea_demo.title'))
@@ -46,8 +48,8 @@ class TextareaDemo extends Screen
         // ── Sección 1: texto plano ───────────────────────────────────────────
         $sectionPlain = UI::container('section_plain')
             ->plain()
-            ->width('100%')
-            ->gap('12px');
+            ->width(Size::full())
+            ->gap(Spacing::px(12));
 
         /** @var Textarea $plainTextarea */
         $plainTextarea = UI::textarea('plain_textarea');
@@ -57,8 +59,8 @@ class TextareaDemo extends Screen
                 ->label('Notas rápidas')
                 ->placeholder('Escribe algo aquí…')
                 ->plainText()
-                ->width('100%')
-                ->height('200px')
+                ->width(Size::full())
+                ->height(Size::px(200))
                 ->maxLength(300)
                 ->helpText('Máximo 300 caracteres. Se guarda al salir del campo (onChange).')
                 ->onChange('on_plain_saved')
@@ -69,8 +71,8 @@ class TextareaDemo extends Screen
         // // ── Sección 2: markdown ──────────────────────────────────────────────
         $sectionMd = UI::container('section_md')
             ->plain()
-            ->width('100%')
-            ->gap('12px');
+            ->width(Size::full())
+            ->gap(Spacing::px(12));
 
         $defaultMd = "## Bienvenido al editor Markdown\n\nEscribe **negrita**, *cursiva* o `código inline`.\n\n- Viñeta 1\n- Viñeta 2\n\n> Una cita de ejemplo.\n";
 
@@ -83,8 +85,8 @@ class TextareaDemo extends Screen
                 ->placeholder('Escribe en Markdown…')
                 ->markdown()
                 ->value($defaultMd)
-                ->width('100%')
-                ->height('300px')
+                ->width(Size::full())
+                ->height(Size::px(300))
                 ->maxLength(2000)
                 ->helpText('Vista previa en tiempo real a la derecha.')
                 ->onChange('on_md_saved')
@@ -93,14 +95,18 @@ class TextareaDemo extends Screen
         $container->add($sectionMd);
     }
 
+    /** @param array<string, mixed> $params */
     public function onPlainSaved(array $params): void
     {
-        $value = trim($params['value'] ?? '');
+        $rawValue = $params['value'] ?? '';
+        $value = trim(is_scalar($rawValue) || $rawValue instanceof \Stringable ? (string) $rawValue : '');
     }
 
+    /** @param array<string, mixed> $params */
     public function onMdSaved(array $params): void
     {
-        $value = $params['value'] ?? '';
+        $rawValue = $params['value'] ?? '';
+        $value = is_scalar($rawValue) || $rawValue instanceof \Stringable ? (string) $rawValue : '';
         $len = mb_strlen($value);
 
         $this->toast("Markdown guardado ({$len} car.)");

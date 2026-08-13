@@ -2,15 +2,16 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\File;
+use Illuminate\View\View;
+use Illuminate\Http\Response;
 
 class DocumentationController extends Controller
 {
     /**
      * Mostrar la documentación completa del API
      */
-    public function apiCompleteDocs()
+    public function apiCompleteDocs(): View|Response
     {
         $readmePath = base_path('docs/API_COMPLETE_DOCUMENTATION.md');
 
@@ -26,14 +27,14 @@ class DocumentationController extends Controller
         return view('documentation.markdown', [
             'title' => 'Documentación del API',
             'content' => $content,
-            'backUrl' => env('API_CLIENT_ROUTE', '/api-client')
+            'backUrl' => config('usim.api_client')
         ]);
     }
 
     /**
      * Mostrar el resumen completo de implementaciones
      */
-    public function implementationSummaryDocs()
+    public function implementationSummaryDocs(): View|Response
     {
         $readmePath = base_path('docs/IMPLEMENTATION_COMPLETE_SUMMARY.md');
 
@@ -49,14 +50,14 @@ class DocumentationController extends Controller
         return view('documentation.markdown', [
             'title' => 'Resumen Completo de Implementaciones',
             'content' => $content,
-            'backUrl' => env('API_CLIENT_ROUTE', '/api-client')
+            'backUrl' => config('usim.api_client')
         ]);
     }
 
     /**
      * Mostrar la documentación de componentes técnicos
      */
-    public function technicalComponentsDocs()
+    public function technicalComponentsDocs(): View|Response
     {
         $readmePath = base_path('docs/TECHNICAL_COMPONENTS_README.md');
 
@@ -72,14 +73,14 @@ class DocumentationController extends Controller
         return view('documentation.markdown', [
             'title' => 'Documentación de Componentes',
             'content' => $content,
-            'backUrl' => env('API_CLIENT_ROUTE', '/api-client')
+            'backUrl' => config('usim.api_client')
         ]);
     }
 
     /**
      * Mostrar la guía de personalización de emails
      */
-    public function emailCustomizationDocs()
+    public function emailCustomizationDocs(): View|Response
     {
         $readmePath = base_path('docs/EMAIL_CUSTOMIZATION_GUIDE.md');
 
@@ -95,14 +96,14 @@ class DocumentationController extends Controller
         return view('documentation.markdown', [
             'title' => 'Guía de Personalización de Emails',
             'content' => $content,
-            'backUrl' => env('API_CLIENT_ROUTE', '/api-client')
+            'backUrl' => config('usim.api_client')
         ]);
     }
 
     /**
      * Mostrar ejemplos de archivos y uploads
      */
-    public function fileUploadExamplesDocs()
+    public function fileUploadExamplesDocs(): View|Response
     {
         $readmePath = base_path('docs/FILE_UPLOAD_EXAMPLES.md');
 
@@ -118,14 +119,14 @@ class DocumentationController extends Controller
         return view('documentation.markdown', [
             'title' => 'Ejemplos y Casos de Uso - Upload de Archivos',
             'content' => $content,
-            'backUrl' => env('API_CLIENT_ROUTE', '/api-client')
+            'backUrl' => config('usim.api_client')
         ]);
     }
 
     /**
      * Índice de toda la documentación disponible
      */
-    public function docsIndex()
+    public function docsIndex(): View
     {
         $availableDocs = [
             [
@@ -168,7 +169,7 @@ class DocumentationController extends Controller
         return view('documentation.index', [
             'title' => 'Índice de Documentación',
             'docs' => collect($availableDocs)->groupBy('category'),
-            'backUrl' => env('API_CLIENT_ROUTE', '/api-client')
+            'backUrl' => config('usim.api_client')
         ]);
     }
 }

@@ -22,6 +22,7 @@ class TableHeaderCell extends UIComponent
      *
      * @param TableHeaderRow|null $headerRow The parent header row this cell belongs to
      * @param string|null $name Optional name for the cell
+     * @phpstan-ignore method.childParameterType
      */
     public function __construct(?TableHeaderRow $headerRow = null, ?string $name = null)
     {
@@ -202,6 +203,9 @@ class TableHeaderCell extends UIComponent
      */
     public function getHeaderRow(): TableHeaderRow
     {
+        if ($this->headerRow === null) {
+            throw new \LogicException("Header cell is not associated with a header row");
+        }
         return $this->headerRow;
     }
 
@@ -248,7 +252,7 @@ class TableHeaderCell extends UIComponent
     /**
      * Exclude 'name' from JSON output
      *
-     * @return array List of keys to exclude
+     * @return list<string> List of keys to exclude
      */
     protected function getExcludedJsonKeys(): array
     {

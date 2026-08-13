@@ -15,9 +15,9 @@ class UIDiffer
     /**
      * Compara dos estructuras UI y retorna solo los cambios
      *
-     * @param array $oldUI UI anterior (JSON)
-     * @param array $newUI UI nueva (JSON)
-     * @return array Cambios detectados
+        * @param array<int|string, array<string, mixed>> $oldUI UI anterior (JSON)
+        * @param array<int|string, array<string, mixed>> $newUI UI nueva (JSON)
+        * @return array<int|string, array<string, mixed>> Cambios detectados
      */
     public static function compare(array $oldUI, array $newUI): array
     {
@@ -66,9 +66,9 @@ class UIDiffer
     /**
      * Compara dos componentes y retorna solo propiedades que cambiaron
      *
-     * @param array $old Componente anterior
-     * @param array $new Componente nuevo
-     * @return array Propiedades que cambiaron
+        * @param array<string, mixed> $old Componente anterior
+        * @param array<string, mixed> $new Componente nuevo
+        * @return array<string, mixed> Propiedades que cambiaron
      */
     private static function diffProperties(array $old, array $new): array
     {
@@ -100,8 +100,8 @@ class UIDiffer
     /**
      * Aplana la estructura UI a un array indexado por ID
      *
-     * @param array $ui Estructura UI en formato JSON
-     * @return array Array indexado por ID
+        * @param array<int|string, array<string, mixed>> $ui Estructura UI en formato JSON
+        * @return array<int|string, array<string, mixed>> Array indexado por ID
      */
     private static function flattenComponents(array $ui): array
     {

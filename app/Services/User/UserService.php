@@ -5,7 +5,7 @@ namespace App\Services\User;
 use App\Models\User;
 use Idei\Usim\Events\UsimEvent;
 use Illuminate\Auth\Events\Verified;
-use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
@@ -28,7 +28,7 @@ class UserService
      * Get user with roles
      *
      * @param int $userId
-     * @return array Response array with status, message, and data
+     * @return array{status: 'success', message: string, data: array<string, mixed>} | array{status: 'error', message: string, errors: array<string, string[]>}
      */
     public function getUser(int $userId): array
     {
@@ -50,11 +50,11 @@ class UserService
     }
 
     /**
-     * Update user with roles and optional email notifications
+     * Update user with validation and role syncing
      *
      * @param User $user
-     * @param array $data Update data (name, email, password, password_confirmation, roles, send_reset_email, send_verification_email)
-     * @return array Response array with status, message, and data
+     * @param array<string, mixed> $data
+     * @return array{status: 'success', message: string, data: array<string, mixed>} | array{status: 'error', message: string, errors: array<string, string[]>}
      */
     public function updateUser(User $user, array $data): array
     {
@@ -65,6 +65,7 @@ class UserService
 
         $updateDataResult = $this->buildUpdateData($user, $data);
         if (isset($updateDataResult['status']) && $updateDataResult['status'] === 'error') {
+            /** @var array{status: 'error', message: string, errors: array<string, string[]>} $updateDataResult */
             return $updateDataResult;
         }
 
@@ -73,7 +74,9 @@ class UserService
         }
 
         if (array_key_exists('roles', $data)) {
-            $rolesError = $this->syncRoles($user, $data['roles']);
+            /** @var array<int, string> $roles */
+            $roles = $data['roles'];
+            $rolesError = $this->syncRoles($user, $roles);
             if ($rolesError) {
                 return $rolesError;
             }
@@ -102,15 +105,15 @@ class UserService
         return [
             'status' => 'success',
             'message' => 'Usuario actualizado exitosamente',
-            'data' => $user->fresh()->load('roles')->toArray(),
+            'data' => $this->freshUserWithRoles($user)->toArray(),
         ];
     }
 
     /**
      * Validate update payload for empty or null values
      *
-     * @param array $data
-     * @return array|null
+     * @param array<string, mixed> $data
+     * @return array{status: 'error', message: string, errors: array<string, string[]>}|null
      */
     private function validateUpdateData(array $data): ?array
     {
@@ -140,11 +143,11 @@ class UserService
     }
 
     /**
-     * Build and validate fields to be updated in users table
+     * Build update data array based on provided payload, validating each field
      *
      * @param User $user
-     * @param array $data
-     * @return array
+     * @param array<string, mixed> $data
+     * @return array<string, mixed>|array{status: 'error', message: string, errors: array<string, string[]>}
      */
     private function buildUpdateData(User $user, array $data): array
     {
@@ -189,11 +192,11 @@ class UserService
     }
 
     /**
-     * Sync user roles with safeguards and role existence validation
+     * Sync user roles with validation to prevent removing own admin role and ensure roles exist
      *
      * @param User $user
-     * @param array $roles
-     * @return array|null
+     * @param array<int, string> $roles
+     * @return array{status: 'error', message: string, errors: array<string, string[]>}|null
      */
     private function syncRoles(User $user, array $roles): ?array
     {
@@ -230,9 +233,9 @@ class UserService
     }
 
     /**
-     * Check if a provided field exists with null or empty string value
+     * Check if a field is null or empty string in the given data array
      *
-     * @param array $data
+     * @param array<string, mixed> $data
      * @param string $field
      * @return bool
      */
@@ -254,7 +257,7 @@ class UserService
      *
      * @param string $field
      * @param string $message
-     * @return array
+     * @return array{status: 'error', message: string, errors: array<string, string[]>}
      */
     private function validationError(string $field, string $message): array
     {
@@ -269,7 +272,7 @@ class UserService
      * Delete user with authorization check
      *
      * @param User $user
-     * @return array Response array with status and message
+     * @return array{status: string, message: string}
      */
     public function deleteUser(User $user): array
     {
@@ -293,8 +296,8 @@ class UserService
     /**
      * Get paginated users list with search and sorting
      *
-     * @param array $params Query parameters (per_page, search, sort_by, sort_direction, page)
-     * @return array Response with users data and pagination info
+     * @param array{per_page?: int, search?: string|null, sort_by?: string, sort_direction?: string, page?: int} $params
+        * @return array{status: 'success', message: string, data: array{users: array<int, array<string, mixed>>, pagination: array{current_page: int, total_pages: int, per_page: int, total_items: int}}}
      */
     public function getUsersList(array $params = []): array
     {
@@ -324,7 +327,7 @@ class UserService
         $users = $query->paginate($perPage, ['*'], 'page', $page);
 
         // Transformar los datos para incluir roles como string
-        $transformedUsers = $users->getCollection()->map(function ($user) {
+        $transformedUsers = $users->getCollection()->map(static function (User $user): array {
             $rolesString = $user->roles
                 ->pluck('name')
                 ->sort()
@@ -337,22 +340,28 @@ class UserService
                 'email' => $user->email,
                 'email_verified' => $user->email_verified_at ? true : false,
                 'roles' => $rolesString,
-                'created_at' => $user->created_at->diffForHumans(),
-                'updated_at' => $user->updated_at->diffForHumans(),
+                'created_at' => $user->created_at?->diffForHumans() ?? '',
+                'updated_at' => $user->updated_at?->diffForHumans() ?? '',
             ];
         });
+
+        /** @var array<int, array<string, mixed>> $usersList */
+        $usersList = $transformedUsers->toArray();
+
+        /** @var array{current_page: int, total_pages: int, per_page: int, total_items: int} $pagination */
+        $pagination = [
+            'current_page' => $users->currentPage(),
+            'total_pages' => $users->lastPage(),
+            'per_page' => $users->perPage(),
+            'total_items' => $users->total(),
+        ];
 
         return [
             'status' => 'success',
             'message' => 'Usuarios recuperados exitosamente',
             'data' => [
-                'users' => $transformedUsers->toArray(),
-                'pagination' => [
-                    'current_page' => $users->currentPage(),
-                    'total_pages' => $users->lastPage(),
-                    'per_page' => $users->perPage(),
-                    'total_items' => $users->total()
-                ],
+                'users' => $usersList,
+                'pagination' => $pagination,
             ]
         ];
     }
@@ -377,13 +386,13 @@ class UserService
     /**
      * Apply search filter to query
      *
-     * @param $query
+     * @param Builder<User> $query
      * @param string|null $search
-     * @return mixed
+     * @return void
      */
-    private function applySearchFilter($query, ?string $search)
+    private function applySearchFilter($query, ?string $search): void
     {
-        return $query->when($search, function ($query, $search) {
+        $query->when($search, function ($query, $search) {
             $query->where(function ($query) use ($search) {
                 $query->where('users.name', 'like', "%{$search}%")
                     ->orWhere('users.email', 'like', "%{$search}%")
@@ -395,11 +404,28 @@ class UserService
     }
 
     /**
+     * Get a fresh user instance with roles loaded, falling back to the current model when refresh is unavailable.
+     *
+     * @param User $user
+     * @return User
+     */
+    private function freshUserWithRoles(User $user): User
+    {
+        $freshUser = $user->fresh();
+
+        if ($freshUser === null) {
+            $freshUser = $user;
+        }
+
+        return $freshUser->load('roles');
+    }
+
+    /**
      * Verify user email with ID and hash
      *
      * @param int $id User ID
      * @param string $hash Email verification hash
-     * @return array Response array with status and message
+     * @return array{success: bool, status: string, message: string}
      */
     public function verifyEmail(int $id, string $hash): array
     {
@@ -434,15 +460,13 @@ class UserService
         // Mark as verified
         $user->markEmailAsVerified();
 
-        // Fire Verified event if user implements MustVerifyEmail
-        if ($user instanceof MustVerifyEmail) {
-            event(new Verified($user));
+        // Fire Verified event assuming user implements MustVerifyEmail
+        event(new Verified($user));
 
-            // Fire custom UsimEvent for updating user data in the UI
-            event(new UsimEvent('email_verified', [
-                'user' => $user
-            ]));
-        }
+        // Fire custom UsimEvent for updating user data in the UI
+        event(new UsimEvent('email_verified', [
+            'user' => $user
+        ]));
 
         return [
             'success' => true,

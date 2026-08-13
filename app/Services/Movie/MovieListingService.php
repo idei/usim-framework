@@ -7,6 +7,8 @@ use Idei\Usim\Support\EloquentListingService;
 
 /**
  * Read-only service for movies demo. No write operations are supported.
+ *
+ * @extends EloquentListingService<Movie>
  */
 class MovieListingService extends EloquentListingService
 {

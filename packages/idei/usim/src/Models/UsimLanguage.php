@@ -24,11 +24,18 @@ class UsimLanguage extends Model
         'is_fallback' => 'boolean',
     ];
 
+    /**
+     * @return HasMany<UsimTextValue, $this>
+     */
     public function values(): HasMany
     {
         return $this->hasMany(UsimTextValue::class, 'language_id');
     }
 
+    /**
+     * @param Builder<UsimLanguage> $query
+     * @return Builder<UsimLanguage>
+     */
     public function scopeByCode(Builder $query, string $code): Builder
     {
         return $query->where('code', $code);

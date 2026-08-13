@@ -3,6 +3,10 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
+use Illuminate\View\View;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Response;
 
@@ -14,7 +18,7 @@ class LogViewerController extends Controller
     /**
      * Display the log viewer interface
      */
-    public function index()
+    public function index(): View
     {
         $logFiles = $this->getLogFiles();
         return view('logs.viewer', [
@@ -26,12 +30,23 @@ class LogViewerController extends Controller
     /**
      * Get log content via API
      */
-    public function content(Request $request)
+    public function content(Request $request): JsonResponse
     {
-        $fileName = $request->input('file', 'laravel.log');
-        $lines = (int) $request->input('lines', self::DEFAULT_LINES);
-        $search = $request->input('search', '');
-        
+        $fileInput = $request->input('file', 'laravel.log');
+        $fileName = is_string($fileInput) ? $fileInput : 'laravel.log';
+
+        $linesInput = $request->input('lines', self::DEFAULT_LINES);
+        if (is_int($linesInput)) {
+            $lines = $linesInput;
+        } elseif (is_numeric($linesInput)) {
+            $lines = (int) $linesInput;
+        } else {
+            $lines = self::DEFAULT_LINES;
+        }
+
+        $searchInput = $request->input('search', '');
+        $search = is_string($searchInput) ? $searchInput : '';
+
         $logPath = storage_path('logs/' . basename($fileName));
 
         if (!File::exists($logPath)) {
@@ -41,7 +56,7 @@ class LogViewerController extends Controller
         }
 
         $fileSize = File::size($logPath);
-        
+
         if ($fileSize > self::MAX_FILE_SIZE) {
             return response()->json([
                 'warning' => 'File is too large. Showing last ' . $lines . ' lines.',
@@ -51,14 +66,14 @@ class LogViewerController extends Controller
         }
 
         $content = File::get($logPath);
-        
+
         if ($search) {
             $content = $this->filterContent($content, $search);
         }
 
         $logLines = explode("\n", $content);
         $logLines = array_slice($logLines, -$lines);
-        
+
         return response()->json([
             'content' => implode("\n", $logLines),
             'fileSize' => $this->formatBytes($fileSize),
@@ -69,9 +84,10 @@ class LogViewerController extends Controller
     /**
      * Download log file
      */
-    public function download(Request $request)
+    public function download(Request $request): BinaryFileResponse
     {
-        $fileName = $request->input('file', 'laravel.log');
+        $fileInput = $request->input('file', 'laravel.log');
+        $fileName = is_string($fileInput) ? $fileInput : 'laravel.log';
         $logPath = storage_path('logs/' . basename($fileName));
 
         if (!File::exists($logPath)) {
@@ -84,11 +100,12 @@ class LogViewerController extends Controller
     /**
      * Clear log file
      */
-    public function clear(Request $request)
+    public function clear(Request $request): JsonResponse|RedirectResponse
     {
         try {
             // Accept both JSON and form data
-            $fileName = $request->input('file') ?? $request->get('file', 'laravel.log');
+            $fileNameInput = $request->input('file') ?? $request->get('file', 'laravel.log');
+            $fileName = is_string($fileNameInput) && $fileNameInput !== '' ? $fileNameInput : 'laravel.log';
             $logPath = storage_path('logs/' . basename($fileName));
 
             if (!File::exists($logPath)) {
@@ -126,11 +143,14 @@ class LogViewerController extends Controller
     /**
      * Get list of log files
      */
+    /**
+     * @return list<array{name: string, size: string, modified: string}>
+     */
     private function getLogFiles(): array
     {
         $logPath = storage_path('logs');
         $files = File::files($logPath);
-        
+
         $logFiles = [];
         foreach ($files as $file) {
             if ($file->getExtension() === 'log' || str_ends_with($file->getFilename(), '.log')) {
@@ -153,19 +173,24 @@ class LogViewerController extends Controller
         $file = new \SplFileObject($filePath, 'r');
         $file->seek(PHP_INT_MAX);
         $lastLine = $file->key();
-        
+
         $startLine = max(0, $lastLine - $lines);
         $file->seek($startLine);
-        
+
         $content = [];
         while (!$file->eof()) {
             $line = $file->current();
+            if (!is_string($line)) {
+                $file->next();
+                continue;
+            }
+
             if ($search === '' || stripos($line, $search) !== false) {
                 $content[] = $line;
             }
             $file->next();
         }
-        
+
         return implode('', $content);
     }
 
@@ -175,10 +200,10 @@ class LogViewerController extends Controller
     private function filterContent(string $content, string $search): string
     {
         $lines = explode("\n", $content);
-        $filtered = array_filter($lines, function($line) use ($search) {
+        $filtered = array_filter($lines, static function (string $line) use ($search): bool {
             return stripos($line, $search) !== false;
         });
-        
+
         return implode("\n", $filtered);
     }
 
@@ -189,12 +214,12 @@ class LogViewerController extends Controller
     {
         $units = ['B', 'KB', 'MB', 'GB'];
         $i = 0;
-        
+
         while ($bytes >= 1024 && $i < count($units) - 1) {
             $bytes /= 1024;
             $i++;
         }
-        
+
         return round($bytes, 2) . ' ' . $units[$i];
     }
 }

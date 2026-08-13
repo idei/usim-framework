@@ -1,14 +1,16 @@
 <?php
 namespace App\UI\Screens\Demo;
 
-use Idei\Usim\UI;
-use Idei\Usim\Enums\TimeUnit;
-use Idei\Usim\Enums\DialogType;
-use Idei\Usim\Enums\LayoutType;
-use Idei\Usim\Screen;
 use Idei\Usim\Components\Container;
 use Idei\Usim\Components\Label;
+use Idei\Usim\Enums\DialogType;
+use Idei\Usim\Enums\LayoutType;
+use Idei\Usim\Enums\TimeUnit;
 use Idei\Usim\Modals\ConfirmDialogService;
+use Idei\Usim\Screen;
+use Idei\Usim\UI;
+use Idei\Usim\ValueObjects\Size;
+use Idei\Usim\ValueObjects\Spacing;
 
 /**
  * Modal Demo Service
@@ -27,10 +29,10 @@ class ModalDemo extends Screen
     {
         $container
             ->title(t('screen.demo.modal_demo.title'))
-            ->maxWidth('600px')
+            ->maxWidth(Size::px(600))
             ->centerHorizontal()
             ->shadow(2)
-            ->padding('30px');
+            ->padding(Spacing::px(30));
 
         $container->add(
             UI::label('lbl_instruction')
@@ -47,39 +49,39 @@ class ModalDemo extends Screen
         $buttonContainer = UI::container('button_container')
             ->layout(LayoutType::HORIZONTAL)
             ->centerContent()
-            ->gap("15px")
+            ->gap(Spacing::px(15))
             ->shadow(false)
             ->add(
                 UI::button('btn_open_modal')
                     ->label(t('screen.demo.modal_demo.actions.open_confirmation'))
                     ->style('primary')
                     ->action('open_confirmation')
-                    ->width('230px')
+                    ->width(Size::px(230))
             )->add(
                 UI::button('btn_error_dialog')
                     ->label(t('screen.demo.modal_demo.actions.open_error'))
                     ->style('danger')
                     ->action('show_error_dialog')
-                    ->width('230px')
+                    ->width(Size::px(230))
             )->add(
                 UI::button('btn_timeout_dialog')
                     ->label(t('screen.demo.modal_demo.actions.open_timeout_with_button'))
                     ->style('warning')
                     ->action('show_timeout_dialog', ['duration' => 10])
-                    ->width('230px')
+                    ->width(Size::px(230))
             )->add(
                 UI::button('btn_timeout_no_button')
                     ->label(t('screen.demo.modal_demo.actions.open_timeout_without_button'))
                     ->style('warning')
                     ->action('show_timeout_no_button')
-                    ->width('230px')
+                    ->width(Size::px(230))
             )->add(
                 UI::button('btn_show_settings')
                     ->label(t('screen.demo.modal_demo.actions.settings'))
                     ->style('secondary')
                     ->icon('settings')
                     ->action('show_settings_confirm')
-                    ->width('230px')
+                    ->width(Size::px(230))
             );
         $container->add($buttonContainer);
     }
@@ -88,8 +90,8 @@ class ModalDemo extends Screen
      * Handle "Open Confirmation" button click
      * Opens a confirmation dialog modal
      *
-     * @param array $params
-     * @return array Response with modal UI
+    * @param array<string, mixed> $params
+     * @return void
      */
     public function onOpenConfirmation(array $params): void
     {
@@ -112,8 +114,8 @@ class ModalDemo extends Screen
     /**
      * Handle user confirmation from modal
      *
-     * @param array $params
-     * @return array Response to close modal and update UI
+    * @param array<string, mixed> $params
+     * @return void
      */
     public function onHandleConfirm(array $params): void
     {
@@ -129,8 +131,8 @@ class ModalDemo extends Screen
     /**
      * Handle user cancellation from modal
      *
-     * @param array $params
-     * @return array Response to close modal and update UI
+    * @param array<string, mixed> $params
+     * @return void
      */
     public function onHandleCancel(array $params): void
     {
@@ -143,6 +145,9 @@ class ModalDemo extends Screen
 
     /**
      * Handler for Error dialog demo
+     */
+    /**
+     * @param array<string, mixed> $params
      */
     public function onShowErrorDialog(array $params): void
     {
@@ -161,11 +166,17 @@ class ModalDemo extends Screen
     /**
      * Handler to close error dialog
      */
+    /**
+     * @param array<string, mixed> $params
+     */
     public function onCloseErrorDialog(array $params): void
     {
         $this->closeModal();
     }
 
+    /**
+     * @param array<string, mixed> $params
+     */
     public function onShowTimeoutDialog(array $params): void
     {
         $screenId = $this->getScreenComponentId();
@@ -183,6 +194,9 @@ class ModalDemo extends Screen
         );
     }
 
+    /**
+     * @param array<string, mixed> $params
+     */
     public function onShowTimeoutNoButton(array $params): void
     {
         $screenId = $this->getScreenComponentId();
@@ -202,11 +216,17 @@ class ModalDemo extends Screen
     /**
      * Handler to close timeout dialog
      */
+    /**
+     * @param array<string, mixed> $params
+     */
     public function onCloseTimeoutDialog(array $params): void
     {
         $this->closeModal();
     }
 
+    /**
+     * @param array<string, mixed> $params
+     */
     public function onShowSettingsConfirm(array $params): void
     {
         // Get this screen ID to receive the callback.
@@ -226,6 +246,9 @@ class ModalDemo extends Screen
     /**
      * Handler for cancel button (closes modal)
      */
+    /**
+     * @param array<string, mixed> $params
+     */
     public function onCancelSettings(array $params): void
     {
         $this->closeModal();
@@ -233,6 +256,9 @@ class ModalDemo extends Screen
 
     /**
      * Handler for reset button - shows success dialog
+     */
+    /**
+     * @param array<string, mixed> $params
      */
     public function onResetSettings(array $params): void
     {
@@ -250,6 +276,9 @@ class ModalDemo extends Screen
 
     /**
      * Handler to close success dialog
+     */
+    /**
+     * @param array<string, mixed> $params
      */
     public function onCloseSuccessDialog(array $params): void
     {

@@ -15,7 +15,7 @@ class TableRow extends UIComponent
     /** @var Table|null The parent table */
     private ?Table $table;
 
-    /** @var array<TableCell> Array of cells in this row */
+    /** @var list<TableCell> Array of cells in this row */
     private array $cellComponents = [];
 
     /**
@@ -23,6 +23,7 @@ class TableRow extends UIComponent
      *
      * @param Table|null $table The parent table this row belongs to
      * @param string|null $name Optional name for the row
+     * @phpstan-ignore method.childParameterType
      */
     public function __construct(?Table $table = null, ?string $name = null)
     {
@@ -64,26 +65,9 @@ class TableRow extends UIComponent
     }
 
     /**
-     * Set minimum height for the row.
-     *
-     * Accepts an integer (converted to px) or a CSS string. Omit to read current value.
-     *
-     * @param int|string|null $height Minimum height in pixels (int) or with units (string), or null to get.
-     * @return static|string|null
-     */
-    public function minHeight(int|string|null $height = null): static|string|null
-    {
-        if ($height === null) {
-            return $this->config['min_height'] ?? null;
-        }
-
-        return $this->setConfig('min_height', is_int($height) ? $height . 'px' : $height);
-    }
-
-    /**
      * Get the row configuration (public accessor for cells)
      *
-     * @return array The row configuration
+     * @return array<string, mixed> The row configuration
      */
     public function getRowConfig(): array
     {
@@ -120,7 +104,7 @@ class TableRow extends UIComponent
     /**
      * Get all cell components
      *
-     * @return array<TableCell>
+     * @return list<TableCell>
      */
     public function getCells(): array
     {
@@ -131,7 +115,7 @@ class TableRow extends UIComponent
      * Set the cells data for this row
      * Creates TableCell components automatically from the array
      *
-     * @param array $cells Array of cell values (strings, numbers, arrays, or UIComponent instances)
+     * @param list<mixed> $cells Array of cell values (strings, numbers, arrays, or UIComponent instances)
      * @return self For method chaining
      */
     public function cells(array $cells): self
@@ -143,17 +127,25 @@ class TableRow extends UIComponent
         foreach ($cells as $index => $value) {
             $cell = $this->createCell("cell_$index");
 
-            if ($value instanceof UIComponent && !($value instanceof Container)) {
-                // If it's a leaf component (not a container), add it as a child
+            if ($value instanceof UIComponent) {
+                // If it's a leaf component, add it as a child
                 $cell->addChild($value);
             } elseif (is_array($value)) {
                 // If it's an array (like build() output), store as raw data
                 // For now, just store as text representation
                 // In the future, this could be handled differently by the client
-                $cell->text(json_encode($value));
+                $encodedValue = json_encode($value);
+                $cell->text($encodedValue === false ? null : $encodedValue);
             } else {
                 // Otherwise, treat it as text (string, number, etc)
-                $cell->text($value);
+                if (is_string($value) || is_int($value) || is_float($value) || $value === null) {
+                    $cell->text($value);
+                } elseif (is_bool($value)) {
+                    $cell->text($value ? '1' : '0');
+                } else {
+                    $encodedValue = json_encode($value);
+                    $cell->text($encodedValue === false ? null : $encodedValue);
+                }
             }
         }
 
@@ -169,7 +161,13 @@ class TableRow extends UIComponent
      */
     public function setCell(int $index, mixed $value): self
     {
-        $this->config['cells'][$index] = $value;
+        $cells = $this->config['cells'] ?? [];
+        if (!is_array($cells)) {
+            $cells = [];
+        }
+
+        $cells[$index] = $value;
+        $this->config['cells'] = $cells;
         return $this;
     }
 
@@ -198,7 +196,7 @@ class TableRow extends UIComponent
     /**
      * Set the parameters to send when the row is clicked.
      *
-     * @param array|null $parameters Parameter payload or null to clear it
+     * @param array<string, mixed>|null $parameters Parameter payload or null to clear it
      * @return self For method chaining
      */
     public function parameters(?array $parameters): self
@@ -236,6 +234,9 @@ class TableRow extends UIComponent
      */
     public function getTable(): Table
     {
+        if ($this->table === null) {
+            throw new \LogicException("Row is not associated with a table");
+        }
         return $this->table;
     }
 
@@ -283,7 +284,7 @@ class TableRow extends UIComponent
     /**
      * Exclude 'name' and 'cells' from JSON output
      *
-     * @return array List of keys to exclude
+     * @return list<string> List of keys to exclude
      */
     protected function getExcludedJsonKeys(): array
     {

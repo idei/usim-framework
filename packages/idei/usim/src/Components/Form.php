@@ -17,13 +17,13 @@ class Form extends Container
 {
     protected string $type = 'form';
 
-    /** @var array Form sections for organizing fields */
+    /** @var list<array{title: string, id: int}> Form sections for organizing fields */
     protected array $sections = [];
 
-    /** @var array Form validation rules */
+    /** @var array<string, list<array{rule: string, value: mixed, message: string|null}>> Form validation rules */
     protected array $validationRules = [];
 
-    /** @var array Custom error messages for validation */
+    /** @var array<string, string> Custom error messages for validation */
     protected array $errorMessages = [];
 
     /** @var bool Whether form has file uploads */
@@ -237,7 +237,7 @@ class Form extends Container
      * Add submit button to form
      *
      * @param string $label Button label
-     * @param array $config Button configuration
+     * @param array<string, mixed> $config Button configuration
      * @return self For method chaining
      */
     public function submitButton(string $label, array $config = []): self
@@ -250,7 +250,10 @@ class Form extends Container
             'full_width' => $this->config['full_width_buttons'],
         ], $config);
 
-        $this->config['buttons'][] = $button;
+        /** @var list<array<string, mixed>> $buttons */
+        $buttons = is_array($this->config['buttons'] ?? null) ? $this->config['buttons'] : [];
+        $buttons[] = $button;
+        $this->config['buttons'] = $buttons;
         return $this;
     }
 
@@ -258,7 +261,7 @@ class Form extends Container
      * Add reset button to form
      *
      * @param string $label Button label
-     * @param array $config Button configuration
+     * @param array<string, mixed> $config Button configuration
      * @return self For method chaining
      */
     public function resetButton(string $label, array $config = []): self
@@ -271,7 +274,10 @@ class Form extends Container
             'full_width' => $this->config['full_width_buttons'],
         ], $config);
 
-        $this->config['buttons'][] = $button;
+        /** @var list<array<string, mixed>> $buttons */
+        $buttons = is_array($this->config['buttons'] ?? null) ? $this->config['buttons'] : [];
+        $buttons[] = $button;
+        $this->config['buttons'] = $buttons;
         return $this;
     }
 
@@ -279,7 +285,7 @@ class Form extends Container
      * Add cancel button to form
      *
      * @param string $label Button label
-     * @param array $config Button configuration (should include 'action' or 'onclick')
+     * @param array<string, mixed> $config Button configuration (should include 'action' or 'onclick')
      * @return self For method chaining
      */
     public function cancelButton(string $label, array $config = []): self
@@ -292,7 +298,10 @@ class Form extends Container
             'full_width' => $this->config['full_width_buttons'],
         ], $config);
 
-        $this->config['buttons'][] = $button;
+        /** @var list<array<string, mixed>> $buttons */
+        $buttons = is_array($this->config['buttons'] ?? null) ? $this->config['buttons'] : [];
+        $buttons[] = $button;
+        $this->config['buttons'] = $buttons;
         return $this;
     }
 
@@ -312,10 +321,13 @@ class Form extends Container
         $callback($fieldset);
 
         $this->add($fieldset);
-        $this->config['fieldsets'][] = [
+        /** @var list<array{legend: string, id: int}> $fieldsets */
+        $fieldsets = is_array($this->config['fieldsets'] ?? null) ? $this->config['fieldsets'] : [];
+        $fieldsets[] = [
             'legend' => $legend,
             'id' => $fieldset->getId(),
         ];
+        $this->config['fieldsets'] = $fieldsets;
 
         return $this;
     }
@@ -336,10 +348,13 @@ class Form extends Container
         $callback($section);
 
         $this->add($section);
-        $this->config['sections'][] = [
+        /** @var list<array{title: string, id: int}> $sections */
+        $sections = is_array($this->config['sections'] ?? null) ? $this->config['sections'] : [];
+        $sections[] = [
             'title' => $title,
             'id' => $section->getId(),
         ];
+        $this->config['sections'] = $sections;
 
         return $this;
     }
@@ -731,7 +746,7 @@ class Form extends Container
     /**
      * Set allowed file types for upload
      *
-     * @param array $types Allowed file types (extensions or MIME types)
+     * @param list<string> $types Allowed file types (extensions or MIME types)
      * @return self For method chaining
      */
     public function allowedFileTypes(array $types): self
@@ -862,10 +877,10 @@ class Form extends Container
      * Add shadow to form
      * Uses parent Container shadow method with predefined intensity
      *
-     * @param string|int $intensity Shadow intensity (0-3, or 'light'|'medium'|'heavy', or custom CSS)
+     * @param bool|int|string $intensity Shadow intensity (0-3, or 'light'|'medium'|'heavy', or custom CSS)
      * @return self For method chaining
      */
-    public function shadow(string|int $intensity = 1): self
+    public function shadow(bool|int|string $intensity = 1): self
     {
         // Call parent method which sets box_shadow in config
         parent::shadow($intensity);
@@ -947,7 +962,7 @@ class Form extends Container
     /**
      * Add custom data attributes
      *
-     * @param array $attributes Key-value pairs of data attributes
+     * @param array<string, mixed> $attributes Key-value pairs of data attributes
      * @return self For method chaining
      */
     public function dataAttributes(array $attributes): self
@@ -1104,7 +1119,7 @@ class Form extends Container
     /**
      * Get all validation rules
      *
-     * @return array Validation rules
+     * @return array<string, list<array{rule: string, value: mixed, message: string|null}>> Validation rules
      */
     public function getValidationRules(): array
     {
@@ -1114,7 +1129,7 @@ class Form extends Container
     /**
      * Get all error messages
      *
-     * @return array Error messages
+     * @return array<string, string> Error messages
      */
     public function getErrorMessages(): array
     {

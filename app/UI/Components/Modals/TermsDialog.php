@@ -6,17 +6,28 @@ use Idei\Usim\Enums\JustifyContent;
 use Idei\Usim\Enums\LayoutType;
 use Idei\Usim\UI;
 use Idei\Usim\UIChangesCollector;
+use Idei\Usim\ValueObjects\Size;
+use Idei\Usim\ValueObjects\Spacing;
 use Illuminate\Support\Str;
 
 class TermsDialog
 {
-    public static function open(...$params): void
-    {
+    /**
+     * @param string|null $cancelAction
+     * @param int|null $callerServiceId
+     */
+    public static function open(
+        ?string $cancelAction = 'close_modal',
+        ?int $callerServiceId = null
+    ): void {
         $dialog = new self();
-        $format = $dialog->getUI(...$params);
+        $format = $dialog->getUI($cancelAction, $callerServiceId);
         app(UIChangesCollector::class)->add($format);
     }
 
+    /**
+     * @return array<int, array<string, mixed>>
+     */
     public function getUI(
         ?string $cancelAction = 'close_modal',
         ?int $callerServiceId = null
@@ -38,16 +49,16 @@ class TermsDialog
             ->layout(LayoutType::VERTICAL)
             ->plain()
             ->shadow(false)
-            ->gap('16px')
-            ->padding('5px')
-            ->width('680px')
-            ->maxWidth('92vw');
+            ->gap(Spacing::px(16))
+            ->padding(Spacing::px(5))
+            ->width(Size::px(680))
+            ->maxWidth(Size::vw(90));
 
         $container->add(
             UI::label('terms_dialog_document')
                 ->html($scrollableDocumentHtml)
                 ->inline(false)
-                ->width('100%')
+                ->width(Size::full())
         );
 
         $buttons = UI::container('terms_dialog_buttons')
@@ -55,7 +66,7 @@ class TermsDialog
             ->justifyContent(JustifyContent::END)
             ->plain()
             ->shadow(false)
-            ->padding('8px 0 0 0');
+            ->padding(Spacing::each(Spacing::px(8)));
 
         if ($cancelAction) {
             $buttons->add(

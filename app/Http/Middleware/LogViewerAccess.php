@@ -32,6 +32,7 @@ class LogViewerAccess
         // }
 
         // Opcional: verificar IPs permitidas
+        /** @var list<string> $allowedIps */
         $allowedIps = config('logging.viewer_allowed_ips', []);
         if (!empty($allowedIps) && !in_array($request->ip(), $allowedIps)) {
             abort(403, 'Tu IP no está autorizada para acceder a los logs');

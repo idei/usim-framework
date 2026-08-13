@@ -2,7 +2,6 @@
 
 namespace Idei\Usim\Components;
 
-use Idei\Usim\Components\Container;
 use Idei\Usim\Enums\Align;
 
 /**
@@ -24,6 +23,7 @@ class TableCell extends UIComponent
      *
      * @param TableRow $row The parent row this cell belongs to
      * @param string|null $name Optional name for the cell
+     * @phpstan-ignore method.childParameterType
      */
     public function __construct(?TableRow $row = null, ?string $name = null)
     {
@@ -49,10 +49,13 @@ class TableCell extends UIComponent
 
     public function toString(): string
     {
-        return "TableCell(id={$this->id}, "  .
+        $column = $this->config['column'] ?? null;
+        $text = $this->config['text'] ?? null;
+
+        return "TableCell(id={$this->id}, " .
             //", name={$this->name}, text=" .
-            ", column=" . ($this->config['column'] ?? 'null') .
-            ", text=" . ($this->config['text'] ?? 'null') .
+            ", column=" . (is_scalar($column) ? (string) $column : 'null') .
+            ", text=" . (is_scalar($text) ? (string) $text : 'null') .
             ")";
     }
 
@@ -91,7 +94,7 @@ class TableCell extends UIComponent
      *
      * @param int|null $minWidth Minimum width in pixels
      * @param int|null $maxWidth Maximum width in pixels
-     * @return self
+     * @return static
      */
     public function widthConstraints(?int $minWidth = null, ?int $maxWidth = null): static
     {
@@ -157,7 +160,9 @@ class TableCell extends UIComponent
      */
     public function getText(): ?string
     {
-        return $this->config['text'];
+        $text = $this->config['text'] ?? null;
+
+        return $text === null ? null : (is_scalar($text) ? (string) $text : null);
     }
 
     /**
@@ -174,7 +179,7 @@ class TableCell extends UIComponent
     /**
      * Set button configuration for the cell
      *
-     * @param array $button Button configuration with keys: label, action, style, parameters
+     * @param array<string, mixed> $button Button configuration with keys: label, action, style, parameters
      * @return self For method chaining
      */
     public function button(array $button): self
@@ -185,7 +190,7 @@ class TableCell extends UIComponent
     /**
      * Set multiple buttons configuration for the cell
      *
-     * @param array $buttons Array of button configurations
+     * @param list<array<string, mixed>> $buttons Array of button configurations
      * @return self For method chaining
      */
     public function buttons(array $buttons): self
@@ -231,11 +236,6 @@ class TableCell extends UIComponent
             throw new \LogicException("TableCell can only contain one child component. Use a container if you need multiple components.");
         }
 
-        // Prevent adding containers to avoid recursion/loops
-        if ($component instanceof Container) {
-            throw new \LogicException("TableCell cannot contain a Container. Containers should be outside the table structure.");
-        }
-
         $this->child = $component;
         $component->setParent($this->id);
         return $this;
@@ -248,6 +248,9 @@ class TableCell extends UIComponent
      */
     public function getRow(): TableRow
     {
+        if ($this->row === null) {
+            throw new \LogicException('TableCell has no parent row assigned.');
+        }
         return $this->row;
     }
 
@@ -275,9 +278,10 @@ class TableCell extends UIComponent
         $config = array_filter($this->config, fn($value) => $value !== null);
 
         // Inherit min_height from parent row if not set
-        if (!isset($config['min_height']) || $config['min_height'] === null) {
+        if (!array_key_exists('min_height', $config) && $this->row !== null) {
+            /** @var array<string, mixed> $rowConfig */
             $rowConfig = $this->row->getRowConfig();
-            if (isset($rowConfig['min_height']) && $rowConfig['min_height'] !== null) {
+            if (array_key_exists('min_height', $rowConfig) && $rowConfig['min_height'] !== null) {
                 $config['min_height'] = $rowConfig['min_height'];
             }
         }
@@ -313,7 +317,7 @@ class TableCell extends UIComponent
     /**
      * Exclude keys from JSON output
      *
-     * @return array List of keys to exclude
+     * @return list<string> List of keys to exclude
      */
     protected function getExcludedJsonKeys(): array
     {

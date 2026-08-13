@@ -14,13 +14,17 @@ class HttpClient
 {
     /**
      * Get common headers with authentication
+    *
+    * @return array<string, string>
      */
     private static function getHeaders(): array
     {
         // Try to get token from current request or session
-        $token = request()->bearerToken()
-                 ?? session('auth_token')
-                 ?? UIStateManager::getAuthToken();
+        $token = self::normalizeString(
+            request()->bearerToken()
+            ?? session('auth_token')
+            ?? UIStateManager::getAuthToken()
+        );
 
         // Get client ID from cookie to maintain UI state
         $clientId = request()->cookie(UIStateManager::CLIENT_ID_COOKIE);
@@ -32,7 +36,7 @@ class HttpClient
         ];
 
         // Pass client ID as cookie header
-        if ($clientId) {
+        if (is_string($clientId) && $clientId !== '') {
             $headers['Cookie'] = UIStateManager::CLIENT_ID_COOKIE . '=' . $clientId;
         }
 
@@ -41,12 +45,55 @@ class HttpClient
 
     /**
      * Get internal URL for API requests
+        *
+        * @param array<string, int|string> $routeParams
      */
     private static function getInternalUrl(string $route, array $routeParams = []): string
     {
         $url = route($route, $routeParams, false);
-        $baseUrl = config('usim.api_url', config('app.url'));
+        $baseUrl = self::normalizeString(config('usim.api_url'));
+
+        if ($baseUrl === '') {
+            $baseUrl = self::normalizeString(config('app.url'));
+        }
+
         return rtrim($baseUrl, '/') . '/' . ltrim($url, '/');
+    }
+
+    /**
+     * @param mixed $value
+     */
+    private static function normalizeString(mixed $value): string
+    {
+        if (is_string($value)) {
+            return $value;
+        }
+
+        if (is_scalar($value)) {
+            return (string) $value;
+        }
+
+        return '';
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private static function responseJson(Response $response): array
+    {
+        $payload = $response->json();
+
+        if (!is_array($payload)) {
+            return [];
+        }
+
+        $normalized = [];
+
+        foreach ($payload as $key => $value) {
+            $normalized[(string) $key] = $value;
+        }
+
+        return $normalized;
     }
 
     /**
@@ -74,8 +121,9 @@ class HttpClient
      * Execute GET request
      *
      * @param string $route Route name
-     * @param array $queryParams Query parameters
-     * @param array $routeParams Route parameters (e.g., ['user' => 123] for /users/{user})
+        * @param array<string, mixed> $queryParams Query parameters
+        * @param array<string, int|string> $routeParams Route parameters (e.g., ['user' => 123] for /users/{user})
+        * @return array<string, mixed>
      */
     public static function get(string $route, array $queryParams = [], array $routeParams = []): array
     {
@@ -87,15 +135,16 @@ class HttpClient
             ->withOptions(['cookies' => $cookieJar])
             ->get($url, $queryParams);
 
-        return (array) $response->json();
+        return self::responseJson($response);
     }
 
     /**
      * Execute POST request
      *
      * @param string $route Route name
-     * @param array $data Request body data
-     * @param array $routeParams Route parameters (e.g., ['user' => 123] for /users/{user})
+        * @param array<string, mixed> $data Request body data
+        * @param array<string, int|string> $routeParams Route parameters (e.g., ['user' => 123] for /users/{user})
+        * @return array<string, mixed>
      */
     public static function post(string $route, array $data = [], array $routeParams = []): array
     {
@@ -107,15 +156,16 @@ class HttpClient
             ->withOptions(['cookies' => $cookieJar])
             ->post($url, $data);
 
-        return (array) $response->json();
+        return self::responseJson($response);
     }
 
     /**
      * Execute PUT request
      *
      * @param string $route Route name
-     * @param array $data Request body data
-     * @param array $routeParams Route parameters (e.g., ['user' => 123] for /users/{user})
+        * @param array<string, mixed> $data Request body data
+        * @param array<string, int|string> $routeParams Route parameters (e.g., ['user' => 123] for /users/{user})
+        * @return array<string, mixed>
      */
     public static function put(string $route, array $data = [], array $routeParams = []): array
     {
@@ -127,15 +177,16 @@ class HttpClient
             ->withOptions(['cookies' => $cookieJar])
             ->put($url, $data);
 
-        return (array) $response->json();
+        return self::responseJson($response);
     }
 
     /**
      * Execute PATCH request
      *
      * @param string $route Route name
-     * @param array $data Request body data
-     * @param array $routeParams Route parameters (e.g., ['user' => 123] for /users/{user})
+        * @param array<string, mixed> $data Request body data
+        * @param array<string, int|string> $routeParams Route parameters (e.g., ['user' => 123] for /users/{user})
+        * @return array<string, mixed>
      */
     public static function patch(string $route, array $data = [], array $routeParams = []): array
     {
@@ -147,15 +198,16 @@ class HttpClient
             ->withOptions(['cookies' => $cookieJar])
             ->patch($url, $data);
 
-        return (array) $response->json();
+        return self::responseJson($response);
     }
 
     /**
      * Execute DELETE request
      *
      * @param string $route Route name
-     * @param array $data Request body data (optional)
-     * @param array $routeParams Route parameters (e.g., ['user' => 123] for /users/{user})
+        * @param array<string, mixed> $data Request body data (optional)
+        * @param array<string, int|string> $routeParams Route parameters (e.g., ['user' => 123] for /users/{user})
+        * @return array<string, mixed>
      */
     public static function delete(string $route, array $data = [], array $routeParams = []): array
     {
@@ -167,11 +219,14 @@ class HttpClient
             ->withOptions(['cookies' => $cookieJar])
             ->delete($url, $data);
 
-        return (array) $response->json();
+        return self::responseJson($response);
     }
 
     /**
      * Execute request with custom method
+        *
+        * @param array<string, mixed> $data
+        * @return array<string, mixed>
      */
     public static function request(string $method, string $route, array $data = []): array
     {
@@ -181,11 +236,13 @@ class HttpClient
         $response = Http::withHeaders(self::getHeaders())
             ->send($method, $url, ['json' => $data]);
 
-        return (array) $response->json();
+        return self::responseJson($response);
     }
 
     /**
      * Get raw Response object for GET request
+        *
+        * @param array<string, mixed> $queryParams
      */
     public static function getRaw(string $route, array $queryParams = []): Response
     {
@@ -200,6 +257,8 @@ class HttpClient
 
     /**
      * Get raw Response object for POST request
+        *
+        * @param array<string, mixed> $data
      */
     public static function postRaw(string $route, array $data = []): Response
     {

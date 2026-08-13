@@ -1,13 +1,15 @@
 <?php
 namespace App\UI\Screens\Demo;
 
-use Idei\Usim\UI;
-use Idei\Usim\Screen;
+use Idei\Usim\Components\Button;
+use Idei\Usim\Components\Checkbox;
 use Idei\Usim\Components\Container;
 use Idei\Usim\Components\Label;
-use Idei\Usim\Components\Button;
 use Idei\Usim\Components\Select;
-use Idei\Usim\Components\Checkbox;
+use Idei\Usim\Screen;
+use Idei\Usim\UI;
+use Idei\Usim\ValueObjects\Size;
+use Idei\Usim\ValueObjects\Spacing;
 
 /**
  * Select Demo Service
@@ -114,17 +116,17 @@ class SelectDemo extends Screen
     {
         $container
             ->title(t('screen.demo.select_demo.title'))
-            ->maxWidth('600px')
+            ->maxWidth(Size::px(600))
             ->centerHorizontal()
             ->shadow(2)
-            ->padding('30px');
+            ->padding(Spacing::px(30));
 
         // Instruction label
         $container->add(
             UI::label('lbl_instruction')
                 ->text(t('screen.demo.select_demo.instruction'))
                 ->style('info')
-                ->width('100%')
+                ->width(Size::full())
         );
 
         // Country select
@@ -137,7 +139,7 @@ class SelectDemo extends Screen
                 ->required(true)
                 ->onChange('country_change')
                 ->style('primary')
-                ->width('100%')
+                ->width(Size::full())
         );
 
         // City select (initially disabled)
@@ -150,7 +152,7 @@ class SelectDemo extends Screen
                 ->disabled(true)
                 ->onChange('city_change')
                 ->style('primary')
-                ->width('100%')
+                ->width(Size::full())
         );
 
         // Checkbox to enable multiple language selection
@@ -160,7 +162,7 @@ class SelectDemo extends Screen
                 ->checked(false)
                 ->onChange('toggle_multiple_languages')
                 ->style('default')
-                ->width('100%')
+                ->width(Size::full())
         );
 
         // Languages select (searchable and optionally multiple)
@@ -174,7 +176,7 @@ class SelectDemo extends Screen
                 ->multiple(false)
                 ->onChange('language_change')
                 ->style('info')
-                ->width('100%')
+                ->width(Size::full())
         );
 
         // Result label
@@ -191,6 +193,7 @@ class SelectDemo extends Screen
                 ->action('reset_selections')
                 ->icon('refresh')
                 ->style('secondary')
+                ->width(Size::full())
         );
     }
 
@@ -198,12 +201,13 @@ class SelectDemo extends Screen
      * Handle country selection change
      * Updates city select with cities from selected country
      *
-     * @param array $params Contains 'value' with selected country code
+    * @param array<string, mixed> $params Contains 'value' with selected country code
      * @return void
      */
     public function onCountryChange(array $params): void
     {
-        $countryCode = $params['value'] ?? null;
+        $rawCountryCode = $params['value'] ?? null;
+        $countryCode = is_string($rawCountryCode) ? $rawCountryCode : null;
 
         if (empty($countryCode)) {
             // No country selected - disable city select
@@ -226,8 +230,7 @@ class SelectDemo extends Screen
                 ->disabled(false)
                 ->placeholder(t('screen.demo.select_demo.city.placeholder.choose_city'));
 
-            $countryName = collect(self::COUNTRIES)
-                ->firstWhere('value', $countryCode)['label'] ?? $countryCode;
+            $countryName = $this->findOptionLabel(self::COUNTRIES, $countryCode, $countryCode);
 
             $this->lbl_result
                 ->text(t('screen.demo.select_demo.result.country_selected', ['country' => $countryName]))
@@ -239,12 +242,13 @@ class SelectDemo extends Screen
      * Handle city selection change
      * Displays city information
      *
-     * @param array $params Contains 'value' with selected city code
+    * @param array<string, mixed> $params Contains 'value' with selected city code
      * @return void
      */
     public function onCityChange(array $params): void
     {
-        $cityCode = $params['value'] ?? null;
+        $rawCityCode = $params['value'] ?? null;
+        $cityCode = is_string($rawCityCode) ? $rawCityCode : null;
 
         if (empty($cityCode)) {
             $this->lbl_result
@@ -254,8 +258,7 @@ class SelectDemo extends Screen
             $info = self::CITY_INFO[$cityCode] ?? null;
 
             if ($info) {
-                $cityName = collect(array_merge(...array_values(self::CITIES)))
-                    ->firstWhere('value', $cityCode)['label'] ?? $cityCode;
+                $cityName = $this->findCityLabel($cityCode);
 
                 $text = t('screen.demo.select_demo.result.city_info.header', [
                     'city' => $cityName,
@@ -279,7 +282,7 @@ class SelectDemo extends Screen
      * Handle language selection change
      * Displays selected language(s)
      *
-     * @param array $params Contains 'value' with selected language code(s)
+    * @param array<string, mixed> $params Contains 'value' with selected language code(s)
      * @return void
      */
     public function onLanguageChange(array $params): void
@@ -291,20 +294,19 @@ class SelectDemo extends Screen
         }
 
         // Get current result text using the public get() method
-        $currentResult = $this->lbl_result->get('text', '');
+        $currentResultRaw = $this->lbl_result->get('text', '');
+        $currentResult = is_string($currentResultRaw) ? $currentResultRaw : '';
 
-        if (is_array($value)) {
+        if (\is_array($value)) {
             // Multiple languages selected
-            $languageNames = collect(self::LANGUAGES)
-                ->whereIn('value', $value)
-                ->pluck('label')
-                ->join(', ');
+            $languageCodes = array_values(array_filter($value, static fn (mixed $item): bool => is_string($item)));
+            $languageNames = $this->findLanguageLabels($languageCodes);
 
-            $languageText = "\n🗣️ Languages: {$languageNames}";
+            $languageText = "\n🗣️ Languages: " . implode(', ', $languageNames);
         } else {
             // Single language selected
-            $languageName = collect(self::LANGUAGES)
-                ->firstWhere('value', $value)['label'] ?? $value;
+            $languageCode = is_string($value) ? $value : '';
+            $languageName = $this->findOptionLabel(self::LANGUAGES, $languageCode, $languageCode);
 
             $languageText = "\n🗣️ Language: {$languageName}";
         }
@@ -316,9 +318,49 @@ class SelectDemo extends Screen
     }
 
     /**
+     * @param list<array{value: string, label: string}> $options
+     */
+    private function findOptionLabel(array $options, string $value, string $default): string
+    {
+        foreach ($options as $option) {
+            if ($option['value'] === $value) {
+                return $option['label'];
+            }
+        }
+
+        return $default;
+    }
+
+    private function findCityLabel(string $cityCode): string
+    {
+        foreach (self::CITIES as $cities) {
+            $label = $this->findOptionLabel($cities, $cityCode, '');
+            if ($label !== '') {
+                return $label;
+            }
+        }
+
+        return $cityCode;
+    }
+
+    /**
+     * @param list<string> $languageCodes
+     * @return list<string>
+     */
+    private function findLanguageLabels(array $languageCodes): array
+    {
+        $labels = [];
+        foreach ($languageCodes as $languageCode) {
+            $labels[] = $this->findOptionLabel(self::LANGUAGES, $languageCode, $languageCode);
+        }
+
+        return $labels;
+    }
+
+    /**
      * Toggle multiple language selection mode
      *
-     * @param array $params Contains 'checked' boolean
+    * @param array<string, mixed> $params Contains 'checked' boolean
      * @return void
      */
     public function onToggleMultipleLanguages(array $params): void
@@ -341,7 +383,7 @@ class SelectDemo extends Screen
     /**
      * Reset all selections
      *
-     * @param array $params Event parameters
+    * @param array<string, mixed> $params Event parameters
      * @return void
      */
     public function onResetSelections(array $params): void

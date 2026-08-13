@@ -1,13 +1,15 @@
 <?php
 namespace App\UI\Screens\Demo;
 
-use Idei\Usim\UI;
-use Idei\Usim\Screen;
 use Idei\Usim\Components\Button;
 use Idei\Usim\Components\Container;
 use Idei\Usim\Components\Input;
 use Idei\Usim\Components\Label;
 use Idei\Usim\Components\Select;
+use Idei\Usim\Screen;
+use Idei\Usim\UI;
+use Idei\Usim\ValueObjects\Size;
+use Idei\Usim\ValueObjects\Spacing;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use Throwable;
@@ -46,16 +48,16 @@ class AddressForm extends Screen
 
         $container
             ->title('Solicitud de direccion')
-            ->maxWidth('640px')
+            ->maxWidth(Size::px(640))
             ->centerHorizontal()
             ->shadow(2)
-            ->padding('30px');
+            ->padding(Spacing::px(30));
 
         $container->add(
             UI::label('lbl_instruction')
                 ->text('Completa los datos de la direccion solicitada.')
                 ->style('info')
-                ->width('100%')
+                ->width(Size::full())
         );
 
         $container->add(
@@ -65,7 +67,7 @@ class AddressForm extends Screen
                 ->value('')
                 ->required(true)
                 ->type('text')
-                ->width('100%')
+                ->width(Size::full())
         );
 
         $container->add(
@@ -78,7 +80,7 @@ class AddressForm extends Screen
                 ->searchable(true, 'Buscar pais')
                 ->onChange('country_change')
                 ->clearable(true)
-                ->width('100%')
+                ->width(Size::full())
         );
 
         $container->add(
@@ -91,7 +93,7 @@ class AddressForm extends Screen
                 ->searchable(true, 'Buscar provincia o estado')
                 ->disabled($this->store_selected_country === null)
                 ->clearable(true)
-                ->width('100%')
+                ->width(Size::full())
         );
 
         $container->add(
@@ -101,7 +103,7 @@ class AddressForm extends Screen
                 ->value('')
                 ->required(true)
                 ->type('text')
-                ->width('100%')
+                ->width(Size::full())
         );
 
         $container->add(
@@ -111,7 +113,7 @@ class AddressForm extends Screen
                 ->value('')
                 ->required(true)
                 ->type('text')
-                ->width('100%')
+                ->width(Size::full())
         );
 
         $container->add(
@@ -125,7 +127,7 @@ class AddressForm extends Screen
             UI::label('lbl_result')
                 ->text('Completa el formulario para enviar la direccion.')
                 ->style('secondary')
-                ->width('100%')
+                ->width(Size::full())
         );
     }
 
@@ -154,9 +156,14 @@ class AddressForm extends Screen
             ->style('secondary');
     }
 
+    /**
+     * @param array<string, mixed> $params
+     */
     public function onCountryChange(array $params): void
     {
-        $country = trim((string) ($params['value'] ?? ''));
+        $rawCountry = $params['value'] ?? '';
+        $countryValue = is_string($rawCountry) ? $rawCountry : '';
+        $country = trim($countryValue);
 
         $this->store_selected_country = $country !== '' ? $country : null;
         $this->store_selected_province = null;
@@ -194,13 +201,22 @@ class AddressForm extends Screen
             ->style($provinceOptions === [] ? 'warning' : 'info');
     }
 
+    /**
+     * @param array<string, mixed> $params
+     */
     public function onSubmitAddressForm(array $params): void
     {
-        $address = trim($params['input_address'] ?? '');
-        $country = trim($params['input_country'] ?? '');
-        $province = trim($params['input_province'] ?? '');
-        $streetNumber = trim($params['input_street_number'] ?? '');
-        $postalCode = trim($params['input_postal_code'] ?? '');
+        $addressValue = $params['input_address'] ?? '';
+        $countryValue = $params['input_country'] ?? '';
+        $provinceValue = $params['input_province'] ?? '';
+        $streetNumberValue = $params['input_street_number'] ?? '';
+        $postalCodeValue = $params['input_postal_code'] ?? '';
+
+        $address = trim(is_string($addressValue) ? $addressValue : '');
+        $country = trim(is_string($countryValue) ? $countryValue : '');
+        $province = trim(is_string($provinceValue) ? $provinceValue : '');
+        $streetNumber = trim(is_string($streetNumberValue) ? $streetNumberValue : '');
+        $postalCode = trim(is_string($postalCodeValue) ? $postalCodeValue : '');
 
         $this->input_address->error(null);
         $this->input_country->errorMessage('');
@@ -272,6 +288,9 @@ class AddressForm extends Screen
         $this->input_postal_code->value('');
     }
 
+    /**
+     * @return list<array{value: string, label: string}>
+     */
     private function fetchCountryOptions(): array
     {
         return Cache::remember('address_form.country_options', now()->addDay(), function (): array {
@@ -287,9 +306,15 @@ class AddressForm extends Screen
                 return $this->fallbackCountryOptions();
             }
 
-            $options = collect($response->json('data', []))
+            /** @var list<array<string, mixed>> $countryRows */
+            $countryRows = (array) $response->json('data', []);
+
+            /** @var list<array{value: string, label: string}> $options */
+            $options = collect($countryRows)
                 ->map(function (array $country): ?array {
-                    $name = trim((string) ($country['name'] ?? ''));
+                    /** @var mixed $rawName */
+                    $rawName = $country['name'] ?? '';
+                    $name = trim(is_string($rawName) ? $rawName : '');
 
                     if ($name === '') {
                         return null;
@@ -310,6 +335,9 @@ class AddressForm extends Screen
         });
     }
 
+    /**
+     * @return list<array{value: string, label: string}>
+     */
     private function fetchProvinceOptions(string $country): array
     {
         return Cache::remember('address_form.province_options.' . md5($country), now()->addDay(), function () use ($country): array {
@@ -325,9 +353,15 @@ class AddressForm extends Screen
                 return $this->fallbackProvinceOptions($country);
             }
 
-            $options = collect($response->json('data.states', []))
+            /** @var list<array<string, mixed>> $stateRows */
+            $stateRows = (array) $response->json('data.states', []);
+
+            /** @var list<array{value: string, label: string}> $options */
+            $options = collect($stateRows)
                 ->map(function (array $state): ?array {
-                    $name = trim((string) ($state['name'] ?? ''));
+                    /** @var mixed $rawName */
+                    $rawName = $state['name'] ?? '';
+                    $name = trim(is_string($rawName) ? $rawName : '');
 
                     if ($name === '') {
                         return null;
@@ -346,6 +380,9 @@ class AddressForm extends Screen
         });
     }
 
+    /**
+     * @return list<array{value: string, label: string}>
+     */
     private function fallbackCountryOptions(): array
     {
         return [
@@ -357,6 +394,9 @@ class AddressForm extends Screen
         ];
     }
 
+    /**
+     * @return list<array{value: string, label: string}>
+     */
     private function fallbackProvinceOptions(string $country): array
     {
         return match ($country) {

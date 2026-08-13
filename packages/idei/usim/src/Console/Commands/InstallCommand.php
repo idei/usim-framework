@@ -2,15 +2,25 @@
 
 namespace Idei\Usim\Console\Commands;
 
+use Idei\Usim\Console\Commands\Concerns\ConfiguresRootEnvironment;
 use Idei\Usim\Console\Commands\Concerns\InstallsDatabaseScaffolding;
 use Idei\Usim\Console\Commands\Concerns\InstallsLangStubs;
 use Idei\Usim\Console\Commands\Concerns\InstallsTranslationManagerScaffolding;
 use Idei\Usim\Console\Commands\Concerns\RegistersPackageHelperAutoload;
-use Idei\Usim\Support\CodeModifier\ClassModifier;
+use Idei\Usim\Console\Commands\Support\InstallAppScaffoldingManager;
+use Idei\Usim\Console\Commands\Support\InstallContextResolver;
+use Idei\Usim\Console\Commands\Support\InstallEnvironmentManager;
+use Idei\Usim\Console\Commands\Support\InstallExecutionRollbackManager;
+use Idei\Usim\Console\Commands\Support\InstallMigrationStatusChecker;
+use Idei\Usim\Console\Commands\Support\InstallScaffoldingManager;
+use Idei\Usim\Console\Commands\Support\InstallStateManager;
+use Idei\Usim\Console\Commands\Support\InstallStubPublisher;
+use Idei\Usim\Console\Commands\Support\InstallWorkflowBuilder;
+use Idei\Usim\Console\Commands\Support\MissingDatabaseException;
+use Idei\Usim\Console\Commands\Support\SeedAccessControl;
 use Illuminate\Console\Command;
 use Illuminate\Filesystem\Filesystem;
-use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Str;
+use Throwable;
 
 class InstallCommand extends Command
 {
@@ -18,6 +28,7 @@ class InstallCommand extends Command
     use InstallsLangStubs;
     use InstallsTranslationManagerScaffolding;
     use RegistersPackageHelperAutoload;
+    use ConfiguresRootEnvironment;
 
     protected $signature = 'usim:install
                             {--force : Overwrite existing files}';
@@ -25,7 +36,31 @@ class InstallCommand extends Command
     protected $description = 'Install the USIM framework scaffolding';
 
     protected Filesystem $files;
+    protected InstallStateManager $installStateManager;
+    protected InstallAppScaffoldingManager $installAppScaffoldingManager;
+    protected SeedAccessControl $installAccessSynchronizer;
+    protected InstallContextResolver $installContextResolver;
+    protected InstallEnvironmentManager $installEnvironmentManager;
+    protected InstallExecutionRollbackManager $installExecutionRollbackManager;
+    protected InstallMigrationStatusChecker $installMigrationStatusChecker;
+    protected InstallScaffoldingManager $installScaffoldingManager;
+    protected InstallWorkflowBuilder $installWorkflowBuilder;
+    protected InstallStubPublisher $installStubPublisher;
     protected bool $force;
+    /** @var array<string, string> */
+    protected array $rootUserEnvValues = [];
+
+    /** @var array{permissions_created:int,permissions_total:int,roles_created:int,roles_total:int,users_created:int,users_updated:int,languages_created:int,languages_updated:int} */
+    protected array $syncStats = [
+        'permissions_created' => 0,
+        'permissions_total' => 0,
+        'roles_created' => 0,
+        'roles_total' => 0,
+        'users_created' => 0,
+        'users_updated' => 0,
+        'languages_created' => 0,
+        'languages_updated' => 0,
+    ];
 
     /**
      * Namespace configuration — derived from the app's screens config.
@@ -35,60 +70,79 @@ class InstallCommand extends Command
     protected string $componentsNamespace;
     protected string $componentsPath;
 
-    public function __construct(Filesystem $files)
-    {
+    public function __construct(
+        Filesystem $files
+    ) {
         parent::__construct();
         $this->files = $files;
+        $this->installStateManager = app(InstallStateManager::class);
+        $this->installAppScaffoldingManager = app(InstallAppScaffoldingManager::class);
+        $this->installAccessSynchronizer = app(SeedAccessControl::class);
+        $this->installContextResolver = app(InstallContextResolver::class);
+        $this->installEnvironmentManager = app(InstallEnvironmentManager::class);
+        $this->installExecutionRollbackManager = app(InstallExecutionRollbackManager::class);
+        $this->installMigrationStatusChecker = app(InstallMigrationStatusChecker::class);
+        $this->installScaffoldingManager = app(InstallScaffoldingManager::class);
+        $this->installStubPublisher = app(InstallStubPublisher::class);
+        $this->installWorkflowBuilder = app(InstallWorkflowBuilder::class);
     }
 
     public function handle(): int
     {
         $this->force = $this->option('force');
+        $this->initializeNamespaces();
 
         $this->info('Installing USIM scaffolding...');
+        $this->showExistingStateIfPresent();
         $this->newLine();
 
-        // --- Resolve namespaces ---
-        $this->screensNamespace = \config('ui-services.screens_namespace', 'App\\UI\\Screens');
-        $this->screensPath = \config('ui-services.screens_path', \app_path('UI/Screens'));
-        $this->componentsNamespace = Str::beforeLast($this->screensNamespace, '\\Screens') . '\\Components';
-        $this->componentsPath = Str::beforeLast($this->screensPath, '/Screens') . '/Components';
+        $envPath = '';
 
-        // === STEP 1: Publish USIM config and assets ===
-        $this->publishConfig();
-        $this->publishAssets();
+        $this->installExecutionRollbackManager->begin($this->rollbackTrackedPaths());
 
-        // === STEP 2: Install core screens ===
-        $this->installScreen('Home.php.stub', 'Home.php');
+        /** @var array<int, array{key:string,label:string,run:callable():void}> $steps */
+        $steps = $this->buildWorkflowSteps($envPath);
 
-        $this->installScreen('Menu.php.stub', 'Menu.php');
-        $this->installScreen('Admin/Dashboard.php.stub', 'Dashboard.php', 'Admin');
-        $this->installTranslationManagerScaffolding();
+        $this->installStateManager->start(count($steps));
 
-        // === STEP 3: Install auth scaffolding, controller, model, and supporting files ===
-        $this->installAuthScaffolding();
+        try {
+            $totalSteps = count($steps);
 
-        // === STEP 4: Install email and page views ===
-        $this->installViews();
+            foreach ($steps as $index => $step) {
+                /** @var array{key:string,label:string,run:callable():void} $step */
+                $this->runInstallStep(
+                    stepKey: $step['key'],
+                    label: $step['label'],
+                    index: $index + 1,
+                    total: $totalSteps,
+                    callback: $step['run']
+                );
+            }
 
-        // === STEP 5: Install language files from stubs/lang (without overwrite) ===
-        $this->newLine();
-        $this->info('Publishing language stubs...');
-        $this->installLangStubs();
+            $this->installStateManager->finish($this->syncStats);
+            $this->installExecutionRollbackManager->cleanup();
+        } catch (Throwable $exception) {
+            if ($exception instanceof MissingDatabaseException) {
+                $this->installExecutionRollbackManager->rollback();
+                $this->installStateManager->markRolledBack($exception->getMessage());
+                $this->installExecutionRollbackManager->cleanup();
 
-        // === STEP 6: Install web routes (catch-all) ===
-        $this->installWebRoutes();
+                $statePath = $this->installStateManager->getPath();
+                $this->components->error("USIM installation was rolled back because database is missing. State was persisted in {$statePath}.");
+                $this->components->error($exception->getMessage());
 
-        // === STEP 7: Append .env variables ===
-        $this->appendEnvVariables();
+                return self::FAILURE;
+            }
 
-        // === STEP 8: Register package helpers in composer autoload ===
-        $this->registerPackageHelpersAutoload();
+            $this->installExecutionRollbackManager->cleanup();
+            $this->installStateManager->fail($exception);
+            $statePath = $this->installStateManager->getPath();
+            $this->components->error("USIM installation failed. State was persisted for troubleshooting in {$statePath}.");
+            $this->components->error($exception->getMessage());
 
-        // === STEP 9: Run usim:discover ===
-        $this->call('usim:discover');
+            return self::FAILURE;
+        }
 
-        // === STEP 10: Summary ===
         $this->newLine();
         $this->info('USIM installed successfully!');
         $this->newLine();
@@ -97,86 +151,289 @@ class InstallCommand extends Command
         return self::SUCCESS;
     }
 
-    // =========================================================================
-    // Publish config and assets
-    // =========================================================================
-
-    protected function publishConfig(): void
+    protected function initializeNamespaces(): void
     {
-        $this->info('Publishing USIM configuration...');
-
-        $this->callSilently('vendor:publish', [
-            '--tag' => 'usim-config',
-            '--force' => $this->force,
-        ]);
-
-        $this->line('  <fg=green>✓</> Config published');
+        $namespaces = $this->installContextResolver->resolveNamespaces();
+        $this->screensNamespace = $namespaces['screensNamespace'];
+        $this->screensPath = $namespaces['screensPath'];
+        $this->componentsNamespace = $namespaces['componentsNamespace'];
+        $this->componentsPath = $namespaces['componentsPath'];
     }
 
-    protected function publishAssets(): void
+    protected function installCoreScreens(): void
     {
-        $this->info('Publishing USIM assets...');
-
-        $this->callSilently('vendor:publish', [
-            '--tag' => 'usim-assets',
-            '--force' => true, // Always overwrite assets
-        ]);
-
-        $this->line('  <fg=green>✓</> Assets published');
+        $this->installAppScaffoldingManager->installCoreScreens(
+            context: $this->buildScaffoldingContext(),
+            publishStub: function (string $stubPath, string $targetPath, bool $autoForce, array $replacements): void {
+                $this->publishStub($stubPath, $targetPath, $autoForce, $replacements);
+            },
+            line: function (string $message): void {
+                $this->line($message);
+            },
+            installTranslationManagerScaffolding: function (): void {
+                $this->installTranslationManagerScaffolding();
+            }
+        );
     }
 
-    // =========================================================================
-    // Views Installation
-    // =========================================================================
+    protected function installLanguageStubsStep(): void
+    {
+        $this->installLangStubs();
+    }
 
-    protected function installViews(): void
+    protected function runDiscoverScreens(): void
+    {
+        $this->call('usim:discover');
+    }
+
+    /**
+     * @param string $envPath
+     * @return array<int, array{key:string,label:string,run:callable():void}>
+     */
+    protected function buildWorkflowSteps(string &$envPath): array
+    {
+        return $this->installWorkflowBuilder->build(
+            checkEnvironment: function (): void {
+                $this->installEnvironmentManager->assertNotProductionEnvironment();
+            },
+            checkDatabaseReadiness: function (): void {
+                $this->assertDatabaseMigrationReadyForInstall();
+            },
+            publishConfig: function (): void {
+                $this->installScaffoldingManager->publishConfig(
+                    force: $this->force,
+                    info: function (string $message): void {
+                        $this->info($message);
+                    },
+                    line: function (string $message): void {
+                        $this->line($message);
+                    },
+                    callSilently: function (string $command, array $arguments): void {
+                        $this->callSilently($command, $arguments);
+                    }
+                );
+            },
+            publishAssets: function (): void {
+                $this->installScaffoldingManager->publishAssets(
+                    info: function (string $message): void {
+                        $this->info($message);
+                    },
+                    line: function (string $message): void {
+                        $this->line($message);
+                    },
+                    callSilently: function (string $command, array $arguments): void {
+                        $this->callSilently($command, $arguments);
+                    }
+                );
+            },
+            installCoreScreens: function (): void {
+                $this->installCoreScreens();
+            },
+            installAuthScaffolding: function (): void {
+                $this->installAuthScaffolding();
+            },
+            installViews: function (): void {
+                $this->installScaffoldingManager->installViews(
+                    newLine: function (): void {
+                        $this->newLine();
+                    },
+                    info: function (string $message): void {
+                        $this->info($message);
+                    },
+                    line: function (string $message): void {
+                        $this->line($message);
+                    },
+                    stubsPath: fn(string $path): string => $this->stubsPath($path),
+                    publishStub: function (string $stubPath, string $targetPath, bool $autoForce, array $replacements): void {
+                        $this->publishStub($stubPath, $targetPath, $autoForce, $replacements);
+                    }
+                );
+            },
+            installLanguageStubs: function (): void {
+                $this->installLanguageStubsStep();
+            },
+            installWebRoutes: function (): void {
+                $this->installScaffoldingManager->installWebRoutes(
+                    newLine: function (): void {
+                        $this->newLine();
+                    },
+                    info: function (string $message): void {
+                        $this->info($message);
+                    },
+                    line: function (string $message): void {
+                        $this->line($message);
+                    },
+                    stubsPath: fn(string $path): string => $this->stubsPath($path)
+                );
+            },
+            appendEnvVars: function () use (&$envPath): void {
+                $envPath = $this->installEnvironmentManager->appendUsimEnvVariables(
+                    $this->stubsPath('env.stub'),
+                    function (string $message): void {
+                        $this->info($message);
+                    },
+                    function (string $message): void {
+                        $this->line($message);
+                    }
+                );
+            },
+            configureRoot: function () use (&$envPath): void {
+                $this->configureRootStep($envPath, fn(string $message) => throw new \RuntimeException($message));
+            },
+            registerHelpers: function (): void {
+                $this->registerPackageHelpersAutoload();
+            },
+            upsertAccessAndLanguages: function (): void {
+                $this->upsertAccessAndLanguages();
+            },
+            discoverScreens: function (): void {
+                $this->runDiscoverScreens();
+            },
+        );
+    }
+
+    protected function runInstallStep(string $stepKey, string $label, int $index, int $total, callable $callback): void
     {
         $this->newLine();
-        $this->info('Publishing email and page views...');
-
-        $views = [
-            'emails/verify-email.blade.php' => \resource_path('views/emails/verify-email.blade.php'),
-            'emails/reset-password.blade.php' => \resource_path('views/emails/reset-password.blade.php'),
-            'terms.blade.php' => \resource_path('views/terms.blade.php'),
-            'landing.blade.php' => \resource_path('views/landing.blade.php'),
-        ];
-
-        foreach ($views as $stub => $target) {
-            $stubPath = $this->stubsPath("views/{$stub}");
-            $this->publishStub($stubPath, $target, false, []);
-            $relativePath = str_replace(\base_path() . '/', '', $target);
-            $this->line("  <fg=green>✓</> {$relativePath}");
-        }
+        $this->info("[{$index}/{$total}] {$label}...");
+        $this->installStateManager->setCurrentStep($stepKey, $label, $index, $total);
+        $callback();
+        $this->installStateManager->markStepCompleted($stepKey);
+        $this->line('  <fg=green>✓</> Step completed');
     }
 
-    // =========================================================================
-    // Screen Installation
-    // =========================================================================
-
-    protected function installScreen(string $stubName, string $targetName, ?string $subdirectory = null): void
+    protected function showExistingStateIfPresent(): void
     {
-        $stubPath = $this->stubsPath("screens/{$stubName}");
+        $state = $this->installStateManager->read();
+        if ($state === null) {
+            return;
+        }
 
-        $targetDir = $subdirectory
-            ? $this->screensPath . '/' . $subdirectory
-            : $this->screensPath;
+        $statusValue = $state['status'] ?? 'unknown';
+        $status = is_string($statusValue) ? $statusValue : 'unknown';
 
-        $targetFile = $targetDir . '/' . $targetName;
+        $currentStep = $state['current_step'] ?? null;
+        $current = 'n/a';
+        if (is_array($currentStep) && isset($currentStep['label']) && is_string($currentStep['label'])) {
+            $current = $currentStep['label'];
+        }
 
-        $namespace = $subdirectory
-            ? $this->screensNamespace . '\\' . str_replace('/', '\\', $subdirectory)
-            : $this->screensNamespace;
+        $this->line("Previous install state detected: <fg=blue>{$status}</> (last step: {$current})");
+    }
 
-        $this->publishStub($stubPath, $targetFile, false, [
-            '{{ namespace }}' => $namespace,
-            '{{ screensNamespace }}' => $this->screensNamespace,
-            '{{ componentsNamespace }}' => $this->componentsNamespace,
-            '{{ userModel }}' => $this->resolveUserModelImport(),
-            '{{ userModelClass }}' => $this->resolveUserModelClass(),
-        ]);
+    protected function upsertAccessAndLanguages(): void
+    {
+        $this->ensureRequiredTables();
 
-        $relativePath = str_replace(\base_path() . '/', '', $targetFile);
-        $this->line("  <fg=green>✓</> {$relativePath}");
+        $this->syncStats = $this->installAccessSynchronizer->seed(
+            rootUserEnvValues: $this->rootUserEnvValues,
+            userModelClass: $this->resolveUserModelImport(),
+            line: function (string $message): void {
+                $this->line($message);
+            }
+        );
+
+        $this->line('  <fg=green>✓</> Access and languages upsert completed');
+    }
+
+    protected function ensureRequiredTables(): void
+    {
+        $this->assertDatabaseMigrationReadyForInstall();
+    }
+
+    protected function assertDatabaseMigrationReadyForInstall(): void
+    {
+        $assessment = $this->installMigrationStatusChecker->assess();
+
+        if (!$assessment['database_exists']) {
+            $databaseIssue = $assessment['database_issue'] ?? 'Database does not exist or is not reachable with current .env settings.';
+            throw new MissingDatabaseException(
+                $databaseIssue . ' Migration is not completed for this environment. Create/configure the database and run `php artisan migrate` before continuing with `php artisan usim:install`.'
+            );
+        }
+
+        if ($assessment['is_ready'] === true) {
+            return;
+        }
+
+        $details = [];
+
+        $missingTables = $assessment['missing_tables'];
+        if ($missingTables !== []) {
+            $details[] = 'missing tables: ' . implode(', ', $missingTables);
+        }
+
+        $missingColumns = $assessment['missing_columns'];
+        foreach ($missingColumns as $table => $columns) {
+            if ($columns === []) {
+                continue;
+            }
+
+            $details[] = 'missing columns in ' . $table . ': ' . implode(', ', $columns);
+        }
+
+        $missingMigrations = $assessment['missing_migrations'];
+        if ($missingMigrations !== []) {
+            $details[] = 'critical migrations not executed: ' . implode(', ', $missingMigrations);
+        }
+
+        $notes = $assessment['notes'];
+        foreach ($notes as $note) {
+            if (trim($note) !== '') {
+                $details[] = trim($note);
+            }
+        }
+
+        if ($details === []) {
+            $details[] = 'database schema validation failed';
+        }
+
+        throw new \RuntimeException(
+            'Database migration is not ready for USIM install (' . implode('; ', $details) . '). ' .
+            'Run `php artisan migrate` before continuing.'
+        );
+    }
+
+    /**
+     * @return array<int, string>
+     */
+    protected function rollbackTrackedPaths(): array
+    {
+        return [
+            '.env',
+            'config/usim.php',
+            'routes/web.php',
+            'composer.json',
+            'bootstrap/providers.php',
+            'app/UI/Screens/Home.php',
+            'app/UI/Screens/Menu.php',
+            'app/UI/Screens/Admin',
+            'app/UI/Screens/Auth',
+            'app/UI/Components/Modals',
+            'app/UI/Components/DataTable',
+            'app/Services/Auth',
+            'app/Services/User',
+            'app/Http/Controllers/Api/AuthController.php',
+            'app/Providers/EventServiceProvider.php',
+            'resources/views/emails/verify-email.blade.php',
+            'resources/views/emails/reset-password.blade.php',
+            'resources/views/terms.blade.php',
+            'resources/views/landing.blade.php',
+            'tests/Pest.php',
+            'tests/TestCase.php',
+            'tests/Support',
+            'tests/Traits',
+            'tests/Feature/HomeMenuScreenTest.php',
+            'tests/Feature/LoginScreenTest.php',
+            'tests/Feature/PasswordRecoveryUiTest.php',
+            'tests/Feature/UiAuthEventsContractTest.php',
+            'lang/en/landing.php',
+            'lang/en/modal/edit_translation_dialog.php',
+            'lang/en/screen/permissions.php',
+            'lang/es/landing.php',
+            'lang/es/modal/edit_translation_dialog.php',
+            'database/migrations',
+        ];
     }
 
     // =========================================================================
@@ -185,424 +442,51 @@ class InstallCommand extends Command
 
     protected function installAuthScaffolding(): void
     {
-        $this->newLine();
-        $this->info('Installing Auth services...');
-        $this->installAuthServices();
-
-        $this->newLine();
-        $this->info('Installing Auth screens...');
-
-        // Auth Screens
-        $this->installScreen('Auth/Login.php.stub', 'Login.php', 'Auth');
-        $this->installScreen('Auth/ForgotPassword.php.stub', 'ForgotPassword.php', 'Auth');
-        $this->installScreen('Auth/ResetPassword.php.stub', 'ResetPassword.php', 'Auth');
-        $this->installScreen('Auth/EmailVerified.php.stub', 'EmailVerified.php', 'Auth');
-        $this->installScreen('Auth/Profile.php.stub', 'Profile.php', 'Auth');
-
-        // Modals
-        $this->newLine();
-        $this->info('Installing Modal components...');
-        $this->installComponent('Modals/LoginDialog.php.stub', 'LoginDialog.php', 'Modals');
-        $this->installComponent('Modals/RegisterDialog.php.stub', 'RegisterDialog.php', 'Modals');
-        $this->installComponent('Modals/EditUserDialog.php.stub', 'EditUserDialog.php', 'Modals');
-        $this->installComponent('Modals/EditTranslationDialog.php.stub', 'EditTranslationDialog.php', 'Modals');
-
-        $this->newLine();
-        $this->info('Installing DataTable components...');
-        $this->installComponent('DataTable/UserTableModel.php.stub', 'UserTableModel.php', 'DataTable');
-
-        // AuthController
-        $this->newLine();
-        $this->info('Installing AuthController...');
-        $this->installAuthController();
-
-        // User model
-        $this->newLine();
-        $this->info('Configuring User model...');
-        $this->configureUserModel();
-
-        // EventServiceProvider
-        $this->newLine();
-        $this->info('Installing EventServiceProvider...');
-        $this->installEventServiceProvider();
-        $this->registerBootstrapProviders();
-
-        // Migrations
-        $this->newLine();
-        $this->info('Publishing migrations...');
-        $this->installMigrations();
-
-        // Seeders
-        $this->newLine();
-        $this->info('Publishing seeders...');
-        $this->installSeeders();
-
-        // Users config
-        $this->newLine();
-        $this->info('Publishing users config...');
-        $this->installUsersConfig();
-
-        // Tests scaffolding
-        $this->newLine();
-        $this->info('Publishing test stubs...');
-        $this->installTestStubs();
-    }
-
-    // =========================================================================
-    // Component Installation
-    // =========================================================================
-
-    protected function installComponent(string $stubName, string $targetName, ?string $subdirectory = null): void
-    {
-        $stubPath = $this->stubsPath("components/{$stubName}");
-
-        $targetDir = $subdirectory
-            ? $this->componentsPath . '/' . $subdirectory
-            : $this->componentsPath;
-
-        $targetFile = $targetDir . '/' . $targetName;
-
-        $namespace = $subdirectory
-            ? $this->componentsNamespace . '\\' . str_replace('/', '\\', $subdirectory)
-            : $this->componentsNamespace;
-
-        $this->publishStub($stubPath, $targetFile, false, [
-            '{{ componentsNamespace }}' => $namespace,
-        ]);
-
-        $relativePath = str_replace(\base_path() . '/', '', $targetFile);
-        $this->line("  <fg=green>✓</> {$relativePath}");
-    }
-
-    protected function installAuthServices(): void
-    {
-        $this->installService('Auth/AuthSessionService.php.stub', 'AuthSessionService.php', 'Auth');
-        $this->installService('Auth/LoginService.php.stub', 'LoginService.php', 'Auth');
-        $this->installService('Auth/RegisterService.php.stub', 'RegisterService.php', 'Auth');
-        $this->installService('Auth/PasswordService.php.stub', 'PasswordService.php', 'Auth');
-        $this->installService('User/UserService.php.stub', 'UserService.php', 'User');
-    }
-
-    protected function installService(string $stubName, string $targetName, ?string $subdirectory = null): void
-    {
-        $stubPath = $this->stubsPath("services/{$stubName}");
-
-        $targetDir = $subdirectory
-            ? \app_path('Services/' . $subdirectory)
-            : \app_path('Services');
-
-        $targetFile = $targetDir . '/' . $targetName;
-
-        $namespace = $subdirectory
-            ? 'App\\Services\\' . str_replace('/', '\\', $subdirectory)
-            : 'App\\Services';
-
-        $this->publishStub($stubPath, $targetFile, false, [
-            '{{ namespace }}' => $namespace,
-            '{{ userModel }}' => $this->resolveUserModelImport(),
-            '{{ userModelClass }}' => $this->resolveUserModelClass(),
-        ]);
-
-        $relativePath = str_replace(\base_path() . '/', '', $targetFile);
-        $this->line("  <fg=green>✓</> {$relativePath}");
-    }
-
-    protected function installTestStubs(): void
-    {
-        $this->installTestFile('Support/usim_bootstrap.php.stub', 'usim_bootstrap.php', 'Support');
-        $this->installTestFile('Traits/UsimTestHelpers.php.stub', 'UsimTestHelpers.php', 'Traits');
-        $this->installTestFile('Pest.php.stub', 'Pest.php', null, fn($path) => $this->addRequireToPest($path));
-        $this->installTestFile('TestCase.php.stub', 'TestCase.php', null, fn($path) => $this->addUsimTestHelpersToTestCase($path));
-
-        $this->installTestFile('Support/UiScreenTestHelpers.php.stub', 'UiScreenTestHelpers.php', 'Support');
-        $this->installTestFile('Support/UiMemoryRenderer.php.stub', 'UiMemoryRenderer.php', 'Support');
-        $this->installTestFile('Support/UiComponentRef.php.stub', 'UiComponentRef.php', 'Support');
-        $this->installTestFile('Support/UiScenario.php.stub', 'UiScenario.php', 'Support');
-        $this->installTestFile('Support/UiPayloadHelpers.php.stub', 'UiPayloadHelpers.php', 'Support');
-
-        $this->installTestFile('Feature/HomeMenuScreenTest.php.stub', 'HomeMenuScreenTest.php', 'Feature');
-        $this->installTestFile('Feature/LoginScreenTest.php.stub', 'LoginScreenTest.php', 'Feature');
-        $this->installTestFile('Feature/PasswordRecoveryUiTest.php.stub', 'PasswordRecoveryUiTest.php', 'Feature');
-        $this->installTestFile('Feature/UiAuthEventsContractTest.php.stub', 'UiAuthEventsContractTest.php', 'Feature');
-    }
-
-    protected function installTestFile(
-        string $stubName,
-        string $targetName,
-        ?string $subdirectory = null,
-        ?callable $postInstallCallback = null
-    ): void {
-        $stubPath = $this->stubsPath("tests/{$stubName}");
-
-        $targetDir = $subdirectory
-            ? \base_path('tests/' . $subdirectory)
-            : \base_path('tests');
-
-        $targetFile = $targetDir . '/' . $targetName;
-
-        $this->publishStub($stubPath, $targetFile, false, [
-            '{{ userModel }}' => $this->resolveUserModelImport(),
-            '{{ userModelClass }}' => $this->resolveUserModelClass(),
-        ], $postInstallCallback);
-
-        $relativePath = str_replace(\base_path() . '/', '', $targetFile);
-        $this->line("  <fg=green>✓</> {$relativePath}");
-    }
-
-    protected function addUsimTestHelpersToTestCase(string $path): void
-    {
-        $this->line("  <fg=green>✓</> Adding traits to TestCase.php...");
-        ClassModifier::addTraitToClass($path, 'TestCase', RefreshDatabase::class);
-        ClassModifier::addTraitToClass($path, 'TestCase', "Tests\\Traits\\UsimTestHelpers");
-    }
-
-    protected function addRequireToPest(string $path): void
-    {
-        if (!file_exists($path)) {
-            return;
-        }
-
-        $content = file_get_contents($path);
-
-        $line = "require_once __DIR__ . '/Support/usim_bootstrap.php';";
-
-        // Evitar duplicados
-        if (str_contains($content, $line)) {
-            return;
-        }
-
-        // Insertar después de <?php
-        $content = preg_replace(
-            '/<\?php\s*/',
-            "<?php\n\n{$line}\n\n",
-            $content,
-            1
+        $this->installAppScaffoldingManager->installAuthScaffolding(
+            context: $this->buildScaffoldingContext(),
+            publishStub: function (string $stubPath, string $targetPath, bool $autoForce, array $replacements, ?callable $postInstallCallback = null): void {
+                $this->publishStub($stubPath, $targetPath, $autoForce, $replacements, $postInstallCallback);
+            },
+            line: function (string $message): void {
+                $this->line($message);
+            },
+            info: function (string $message): void {
+                $this->info($message);
+            },
+            newLine: function (): void {
+                $this->newLine();
+            },
+            installMigrations: function (): void {
+                $this->installMigrations();
+            },
+            installUsersConfigNotice: function (): void {
+                $this->installScaffoldingManager->installUsersConfigNotice(
+                    line: function (string $message): void {
+                        $this->line($message);
+                    }
+                );
+            }
         );
-
-        file_put_contents($path, $content);
-    }
-
-    // =========================================================================
-    // AuthController
-    // =========================================================================
-
-    protected function installAuthController(): void
-    {
-        $controllerPath = \app_path('Http/Controllers/Api/AuthController.php');
-        $stubPath = $this->stubsPath('controllers/AuthController.php.stub');
-
-        $this->publishStub($stubPath, $controllerPath, false, [
-            '{{ namespace }}' => 'App\\Http\\Controllers\\Api',
-            '{{ userModel }}' => $this->resolveUserModelImport(),
-            '{{ userModelClass }}' => $this->resolveUserModelClass(),
-        ]);
-
-        $relativePath = str_replace(\base_path() . '/', '', $controllerPath);
-        $this->line("  <fg=green>✓</> {$relativePath}");
-    }
-
-    // =========================================================================
-    // User Model Configuration
-    // =========================================================================
-    protected function configureUserModel(): void
-    {
-        $userModelPath = \app_path('Models/User.php');
-
-        if (!$this->files->exists($userModelPath)) {
-            $stubPath = $this->stubsPath('models/User.php.stub');
-
-            $this->publishStub($stubPath, $userModelPath, false, [
-                '{{ namespace }}' => 'App\\Models',
-            ]);
-
-            $this->line('  <fg=green>✓</> User model created with USIM auth defaults');
-            return;
-        }
-
-        ClassModifier::addTraitToClass($userModelPath, 'User', \Laravel\Sanctum\HasApiTokens::class);
-        ClassModifier::addTraitToClass($userModelPath, 'User', \Spatie\Permission\Traits\HasRoles::class);
-        ClassModifier::addTraitToClass($userModelPath, 'User', \Idei\Usim\Traits\UsimUser::class);
-
-        ClassModifier::addInterface($userModelPath, 'User', \Illuminate\Contracts\Auth\MustVerifyEmail::class);
-        ClassModifier::addInterface($userModelPath, 'User', \Illuminate\Contracts\Auth\CanResetPassword::class);
-
-        ClassModifier::addPropertyArrayValue($userModelPath, 'User', 'fillable', 'terms_accepted_at');
-        ClassModifier::addCast($userModelPath, 'User', 'terms_accepted_at', 'datetime');
-
-        $this->line('  <fg=green>✓</> User model updated with USIM auth defaults');
-    }
-
-    // =========================================================================
-    // EventServiceProvider
-    // =========================================================================
-
-    protected function installEventServiceProvider(): void
-    {
-        $targetPath = \app_path('Providers/EventServiceProvider.php');
-        $stubPath = $this->stubsPath('providers/EventServiceProvider.php.stub');
-        $this->publishStub($stubPath, $targetPath, false, []);
-        $relativePath = str_replace(\base_path() . '/', '', $targetPath);
-        $this->line("  <fg=green>✓</> {$relativePath}");
-    }
-
-    protected function registerBootstrapProviders(): void
-    {
-        $providersPath = \base_path('bootstrap/providers.php');
-
-        if (!$this->files->exists($providersPath)) {
-            $this->line('  <fg=yellow>!</> bootstrap/providers.php not found, skipping');
-            return;
-        }
-
-        $contents = $this->files->get($providersPath);
-
-        if (str_contains($contents, 'EventServiceProvider')) {
-            $this->line('  <fg=blue>→</> EventServiceProvider already in bootstrap/providers.php');
-            return;
-        }
-
-        // Insert EventServiceProvider::class before the closing ];
-        $pos = strrpos($contents, '];');
-        if ($pos !== false) {
-            $contents = substr($contents, 0, $pos)
-                . "    App\\Providers\\EventServiceProvider::class,\n];"
-                . substr($contents, $pos + 2);
-            $this->files->put($providersPath, $contents);
-            $this->line('  <fg=green>✓</> EventServiceProvider registered in bootstrap/providers.php');
-        }
-    }
-
-    // =========================================================================
-    // Users Config
-    // =========================================================================
-
-    protected function installUsersConfig(): void
-    {
-        $configPath = \config_path('users.php');
-        $stubPath = $this->stubsPath('config/users.php.stub');
-        $this->publishStub($stubPath, $configPath, false, []);
-        $relativePath = str_replace(\base_path() . '/', '', $configPath);
-        $this->line("  <fg=green>✓</> {$relativePath}");
-    }
-
-    // =========================================================================
-    // Web Routes (catch-all)
-    // =========================================================================
-
-    protected function installWebRoutes(): void
-    {
-        $this->newLine();
-        $this->info('Installing web routes...');
-
-        $webRoutesPath = \base_path('routes/web.php');
-        $contents = $this->files->exists($webRoutesPath) ? $this->files->get($webRoutesPath) : '';
-
-        [$contents, $disabledDefaultWelcomeRoute] = $this->disableDefaultWelcomeRoute($contents);
-        if ($disabledDefaultWelcomeRoute) {
-            $this->files->put($webRoutesPath, $contents);
-            $this->line('  <fg=green>✓</> Default welcome route disabled in routes/web.php');
-        }
-
-        if (str_contains($contents, 'ui.catchall')) {
-            $this->line('  <fg=blue>→</> Catch-all route already exists in routes/web.php');
-            return;
-        }
-
-        $stubContent = $this->files->get($this->stubsPath('routes/web.php.stub'));
-
-        $this->files->append($webRoutesPath, "\n" . $stubContent);
-        $this->line('  <fg=green>✓</> Catch-all route added to routes/web.php');
     }
 
     /**
-     * Disable Laravel default welcome route to avoid conflicts with USIM catch-all route.
-     *
-     * @return array{0: string, 1: bool}
+     * @return array<string, string|bool>
      */
-    protected function disableDefaultWelcomeRoute(string $contents): array
+    protected function buildScaffoldingContext(): array
     {
-        $patterns = [
-            '/Route::get\(\s*["\']\/["\']\s*,\s*function\s*\(\)\s*\{\s*return\s+view\(\s*["\']welcome["\']\s*\)\s*;\s*\}\s*\)\s*;\s*/s',
-            '/Route::view\(\s*["\']\/["\']\s*,\s*["\']welcome["\']\s*\)\s*;\s*/s',
-        ];
-
-        $disabled = false;
-
-        foreach ($patterns as $pattern) {
-            $contents = preg_replace_callback(
-                $pattern,
-                static function (array $matches) use (&$disabled): string {
-                    $disabled = true;
-
-                    $lines = preg_split('/\R/', trim($matches[0])) ?: [];
-                    $commentedRoute = implode("\n", array_map(
-                        static fn(string $line): string => '// ' . $line,
-                        $lines
-                    ));
-
-                    return "// Disabled by usim:install to allow USIM catch-all route.\n{$commentedRoute}\n\n";
-                },
-                $contents,
-                1
-            ) ?? $contents;
-        }
-
-        return [$contents, $disabled];
+        return $this->installContextResolver->buildScaffoldingContext(
+            stubsBasePath: $this->stubsPath(),
+            namespaces: [
+                'screensNamespace' => $this->screensNamespace,
+                'screensPath' => $this->screensPath,
+                'componentsNamespace' => $this->componentsNamespace,
+                'componentsPath' => $this->componentsPath,
+            ],
+            userModelImport: $this->resolveUserModelImport(),
+            userModelClass: $this->resolveUserModelClass(),
+            force: $this->force
+        );
     }
-
-    // =========================================================================
-    // .env Variables
-    // =========================================================================
-
-    protected function appendEnvVariables(): void
-    {
-        $this->newLine();
-        $this->info('Configuring .env...');
-
-        $envPath = \base_path('.env');
-
-        if (!$this->files->exists($envPath)) {
-            $envExamplePath = \base_path('.env.example');
-
-            if ($this->files->exists($envExamplePath)) {
-                $envPath = $envExamplePath;
-                $this->line('  <fg=blue>→</> .env not found, using .env.example');
-            } else {
-                $this->line('  <fg=yellow>!</> .env and .env.example not found, skipping');
-                return;
-            }
-        }
-
-        $envContent = $this->files->get($envPath);
-        $stubContent = $this->files->get($this->stubsPath('env.stub'));
-        $variables = explode("\n", $stubContent);
-
-        $appendContent = '';
-        foreach ($variables as $line) {
-            $line = trim($line);
-            if (empty($line) || str_starts_with($line, '#')) {
-                continue;
-            }
-
-            // Extract variable name
-            $parts = explode('=', $line, 2);
-            $key = trim($parts[0] ?? '');
-
-            // Check if key exists (ensure it's the full key, not a suffix)
-            if ($key && !preg_match("/(^|\n)\s*" . preg_quote($key, '/') . "\s*=/m", $envContent)) {
-                $appendContent .= $line . "\n";
-            }
-        }
-
-        if (!empty($appendContent)) {
-            $this->info('  Appending missing environment variables...');
-            $this->files->append($envPath, "\n# --- USIM Framework ---\n" . trim($appendContent) . "\n");
-            $this->line('  <fg=green>✓</> .env updated');
-        } else {
-            $this->line('  <fg=blue>→</> USIM environment variables already present');
-        }
-    }
-
     // =========================================================================
     // Post-Install Instructions
     // =========================================================================
@@ -616,6 +500,8 @@ class InstallCommand extends Command
         $steps[] = "Run <fg=yellow>php artisan usim:discover</> after creating new screens\n";
         $steps[] = "Run <fg=yellow>./start.sh [-r]</> to start the development server.\n" .
             "     <fg=gray>Note: -r option removes database and starts fresh)</fg=gray>";
+        $steps[] = "Installer state is tracked at <fg=yellow>{$this->installStateManager->getPath()}</>";
+        $steps[] = "Upsert summary: permissions {$this->syncStats['permissions_total']} ({$this->syncStats['permissions_created']} new), roles {$this->syncStats['roles_total']} ({$this->syncStats['roles_created']} new), users {$this->syncStats['users_created']} new / {$this->syncStats['users_updated']} updated, languages {$this->syncStats['languages_created']} new / {$this->syncStats['languages_updated']} updated";
 
         foreach ($steps as $i => $step) {
             $num = $i + 1;
@@ -629,43 +515,72 @@ class InstallCommand extends Command
     // Helpers
     // =========================================================================
 
-    protected function stubsPath(string $path = ''): string
+    protected function installScreen(string $stub, string $fileName, ?string $subDirectory = null): void
     {
-        return dirname(__DIR__, 3) . '/stubs/' . ltrim($path, '/');
+        $context = $this->buildScaffoldingContext();
+        $targetDir = $subDirectory
+            ? $context['screensPath'] . '/' . $subDirectory
+            : $context['screensPath'];
+
+        $this->publishStub(
+            'screens/' . $stub,
+            $targetDir . '/' . $fileName,
+            false,
+            [
+                '{{ screensNamespace }}' => $context['screensNamespace'] . ($subDirectory ? "\\{$subDirectory}" : ''),
+            ]
+        );
+
+        $relativePath = 'app/UI/Screens/' . ($subDirectory ? $subDirectory . '/' : '') . $fileName;
+        $this->line("  <fg=green>✓</> {$relativePath}");
     }
 
+    protected function installComponent(string $stub, string $fileName, ?string $subDirectory = null): void
+    {
+        $context = $this->buildScaffoldingContext();
+        $targetDir = $subDirectory
+            ? $context['componentsPath'] . '/' . $subDirectory
+            : $context['componentsPath'];
+
+        $this->publishStub(
+            'components/' . $stub,
+            $targetDir . '/' . $fileName,
+            false,
+            [
+                '{{ componentsNamespace }}' => $context['componentsNamespace'] . ($subDirectory ? "\\{$subDirectory}" : ''),
+            ]
+        );
+
+        $relativePath = 'app/UI/Components/' . ($subDirectory ? $subDirectory . '/' : '') . $fileName;
+        $this->line("  <fg=green>✓</> {$relativePath}");
+    }
+
+    protected function stubsPath(string $path = ''): string
+    {
+        return $this->installContextResolver->stubsPath($path);
+    }
+
+    /** @param array<string, string> $replacements */
     protected function publishStub(string $stubPath, string $targetPath, bool $autoForce = false, array $replacements = [], ?callable $postInstallCallback = null): void
     {
-        if ($this->files->exists($targetPath) && !$this->force && !$autoForce) {
-            if ($postInstallCallback) {
-                $postInstallCallback($targetPath);
-            }
-            return;
-        }
-
-        $directory = dirname($targetPath);
-        if (!$this->files->isDirectory($directory)) {
-            $this->files->makeDirectory($directory, 0755, true);
-        }
-
-        $content = $this->files->get($stubPath);
-
-        foreach ($replacements as $search => $replace) {
-            $content = str_replace($search, $replace, $content);
-        }
-
-        $this->files->put($targetPath, $content);
-
-        if ($postInstallCallback) {
-            $postInstallCallback($targetPath);
-        }
+        $this->installStubPublisher->publish(
+            stubPath: $stubPath,
+            targetPath: $targetPath,
+            force: $this->force,
+            autoForce: $autoForce,
+            replacements: $replacements,
+            postInstallCallback: $postInstallCallback
+        );
     }
 
     protected function resolveUserModelImport(): string
     {
         // Check if the app has a custom User model location
         $authConfig = \config('auth.providers.users.model', 'App\\Models\\User');
-        return $authConfig;
+
+        return \is_string($authConfig) && $authConfig !== ''
+            ? $authConfig
+            : 'App\\Models\\User';
     }
 
     protected function resolveUserModelClass(): string

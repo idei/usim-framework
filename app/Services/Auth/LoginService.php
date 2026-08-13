@@ -14,6 +14,28 @@ class LoginService
     ) {
     }
 
+    /**
+     * @return array{
+     *     status: 'error',
+     *     message: string,
+     *     errors: array<string, list<string>>
+     * }|array{
+     *     status: 'success',
+     *     message: string,
+     *     data: array{
+     *         user: array{
+     *             id: int,
+     *             name: string,
+     *             email: string,
+     *             roles: list<string>,
+     *             permissions: list<string>
+     *         },
+     *         token: string,
+     *         remember: bool
+     *     },
+     *     user: User
+     * }
+     */
     public function login(string $email, string $password, bool $remember = false): array
     {
         $validator = Validator::make([
@@ -46,7 +68,9 @@ class LoginService
 
         $token = $this->authSessionService->issueToken($user, $remember);
 
+        /** @var list<string> $permissions */
         $permissions = $user->getAllPermissions()->pluck('name')->toArray();
+        /** @var list<string> $roles */
         $roles = $user->getRoleNames()->toArray();
 
         return [

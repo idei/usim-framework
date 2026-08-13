@@ -15,7 +15,15 @@ class PasswordService
      * Send password reset link
      *
      * @param string $email
-     * @return array Response array with status, message, and errors
+        * @return array{
+        *     status: 'error',
+        *     message: string,
+        *     errors: array<string, list<string>>
+        * }|array{
+        *     status: 'success',
+        *     data: null,
+        *     message: string
+        * }
      */
     public function sendResetLink(string $email): array
     {
@@ -66,7 +74,15 @@ class PasswordService
      * @param string $email
      * @param string $password
      * @param string $passwordConfirmation
-     * @return array Response array with status, message, and errors
+     * @return array{
+     *     status: 'error',
+     *     message: string,
+     *     errors: array<string, list<string>>
+     * }|array{
+     *     status: 'success',
+     *     data: null,
+     *     message: string
+     * }
      */
     public function resetPassword(
         string $token,
@@ -122,7 +138,7 @@ class PasswordService
         return [
             'status' => 'error',
             'message' => t('service.auth.password.reset_failed'),
-            'errors' => ['email' => [__($status)]],
+            'errors' => ['email' => [__(is_string($status) ? $status : null)]],
         ];
     }
 }

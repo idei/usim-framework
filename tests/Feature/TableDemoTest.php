@@ -1,12 +1,13 @@
 <?php
 
 use App\UI\Screens\Demo\TableDemo;
+use App\Models\Movie;
 use Database\Seeders\GenreSeeder;
 use Database\Seeders\MovieSeeder;
 
 const MOVIES_TOTAL = 17;
-const MOVIES_PER_PAGE = 10;
-const MOVIES_TOTAL_PAGES = 2;
+const MOVIES_PER_PAGE = 7;
+const MOVIES_TOTAL_PAGES = 3;
 
 function firstTableRowComponent(array $payload, int $rowIndex = 0): array
 {
@@ -30,7 +31,8 @@ function firstTableRowComponent(array $payload, int $rowIndex = 0): array
     throw new RuntimeException("Table row {$rowIndex} not found in payload.");
 }
 
-beforeEach(/** @param Tests\TestCase $this */ function () {
+beforeEach(function () {
+    /** @var \Tests\TestCase $this */
     $this->seed([GenreSeeder::class, MovieSeeder::class]);
 });
 
@@ -106,17 +108,21 @@ it('configures row click actions using the table name and model id', function ()
 });
 
 it('handles movie row click through the table name convention', function () {
+    /** @var \Tests\TestCase $this */
     $response = getScreenJson($this, TableDemo::class, ['reset' => true]);
     $response->assertOk();
 
     $payload = $response->json();
     $firstRow = firstTableRowComponent($payload, 0);
     $movieId = $firstRow['parameters']['model_id'] ?? null;
-    $storageKey = config('ui-services.app_id');
+    $storageKey = config('usim.front_store_key', 'my-app');
     $storage = $payload['storage'][$storageKey] ?? null;
 
     expect($movieId)->toBeInt();
     expect($storage)->toBeString();
+
+    $movieTitle = Movie::query()->findOrFail($movieId)->title;
+    expect($movieTitle)->toBeString()->not->toBe('');
 
     $eventResponse = $this->postJson('/api/ui-event', [
         'component_id' => $firstRow['_json_key'],
@@ -128,6 +134,6 @@ it('handles movie row click through the table name convention', function () {
 
     $eventResponse->assertOk();
     expect($eventResponse->json('toast.message'))->toBe(
-        t('screen.demo.table_demo.row_clicked_toast', ['id' => $movieId])
+        t('screen.demo.table_demo.row_clicked_toast', ['name' => t($movieTitle)])
     );
 });

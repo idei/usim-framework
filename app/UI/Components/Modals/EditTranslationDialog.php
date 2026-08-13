@@ -6,16 +6,57 @@ use Idei\Usim\Enums\JustifyContent;
 use Idei\Usim\Enums\LayoutType;
 use Idei\Usim\UI;
 use Idei\Usim\UIChangesCollector;
+use Idei\Usim\ValueObjects\Size;
+use Idei\Usim\ValueObjects\Spacing;
 
 class EditTranslationDialog
 {
-    public static function open(...$params): void
-    {
+    /**
+     * @param string $key
+     * @param string $group
+     * @param string $fallbackLanguageCode
+     * @param string|null $selectedLanguageCode
+     * @param string $fallbackText
+     * @param string $selectedText
+     * @param bool $fallbackNeedsReview
+     * @param bool $selectedNeedsReview
+     * @param string $submitAction
+     * @param string|null $cancelAction
+     * @param int|null $callerServiceId
+     */
+    public static function open(
+        string $key,
+        string $group,
+        string $fallbackLanguageCode,
+        ?string $selectedLanguageCode = null,
+        string $fallbackText = '',
+        string $selectedText = '',
+        bool $fallbackNeedsReview = false,
+        bool $selectedNeedsReview = false,
+        string $submitAction = 'submit_update_translation',
+        ?string $cancelAction = 'close_modal',
+        ?int $callerServiceId = null
+    ): void {
         $dialog = new self();
-        $format = $dialog->getUI(...$params);
+        $format = $dialog->getUI(
+            $key,
+            $group,
+            $fallbackLanguageCode,
+            $selectedLanguageCode,
+            $fallbackText,
+            $selectedText,
+            $fallbackNeedsReview,
+            $selectedNeedsReview,
+            $submitAction,
+            $cancelAction,
+            $callerServiceId
+        );
         app(UIChangesCollector::class)->add($format);
     }
 
+    /**
+     * @return array<int, array<string, mixed>>
+     */
     public function getUI(
         string $key,
         string $group,
@@ -33,7 +74,7 @@ class EditTranslationDialog
             ->parent('modal')
             ->shadow(false)
             ->plain()
-            ->padding('20px');
+            ->padding(Spacing::px(20));
 
         $container->add(
             UI::label('translation_dialog_title')
@@ -63,7 +104,7 @@ class EditTranslationDialog
                 ->placeholder('Enter fallback translation')
                 ->value($fallbackText)
                 ->autocomplete('off')
-                ->width('100%')
+                ->width(Size::full())
         );
 
         $container->add(
@@ -79,7 +120,7 @@ class EditTranslationDialog
                     ->placeholder('Enter selected language translation')
                     ->value($selectedText)
                     ->autocomplete('off')
-                    ->width('100%')
+                    ->width(Size::full())
             );
 
             $container->add(
@@ -94,8 +135,8 @@ class EditTranslationDialog
             ->justifyContent(JustifyContent::SPACE_BETWEEN)
             ->shadow(false)
             ->plain()
-            ->gap('10px')
-            ->padding('10px 0 0 0');
+            ->gap(Spacing::px(10))
+            ->padding(Spacing::each(Spacing::px(10)));
 
         if ($cancelAction) {
             $buttons->add(

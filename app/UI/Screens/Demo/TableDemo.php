@@ -11,6 +11,8 @@ use Idei\Usim\Enums\LayoutType;
 use Idei\Usim\Enums\SelectionMode;
 use Idei\Usim\Screen;
 use Idei\Usim\UI;
+use Idei\Usim\ValueObjects\Size;
+use Idei\Usim\ValueObjects\Spacing;
 use Override;
 
 class TableDemo extends Screen
@@ -22,7 +24,7 @@ class TableDemo extends Screen
     {
         $container->plain()
             ->centerHorizontal()
-            ->gap('5px');
+            ->gap(Spacing::px(5));
 
         $label = UI::label()
             ->text(t('screen.demo.table_demo.title'))
@@ -32,14 +34,15 @@ class TableDemo extends Screen
             ->title(t('screen.demo.table_demo.table_title'))
             ->sortedBy('title')
             ->pagination(7)
-            ->dataModel(MovieTableModel::class)
-            ->bodyOverflowX('hidden')
-            ->bodyOverflowY('auto')
-            ->selectionMode(SelectionMode::SINGLE)
-            ->align('center');
+            ->dataModel(MovieTableModel::class);
+
+        $table->bodyOverflowX('hidden');
+        $table->bodyOverflowY('auto');
+        $table->selectionMode(SelectionMode::SINGLE);
+        $table->align('center');
 
         $container
-            ->maxWidth($table->width())
+            ->maxWidth($table->getWidth())
             ->add($label)
             ->add($this->buildToolbar())
             ->add($table);
@@ -57,11 +60,11 @@ class TableDemo extends Screen
             ->layout(LayoutType::HORIZONTAL)
             ->fullWidth()
             ->shadow(0)
-            ->gap("12px");
+            ->gap(Spacing::px(16));
 
         $search = UI::input('search_movies')
             ->placeholder(t('screen.demo.table_demo.search_placeholder'))
-            ->width('300px')
+            ->width(Size::px(300))
             ->autocomplete('off')
             ->onInput('search_input_typed', [])
             ->debounce(500);
@@ -70,10 +73,13 @@ class TableDemo extends Screen
         return $toolbar;
     }
 
+    /**
+     * @param array<string, mixed> $params
+     */
     public function onMoviesTableColumnClicked(array $params): void
     {
         $column = $params['sort_by'] ?? null;
-        if (!$column) {
+        if (!is_string($column) || $column === '') {
             return;
         }
 
@@ -81,22 +87,36 @@ class TableDemo extends Screen
         $this->movies_table->page(1);
     }
 
+    /**
+     * @param array<string, mixed> $params
+     */
     public function onSearchInputTyped(array $params): void
     {
-        $value = (string) ($params['value'] ?? '');
+        $raw = $params['value'] ?? null;
+        $value = is_string($raw) ? $raw : '';
         $this->movies_table->setSearchTerm($value);
     }
 
+    /**
+     * @param array<string, mixed> $params
+     */
     public function onChangePage(array $params): void
     {
-        $page = $params['page'] ?? 1;
+        $rawPage = $params['page'] ?? 1;
+        $page = is_int($rawPage) ? $rawPage : 1;
         $this->movies_table->page($page);
     }
 
+    /**
+     * @param array<string, mixed> $params
+     */
     public function onMoviesTableRowClicked(array $params): void
     {
         $modelId = $params['model_id'] ?? null;
         if ($modelId === null || $modelId === '') {
+            return;
+        }
+        if (!is_int($modelId) && !is_string($modelId)) {
             return;
         }
 
@@ -112,9 +132,12 @@ class TableDemo extends Screen
             return;
         }
 
+        /** @var \App\Models\Movie $movie */
         $movie = app(MovieListingService::class)->findById($movieId);
 
-        $this->toast(t($movie->title));
+        $this->toast(t('screen.demo.table_demo.row_clicked_toast', [
+            'name' => t($movie->title),
+        ]));
     }
 
 }

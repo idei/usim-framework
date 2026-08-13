@@ -2,32 +2,28 @@
 
 namespace Idei\Usim;
 
-use Illuminate\Support\ServiceProvider;
-use Idei\Usim\Support\UIIdGenerator;
-use Illuminate\Contracts\Events\Dispatcher;
-
-use Idei\Usim\UIChangesCollector;
+use Idei\Usim\Console\Commands\DiscoverScreensCommand;
+use Idei\Usim\Console\Commands\InstallCommand;
+use Idei\Usim\Events\UsimEvent;
+use Idei\Usim\Listeners\UsimEventDispatcher;
+use Idei\Usim\Models\UsimRole;
 use Idei\Usim\Support\Translation\TranslationDatasetQuery;
 use Idei\Usim\Support\Translation\TranslationKeyManager;
 use Idei\Usim\Support\Translation\TranslationValueResolver;
 use Idei\Usim\Support\TranslationService;
-use Idei\Usim\Events\UsimEvent;
-use Idei\Usim\Listeners\UsimEventDispatcher;
-use Idei\Usim\Console\Commands\DiscoverScreensCommand;
-use Idei\Usim\Console\Commands\InstallCommand;
-
+use Idei\Usim\Support\UIIdGenerator;
+use Idei\Usim\UIChangesCollector;
 use Illuminate\Console\Scheduling\Schedule;
+use Illuminate\Contracts\Events\Dispatcher;
+use Illuminate\Support\ServiceProvider;
 
 class UsimServiceProvider extends ServiceProvider
 {
     public function register(): void
     {
         $this->mergeConfigFrom(
-            __DIR__.'/../config/usim.php', 'ui-services'
-        );
-
-        $this->mergeConfigFrom(
-            __DIR__.'/../config/users.php', 'users'
+            __DIR__ . '/../config/usim.php',
+            'usim'
         );
 
         $this->app->scoped(UIChangesCollector::class, function ($app) {
@@ -50,13 +46,13 @@ class UsimServiceProvider extends ServiceProvider
 
     public function boot(Dispatcher $events): void
     {
-        $this->loadRoutesFrom(__DIR__.'/../routes/api.php');
-        $this->loadViewsFrom(__DIR__.'/../resources/views', 'usim');
-        $this->loadTranslationsFrom(__DIR__.'/../lang', 'usim');
+        $this->loadRoutesFrom(__DIR__ . '/../routes/api.php');
+        $this->loadViewsFrom(__DIR__ . '/../resources/views', 'usim');
+        $this->loadTranslationsFrom(__DIR__ . '/../lang', 'usim');
 
         if ($this->app->runningInConsole()) {
             $this->publishes([
-                __DIR__.'/../resources/assets' => public_path('vendor/idei/usim'),
+                __DIR__ . '/../resources/assets' => public_path('vendor/idei/usim'),
             ], 'usim-assets');
         }
 
@@ -76,9 +72,13 @@ class UsimServiceProvider extends ServiceProvider
         }
 
         $this->publishes([
-            __DIR__.'/../config/usim.php' => config_path('ui-services.php'),
-            __DIR__.'/../config/users.php' => config_path('users.php'),
+            __DIR__ . '/../config/usim.php' => config_path('usim.php'),
         ], 'usim-config');
+
+        // Forzamos a Spatie a usar el modelo de Roles extendido de USIM
+        config([
+            'permission.models.role' => UsimRole::class,
+        ]);
 
     }
 }

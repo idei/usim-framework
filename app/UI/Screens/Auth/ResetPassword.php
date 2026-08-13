@@ -3,12 +3,14 @@
 namespace App\UI\Screens\Auth;
 
 use App\Services\Auth\PasswordService;
-use Idei\Usim\UI;
-use Idei\Usim\Enums\LayoutType;
-use Idei\Usim\Screen;
 use Idei\Usim\Components\Container;
 use Idei\Usim\Components\Input;
 use Idei\Usim\Components\Label;
+use Idei\Usim\Enums\LayoutType;
+use Idei\Usim\Screen;
+use Idei\Usim\UI;
+use Idei\Usim\ValueObjects\Size;
+use Idei\Usim\ValueObjects\Spacing;
 
 class ResetPassword extends Screen
 {
@@ -31,9 +33,9 @@ class ResetPassword extends Screen
             ->justifyContent('start')
             ->alignItems('center')
             ->plain()
-            ->padding(40)
-            ->paddingTop('80px')
-            ->minHeight('100vh');
+            ->padding(Spacing::px(40))
+            ->paddingTop(Spacing::px(80))
+            ->minHeight(Size::vh(100));
 
         // Icono superior
         $container->add(
@@ -68,12 +70,12 @@ class ResetPassword extends Screen
         $formCard = UI::container('reset_password_card')
             ->layout(LayoutType::VERTICAL)
             ->shadow(true)
-            ->maxWidth('600px')
-            ->width('100%')
+            ->maxWidth(Size::px(600))
+            ->width(Size::full())
             ->borderRadius('8px')
-            ->marginTop('30px')
-            ->padding(30)
-            ->gap('20px')
+            ->marginTop(Spacing::px(30))
+            ->padding(Spacing::px(30))
+            ->gap(Spacing::px(20))
             ->backgroundColor('white')
             ->customStyle('border-left: 5px solid #10b981; overflow: hidden;');
 
@@ -82,7 +84,7 @@ class ResetPassword extends Screen
                 ->text(t('screen.auth.reset_password.card_title'))
                 ->style('h3')
                 ->color('#1f2937')
-                ->marginBottom('5px')
+                ->marginBottom(Spacing::px(5))
         );
 
         $formCard->add(
@@ -90,15 +92,15 @@ class ResetPassword extends Screen
                 ->text(t('screen.auth.reset_password.instruction'))
                 ->style('p')
                 ->color('#6b7280')
-                ->marginBottom('15px')
+                ->marginBottom(Spacing::px(15))
         );
 
         // Hidden fields for token and email
         $formCard->add(
-             UI::input('reset_token')->type('hidden')->value($token ?? '')
+            UI::input('reset_token')->type('hidden')->value($token ?? '')
         );
         $formCard->add(
-             UI::input('reset_email')->type('hidden')->value($email ?? '')
+            UI::input('reset_email')->type('hidden')->value($email ?? '')
         );
 
         $formCard->add(
@@ -107,7 +109,7 @@ class ResetPassword extends Screen
                 ->type('password')
                 ->placeholder(t('screen.auth.reset_password.password.placeholder'))
                 ->required(true)
-                ->width('100%')
+                ->width(Size::full())
         );
 
         $formCard->add(
@@ -116,7 +118,7 @@ class ResetPassword extends Screen
                 ->type('password')
                 ->placeholder(t('screen.auth.reset_password.confirm.placeholder'))
                 ->required(true)
-                ->width('100%')
+                ->width(Size::full())
         );
 
         $formCard->add(
@@ -131,23 +133,29 @@ class ResetPassword extends Screen
                 ->label(t('screen.auth.reset_password.actions.submit'))
                 ->style('success')
                 ->action('reset_password')
-                ->marginTop('10px')
+                ->marginTop(Spacing::px(10))
         );
 
         $container->add($formCard);
     }
 
+    /** @param array<string, mixed> $params */
     public function onResetPassword(array $params): void
     {
-        $token = $params['reset_token'] ?? '';
-        $email = $params['reset_email'] ?? '';
-        $expires = (int) ($params['expires'] ?? request()->query('expires', 0));
-        $password = $params['password'] ?? '';
-        $passwordConfirmation = $params['password_confirmation'] ?? '';
+        $tokenRaw = $params['reset_token'] ?? '';
+        $token = is_scalar($tokenRaw) ? (string) $tokenRaw : '';
+        $emailRaw = $params['reset_email'] ?? '';
+        $email = is_scalar($emailRaw) ? (string) $emailRaw : '';
+        $expiresRaw = $params['expires'] ?? request()->query('expires', 0);
+        $expires = is_numeric($expiresRaw) ? (int) $expiresRaw : 0;
+        $passwordRaw = $params['password'] ?? '';
+        $password = is_scalar($passwordRaw) ? (string) $passwordRaw : '';
+        $passwordConfirmationRaw = $params['password_confirmation'] ?? '';
+        $passwordConfirmation = is_scalar($passwordConfirmationRaw) ? (string) $passwordConfirmationRaw : '';
 
         if (empty($token) || empty($email)) {
-             $this->showError(t('screen.auth.reset_password.errors.invalid_link'));
-             return;
+            $this->showError(t('screen.auth.reset_password.errors.invalid_link'));
+            return;
         }
 
         if ($expires > 0 && now()->timestamp > $expires) {
@@ -173,8 +181,8 @@ class ResetPassword extends Screen
                 passwordConfirmation: $passwordConfirmation
             );
 
-            $status = $response['status'] ?? 'error';
-            $message = $response['message'] ?? t('screen.auth.reset_password.errors.unknown');
+            $status = $response['status'];
+            $message = $response['message'];
 
             if ($status === 'success') {
                 $this->lbl_result
@@ -188,12 +196,10 @@ class ResetPassword extends Screen
                 $this->redirect('/auth/login');
             } else {
                 // Extract validation errors if any
-                if (isset($response['errors']) && is_array($response['errors'])) {
-                     $firstError = reset($response['errors'])[0] ?? $message;
-                     $this->showError($firstError);
-                } else {
-                    $this->showError($message);
-                }
+                $errors = $response['errors'] ?? [];
+                $firstErrorGroup = reset($errors);
+                $firstError = is_array($firstErrorGroup) ? ($firstErrorGroup[0] ?? $message) : $message;
+                $this->showError($firstError);
             }
 
         } catch (\Exception $e) {

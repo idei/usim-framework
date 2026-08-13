@@ -2,6 +2,10 @@
 
 namespace Idei\Usim\Components;
 
+use Idei\Usim\Concerns\HasMargin;
+use Idei\Usim\Concerns\HasSizing;
+use Idei\Usim\Contracts\Marginable;
+use Idei\Usim\Contracts\Sizeable;
 use Idei\Usim\Contracts\UIElement;
 use Idei\Usim\Support\UIIdGenerator;
 
@@ -10,13 +14,18 @@ use Idei\Usim\Support\UIIdGenerator;
  *
  * This class implements the common functionality for leaf nodes in the UI tree.
  * Leaf components cannot have children and represent atomic UI elements.
+ *
+ * @phpstan-consistent-constructor
  */
-abstract class UIComponent implements UIElement
+abstract class UIComponent implements UIElement, Sizeable, Marginable
 {
+    use HasSizing, HasMargin;
+
     protected int $id;
     protected string $type;
     protected ?string $name = null;
     protected int|string|null $parent = null;
+    /** @var array<string, mixed> */
     protected array $config = [];
 
     public function __construct(?string $name = null)
@@ -57,11 +66,17 @@ abstract class UIComponent implements UIElement
      */
     public static function deserialize(int $id, array $data): self
     {
+        /** @var static $component */
         $component = new static();
         $component->id = $id;
-        $component->type = $data['type'] ?? 'unknown';
-        $component->name = $data['name'] ?? null;
-        $component->parent = $data['parent'] ?? null;
+        $type = $data['type'] ?? null;
+        $component->type = is_string($type) ? $type : 'unknown';
+
+        $name = $data['name'] ?? null;
+        $component->name = is_string($name) ? $name : null;
+
+        $parent = $data['parent'] ?? null;
+        $component->parent = is_int($parent) || is_string($parent) ? $parent : null;
         $component->config = array_merge($component->config, $data);
 
         return $component;
@@ -82,6 +97,11 @@ abstract class UIComponent implements UIElement
         // No-op for leaf components
     }
 
+    public function config(string $key, mixed $value): static
+    {
+        return $this->setConfig($key, $value);
+    }
+
     public function toString(): string
     {
         return sprintf(
@@ -89,7 +109,7 @@ abstract class UIComponent implements UIElement
             ucfirst($this->type),
             $this->id,
             $this->name ?? 'null',
-            $this->parent !== null ? (string)$this->parent : 'null'
+            $this->parent !== null ? (string) $this->parent : 'null'
         );
     }
 
@@ -106,68 +126,27 @@ abstract class UIComponent implements UIElement
         // Buscar en el stack trace la primera clase que NO sea del namespace UI (Legacy o Package)
         foreach ($trace as $frame) {
             if (isset($frame['class'])) {
-                 // Skip internal classes from Legacy Framework (App/UI/Components)
-                 if (str_starts_with($frame['class'], 'App\\UI\\Components\\')) {
-                     continue;
-                 }
-                 // Skip internal classes from the package framework.
-                 if (str_starts_with($frame['class'], 'Idei\\Usim\\')) {
-                     continue;
-                 }
-                 // Skip Http Controllers
-                 if (str_starts_with($frame['class'], 'Idei\\Usim\\Http\\')) {
-                     continue;
-                 }
+                // Skip internal classes from Legacy Framework (App/UI/Components)
+                if (str_starts_with($frame['class'], 'App\\UI\\Components\\')) {
+                    continue;
+                }
+                // Skip internal classes from the package framework.
+                if (str_starts_with($frame['class'], 'Idei\\Usim\\')) {
+                    continue;
+                }
+                // Skip Http Controllers
+                if (str_starts_with($frame['class'], 'Idei\\Usim\\Http\\')) {
+                    continue;
+                }
 
-                 // Found the consumer service!
-                 return $frame['class'];
+                // Found the consumer service!
+                return $frame['class'];
             }
         }
 
         return 'default';
     }
 
-    /**
-     * Genera ID determinístico basado en contexto + nombre
-     * Siempre retorna el mismo ID para el mismo contexto + nombre
-     *
-     * @param string $context Nombre completo de la clase invocante
-     * @param string $name Nombre del componente
-     * @return int ID determinístico
-     */
-    private function generateDeterministicId(string $context, string $name): int
-    {
-        // Obtener offset del contexto (ej: 56150000)
-        $offset = $this->getContextOffset($context);
-
-        // Hash del nombre (0-9999)
-        $hash = abs(crc32($name)) % 9999;
-
-        // ID final: offset + hash + 1
-        return $offset + $hash + 1;
-    }
-
-    /**
-     * Obtener offset del contexto (mismo cálculo que UIIdGenerator)
-     *
-     * @param string $context Nombre completo de la clase
-     * @return int Offset único para el contexto
-     */
-    private function getContextOffset(string $context): int
-    {
-        if ($context === 'default') {
-            return 0;
-        }
-
-        // Generar un hash numérico único del nombre de la clase usando CRC32
-        $hash = crc32($context);
-
-        // Convertir a positivo si es negativo y escalar al rango deseado
-        // Múltiplos de 10000, máximo 9999 contextos diferentes
-        $offset = (abs($hash) % 9999) * 10000;
-
-        return $offset;
-    }
 
     /**
      * Extract the component type from the class name
@@ -183,7 +162,7 @@ abstract class UIComponent implements UIElement
      * Get the default configuration for this component type
      * Must be implemented by each concrete component
      *
-     * @return array Default configuration values
+     * @return array<string, mixed> Default configuration values
      */
     abstract protected function getDefaultConfig(): array;
 
@@ -218,7 +197,7 @@ abstract class UIComponent implements UIElement
      */
     public function isVisible(): bool
     {
-        return $this->config['visible'] ?? true;
+        return (bool) ($this->config['visible'] ?? true);
     }
 
     /**
@@ -318,9 +297,8 @@ abstract class UIComponent implements UIElement
      *
      * For leaf components, returns the configuration wrapped in the component ID
      * Null values are filtered out from the configuration
-     */
-    /**
-     * {@inheritDoc}
+     *
+     * @return array<int, array<string, mixed>>
      */
     public function toJson(?int $order = null): array
     {
@@ -350,7 +328,7 @@ abstract class UIComponent implements UIElement
      * Get list of config keys to exclude from JSON output
      * Override in subclasses to customize
      *
-     * @return array List of keys to exclude
+     * @return list<string> List of keys to exclude
      */
     protected function getExcludedJsonKeys(): array
     {
@@ -361,7 +339,7 @@ abstract class UIComponent implements UIElement
      * Get the component configuration (without ID wrapper)
      * Useful for internal operations
      *
-     * @return array The configuration array
+     * @return array<string, mixed> The configuration array
      */
     protected function getConfig(): array
     {
@@ -369,11 +347,7 @@ abstract class UIComponent implements UIElement
     }
 
     /**
-     * Set a configuration value
-     *
-     * @param string $key The configuration key
-     * @param mixed $value The configuration value
-     * @return static For method chaining
+     * {@inheritDoc}
      */
     protected function setConfig(string $key, mixed $value): static
     {
@@ -400,164 +374,11 @@ abstract class UIComponent implements UIElement
      * Método de utilidad para debugging - obtiene información del contexto
      *
      * @param string $context Nombre del contexto
-     * @return array Información del contexto (offset, contador, etc)
+     * @return array<string, mixed> Información del contexto (offset, contador, etc)
      */
     public static function getContextInfo(string $context): array
     {
         return UIIdGenerator::getContextInfo($context);
-    }
-
-    // ========================================================================
-    // MARGIN METHODS
-    // ========================================================================
-
-    /**
-     * Set margin (all sides)
-     *
-     * @param string $margin Margin value
-     * @return static For method chaining
-     */
-    public function margin(string $margin): static
-    {
-        return $this->setConfig('margin', $margin);
-    }
-
-    /**
-     * Set left margin
-     *
-     * @param string $margin Margin value
-     * @return static For method chaining
-     */
-    public function marginLeft(string $margin): static
-    {
-        return $this->setConfig('margin_left', $margin);
-    }
-
-    /**
-     * Set right margin
-     *
-     * @param string $margin Margin value
-     * @return static For method chaining
-     */
-    public function marginRight(string $margin): static
-    {
-        return $this->setConfig('margin_right', $margin);
-    }
-
-    /**
-     * Set top margin
-     *
-     * @param string $margin Margin value
-     * @return static For method chaining
-     */
-    public function marginTop(string $margin): static
-    {
-        return $this->setConfig('margin_top', $margin);
-    }
-
-    /**
-     * Set bottom margin
-     *
-     * @param string $margin Margin value
-     * @return static For method chaining
-     */
-    public function marginBottom(string $margin): static
-    {
-        return $this->setConfig('margin_bottom', $margin);
-    }
-
-    // ========================================================================
-    // SIZING METHODS
-    // ========================================================================
-
-    /**
-     * Set width
-     *
-     * @param string $width Width value (px, %, vh, auto, etc)
-     * @return static|string|null For method chaining or current value if called without arguments
-     */
-    public function width(string | null $width = null): static | string | null
-    {
-        if ($width === null) {
-            return $this->config['width'] ?? null;
-        }
-
-        return $this->setConfig('width', $width);
-    }
-
-    /**
-     * Set height
-     *
-     * @param string|null $height Height value (px, %, vh, auto, etc). Omit to read current value.
-     * @return static|string|null
-     */
-    public function height(string | null $height = null): static | string | null
-    {
-        if ($height === null) {
-            return $this->config['height'] ?? null;
-        }
-
-        return $this->setConfig('height', $height);
-    }
-
-    /**
-     * Set maximum width
-     *
-     * @param string|null $width Max width value (px, %, auto, etc). Omit to read current value.
-     * @return static|string|null
-     */
-    public function maxWidth(string | null $width = null): static | string | null
-    {
-        if ($width === null) {
-            return $this->config['max_width'] ?? null;
-        }
-
-        return $this->setConfig('max_width', $width);
-    }
-
-    /**
-     * Set maximum height
-     *
-     * @param string|null $height Max height value (px, %, auto, etc). Omit to read current value.
-     * @return static|string|null
-     */
-    public function maxHeight(string | null $height = null): static | string | null
-    {
-        if ($height === null) {
-            return $this->config['max_height'] ?? null;
-        }
-
-        return $this->setConfig('max_height', $height);
-    }
-
-    /**
-     * Set minimum width
-     *
-     * @param string|null $width Min width value (px, %, auto, etc). Omit to read current value.
-     * @return static|string|null
-     */
-    public function minWidth(string | null $width = null): static | string | null
-    {
-        if ($width === null) {
-            return $this->config['min_width'] ?? null;
-        }
-
-        return $this->setConfig('min_width', $width);
-    }
-
-    /**
-     * Set minimum height
-     *
-     * @param string|null $height Min height value (px, %, auto, etc). Omit to read current value.
-     * @return static|string|null
-     */
-    public function minHeight(string | null $height = null): static | string | null
-    {
-        if ($height === null) {
-            return $this->config['min_height'] ?? null;
-        }
-
-        return $this->setConfig('min_height', $height);
     }
 
     // ========================================================================

@@ -1,11 +1,14 @@
 <?php
 namespace App\UI\Screens\Demo;
 
-use Idei\Usim\UI;
-use Idei\Usim\Screen;
 use Idei\Usim\Components\Container;
 use Idei\Usim\Components\Input;
 use Idei\Usim\Components\Label;
+use Idei\Usim\Screen;
+use Idei\Usim\UI;
+use Idei\Usim\ValueObjects\Size;
+use Idei\Usim\ValueObjects\Spacing;
+
 
 /**
  * Input Demo Service
@@ -29,16 +32,16 @@ class InputDemo extends Screen
     {
         $container
             ->title(t('screen.demo.input_demo.title'))
-            ->maxWidth('500px')
+            ->maxWidth(Size::px(500))
             ->centerHorizontal()
             ->shadow(2)
-            ->padding('30px');
+            ->padding(Spacing::px(30));
 
         $container->add(
             UI::label('lbl_instruction')
                 ->text(t('screen.demo.input_demo.instruction'))
                 ->style('info')
-                ->width('100%')
+                ->width(Size::full())
         );
 
         $container->add(
@@ -48,7 +51,7 @@ class InputDemo extends Screen
                 ->value('')
                 ->required(true)
                 ->type('text')
-                ->width('100%')
+                ->width(Size::full())
         );
 
         $container->add(
@@ -62,7 +65,7 @@ class InputDemo extends Screen
             UI::label('lbl_result')
                 ->text(t('screen.demo.input_demo.result.initial'))
                 ->style('default')
-                ->width('100%')
+                ->width(Size::full())
         );
     }
 
@@ -80,12 +83,12 @@ class InputDemo extends Screen
      * Validates the input and shows errors using the error() method with tooltip.
      * No return needed - Screen handles diff calculation and response.
      *
-     * @param array $params Event parameters (should include 'input_text' from input)
+     * @param array<string, mixed> $params Event parameters (should include 'input_text' from input)
      * @return void
      */
     public function onGetValue(array $params): void
     {
-        $inputValue = trim($params['input_text'] ?? '');
+        $inputValue = is_string($params['input_text'] ?? null) ? trim($params['input_text']) : '';
 
         // Clear previous error
         $this->input_text->error(null);

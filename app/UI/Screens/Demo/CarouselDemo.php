@@ -2,11 +2,13 @@
 
 namespace App\UI\Screens\Demo;
 
-use Idei\Usim\Screen;
 use Idei\Usim\Components\Carousel;
 use Idei\Usim\Components\Container;
 use Idei\Usim\Enums\LayoutType;
+use Idei\Usim\Screen;
 use Idei\Usim\UI;
+use Idei\Usim\ValueObjects\Size;
+use Idei\Usim\ValueObjects\Spacing;
 
 class CarouselDemo extends Screen
 {
@@ -28,10 +30,10 @@ class CarouselDemo extends Screen
 
         $container
             ->title(t('screen.demo.carousel_demo.title'))
-            ->maxWidth('980px')
+            ->maxWidth(Size::px(980))
             ->centerHorizontal()
             ->plain()
-            ->padding('24px');
+            ->padding(Spacing::px(24));
 
         $container->add(
             UI::label('carousel_demo_intro')
@@ -65,7 +67,7 @@ class CarouselDemo extends Screen
             UI::label('auto_title')
                 ->text(t('screen.demo.carousel_demo.auto_mode'))
                 ->style('primary')
-                ->marginTop('16px')
+                ->marginTop(Spacing::px(16))
         );
 
         $container->add(
@@ -86,8 +88,8 @@ class CarouselDemo extends Screen
 
         $buttons = UI::container('carousel_demo_buttons')
             ->layout(LayoutType::HORIZONTAL)
-            ->gap('10px')
-            ->marginTop('16px')
+            ->gap(Spacing::px(10))
+            ->marginTop(Spacing::px(16))
             ->shadow(0);
 
         $buttons->add(
@@ -107,6 +109,9 @@ class CarouselDemo extends Screen
         $container->add($buttons);
     }
 
+    /**
+     * @param array<string, mixed> $params
+     */
     public function onCarouselNext(array $params): void
     {
         $carouselName = $params['carousel_name'] ?? 'manual_carousel';
@@ -124,6 +129,9 @@ class CarouselDemo extends Screen
             ->currentMedia($items[$this->store_manual_index]);
     }
 
+    /**
+     * @param array<string, mixed> $params
+     */
     public function onCarouselPrev(array $params): void
     {
         $carouselName = $params['carousel_name'] ?? 'manual_carousel';
@@ -141,6 +149,9 @@ class CarouselDemo extends Screen
             ->currentMedia($items[$this->store_manual_index]);
     }
 
+    /**
+     * @param array<string, mixed> $params
+     */
     public function onCarouselTick(array $params): void
     {
         $carouselName = $params['carousel_name'] ?? 'auto_carousel';
@@ -154,7 +165,7 @@ class CarouselDemo extends Screen
         $this->store_auto_index = $this->normalizeIndex($this->store_auto_index + 1, $count);
 
         $next = $items[$this->store_auto_index];
-        $nextTimeout = (int) ($next['duration_ms'] ?? 5000);
+        $nextTimeout = (int) $next['duration_ms'];
         $this->store_auto_timeout_ms = max(1000, $nextTimeout);
 
         $this->auto_carousel
@@ -164,12 +175,18 @@ class CarouselDemo extends Screen
             ->knownCount(null);
     }
 
+    /**
+     * @param array<string, mixed> $params
+     */
     public function onToggleAutoFullscreen(array $params): void
     {
         $this->store_auto_fullscreen = !$this->store_auto_fullscreen;
         $this->auto_carousel->fullscreen($this->store_auto_fullscreen);
     }
 
+    /**
+     * @param array<string, mixed> $params
+     */
     public function onResetCarouselDemo(array $params): void
     {
         $this->store_manual_index = 0;
@@ -200,6 +217,9 @@ class CarouselDemo extends Screen
         return (($index % $count) + $count) % $count;
     }
 
+    /**
+     * @return list<array{id: string, kind: string, url: string, mime: string, title: string}>
+     */
     private function manualItems(): array
     {
         return [
@@ -227,6 +247,9 @@ class CarouselDemo extends Screen
         ];
     }
 
+    /**
+     * @return list<array{id: string, kind: string, url: string, mime: string, title: string, duration_ms: int}>
+     */
     private function autoItems(): array
     {
         return [

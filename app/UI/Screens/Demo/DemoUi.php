@@ -1,12 +1,15 @@
 <?php
 namespace App\UI\Screens\Demo;
 
-use Idei\Usim\Screen;
 use Idei\Usim\Components\Button;
-use Idei\Usim\Components\Label;
 use Idei\Usim\Components\Container;
+use Idei\Usim\Components\Label;
 use Idei\Usim\Enums\LayoutType;
+use Idei\Usim\Screen;
 use Idei\Usim\UI;
+use Idei\Usim\ValueObjects\Size;
+use Idei\Usim\ValueObjects\Spacing;
+
 
 class DemoUi extends Screen
 {
@@ -20,15 +23,15 @@ class DemoUi extends Screen
     {
         $container
             ->title(t('screen.demo.demo_ui.title'))
-            ->maxWidth('600px')
+            ->maxWidth(Size::px(600))
             ->centerHorizontal()
             ->rounded(false)
-            ->padding('10px');
+            ->padding(Spacing::px(10));
 
         $this->buildUIElements($container);
     }
 
-    private function buildUIElements($container): void
+    private function buildUIElements(Container $container): void
     {
         $container->add(
             UI::button('reset_button')
@@ -63,7 +66,7 @@ class DemoUi extends Screen
             ->layout(LayoutType::HORIZONTAL)
             ->shadow(false)
             ->centerContent()
-            ->gap("10px");
+            ->gap(Spacing::px(10));
 
         $counterContainer->add(
             UI::button('btn_decrement')
@@ -75,7 +78,7 @@ class DemoUi extends Screen
 
         $counterContainer->add(
             UI::label('lbl_counter')
-                ->text($this->store_counter)
+                ->text((string) $this->store_counter)
                 ->style('primary')
         );
 
@@ -109,11 +112,11 @@ class DemoUi extends Screen
             ->rounded(false)
             ->gridTemplateColumns('repeat(auto-fill, minmax(150px, 150px))')
             ->gridTemplateRows('repeat(auto-fill, minmax(40px, 40px))')
-            ->minHeight('100px')
+            ->minHeight(Size::px(100))
             ->justifyContent('start')
             ->fullWidth()
-            ->padding('5px')
-            ->gap('5px');
+            ->padding(Spacing::px(5))
+            ->gap(Spacing::px(5));
 
         $container->add($this->new_components_container);
     }
@@ -123,6 +126,9 @@ class DemoUi extends Screen
         $this->updateCounterLabel($this->lbl_counter, $this->store_counter);
     }
 
+    /**
+     * @param array<string, mixed> $params
+     */
     public function onResetState(array $params): void
     {
         $this->store_counter = 1000;
@@ -134,6 +140,9 @@ class DemoUi extends Screen
         $this->updateCounterLabel($this->lbl_counter, $this->store_counter);
     }
 
+    /**
+     * @param array<string, mixed> $params
+     */
     public function onTestAction(array $params): void
     {
         $this->lbl_welcome
@@ -141,11 +150,17 @@ class DemoUi extends Screen
             ->style('success');
     }
 
+    /**
+     * @param array<string, mixed> $params
+     */
     public function onIncrementCounter(array $params): void
     {
         $this->updateCounterLabel($this->lbl_counter, ++$this->store_counter);
     }
 
+    /**
+     * @param array<string, mixed> $params
+     */
     public function onDecrementCounter(array $params): void
     {
         $this->updateCounterLabel($this->lbl_counter, --$this->store_counter);
@@ -167,6 +182,9 @@ class DemoUi extends Screen
         return $labelBuilder;
     }
 
+    /**
+     * @param array<string, mixed> $params
+     */
     public function onAddNewComponent(array $params): void
     {
         $added = false;
@@ -187,9 +205,17 @@ class DemoUi extends Screen
         }
     }
 
+    /**
+     * @param array<string, mixed> $params
+     */
     public function onNewButtonAction(array $params): void
     {
-        $button = $this->findRootComponentAs($params['id'] ?? null, Button::class);
+        $id = $params['id'] ?? null;
+        if (!is_int($id) && !is_string($id)) {
+            return;
+        }
+
+        $button = $this->findRootComponentAs($id, Button::class);
 
         if (!$button) {
             return;
