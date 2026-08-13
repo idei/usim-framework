@@ -11,6 +11,18 @@ use Throwable;
 class InstallMigrationStatusChecker
 {
     /**
+     * Lightweight pre-install check: only verifies the database is reachable.
+     * Unlike assess(), it does not require USIM-specific tables/migrations,
+     * since those are only published later during the install run.
+     *
+     * @return array{exists:bool,issue:?string}
+     */
+    public function assessConnectivity(): array
+    {
+        return $this->assessDatabaseExistence();
+    }
+
+    /**
      * @return array{is_ready:bool,database_exists:bool,database_issue:?string,missing_tables:array<int,string>,missing_columns:array<string,array<int,string>>,missing_migrations:array<int,string>,notes:array<int,string>}
      */
     public function assess(): array

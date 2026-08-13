@@ -197,7 +197,7 @@ class InstallCommand extends Command
                 $this->installEnvironmentManager->assertNotProductionEnvironment();
             },
             checkDatabaseReadiness: function (): void {
-                $this->assertDatabaseMigrationReadyForInstall();
+                $this->assertDatabaseReachableForInstall();
             },
             publishConfig: function (): void {
                 $this->installScaffoldingManager->publishConfig(
@@ -339,6 +339,18 @@ class InstallCommand extends Command
     protected function ensureRequiredTables(): void
     {
         $this->assertDatabaseMigrationReadyForInstall();
+    }
+
+    protected function assertDatabaseReachableForInstall(): void
+    {
+        $connectivity = $this->installMigrationStatusChecker->assessConnectivity();
+
+        if (!$connectivity['exists']) {
+            $databaseIssue = $connectivity['issue'] ?? 'Database does not exist or is not reachable with current .env settings.';
+            throw new MissingDatabaseException(
+                $databaseIssue . ' Create/configure the database before continuing with `php artisan usim:install`.'
+            );
+        }
     }
 
     protected function assertDatabaseMigrationReadyForInstall(): void
@@ -523,7 +535,7 @@ class InstallCommand extends Command
             : $context['screensPath'];
 
         $this->publishStub(
-            'screens/' . $stub,
+            $this->stubsPath('screens/' . $stub),
             $targetDir . '/' . $fileName,
             false,
             [
@@ -543,7 +555,7 @@ class InstallCommand extends Command
             : $context['componentsPath'];
 
         $this->publishStub(
-            'components/' . $stub,
+            $this->stubsPath('components/' . $stub),
             $targetDir . '/' . $fileName,
             false,
             [

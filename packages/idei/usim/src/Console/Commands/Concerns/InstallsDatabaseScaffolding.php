@@ -38,6 +38,9 @@ trait InstallsDatabaseScaffolding
         } else {
             $this->line('  <fg=blue>→</> Spatie Permission migrations already exist');
         }
+
+        $this->call('migrate', ['--force' => true]);
+        $this->line('  <fg=green>✓</> Migrations executed');
     }
 
     protected function installStubMigration(string $migrationName, int $offsetSeconds, bool $autoForce = true): void
