@@ -159,7 +159,7 @@ class Button extends UIComponent
 
     public function getStatus(): bool
     {
-        return $this->config['status'];
+        return (bool) $this->config['status'];
     }
 
     public function toggle(): self
