@@ -356,11 +356,14 @@ class InstallMigrationStatusChecker
         $criticalSignatures = [
             'create_permission_tables',
             'create_usim_languages_table',
+            'create_usim_text_keys_table',
+            'create_usim_text_values_table',
+            'create_usim_role_settings_table'
         ];
 
         $executed = DB::table('migrations')
             ->pluck('migration')
-            ->filter(static fn ($name): bool => is_string($name) && $name !== '')
+            ->filter(static fn ($name): bool => \is_string($name) && $name !== '')
             ->map(static fn (string $name): string => trim($name))
             ->values()
             ->all();

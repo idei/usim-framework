@@ -13,6 +13,7 @@ trait InstallsDatabaseScaffolding
             ['name' => 'create_usim_languages_table', 'autoForce' => true],
             ['name' => 'create_usim_text_keys_table', 'autoForce' => true],
             ['name' => 'create_usim_text_values_table', 'autoForce' => true],
+            ['name' => 'create_usim_role_settings_table', 'autoForce' => true]
         ];
 
         foreach ($migrationStubs as $index => $migrationName) {

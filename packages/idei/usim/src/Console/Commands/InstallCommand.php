@@ -530,16 +530,31 @@ class InstallCommand extends Command
     protected function installScreen(string $stub, string $fileName, ?string $subDirectory = null): void
     {
         $context = $this->buildScaffoldingContext();
+        $screensPath = (string) $context['screensPath'];
+        $screensNamespace = (string) $context['screensNamespace'];
+        $componentsNamespace = (string) $context['componentsNamespace'];
+        $userModelImport = (string) $context['userModelImport'];
+        $userModelClass = (string) $context['userModelClass'];
+
         $targetDir = $subDirectory
-            ? $context['screensPath'] . '/' . $subDirectory
-            : $context['screensPath'];
+            ? $screensPath . '/' . $subDirectory
+            : $screensPath;
+        $targetFile = $targetDir . '/' . $fileName;
+
+        $namespace = $subDirectory
+            ? $screensNamespace . '\\' . str_replace('/', '\\', $subDirectory)
+            : $screensNamespace;
 
         $this->publishStub(
             $this->stubsPath('screens/' . $stub),
-            $targetDir . '/' . $fileName,
+            $targetFile,
             false,
             [
-                '{{ screensNamespace }}' => $context['screensNamespace'] . ($subDirectory ? "\\{$subDirectory}" : ''),
+                '{{ namespace }}' => $namespace,
+                '{{ screensNamespace }}' => $screensNamespace,
+                '{{ componentsNamespace }}' => $componentsNamespace,
+                '{{ userModel }}' => $userModelImport,
+                '{{ userModelClass }}' => $userModelClass,
             ]
         );
 
@@ -550,16 +565,31 @@ class InstallCommand extends Command
     protected function installComponent(string $stub, string $fileName, ?string $subDirectory = null): void
     {
         $context = $this->buildScaffoldingContext();
+        $componentsPath = (string) $context['componentsPath'];
+        $componentsNamespace = (string) $context['componentsNamespace'];
+        $screensNamespace = (string) $context['screensNamespace'];
+        $userModelImport = (string) $context['userModelImport'];
+        $userModelClass = (string) $context['userModelClass'];
+
         $targetDir = $subDirectory
-            ? $context['componentsPath'] . '/' . $subDirectory
-            : $context['componentsPath'];
+            ? $componentsPath . '/' . $subDirectory
+            : $componentsPath;
+        $targetFile = $targetDir . '/' . $fileName;
+
+        $namespace = $subDirectory
+            ? $componentsNamespace . '\\' . str_replace('/', '\\', $subDirectory)
+            : $componentsNamespace;
 
         $this->publishStub(
             $this->stubsPath('components/' . $stub),
-            $targetDir . '/' . $fileName,
+            $targetFile,
             false,
             [
-                '{{ componentsNamespace }}' => $context['componentsNamespace'] . ($subDirectory ? "\\{$subDirectory}" : ''),
+                '{{ namespace }}' => $namespace,
+                '{{ componentsNamespace }}' => $namespace,
+                '{{ screensNamespace }}' => $screensNamespace,
+                '{{ userModel }}' => $userModelImport,
+                '{{ userModelClass }}' => $userModelClass,
             ]
         );
 
