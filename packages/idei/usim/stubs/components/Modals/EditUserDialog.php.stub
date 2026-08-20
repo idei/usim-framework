@@ -1,22 +1,60 @@
 <?php
 
+// @usim: feature="admin", type="component"
+
 namespace {{ componentsNamespace }};
 
 use Idei\Usim\Enums\JustifyContent;
 use Idei\Usim\Enums\LayoutType;
 use Idei\Usim\UI;
 use Idei\Usim\UIChangesCollector;
+use Idei\Usim\ValueObjects\Spacing;
 
+/**
+ * Edit User Dialog Service
+ *
+ * Provides a modal dialog with user edit form
+ */
 class EditUserDialog
 {
-    public static function open(...$params): void
+
+    /**
+     * @param array{
+     *     id: int|string,
+     *     name: string,
+     *     email: string,
+     *     roles?: list<array{name?: string}>,
+     *     email_verified_at?: mixed
+     * }|null $user
+     */
+    public static function open(
+        string $submitAction = 'submit_update_user',
+        ?string $cancelAction = 'close_modal',
+        ?array $user = null,
+        ?int $callerServiceId = null
+    ): void
     {
         $dialog = new self();
-        $format = $dialog->getUI(...$params);
+        $format = $dialog->getUI($submitAction, $cancelAction, $user, $callerServiceId);
         $uiChanges = app(UIChangesCollector::class);
         $uiChanges->add($format);
     }
 
+    /**
+     * Build edit user dialog UI
+     *
+     * @param string $submitAction Action to call when form is submitted
+     * @param string|null $cancelAction Action to call when cancel is clicked
+     * @param array{
+     *     id: int|string,
+     *     name: string,
+     *     email: string,
+     *     roles?: list<array{name?: string}>,
+     *     email_verified_at?: mixed
+     * }|null $user
+     * @param int|null $callerServiceId Service ID that will receive callbacks
+     * @return array<int, array<string, mixed>> UI components for the modal
+     */
     public function getUI(
         string $submitAction = 'submit_update_user',
         ?string $cancelAction = 'close_modal',
@@ -25,94 +63,117 @@ class EditUserDialog
     ): array {
         $name = $user ? $user['name'] : '';
         $email = $user ? $user['email'] : '';
-        $role = $user ? ($user['roles'][0]['name'] ?? 'user') : 'user';
-        $emailVerified = $user ? $user['email_verified_at'] !== null : false;
+        $role = $user ? $user['roles'][0]['name'] ?? 'user' : 'user';
+        $emailVerified = $user
+            ? (array_key_exists('email_verified_at', $user) && $user['email_verified_at'] !== null)
+            : false;
 
-        $container = UI::container('register_dialog')
+        // Main container for the modal
+        $registerContainer = UI::container('edit_user_dialog')
             ->parent('modal')
             ->shadow(false)
             ->plain()
-            ->padding('20px');
+            ->padding(Spacing::px(20));
 
-        $container->add(
+        // Id input (hidden)
+        $registerContainer->add(
             UI::input('user_id')
                 ->type('hidden')
                 ->value($user ? $user['id'] : '')
         );
 
-        $container->add(
+        // Name input
+        $registerContainer->add(
             UI::input('name')
-                ->label(t('usim.common.full_name'))
-                ->placeholder(t('usim.common.placeholder.enter_full_name'))
+                ->label('Full Name')
+                ->placeholder('Enter your full name')
                 ->required(true)
                 ->value($name)
                 ->autocomplete('off')
         );
 
-        $container->add(
+        // Email input
+        $registerContainer->add(
             UI::input('email')
-                ->label(t('usim.common.email'))
-                ->placeholder(t('usim.auth.login.placeholder.email'))
+                ->label('Email')
+                ->placeholder('Enter your email')
                 ->required(true)
                 ->value($email)
                 ->autocomplete('off')
         );
 
-        $container->add(
+        // Role select
+        $registerContainer->add(
             UI::select('roles')
-                ->label(t('usim.common.role'))
+                ->label('Role')
                 ->options([
-                    ['value' => 'user', 'label' => t('usim.common.role_user')],
-                    ['value' => 'admin', 'label' => t('usim.common.role_admin')],
+                    ['value' => 'user', 'label' => 'User'],
+                    ['value' => 'admin', 'label' => 'Admin'],
                 ])
                 ->value($role)
                 ->required(true)
         );
 
-        $container->add(
+        // Checkbox for sending reset password email
+        $registerContainer->add(
             UI::checkbox('send_reset_email')
-                ->label(t('usim.admin.dashboard.edit_user.send_reset_email'))
+                ->label('Send password reset email to user')
                 ->checked(false)
         );
 
+        // If the email is not verified, checkbox to send verification email
         if (!$emailVerified) {
-            $container->add(
+            $registerContainer->add(
                 UI::checkbox('send_verification_email')
-                    ->label(t('usim.admin.dashboard.edit_user.send_verification_email'))
+                    ->label('Send email verification to user')
                     ->checked(false)
             );
         }
 
-        $buttons = UI::container('register_buttons')
+        // Buttons container
+        $buttonsContainer = UI::container('edit_user_buttons')
             ->layout(LayoutType::HORIZONTAL)
             ->justifyContent(JustifyContent::SPACE_BETWEEN)
             ->shadow(false)
             ->plain()
-            ->gap('10px')
-            ->padding('10px 0 0 0');
+            ->gap(Spacing::px(10))
+            ->padding(Spacing::each(Spacing::px(10)));
 
+        // Cancel button
         if ($cancelAction) {
-            $buttons->add(
+            $buttonsContainer->add(
                 UI::button('btn_cancel_register')
-                    ->label(t('usim.common.cancel'))
+                    ->label('Cancel')
                     ->style('secondary')
                     ->action($cancelAction, [
-                        '_caller_service_id' => $callerServiceId,
+                        '_caller_service_id' => $callerServiceId
                     ])
             );
         }
 
-        $buttons->add(
+        // Submit button
+        $buttonsContainer->add(
             UI::button('btn_submit_register')
-                ->label(t('usim.admin.dashboard.edit_user.submit'))
+                ->label('Update User')
                 ->style('primary')
                 ->action($submitAction, [
-                    '_caller_service_id' => $callerServiceId,
+                    '_caller_service_id' => $callerServiceId
                 ])
         );
 
-        $container->add($buttons);
+        // Remove button
+        $buttonsContainer->add(
+            UI::button('btn_delete_user')
+                ->label('Delete User')
+                ->style('danger')
+                ->action('delete_user', [
+                    '_caller_service_id' => $callerServiceId
+                ])
+                ->visible($user !== null) // Only show delete if editing an existing user
+        );
 
-        return $container->toJson();
+        $registerContainer->add($buttonsContainer);
+
+        return $registerContainer->toJson();
     }
 }

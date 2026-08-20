@@ -1,5 +1,7 @@
 <?php
 
+// @usim: feature="admin", type="component"
+
 namespace App\UI\Components\Modals;
 
 use Idei\Usim\Enums\JustifyContent;
@@ -9,9 +11,9 @@ use Idei\Usim\UIChangesCollector;
 use Idei\Usim\ValueObjects\Spacing;
 
 /**
- * Register Dialog Service
+ * Edit User Dialog Service
  *
- * Provides a modal dialog with registration form
+ * Provides a modal dialog with user edit form
  */
 class EditUserDialog
 {
@@ -39,7 +41,7 @@ class EditUserDialog
     }
 
     /**
-     * Build register dialog UI
+     * Build edit user dialog UI
      *
      * @param string $submitAction Action to call when form is submitted
      * @param string|null $cancelAction Action to call when cancel is clicked
@@ -67,7 +69,7 @@ class EditUserDialog
             : false;
 
         // Main container for the modal
-        $registerContainer = UI::container('register_dialog')
+        $registerContainer = UI::container('edit_user_dialog')
             ->parent('modal')
             ->shadow(false)
             ->plain()
@@ -129,7 +131,7 @@ class EditUserDialog
         }
 
         // Buttons container
-        $buttonsContainer = UI::container('register_buttons')
+        $buttonsContainer = UI::container('edit_user_buttons')
             ->layout(LayoutType::HORIZONTAL)
             ->justifyContent(JustifyContent::SPACE_BETWEEN)
             ->shadow(false)
