@@ -1,16 +1,20 @@
 <?php
 
+// @usim: feature="admin", type="screen"
+
 namespace {{ namespace }};
 
-use Idei\Usim\Events\UsimEvent;
-use Idei\Usim\UI;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Password;
-use Idei\Usim\Screen;
-use Idei\Usim\Upload\UploadService;
 use Idei\Usim\Components\Container;
 use Idei\Usim\Components\Input;
 use Idei\Usim\Components\Uploader;
+use Idei\Usim\Events\UsimEvent;
+use Idei\Usim\Screen;
+use Idei\Usim\UI;
+use Idei\Usim\Upload\UploadService;
+use Idei\Usim\ValueObjects\Size;
+use Idei\Usim\ValueObjects\Spacing;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Password;
 
 class Profile extends Screen
 {
@@ -20,6 +24,7 @@ class Profile extends Screen
 
     public static function authorize(): bool
     {
+        // This screen should only be accessible to authenticated users
         return self::requireAuth();
     }
 
@@ -37,40 +42,48 @@ class Profile extends Screen
     {
         $user = Auth::user();
 
+        if (!$user instanceof \App\Models\User) {
+            return;
+        }
+
         $container
             ->title(t('screen.auth.profile.title'))
-            ->maxWidth('600px')
+            ->maxWidth(Size::px(600))
             ->centerHorizontal()
             ->shadow(2)
-            ->padding('30px');
+            ->padding(Spacing::px(30));
 
+        // Título
         $container->add(
             UI::label('lbl_title')
-                ->text('👤 Configuracion de Perfil')
+                ->text("👤 Configuración de Perfil")
                 ->style('primary')
-                ->fontSize(20)
+                ->fontSize('20px')
                 ->fontWeight('bold')
         );
 
+        // Email (readonly)
         $this->input_email = UI::input('input_email')
             ->label(t('screen.auth.profile.email.label'))
             ->type('email')
-            ->value($user->email)
+            ->value((string) $user->email)
             ->disabled(true)
-            ->width('100%');
+            ->width(Size::full());
 
         $container->add($this->input_email);
 
+        // Nombre
         $this->input_name = UI::input('input_name')
             ->label(t('screen.auth.profile.name.label'))
             ->type('text')
             ->placeholder(t('screen.auth.profile.name.placeholder'))
             ->value($user->name ?? '')
             ->required(true)
-            ->width('100%');
+            ->width(Size::full());
 
         $container->add($this->input_name);
 
+        // Foto de perfil
         $this->uploader_profile = UI::uploader('uploader_profile')
             ->allowedTypes(['image/*'])
             ->label(t('screen.auth.profile.photo.label'))
@@ -81,12 +94,13 @@ class Profile extends Screen
 
         $container->add($this->uploader_profile);
 
+        // Botones de acción
         $container->add(
             UI::button('btn_save_profile')
                 ->label(t('screen.auth.profile.actions.save'))
                 ->action('save_profile')
                 ->style('primary')
-                ->width('100%')
+                ->width(Size::full())
         );
 
         $container->add(
@@ -94,7 +108,7 @@ class Profile extends Screen
                 ->label(t('screen.auth.profile.actions.change_password'))
                 ->action('change_password')
                 ->style('secondary')
-                ->width('100%')
+                ->width(Size::full())
         );
     }
 
@@ -102,7 +116,14 @@ class Profile extends Screen
     {
         $user = Auth::user();
 
-        $this->input_email->value($user->email ?? '');
+        if (!$user instanceof \App\Models\User) {
+            return;
+        }
+
+        $profileImage = $user->profile_image;
+
+        // Actualizar inputs con datos actuales del usuario
+        $this->input_email->value((string) $user->email);
         $this->input_name->value($user->name ?? '');
 
         if (!$user->email_verified_at) {
@@ -113,31 +134,46 @@ class Profile extends Screen
 
         $imageUrl = null;
 
-        if ($user->profile_image) {
-            $imageUrl = UploadService::fileUrl("uploads/images/{$user->profile_image}") . '?t=' . time();
+        // Actualizar uploader con imagen actual (si existe)
+        if (is_string($profileImage) && $profileImage !== '') {
+            $imageUrl = UploadService::fileUrl("uploads/images/{$profileImage}") . '?t=' . time();
         }
 
         $this->uploader_profile->existingFile($imageUrl);
     }
 
+    /**
+     * Guardar cambios del perfil
+     */
+    /** @param array<string, mixed> $params */
     public function onSaveProfile(array $params): void
     {
         try {
+            /** @var \App\Models\User $user */
             $user = Auth::user();
 
-            $name = trim($params['input_name'] ?? '');
+            // Obtener datos del formulario
+            $rawName = $params['input_name'] ?? '';
+            $name = is_string($rawName) ? trim($rawName) : '';
 
             if (empty($name)) {
                 $this->input_name->error(t('screen.auth.profile.validation.name_required'));
                 return;
             }
 
+            // Actualizar nombre
             $user->name = $name;
 
-            if ($filename = $this->uploader_profile->confirm($params, 'images', $user->profile_image)) {
-                $user->profile_image = $filename;
+            // Procesar imagen de perfil si fue subida
+            $confirmedFile = $this->uploader_profile->confirm($params, 'images', $user->profile_image);
+
+            if (is_string($confirmedFile) && $confirmedFile !== '') {
+                $user->profile_image = $confirmedFile;
+            } elseif (is_array($confirmedFile) && isset($confirmedFile[0]) && $confirmedFile[0] !== '') {
+                $user->profile_image = $confirmedFile[0];
             }
 
+            // Guardar cambios
             $user->save();
             $this->input_name->error(null);
 
@@ -145,6 +181,7 @@ class Profile extends Screen
                 'user' => $user
             ]));
 
+            // Mostrar éxito
             $this->toast(t('screen.auth.profile.toast.updated'), 'success');
         } catch (\Throwable $e) {
             \Illuminate\Support\Facades\Log::error('Error saving profile: ' . $e->getMessage() . "\n" . $e->getTraceAsString());
@@ -152,8 +189,13 @@ class Profile extends Screen
         }
     }
 
+    /**
+     * Reenviar email de verificación
+     */
+    /** @param array<string, mixed> $params */
     public function onResendVerification(array $params): void
     {
+        /** @var \App\Models\User $user */
         $user = Auth::user();
 
         if ($user->email_verified_at) {
@@ -161,16 +203,27 @@ class Profile extends Screen
             return;
         }
 
+        // Enviar notificación de verificación
         $user->sendEmailVerificationNotification();
+
         $this->toast(t('screen.auth.profile.toast.verification_sent'), 'success');
     }
 
+    /**
+     * Cambiar contraseña
+     */
+    /** @param array<string, mixed> $params */
     public function onChangePassword(array $params): void
     {
         $user = Auth::user();
 
+        if (!$user instanceof \App\Models\User) {
+            return;
+        }
+
+        // Enviar email de reset de contraseña
         $status = Password::sendResetLink([
-            'email' => $user->email
+            'email' => (string) $user->email
         ]);
 
         if ($status === Password::RESET_LINK_SENT) {

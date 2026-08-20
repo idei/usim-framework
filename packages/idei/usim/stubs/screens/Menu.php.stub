@@ -23,6 +23,8 @@ use Idei\Usim\Models\UsimLanguage;
 use Idei\Usim\UI;
 use Idei\Usim\Upload\UploadService;
 use Illuminate\Support\Facades\Auth;
+use Idei\Usim\ValueObjects\Size;
+use Idei\Usim\ValueObjects\Spacing;
 
 class Menu extends Screen
 {
@@ -48,8 +50,8 @@ class Menu extends Screen
             ->layout(LayoutType::HORIZONTAL)
             ->justifyContent(JustifyContent::SPACE_BETWEEN)
             ->alignItems(AlignItems::CENTER)
-            ->padding(0)
-            ->marginBottom('0');
+            ->padding(Spacing::px(0))
+            ->marginBottom(Spacing::px(0));
 
         $this->main_menu = $this->buildLeftMenu();
         $this->user_menu = $this->buildUserMenu();
@@ -58,13 +60,13 @@ class Menu extends Screen
             $this->store_lang = config('usim.i18n.fallback_locale', 'en');
         }
         $this->lang_menu = $this->buildLangMenu();
-        $this->user_menu->marginLeft('12px');
+        $this->user_menu->marginLeft(Spacing::px(12));
 
         $container->add($this->main_menu);
         $this->theme_toggle = UI::button('theme_toggle')
             ->action('toggleTheme')
             ->plain()
-            ->marginLeft('auto');
+            ->marginLeft(Spacing::auto());
         $container->add($this->theme_toggle);
         $container->add($this->lang_menu);
         $container->add($this->user_menu);
@@ -129,7 +131,7 @@ class Menu extends Screen
         $menu = UI::menuDropdown('lang_menu')
             ->trigger(strtoupper($this->store_lang))
             ->position('bottom-right')
-            ->width(160);
+            ->width(Size::px(160));
 
         $this->populateLangMenu($menu);
 
@@ -204,7 +206,7 @@ class Menu extends Screen
         $mainMenu = UI::menuDropdown('main_menu')
             ->trigger()
             ->position('bottom-left')
-            ->width(200);
+            ->width(Size::px(200));
 
         $this->populateMainMenu($mainMenu);
 
@@ -226,7 +228,7 @@ class Menu extends Screen
     {
         $userMenu = UI::menuDropdown('user_menu')
             ->position('bottom-right')
-            ->width(180);
+            ->width(Size::px(180));
 
         $userMenu->trigger('⚙️');
         $this->populateUserMenu($userMenu);
@@ -288,7 +290,7 @@ class Menu extends Screen
         ConfirmDialogService::open(
             type: DialogType::INFO,
             title: t('screen.menu.about.title'),
-            message: t('screen.menu.about.message', ['version' => '0.7.0']),
+            message: t('screen.menu.about.message', ['version' => '0.13.0']),
             callerServiceId: $this->getScreenComponentId(),
         );
     }

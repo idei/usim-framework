@@ -1,18 +1,21 @@
 <?php
 
+// @usim: feature="admin", type="screen"
+
 namespace {{ namespace }};
 
 use App\Services\User\UserService;
-use Idei\Usim\Screen;
 use Idei\Usim\Components\Container;
 use Idei\Usim\Enums\LayoutType;
+use Idei\Usim\Screen;
 use Idei\Usim\UI;
-use Illuminate\Support\Facades\Log;
+use Idei\Usim\ValueObjects\Size;
+use Idei\Usim\ValueObjects\Spacing;
 
 class EmailVerified extends Screen
 {
     public function __construct(
-        protected UserService $userService,
+        protected UserService $userService
     ) {
     }
 
@@ -26,10 +29,11 @@ class EmailVerified extends Screen
             ->plain()
             ->justifyContent('start')
             ->alignItems('center')
-            ->padding(40)
-            ->paddingTop('80px')
-            ->minHeight('100vh');
+            ->padding(Spacing::px(40))
+            ->paddingTop(Spacing::px(80))
+            ->minHeight(Size::vh(100));
 
+        // Determinar qué mostrar según el estado
         switch ($this->verificationStatus) {
             case 'loading':
                 $this->buildLoadingUI($container);
@@ -43,19 +47,23 @@ class EmailVerified extends Screen
             case 'error':
                 $this->buildErrorUI($container);
                 break;
-        }
     }
+        }
+
 
     protected function postLoadUI(): void
     {
+        // Solo verificar si aún estamos en estado de carga
         if ($this->verificationStatus !== 'loading') {
             return;
         }
 
-        $id = request('id');
-        $hash = request('hash');
+        // Obtener parámetros de la URL (id y hash)
+        $id = request()->integer('id', 0);
+        $hashInput = request()->input('hash', '');
+        $hash = is_string($hashInput) ? $hashInput : '';
 
-        if (!$id || !$hash) {
+        if ($id <= 0 || $hash === '') {
             $this->errorMessage = t('screen.auth.email_verified.errors.invalid_params');
             $this->verificationStatus = 'error';
             $this->container->clear();
@@ -63,7 +71,8 @@ class EmailVerified extends Screen
             return;
         }
 
-        $expires = (int) request('expires', 0);
+        // Enforce link expiration using signed URL expires timestamp.
+        $expires = request()->integer('expires', 0);
         if ($expires > 0 && now()->timestamp > $expires) {
             $this->errorMessage = t('screen.auth.email_verified.errors.expired');
             $this->verificationStatus = 'error';
@@ -72,29 +81,34 @@ class EmailVerified extends Screen
             return;
         }
 
+        // Verificación a través del servicio
         try {
-            $result = $this->userService->verifyEmail((int) $id, (string) $hash);
+            $result = $this->userService->verifyEmail($id, $hash);
 
-            if (!($result['success'] ?? false)) {
-                $this->errorMessage = (string) ($result['message'] ?? t('screen.auth.email_verified.errors.generic'));
-                $this->verificationStatus = (string) ($result['status'] ?? 'error');
+            if (!$result['success']) {
+                $this->errorMessage = $result['message'];
+                $this->verificationStatus = $result['status'] === 'invalid' ? 'error' : $result['status'];
             } else {
-                $this->verificationStatus = (string) ($result['status'] ?? 'verified');
+                $this->verificationStatus = $result['status'];
             }
+
         } catch (\Exception $e) {
-            Log::error('Email verification failed', [
+            \Illuminate\Support\Facades\Log::error('Email verification failed', [
                 'message' => $e->getMessage(),
                 'exception' => get_class($e),
             ]);
-
             $this->errorMessage = t('screen.auth.email_verified.errors.generic');
             $this->verificationStatus = 'error';
         }
 
+        // Reconstruir la UI con el nuevo estado
         $this->container->clear();
         $this->buildBaseUI($this->container);
     }
 
+    /**
+     * Build loading UI
+     */
     private function buildLoadingUI(Container $container): void
     {
         $container->add(
@@ -106,6 +120,9 @@ class EmailVerified extends Screen
         );
     }
 
+    /**
+     * Build success UI
+     */
     private function buildSuccessUI(Container $container): void
     {
         $container->add(
@@ -130,7 +147,7 @@ class EmailVerified extends Screen
                 ->style('p')
                 ->center()
                 ->color('#666')
-                ->marginTop('10px')
+                ->marginTop(Spacing::px(10))
         );
 
         $container->add(
@@ -138,13 +155,16 @@ class EmailVerified extends Screen
                 ->title(t('screen.auth.email_verified.verified.card_title'))
                 ->description(t('screen.auth.email_verified.verified.card_description'))
                 ->theme('success')
-                ->maxWidth('600px')
-                ->marginTop('30px')
+                ->maxWidth(Size::px(600))
+                ->marginTop(Spacing::px(30))
                 ->addAction(t('screen.auth.email_verified.actions.go_to_login'), 'go_to_login', [], 'success')
                 ->addAction(t('screen.auth.email_verified.actions.go_to_home'), 'go_to_home', [], 'outline')
         );
     }
 
+    /**
+     * Build already verified UI
+     */
     private function buildAlreadyVerifiedUI(Container $container): void
     {
         $container->add(
@@ -168,13 +188,16 @@ class EmailVerified extends Screen
                 ->title(t('screen.auth.email_verified.already_verified.card_title'))
                 ->description(t('screen.auth.email_verified.already_verified.card_description'))
                 ->theme('info')
-                ->maxWidth('600px')
-                ->marginTop('30px')
+                ->maxWidth(Size::px(600))
+                ->marginTop(Spacing::px(30))
                 ->addAction(t('screen.auth.email_verified.actions.go_to_login'), 'go_to_login', [], 'primary')
                 ->addAction(t('screen.auth.email_verified.actions.go_to_home'), 'go_to_home', [], 'outline')
         );
     }
 
+    /**
+     * Build error UI
+     */
     private function buildErrorUI(Container $container): void
     {
         $container->add(
@@ -199,7 +222,7 @@ class EmailVerified extends Screen
                 ->style('p')
                 ->center()
                 ->color('#666')
-                ->marginTop('10px')
+                ->marginTop(Spacing::px(10))
         );
 
         $container->add(
@@ -207,23 +230,35 @@ class EmailVerified extends Screen
                 ->title(t('screen.auth.email_verified.error.card_title'))
                 ->description(t('screen.auth.email_verified.error.card_description'))
                 ->theme('danger')
-                ->maxWidth('600px')
-                ->marginTop('30px')
+                ->maxWidth(Size::px(600))
+                ->marginTop(Spacing::px(30))
                 ->addAction(t('screen.auth.email_verified.actions.resend'), 'resend_verification', [], 'danger')
                 ->addAction(t('screen.auth.email_verified.actions.go_to_home'), 'go_to_home', [], 'outline')
         );
     }
 
+    /**
+     * Handle login button click
+     */
+    /** @param array<string, mixed> $params */
     public function onGoToLogin(array $params): void
     {
         $this->redirect('/auth/login');
     }
 
+    /**
+     * Handle home button click
+     */
+    /** @param array<string, mixed> $params */
     public function onGoToHome(array $params): void
     {
         $this->redirect('/');
     }
 
+    /**
+     * Handle resend verification email
+     */
+    /** @param array<string, mixed> $params */
     public function onResendVerification(array $params): void
     {
         $this->toast(t('screen.auth.email_verified.toast.redirect_to_login'), 'info');

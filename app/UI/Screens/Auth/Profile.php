@@ -1,5 +1,7 @@
 <?php
 
+// @usim: feature="admin", type="screen"
+
 namespace App\UI\Screens\Auth;
 
 use Idei\Usim\Components\Container;
