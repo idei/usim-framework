@@ -22,8 +22,8 @@
             --code-text: #79c0ff;
             --green: #3dd68c;
             --red: #ff5555;
-            --shadow: 0 8px 40px rgba(0, 0, 0, 0.5);
-            --radius: 12px;
+            --shadow: 0 8px 20px rgba(0, 0, 0, 0.5);
+            --radius: 8px;
             --font-display: 'Space Mono', monospace;
             --font-mono: 'Space Mono', monospace;
             --font-body: 'DM Sans', sans-serif;
@@ -383,7 +383,7 @@
             min-height: auto;
             display: flex;
             align-items: flex-start;
-            padding: 5.5rem 2rem 5rem;
+            padding: 2.5rem 2rem 2rem;
             overflow: hidden;
         }
 
