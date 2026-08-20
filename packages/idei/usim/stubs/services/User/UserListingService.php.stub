@@ -2,21 +2,21 @@
 
 // @usim: feature="admin", type="service"
 
-namespace App\Services\Role;
+namespace {{ namespace }};
 
+use {{ userModel }};
 use Idei\Usim\Support\EloquentListingService;
-use Spatie\Permission\Models\Role;
 
 /**
- * Read-only listing service for roles.
+ * Read-only listing service for users.
  *
- * @extends EloquentListingService<Role>
+ * @extends EloquentListingService<User>
  */
-class RoleListingService extends EloquentListingService
+class UserListingService extends EloquentListingService
 {
-    protected string $modelClass = Role::class;
+    protected string $modelClass = User::class;
 
-    protected array $with = [];
+    protected array $with = ['roles'];
 
     /**
      * @return array<string, string>
@@ -25,6 +25,8 @@ class RoleListingService extends EloquentListingService
     {
         return [
             'name' => 'name',
+            'email' => 'email',
+            'role_name' => 'roles.name',
         ];
     }
 
@@ -33,7 +35,12 @@ class RoleListingService extends EloquentListingService
      */
     protected function filterableFields(): array
     {
-        return [];
+        return [
+            'role_name' => [
+                'path' => 'roles.name',
+                'operator' => 'like',
+            ],
+        ];
     }
 
     /**
@@ -43,6 +50,10 @@ class RoleListingService extends EloquentListingService
     {
         return [
             'name' => 'name',
+            'email' => 'email',
+            'email_verified_at' => 'email_verified_at',
+            'updated_at' => 'updated_at',
+            'created_at' => 'created_at',
         ];
     }
 
@@ -52,8 +63,8 @@ class RoleListingService extends EloquentListingService
     protected function defaultSort(): array
     {
         return [
-            'field' => 'name',
-            'direction' => 'asc',
+            'field' => 'updated_at',
+            'direction' => 'desc',
         ];
     }
 }

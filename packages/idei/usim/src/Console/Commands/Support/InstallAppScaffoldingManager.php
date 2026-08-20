@@ -61,6 +61,9 @@ class InstallAppScaffoldingManager
 
         $newLine();
         $info('Installing DataTable components...');
+        $this->installScreen('Admin/TableModels/UserTableModel.php.stub', 'UserTableModel.php', 'Admin/TableModels', $context, $publishStub, $line);
+        $this->installScreen('Admin/TableModels/RoleTableModel.php.stub', 'RoleTableModel.php', 'Admin/TableModels', $context, $publishStub, $line);
+        $this->installScreen('Admin/TableModels/PermissionTableModel.php.stub', 'PermissionTableModel.php', 'Admin/TableModels', $context, $publishStub, $line);
         // TODO: A ESTO HAY QUE MOFIFICARLO
         // $this->installComponent('DataTable/UserTableModel.php.stub', 'UserTableModel.php', 'DataTable', $context, $publishStub, $line);
 
@@ -167,6 +170,9 @@ class InstallAppScaffoldingManager
         $this->installService('Auth/RegisterService.php.stub', 'RegisterService.php', 'Auth', $context, $publishStub, $line);
         $this->installService('Auth/PasswordService.php.stub', 'PasswordService.php', 'Auth', $context, $publishStub, $line);
         $this->installService('User/UserService.php.stub', 'UserService.php', 'User', $context, $publishStub, $line);
+        $this->installService('User/UserListingService.php.stub', 'UserListingService.php', 'User', $context, $publishStub, $line);
+        $this->installService('Role/RoleListingService.php.stub', 'RoleListingService.php', 'Role', $context, $publishStub, $line);
+        $this->installService('Permissions/PermissionListingService.php.stub', 'PermissionListingService.php', 'Permissions', $context, $publishStub, $line);
     }
 
     /**

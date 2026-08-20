@@ -2,7 +2,7 @@
 
 // @usim: feature="admin", type="service"
 
-namespace App\Services\Role;
+namespace {{ namespace }};
 
 use Idei\Usim\Support\EloquentListingService;
 use Spatie\Permission\Models\Role;

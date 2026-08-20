@@ -2,19 +2,19 @@
 
 // @usim: feature="admin", type="service"
 
-namespace App\Services\Role;
+namespace {{ namespace }};
 
 use Idei\Usim\Support\EloquentListingService;
-use Spatie\Permission\Models\Role;
+use Spatie\Permission\Models\Permission;
 
 /**
- * Read-only listing service for roles.
+ * Read-only listing service for permissions.
  *
- * @extends EloquentListingService<Role>
+ * @extends EloquentListingService<Permission>
  */
-class RoleListingService extends EloquentListingService
+class PermissionListingService extends EloquentListingService
 {
-    protected string $modelClass = Role::class;
+    protected string $modelClass = Permission::class;
 
     protected array $with = [];
 

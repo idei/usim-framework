@@ -2,7 +2,7 @@
 
 // @usim: feature="admin", type="screen"
 
-namespace App\UI\Screens\Admin\TableModels;
+namespace {{ namespace }};
 
 use App\Services\Role\RoleListingService;
 use Idei\Usim\Components\Table;

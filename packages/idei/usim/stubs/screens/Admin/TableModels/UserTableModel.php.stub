@@ -2,9 +2,9 @@
 
 // @usim: feature="admin", type="screen"
 
-namespace App\UI\Screens\Admin\TableModels;
+namespace {{ namespace }};
 
-use App\Models\User;
+use {{ userModel }};
 use App\Services\User\UserListingService;
 use Idei\Usim\Components\Table;
 use Idei\Usim\DataTable\AbstractTableModel;

@@ -2,21 +2,21 @@
 
 // @usim: feature="admin", type="screen"
 
-namespace App\UI\Screens\Admin\TableModels;
+namespace {{ namespace }};
 
-use App\Services\Role\RoleListingService;
+use App\Services\Permissions\PermissionListingService;
 use Idei\Usim\Components\Table;
 use Idei\Usim\DataTable\AbstractTableModel;
-use Spatie\Permission\Models\Role;
+use Spatie\Permission\Models\Permission;
 
-class RoleTableModel extends AbstractTableModel
+class PermissionTableModel extends AbstractTableModel
 {
-    private RoleListingService $listingService;
+    private PermissionListingService $listingService;
 
     public function __construct(Table $tableBuilder)
     {
         parent::__construct($tableBuilder);
-        $this->listingService = app(RoleListingService::class);
+        $this->listingService = app(PermissionListingService::class);
     }
 
     public function getColumns(): array
@@ -24,7 +24,7 @@ class RoleTableModel extends AbstractTableModel
         return [
             'name' => [
                 'label' =>
-                    t('screen.admin.users_manager.roles_column_name'),
+                    t('screen.admin.users_manager.permissions_column_name'),
                 'width' => 200,
                 'sort_by' => 'name'
             ],
@@ -40,21 +40,21 @@ class RoleTableModel extends AbstractTableModel
 
     public function getPageData(): array
     {
-        $roles = $this->getRoleItems();
+        $permissions = $this->getPermissionItems();
 
         return array_map(
-            static fn (Role $role): array => [
-                'id' => $role->id,
-                'name' => $role->name,
+            static fn (Permission $permission): array => [
+                'id' => $permission->id,
+                'name' => $permission->name,
             ],
-            $roles
+            $permissions
         );
     }
 
     /**
-     * @return list<Role>
+     * @return list<Permission>
      */
-    private function getRoleItems(): array
+    private function getPermissionItems(): array
     {
         $pagination = $this->tableBuilder->getPaginationData();
         $sortBy = $this->tableBuilder->getSortColumn();
@@ -74,13 +74,13 @@ class RoleTableModel extends AbstractTableModel
 
     public function getFormattedPageData(int $currentPage, int $perPage): array
     {
-        $roles = $this->getRoleItems();
+        $permissions = $this->getPermissionItems();
         $formatted = [];
 
-        foreach ($roles as $role) {
+        foreach ($permissions as $permission) {
             $formatted[] = [
-                '_model_id' => $role->id,
-                'name' => t("role.{$role->name}.name"),
+                '_model_id' => $permission->id,
+                'name' => t("permission.{$permission->name}.name"),
             ];
         }
 
