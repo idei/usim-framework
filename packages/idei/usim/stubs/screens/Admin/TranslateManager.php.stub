@@ -1,19 +1,23 @@
 <?php
 
+// @usim: feature="admin", type="screen"
+
 namespace {{ namespace }};
 
-use {{ componentsNamespace }}\Modals\EditTranslationDialog;
 use {{ componentsNamespace }}\DataTable\TranslationKeysTableModel;
-use Idei\Usim\Screen;
+use {{ componentsNamespace }}\Modals\EditTranslationDialog;
+use Idei\Usim\Components\Container;
 use Idei\Usim\Components\Input;
 use Idei\Usim\Components\Select;
 use Idei\Usim\Components\Table;
-use Idei\Usim\Components\Container;
 use Idei\Usim\Enums\DialogType;
 use Idei\Usim\Enums\LayoutType;
 use Idei\Usim\Modals\ConfirmDialogService;
+use Idei\Usim\Screen;
 use Idei\Usim\Support\TranslationService;
 use Idei\Usim\UI;
+use Idei\Usim\ValueObjects\Size;
+use Idei\Usim\ValueObjects\Spacing;
 
 class TranslateManager extends Screen
 {
@@ -24,7 +28,7 @@ class TranslateManager extends Screen
 
     public static function authorize(): bool
     {
-        return self::requireRole('admin');
+        return self::requireRole(['admin', 'root', 'translator']);
     }
 
     public static function getMenuLabel(): string
@@ -40,22 +44,22 @@ class TranslateManager extends Screen
     protected function buildBaseUI(Container $container, ...$params): void
     {
         $container
-            ->maxWidth('1360px')
+            ->maxWidth(Size::px(1360))
             ->centerHorizontal()
-            ->padding('10px')
+            ->padding(Spacing::px(10))
             ->plain();
 
         $toolbar = UI::container('translations_toolbar')
             ->layout(LayoutType::HORIZONTAL)
             ->fullWidth()
             ->shadow(0)
-            ->width('100%')
-            ->gap('12px');
+            ->width(Size::full())
+            ->gap(Spacing::px(12));
 
         $search = UI::input('search_translations')
             ->label(t('screen.admin.translate_manager.search.label'))
             ->placeholder(t('screen.admin.translate_manager.search.placeholder'))
-            ->width('420px')
+            ->width(Size::px(420))
             ->autocomplete('off')
             ->onInput('search_translations', [])
             ->debounce(500);
@@ -67,7 +71,7 @@ class TranslateManager extends Screen
             ->value('all')
             ->onChange('language_filter_change')
             ->style('primary')
-            ->width('200px');
+            ->width(Size::px(200));
 
         $groupFilter = UI::select('group_filter')
             ->label(t('screen.admin.translate_manager.group.label'))
@@ -77,7 +81,7 @@ class TranslateManager extends Screen
             ->searchable(true, t('screen.admin.translate_manager.group.search_placeholder'))
             ->onChange('group_filter_change')
             ->style('primary')
-            ->width('200px');
+            ->width(Size::px(200));
 
         $toolbar->add($search)->add($languageFilter)->add($groupFilter);
         $container->add($toolbar);
@@ -86,7 +90,7 @@ class TranslateManager extends Screen
             ->pagination(10)
             ->sortedBy('key')
             ->dataModel(TranslationKeysTableModel::class)
-            ->width('100%')
+            ->width(Size::full())
             ->rowMinHeight(40);
 
         $container->add($table);
@@ -102,33 +106,45 @@ class TranslateManager extends Screen
         $this->group_filter->value($model->getGroupFilter());
     }
 
+    /**
+     * @param array<string, mixed> $params
+     */
     public function onSearchTranslations(array $params): void
     {
-        $search = (string) ($params['value'] ?? '');
+        $search = $this->normalizeToString($params['value'] ?? null);
         $this->translations_table->setSearchTerm($search);
     }
 
+    /**
+     * @param array<string, mixed> $params
+     */
     public function onLanguageFilterChange(array $params): void
     {
         /** @var TranslationKeysTableModel $model */
         $model = $this->translations_table->getModel();
-        $model->setLanguageFilter((string) ($params['value'] ?? 'all'));
+        $model->setLanguageFilter($this->normalizeToString($params['value'] ?? null, 'all'));
         $this->translations_table->refreshColumns();
         $this->translations_table->page(1);
     }
 
+    /**
+     * @param array<string, mixed> $params
+     */
     public function onGroupFilterChange(array $params): void
     {
         /** @var TranslationKeysTableModel $model */
         $model = $this->translations_table->getModel();
-        $model->setGroupFilter((string) ($params['value'] ?? 'all'));
+        $model->setGroupFilter($this->normalizeToString($params['value'] ?? null, 'all'));
         $this->translations_table->page(1);
     }
 
+    /**
+     * @param array<string, mixed> $params
+     */
     public function onTranslationsTableColumnClicked(array $params): void
     {
-        $column = $params['sort_by'] ?? null;
-        if (!$column) {
+        $column = $this->normalizeToNullableString($params['sort_by'] ?? null);
+        if ($column === null || $column === '') {
             return;
         }
 
@@ -136,15 +152,21 @@ class TranslateManager extends Screen
         $this->translations_table->page(1);
     }
 
+    /**
+     * @param array<string, mixed> $params
+     */
     public function onChangePage(array $params): void
     {
-        $page = (int) ($params['page'] ?? 1);
+        $page = $this->normalizeToInt($params['page'] ?? null, 1);
         $this->translations_table->page($page);
     }
 
+    /**
+     * @param array<string, mixed> $params
+     */
     public function onEditTranslation(array $params): void
     {
-        $key = (string) ($params['key'] ?? '');
+        $key = $this->normalizeToString($params['key'] ?? null);
         if ($key === '') {
             $this->toast(t('screen.admin.translate_manager.errors.key_required'), 'error');
             return;
@@ -161,20 +183,23 @@ class TranslateManager extends Screen
 
         EditTranslationDialog::open(
             key: $key,
-            group: (string) ($params['group'] ?? ''),
+            group: $this->normalizeToString($params['group'] ?? null),
             fallbackLanguageCode: $fallbackCode,
             selectedLanguageCode: $selectedCode,
-            fallbackText: (string) ($fallbackEntry['text'] ?? ''),
-            selectedText: (string) ($selectedEntry['text'] ?? ''),
+            fallbackText: $this->normalizeToString($fallbackEntry['text'] ?? null),
+            selectedText: $this->normalizeToString($selectedEntry['text'] ?? null),
             fallbackNeedsReview: (bool) ($fallbackEntry['needs_review'] ?? false),
             selectedNeedsReview: (bool) ($selectedEntry['needs_review'] ?? false),
             callerServiceId: $this->getScreenComponentId()
         );
     }
 
+    /**
+     * @param array<string, mixed> $params
+     */
     public function onDeleteTranslation(array $params): void
     {
-        $key = (string) ($params['key'] ?? '');
+        $key = $this->normalizeToString($params['key'] ?? null);
         if ($key === '') {
             $this->toast(t('screen.admin.translate_manager.errors.key_required'), 'error');
             return;
@@ -190,9 +215,12 @@ class TranslateManager extends Screen
         );
     }
 
+    /**
+     * @param array<string, mixed> $params
+     */
     public function onConfirmDeleteTranslation(array $params): void
     {
-        $key = (string) ($params['key'] ?? '');
+        $key = $this->normalizeToString($params['key'] ?? null);
         if ($key === '') {
             $this->toast(t('screen.admin.translate_manager.errors.key_required_for_deletion'), 'error');
             return;
@@ -212,11 +240,14 @@ class TranslateManager extends Screen
         $this->closeModal();
     }
 
+    /**
+     * @param array<string, mixed> $params
+     */
     public function onSubmitUpdateTranslation(array $params): void
     {
-        $key = (string) ($params['translation_key'] ?? '');
-        $fallbackLanguageCode = (string) ($params['fallback_language_code'] ?? '');
-        $selectedLanguageCode = (string) ($params['selected_language_code'] ?? '');
+        $key = $this->normalizeToString($params['translation_key'] ?? null);
+        $fallbackLanguageCode = $this->normalizeToString($params['fallback_language_code'] ?? null);
+        $selectedLanguageCode = $this->normalizeToString($params['selected_language_code'] ?? null);
 
         if ($key === '' || $fallbackLanguageCode === '') {
             $this->toast(t('screen.admin.translate_manager.errors.update_payload_incomplete'), 'error');
@@ -231,7 +262,7 @@ class TranslateManager extends Screen
         $translationService->upsertValue(
             $key,
             $fallbackLanguageCode,
-            (string) ($params['fallback_text'] ?? ''),
+            $this->normalizeToString($params['fallback_text'] ?? null),
             needsReview: $fallbackNeedsReview
         );
 
@@ -242,7 +273,7 @@ class TranslateManager extends Screen
             $translationService->upsertValue(
                 $key,
                 $selectedLanguageCode,
-                (string) ($params['selected_text'] ?? ''),
+                $this->normalizeToString($params['selected_text'] ?? null),
                 needsReview: $selectedNeedsReview
             );
         }
@@ -262,11 +293,22 @@ class TranslateManager extends Screen
             return (int) $value === 1;
         }
 
-        $normalized = strtolower(trim((string) $value));
+        if (is_string($value)) {
+            $normalized = strtolower(trim($value));
+            return in_array($normalized, ['1', 'true', 'on', 'yes'], true);
+        }
 
-        return in_array($normalized, ['1', 'true', 'on', 'yes'], true);
+        if ($value instanceof \Stringable) {
+            $normalized = strtolower(trim((string) $value));
+            return in_array($normalized, ['1', 'true', 'on', 'yes'], true);
+        }
+
+        return false;
     }
 
+    /**
+     * @return list<array{value: string, label: string}>
+     */
     protected function getLanguageOptions(): array
     {
         /** @var TranslationService $translationService */
@@ -279,19 +321,19 @@ class TranslateManager extends Screen
 
         // Resolve fallback code to exclude it from options
         $fallbackCode = 'en';
-        foreach (($dataset['items'] ?? []) as $language) {
+        foreach ($dataset['items'] as $language) {
             if ((bool) ($language['is_fallback'] ?? false)) {
-                $fallbackCode = (string) ($language['code'] ?? 'en');
+                $fallbackCode = $this->normalizeToString($language['code'] ?? null, 'en');
             }
         }
 
-        foreach (($dataset['items'] ?? []) as $language) {
-            $code = (string) ($language['code'] ?? '');
+        foreach ($dataset['items'] as $language) {
+            $code = $this->normalizeToString($language['code'] ?? null);
             if ($code === '' || $code === $fallbackCode) {
                 continue;
             }
 
-            $label = (string) ($language['native_name'] ?? $language['name'] ?? strtoupper($code));
+            $label = $this->normalizeToString($language['native_name'] ?? $language['name'] ?? null, strtoupper($code));
             $options[] = [
                 'value' => $code,
                 'label' => strtoupper($code) . ' - ' . $label,
@@ -301,6 +343,9 @@ class TranslateManager extends Screen
         return $options;
     }
 
+    /**
+     * @return list<array{value: string, label: string}>
+     */
     protected function getGroupOptions(): array
     {
         /** @var TranslationService $translationService */
@@ -311,8 +356,8 @@ class TranslateManager extends Screen
             ['value' => 'all', 'label' => t('screen.admin.translate_manager.group.option_all')],
         ];
 
-        foreach (($dataset['items'] ?? []) as $group) {
-            $value = (string) ($group['group'] ?? '');
+        foreach ($dataset['items'] as $group) {
+            $value = $this->normalizeToString($group['group'] ?? null);
             if ($value === '') {
                 continue;
             }
@@ -326,6 +371,9 @@ class TranslateManager extends Screen
         return $options;
     }
 
+    /**
+     * @return array{fallback: string, selected: string|null}
+     */
     protected function resolveEditableLanguages(): array
     {
         /** @var TranslationService $translationService */
@@ -335,8 +383,8 @@ class TranslateManager extends Screen
         $fallbackCode = 'en';
         $firstActiveNonFallback = null;
 
-        foreach (($dataset['items'] ?? []) as $language) {
-            $code = (string) ($language['code'] ?? '');
+        foreach ($dataset['items'] as $language) {
+            $code = $this->normalizeToString($language['code'] ?? null);
             if ($code === '') {
                 continue;
             }
@@ -361,5 +409,56 @@ class TranslateManager extends Screen
             'fallback' => $fallbackCode,
             'selected' => $selectedCode,
         ];
+    }
+
+    protected function normalizeToString(mixed $value, string $default = ''): string
+    {
+        if (is_string($value)) {
+            return $value;
+        }
+
+        if (is_int($value) || is_float($value)) {
+            return (string) $value;
+        }
+
+        if (is_bool($value)) {
+            return $value ? '1' : '';
+        }
+
+        if ($value instanceof \Stringable) {
+            return (string) $value;
+        }
+
+        return $default;
+    }
+
+    protected function normalizeToNullableString(mixed $value): ?string
+    {
+        if ($value === null) {
+            return null;
+        }
+
+        return $this->normalizeToString($value);
+    }
+
+    protected function normalizeToInt(mixed $value, int $default = 0): int
+    {
+        if (is_int($value)) {
+            return $value;
+        }
+
+        if (is_float($value)) {
+            return (int) $value;
+        }
+
+        if (is_string($value) && is_numeric($value)) {
+            return (int) $value;
+        }
+
+        if (is_bool($value)) {
+            return $value ? 1 : 0;
+        }
+
+        return $default;
     }
 }

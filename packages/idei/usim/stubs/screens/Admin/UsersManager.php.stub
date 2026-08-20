@@ -2,15 +2,15 @@
 
 // @usim: feature="admin", type="screen"
 
-namespace App\UI\Screens\Admin;
+namespace {{ namespace }};
 
 use App\Services\Auth\RegisterService;
 use App\Services\User\UserService;
-use App\UI\Components\Modals\EditUserDialog;
-use App\UI\Components\Modals\RegisterDialog;
-use App\UI\Screens\Admin\TableModels\PermissionTableModel;
-use App\UI\Screens\Admin\TableModels\RoleTableModel;
-use App\UI\Screens\Admin\TableModels\UserTableModel;
+use {{ componentsNamespace }}\Modals\EditUserDialog;
+use {{ componentsNamespace }}\Modals\RegisterDialog;
+use {{ screensNamespace }}\Admin\TableModels\PermissionTableModel;
+use {{ screensNamespace }}\Admin\TableModels\RoleTableModel;
+use {{ screensNamespace }}\Admin\TableModels\UserTableModel;
 use Idei\Usim\Components\Button;
 use Idei\Usim\Components\Container;
 use Idei\Usim\Components\Input;
