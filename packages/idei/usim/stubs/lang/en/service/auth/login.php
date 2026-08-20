@@ -1,5 +1,7 @@
 <?php
 
+// @usim: feature="core", type="lang"
+
 return [
     'credentials_incorrect' => 'The provided credentials are incorrect.',
     'invalid_credentials' => 'Credenciales inválidas',

@@ -70,3 +70,11 @@ echo "php artisan usim:install"
 echo ""
 echo "Run:"
 echo "./start.sh -r"
+echo ""
+
+# Leave the terminal positioned inside dev/. A plain 'cd' here would only
+# affect this script's own subshell and be lost once it exits, so instead
+# we replace this process with a fresh interactive shell already inside
+# dev/. Type 'exit' to return to the shell you started from.
+cd "$DEV_DIR"
+exec "$SHELL"

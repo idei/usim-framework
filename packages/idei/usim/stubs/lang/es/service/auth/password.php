@@ -1,5 +1,7 @@
 <?php
 
+// @usim: feature="core", type="lang"
+
 return [
     'email_not_found' => 'Correo no encontrado',
     'link_sent' => 'Enlace de restablecimiento enviado',

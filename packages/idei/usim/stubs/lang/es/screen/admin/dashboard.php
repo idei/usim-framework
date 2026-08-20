@@ -1,5 +1,7 @@
 <?php
 
+// @usim: feature="core", type="lang"
+
 return [
     'add_user' => 'Agregar Usuario',
     'edit_button' => 'Actualizar',

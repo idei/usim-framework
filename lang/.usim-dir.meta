@@ -1,0 +1,1 @@
+@usim: feature="core", type="lang", recursive=true, exclude="*.tmp,local_*"

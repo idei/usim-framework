@@ -1,5 +1,7 @@
 <?php
 
+// @usim: feature="core", type="lang"
+
 return [
     'delete' => [
         'confirm' => '¿Seguro que deseas eliminar la traducción ":key"?',
