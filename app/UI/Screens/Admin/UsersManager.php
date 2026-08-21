@@ -79,7 +79,7 @@ class UsersManager extends Screen
                     'users_tab' => ['label' => t(self::I18N_PREFIX . 'users_tab')],
                     'roles_tab' => ['label' => t(self::I18N_PREFIX . 'roles_tab')],
                 ],
-                'users_tab'
+                'roles_tab'
             );
 
         $tabs_container->add($this->buildUsersCrudContainer(), tab: 'users_tab');
