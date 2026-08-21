@@ -1,5 +1,7 @@
 <?php
 
+// @usim: feature="core", type="lang"
+
 return [
     'email' => 'Email',
     'email_verified' => 'Verified',

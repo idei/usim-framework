@@ -422,16 +422,59 @@ Este proyecto es ideal para:
 4. **Implementa features** usando el patrón USIM
 5. **Contribuye** con nuevos componentes al framework
 
+### Comandos Artisan de USIM
+
+USIM incluye comandos dedicados para administrar módulos, stubs e instalación:
+
+```bash
+# Listar todas las features disponibles y su estado de instalación
+php artisan usim:features
+
+# Ver el detalle archivo por archivo de cada feature
+php artisan usim:features --detail
+
+# Instalar una feature modular específica (ej. autenticación)
+php artisan usim:feature auth --migrate
+
+# Simular la instalación sin escribir en disco
+php artisan usim:feature auth --dry-run
+
+# Instalar el framework completo de manera interactiva o con todas las features
+php artisan usim:install
+php artisan usim:install --all
+
+# Regenerar la caché y catálogo de pantallas USIM
+php artisan usim:discover
+```
+
+### Sincronización de Stubs (Desarrollo del Paquete)
+
+Para desarrolladores del framework que trabajan en el Playground:
+
+```bash
+# Diagnosticar un archivo o directorio específico
+./scripts/sync_stubs.sh --check app/UI/Screens/Admin/TranslateManager.php
+
+# Buscar archivos por patrón
+./scripts/sync_stubs.sh -s "auth"
+
+# Simular sincronización
+./scripts/sync_stubs.sh --dry-run
+
+# Sincronizar cambios del playground hacia los stubs del paquete
+./scripts/sync_stubs.sh
+```
+
 ### Ejecutar Pruebas
 ```powershell
-# Ejecutar todas las pruebas
+# Ejecutar todas las pruebas con Pest
 php artisan test
 
-# Ejecutar pruebas específicas
-php artisan test --filter AuthTest
+# O directamente con el binario de Pest
+./vendor/bin/pest
 
-# Ejecutar pruebas con cobertura (requiere Xdebug)
-php artisan test --coverage
+# Ejecutar pruebas específicas
+php artisan test --filter LoginScreenTest
 ```
 
 ## Documentación Adicional

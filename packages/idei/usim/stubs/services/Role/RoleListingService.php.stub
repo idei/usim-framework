@@ -1,0 +1,59 @@
+<?php
+
+// @usim: feature="admin", type="service"
+
+namespace {{ namespace }};
+
+use Idei\Usim\Support\EloquentListingService;
+use Spatie\Permission\Models\Role;
+
+/**
+ * Read-only listing service for roles.
+ *
+ * @extends EloquentListingService<Role>
+ */
+class RoleListingService extends EloquentListingService
+{
+    protected string $modelClass = Role::class;
+
+    protected array $with = [];
+
+    /**
+     * @return array<string, string>
+     */
+    protected function searchableFields(): array
+    {
+        return [
+            'name' => 'name',
+        ];
+    }
+
+    /**
+     * @return array<string, array{path: string, operator?: string, cast?: 'int'|'float'|'bool'|'string'}>
+     */
+    protected function filterableFields(): array
+    {
+        return [];
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    protected function sortableFields(): array
+    {
+        return [
+            'name' => 'name',
+        ];
+    }
+
+    /**
+     * @return array{field: string, direction: 'asc'|'desc'}
+     */
+    protected function defaultSort(): array
+    {
+        return [
+            'field' => 'name',
+            'direction' => 'asc',
+        ];
+    }
+}

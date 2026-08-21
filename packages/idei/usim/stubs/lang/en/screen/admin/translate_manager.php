@@ -1,5 +1,7 @@
 <?php
 
+// @usim: feature="core", type="lang"
+
 return [
     'delete' => [
         'confirm' => 'Are you sure you want to delete translation ":key"?',

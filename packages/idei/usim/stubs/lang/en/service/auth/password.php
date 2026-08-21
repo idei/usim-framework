@@ -1,5 +1,7 @@
 <?php
 
+// @usim: feature="core", type="lang"
+
 return [
     'email_not_found' => 'Email not found',
     'link_sent' => 'Password reset link sent',

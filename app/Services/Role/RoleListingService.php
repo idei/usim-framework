@@ -1,5 +1,7 @@
 <?php
 
+// @usim: feature="admin", type="service"
+
 namespace App\Services\Role;
 
 use Idei\Usim\Support\EloquentListingService;

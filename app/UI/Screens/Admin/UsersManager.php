@@ -1,4 +1,7 @@
 <?php
+
+// @usim: feature="admin", type="screen"
+
 namespace App\UI\Screens\Admin;
 
 use App\Services\Auth\RegisterService;
@@ -62,19 +65,21 @@ class UsersManager extends Screen
         $container
             ->plain()
             ->maxWidth(Size::px(1280))
+            ->padding(Spacing::px(0))
             ->centerHorizontal();
 
         $tabs_container = UI::container('tabs_container')
             ->width(Size::full())
             ->padding(Spacing::px(10))
-            ->minHeight(Size::px(900))
+            ->minHeight(Size::px(620))
+            ->rounded(0)
             ->gap(Spacing::px(2))
             ->tabs(
                 [
                     'users_tab' => ['label' => t(self::I18N_PREFIX . 'users_tab')],
                     'roles_tab' => ['label' => t(self::I18N_PREFIX . 'roles_tab')],
                 ],
-                'roles_tab'
+                'users_tab'
             );
 
         $tabs_container->add($this->buildUsersCrudContainer(), tab: 'users_tab');
@@ -87,7 +92,8 @@ class UsersManager extends Screen
         $users_crud_container = UI::container('users_crud_container')
             ->layout(LayoutType::VERTICAL)
             ->gap(Spacing::px(4))
-            ->height(Size::px(400))
+            ->rounded(0)
+            ->height(Size::px(340))
             ->plain();
 
         $toolbar = UI::container('users_toolbar')
@@ -112,14 +118,14 @@ class UsersManager extends Screen
         $toolbar->add($search)->add($addBtn);
 
         $users_table = $this->requireTable(UI::table('users_table'));
-        $users_table->pagination(15);
+        $users_table->pagination(7);
         $users_table->sortedBy('name');
         $users_table->dataModel(UserTableModel::class);
         $users_table->selectionMode(SelectionMode::SINGLE);
         $users_table->bodyOverflowX('hidden');
         $users_table->bodyOverflowY('auto');
-        $users_table->minHeight(Size::px(730));
-        $users_table->bodyMinHeight('600px');
+        $users_table->minHeight(Size::px(440));
+        $users_table->bodyMinHeight('340px');
         $users_table->align('center');
 
         $users_crud_container
@@ -134,6 +140,7 @@ class UsersManager extends Screen
         $roles_container = UI::container('roles_container')
             ->layout(LayoutType::VERTICAL)
             ->gap(Spacing::px(4))
+            ->rounded(0)
             ->plain();
 
         $this->roles_split = UI::split('roles_split')
@@ -144,6 +151,7 @@ class UsersManager extends Screen
             ->collapsible(true)
             ->minFirstSize('400px')
             ->minSecondSize('700px')
+            ->padding(Spacing::px(0))
             ->height(Size::px(500))
             ->width(Size::full())
             ->card();
@@ -179,6 +187,7 @@ class UsersManager extends Screen
         $toolbar->add($search)->add($addBtn);
 
         $roles_table = $this->requireTable(UI::table('roles_table'));
+        $roles_table->rounded(0);
         $roles_table->pagination(3); // Disable pagination to show all roles
         $roles_table->sortedBy('name');
         $roles_table->dataModel(RoleTableModel::class);
@@ -192,6 +201,7 @@ class UsersManager extends Screen
             ->add($roles_table);
 
         $permissions_table = $this->requireTable(UI::table('permissions_table'));
+        $permissions_table->rounded(0);
         $permissions_table->pagination(10);
         $permissions_table->sortedBy('name');
         $permissions_table->dataModel(PermissionTableModel::class);

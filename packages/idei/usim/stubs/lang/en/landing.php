@@ -1,5 +1,7 @@
 <?php
 
+// @usim: feature="core", type="lang"
+
 return [
     'badge' => 'USIM framework ready',
     'lead' => 'Build production interfaces from PHP screens with a server-driven architecture. USIM keeps state, validation, authorization and interaction flow in backend code, while the client renders initial payloads and incremental updates.',

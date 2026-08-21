@@ -1,5 +1,7 @@
 <?php
 
+// @usim: feature="core", type="lang"
+
 return [
     'abort_error' => 'Abort Error',
     'button_demo' => 'Button Demo',

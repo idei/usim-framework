@@ -1,0 +1,606 @@
+<?php
+
+// @usim: feature="admin", type="screen"
+
+namespace {{ namespace }};
+
+use App\Services\Auth\RegisterService;
+use App\Services\User\UserService;
+use {{ componentsNamespace }}\Modals\EditUserDialog;
+use {{ componentsNamespace }}\Modals\RegisterDialog;
+use {{ screensNamespace }}\Admin\TableModels\PermissionTableModel;
+use {{ screensNamespace }}\Admin\TableModels\RoleTableModel;
+use {{ screensNamespace }}\Admin\TableModels\UserTableModel;
+use Idei\Usim\Components\Button;
+use Idei\Usim\Components\Container;
+use Idei\Usim\Components\Input;
+use Idei\Usim\Components\Split;
+use Idei\Usim\Components\Table;
+use Idei\Usim\Enums\DialogType;
+use Idei\Usim\Enums\LayoutType;
+use Idei\Usim\Enums\SelectionMode;
+use Idei\Usim\Modals\ConfirmDialogService;
+use Idei\Usim\Screen;
+use Idei\Usim\UI;
+use Idei\Usim\ValueObjects\Size;
+use Idei\Usim\ValueObjects\Spacing;
+use InvalidArgumentException;
+
+class UsersManager extends Screen
+{
+    private const I18N_PREFIX = 'screen.admin.users_manager.';
+
+    public function __construct(
+        protected RegisterService $registerService,
+        protected UserService $userService
+    ) {
+    }
+
+    public static function authorize(): bool
+    {
+        return self::requireRole(['admin', 'root']);
+    }
+
+    public static function getMenuLabel(): string
+    {
+        return t('screen.admin.dashboard.menu_label');
+    }
+
+    public static function getMenuIcon(): ?string
+    {
+        return '🛠️';
+    }
+
+    protected Table $users_table;
+    protected Table $roles_table;
+    protected Table $permissions_table;
+    protected Input $search_users;
+    protected Input $search_roles;
+    protected Button $add_user_btn;
+    protected Button $add_role_btn;
+    protected Split $roles_split;
+
+    protected function buildBaseUI(Container $container, ...$params): void
+    {
+        $container
+            ->plain()
+            ->maxWidth(Size::px(1280))
+            ->padding(Spacing::px(0))
+            ->centerHorizontal();
+
+        $tabs_container = UI::container('tabs_container')
+            ->width(Size::full())
+            ->padding(Spacing::px(10))
+            ->minHeight(Size::px(620))
+            ->rounded(0)
+            ->gap(Spacing::px(2))
+            ->tabs(
+                [
+                    'users_tab' => ['label' => t(self::I18N_PREFIX . 'users_tab')],
+                    'roles_tab' => ['label' => t(self::I18N_PREFIX . 'roles_tab')],
+                ],
+                'users_tab'
+            );
+
+        $tabs_container->add($this->buildUsersCrudContainer(), tab: 'users_tab');
+        $tabs_container->add($this->buildRolesContainer(), tab: 'roles_tab');
+        $container->add($tabs_container);
+    }
+
+    private function buildUsersCrudContainer(): Container
+    {
+        $users_crud_container = UI::container('users_crud_container')
+            ->layout(LayoutType::VERTICAL)
+            ->gap(Spacing::px(4))
+            ->rounded(0)
+            ->height(Size::px(340))
+            ->plain();
+
+        $toolbar = UI::container('users_toolbar')
+            ->layout(LayoutType::HORIZONTAL)
+            ->fullWidth()
+            ->padding(Spacing::px(10))
+            ->gap(Spacing::px(10));
+
+        $search = UI::input('search_users')
+            ->placeholder(t('screen.admin.dashboard.search_placeholder'))
+            ->width(Size::px(300))
+            ->autocomplete('off')
+            ->onInput('search_users', [])
+            ->debounce(500);
+
+        $addBtn = UI::button('add_user_btn')
+            ->label(t('screen.admin.dashboard.add_user'))
+            ->style('primary')
+            ->action('add_user_clicked')
+            ->icon('plus');
+
+        $toolbar->add($search)->add($addBtn);
+
+        $users_table = $this->requireTable(UI::table('users_table'));
+        $users_table->pagination(7);
+        $users_table->sortedBy('name');
+        $users_table->dataModel(UserTableModel::class);
+        $users_table->selectionMode(SelectionMode::SINGLE);
+        $users_table->bodyOverflowX('hidden');
+        $users_table->bodyOverflowY('auto');
+        $users_table->minHeight(Size::px(440));
+        $users_table->bodyMinHeight('340px');
+        $users_table->align('center');
+
+        $users_crud_container
+            ->add($toolbar)
+            ->add($users_table);
+
+        return $users_crud_container;
+    }
+
+    private function buildRolesContainer(): Container
+    {
+        $roles_container = UI::container('roles_container')
+            ->layout(LayoutType::VERTICAL)
+            ->gap(Spacing::px(4))
+            ->rounded(0)
+            ->plain();
+
+        $this->roles_split = UI::split('roles_split')
+            ->horizontal()
+            ->splitSize('65%')
+            ->splitterSize('8px')
+            ->draggable(true)
+            ->collapsible(true)
+            ->minFirstSize('400px')
+            ->minSecondSize('700px')
+            ->padding(Spacing::px(0))
+            ->height(Size::px(500))
+            ->width(Size::full())
+            ->card();
+
+        $roles_left_panel = UI::container('roles_left_panel')
+            ->layout(LayoutType::VERTICAL)
+            ->gap(Spacing::px(4))
+            ->plain();
+
+        $roles_right_panel = UI::container('roles_right_panel')
+            ->plain();
+
+        $toolbar = UI::container('roles_toolbar')
+            ->layout(LayoutType::HORIZONTAL)
+            ->fullWidth()
+            ->rounded(0)
+            ->padding(Spacing::px(10))
+            ->gap(Spacing::px(10));
+
+        $search = UI::input('search_roles')
+            ->placeholder(t('screen.admin.users_manager.search_role_placeholder'))
+            ->width(Size::px(200))
+            ->autocomplete('off')
+            ->onInput('search_roles', [])
+            ->debounce(500);
+
+        $addBtn = UI::button('add_role_btn')
+            ->label(t('screen.admin.users_manager.add_role'))
+            ->style('primary')
+            ->action('add_role_clicked')
+            ->icon('plus');
+
+        $toolbar->add($search)->add($addBtn);
+
+        $roles_table = $this->requireTable(UI::table('roles_table'));
+        $roles_table->rounded(0);
+        $roles_table->pagination(3); // Disable pagination to show all roles
+        $roles_table->sortedBy('name');
+        $roles_table->dataModel(RoleTableModel::class);
+        $roles_table->bodyOverflowX('hidden');
+        $roles_table->bodyOverflowY('auto');
+        $roles_table->selectionMode(SelectionMode::SINGLE);
+        $roles_table->rowMinHeight(45);
+
+        $roles_left_panel
+            ->add($toolbar)
+            ->add($roles_table);
+
+        $permissions_table = $this->requireTable(UI::table('permissions_table'));
+        $permissions_table->rounded(0);
+        $permissions_table->pagination(10);
+        $permissions_table->sortedBy('name');
+        $permissions_table->dataModel(PermissionTableModel::class);
+        $permissions_table->bodyOverflowX('hidden');
+        $permissions_table->bodyOverflowY('auto');
+        $permissions_table->selectionMode(SelectionMode::SINGLE);
+
+        $roles_right_panel
+            ->add($permissions_table);
+
+        $this->roles_split
+            ->addFirst($roles_left_panel)
+            ->addSecond($roles_right_panel);
+
+        $roles_container->add($this->roles_split);
+
+        return $roles_container;
+    }
+
+    /**
+     * @param array<string, mixed> $params
+     */
+    public function onAddUserClicked(array $params): void
+    {
+        RegisterDialog::open(
+            fakeData: config('app.env') === 'local',
+            askForRole: true,
+            callerServiceId: $this->getScreenComponentId()
+        );
+    }
+
+    /**
+     * @param array<string, mixed> $params
+     */
+    public function onUsersTableColumnClicked(array $params): void
+    {
+        $column = $this->optionalStringParam($params, 'sort_by');
+        if ($column === null || $column === '') {
+            return;
+        }
+
+        $this->users_table->sortedBy($column);
+        $this->users_table->page(1);
+    }
+
+    /**
+     * @param array<string, mixed> $params
+     */
+    public function onSubmitRegister(array $params): void
+    {
+        $response = $this->registerService->register(
+            name: $this->stringParamOrDefault($params, 'name', ''),
+            email: $this->stringParamOrDefault($params, 'email', ''),
+            password: $this->stringParamOrDefault($params, 'password', ''),
+            passwordConfirmation: $this->stringParamOrDefault($params, 'password_confirmation', ''),
+            roles: $this->normalizeRoles($params['roles'] ?? null),
+            sendVerificationEmail: $this->boolParamOrDefault($params, 'send_verification_email', true)
+        );
+
+        $status = $response['status'];
+        $message = $response['message'];
+
+        if ($status === 'success') {
+            $this->toast($message, 'success');
+            $this->users_table->refresh();
+            $this->closeModal();
+        } else {
+            // Update modal inputs with validation errors
+            $errors = $response['errors'] ?? [];
+
+            if (!empty($errors)) {
+                $modalUpdates = [];
+
+                foreach ($errors as $fieldName => $messages) {
+                    // Concatenate all error messages for the field
+                    $modalUpdates[$fieldName] = [
+                        'error' => implode(' ', $messages)
+                    ];
+                }
+
+                $this->updateModal($modalUpdates);
+            }
+        }
+    }
+
+    /**
+     * @param array<string, mixed> $params
+     */
+    public function onUsersTableRowClicked(array $params): void
+    {
+        $userId = $this->optionalIntParam($params, 'model_id');
+        if ($userId === null) {
+            $this->toast(t('User ID is required'), 'error');
+            return;
+        }
+
+        $response = $this->userService->getUser($userId);
+        if ($response['status'] !== 'success') {
+            $this->toast($response['message'], 'error');
+            return;
+        }
+
+        $user = $response['data'];
+        if (!$user) {
+            $this->toast(t('User not found'), 'error');
+            return;
+        }
+
+        $this->users_table->select($userId);
+
+        /** @var array{id:int|string,name:string,email:string,roles?:list<array{name?:string}>,email_verified_at?:mixed} $modalUser */
+        $modalUser = $user;
+
+        EditUserDialog::open(
+            user: $modalUser,
+            callerServiceId: $this->getScreenComponentId()
+        );
+    }
+
+    /**
+     * @param array<string, mixed> $params
+     */
+    public function onSubmitUpdateUser(array $params): void
+    {
+        $userId = $this->optionalIntParam($params, 'user_id');
+        if ($userId === null) {
+            $this->toast(t('User ID is required for update'), 'error');
+            return;
+        }
+
+        // Get the user model
+        $user = $this->userService->findUser($userId);
+        if (!$user) {
+            $this->toast(t('User not found'), 'error');
+            return;
+        }
+
+        // Prepare data for update
+        $updateData = $params;
+        if (isset($updateData['roles'])) {
+            $updateData['roles'] = (array) $updateData['roles'];
+        }
+
+        $response = $this->userService->updateUser($user, $updateData);
+        $status = $response['status'];
+        $message = $response['message'];
+
+        if ($status === 'success') {
+            $this->toast($message, 'success');
+            $this->users_table->refresh();
+            $this->closeModal();
+        } else {
+            $this->toast($message, 'error');
+
+            // Update modal inputs with validation errors
+            $errors = $response['errors'] ?? [];
+
+            if (!empty($errors)) {
+                $modalUpdates = [];
+
+                foreach ($errors as $fieldName => $messages) {
+                    // Concatenate all error messages for the field
+                    $modalUpdates[$fieldName] = [
+                        'error' => implode(' ', $messages)
+                    ];
+                }
+
+                $this->updateModal($modalUpdates);
+            }
+        }
+    }
+
+    /**
+     * @param array<string, mixed> $params
+     */
+    public function onDeleteUser(array $params): void
+    {
+        $userId = $this->optionalIntParam($params, 'user_id');
+        if ($userId === null) {
+            $this->toast(t('User ID is required'), 'error');
+            return;
+        }
+
+        $response = $this->userService->getUser($userId);
+        if ($response['status'] !== 'success') {
+            $this->toast(t('User not found'), 'error');
+            return;
+        }
+
+        $user = $response['data'];
+        if (!$user) {
+            $this->toast(t('User not found'), 'error');
+            return;
+        }
+
+        ConfirmDialogService::open(
+            type: DialogType::WARNING,
+            title: t("Delete User"),
+            message: t("Are you sure you want to delete user '{$this->userNameForDeleteMessage($user)}'?"),
+            confirmAction: 'confirm_delete_user',
+            confirmParams: ['user_id' => $userId],
+            callerServiceId: $this->getScreenComponentId()
+        );
+    }
+
+    /**
+     * @param array<string, mixed> $params
+     */
+    public function onConfirmDeleteUser(array $params): void
+    {
+        $userId = $this->optionalIntParam($params, 'user_id');
+        if ($userId === null) {
+            $this->toast(t('User ID is required for deletion'), 'error');
+            return;
+        }
+
+        $user = $this->userService->findUser($userId);
+        if (!$user) {
+            $this->toast(t('User not found'), 'error');
+            return;
+        }
+
+        $response = $this->userService->deleteUser($user);
+        $status = $response['status'];
+        $message = $response['message'];
+
+        $this->toast($message, $status);
+        $this->users_table->refresh();
+        $this->closeModal();
+    }
+
+    /**
+     * @param array<string, mixed> $params
+     */
+    public function onChangePage(array $params): void
+    {
+        $page = $this->intParamOrDefault($params, 'page', 1);
+        $this->users_table->page($page);
+    }
+
+    /**
+     * @param array<string, mixed> $params
+     */
+    public function onSearchUsers(array $params): void
+    {
+        $search = trim($this->searchParam($params, ['value', 'search_users']));
+        $this->users_table->setSearchTerm($search);
+        $this->search_users->value($search);
+    }
+
+    /**
+     * @param array<string, mixed> $params
+     */
+    public function onSearchRoles(array $params): void
+    {
+        $search = trim($this->searchParam($params, ['value', 'search_roles']));
+        $this->roles_table->setSearchTerm($search);
+        $this->search_roles->value($search);
+    }
+
+    /**
+     * @param array<string, mixed> $params
+     */
+    public function onRolesTableRowClicked(array $params): void
+    {
+        $roleId = $this->selectableId($params, 'model_id');
+        if ($roleId === null) {
+            $this->toast(t('Role ID is required'), 'error');
+            return;
+        }
+
+        $this->roles_table->select($roleId);
+    }
+
+    private function requireTable(mixed $component): Table
+    {
+        if (!$component instanceof Table) {
+            throw new InvalidArgumentException('Expected table component instance.');
+        }
+
+        return $component;
+    }
+
+    /**
+     * @param array<string, mixed> $params
+     */
+    private function optionalStringParam(array $params, string $key): ?string
+    {
+        $value = $params[$key] ?? null;
+        return is_string($value) ? $value : null;
+    }
+
+    /**
+     * @param array<string, mixed> $params
+     */
+    private function stringParamOrDefault(array $params, string $key, string $default): string
+    {
+        $value = $params[$key] ?? null;
+        return is_string($value) ? $value : $default;
+    }
+
+    /**
+     * @param array<string, mixed> $params
+     */
+    private function optionalIntParam(array $params, string $key): ?int
+    {
+        $value = $params[$key] ?? null;
+        if (is_int($value)) {
+            return $value;
+        }
+
+        if (is_string($value) && ctype_digit($value)) {
+            return (int) $value;
+        }
+
+        return null;
+    }
+
+    /**
+     * @param array<string, mixed> $params
+     */
+    private function intParamOrDefault(array $params, string $key, int $default): int
+    {
+        $value = $this->optionalIntParam($params, $key);
+        return $value ?? $default;
+    }
+
+    /**
+     * @param array<string, mixed> $params
+     */
+    private function boolParamOrDefault(array $params, string $key, bool $default): bool
+    {
+        $value = $params[$key] ?? null;
+        return is_bool($value) ? $value : $default;
+    }
+
+    /**
+     * @param list<string> $keys
+     * @param array<string, mixed> $params
+     */
+    private function searchParam(array $params, array $keys): string
+    {
+        foreach ($keys as $key) {
+            $value = $params[$key] ?? null;
+            if (is_string($value)) {
+                return $value;
+            }
+        }
+
+        return '';
+    }
+
+    /**
+     * @param array<string, mixed> $params
+     */
+    private function selectableId(array $params, string $key): int|string|null
+    {
+        $value = $params[$key] ?? null;
+        if (is_int($value) || is_string($value)) {
+            return $value;
+        }
+
+        return null;
+    }
+
+    /**
+     * @param mixed $roles
+     * @return list<string>
+     */
+    private function normalizeRoles(mixed $roles): array
+    {
+        if (is_string($roles)) {
+            return [$roles];
+        }
+
+        if (!is_array($roles)) {
+            return ['user'];
+        }
+
+        $normalized = [];
+        foreach ($roles as $role) {
+            if (is_string($role)) {
+                $normalized[] = $role;
+            }
+        }
+
+        return $normalized !== [] ? $normalized : ['user'];
+    }
+
+    /**
+     * @param mixed $user
+     */
+    private function userNameForDeleteMessage(mixed $user): string
+    {
+        if (!is_array($user)) {
+            return '';
+        }
+
+        $name = $user['name'] ?? null;
+        return is_string($name) ? $name : '';
+    }
+}

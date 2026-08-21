@@ -1,5 +1,7 @@
 <?php
 
+// @usim: feature="core", type="lang"
+
 return [
     'actions' => [
         'go_to_home' => 'Volver al Inicio',

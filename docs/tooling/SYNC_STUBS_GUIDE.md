@@ -70,13 +70,27 @@ Utiliza comentarios XML/HTML:
 ```
 
 ### E. Archivos Binarios (Imágenes PNG/JPG/WebP, Audios MP3/WAV)
-Para recursos binarios donde no es posible inyectar texto, se crea un **archivo sidecar hermano** con extensión `.meta`.
+Para recursos binarios individuales donde no es posible inyectar texto, se crea un **archivo sidecar hermano** con extensión `.meta`.
 
 * **Ejemplo**: Si tienes `public/images/logo.png`, creas a su lado `public/images/logo.png.meta` con el contenido:
   ```text
   @usim: feature="core", type="asset", target="assets/core/images/logo.png"
   ```
 * **Comportamiento**: El script lee el archivo `.meta`, copia el binario compañero directamente y no distribuye el archivo `.meta`.
+
+### F. Directorios Completos (Sidecar de Directorio `.usim-dir.meta`)
+Para exportar **carpetas enteras** (como `lang/es/`, directorios de assets, o módulos completos) sin tener que modificar individualmente cada archivo:
+
+1. Crea un archivo `.usim-dir.meta` en la raíz de la carpeta deseada:
+   * **Ejemplo**: [`lang/es/.usim-dir.meta`](file:///C:/Users/emili/Desktop/usim-framework/lang/es/.usim-dir.meta)
+     ```ini
+     @usim: feature="core", type="lang", recursive=true, exclude="*.tmp,local_*"
+     ```
+2. **Jerarquía y Herencia**:
+   * Todos los archivos dentro de la carpeta y sus subcarpetas (`recursive=true`) heredan los metadatos.
+   * **Prioridad**: Si un archivo individual dentro de la carpeta tiene su propia directiva `// @usim:`, la directiva individual tiene precedencia sobre el `.usim-dir.meta`.
+   * **Exclusiones**: El atributo `exclude="patron1,patron2"` permite ignorar archivos de pruebas o borradores.
+   * El archivo `.usim-dir.meta` **nunca se copia** a los stubs de salida.
 
 ---
 
@@ -86,6 +100,8 @@ Para recursos binarios donde no es posible inyectar texto, se crea un **archivo 
 | :--- | :---: | :--- | :--- |
 | `feature` | Opcional | `"core"`, `"auth"`, `"lang"`, `"settings"`, etc. | Define a qué módulo/feature pertenece el recurso. Si se omite, por defecto es `"core"`. |
 | `type` | Opcional | `"screen"`, `"component"`, `"service"`, `"controller"`, `"model"`, `"migration"`, `"seeder"`, `"factory"`, `"test"`, `"view"`, `"lang"`, `"asset"`, `"script"` | Tipo lógico del recurso. Si se omite, se infiere automáticamente de la ruta. |
+| `recursive` | Opcional | `"true"` (default), `"false"` | *(Exclusivo de `.usim-dir.meta`)* Aplica la directiva recursivamente a subdirectorios. |
+| `exclude` | Opcional | `"*.tmp,Draft*"` | *(Exclusivo de `.usim-dir.meta`)* Lista de patrones glob a ignorar. |
 | `target` | Opcional | Ruta relativa en `stubs/` (ej. `"screens/Admin/Dashboard.php.stub"`) | Permite sobrescribir la ruta destino o renombrar el archivo en el paquete de stubs. |
 | `subpath` | Opcional | Subruta relativa (ej. `"Admin/TranslateManager.php"`) | Ayuda al instalador de PHP a resolver la ubicación exacta en el cliente. |
 | `skip` | Opcional | `"true"`, `"1"` | Omite temporalmente la sincronización del archivo sin tener que borrar los metadatos. |
@@ -119,11 +135,13 @@ El script aplica transformaciones inversas de forma automática según el `type`
 ./scripts/sync_stubs.sh [OPCIONES]
 ```
 
-* `-n, --dry-run`: Modo simulación. Muestra qué archivos se crearían o actualizarían sin realizar cambios en disco.
+* `-s, --search <patrón>`: Filtra la salida por coincidencia de texto en la ruta de origen o destino (ej. `-s TranslateManager` o `-s welcome/hero`).
+* `-c, --check <ruta>`: Diagnóstico puntual de inclusión de un archivo individual o carpeta (muestra feature, tipo, origen de directiva y estado).
+* `-n, --dry-run`: Modo simulación (por defecto en modo compacto). Muestra qué archivos se crearían o actualizarían sin realizar cambios en disco.
 * `-f, --feature <nombre>`: Sincroniza únicamente los recursos de la feature especificada (ej. `--feature auth`).
 * `-t, --type <tipo>`: Filtra por tipo de recurso (ej. `--type screen`).
 * `-l, --list-features`: Escanea el playground y muestra una tabla con todas las features encontradas y su conteo de archivos.
-* `-v, --verbose`: Imprime detalles exhaustivos de cada archivo y vista previa de cabeceras.
+* `-v, --verbose`: Imprime detalles exhaustivos archivo por archivo y vista previa de cabeceras.
 * `--force`: Fuerza la sobrescritura de todos los stubs coincidentes.
 * `-h, --help`: Muestra la ayuda interactiva en consola.
 
@@ -131,34 +149,44 @@ El script aplica transformaciones inversas de forma automática según el `type`
 
 ### Ejemplos Prácticos de Flujo de Trabajo
 
-#### 1. Ver qué features están declaradas en el Playground:
+#### 1. Diagnóstico puntual de un archivo o carpeta específica (`--check`):
 ```bash
-./scripts/sync_stubs.sh --list-features
+# Diagnosticar un archivo individual
+./scripts/sync_stubs.sh --check app/UI/Screens/Admin/TranslateManager.php
+
+# Diagnosticar una carpeta completa
+./scripts/sync_stubs.sh --check lang/es/modal
 ```
 
-#### 2. Probar en modo simulación (Dry Run):
+#### 2. Buscar si determinados archivos están incluidos (`--search`):
+```bash
+./scripts/sync_stubs.sh -n -s "TranslateManager"
+./scripts/sync_stubs.sh -n -s "permission"
+```
+
+#### 3. Simulación de sincronización compacta (`--dry-run`):
 ```bash
 ./scripts/sync_stubs.sh --dry-run
 ```
 
-#### 3. Sincronizar únicamente la feature de Autenticación (`auth`):
+#### 4. Ver catálogo de features declaradas en el Playground:
+```bash
+./scripts/sync_stubs.sh --list-features
+```
+
+#### 5. Sincronizar únicamente la feature de Autenticación (`auth`):
 ```bash
 ./scripts/sync_stubs.sh --feature auth
 ```
 
-#### 4. Sincronizar únicamente la feature de Idiomas (`lang`):
+#### 6. Sincronización completa con desglose detallado (`-v`):
 ```bash
-./scripts/sync_stubs.sh --feature lang
-```
-
-#### 5. Sincronización completa de todo el ecosistema:
-```bash
-./scripts/sync_stubs.sh
+./scripts/sync_stubs.sh -v
 ```
 
 ---
 
-## 6. Conexión con el Instalador de PHP (`usim:install` y `usim:feature`)
+## 6. Conexión con el Motor de PHP (`FeatureRegistry`, `FeatureInstaller`, `usim:features`, `usim:feature`, `usim:install`)
 
 Cuando `sync_stubs.sh` procesa un archivo, deja en la cabecera del stub una directiva limpia y normalizada:
 
@@ -169,8 +197,22 @@ Cuando `sync_stubs.sh` procesa un archivo, deja en la cabecera del stub una dire
 namespace {{ namespace }};
 ```
 
-El instalador de Laravel (`InstallCommand` / `InstallFeatureCommand`):
-1. Lee esta cabecera para saber qué archivos pertenecen a la feature solicitada (ej. `php artisan usim:feature auth`).
-2. Resuelve la ruta física en base a `type` y a la configuración de la app cliente (`config('usim.screens.path')`).
-3. Reemplaza los tokens de plantilla (`{{ namespace }}`, etc.).
-4. **Remueve la línea `// @usim`** antes de escribir en disco para que la aplicación del cliente final tenga código 100% limpio.
+### Flujo del Motor Dinámico en PHP:
+
+1. **`FeatureRegistry`** (`Idei\Usim\Console\Support\FeatureRegistry`):
+   - Escanea `packages/idei/usim/stubs/`.
+   - Lee dinámicamente las cabeceras `@usim:` para indexar qué archivos componen cada feature (`core`, `auth`, `lang`).
+   - Organiza métricas de componentes (Screens, Modals, Services, Controllers, Models, Migrations, Tests, Views, Lang).
+
+2. **`FeatureInstaller`** (`Idei\Usim\Console\Support\FeatureInstaller`):
+   - Resuelve la ruta física en el cliente para cada componente según su `type` y la configuración de namespaces (`screensPath`, `componentsPath`, `userModel`).
+   - Reemplaza contextualmente los placeholders (`{{ namespace }}`, `{{ screensNamespace }}`, `{{ componentsNamespace }}`, `{{ userModel }}`).
+   - **Remueve la directiva `// @usim`** antes de escribir en disco para que la aplicación del cliente final tenga código 100% limpio.
+   - Preserva permisos de ejecución `0755` en scripts.
+
+3. **Comandos Artisan Disponibles**:
+   - `php artisan usim:features`: Lista las features disponibles, cantidad de archivos y estado de instalación (`✓ Installed`, `Partial`, `Not Installed`).
+   - `php artisan usim:feature <name>`: Instala una feature individual con opciones `--dry-run`, `--force` y `--migrate`.
+   - `php artisan usim:install`: Instalador interactivo o desatendido (`--all`, `--features=auth,lang`).
+   - `php artisan usim:discover`: Descubre y regenera el caché de pantallas registradas.
+

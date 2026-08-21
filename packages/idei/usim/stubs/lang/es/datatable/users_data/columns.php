@@ -1,8 +1,10 @@
 <?php
 
+// @usim: feature="core", type="lang"
+
 return [
     'actions' => 'Acciones',
-    'country' => 'País',
+    'country' => 'Pais',
     'id' => 'ID',
     'name' => 'Nombre',
 ];

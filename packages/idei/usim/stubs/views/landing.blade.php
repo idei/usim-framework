@@ -7,7 +7,7 @@
             --bg-soft: #121c31;
             --surface: rgba(14, 23, 40, 0.86);
             --surface-strong: #101a2d;
-            --border: rgba(133, 157, 198, 0.3);
+            --border: rgba(133, 157, 198, 0.085);
             --text: #eef3ff;
             --muted: #b2c0dd;
             --accent: #4fc3f7;
@@ -15,12 +15,7 @@
             --ok: #2ec4b6;
             position: relative;
             overflow: hidden;
-            min-height: 100vh;
-            padding: clamp(1.25rem, 2vw, 2rem);
-            background:
-                radial-gradient(circle at 12% 18%, rgba(79, 195, 247, 0.22) 0, rgba(79, 195, 247, 0) 42%),
-                radial-gradient(circle at 88% 82%, rgba(46, 196, 182, 0.2) 0, rgba(46, 196, 182, 0) 44%),
-                linear-gradient(150deg, var(--bg) 0%, var(--bg-soft) 100%);
+            padding: clamp(0.5rem, 0.5vw, 0.5rem);
             color: var(--text);
             transition: background 0.25s ease, color 0.25s ease;
             font-family: "Plus Jakarta Sans", "Segoe UI", sans-serif;
@@ -42,18 +37,17 @@
         }
 
         .landing-shell {
-            max-width: 1120px;
+            max-width: 1280px;
             margin: 0 auto;
         }
 
         .landing {
             display: grid;
             grid-template-columns: 1.2fr 0.8fr;
-            gap: clamp(1.25rem, 2vw, 2rem);
+            gap: clamp(1.25rem, 1vw, 1rem);
             background: var(--surface);
             backdrop-filter: blur(8px);
             border: 1px solid var(--border);
-            border-radius: 20px;
             padding: clamp(1.25rem, 3vw, 2.25rem);
             box-shadow: 0 30px 80px rgba(4, 10, 20, 0.28);
         }
@@ -85,7 +79,7 @@
         .hero-title {
             margin: 0;
             font-family: "Space Grotesk", "Segoe UI", sans-serif;
-            font-size: clamp(2rem, 5vw, 3.1rem);
+            font-size: clamp(2rem, 4vw, 2.1rem);
             line-height: 1.05;
             letter-spacing: -0.025em;
         }
@@ -94,7 +88,7 @@
             margin: 1rem 0 0;
             max-width: 62ch;
             font-size: clamp(1rem, 1.8vw, 1.14rem);
-            line-height: 1.65;
+            line-height: 1.4;
             color: var(--muted);
         }
 
@@ -109,8 +103,8 @@
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            border-radius: 12px;
-            padding: 0.72rem 1rem;
+            border-radius: 8px;
+            padding: 0.72rem 0.72rem;
             border: 1px solid transparent;
             text-decoration: none;
             font-weight: 600;
@@ -138,7 +132,7 @@
 
         .chip {
             border: 1px solid var(--border);
-            border-radius: 12px;
+            border-radius: 8px;
             padding: 0.7rem;
             background: rgba(255, 255, 255, 0.03);
         }
@@ -159,7 +153,6 @@
         .panel {
             background: var(--surface-strong);
             border: 1px solid var(--border);
-            border-radius: 16px;
             padding: 1rem;
             display: grid;
             gap: 0.85rem;
@@ -178,11 +171,11 @@
         .code {
             margin: 0;
             border: 1px solid var(--border);
-            border-radius: 12px;
+            border-radius: 8px;
             background: rgba(0, 0, 0, 0.22);
             padding: 0.85rem;
             color: #d7f1ff;
-            font-size: 0.83rem;
+            font-size: 0.7rem;
             line-height: 1.55;
             overflow-x: auto;
         }
@@ -192,7 +185,7 @@
             padding: 0;
             list-style: none;
             display: grid;
-            gap: 0.55rem;
+            gap: 0.5rem;
         }
 
         .panel-list li {
@@ -200,11 +193,10 @@
             font-size: 0.9rem;
             padding: 0.55rem 0.65rem;
             border: 1px solid var(--border);
-            border-radius: 10px;
             background: rgba(255, 255, 255, 0.03);
         }
 
-        @media (max-width: 920px) {
+        @media (max-width: 1024px) {
             .landing {
                 grid-template-columns: 1fr;
             }

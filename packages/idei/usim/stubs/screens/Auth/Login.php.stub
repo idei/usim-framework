@@ -1,14 +1,20 @@
 <?php
+
+// @usim: feature="admin", type="screen"
+
 namespace {{ namespace }};
 
 use App\Services\Auth\AuthSessionService;
 use App\Services\Auth\LoginService;
-use Idei\Usim\Screen;
-use Idei\Usim\Components\Label;
 use Idei\Usim\Components\Container;
+use Idei\Usim\Components\Label;
 use Idei\Usim\Enums\JustifyContent;
 use Idei\Usim\Enums\LayoutType;
+use Idei\Usim\Enums\Visibility;
+use Idei\Usim\Screen;
 use Idei\Usim\UI;
+use Idei\Usim\ValueObjects\Size;
+use Idei\Usim\ValueObjects\Spacing;
 
 class Login extends Screen
 {
@@ -17,6 +23,8 @@ class Login extends Screen
         protected AuthSessionService $authSessionService
     ) {
     }
+
+    public static Visibility $visibility = Visibility::GUEST;
 
     protected string $store_email = '';
     protected string $store_token = '';
@@ -47,17 +55,17 @@ class Login extends Screen
         if (config('app.env') === 'local') {
             // Pre-fill credentials in local environment for easier testing
             $email = empty($this->store_email)
-                ? config('users.roles.admin.seed_user.email')
+                ? config('usim.users.root.email')
                 : $this->store_email;
-            $password = config('users.roles.admin.seed_user.password');
+            $password = config('usim.users.root.password');
         }
 
         $container
             ->title(t('screen.auth.login.title'))
-            ->maxWidth('450px')
+            ->maxWidth(Size::px(450))
             ->centerHorizontal()
             ->shadow(3)
-            ->padding('30px');
+            ->padding(Spacing::px(30));
 
         $container->add(
             UI::input('login_email')
@@ -66,7 +74,7 @@ class Login extends Screen
                 ->value($email)
                 ->type('email')
                 ->required(true)
-                ->width('100%')
+                ->width(Size::full())
         );
 
         $container->add(
@@ -76,7 +84,7 @@ class Login extends Screen
                 ->placeholder(t('screen.auth.login.password.placeholder'))
                 ->value($password)
                 ->required(true)
-                ->width('100%')
+                ->width(Size::full())
         );
 
         $container->add(
@@ -87,9 +95,9 @@ class Login extends Screen
             ->layout(LayoutType::HORIZONTAL)
             ->justifyContent(JustifyContent::SPACE_BETWEEN)
             ->plain()
-            ->gap('10px')
+            ->gap(Spacing::px(10))
             ->shadow(false)
-            ->padding('20px 0 0 0');
+            ->padding(Spacing::each(Spacing::px(20)));
 
         $buttonsContainer->add(
             UI::button('btn_cancel_login')
@@ -113,7 +121,7 @@ class Login extends Screen
                 ->label(t('screen.auth.login.actions.forgot_password'))
                 ->style('link')
                 ->action('navigate_forgot_password')
-                ->width('100%')
+                ->width(Size::full())
         );
     }
 
@@ -122,21 +130,25 @@ class Login extends Screen
         $this->lbl_login_result->text('')->style('');
     }
 
+    /** @param array<string, mixed> $params */
     public function onNavigateForgotPassword(array $params): void
     {
         $this->redirect('/auth/forgot-password');
     }
 
+    /** @param array<string, mixed> $params */
     public function onSubmitLogin(array $params): void
     {
-        $email = $params['login_email'] ?? '';
-        $password = $params['login_password'] ?? '';
+        $emailValue = $params['login_email'] ?? '';
+        $passwordValue = $params['login_password'] ?? '';
+        $email = is_string($emailValue) ? $emailValue : '';
+        $password = is_string($passwordValue) ? $passwordValue : '';
         $remember = $params['remember'] ?? false;
 
         $response = $this->loginService->login($email, $password, (bool) $remember);
 
-        $message = $response['message'] ?? 'Login failed.';
-        $status = $response['status'] ?? 'error';
+        $message = $response['message'];
+        $status = $response['status'];
         $this->toast($message, $status);
         $this->lbl_login_result->text($message)->style($status);
 
@@ -144,14 +156,10 @@ class Login extends Screen
             return;
         }
 
-        $this->store_token = $response['data']['token'] ?? '';
+        $this->store_token = $response['data']['token'];
         $this->store_email = $email;
 
-        $user = $response['user'] ?? null;
-        if (!$user) {
-            $this->toast(t('screen.auth.login.errors.resolve_user'), 'error');
-            return;
-        }
+        $user = $response['user'];
 
         $redirectTo = $this->authSessionService->start($user, $this->store_token);
         $this->redirect($redirectTo);

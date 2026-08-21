@@ -1,5 +1,7 @@
 <?php
 
+// @usim: feature="core", type="lang"
+
 return [
     'title' => 'Editar traducción',
     'key_label' => 'Clave',

@@ -1,5 +1,7 @@
 <?php
 
+// @usim: feature="core", type="lang"
+
 return [
     'title' => 'Edit Translation',
     'key_label' => 'Key',
