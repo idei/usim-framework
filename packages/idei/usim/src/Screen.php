@@ -1,4 +1,5 @@
 <?php
+
 namespace Idei\Usim;
 
 use Idei\Usim\Components\Button;
@@ -61,22 +62,22 @@ abstract class Screen
 
     /**
      * State before modifications (for diff calculation)
-        *
-        * @var array<int|string, array<string, mixed>>|null
+     *
+     * @var array<int|string, array<string, mixed>>|null
      */
     protected ?array $oldUI = null;
 
     /**
      * State after modifications (for diff calculation)
-        *
-        * @var array<int|string, array<string, mixed>>|null
+     *
+     * @var array<int|string, array<string, mixed>>|null
      */
     protected ?array $newUI = null;
 
     /**
      * Query parameters from the request
-        *
-        * @var array<string, mixed>
+     *
+     * @var array<string, mixed>
      */
     protected array $queryParams = [];
 
@@ -95,7 +96,7 @@ abstract class Screen
      * Check access permission and return result structure.
      * This method is static to allow checking permissions without instantiating the service.
      *
-    * @return array{allowed: bool, action: ?string, params: array<string, mixed>}
+     * @return array{allowed: bool, action: ?string, params: array<string, mixed>}
      */
     public static function checkAccess(): array
     {
@@ -175,7 +176,7 @@ abstract class Screen
      * Helper to require a role (implies authentication).
      * Use this inside your authorize() method.
      *
-    * @param string|list<string> $roles
+     * @param string|list<string> $roles
      * @param string $guard
      * @return bool
      */
@@ -203,7 +204,7 @@ abstract class Screen
      * Helper to require a permission (implies authentication).
      * Use this inside your authorize() method.
      *
-    * @param string|list<string> $permissions
+     * @param string|list<string> $permissions
      * @param string $guard
      * @return bool
      */
@@ -377,9 +378,7 @@ abstract class Screen
      */
     abstract protected function buildBaseUI(Container $container, ...$params): void;
 
-    protected function postLoadUI(): void
-    {
-    }
+    protected function postLoadUI(): void {}
 
     /**
      * Initialize event context
@@ -388,8 +387,8 @@ abstract class Screen
      * Loads user Interface container and captures state for diff calculation.
      * Also injects storage values and component references into protected properties.
      *
-    * @param array<string, mixed> $incomingStorage Storage data from frontend (decrypted)
-    * @param array<string, mixed> $queryParams Query parameters from frontend
+     * @param array<string, mixed> $incomingStorage Storage data from frontend (decrypted)
+     * @param array<string, mixed> $queryParams Query parameters from frontend
      * @return void
      */
     public function initializeEventContext(array $incomingStorage = [], array $queryParams = [], bool $debug = false): void
@@ -417,7 +416,7 @@ abstract class Screen
      * Example: protected int $store_user_id; matches storage['store_user_id']
      * Example: protected string $store_token_crypt; decrypts storage['store_token_crypt'] before injection
      *
-    * @param array<string, mixed> $incomingStorage Storage data from frontend
+     * @param array<string, mixed> $incomingStorage Storage data from frontend
      * @return void
      */
     public function injectStorageValues(array $incomingStorage): void
@@ -528,7 +527,7 @@ abstract class Screen
                     // Component not found and property is not nullable
                     throw new RuntimeException(
                         "Component '{$componentName}' not found in user Interface container. " .
-                        "Make sure the component exists or make the property nullable: protected ?{$typeName} \${$componentName};"
+                            "Make sure the component exists or make the property nullable: protected ?{$typeName} \${$componentName};"
                     );
                 }
             }
@@ -567,7 +566,7 @@ abstract class Screen
     /**
      * Build diff response in indexed format
      *
-    * @return array<int|string, array<string, mixed>> Indexed diff response
+     * @return array<int|string, array<string, mixed>> Indexed diff response
      */
     protected function buildDiffResponse(bool $reload = false): array
     {
@@ -594,8 +593,8 @@ abstract class Screen
     /**
      * Get stored user Interface state, regenerate if missing
      *
-    * @param mixed ...$params Optional parameters passed to buildBaseUI
-    * @return array<int|string, array<string, mixed>> user Interface structure in JSON format
+     * @param mixed ...$params Optional parameters passed to buildBaseUI
+     * @return array<int|string, array<string, mixed>> user Interface structure in JSON format
      */
     protected function getCachedScreenSnapshot(string $parent = 'main', bool $debug = false, ...$params): array
     {
@@ -713,7 +712,7 @@ abstract class Screen
     /**
      * Reconstruct UI container from JSON array
      *
-    * @param array<int|string, array<string, mixed>> $jsonUI JSON representation of UI
+     * @param array<int|string, array<string, mixed>> $jsonUI JSON representation of UI
      * @return Container Reconstructed container
      */
     private function reconstructContainerFromJson(array $jsonUI): Container
@@ -912,7 +911,7 @@ abstract class Screen
      *   ]
      * ]
      *
-    * @return array<string, mixed> Associative array with the variables to be stored on the frontend
+     * @return array<string, mixed> Associative array with the variables to be stored on the frontend
      */
     public function getStorageVariables(): array
     {
@@ -947,8 +946,8 @@ abstract class Screen
 
     /**
      * Generic handler for 'close_modal' action
-        *
-        * @param array<string, mixed> $params
+     *
+     * @param array<string, mixed> $params
      */
     public function onCloseModal(array $params): void
     {
@@ -1139,13 +1138,10 @@ abstract class Screen
      * }
      * ```
      *
-    * @return array<string, mixed> Empty array by default. Override to provide agent context metadata.
+     * @return array<string, mixed> Empty array by default. Override to provide agent context metadata.
      */
     public function getAgentContext(): array
     {
         return [];
     }
-
 }
-
-
