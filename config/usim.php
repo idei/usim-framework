@@ -38,6 +38,16 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Application Name
+    |--------------------------------------------------------------------------
+    | Nombre de la aplicación que se mostrará en la interfaz de usuario.
+    | Se puede definir en el archivo .env con la variable APP_NAME. Si no se define,
+    | se usará "USIM Framework" como valor predeterminado.
+    */
+    'app_name' => env('APP_NAME', 'USIM Framework'),
+
+    /*
+    |--------------------------------------------------------------------------
     | API Base URL
     |--------------------------------------------------------------------------
     |

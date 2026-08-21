@@ -17,7 +17,7 @@ class Home extends Screen
             ->padding(Spacing::px(0));
         $container->add(
             UI::label('welcome_usim')
-                ->html('welcome-usim', ['title' => env('APP_NAME', 'USIM Framework')])
+                ->html('welcome-usim', ['title' => config('usim.app_name')])
                 ->width(Size::full())
         )->plain();
     }
