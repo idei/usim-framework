@@ -33,8 +33,7 @@ class UsersManager extends Screen
     public function __construct(
         protected RegisterService $registerService,
         protected UserService $userService
-    ) {
-    }
+    ) {}
 
     public static function authorize(): bool
     {
@@ -55,9 +54,7 @@ class UsersManager extends Screen
     protected Table $roles_table;
     protected Table $permissions_table;
     protected Input $search_users;
-    protected Input $search_roles;
     protected Button $add_user_btn;
-    protected Button $add_role_btn;
     protected Split $roles_split;
 
     protected function buildBaseUI(Container $container, ...$params): void
@@ -111,7 +108,7 @@ class UsersManager extends Screen
 
         $addBtn = UI::button('add_user_btn')
             ->label(t('screen.admin.dashboard.add_user'))
-            ->style('primary')
+            ->style('secondary')
             ->action('add_user_clicked')
             ->icon('plus');
 
@@ -148,61 +145,40 @@ class UsersManager extends Screen
             ->splitSize('65%')
             ->splitterSize('8px')
             ->draggable(true)
-            ->collapsible(true)
             ->minFirstSize('400px')
             ->minSecondSize('700px')
-            ->padding(Spacing::px(0))
+            ->padding(Spacing::px(4))
             ->height(Size::px(500))
             ->width(Size::full())
-            ->card();
+            ->plain();
 
         $roles_left_panel = UI::container('roles_left_panel')
             ->layout(LayoutType::VERTICAL)
-            ->gap(Spacing::px(4))
+            ->padding(Spacing::px(4))
             ->plain();
 
         $roles_right_panel = UI::container('roles_right_panel')
+            ->layout(LayoutType::VERTICAL)
+            ->padding(Spacing::px(4))
             ->plain();
 
-        $toolbar = UI::container('roles_toolbar')
-            ->layout(LayoutType::HORIZONTAL)
-            ->fullWidth()
-            ->rounded(0)
-            ->padding(Spacing::px(10))
-            ->gap(Spacing::px(10));
-
-        $search = UI::input('search_roles')
-            ->placeholder(t('screen.admin.users_manager.search_role_placeholder'))
-            ->width(Size::px(200))
-            ->autocomplete('off')
-            ->onInput('search_roles', [])
-            ->debounce(500);
-
-        $addBtn = UI::button('add_role_btn')
-            ->label(t('screen.admin.users_manager.add_role'))
-            ->style('primary')
-            ->action('add_role_clicked')
-            ->icon('plus');
-
-        $toolbar->add($search)->add($addBtn);
-
         $roles_table = $this->requireTable(UI::table('roles_table'));
+        $roles_table->pagination(0);
+        $roles_table->height(Size::px(470));
         $roles_table->rounded(0);
-        $roles_table->pagination(3); // Disable pagination to show all roles
         $roles_table->sortedBy('name');
         $roles_table->dataModel(RoleTableModel::class);
         $roles_table->bodyOverflowX('hidden');
         $roles_table->bodyOverflowY('auto');
         $roles_table->selectionMode(SelectionMode::SINGLE);
-        $roles_table->rowMinHeight(45);
 
         $roles_left_panel
-            ->add($toolbar)
             ->add($roles_table);
 
         $permissions_table = $this->requireTable(UI::table('permissions_table'));
+        $permissions_table->pagination(0);
+        $permissions_table->height(Size::px(470));
         $permissions_table->rounded(0);
-        $permissions_table->pagination(10);
         $permissions_table->sortedBy('name');
         $permissions_table->dataModel(PermissionTableModel::class);
         $permissions_table->bodyOverflowX('hidden');
@@ -450,16 +426,6 @@ class UsersManager extends Screen
         $search = trim($this->searchParam($params, ['value', 'search_users']));
         $this->users_table->setSearchTerm($search);
         $this->search_users->value($search);
-    }
-
-    /**
-     * @param array<string, mixed> $params
-     */
-    public function onSearchRoles(array $params): void
-    {
-        $search = trim($this->searchParam($params, ['value', 'search_roles']));
-        $this->roles_table->setSearchTerm($search);
-        $this->search_roles->value($search);
     }
 
     /**
