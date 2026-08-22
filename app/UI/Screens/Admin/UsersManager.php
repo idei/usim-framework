@@ -223,6 +223,17 @@ class UsersManager extends Screen
         $this->users_table->page(1);
     }
 
+    public function onRolesTableColumnClicked(array $params): void
+    {
+        $column = $this->optionalStringParam($params, 'sort_by');
+        if ($column === null || $column === '') {
+            return;
+        }
+
+        $this->roles_table->sortedBy($column);
+        $this->roles_table->page(1);
+    }
+
     /**
      * @param array<string, mixed> $params
      */
