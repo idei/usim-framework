@@ -16,7 +16,7 @@ class RoleListingService extends EloquentListingService
 {
     protected string $modelClass = UsimRole::class;
 
-    protected array $with = [];
+    protected array $with = ['usimSetting'];
 
     /**
      * @return array<string, string>
@@ -25,8 +25,8 @@ class RoleListingService extends EloquentListingService
     {
         return [
             'name' => 'name',
-            'home_screen' => 'home_screen',
-            'priority' => 'priority',
+            'home_screen' => 'usimSetting.home_screen',
+            'priority' => 'usimSetting.priority',
         ];
     }
 
@@ -45,8 +45,8 @@ class RoleListingService extends EloquentListingService
     {
         return [
             'name' => 'name',
-            'home_screen' => 'home_screen',
-            'priority' => 'priority',
+            'home_screen' => 'usimSetting.home_screen',
+            'priority' => 'usimSetting.priority',
         ];
     }
 

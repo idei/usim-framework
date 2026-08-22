@@ -80,7 +80,9 @@ class UsimRole extends SpatieRole
         return Attribute::make(
             get: function () {
                 /** @var UsimRoleSetting|null $setting */
-                $setting = $this->usimSetting()->first();
+                $setting = $this->relationLoaded('usimSetting')
+                    ? $this->getRelation('usimSetting')
+                    : $this->usimSetting()->first();
                 return $setting->home_screen ?? config('usim.default_home_screen', self::DEFAULT_HOME_SCREEN);
             },
             set: fn($value) => $this->usimSetting()->updateOrCreate([], ['home_screen' => $value]),
@@ -93,7 +95,9 @@ class UsimRole extends SpatieRole
         return Attribute::make(
             get: function () {
                 /** @var UsimRoleSetting|null $setting */
-                $setting = $this->usimSetting()->first();
+                $setting = $this->relationLoaded('usimSetting')
+                    ? $this->getRelation('usimSetting')
+                    : $this->usimSetting()->first();
 
                 $defaultPriority = config('usim.default_priority', 100);
                 if (!is_int($defaultPriority)) {
