@@ -4,19 +4,19 @@
 
 namespace {{ namespace }};
 
+use Idei\Usim\Models\UsimRole;
 use Idei\Usim\Support\EloquentListingService;
-use Spatie\Permission\Models\Role;
 
 /**
  * Read-only listing service for roles.
  *
- * @extends EloquentListingService<Role>
+ * @extends EloquentListingService<UsimRole>
  */
 class RoleListingService extends EloquentListingService
 {
-    protected string $modelClass = Role::class;
+    protected string $modelClass = UsimRole::class;
 
-    protected array $with = [];
+    protected array $with = ['usimSetting'];
 
     /**
      * @return array<string, string>
@@ -25,6 +25,8 @@ class RoleListingService extends EloquentListingService
     {
         return [
             'name' => 'name',
+            'home_screen' => 'usimSetting.home_screen',
+            'priority' => 'usimSetting.priority',
         ];
     }
 
@@ -43,6 +45,8 @@ class RoleListingService extends EloquentListingService
     {
         return [
             'name' => 'name',
+            'home_screen' => 'usimSetting.home_screen',
+            'priority' => 'usimSetting.priority',
         ];
     }
 
@@ -53,7 +57,7 @@ class RoleListingService extends EloquentListingService
     {
         return [
             'field' => 'name',
-            'direction' => 'asc',
+            'direction' => 'desc',
         ];
     }
 }

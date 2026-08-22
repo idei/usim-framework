@@ -28,4 +28,6 @@ return [
     'permissions_tab' => 'Permissions',
     'permissions_column_name' => 'Selected role permissions',
     'roles_column_name' => 'Role',
+    'roles_column_home_screen' => 'Home Screen',
+    'roles_column_priority' => 'Priority',
 ];

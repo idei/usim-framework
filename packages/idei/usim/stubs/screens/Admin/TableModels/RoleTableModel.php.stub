@@ -7,7 +7,7 @@ namespace {{ namespace }};
 use App\Services\Role\RoleListingService;
 use Idei\Usim\Components\Table;
 use Idei\Usim\DataTable\AbstractTableModel;
-use Spatie\Permission\Models\Role;
+use Idei\Usim\Models\UsimRole;
 
 class RoleTableModel extends AbstractTableModel
 {
@@ -21,13 +21,11 @@ class RoleTableModel extends AbstractTableModel
 
     public function getColumns(): array
     {
+        $prefix = 'screen.admin.users_manager';
         return [
-            'name' => [
-                'label' =>
-                    t('screen.admin.users_manager.roles_column_name'),
-                'width' => 200,
-                'sort_by' => 'name'
-            ],
+            'name' => ['label' => t("{$prefix}.roles_column_name"), 'width' => 100, 'sort_by' => 'name'],
+            'home_screen' => ['label' => t("{$prefix}.roles_column_home_screen"), 'width' => 200, 'sort_by' => 'home_screen'],
+            'priority' => ['label' => t("{$prefix}.roles_column_priority"), 'width' => 50, 'sort_by' => 'priority'],
         ];
     }
 
@@ -40,19 +38,22 @@ class RoleTableModel extends AbstractTableModel
 
     public function getPageData(): array
     {
+        /** @var list<UsimRole> $roles */
         $roles = $this->getRoleItems();
 
         return array_map(
-            static fn (Role $role): array => [
+            static fn(UsimRole $role): array => [
                 'id' => $role->id,
                 'name' => $role->name,
+                'home_screen' => $role->home_screen,
+                'priority' => $role->priority,
             ],
             $roles
         );
     }
 
     /**
-     * @return list<Role>
+     * @return list<UsimRole>
      */
     private function getRoleItems(): array
     {
@@ -77,10 +78,13 @@ class RoleTableModel extends AbstractTableModel
         $roles = $this->getRoleItems();
         $formatted = [];
 
+        /** @var UsimRole $role */
         foreach ($roles as $role) {
             $formatted[] = [
                 '_model_id' => $role->id,
                 'name' => t("role.{$role->name}.name"),
+                'home_screen' => $role->home_screen,
+                'priority' => $role->priority,
             ];
         }
 
