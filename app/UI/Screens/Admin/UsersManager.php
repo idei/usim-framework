@@ -6,6 +6,7 @@ namespace App\UI\Screens\Admin;
 
 use App\Services\Auth\RegisterService;
 use App\Services\User\UserService;
+use App\Services\Role\RoleService;
 use App\UI\Components\Modals\EditUserDialog;
 use App\UI\Components\Modals\RegisterDialog;
 use App\UI\Screens\Admin\TableModels\PermissionTableModel;
@@ -32,7 +33,8 @@ class UsersManager extends Screen
 
     public function __construct(
         protected RegisterService $registerService,
-        protected UserService $userService
+        protected UserService $userService,
+        protected RoleService $roleService
     ) {
     }
 
@@ -184,10 +186,9 @@ class UsersManager extends Screen
         $permissions_table->dataModel(PermissionTableModel::class);
         $permissions_table->bodyOverflowX('hidden');
         $permissions_table->bodyOverflowY('auto');
-        $permissions_table->selectionMode(SelectionMode::SINGLE);
+        $permissions_table->selectionMode(SelectionMode::MULTIPLE);
 
-        $roles_right_panel
-            ->add($permissions_table);
+        $roles_right_panel->add($permissions_table);
 
         $this->roles_split
             ->addFirst($roles_left_panel)
@@ -463,6 +464,9 @@ class UsersManager extends Screen
         }
 
         $this->roles_table->select($roleId);
+
+        $permissionIds = $this->roleService->getPermissionIds($roleId);
+        $this->permissions_table->select($permissionIds);
     }
 
     private function requireTable(mixed $component): Table

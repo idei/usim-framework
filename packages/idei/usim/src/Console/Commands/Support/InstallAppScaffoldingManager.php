@@ -170,6 +170,7 @@ class InstallAppScaffoldingManager
         $this->installService('Auth/RegisterService.php.stub', 'RegisterService.php', 'Auth', $context, $publishStub, $line);
         $this->installService('Auth/PasswordService.php.stub', 'PasswordService.php', 'Auth', $context, $publishStub, $line);
         $this->installService('User/UserService.php.stub', 'UserService.php', 'User', $context, $publishStub, $line);
+        $this->installService('Role/RoleService.php.stub', 'RoleService.php', 'Role', $context, $publishStub, $line);
         $this->installService('User/UserListingService.php.stub', 'UserListingService.php', 'User', $context, $publishStub, $line);
         $this->installService('Role/RoleListingService.php.stub', 'RoleListingService.php', 'Role', $context, $publishStub, $line);
         $this->installService('Permissions/PermissionListingService.php.stub', 'PermissionListingService.php', 'Permissions', $context, $publishStub, $line);
