@@ -469,6 +469,31 @@ class UsersManager extends Screen
         $this->permissions_table->select($permissionIds);
     }
 
+    /**
+     * @param array<string, mixed> $params
+     */
+    public function onPermissionsTableRowClicked(array $params): void
+    {
+        $selectedRole = $this->roles_table->select();
+        $roleId = is_array($selectedRole) ? ($selectedRole[0] ?? null) : $selectedRole;
+
+        if ($roleId === null || $roleId === '') {
+            $this->toast(t('You must select a role first'), 'warning');
+            return;
+        }
+
+        $permissionId = $this->selectableId($params, 'model_id');
+        if ($permissionId === null) {
+            $this->toast(t('Permission ID is required'), 'error');
+            return;
+        }
+
+        $this->roleService->togglePermission($roleId, $permissionId);
+
+        $permissionIds = $this->roleService->getPermissionIds($roleId);
+        $this->permissions_table->select($permissionIds);
+    }
+
     private function requireTable(mixed $component): Table
     {
         if (!$component instanceof Table) {

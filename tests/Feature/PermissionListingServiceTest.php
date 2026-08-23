@@ -119,3 +119,60 @@ it('handles permissions table column clicked sorting in UsersManager screen', fu
     $ui->assertNoIssues();
 });
 
+it('toggles permission row selection on permissions_table_row_clicked in UsersManager screen', function () {
+    \Idei\Usim\Models\UsimRole::findOrCreate('root');
+    $role = \Idei\Usim\Models\UsimRole::createWithHome('custom_test_role', 'custom_home', 25);
+    $perm1 = Permission::findOrCreate('custom_perm_test_1');
+    $perm2 = Permission::findOrCreate('custom_perm_test_2');
+
+    $root = \App\Models\User::factory()->create();
+    $root->assignRole('root');
+
+    $this->actingAs($root);
+
+    $ui = uiScenario($this, \App\UI\Screens\Admin\UsersManager::class, ['reset' => true]);
+
+    // 1. Without role selected -> shows warning toast
+    $resNoRole = $ui->action('permissions_table', 'permissions_table_row_clicked', [
+        'model_id' => $perm1->id,
+    ]);
+    $resNoRole->assertOk();
+    expect($resNoRole->json('toast.type'))->toBe('warning');
+    expect($role->fresh()->hasPermissionTo($perm1))->toBeFalse();
+
+    // 2. Select role in roles_table
+    $resRole = $ui->action('roles_table', 'roles_table_row_clicked', [
+        'model_id' => $role->id,
+    ]);
+    $resRole->assertOk();
+
+    // 3. Click permission row with perm1 -> becomes attached in DB and selected in UI
+    $res1 = $ui->action('permissions_table', 'permissions_table_row_clicked', [
+        'model_id' => $perm1->id,
+    ]);
+    $res1->assertOk();
+    expect($role->fresh()->hasPermissionTo($perm1))->toBeTrue();
+    $ui->component('permissions_table')->expect('selected_rows')->toContain($perm1->id);
+
+    // 4. Click permission row with perm2 -> both perm1 and perm2 are attached in DB and selected in UI
+    $res2 = $ui->action('permissions_table', 'permissions_table_row_clicked', [
+        'model_id' => $perm2->id,
+    ]);
+    $res2->assertOk();
+    expect($role->fresh()->hasPermissionTo($perm2))->toBeTrue();
+    $ui->component('permissions_table')->expect('selected_rows')->toContain($perm1->id);
+    $ui->component('permissions_table')->expect('selected_rows')->toContain($perm2->id);
+
+    // 5. Click permission row with perm1 again -> perm1 is detached in DB and unselected in UI, perm2 remains
+    $res3 = $ui->action('permissions_table', 'permissions_table_row_clicked', [
+        'model_id' => $perm1->id,
+    ]);
+    $res3->assertOk();
+    expect($role->fresh()->hasPermissionTo($perm1))->toBeFalse();
+    expect($role->fresh()->hasPermissionTo($perm2))->toBeTrue();
+    $ui->component('permissions_table')->expect('selected_rows')->not->toContain($perm1->id);
+    $ui->component('permissions_table')->expect('selected_rows')->toContain($perm2->id);
+
+    $ui->assertNoIssues();
+});
+

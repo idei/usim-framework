@@ -5,6 +5,7 @@
 namespace App\Services\Role;
 
 use Idei\Usim\Models\UsimRole;
+use Spatie\Permission\Models\Permission;
 
 class RoleService
 {
@@ -16,9 +17,7 @@ class RoleService
      */
     public function getPermissionIds(UsimRole|int|string $role): array
     {
-        $roleModel = $role instanceof UsimRole
-            ? $role
-            : (UsimRole::find($role) ?? UsimRole::query()->where('name', (string) $role)->first());
+        $roleModel = $this->findRole($role);
 
         if (!$roleModel instanceof UsimRole) {
             return [];
@@ -43,5 +42,116 @@ class RoleService
             ->toArray();
 
         return $ids;
+    }
+
+    /**
+     * Toggle a permission for a role (attach if absent, detach if present).
+     *
+     * @param UsimRole|int|string $role Role instance, ID, or name
+     * @param Permission|int|string $permission Permission instance, ID, or name
+     * @return bool True if permission is now attached, false if detached or not found
+     */
+    public function togglePermission(UsimRole|int|string $role, Permission|int|string $permission): bool
+    {
+        $roleModel = $this->findRole($role);
+        $permissionModel = $this->findPermission($permission);
+
+        if (!$roleModel instanceof UsimRole || !$permissionModel instanceof Permission) {
+            return false;
+        }
+
+        $hasPermission = $roleModel->permissions()->where('permissions.id', $permissionModel->id)->exists();
+
+        if ($hasPermission) {
+            $roleModel->revokePermissionTo($permissionModel);
+            $roleModel->unsetRelation('permissions');
+
+            return false;
+        }
+
+        $roleModel->givePermissionTo($permissionModel);
+        $roleModel->unsetRelation('permissions');
+
+        return true;
+    }
+
+    /**
+     * Add a permission to a role.
+     *
+     * @param UsimRole|int|string $role Role instance, ID, or name
+     * @param Permission|int|string $permission Permission instance, ID, or name
+     * @return bool True if successful, false if role or permission not found
+     */
+    public function addPermission(UsimRole|int|string $role, Permission|int|string $permission): bool
+    {
+        $roleModel = $this->findRole($role);
+        $permissionModel = $this->findPermission($permission);
+
+        if (!$roleModel instanceof UsimRole || !$permissionModel instanceof Permission) {
+            return false;
+        }
+
+        $roleModel->givePermissionTo($permissionModel);
+        $roleModel->unsetRelation('permissions');
+
+        return true;
+    }
+
+    /**
+     * Remove a permission from a role.
+     *
+     * @param UsimRole|int|string $role Role instance, ID, or name
+     * @param Permission|int|string $permission Permission instance, ID, or name
+     * @return bool True if successful, false if role or permission not found
+     */
+    public function removePermission(UsimRole|int|string $role, Permission|int|string $permission): bool
+    {
+        $roleModel = $this->findRole($role);
+        $permissionModel = $this->findPermission($permission);
+
+        if (!$roleModel instanceof UsimRole || !$permissionModel instanceof Permission) {
+            return false;
+        }
+
+        $roleModel->revokePermissionTo($permissionModel);
+        $roleModel->unsetRelation('permissions');
+
+        return true;
+    }
+
+    /**
+     * Find a role instance by model, ID, or name.
+     *
+     * @param UsimRole|int|string $role
+     * @return UsimRole|null
+     */
+    public function findRole(UsimRole|int|string $role): ?UsimRole
+    {
+        if ($role instanceof UsimRole) {
+            return $role;
+        }
+
+        /** @var UsimRole|null $found */
+        $found = UsimRole::find($role) ?? UsimRole::query()->where('name', (string) $role)->first();
+
+        return $found;
+    }
+
+    /**
+     * Find a permission instance by model, ID, or name.
+     *
+     * @param Permission|int|string $permission
+     * @return Permission|null
+     */
+    public function findPermission(Permission|int|string $permission): ?Permission
+    {
+        if ($permission instanceof Permission) {
+            return $permission;
+        }
+
+        /** @var Permission|null $found */
+        $found = Permission::find($permission) ?? Permission::query()->where('name', (string) $permission)->first();
+
+        return $found;
     }
 }

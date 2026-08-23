@@ -51,3 +51,53 @@ it('returns all permission IDs associated with a role by model instance, id and 
     $emptyRole = UsimRole::createWithHome('empty_perm_role', 'empty_home', 30);
     expect($service->getPermissionIds($emptyRole))->toBe([]);
 });
+
+it('toggles permission for a role attaching and detaching it correctly', function () {
+    $role = UsimRole::createWithHome('test_toggle_role', 'test_home', 10);
+    $perm = Permission::findOrCreate('perm_toggle_test');
+
+    $service = app(RoleService::class);
+
+    // Initially role does not have the permission
+    expect($service->getPermissionIds($role))->not->toContain($perm->id);
+
+    // 1. Toggle ON by ID -> attaches permission and returns true
+    $result1 = $service->togglePermission((int) $role->id, (int) $perm->id);
+    expect($result1)->toBeTrue();
+    expect($service->getPermissionIds($role))->toContain($perm->id);
+
+    // 2. Toggle OFF by string name -> detaches permission and returns false
+    $result2 = $service->togglePermission('test_toggle_role', 'perm_toggle_test');
+    expect($result2)->toBeFalse();
+    expect($service->getPermissionIds($role))->not->toContain($perm->id);
+
+    // 3. Toggle ON by model instances -> attaches permission and returns true
+    $result3 = $service->togglePermission($role, $perm);
+    expect($result3)->toBeTrue();
+    expect($service->getPermissionIds($role))->toContain($perm->id);
+
+    // 4. Returns false if role or permission not found
+    expect($service->togglePermission(999999, (int) $perm->id))->toBeFalse();
+    expect($service->togglePermission((int) $role->id, 999999))->toBeFalse();
+});
+
+it('adds and removes permissions explicitly for a role', function () {
+    $role = UsimRole::createWithHome('test_explicit_role', 'test_home', 15);
+    $perm = Permission::findOrCreate('perm_explicit_test');
+
+    $service = app(RoleService::class);
+
+    // Add permission
+    $added = $service->addPermission($role, $perm);
+    expect($added)->toBeTrue();
+    expect($service->getPermissionIds($role))->toContain($perm->id);
+
+    // Remove permission
+    $removed = $service->removePermission($role, $perm);
+    expect($removed)->toBeTrue();
+    expect($service->getPermissionIds($role))->not->toContain($perm->id);
+
+    // Non-existent role or permission returns false
+    expect($service->addPermission(999999, $perm))->toBeFalse();
+    expect($service->removePermission(999999, $perm))->toBeFalse();
+});

@@ -5,6 +5,7 @@
 namespace {{ namespace }};
 
 use App\Services\Auth\RegisterService;
+use App\Services\Role\RoleService;
 use App\Services\User\UserService;
 use {{ componentsNamespace }}\Modals\EditUserDialog;
 use {{ componentsNamespace }}\Modals\RegisterDialog;
@@ -32,7 +33,8 @@ class UsersManager extends Screen
 
     public function __construct(
         protected RegisterService $registerService,
-        protected UserService $userService
+        protected UserService $userService,
+        protected RoleService $roleService
     ) {}
 
     public static function authorize(): bool
@@ -451,6 +453,34 @@ class UsersManager extends Screen
         }
 
         $this->roles_table->select($roleId);
+
+        $permissionIds = $this->roleService->getPermissionIds($roleId);
+        $this->permissions_table->select($permissionIds);
+    }
+
+    /**
+     * @param array<string, mixed> $params
+     */
+    public function onPermissionsTableRowClicked(array $params): void
+    {
+        $selectedRole = $this->roles_table->select();
+        $roleId = is_array($selectedRole) ? ($selectedRole[0] ?? null) : $selectedRole;
+
+        if ($roleId === null || $roleId === '') {
+            $this->toast(t('You must select a role first'), 'warning');
+            return;
+        }
+
+        $permissionId = $this->selectableId($params, 'model_id');
+        if ($permissionId === null) {
+            $this->toast(t('Permission ID is required'), 'error');
+            return;
+        }
+
+        $this->roleService->togglePermission($roleId, $permissionId);
+
+        $permissionIds = $this->roleService->getPermissionIds($roleId);
+        $this->permissions_table->select($permissionIds);
     }
 
     private function requireTable(mixed $component): Table
