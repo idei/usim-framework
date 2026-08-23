@@ -45,7 +45,7 @@ class UsersManager extends Screen
 
     public static function getMenuLabel(): string
     {
-        return t('screen.admin.dashboard.menu_label');
+        return t(self::I18N_PREFIX . 'menu_label');
     }
 
     public static function getMenuIcon(): ?string
@@ -103,14 +103,14 @@ class UsersManager extends Screen
             ->gap(Spacing::px(10));
 
         $search = UI::input('search_users')
-            ->placeholder(t('screen.admin.dashboard.search_placeholder'))
+            ->placeholder(t(self::I18N_PREFIX . 'search_placeholder'))
             ->width(Size::px(300))
             ->autocomplete('off')
             ->onInput('search_users', [])
             ->debounce(500);
 
         $addBtn = UI::button('add_user_btn')
-            ->label(t('screen.admin.dashboard.add_user'))
+            ->label(t(self::I18N_PREFIX . 'add_user'))
             ->style('secondary')
             ->action('add_user_clicked')
             ->icon('plus');
