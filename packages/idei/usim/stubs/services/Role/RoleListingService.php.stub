@@ -60,4 +60,5 @@ class RoleListingService extends EloquentListingService
             'direction' => 'desc',
         ];
     }
+
 }

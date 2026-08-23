@@ -22,9 +22,12 @@ class PermissionTableModel extends AbstractTableModel
     public function getColumns(): array
     {
         return [
+            'roles' => [
+                'label' => t('screen.admin.users_manager.permissions_column_roles'),
+                'width' => 25,
+            ],
             'name' => [
-                'label' =>
-                    t('screen.admin.users_manager.permissions_column_name'),
+                'label' => t('screen.admin.users_manager.permissions_column_name'),
                 'width' => 200,
                 'sort_by' => 'name'
             ],
@@ -43,8 +46,9 @@ class PermissionTableModel extends AbstractTableModel
         $permissions = $this->getPermissionItems();
 
         return array_map(
-            static fn (Permission $permission): array => [
+            fn(Permission $permission): array => [
                 'id' => $permission->id,
+                'roles' => $this->formatRoleIds($permission),
                 'name' => $permission->name,
             ],
             $permissions
@@ -80,10 +84,22 @@ class PermissionTableModel extends AbstractTableModel
         foreach ($permissions as $permission) {
             $formatted[] = [
                 '_model_id' => $permission->id,
+                'roles' => $this->formatRoleIds($permission),
                 'name' => t("permission.{$permission->name}.name"),
             ];
         }
 
         return $formatted;
+    }
+
+    private function formatRoleIds(Permission $permission): string
+    {
+        $roleIds = $permission->roles
+            ->pluck('id')
+            ->filter(static fn($id): bool => $id !== null && $id !== '')
+            ->values()
+            ->toArray();
+
+        return $roleIds !== [] ? implode(', ', $roleIds) : '-';
     }
 }

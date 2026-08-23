@@ -478,7 +478,7 @@ class UsersManager extends Screen
         $roleId = is_array($selectedRole) ? ($selectedRole[0] ?? null) : $selectedRole;
 
         if ($roleId === null || $roleId === '') {
-            $this->toast(t('You must select a role first'), 'warning');
+            $this->toast(t(self::I18N_PREFIX . 'role_selection_warning'), 'warning');
             return;
         }
 

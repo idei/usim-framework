@@ -30,4 +30,5 @@ return [
     'roles_column_name' => 'Rol',
     'roles_column_home_screen' => 'Inicio',
     'roles_column_priority' => 'Prioridad',
+    'role_selection_warning' => 'Primero debes seleccionar un rol',
 ];
