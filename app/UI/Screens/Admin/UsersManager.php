@@ -33,7 +33,8 @@ class UsersManager extends Screen
     public function __construct(
         protected RegisterService $registerService,
         protected UserService $userService
-    ) {}
+    ) {
+    }
 
     public static function authorize(): bool
     {
@@ -145,7 +146,7 @@ class UsersManager extends Screen
             ->splitSize('65%')
             ->splitterSize('8px')
             ->draggable(true)
-            ->minFirstSize('400px')
+            ->minFirstSize('450px')
             ->minSecondSize('700px')
             ->padding(Spacing::px(4))
             ->height(Size::px(500))
@@ -232,6 +233,17 @@ class UsersManager extends Screen
 
         $this->roles_table->sortedBy($column);
         $this->roles_table->page(1);
+    }
+
+    public function onPermissionsTableColumnClicked(array $params): void
+    {
+        $column = $this->optionalStringParam($params, 'sort_by');
+        if ($column === null || $column === '') {
+            return;
+        }
+
+        $this->permissions_table->sortedBy($column);
+        $this->permissions_table->page(1);
     }
 
     /**

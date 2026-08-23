@@ -16,7 +16,7 @@ class PermissionListingService extends EloquentListingService
 {
     protected string $modelClass = Permission::class;
 
-    protected array $with = [];
+    protected array $with = ['roles'];
 
     /**
      * @return array<string, string>
@@ -33,7 +33,23 @@ class PermissionListingService extends EloquentListingService
      */
     protected function filterableFields(): array
     {
-        return [];
+        return [
+            'role_id' => [
+                'path' => 'roles.id',
+                'operator' => '=',
+                'cast' => 'int',
+            ],
+            'role' => [
+                'path' => 'roles.id',
+                'operator' => '=',
+                'cast' => 'int',
+            ],
+            'roles.id' => [
+                'path' => 'roles.id',
+                'operator' => '=',
+                'cast' => 'int',
+            ],
+        ];
     }
 
     /**

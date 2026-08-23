@@ -26,6 +26,7 @@ return [
     'users_tab' => 'Users',
     'roles_tab' => 'Roles',
     'permissions_tab' => 'Permissions',
+    'permissions_column_roles' => 'Roles',
     'permissions_column_name' => 'Selected role permissions',
     'roles_column_name' => 'Role',
     'roles_column_home_screen' => 'Home Screen',
