@@ -166,7 +166,7 @@ class SeedAccessControl
             }
         }
 
-        $all = array_values(array_unique([...$defined, ...$rolePermissions, '*']));
+        $all = array_values(array_unique([...$defined, ...$rolePermissions]));
         sort($all);
 
         return $all;
@@ -192,11 +192,11 @@ class SeedAccessControl
             $normalizedRoles[$roleName] = $roleMeta;
         }
 
-        if (!array_key_exists('root', $normalizedRoles)) {
-            $normalizedRoles['root'] = ['permissions' => ['*']];
-        }
+        // if (!array_key_exists('root', $normalizedRoles)) {
+        //     $normalizedRoles['root'] = ['permissions' => ['*']];
+        // }
 
-        $normalizedRoles['root']['permissions'] = ['*'];
+        // $normalizedRoles['root']['permissions'] = ['*'];
 
         /** @var array<string, array<string, mixed>> $normalizedRoles */
         return $normalizedRoles;

@@ -24,8 +24,8 @@ class UserSeeder extends Seeder
         uasort($rolesData, static function (array $a, array $b): int {
             $aPriority = $a['priority'] ?? 0;
             $bPriority = $b['priority'] ?? 0;
-            $aPriority = is_int($aPriority) ? $aPriority : 0;
-            $bPriority = is_int($bPriority) ? $bPriority : 0;
+            $aPriority = \is_int($aPriority) ? $aPriority : 0;
+            $bPriority = \is_int($bPriority) ? $bPriority : 0;
 
             return $aPriority <=> $bPriority;
         });
@@ -44,7 +44,7 @@ class UserSeeder extends Seeder
                     /** @var list<string> $rolesForSync */
                     $rolesForSync = array_values($rand_roles);
                 } else {
-                    $rolesForSync = is_string($rand_roles) ? [$rand_roles] : [];
+                    $rolesForSync = \is_string($rand_roles) ? [$rand_roles] : [];
                 }
 
                 $user->syncRoles($rolesForSync);

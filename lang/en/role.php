@@ -2,31 +2,31 @@
 
 return [
     'root' => [
-        'name' => 'Root',
         'description' => 'User with total and unconditional access to all features.',
+        'name' => 'Root',
     ],
     'admin' => [
-        'name' => 'Administrator',
         'description' => 'Manages the system and users.',
+        'name' => 'Administrator',
     ],
     'registered' => [
-        'name' => 'Registered',
         'description' => 'Registered user with limited permissions.',
+        'name' => 'Registered',
     ],
     'approved' => [
-        'name' => 'Approved',
         'description' => 'Approved user with access to additional features.',
+        'name' => 'Approved',
     ],
     'translator' => [
-        'name' => 'Translator',
         'description' => 'User responsible for managing translations.',
+        'name' => 'Translator',
     ],
     'developer' => [
-        'name' => 'Developer',
         'description' => 'User with access to development and debugging tools.',
+        'name' => 'Developer',
     ],
     'user' => [
-        'name' => 'User',
         'description' => 'Registered user with limited permissions.',
+        'name' => 'User',
     ],
 ];

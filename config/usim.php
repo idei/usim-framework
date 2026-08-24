@@ -94,7 +94,7 @@ return [
             ],
             'priority' => 100,
             'home_screen' => UsersManager::class,
-            'permissions' => ['*'],
+            'permissions' => ['admin.users_manager.access'],
         ],
         'admin' => [
             'default_translations' => [
@@ -103,7 +103,7 @@ return [
             ],
             'priority' => 80,
             'home_screen' => UsersManager::class,
-            'permissions' => ['screen.admin.users_manager.access'],
+            'permissions' => ['admin.users_manager.access'],
         ],
         'user' => [
             'default_translations' => [
@@ -112,7 +112,7 @@ return [
             ],
             'priority' => 60,
             'home_screen' => Home::class,
-            'permissions' => ['screen.user.home.access'],
+            'permissions' => ['home.access'],
         ],
         'registered' => [
             'default_translations' => [
@@ -121,7 +121,7 @@ return [
             ],
             'priority' => 60,
             'home_screen' => Home::class,
-            'permissions' => ['screen.user.home.access'],
+            'permissions' => ['home.access'],
         ],
         'approved' => [
             'default_translations' => [
@@ -130,7 +130,7 @@ return [
             ],
             'priority' => 40,
             'home_screen' => Home::class,
-            'permissions' => ['screen.user.home.access'],
+            'permissions' => ['home.access'],
         ],
         'translator' => [
             'default_translations' => [
