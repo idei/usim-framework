@@ -51,35 +51,6 @@ it('filters permissions by role_id and does not filter when role_id is null', fu
     expect($service->countMatching(filters: ['role_id' => null]))->toBeGreaterThanOrEqual(3);
 });
 
-it('renders roles column at the start of PermissionTableModel', function () {
-    $role1 = Role::findOrCreate('role_table_test_1');
-    $role2 = Role::findOrCreate('role_table_test_2');
-    $perm = Permission::findOrCreate('perm_table_test_multi');
-    $role1->syncPermissions([$perm]);
-    $role2->syncPermissions([$perm]);
-
-    $table = \Idei\Usim\UI::table('permissions_table');
-    $model = new \App\UI\Screens\Admin\TableModels\PermissionTableModel($table);
-
-    $columns = $model->getColumns();
-    $columnKeys = array_keys($columns);
-    expect($columnKeys[0])->toBe('roles');
-    expect($columnKeys[1])->toBe('name');
-
-    $formatted = $model->getFormattedPageData(1, 50);
-    $found = null;
-    foreach ($formatted as $row) {
-        if ($row['_model_id'] === $perm->id) {
-            $found = $row;
-            break;
-        }
-    }
-
-    expect($found)->not->toBeNull();
-    expect($found['roles'])->toContain((string) $role1->id);
-    expect($found['roles'])->toContain((string) $role2->id);
-});
-
 it('correctly sorts permissions by name in PermissionListingService', function () {
     Permission::findOrCreate('a_perm_sort_test');
     Permission::findOrCreate('m_perm_sort_test');

@@ -3,6 +3,80 @@
  */
 class UsimCheckboxComponent extends UIComponent {
     render() {
+        const hasOptions = Array.isArray(this.config.options) && this.config.options.length > 0;
+
+        if (hasOptions) {
+            const container = document.createElement('div');
+            const layout = this.config.layout || 'vertical';
+            container.className = `ui-checkbox-group-wrapper ui-checkbox-group-${layout}`;
+
+            if (this.config.label) {
+                const groupLabel = document.createElement('label');
+                groupLabel.className = 'ui-checkbox-group-title';
+                groupLabel.textContent = this.config.label;
+                if (this.config.required) {
+                    groupLabel.classList.add('required');
+                }
+                groupLabel.style.display = 'block';
+                groupLabel.style.marginBottom = '8px';
+                groupLabel.style.fontWeight = '500';
+                container.appendChild(groupLabel);
+            }
+
+            const itemsWrapper = document.createElement('div');
+            itemsWrapper.className = `ui-checkbox-items ui-checkbox-items-${layout}`;
+            if (layout === 'vertical') {
+                itemsWrapper.style.display = 'flex';
+                itemsWrapper.style.flexDirection = 'column';
+                itemsWrapper.style.gap = '8px';
+            } else if (layout === 'horizontal') {
+                itemsWrapper.style.display = 'flex';
+                itemsWrapper.style.flexDirection = 'row';
+                itemsWrapper.style.flexWrap = 'wrap';
+                itemsWrapper.style.gap = '15px';
+            }
+
+            const selectedValues = Array.isArray(this.config.selected_values)
+                ? this.config.selected_values
+                : (Array.isArray(this.config.value) ? this.config.value : (this.config.value ? [this.config.value] : []));
+
+            this.config.options.forEach((option, index) => {
+                const itemDiv = document.createElement('div');
+                itemDiv.className = 'ui-checkbox-item';
+                itemDiv.style.display = 'flex';
+                itemDiv.style.alignItems = 'center';
+                itemDiv.style.gap = '8px';
+
+                const checkbox = document.createElement('input');
+                checkbox.type = 'checkbox';
+                checkbox.className = 'ui-checkbox';
+                checkbox.name = `${this.config.name}[]`;
+                checkbox.id = `${this.config.name}_${option.value || index}`;
+                checkbox.value = option.value;
+                checkbox.checked = selectedValues.includes(option.value);
+                checkbox.disabled = this.config.disabled || option.disabled || false;
+
+                if (this.config.on_change) {
+                    checkbox.addEventListener('change', async (e) => {
+                        await this.handleChange(this.config.on_change, e.target.checked, option.value);
+                    });
+                }
+
+                itemDiv.appendChild(checkbox);
+
+                const itemLabel = document.createElement('label');
+                itemLabel.className = 'ui-checkbox-label';
+                itemLabel.textContent = option.label || option.value;
+                itemLabel.setAttribute('for', checkbox.id);
+                itemDiv.appendChild(itemLabel);
+
+                itemsWrapper.appendChild(itemDiv);
+            });
+
+            container.appendChild(itemsWrapper);
+            return this.applyCommonAttributes(container);
+        }
+
         const group = document.createElement('div');
         group.className = 'ui-checkbox-group';
 
@@ -48,7 +122,7 @@ class UsimCheckboxComponent extends UIComponent {
         return this.applyCommonAttributes(group);
     }
 
-    async handleChange(action, checked) {
+    async handleChange(action, checked, value = null) {
         try {
             const componentId = this.getComponentId();
             const helpers = window.USIM_COMPONENT_HELPERS;
@@ -62,6 +136,7 @@ class UsimCheckboxComponent extends UIComponent {
                 action,
                 parameters: {
                     checked,
+                    value,
                     name: this.config.name,
                 },
             });
@@ -92,3 +167,4 @@ if (window.USIM_COMPONENTS?.register) {
         source: 'modular',
     });
 }
+

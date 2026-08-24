@@ -94,7 +94,17 @@ class UsimButtonComponent extends UIComponent {
         const checkboxes = container.querySelectorAll('input[type="checkbox"]');
         checkboxes.forEach(checkbox => {
             if (checkbox.name) {
-                values[checkbox.name] = checkbox.checked;
+                if (checkbox.name.endsWith('[]')) {
+                    const cleanName = checkbox.name.slice(0, -2);
+                    if (!Array.isArray(values[cleanName])) {
+                        values[cleanName] = [];
+                    }
+                    if (checkbox.checked) {
+                        values[cleanName].push(checkbox.value);
+                    }
+                } else {
+                    values[checkbox.name] = checkbox.checked;
+                }
             }
         });
 

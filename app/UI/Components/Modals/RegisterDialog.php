@@ -2,8 +2,10 @@
 
 namespace App\UI\Components\Modals;
 
+use App\Services\Role\RoleService;
 use Idei\Usim\Enums\JustifyContent;
 use Idei\Usim\Enums\LayoutType;
+use Idei\Usim\Models\UsimRole;
 use Idei\Usim\Support\FakeDataHelper;
 use Idei\Usim\UI;
 use Idei\Usim\UIChangesCollector;
@@ -56,14 +58,24 @@ class RegisterDialog
         $email = '';
         $password = '';
         $password_confirmation = '';
-        $role = 'user';
+        $selectedRoles = ['user'];
+
         if ($fakeData) {
-            $userData = FakeDataHelper::userData(['user', 'admin']);
+            $roleService = app(RoleService::class);
+            $availableRoles = array_map(
+                static fn(UsimRole $role): string => $role->name,
+                $roleService->getAllowedRoles()
+            );
+            if (empty($availableRoles)) {
+                $availableRoles = ['user', 'admin'];
+            }
+
+            $userData = FakeDataHelper::userData($availableRoles);
             $name = $userData['name'];
             $email = $userData['email'];
             $password = $userData['password'];
             $password_confirmation = $userData['password_confirmation'];
-            $role = $userData['role'];
+            $selectedRoles = [$userData['role']];
         }
         // Main container for the modal
         $registerContainer = UI::container('register_dialog')
@@ -115,16 +127,29 @@ class RegisterDialog
         );
 
         if ($askForRole) {
+            $roleService = app(RoleService::class);
+            $roles = $roleService->getAllowedRoles();
 
-            // Role select
+            /** @var list<array{value: string, label: string}> $roleOptions */
+            $roleOptions = array_map(static fn(UsimRole $role): array => [
+                'value' => $role->name,
+                'label' => t("role.{$role->name}.name"),
+            ], $roles);
+
+            if (empty($roleOptions)) {
+                $roleOptions = [
+                    ['value' => 'user', 'label' => t('role.user.name')],
+                    ['value' => 'admin', 'label' => t('role.admin.name')],
+                ];
+            }
+
+            // Role checkbox list
             $registerContainer->add(
-                UI::select('roles')
+                UI::checkbox('roles')
                     ->label(t('modal.register_dialog.role.label'))
-                    ->options([
-                        ['value' => 'user', 'label' => t('modal.register_dialog.role.user')],
-                        ['value' => 'admin', 'label' => t('modal.register_dialog.role.admin')],
-                    ])
-                    ->value($role)
+                    ->options($roleOptions)
+                    ->vertical()
+                    ->selectedValues($selectedRoles)
                     ->required(true)
             );
 

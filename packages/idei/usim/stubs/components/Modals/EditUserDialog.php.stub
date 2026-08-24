@@ -4,8 +4,10 @@
 
 namespace {{ componentsNamespace }};
 
+use App\Services\Role\RoleService;
 use Idei\Usim\Enums\JustifyContent;
 use Idei\Usim\Enums\LayoutType;
+use Idei\Usim\Models\UsimRole;
 use Idei\Usim\UI;
 use Idei\Usim\UIChangesCollector;
 use Idei\Usim\ValueObjects\Spacing;
@@ -23,7 +25,7 @@ class EditUserDialog
      *     id: int|string,
      *     name: string,
      *     email: string,
-     *     roles?: list<array{name?: string}>,
+     *     roles?: list<array{name?: string}|string>,
      *     email_verified_at?: mixed
      * }|null $user
      */
@@ -49,7 +51,7 @@ class EditUserDialog
      *     id: int|string,
      *     name: string,
      *     email: string,
-     *     roles?: list<array{name?: string}>,
+     *     roles?: list<array{name?: string}|string>,
      *     email_verified_at?: mixed
      * }|null $user
      * @param int|null $callerServiceId Service ID that will receive callbacks
@@ -63,7 +65,19 @@ class EditUserDialog
     ): array {
         $name = $user ? $user['name'] : '';
         $email = $user ? $user['email'] : '';
-        $role = $user ? $user['roles'][0]['name'] ?? 'user' : 'user';
+        $selectedRoles = [];
+        if ($user && !empty($user['roles'])) {
+            foreach ($user['roles'] as $r) {
+                if (is_array($r) && isset($r['name'])) {
+                    $selectedRoles[] = $r['name'];
+                } elseif (is_string($r)) {
+                    $selectedRoles[] = $r;
+                }
+            }
+        }
+        if (empty($selectedRoles)) {
+            $selectedRoles = ['user'];
+        }
         $emailVerified = $user
             ? (array_key_exists('email_verified_at', $user) && $user['email_verified_at'] !== null)
             : false;
@@ -102,15 +116,29 @@ class EditUserDialog
                 ->autocomplete('off')
         );
 
-        // Role select
+        // Role checkboxes
+        $roleService = app(RoleService::class);
+        $roles = $roleService->getAllowedRoles();
+
+        /** @var list<array{value: string, label: string}> $roleOptions */
+        $roleOptions = array_map(static fn(UsimRole $role): array => [
+            'value' => $role->name,
+            'label' => t("role.{$role->name}.name"),
+        ], $roles);
+
+        if (empty($roleOptions)) {
+            $roleOptions = [
+                ['value' => 'user', 'label' => t('role.user.name')],
+                ['value' => 'admin', 'label' => t('role.admin.name')],
+            ];
+        }
+
         $registerContainer->add(
-            UI::select('roles')
-                ->label('Role')
-                ->options([
-                    ['value' => 'user', 'label' => 'User'],
-                    ['value' => 'admin', 'label' => 'Admin'],
-                ])
-                ->value($role)
+            UI::checkbox('roles')
+                ->label(t('modal.register_dialog.role.label'))
+                ->options($roleOptions)
+                ->vertical()
+                ->selectedValues($selectedRoles)
                 ->required(true)
         );
 

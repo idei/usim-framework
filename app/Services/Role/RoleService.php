@@ -9,6 +9,32 @@ use Spatie\Permission\Models\Permission;
 
 class RoleService
 {
+    public function __construct(
+        protected ?RoleListingService $roleListingService = null
+    ) {
+        $this->roleListingService = $roleListingService ?? app(RoleListingService::class);
+    }
+
+    /**
+     * Return all allowed roles.
+     *
+     * @param bool $excludeRoot Whether to exclude the 'root' role
+     * @return list<UsimRole>
+     */
+    public function getAllowedRoles(bool $excludeRoot = true): array
+    {
+        $roles = $this->roleListingService->sortBy('priority', 'desc');
+
+        if ($excludeRoot) {
+            $roles = array_values(array_filter(
+                $roles,
+                static fn(UsimRole $role): bool => $role->name !== 'root'
+            ));
+        }
+
+        return $roles;
+    }
+
     /**
      * Return all permission IDs associated with a role.
      *
