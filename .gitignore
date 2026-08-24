@@ -27,3 +27,5 @@ rr
 .ssh
 /dev
 /.laravel-template
+*_old/
+*_trash

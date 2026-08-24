@@ -3,7 +3,6 @@
 namespace Idei\Usim\Support;
 
 use Idei\Usim\Screen;
-use Illuminate\Support\Arr;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\File;
 use Symfony\Component\Finder\Finder;
@@ -99,6 +98,7 @@ class ScreenDiscoveryService
             return;
         }
 
+        $permissionPrefix = $this->normalizeTranslationPrefix(config('usim.i18n.i18n_key_prefixes.permission', 'permission.'));
         $screenPrefix = $this->normalizeTranslationPrefix(config('usim.i18n.i18n_key_prefixes.screen', 'screen.'));
         $screenPermissionPrefix = "{$screenPrefix}permissions.";
 
@@ -112,21 +112,48 @@ class ScreenDiscoveryService
                 $translationKey = \trim($translationKey);
                 $targetKey = $permission;
 
-                if (\str_starts_with($translationKey, $screenPermissionPrefix)) {
+                if (\str_starts_with($translationKey, $permissionPrefix)) {
+                    $targetKey = Str::after($translationKey, $permissionPrefix);
+                } elseif (\str_starts_with($translationKey, $screenPermissionPrefix)) {
                     $targetKey = Str::after($translationKey, $screenPermissionPrefix);
                 }
-
 
                 if (\trim($targetKey) === '') {
                     $targetKey = $permission;
                 }
 
-                // Keep existing user-defined translations untouched.
-                if (Arr::has($payload, $targetKey)) {
-                    continue;
-                }
+                $translation = $this->buildPermissionTranslation($permission, $locale);
+                $segments = array_values(array_filter(explode('.', $targetKey), static fn($s): bool => $s !== ''));
+                $current = &$payload;
+                $count = count($segments);
 
-                Arr::set($payload, $targetKey, $this->buildPermissionTranslationLabel($permission));
+                for ($i = 0; $i < $count; $i++) {
+                    $seg = $segments[$i];
+                    if ($i === $count - 1) {
+                        if (isset($current[$seg]) && is_array($current[$seg])) {
+                            if (!isset($current[$seg]['name'])) {
+                                $current[$seg]['name'] = $translation['name'];
+                            }
+                            if (!isset($current[$seg]['description'])) {
+                                $current[$seg]['description'] = $translation['description'];
+                            }
+                        } else {
+                            $legacyName = (isset($current[$seg]) && is_string($current[$seg]) && trim($current[$seg]) !== '')
+                                ? rtrim(trim($current[$seg]), '.')
+                                : $translation['name'];
+
+                            $current[$seg] = [
+                                'name' => $legacyName,
+                                'description' => $translation['description'],
+                            ];
+                        }
+                    } else {
+                        if (!isset($current[$seg]) || !is_array($current[$seg])) {
+                            $current[$seg] = [];
+                        }
+                        $current = &$current[$seg];
+                    }
+                }
             }
 
             if (!File::exists($langDir)) {
@@ -183,23 +210,52 @@ class ScreenDiscoveryService
         return \str_ends_with($prefix, '.') ? $prefix : $prefix . '.';
     }
 
-    private function buildPermissionTranslationLabel(string $permission): string
+    /**
+     * @return array{name: string, description: string}
+     */
+    private function buildPermissionTranslation(string $permission, string $locale = 'en'): array
     {
         $parts = array_values(array_filter(explode('.', $permission), static fn($part): bool => $part !== ''));
         if ($parts === []) {
-            return Str::title(str_replace(['_', '.'], ' ', $permission));
+            $title = Str::title(str_replace(['_', '.'], ' ', $permission));
+
+            return [
+                'name' => $title,
+                'description' => $locale === 'es' ? "Permiso para {$title}." : "Permission for {$title}.",
+            ];
         }
 
         $action = array_pop($parts);
         $screen = Str::title(str_replace(['_', '.'], ' ', implode(' ', $parts)));
 
         if ($action === 'access' && $screen !== '') {
-            return "Permission to access {$screen}.";
+            if ($locale === 'es') {
+                return [
+                    'name' => "Acceder a {$screen}",
+                    'description' => "Permite acceder a la pantalla {$screen}.",
+                ];
+            }
+
+            return [
+                'name' => "Access {$screen}",
+                'description' => "Permission to access {$screen}.",
+            ];
         }
 
         $actionText = Str::title(str_replace('_', ' ', (string) $action));
+        $name = trim("{$actionText} {$screen}");
 
-        return trim("$actionText $screen");
+        if ($locale === 'es') {
+            return [
+                'name' => $name,
+                'description' => "Permite {$actionText} en {$screen}.",
+            ];
+        }
+
+        return [
+            'name' => $name,
+            'description' => "Allows {$actionText} in {$screen}.",
+        ];
     }
 
     /**

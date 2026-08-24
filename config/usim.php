@@ -183,6 +183,12 @@ return [
                 'es' => ['display_name' => 'Acceso de Escritura', 'description' => 'Permite crear y modificar contenido.'],
             ],
         ],
+        'pepito' => [
+            'default_translations' => [
+                'en' => ['display_name' => 'Pepito Access', 'description' => 'Allows access to Pepito features.'],
+                'es' => ['display_name' => 'Acceso a Pepito', 'description' => 'Permite acceder a las funciones de Pepito.'],
+            ],
+        ],
     ],
 
     /*
