@@ -16,9 +16,10 @@ return [
     'table' => [
         'email' => 'Correo',
         'name' => 'Nombre',
-        'role' => 'Rol',
+        'roles' => 'Rol',
+        'permission' => 'Permisos',
         'updated' => 'Actualizado',
-        'verified' => 'Verificado',
+        'email_verified' => 'Verificado',
     ],
     'title' => 'Gestión de Usuarios',
     'menu_label' => 'Usuarios',

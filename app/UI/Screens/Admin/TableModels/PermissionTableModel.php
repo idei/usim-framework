@@ -85,7 +85,7 @@ class PermissionTableModel extends AbstractTableModel
             $formatted[] = [
                 '_model_id' => $permission->id,
                 'roles' => $this->formatRoleIds($permission),
-                'name' => t("permission.{$permission->name}.name"),
+                'name' => t("permission.{$permission->name}"),
             ];
         }
 

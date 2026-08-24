@@ -181,6 +181,7 @@ class UsersManager extends Screen
         $permissions_table = $this->requireTable(UI::table('permissions_table'));
         $permissions_table->pagination(0);
         $permissions_table->height(Size::px(470));
+        $permissions_table->bodyHeight(Size::px(420));
         $permissions_table->rounded(0);
         $permissions_table->sortedBy('name');
         $permissions_table->dataModel(PermissionTableModel::class);

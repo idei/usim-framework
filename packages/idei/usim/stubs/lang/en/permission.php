@@ -24,81 +24,81 @@ return [
         ],
     ],
     'hola_contexto' => [
-        'access' => 'Permission to access Hola Contexto.',
+        'access' => 'Access Hola Contexto.',
     ],
     'demo' => [
         'modal_demo' => [
-            'access' => 'Permission to access Demo Modal Demo.',
+            'access' => 'Access Demo Modal Demo.',
         ],
         'select_demo' => [
-            'access' => 'Permission to access Demo Select Demo.',
+            'access' => 'Access Demo Select Demo.',
         ],
         'form_demo' => [
-            'access' => 'Permission to access Demo Form Demo.',
+            'access' => 'Access Demo Form Demo.',
         ],
         'carousel_demo' => [
-            'access' => 'Permission to access Demo Carousel Demo.',
+            'access' => 'Access Demo Carousel Demo.',
         ],
         'demo_ui' => [
-            'access' => 'Permission to access Demo Demo Ui.',
+            'access' => 'Access Demo Demo Ui.',
         ],
         'address_form' => [
-            'access' => 'Permission to access Demo Address Form.',
+            'access' => 'Access Demo Address Form.',
         ],
         'button_demo' => [
-            'access' => 'Permission to access Demo Button Demo.',
+            'access' => 'Access Demo Button Demo.',
         ],
         'split_demo' => [
-            'access' => 'Permission to access Demo Split Demo.',
+            'access' => 'Access Demo Split Demo.',
         ],
         'textarea_demo' => [
-            'access' => 'Permission to access Demo Textarea Demo.',
+            'access' => 'Access Demo Textarea Demo.',
         ],
         'input_demo' => [
-            'access' => 'Permission to access Demo Input Demo.',
+            'access' => 'Access Demo Input Demo.',
         ],
         'checkbox_demo' => [
-            'access' => 'Permission to access Demo Checkbox Demo.',
+            'access' => 'Access Demo Checkbox Demo.',
         ],
         'calendar_demo' => [
-            'access' => 'Permission to access Demo Calendar Demo.',
+            'access' => 'Access Demo Calendar Demo.',
         ],
         'tabs_demo' => [
-            'access' => 'Permission to access Demo Tabs Demo.',
+            'access' => 'Access Demo Tabs Demo.',
         ],
         'uploader_demo' => [
-            'access' => 'Permission to access Demo Uploader Demo.',
+            'access' => 'Access Demo Uploader Demo.',
         ],
         'table_demo' => [
-            'access' => 'Permission to access Demo Table Demo.',
+            'access' => 'Access Demo Table Demo.',
         ],
     ],
     'auth' => [
         'profile' => [
-            'access' => 'Permission to access Auth Profile.',
+            'access' => 'Access Auth Profile.',
         ],
         'reset_password' => [
-            'access' => 'Permission to access Auth Reset Password.',
+            'access' => 'Access Auth Reset Password.',
         ],
         'forgot_password' => [
-            'access' => 'Permission to access Auth Forgot Password.',
+            'access' => 'Access Auth Forgot Password.',
         ],
         'email_verified' => [
-            'access' => 'Permission to access Auth Email Verified.',
+            'access' => 'Access Auth Email Verified.',
         ],
     ],
     'admin' => [
         'translate_manager' => [
-            'access' => 'Permission to access Admin Translate Manager.',
+            'access' => 'Access Admin Translate Manager.',
         ],
         'users_manager' => [
-            'access' => 'Permission to access Admin Users Manager.',
+            'access' => 'Access Admin Users Manager.',
         ],
     ],
     'home' => [
-        'access' => 'Permission to access Home.',
+        'access' => 'Access Home.',
     ],
     'menu' => [
-        'access' => 'Permission to access Menu.',
+        'access' => 'Access Menu.',
     ],
 ];

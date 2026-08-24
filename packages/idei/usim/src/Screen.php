@@ -293,7 +293,7 @@ abstract class Screen
 
         foreach ($allPermissions as $permission) {
             $permission = "$screenContextPart.$permission"; // e.g., "admin.user_manager.access"
-            $translationKey = "screen.permissions.$permission";
+            $translationKey = "permission.$permission";
             $ret[$permission] = $translationKey;
         }
 
@@ -378,7 +378,9 @@ abstract class Screen
      */
     abstract protected function buildBaseUI(Container $container, ...$params): void;
 
-    protected function postLoadUI(): void {}
+    protected function postLoadUI(): void
+    {
+    }
 
     /**
      * Initialize event context
@@ -527,7 +529,7 @@ abstract class Screen
                     // Component not found and property is not nullable
                     throw new RuntimeException(
                         "Component '{$componentName}' not found in user Interface container. " .
-                            "Make sure the component exists or make the property nullable: protected ?{$typeName} \${$componentName};"
+                        "Make sure the component exists or make the property nullable: protected ?{$typeName} \${$componentName};"
                     );
                 }
             }
