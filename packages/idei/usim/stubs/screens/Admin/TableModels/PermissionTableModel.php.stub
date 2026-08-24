@@ -4,10 +4,10 @@
 
 namespace {{ namespace }};
 
-use App\Services\Permissions\PermissionListingService;
 use Idei\Usim\Components\Table;
-use Idei\Usim\DataTable\AbstractTableModel;
 use Spatie\Permission\Models\Permission;
+use Idei\Usim\DataTable\AbstractTableModel;
+use App\Services\Permissions\PermissionListingService;
 
 class PermissionTableModel extends AbstractTableModel
 {
@@ -22,14 +22,14 @@ class PermissionTableModel extends AbstractTableModel
     public function getColumns(): array
     {
         return [
-            'roles' => [
-                'label' => t('screen.admin.users_manager.permissions_column_roles'),
-                'width' => 25,
-            ],
             'name' => [
                 'label' => t('screen.admin.users_manager.permissions_column_name'),
-                'width' => 200,
+                'width' => 100,
                 'sort_by' => 'name'
+            ],
+            'description' => [
+                'label' => t('screen.admin.users_manager.permissions_column_description'),
+                'width' => 200
             ],
         ];
     }
@@ -48,8 +48,8 @@ class PermissionTableModel extends AbstractTableModel
         return array_map(
             fn(Permission $permission): array => [
                 'id' => $permission->id,
-                'roles' => $this->formatRoleIds($permission),
                 'name' => $permission->name,
+                'description' => t("permission.{$permission->name}.description"),
             ],
             $permissions
         );
@@ -84,22 +84,11 @@ class PermissionTableModel extends AbstractTableModel
         foreach ($permissions as $permission) {
             $formatted[] = [
                 '_model_id' => $permission->id,
-                'roles' => $this->formatRoleIds($permission),
                 'name' => t("permission.{$permission->name}.name"),
+                'description' => t("permission.{$permission->name}.description"),
             ];
         }
 
         return $formatted;
-    }
-
-    private function formatRoleIds(Permission $permission): string
-    {
-        $roleIds = $permission->roles
-            ->pluck('id')
-            ->filter(static fn($id): bool => $id !== null && $id !== '')
-            ->values()
-            ->toArray();
-
-        return $roleIds !== [] ? implode(', ', $roleIds) : '-';
     }
 }

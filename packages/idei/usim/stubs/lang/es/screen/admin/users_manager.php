@@ -30,6 +30,7 @@ return [
     'permissions_tab' => 'Permisos',
     'permissions_column_roles' => 'Roles',
     'permissions_column_name' => 'Permisos del rol',
+    'permissions_column_description' => 'Descripción',
     'roles_column_name' => 'Rol',
     'roles_column_home_screen' => 'Inicio',
     'roles_column_priority' => 'Prioridad',

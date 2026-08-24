@@ -148,10 +148,10 @@ class UsersManager extends Screen
             ->splitSize('65%')
             ->splitterSize('8px')
             ->draggable(true)
-            ->minFirstSize('450px')
-            ->minSecondSize('700px')
+            ->minFirstSize('500px')
+            ->minSecondSize('750px')
             ->padding(Spacing::px(4))
-            ->height(Size::px(500))
+            ->height(Size::px(530))
             ->width(Size::full())
             ->plain();
 
@@ -167,7 +167,7 @@ class UsersManager extends Screen
 
         $roles_table = $this->requireTable(UI::table('roles_table'));
         $roles_table->pagination(0);
-        $roles_table->height(Size::px(470));
+        $roles_table->height(Size::px(500));
         $roles_table->rounded(0);
         $roles_table->sortedBy('name');
         $roles_table->dataModel(RoleTableModel::class);
@@ -180,8 +180,8 @@ class UsersManager extends Screen
 
         $permissions_table = $this->requireTable(UI::table('permissions_table'));
         $permissions_table->pagination(0);
-        $permissions_table->height(Size::px(470));
-        $permissions_table->bodyHeight(Size::px(420));
+        $permissions_table->height(Size::px(500));
+        $permissions_table->bodyHeight(Size::px(450));
         $permissions_table->rounded(0);
         $permissions_table->sortedBy('name');
         $permissions_table->dataModel(PermissionTableModel::class);
