@@ -695,19 +695,7 @@ class SeedAccessControl
         $langFile = $langDir . '/' . $file . '.php';
 
         $payload = $this->loadLangArrayFile($langFile);
-
-        $current = &$payload;
-        $count = count($segments);
-        for ($i = 0; $i < $count - 1; $i++) {
-            $seg = $segments[$i];
-            if (!isset($current[$seg]) || !is_array($current[$seg])) {
-                $current[$seg] = [];
-            }
-            $current = &$current[$seg];
-        }
-
-        $leafKey = $segments[$count - 1];
-        $current[$leafKey] = $value;
+        Arr::set($payload, implode('.', $segments), $value);
 
         if (!File::exists($langDir)) {
             File::makeDirectory($langDir, 0755, true);

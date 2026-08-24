@@ -3,6 +3,7 @@
 namespace Idei\Usim\Support;
 
 use Idei\Usim\Screen;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\File;
 use Symfony\Component\Finder\Finder;
@@ -122,37 +123,19 @@ class ScreenDiscoveryService
                     $targetKey = $permission;
                 }
 
+                // Keep existing user-defined translations untouched.
+                if (Arr::has($payload, "{$targetKey}.name") && Arr::has($payload, "{$targetKey}.description")) {
+                    continue;
+                }
+
                 $translation = $this->buildPermissionTranslation($permission, $locale);
-                $segments = array_values(array_filter(explode('.', $targetKey), static fn($s): bool => $s !== ''));
-                $current = &$payload;
-                $count = count($segments);
 
-                for ($i = 0; $i < $count; $i++) {
-                    $seg = $segments[$i];
-                    if ($i === $count - 1) {
-                        if (isset($current[$seg]) && is_array($current[$seg])) {
-                            if (!isset($current[$seg]['name'])) {
-                                $current[$seg]['name'] = $translation['name'];
-                            }
-                            if (!isset($current[$seg]['description'])) {
-                                $current[$seg]['description'] = $translation['description'];
-                            }
-                        } else {
-                            $legacyName = (isset($current[$seg]) && is_string($current[$seg]) && trim($current[$seg]) !== '')
-                                ? rtrim(trim($current[$seg]), '.')
-                                : $translation['name'];
+                if (!Arr::has($payload, "{$targetKey}.name")) {
+                    Arr::set($payload, "{$targetKey}.name", $translation['name']);
+                }
 
-                            $current[$seg] = [
-                                'name' => $legacyName,
-                                'description' => $translation['description'],
-                            ];
-                        }
-                    } else {
-                        if (!isset($current[$seg]) || !is_array($current[$seg])) {
-                            $current[$seg] = [];
-                        }
-                        $current = &$current[$seg];
-                    }
+                if (!Arr::has($payload, "{$targetKey}.description")) {
+                    Arr::set($payload, "{$targetKey}.description", $translation['description']);
                 }
             }
 

@@ -175,8 +175,4 @@ return [
         'name' => 'Acceso de Escritura',
         'description' => 'Permite crear y modificar contenido.',
     ],
-    'pepito' => [
-        'name' => 'Acceso a Pepito',
-        'description' => 'Permite acceder a las funciones de Pepito.',
-    ],
 ];
