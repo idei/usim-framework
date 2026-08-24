@@ -4,12 +4,12 @@ namespace Idei\Usim\Support;
 
 use Idei\Usim\Screen;
 use Illuminate\Support\Arr;
-use Illuminate\Support\Facades\File;
 use Illuminate\Support\Str;
-use Spatie\Permission\Models\Permission;
-use Spatie\Permission\PermissionRegistrar;
+use Illuminate\Support\Facades\File;
 use Symfony\Component\Finder\Finder;
+use Spatie\Permission\Models\Permission;
 use Symfony\Component\Finder\SplFileInfo;
+use Spatie\Permission\PermissionRegistrar;
 
 class ScreenDiscoveryService
 {
@@ -21,9 +21,9 @@ class ScreenDiscoveryService
     public function discover(): array
     {
         $rawScreensPath = config('usim.screens_path', app_path('UI/Screens'));
-        $screensPath = is_string($rawScreensPath) ? $rawScreensPath : app_path('UI/Screens');
+        $screensPath = \is_string($rawScreensPath) ? $rawScreensPath : app_path('UI/Screens');
 
-        if (!is_dir($screensPath)) {
+        if (!\is_dir($screensPath)) {
             return [];
         }
 
@@ -44,15 +44,15 @@ class ScreenDiscoveryService
                 $resolvedPermissions = $className::resolvedPermissions();
 
                 foreach ($resolvedPermissions as $permissionName => $translationKey) {
-                    if (!is_string($permissionName) || trim($permissionName) === '') {
+                    if (!\is_string($permissionName) || \trim($permissionName) === '') {
                         continue;
                     }
 
-                    $permissionName = trim($permissionName);
+                    $permissionName = \trim($permissionName);
                     $permissions[] = $permissionName;
 
-                    if (is_string($translationKey) && trim($translationKey) !== '') {
-                        $permissionTranslationKeys[$permissionName] = trim($translationKey);
+                    if (\is_string($translationKey) && \trim($translationKey) !== '') {
+                        $permissionTranslationKeys[$permissionName] = \trim($translationKey);
                     }
                 }
 
@@ -81,8 +81,8 @@ class ScreenDiscoveryService
         app()[PermissionRegistrar::class]->forgetCachedPermissions();
 
         $allPermissions = collect($permissions)
-            ->filter(static fn($permission): bool => trim($permission) !== '')
-            ->map(static fn($permission): string => trim((string) $permission))
+            ->filter(static fn($permission): bool => \trim($permission) !== '')
+            ->map(static fn($permission): string => \trim((string) $permission))
             ->unique();
 
         foreach ($allPermissions as $permission) {
@@ -100,23 +100,24 @@ class ScreenDiscoveryService
         }
 
         $screenPrefix = $this->normalizeTranslationPrefix(config('usim.i18n.i18n_key_prefixes.screen', 'screen.'));
-        $screenPermissionPrefix = $screenPrefix . 'permissions.';
+        $screenPermissionPrefix = "{$screenPrefix}permissions.";
 
         foreach ($this->resolveTranslationLocales() as $locale) {
             $langDir = lang_path($locale);
-            $langFile = $langDir . '/permission.php';
+            $langFile = "$langDir/permission.php";
 
             $payload = $this->loadLangArrayFile($langFile);
 
             foreach ($permissionTranslationKeys as $permission => $translationKey) {
-                $translationKey = trim($translationKey);
+                $translationKey = \trim($translationKey);
                 $targetKey = $permission;
 
-                if (str_starts_with($translationKey, $screenPermissionPrefix)) {
+                if (\str_starts_with($translationKey, $screenPermissionPrefix)) {
                     $targetKey = Str::after($translationKey, $screenPermissionPrefix);
                 }
 
-                if (trim($targetKey) === '') {
+
+                if (\trim($targetKey) === '') {
                     $targetKey = $permission;
                 }
 
@@ -142,27 +143,27 @@ class ScreenDiscoveryService
     private function resolveTranslationLocales(): array
     {
         $languages = config('usim.i18n.languages', []);
-        $languages = is_array($languages) ? $languages : [];
+        $languages = \is_array($languages) ? $languages : [];
 
         $locales = [];
         foreach ($languages as $language) {
-            if (!is_array($language)) {
+            if (!\is_array($language)) {
                 continue;
             }
 
-            $code = isset($language['code']) && is_string($language['code']) ? trim($language['code']) : '';
+            $code = isset($language['code']) && \is_string($language['code']) ? trim($language['code']) : '';
             if ($code === '') {
                 continue;
             }
 
-            $isActive = array_key_exists('active', $language) ? (bool) $language['active'] : true;
+            $isActive = \array_key_exists('active', $language) ? (bool) $language['active'] : true;
             if ($isActive) {
                 $locales[] = $code;
             }
         }
 
         $fallback = config('usim.i18n.fallback_locale', config('app.fallback_locale', 'en'));
-        if (is_string($fallback) && trim($fallback) !== '') {
+        if (\is_string($fallback) && trim($fallback) !== '') {
             $locales[] = trim($fallback);
         }
 
@@ -173,13 +174,13 @@ class ScreenDiscoveryService
 
     private function normalizeTranslationPrefix(mixed $prefix): string
     {
-        if (!is_string($prefix) || trim($prefix) === '') {
+        if (!\is_string($prefix) || trim($prefix) === '') {
             return '';
         }
 
         $prefix = trim($prefix);
 
-        return str_ends_with($prefix, '.') ? $prefix : $prefix . '.';
+        return \str_ends_with($prefix, '.') ? $prefix : $prefix . '.';
     }
 
     private function buildPermissionTranslationLabel(string $permission): string
@@ -198,7 +199,7 @@ class ScreenDiscoveryService
 
         $actionText = Str::title(str_replace('_', ' ', (string) $action));
 
-        return trim($actionText . ' ' . $screen);
+        return trim("$actionText $screen");
     }
 
     /**
@@ -206,13 +207,13 @@ class ScreenDiscoveryService
      */
     private function loadLangArrayFile(string $path): array
     {
-        if (!is_file($path)) {
+        if (!\is_file($path)) {
             return [];
         }
 
         $loaded = require $path;
 
-        return is_array($loaded) ? $loaded : [];
+        return \is_array($loaded) ? $loaded : [];
     }
 
     /**
@@ -224,21 +225,21 @@ class ScreenDiscoveryService
             return '[]';
         }
 
-        $indent = str_repeat('    ', $indentLevel);
-        $itemIndent = str_repeat('    ', $indentLevel + 1);
+        $indent = \str_repeat('    ', $indentLevel);
+        $itemIndent = \str_repeat('    ', $indentLevel + 1);
 
         $lines = ['['];
 
         foreach ($payload as $key => $value) {
-            $serializedKey = is_int($key) ? (string) $key : var_export((string) $key, true);
-            $serializedValue = is_array($value)
+            $serializedKey = \is_int($key) ? (string) $key : \var_export((string) $key, true);
+            $serializedValue = \is_array($value)
                 ? $this->exportPhpArrayShort($value, $indentLevel + 1)
-                : var_export($value, true);
+                : \var_export($value, true);
 
-            $lines[] = $itemIndent . $serializedKey . ' => ' . $serializedValue . ',';
+            $lines[] = "{$itemIndent}{$serializedKey} => {$serializedValue},";
         }
 
-        $lines[] = $indent . ']';
+        $lines[] = "$indent]";
 
         return implode("\n", $lines);
     }

@@ -99,4 +99,8 @@ return [
     'menu' => [
         'access' => 'Acceder a Menu.',
     ],
+    'write' => [
+        'name' => 'Acceso de Escritura',
+        'description' => 'Permite crear y modificar contenido.',
+    ],
 ];

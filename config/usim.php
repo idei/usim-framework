@@ -177,6 +177,12 @@ return [
                 'es' => ['display_name' => 'Gestionar Roles', 'description' => 'Permite crear, editar y eliminar roles y sus permisos.'],
             ],
         ],
+        'write' => [
+            'default_translations' => [
+                'en' => ['display_name' => 'Write Access', 'description' => 'Allows creating and modifying content.'],
+                'es' => ['display_name' => 'Acceso de Escritura', 'description' => 'Permite crear y modificar contenido.'],
+            ],
+        ],
     ],
 
     /*

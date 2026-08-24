@@ -99,4 +99,8 @@ return [
     'menu' => [
         'access' => 'Access Menu.',
     ],
+    'write' => [
+        'name' => 'Write Access',
+        'description' => 'Allows creating and modifying content.',
+    ],
 ];
