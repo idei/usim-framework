@@ -29,3 +29,4 @@ rr
 /.laravel-template
 *_old/
 *_trash
+.env.before_lerd

@@ -182,7 +182,7 @@ class UIStateManager
     }
 
     /** @return list<string> */
-    public static function getClientOpenedScreens(string $clientId = null): array
+    public static function getClientOpenedScreens(?string $clientId = null): array
     {
         $clientId ??= self::getOrCreateClientId();
         $cacheKey = "ui_open_screens:{$clientId}";
@@ -232,6 +232,12 @@ class UIStateManager
         return Cache::forget($cacheKey);
     }
 
+    /**
+     * Set the authentication token in the cache
+     *
+     * @param string|null $token The authentication token
+     * @return bool Success
+     */
     public static function setAuthToken(string|null $token): bool
     {
         $cacheKey = self::getCacheKey(prefix: 'ui_auth_token');

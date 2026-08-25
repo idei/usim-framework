@@ -11,26 +11,26 @@ get_env_value() {
 env_db=$(get_env_value "DB_CONNECTION")
 
 # Determine available port (starting from 8000)
-find_available_port() {
-    local port=8000
-    while netstat -tuln 2>/dev/null | grep -q ":$port " || ss -tuln 2>/dev/null | grep -q ":$port "; do
-        port=$((port + 1))
-    done
-    echo $port
-}
+# find_available_port() {
+#     local port=8000
+#     while netstat -tuln 2>/dev/null | grep -q ":$port " || ss -tuln 2>/dev/null | grep -q ":$port "; do
+#         port=$((port + 1))
+#     done
+#     echo $port
+# }
 
 # Update APP_URL in .env to match the actual port
-update_env_url() {
-    local port="$1"
-    local current_url
-    current_url=$(get_env_value "APP_URL")
-    local new_url="http://127.0.0.1:${port}"
+# update_env_url() {
+#     local port="$1"
+#     local current_url
+#     current_url=$(get_env_value "APP_URL")
+#     local new_url="http://127.0.0.1:${port}"
 
-    if [[ "$current_url" != "$new_url" ]]; then
-        sed -i "s|^APP_URL=.*|APP_URL=${new_url}           # Cambiar si fuera necesario sin la \"/\" al final.|" .env
-        echo "APP_URL actualizado a ${new_url}"
-    fi
-}
+#     if [[ "$current_url" != "$new_url" ]]; then
+#         sed -i "s|^APP_URL=.*|APP_URL=${new_url}           # Cambiar si fuera necesario sin la \"/\" al final.|" .env
+#         echo "APP_URL actualizado a ${new_url}"
+#     fi
+# }
 
 if [[ "$*" == *"-r"* ]]; then
     if [[ "$env_db" == "mysql" ]]; then
@@ -69,10 +69,10 @@ if netstat -tuln 2>/dev/null | grep -q ":8000 " || ss -tuln 2>/dev/null | grep -
 fi
 
 # Find available port and update .env
-SERVER_PORT=$(find_available_port)
-update_env_url "$SERVER_PORT"
+# SERVER_PORT=$(find_available_port)
+# update_env_url "$SERVER_PORT"
 
-echo "Using port: $SERVER_PORT"
+# echo "Using port: $SERVER_PORT"
 
 # Clear cache before starting the server
 echo "Clearing cache..."
@@ -102,5 +102,12 @@ cleanup() {
 # Trap SIGINT (Ctrl+C) and SIGTERM
 trap cleanup SIGINT SIGTERM
 
-echo "Starting Octane server..."
-php artisan octane:start --watch --host=0.0.0.0 --port=$SERVER_PORT
+echo -e "\n\e[33m[ OK ] Entorno iniciado. Presiona Ctrl+C para detener el worker y salir...\e[0m"
+
+# Mantiene el script activo indefinidamente
+while true; do
+    sleep 1
+done
+
+# echo "Starting Octane server..."
+# php artisan octane:start --watch --host=0.0.0.0 --port=$SERVER_PORT

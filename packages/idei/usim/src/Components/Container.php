@@ -491,7 +491,7 @@ class Container implements UIElement, Sizeable, Paddable, Marginable, Gapable
      * @return static For method chaining
      * @throws \InvalidArgumentException If element with same ID already exists
      */
-    public function add(UIElement $element, bool &$result = null, int|string|null $tab = null): static
+    public function add(UIElement $element, ?bool &$result = null, int|string|null $tab = null): static
     {
         $elementId = (string) $element->getId();
 
@@ -520,7 +520,7 @@ class Container implements UIElement, Sizeable, Paddable, Marginable, Gapable
      * @param bool|null $result Set to true when added, false when ignored due to duplicate ID
      * @return self
      */
-    public function addToTab(UIElement $element, int|string $tab, bool &$result = null): self
+    public function addToTab(UIElement $element, int|string $tab, ?bool &$result = null): self
     {
         return $this->add($element, $result, $tab);
     }
