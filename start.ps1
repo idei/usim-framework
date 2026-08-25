@@ -16,7 +16,8 @@ function Get-EnvValue {
     return $null
 }
 
-$env = Get-EnvValue "DB_CONNECTION"
+$mysqlPath = "C:\laragon\bin\mysql\mysql-8.4.3-winx64\bin\mysql"
+$env_db = Get-EnvValue "DB_CONNECTION"
 
 # Comprobar si se pasó el argumento -r
 if ($args -contains "-r") {
@@ -26,8 +27,8 @@ if ($args -contains "-r") {
         $pass = Get-EnvValue "DB_PASSWORD"
 
         Write-Host "Removing Database: $db with $user privileges" -ForegroundColor Yellow
-        # Llamada a mysql de Laragon
-        & mysql -u "$user" "-p$pass" -e "DROP DATABASE IF EXISTS $db; CREATE DATABASE $db;"
+        # Llamada a mysql
+        & "$mysqlPath" -u root -e "DROP DATABASE IF EXISTS ``$db``; CREATE DATABASE ``$db``;"
     }
 
     if ($env_db -eq "sqlite") {

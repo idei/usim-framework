@@ -40,7 +40,7 @@ class UsersManager extends Screen
 
     public static function authorize(): bool
     {
-        return self::requireRole(['admin', 'root']);
+        return self::requirePermission('admin.users_manager.access');
     }
 
     public static function getMenuLabel(): string
@@ -59,6 +59,7 @@ class UsersManager extends Screen
     protected Input $search_users;
     protected Button $add_user_btn;
     protected Split $roles_split;
+    protected Container $tabs_container;
 
     protected function buildBaseUI(Container $container, ...$params): void
     {
@@ -68,7 +69,7 @@ class UsersManager extends Screen
             ->padding(Spacing::px(0))
             ->centerHorizontal();
 
-        $tabs_container = UI::container('tabs_container')
+        $this->tabs_container = UI::container('tabs_container')
             ->width(Size::full())
             ->padding(Spacing::px(10))
             ->minHeight(Size::px(620))
@@ -77,14 +78,17 @@ class UsersManager extends Screen
             ->tabs(
                 [
                     'users_tab' => ['label' => t(self::I18N_PREFIX . 'users_tab')],
-                    'roles_tab' => ['label' => t(self::I18N_PREFIX . 'roles_tab')],
+                    'roles_tab' => [
+                        'label' => t(self::I18N_PREFIX . 'roles_tab'),
+                        'disabled' => !$this->userCan('manage.roles'),
+                    ],
                 ],
-                'roles_tab'
+                'users_tab'
             );
 
-        $tabs_container->add($this->buildUsersCrudContainer(), tab: 'users_tab');
-        $tabs_container->add($this->buildRolesContainer(), tab: 'roles_tab');
-        $container->add($tabs_container);
+        $this->tabs_container->add($this->buildUsersCrudContainer(), tab: 'users_tab');
+        $this->tabs_container->add($this->buildRolesContainer(), tab: 'roles_tab');
+        $container->add($this->tabs_container);
     }
 
     private function buildUsersCrudContainer(): Container
@@ -458,6 +462,11 @@ class UsersManager extends Screen
      */
     public function onRolesTableRowClicked(array $params): void
     {
+        if (!$this->userCan('manage.roles')) {
+            $this->toast(t('You don\'t have permission to manage roles'), 'error');
+            return;
+        }
+
         $roleId = $this->selectableId($params, 'model_id');
         if ($roleId === null) {
             $this->toast(t('Role ID is required'), 'error');
@@ -475,6 +484,11 @@ class UsersManager extends Screen
      */
     public function onPermissionsTableRowClicked(array $params): void
     {
+        if (!$this->userCan('manage.roles')) {
+            $this->toast(t('You don\'t have permission to manage roles'), 'error');
+            return;
+        }
+
         $selectedRole = $this->roles_table->select();
         $roleId = is_array($selectedRole) ? ($selectedRole[0] ?? null) : $selectedRole;
 

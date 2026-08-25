@@ -94,7 +94,7 @@ return [
             ],
             'priority' => 100,
             'home_screen' => UsersManager::class,
-            'permissions' => ['admin.users_manager.access'],
+            'permissions' => ['admin.users_manager.access', 'manage.roles'],
         ],
         'admin' => [
             'default_translations' => [
@@ -105,33 +105,6 @@ return [
             'home_screen' => UsersManager::class,
             'permissions' => ['admin.users_manager.access'],
         ],
-        'user' => [
-            'default_translations' => [
-                'en' => ['display_name' => 'User', 'description' => 'Registered user with limited permissions.'],
-                'es' => ['display_name' => 'Usuario', 'description' => 'Usuario registrado con permisos limitados.'],
-            ],
-            'priority' => 60,
-            'home_screen' => Home::class,
-            'permissions' => ['home.access'],
-        ],
-        'registered' => [
-            'default_translations' => [
-                'en' => ['display_name' => 'Registered', 'description' => 'Registered user with limited permissions.'],
-                'es' => ['display_name' => 'Registrado', 'description' => 'Usuario registrado con permisos limitados.'],
-            ],
-            'priority' => 60,
-            'home_screen' => Home::class,
-            'permissions' => ['home.access'],
-        ],
-        'approved' => [
-            'default_translations' => [
-                'en' => ['display_name' => 'Approved', 'description' => 'Approved user with access to additional features.'],
-                'es' => ['display_name' => 'Aprobado', 'description' => 'Usuario aprobado con acceso a funciones adicionales.'],
-            ],
-            'priority' => 40,
-            'home_screen' => Home::class,
-            'permissions' => ['home.access'],
-        ],
         'translator' => [
             'default_translations' => [
                 'en' => ['display_name' => 'Translator', 'description' => 'User responsible for managing translations.'],
@@ -139,16 +112,7 @@ return [
             ],
             'priority' => 20,
             'home_screen' => TranslateManager::class,
-            'permissions' => [],
-        ],
-        'developer' => [
-            'default_translations' => [
-                'en' => ['display_name' => 'Developer', 'description' => 'User with access to development and debugging tools.'],
-                'es' => ['display_name' => 'Programador', 'description' => 'Usuario con acceso a herramientas de desarrollo y depuración.'],
-            ],
-            'priority' => 10,
-            'home_screen' => Home::class,
-            'permissions' => ['debug.logs', 'debug.access'],
+            'permissions' => ['admin.translate_manager.access'],
         ],
     ],
 
@@ -157,18 +121,6 @@ return [
             'default_translations' => [
                 'en' => ['display_name' => 'View System Logs', 'description' => 'Allows viewing system activity and error logs.'],
                 'es' => ['display_name' => 'Ver Registros del Sistema', 'description' => 'Permite ver los registros de actividad y errores del sistema.'],
-            ],
-        ],
-        'debug.access' => [
-            'default_translations' => [
-                'en' => ['display_name' => 'Access Debug Tools', 'description' => 'Allows access to debugging and diagnostic tools.'],
-                'es' => ['display_name' => 'Acceder a Herramientas de Depuración', 'description' => 'Permite acceder a herramientas de depuración y diagnóstico.'],
-            ],
-        ],
-        'manage.users' => [
-            'default_translations' => [
-                'en' => ['display_name' => 'Manage Users', 'description' => 'Allows creating, editing, and deleting users.'],
-                'es' => ['display_name' => 'Gestionar Usuarios', 'description' => 'Permite crear, editar y eliminar usuarios.'],
             ],
         ],
         'manage.roles' => [
