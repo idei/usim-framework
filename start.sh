@@ -43,10 +43,10 @@ echo "Discovering UI Screens..."
 php artisan usim:discover
 
 # Start queue worker in background
-echo "Starting queue worker in background..."
-php artisan queue:work --queue=default,emails --tries=3 --timeout=90 --sleep=3 > storage/logs/queue-worker.log 2>&1 &
-QUEUE_PID=$!
-echo "Queue worker started with PID: $QUEUE_PID"
+# echo "Starting queue worker in background..."
+# php artisan queue:work --queue=default,emails --tries=3 --timeout=90 --sleep=3 > storage/logs/queue-worker.log 2>&1 &
+# QUEUE_PID=$!
+# echo "Queue worker started with PID: $QUEUE_PID"
 
 echo -e "\n✓ Opening application on $env_app_url"
 if [ -n "$BROWSER" ]; then
@@ -60,19 +60,19 @@ else
 fi
 
 # Function to cleanup on exit
-cleanup() {
-    echo ""
-    echo "Stopping queue worker..."
-    kill $QUEUE_PID 2>/dev/null
-    exit 0
-}
+# cleanup() {
+#     echo ""
+#     echo "Stopping queue worker..."
+#     kill $QUEUE_PID 2>/dev/null
+#     exit 0
+# }
 
-# Trap SIGINT (Ctrl+C) and SIGTERM
-trap cleanup SIGINT SIGTERM
+# # Trap SIGINT (Ctrl+C) and SIGTERM
+# trap cleanup SIGINT SIGTERM
 
-echo -e "\n\e[33m[ OK ] Entorno iniciado. Presiona Ctrl+C para detener el worker y salir...\e[0m"
+echo -e "\n\e[33m[ OK ] Entorno iniciado\e[0m"
 
 # Mantiene el script activo indefinidamente
-while true; do
-    sleep 1
-done
+# while true; do
+#     sleep 1
+# done

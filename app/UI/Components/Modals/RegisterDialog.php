@@ -58,7 +58,7 @@ class RegisterDialog
         $email = '';
         $password = '';
         $password_confirmation = '';
-        $selectedRoles = ['user'];
+        $selectedRoles = [config('usim.default_registering_role')];
 
         if ($fakeData) {
             $roleService = app(RoleService::class);

@@ -10,8 +10,8 @@ return [
         'name' => 'Administrador',
     ],
     'registered' => [
-        'description' => 'Usuario registrado con permisos limitados.',
-        'name' => 'Registrado',
+        'description' => 'Usuario con acceso básico al sistema.',
+        'name' => 'Usuario Registrado',
     ],
     'approved' => [
         'description' => 'Usuario aprobado con acceso a funciones adicionales.',
@@ -26,7 +26,11 @@ return [
         'name' => 'Programador',
     ],
     'user' => [
-        'description' => 'Usuario registrado con permisos limitados.',
+        'description' => 'Usuario con acceso básico al sistema.',
         'name' => 'Usuario',
+    ],
+    'guest' => [
+        'name' => 'Invitado',
+        'description' => 'Usuario con acceso básico al sistema.',
     ],
 ];

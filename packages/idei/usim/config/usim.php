@@ -88,12 +88,21 @@ return [
 	],
 
 	'roles' => [
+		'guest' => [
+			'default_translations' => [
+				'en' => ['display_name' => 'Guest', 'description' => 'User with basic access to the system.'],
+				'es' => ['display_name' => 'Invitado', 'description' => 'Usuario con acceso básico al sistema.'],
+			],
+			'priority' => 0,
+			'home_screen' => Home::class,
+			'permissions' => ['home.access'],
+		],
 		'root' => [
 			'default_translations' => [
 				'en' => ['display_name' => 'Root', 'description' => 'User with total and unconditional access to all features.'],
 				'es' => ['display_name' => 'Raíz', 'description' => 'Usuario con acceso total e incondicional a todas las funciones.'],
 			],
-			'priority' => 100,
+			'priority' => 1,
 			'home_screen' => UsersManager::class,
 			'permissions' => ['admin.users_manager.access', 'manage.roles'],
 		],
@@ -102,7 +111,7 @@ return [
 				'en' => ['display_name' => 'Administrator', 'description' => 'Manages the system and users.'],
 				'es' => ['display_name' => 'Administrador', 'description' => 'Gestiona el sistema y los usuarios.'],
 			],
-			'priority' => 80,
+			'priority' => 2,
 			'home_screen' => UsersManager::class,
 			'permissions' => ['admin.users_manager.access'],
 		],
@@ -111,9 +120,18 @@ return [
 				'en' => ['display_name' => 'Translator', 'description' => 'User responsible for managing translations.'],
 				'es' => ['display_name' => 'Traductor', 'description' => 'Usuario responsable de gestionar las traducciones.'],
 			],
-			'priority' => 20,
+			'priority' => 3,
 			'home_screen' => TranslateManager::class,
 			'permissions' => ['admin.translate_manager.access'],
+		],
+		'registered' => [
+			'default_translations' => [
+				'en' => ['display_name' => 'Registered User', 'description' => 'User with basic access to the system.'],
+				'es' => ['display_name' => 'Usuario Registrado', 'description' => 'Usuario con acceso básico al sistema.'],
+			],
+			'priority' => 4,
+			'home_screen' => Home::class,
+			'permissions' => ['home.access'],
 		],
 	],
 
@@ -125,6 +143,16 @@ return [
 			],
 		],
 	],
+
+	/*
+	|--------------------------------------------------------------------------
+	| Default Registering Role
+	|--------------------------------------------------------------------------
+	|
+	| Rol que se le asignará al usuario al registrarse.
+	|
+	*/
+	'default_registering_role' => 'registered',
 
 	/*
 	|--------------------------------------------------------------------------

@@ -421,7 +421,7 @@ class Menu extends Screen
             email: $this->stringParamOrDefault($params, 'email', ''),
             password: $this->stringParamOrDefault($params, 'password', ''),
             passwordConfirmation: $this->stringParamOrDefault($params, 'password_confirmation', ''),
-            roles: $this->normalizeRoles($params['roles'] ?? ['user']),
+            roles: $this->normalizeRoles($params['roles'] ?? [config('usim.default_registering_role')]),
             sendVerificationEmail: $this->boolParamOrDefault($params, 'send_verification_email', true)
         );
 
