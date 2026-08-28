@@ -4,8 +4,7 @@ namespace Tests\Traits;
 
 use App\Models\User;
 use App\UI\Screens\Auth\Login;
-use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Testing\TestResponse;
+use Idei\Usim\Screen;
 use InvalidArgumentException;
 use Spatie\Permission\Models\Role;
 
@@ -19,15 +18,29 @@ trait UsimTestHelpers
     /**
      * Logs in a configured role user via the real UI event endpoint.
      *
-     * @return array{user: User, response: TestResponse, config: array<string, mixed>}
+     * @param string $role
+     * @param class-string<Screen>|null $withScreenPermission
+     * @return array{user: User, response: \Illuminate\Testing\TestResponse, config: array<string, mixed>}
      */
-    public function loginAs(string $role): array
+    public function loginAs(string $role, ?string $withScreenPermission = null): array
     {
-        if (!in_array($role, ['admin', 'user'], true)) {
-            throw new InvalidArgumentException("Unsupported role '{$role}'. Expected 'admin' or 'user'.");
+        $allowedRoles = array_keys(config('usim.roles', []));
+        if (!\in_array($role, $allowedRoles, true)) {
+            throw new InvalidArgumentException("Unsupported role '{$role}'. Expected one of: " . implode(', ', $allowedRoles) . ".");
         }
 
-        Role::findOrCreate($role);
+        $roleModel = Role::findOrCreate($role);
+
+        $permissions = config("usim.roles.{$role}.permissions", []);
+        if ($withScreenPermission !== null) {
+            $screenPermission = array_keys($withScreenPermission::resolvedPermissions());
+            $permissions = array_merge($permissions, $screenPermission);
+        }
+        foreach ($permissions as $permName) {
+            $permission = \Spatie\Permission\Models\Permission::findOrCreate($permName);
+            $roleModel->givePermissionTo($permission);
+        }
+        app(\Spatie\Permission\PermissionRegistrar::class)->forgetCachedPermissions();
 
         $userConfig = config("usim.users.roles.{$role}.seed_user", config("users.roles.{$role}.seed_user", []));
         $firstName = $userConfig['first_name'] ?? ucfirst($role);
@@ -36,12 +49,13 @@ trait UsimTestHelpers
         $password = $userConfig['password'] ?? 'password';
 
         $user = User::factory()->create([
-            'name' => trim($firstName . ' ' . $lastName),
+            'name' => trim("{$firstName} {$lastName}"),
             'email' => $email,
             'password' => bcrypt($password),
         ]);
         $user->assignRole($role);
 
+        /** @var \Illuminate\Testing\TestResponse $uiResponse */
         $uiResponse = getScreenJson($this, Login::class);
         $uiResponse->assertOk();
         $componentId = serviceRootComponentId($uiResponse->json());

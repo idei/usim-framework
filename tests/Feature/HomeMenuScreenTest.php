@@ -129,7 +129,7 @@ it('returns menu screen for authenticated users with user trigger and logout opt
 
 it('shows profile, logout and admin dashboard items after admin login', function () {
     /** @var \Tests\TestCase $this */
-    $this->loginAs('admin');
+    $this->loginAs('root');
 
     $ui = uiScenario($this, Menu::class, ['parent' => 'menu']);
     $mainMenu = $ui->component('main_menu')->data();
@@ -143,8 +143,9 @@ it('shows profile, logout and admin dashboard items after admin login', function
 });
 
 it('shows profile/logout and hides admin dashboard after regular user login', function () {
+    $defaultRegisteringRole = config('usim.default_registering_role', 'user');
     /** @var \Tests\TestCase $this */
-    $this->loginAs('user');
+    $this->loginAs($defaultRegisteringRole);
 
     $ui = uiScenario($this, Menu::class, ['parent' => 'menu']);
     $mainMenu = $ui->component('main_menu')->data();

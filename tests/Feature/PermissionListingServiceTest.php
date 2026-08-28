@@ -1,8 +1,11 @@
 <?php
 
 use App\Services\Permissions\PermissionListingService;
+use App\UI\Screens\Admin\UsersManager;
+use Idei\Usim\Models\UsimRole;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
+
 
 it('filters permissions by role_id and does not filter when role_id is null', function () {
     $roleA = Role::findOrCreate('role_a_test');
@@ -70,14 +73,10 @@ it('correctly sorts permissions by name in PermissionListingService', function (
 });
 
 it('handles permissions table column clicked sorting in UsersManager screen', function () {
-    \Idei\Usim\Models\UsimRole::findOrCreate('root');
+    /** @var \Tests\TestCase $this */
+    $this->loginAs('root');
 
-    $root = \App\Models\User::factory()->create();
-    $root->assignRole('root');
-
-    $this->actingAs($root);
-
-    $ui = uiScenario($this, \App\UI\Screens\Admin\UsersManager::class, ['reset' => true]);
+    $ui = uiScenario($this, UsersManager::class, ['reset' => true]);
 
     $response = $ui->action('permissions_table', 'permissions_table_column_clicked', [
         'sort_by' => 'name',
@@ -91,17 +90,15 @@ it('handles permissions table column clicked sorting in UsersManager screen', fu
 });
 
 it('toggles permission row selection on permissions_table_row_clicked in UsersManager screen', function () {
-    \Idei\Usim\Models\UsimRole::findOrCreate('root');
-    $role = \Idei\Usim\Models\UsimRole::createWithHome('custom_test_role', 'custom_home', 25);
+    UsimRole::findOrCreate('root');
+    $role = UsimRole::createWithHome('custom_test_role', 'custom_home', 25);
     $perm1 = Permission::findOrCreate('custom_perm_test_1');
     $perm2 = Permission::findOrCreate('custom_perm_test_2');
 
-    $root = \App\Models\User::factory()->create();
-    $root->assignRole('root');
+    /** @var \Tests\TestCase $this */
+    $this->loginAs('root');
 
-    $this->actingAs($root);
-
-    $ui = uiScenario($this, \App\UI\Screens\Admin\UsersManager::class, ['reset' => true]);
+    $ui = uiScenario($this, UsersManager::class, ['reset' => true]);
 
     // 1. Without role selected -> shows warning toast
     $resNoRole = $ui->action('permissions_table', 'permissions_table_row_clicked', [

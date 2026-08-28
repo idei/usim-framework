@@ -25,9 +25,9 @@ it('loads login screen with expected components and actions', function () {
     $ui->assertNoIssues();
 });
 
-it('authenticates configured admin user and returns redirect contract', function () {
+it('authenticates configured root user and returns redirect contract', function () {
     /** @var \Tests\TestCase $this */
-    $result = $this->loginAs('admin');
+    $result = $this->loginAs('root');
     /** @var User $adminUser */
     $adminUser = $result['user'];
     $response = $result['response'];
@@ -38,9 +38,10 @@ it('authenticates configured admin user and returns redirect contract', function
     $this->assertAuthenticatedAs($adminUser);
 });
 
-it('authenticates configured regular user and returns redirect contract', function () {
+it('authenticates configured default registering user role and returns redirect contract', function () {
+    $defaultRegisteringRole = config('usim.default_registering_role', 'user');
     /** @var \Tests\TestCase $this */
-    $result = $this->loginAs('user');
+    $result = $this->loginAs($defaultRegisteringRole);
     /** @var User $regularUser */
     $regularUser = $result['user'];
     $response = $result['response'];

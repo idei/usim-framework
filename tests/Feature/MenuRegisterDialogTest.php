@@ -42,7 +42,8 @@ it('submits register modal and sends verification notification', function () {
     foreach (['en', 'es'] as $locale) {
         app()->setLocale($locale);
         Notification::fake();
-        Role::findOrCreate('user');
+        $defaultRole = config('usim.default_registering_role', 'user');
+        Role::findOrCreate($defaultRole);
 
         $ui = uiScenario($this, Menu::class, ['parent' => 'menu']);
         $openResponse = $ui->action('user_menu', 'show_register_form');
@@ -59,7 +60,7 @@ it('submits register modal and sends verification notification', function () {
             'email' => $email,
             'password' => 'password123',
             'password_confirmation' => 'password123',
-            'accept_terms' => true
+            'accept_terms' => true,
         ]));
 
         $submitResponse->assertOk();
@@ -86,7 +87,9 @@ it('verifies the registered user after opening the email verification link', fun
     foreach (['en', 'es'] as $locale) {
         app()->setLocale($locale);
         Notification::fake();
-        Role::findOrCreate('user');
+
+        $defaultRole = config('usim.default_registering_role', 'user');
+        Role::findOrCreate($defaultRole);
 
         $ui = uiScenario($this, Menu::class, ['parent' => 'menu']);
         $ui->action('user_menu', 'show_register_form')->assertOk();

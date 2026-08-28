@@ -9,7 +9,10 @@ it('isolates translation screen state across concurrent browser clients', functi
     /** @var TestCase $test */
     $test = $this;
 
-    $loginResult = $test->loginAs('admin');
+    $loginResult = $test->loginAs(
+        role: 'root',
+        withScreenPermission: TranslateManager::class
+    );
     $loginResponse = $loginResult['response'];
     $loginResponse->assertOk();
     expect($loginResponse->json('toast.type'))->toBe('success');
@@ -147,7 +150,7 @@ function pickLanguageFilterValue(array $languageFilter, int $index): string
     }
 
     // Prefer non-default values when available so each client exercises a real action path.
-    $preferred = array_values(array_filter($values, static fn (string $value): bool => $value !== 'all'));
+    $preferred = array_values(array_filter($values, static fn(string $value): bool => $value !== 'all'));
     $pool = count($preferred) > 0 ? $preferred : $values;
     $position = ($index - 1) % count($pool);
 
