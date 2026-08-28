@@ -1,3 +1,9 @@
+---
+activation: always-on
+scope: workspace
+role: "PHPStan Quality Assurance & Strict Typing Auditor"
+---
+
 # Convenciones de tipado PHPStan — Idei\Usim (nivel 9)
 
 ## Reglas generales
