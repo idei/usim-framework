@@ -1,16 +1,10 @@
 <?php
 
-use App\Models\User;
 use App\UI\Screens\Admin\UsersManager;
-use Spatie\Permission\Models\Role;
 
 it('handles users manager sort action without backend errors', function () {
-    Role::findOrCreate('root');
-
-    $root = User::factory()->create();
-    $root->assignRole('root');
-
-    $this->actingAs($root);
+    /** @var \Tests\TestCase $this */
+    $this->loginAs('root');
 
     $ui = uiScenario($this, UsersManager::class, ['reset' => true]);
 

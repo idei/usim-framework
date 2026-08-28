@@ -76,4 +76,68 @@ trait UsimTestHelpers
             'config' => $userConfig,
         ];
     }
+
+    /**
+     * Creates the configured root user along with the
+     * role and permissions.
+     *
+     * @return User
+     */
+    public function createRootUser(): User
+    {
+        $role = Role::findOrCreate('root');
+        $permissions = config("usim.roles.root.permissions", []);
+        foreach ($permissions as $permName) {
+            $permission = \Spatie\Permission\Models\Permission::findOrCreate($permName);
+            $role->givePermissionTo($permission);
+        }
+        app(\Spatie\Permission\PermissionRegistrar::class)->forgetCachedPermissions();
+
+        $userConfig = config("usim.users.roles.root.seed_user", []);
+        $firstName = $userConfig['first_name'] ?? 'Root';
+        $lastName = $userConfig['last_name'] ?? 'User';
+        $email = $userConfig['email'] ?? "root@example.com";
+        $password = $userConfig['password'] ?? 'password';
+
+        $user = User::factory()->create([
+            'name' => trim("{$firstName} {$lastName}"),
+            'email' => $email,
+            'password' => bcrypt($password),
+            'email_verified_at' => now(),
+        ]);
+        $user->assignRole('root');
+        return $user;
+    }
+
+    /**
+     * Creates the default registering role along with the role's
+     * permissions.
+     *
+     * @return User
+     */
+    public function createDefaultUser(): User
+    {
+        $defaultRole = config('usim.default_registering_role', 'user');
+        $role = Role::findOrCreate($defaultRole);
+        $permissions = config("usim.roles.{$defaultRole}.permissions", []);
+        foreach ($permissions as $permName) {
+            $permission = \Spatie\Permission\Models\Permission::findOrCreate($permName);
+            $role->givePermissionTo($permission);
+        }
+        app(\Spatie\Permission\PermissionRegistrar::class)->forgetCachedPermissions();
+
+        $firstName = ucfirst('Default');
+        $lastName = 'User';
+        $email = "default@example.com";
+        $password = 'password';
+
+        $user= User::factory()->create([
+            'name' => trim("{$firstName} {$lastName}"),
+            'email' => $email,
+            'password' => bcrypt($password),
+            'email_verified_at' => null,
+        ]);
+        $user->assignRole($defaultRole);
+        return $user;
+    }
 }

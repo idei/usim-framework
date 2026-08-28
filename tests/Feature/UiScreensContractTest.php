@@ -4,7 +4,6 @@ use App\Models\User;
 use App\UI\Screens\Admin\UsersManager;
 use App\UI\Screens\Auth\Login;
 use App\UI\Screens\Auth\Profile;
-use Spatie\Permission\Models\Role;
 
 it('returns login screen UI contract with renderable components', function () {
     /** @var \Tests\TestCase $this */
@@ -49,12 +48,7 @@ it('returns abort 403 when authenticated user has no admin role', function () {
 
 it('returns admin dashboard components for admin user without redirect or abort', function () {
     /** @var \Tests\TestCase $this */
-    Role::findOrCreate('admin');
-
-    $admin = User::factory()->create();
-    $admin->assignRole('admin');
-    /** @var User $admin */
-    $this->actingAs($admin);
+    $this->loginAs('root');
 
     $response = getScreenJson($this, UsersManager::class);
 

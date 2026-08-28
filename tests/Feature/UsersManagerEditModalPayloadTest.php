@@ -1,32 +1,19 @@
 <?php
 
-use App\Models\User;
 use App\UI\Screens\Admin\UsersManager;
-use Carbon\Carbon;
-use Spatie\Permission\Models\Role;
 
-it('returns full edit-user modal payload when opening from users manager', function () {
-    Role::findOrCreate('root');
-    Role::findOrCreate('user');
+it('returns edit-user modal when root selects a user for editing', function () {
 
-    $root = User::factory()->create([
-        'email_verified_at' => Carbon::now(),
-    ]);
-    $root->assignRole('root');
+    /** @var \Tests\TestCase $this */
+    $rootUser = $this->createRootUser();
+    $targetUser = $this->createDefaultUser();
 
-    $target = User::factory()->create([
-        'name' => 'Modal Target User',
-        'email' => 'modal-target@example.test',
-        'email_verified_at' => null,
-    ]);
-    $target->assignRole('user');
-
-    $this->actingAs($root);
+    $this->actingAs($rootUser);
 
     $ui = uiScenario($this, UsersManager::class, ['reset' => true]);
 
     $response = $ui->action('users_table', 'users_table_row_clicked', [
-        'model_id' => $target->id,
+        'model_id' => $targetUser->id,
     ]);
 
     $response->assertOk();

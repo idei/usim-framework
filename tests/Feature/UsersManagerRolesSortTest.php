@@ -1,6 +1,5 @@
 <?php
 
-use App\Models\User;
 use App\Services\Role\RoleListingService;
 use App\UI\Screens\Admin\UsersManager;
 use Idei\Usim\Models\UsimRole;
@@ -45,12 +44,8 @@ it('correctly sorts roles by name, home_screen and priority in RoleListingServic
 });
 
 it('handles roles table column clicked sorting in UsersManager screen', function () {
-    UsimRole::findOrCreate('root');
-
-    $root = User::factory()->create();
-    $root->assignRole('root');
-
-    $this->actingAs($root);
+    /** @var \Tests\TestCase $this */
+    $this->loginAs('root');
 
     $ui = uiScenario($this, UsersManager::class, ['reset' => true]);
 
