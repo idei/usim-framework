@@ -12,8 +12,8 @@ return [
         'name' => 'Administrator',
     ],
     'registered' => [
-        'description' => 'Registered user with limited permissions.',
-        'name' => 'Registered',
+        'description' => 'User with basic access to the system.',
+        'name' => 'Registered User',
     ],
     'approved' => [
         'description' => 'Approved user with access to additional features.',
@@ -28,7 +28,11 @@ return [
         'name' => 'Developer',
     ],
     'user' => [
-        'description' => 'Registered user with limited permissions.',
+        'description' => 'User with basic access to the system.',
         'name' => 'User',
+    ],
+    'guest' => [
+        'name' => 'Guest',
+        'description' => 'User with basic access to the system.',
     ],
 ];

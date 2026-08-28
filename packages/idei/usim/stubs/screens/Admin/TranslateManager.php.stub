@@ -28,7 +28,8 @@ class TranslateManager extends Screen
 
     public static function authorize(): bool
     {
-        return self::requireRole(['admin', 'root', 'translator']);
+        //return self::requireRole(['admin', 'root', 'translator']);
+        return self::requirePermission('admin.translate_manager.access');
     }
 
     public static function getMenuLabel(): string
