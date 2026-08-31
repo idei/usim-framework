@@ -21,6 +21,7 @@ use Idei\Usim\Components\Uploader;
 use Idei\Usim\Contracts\UIElement;
 use Idei\Usim\Enums\LayoutType;
 use Idei\Usim\Enums\Visibility;
+use Idei\Usim\Models\UsimUnit;
 use Idei\Usim\Support\UIDiffer;
 use Idei\Usim\Support\UIIdGenerator;
 use Idei\Usim\Support\UIStateManager;
@@ -215,7 +216,16 @@ abstract class Screen
             return false;
         }
 
+        /** @var \App\Models\User $user */
         $user = Auth::guard($guard)->user();
+
+        $mainUnit = UsimUnit::firstOrCreate(['slug' => 'main']);
+        // TODO: This is a temporary solution. We should refactor this to allow specifying the unit context for permission checks.
+        setPermissionsTeamId($mainUnit->id);
+
+        if ($user->roles()->where('name', 'root')->exists()) {
+            return true;
+        }
 
         if (!self::callUserBoolMethod($user, 'hasAnyPermission', $permissions)) {
             return false;
@@ -378,9 +388,7 @@ abstract class Screen
      */
     abstract protected function buildBaseUI(Container $container, ...$params): void;
 
-    protected function postLoadUI(): void
-    {
-    }
+    protected function postLoadUI(): void {}
 
     /**
      * Initialize event context
@@ -529,7 +537,7 @@ abstract class Screen
                     // Component not found and property is not nullable
                     throw new RuntimeException(
                         "Component '{$componentName}' not found in user Interface container. " .
-                        "Make sure the component exists or make the property nullable: protected ?{$typeName} \${$componentName};"
+                            "Make sure the component exists or make the property nullable: protected ?{$typeName} \${$componentName};"
                     );
                 }
             }

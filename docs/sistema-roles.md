@@ -77,7 +77,7 @@ La configuración debe respetar estrictamente la existencia de las palabras rese
             'email' => env('ROOT_EMAIL', 'root@example.com'),
             'password' => env('ROOT_PASSWORD', 'CHANGE_ME'),
             // Asignación tridimensional obligatoria utilizando los keywords
-            'units_roles' => ['main' => ['root']] 
+            'unit_roles' => ['main' => ['root']],
         ],
     ],
 

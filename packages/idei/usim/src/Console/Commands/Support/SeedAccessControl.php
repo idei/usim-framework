@@ -341,6 +341,8 @@ class SeedAccessControl
 
         /** @var array<string, mixed> $rootConfig */
         $rootConfig = \is_array($usersConfig['root'] ?? null) ? $usersConfig['root'] : [];
+        $rootUnitRoles = $rootConfig['unit_roles'] ?? ($rootConfig['units_roles'] ?? config('usim.users.root.unit_roles', config('usim.users.root.units_roles')));
+
         $rootValues = $rootUserEnvValues !== []
             ? $rootUserEnvValues
             : [
@@ -348,7 +350,7 @@ class SeedAccessControl
                 'last_name' => $this->normalizeStringConfigValue($rootConfig['last_name'] ?? config('usim.users.root.last_name', 'User'), 'User'),
                 'email' => $this->normalizeStringConfigValue($rootConfig['email'] ?? config('usim.users.root.email', ''), ''),
                 'password' => $this->normalizeStringConfigValue($rootConfig['password'] ?? config('usim.users.root.password', ''), ''),
-                'unit' => $this->normalizeStringConfigValue($rootConfig['unit'] ?? config('usim.users.root.unit', config('usim.units.default', 'main')), 'main'),
+                'unit' => $this->normalizeStringConfigValue($rootConfig['unit'] ?? config('usim.users.root.unit', 'main'), 'main'),
             ];
 
         $rootEnv = [
@@ -357,6 +359,7 @@ class SeedAccessControl
             'email' => (string) ($rootValues['email'] ?? ''),
             'password' => (string) ($rootValues['password'] ?? ''),
             'unit' => $rootValues['unit'] ?? 'main',
+            'unit_roles' => $rootUnitRoles ?? ['main' => ['root']],
         ];
 
         $this->upsertSingleUser(
@@ -462,33 +465,46 @@ class SeedAccessControl
 
         $user->save();
 
-        if (config('permission.teams')) {
-            $unitSlug = isset($userConfig['unit']) && is_string($userConfig['unit']) && trim($userConfig['unit']) !== ''
-                ? trim($userConfig['unit'])
-                : config('usim.units.default', 'main');
-
-            $unitModel = UsimUnit::firstOrCreate(['slug' => $unitSlug]);
-            setPermissionsTeamId($unitModel->id);
-
-            if (method_exists($user, 'usimUnits')) {
-                $user->usimUnits()->syncWithoutDetaching([$unitModel->id]);
-            } elseif (method_exists($user, 'units')) {
-                $user->units()->syncWithoutDetaching([$unitModel->id]);
-            }
-        }
-
         if (!method_exists($user, 'syncRoles')) {
             throw new \RuntimeException('User model must use Spatie HasRoles trait to sync roles.');
         }
 
         $effectiveGuard = $this->resolveGuardNameForUser($user, $guardName);
+        $unitRoles = $this->normalizeUserUnitRoles($userConfig, $fallbackRole);
 
-        if ($forceRootRules) {
-            UsimRole::findOrCreate('root', $effectiveGuard);
-            $user->syncRoles(['root']);
+        if (config('permission.teams')) {
+            foreach ($unitRoles as $unitSlug => $roles) {
+                $unitModel = UsimUnit::firstOrCreate(['slug' => $unitSlug]);
+                setPermissionsTeamId($unitModel->id);
+
+                if (method_exists($user, 'usimUnits')) {
+                    $user->usimUnits()->syncWithoutDetaching([$unitModel->id]);
+                } elseif (method_exists($user, 'units')) {
+                    $user->units()->syncWithoutDetaching([$unitModel->id]);
+                }
+
+                if ($forceRootRules) {
+                    UsimRole::findOrCreate('root', $effectiveGuard);
+                    $user->syncRoles(['root']);
+                } else {
+                    $resolvedRoles = $this->ensureRolesExist($roles, $effectiveGuard, $fallbackRole);
+                    $user->syncRoles($resolvedRoles);
+                }
+            }
         } else {
-            $roles = $this->normalizeUserRoles($userConfig, $fallbackRole, $effectiveGuard);
-            $user->syncRoles($roles);
+            $allRoles = [];
+            foreach ($unitRoles as $roles) {
+                $allRoles = array_merge($allRoles, $roles);
+            }
+            $allRoles = array_values(array_unique($allRoles));
+
+            if ($forceRootRules) {
+                UsimRole::findOrCreate('root', $effectiveGuard);
+                $user->syncRoles(['root']);
+            } else {
+                $resolvedRoles = $this->ensureRolesExist($allRoles, $effectiveGuard, $fallbackRole);
+                $user->syncRoles($resolvedRoles);
+            }
         }
 
         if ($created) {
@@ -500,26 +516,64 @@ class SeedAccessControl
 
     /**
      * @param array<string, mixed> $userConfig
-     * @return array<int, string>
+     * @return array<string, array<int, string>>
      */
-    private function normalizeUserRoles(array $userConfig, string $fallbackRole, string $guardName): array
+    private function normalizeUserUnitRoles(array $userConfig, string $fallbackRole): array
     {
-        $roles = $userConfig['roles'] ?? [$fallbackRole];
+        $rawUnitRoles = $userConfig['unit_roles'] ?? ($userConfig['units_roles'] ?? null);
 
+        if (is_array($rawUnitRoles) && $rawUnitRoles !== []) {
+            $normalized = [];
+            foreach ($rawUnitRoles as $unitSlug => $roles) {
+                $cleanUnit = is_string($unitSlug) && trim($unitSlug) !== '' ? trim($unitSlug) : 'main';
+                $roleList = is_array($roles) ? $roles : (is_string($roles) ? [$roles] : []);
+                $cleanRoles = [];
+                foreach ($roleList as $r) {
+                    if (is_string($r) && trim($r) !== '') {
+                        $cleanRoles[] = trim($r);
+                    }
+                }
+                if ($cleanRoles === []) {
+                    $cleanRoles = [$fallbackRole];
+                }
+                $normalized[$cleanUnit] = array_values(array_unique($cleanRoles));
+            }
+            return $normalized;
+        }
+
+        $unitSlug = isset($userConfig['unit']) && is_string($userConfig['unit']) && trim($userConfig['unit']) !== ''
+            ? trim($userConfig['unit'])
+            : 'main';
+
+        $roles = $userConfig['roles'] ?? [$fallbackRole];
         if (is_string($roles)) {
             $roles = [$roles];
         }
-
         if (!is_array($roles) || $roles === []) {
             $roles = [$fallbackRole];
         }
 
+        $cleanRoles = [];
+        foreach ($roles as $r) {
+            if (is_string($r) && trim($r) !== '') {
+                $cleanRoles[] = trim($r);
+            }
+        }
+        if ($cleanRoles === []) {
+            $cleanRoles = [$fallbackRole];
+        }
+
+        return [$unitSlug => array_values(array_unique($cleanRoles))];
+    }
+
+    /**
+     * @param array<int, string> $roles
+     * @return array<int, string>
+     */
+    private function ensureRolesExist(array $roles, string $guardName, string $fallbackRole = 'registered'): array
+    {
         $normalized = [];
         foreach ($roles as $roleName) {
-            if (!is_string($roleName)) {
-                continue;
-            }
-
             $roleName = trim($roleName);
             if ($roleName !== '') {
                 $normalized[] = $roleName;

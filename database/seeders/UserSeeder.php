@@ -40,8 +40,7 @@ class UserSeeder extends Seeder
         if ($teamsEnabled) {
             $units = UsimUnit::all();
             if ($units->isEmpty()) {
-                $defaultUnitSlug = config('usim.units.default', 'main');
-                $units = collect([UsimUnit::firstOrCreate(['slug' => $defaultUnitSlug])]);
+                $units = collect([UsimUnit::firstOrCreate(['slug' => 'main'])]);
             }
         }
 

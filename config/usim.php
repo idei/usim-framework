@@ -76,11 +76,6 @@ return [
     | Define organizational units (departments, directions, etc.) and their hierarchy.
     */
     'units' => [
-
-        // Default unit slug. It is used when a user is created without specifying a unit,
-        // or when the system needs to resolve a unit for a user without an explicit one.
-        'default' => 'main',
-
         'structure' => [
             'main' => [
                 'parent' => null,
@@ -107,8 +102,9 @@ return [
             'last_name' => env('ROOT_LAST_NAME', 'User'),
             'email' => env('ROOT_EMAIL', 'root@example.com'),
             'password' => env('ROOT_PASSWORD', 'CHANGE_ME'),
-            'roles' => ['root'],
-            'unit' => 'main'
+            'unit_roles' => [
+                'main' => ['root'],
+            ],
         ],
     ],
 

@@ -45,8 +45,7 @@ trait UsimTestHelpers
         }
         app(PermissionRegistrar::class)->forgetCachedPermissions();
 
-        $defaultUnitSlug = config('usim.units.default', 'main');
-        $unit = UsimUnit::firstOrCreate(['slug' => $defaultUnitSlug]);
+        $unit = UsimUnit::firstOrCreate(['slug' => 'main']);
         setPermissionsTeamId($unit->id);
 
         $userConfig = config("usim.users.roles.{$role}.seed_user", config("users.roles.{$role}.seed_user", []));
@@ -100,8 +99,7 @@ trait UsimTestHelpers
         }
         app(PermissionRegistrar::class)->forgetCachedPermissions();
 
-        $defaultUnitSlug = config('usim.units.default', 'main');
-        $unit = UsimUnit::firstOrCreate(['slug' => $defaultUnitSlug]);
+        $unit = UsimUnit::firstOrCreate(['slug' => 'main']);
         setPermissionsTeamId($unit->id);
 
         $userConfig = config("usim.users.roles.root.seed_user", []);
@@ -137,8 +135,7 @@ trait UsimTestHelpers
         }
         app(PermissionRegistrar::class)->forgetCachedPermissions();
 
-        $defaultUnitSlug = config('usim.units.default', 'main');
-        $unit = UsimUnit::firstOrCreate(['slug' => $defaultUnitSlug]);
+        $unit = UsimUnit::firstOrCreate(['slug' => 'main']);
         setPermissionsTeamId($unit->id);
 
         $firstName = ucfirst('Default');

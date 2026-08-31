@@ -72,7 +72,7 @@ class RegisterService
 
             // Asignación de unidad y contexto de Spatie si Teams está activo
             if (config('permission.teams')) {
-                $unitSlug = $unit ?? config('usim.units.default', 'main');
+                $unitSlug = $unit ?? 'main';
                 $modelUnit = UsimUnit::firstOrCreate(['slug' => $unitSlug]);
 
                 $user->usimUnits()->syncWithoutDetaching([$modelUnit->id]);
