@@ -58,6 +58,7 @@ class RegisterDialog
         $email = '';
         $password = '';
         $password_confirmation = '';
+        /** @var list<string> $selectedRoles */
         $selectedRoles = [config('usim.default_registering_role')];
 
         if ($fakeData) {

@@ -17,6 +17,17 @@ class RegisterService
     ) {
     }
 
+    /**
+     * Summary of register
+     * @param string $name
+     * @param string $email
+     * @param string $password
+     * @param string $passwordConfirmation
+     * @param array<string> $roles
+     * @param string|null $unit
+     * @param bool $sendVerificationEmail
+     * @return array<string, mixed>
+     */
     public function register(
         string $name,
         string $email,

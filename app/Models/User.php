@@ -50,6 +50,8 @@ class User extends Authenticatable implements MustVerifyEmail, CanResetPassword
     /**
      * Units that the user belongs to.
      * This manages MEMBERSHIP, independent of the roles (Spatie) they have within it
+     *
+     * @return BelongsToMany<UsimUnit, $this>
      */
     public function usimUnits(): BelongsToMany
     {

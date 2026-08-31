@@ -9,8 +9,9 @@ use Spatie\Permission\Models\Permission;
 
 class RoleService
 {
+    protected RoleListingService $roleListingService;
     public function __construct(
-        protected ?RoleListingService $roleListingService = null
+        ?RoleListingService $roleListingService = null
     ) {
         $this->roleListingService = $roleListingService ?? app(RoleListingService::class);
     }
@@ -34,7 +35,7 @@ class RoleService
             ));
         }
 
-        return $roles;
+        return array_values($roles);
     }
 
     /**
@@ -55,7 +56,7 @@ class RoleService
             /** @var list<int|string> $ids */
             $ids = $roleModel->permissions
                 ->pluck('id')
-                ->map(static fn(mixed $id): int|string => is_numeric($id) ? (int) $id : (string) $id)
+                ->map(static fn(mixed $id): int|string => is_numeric($id) ? (int) $id : (is_string($id) ? $id : ''))
                 ->values()
                 ->toArray();
 
@@ -65,7 +66,7 @@ class RoleService
         /** @var list<int|string> $ids */
         $ids = $roleModel->permissions()
             ->pluck('permissions.id')
-            ->map(static fn(mixed $id): int|string => is_numeric($id) ? (int) $id : (string) $id)
+            ->map(static fn(mixed $id): int|string => is_numeric($id) ? (int) $id : (is_string($id) ? $id : ''))
             ->values()
             ->toArray();
 

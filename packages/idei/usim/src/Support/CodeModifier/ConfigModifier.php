@@ -8,8 +8,6 @@ use PhpParser\Node\Expr\ArrayItem;
 use PhpParser\Node\Expr\ConstFetch;
 use PhpParser\Node\Name;
 use PhpParser\Node\Scalar\DNumber;
-use PhpParser\Node\Scalar\Float_;
-use PhpParser\Node\Scalar\Int_;
 use PhpParser\Node\Scalar\LNumber;
 use PhpParser\Node\Scalar\String_;
 use PhpParser\Node\Stmt\Return_;
@@ -94,7 +92,7 @@ class ConfigModifier
         // Check if item with current key exists
         $matchingItem = null;
         foreach ($arrayNode->items as $item) {
-            if ($item instanceof ArrayItem && $item->key !== null) {
+            if ($item->key !== null) {
                 $keyName = self::extractKeyName($item->key);
                 if ($keyName === $currentKey) {
                     $matchingItem = $item;
@@ -141,7 +139,7 @@ class ConfigModifier
             return $keyNode->value;
         }
 
-        if ($keyNode instanceof Int_ || $keyNode instanceof LNumber) {
+        if ($keyNode instanceof LNumber) {
             return (string) $keyNode->value;
         }
 
@@ -167,18 +165,10 @@ class ConfigModifier
         }
 
         if (is_int($value)) {
-            if (class_exists(Int_::class)) {
-                return new Int_($value);
-            }
-            /** @phpstan-ignore-next-line */
             return new LNumber($value);
         }
 
         if (is_float($value)) {
-            if (class_exists(Float_::class)) {
-                return new Float_($value);
-            }
-            /** @phpstan-ignore-next-line */
             return new DNumber($value);
         }
 
@@ -195,7 +185,6 @@ class ConfigModifier
             return new Array_($items, ['kind' => Array_::KIND_SHORT]);
         }
 
-        return new String_((string) $value);
+        return new String_($value instanceof \Stringable ? (string) $value : '');
     }
 }
-

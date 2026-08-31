@@ -12,7 +12,7 @@ class UsimUnit extends Model
     /**
      * Los atributos que son asignables en masa.
      *
-     * @var array<int, string>
+     * @var list<string>
      */
     protected $fillable = [
         'slug',
@@ -21,7 +21,7 @@ class UsimUnit extends Model
     ];
 
     /**
-     * Relación: Una unidad puede tener una unidad "padre".
+     * @return BelongsTo<self, $this>
      */
     public function parent(): BelongsTo
     {
@@ -29,7 +29,7 @@ class UsimUnit extends Model
     }
 
     /**
-     * Relación: Una unidad puede tener múltiples unidades "hijas" directas.
+     * @return HasMany<self, $this>
      */
     public function children(): HasMany
     {
@@ -37,8 +37,7 @@ class UsimUnit extends Model
     }
 
     /**
-     * Relación Recursiva: Obtiene todos los descendientes (hijos, nietos, etc.).
-     * Útil para cargar el árbol completo hacia abajo con eager loading: Unit::with('descendants')->get();
+     * @return HasMany<self, $this>
      */
     public function descendants(): HasMany
     {
@@ -46,8 +45,7 @@ class UsimUnit extends Model
     }
 
     /**
-     * Relación Recursiva: Obtiene todos los ancestros (padre, abuelo, etc.).
-     * Útil para migas de pan (breadcrumbs) o validaciones de jerarquía hacia arriba.
+     * @return BelongsTo<self, $this>
      */
     public function ancestors(): BelongsTo
     {
@@ -57,6 +55,7 @@ class UsimUnit extends Model
     /**
      * Relación: Usuarios que pertenecen a esta unidad.
      * Esto gestiona la MEMBRESÍA, independiente de los roles (Spatie) que tengan dentro de ella.
+     * @return BelongsToMany<User, $this>
      */
     public function users(): BelongsToMany
     {
