@@ -108,6 +108,7 @@ return [
             'email' => env('ROOT_EMAIL', 'root@example.com'),
             'password' => env('ROOT_PASSWORD', 'CHANGE_ME'),
             'roles' => ['root'],
+            'unit' => env('ROOT_UNIT', 'main')
         ],
     ],
 

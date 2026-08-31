@@ -386,7 +386,12 @@ class InstallAppScaffoldingManager
      */
     public function usimUnits(): BelongsToMany
     {
-        return $this->belongsToMany(UsimUnit::class)->withTimestamps();
+        return $this->belongsToMany(
+            UsimUnit::class,
+            'usim_unit_user',
+            'user_id',
+            'usim_unit_id'
+        )->withTimestamps();
     }
 PHP;
 

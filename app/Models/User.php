@@ -1,4 +1,5 @@
 <?php
+
 // @usim: feature="admin", type="model"
 namespace App\Models;
 
@@ -13,7 +14,6 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 use Spatie\Permission\Traits\HasRoles;
-
 class User extends Authenticatable implements MustVerifyEmail, CanResetPassword
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
@@ -53,11 +53,6 @@ class User extends Authenticatable implements MustVerifyEmail, CanResetPassword
      */
     public function usimUnits(): BelongsToMany
     {
-        return $this->belongsToMany(
-            UsimUnit::class,
-            'usim_unit_user',
-            'user_id',
-            'usim_unit_id'
-        )->withTimestamps();
+        return $this->belongsToMany(UsimUnit::class, 'usim_unit_user', 'user_id', 'usim_unit_id')->withTimestamps();
     }
 }

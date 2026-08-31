@@ -50,7 +50,7 @@ class InstallCommand extends Command
     /** @var array<string, string> */
     protected array $rootUserEnvValues = [];
 
-    /** @var array{permissions_created:int,permissions_total:int,roles_created:int,roles_total:int,users_created:int,users_updated:int,languages_created:int,languages_updated:int} */
+    /** @var array{permissions_created:int,permissions_total:int,roles_created:int,roles_total:int,users_created:int,users_updated:int,languages_created:int,languages_updated:int,units_created?:int,units_updated?:int,units_total?:int} */
     protected array $syncStats = [
         'permissions_created' => 0,
         'permissions_total' => 0,
@@ -60,6 +60,9 @@ class InstallCommand extends Command
         'users_updated' => 0,
         'languages_created' => 0,
         'languages_updated' => 0,
+        'units_created' => 0,
+        'units_updated' => 0,
+        'units_total' => 0,
     ];
 
     /**
@@ -514,7 +517,11 @@ class InstallCommand extends Command
         $steps[] = "Run <fg=yellow>./start.sh [-r]</> to start the development server.\n" .
             "     <fg=gray>Note: -r option removes database and starts fresh)</fg=gray>";
         $steps[] = "Installer state is tracked at <fg=yellow>{$this->installStateManager->getPath()}</>";
-        $steps[] = "Upsert summary: permissions {$this->syncStats['permissions_total']} ({$this->syncStats['permissions_created']} new), roles {$this->syncStats['roles_total']} ({$this->syncStats['roles_created']} new), users {$this->syncStats['users_created']} new / {$this->syncStats['users_updated']} updated, languages {$this->syncStats['languages_created']} new / {$this->syncStats['languages_updated']} updated";
+        $unitsCount = $this->syncStats['units_total'] ?? 0;
+        $unitsSummary = $unitsCount > 0
+            ? ", units {$unitsCount} ({$this->syncStats['units_created']} new / {$this->syncStats['units_updated']} updated)"
+            : '';
+        $steps[] = "Upsert summary: permissions {$this->syncStats['permissions_total']} ({$this->syncStats['permissions_created']} new), roles {$this->syncStats['roles_total']} ({$this->syncStats['roles_created']} new), users {$this->syncStats['users_created']} new / {$this->syncStats['users_updated']} updated, languages {$this->syncStats['languages_created']} new / {$this->syncStats['languages_updated']} updated{$unitsSummary}";
 
         foreach ($steps as $i => $step) {
             $num = $i + 1;

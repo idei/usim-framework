@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 use App\Models\User;
+use Idei\Usim\Models\UsimUnit;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Arr;
 
@@ -33,10 +34,34 @@ class UserSeeder extends Seeder
         /** @var list<string> $roles */
         $roles = array_keys($rolesData);
 
+        $teamsEnabled = (bool) config('permission.teams', false);
+        $units = collect();
+
+        if ($teamsEnabled) {
+            $units = UsimUnit::all();
+            if ($units->isEmpty()) {
+                $defaultUnitSlug = config('usim.units.default', 'main');
+                $units = collect([UsimUnit::firstOrCreate(['slug' => $defaultUnitSlug])]);
+            }
+        }
+
         User::factory()
             ->count(self::USERS_COUNT)
             ->create()
-            ->each(function (User $user) use ($roles) {
+            ->each(function (User $user) use ($roles, $teamsEnabled, $units) {
+                if ($teamsEnabled && $units->isNotEmpty()) {
+                    /** @var UsimUnit $assignedUnit */
+                    $assignedUnit = $units->random();
+
+                    if (method_exists($user, 'usimUnits')) {
+                        $user->usimUnits()->syncWithoutDetaching([$assignedUnit->id]);
+                    } elseif (method_exists($user, 'units')) {
+                        $user->units()->syncWithoutDetaching([$assignedUnit->id]);
+                    }
+
+                    setPermissionsTeamId($assignedUnit->id);
+                }
+
                 $roles_to_assign = rand(self::MIN_ROLES_BY_USER, self::MAX_ROLES_BY_USER);
                 $rand_roles = Arr::random($roles, $roles_to_assign);
 

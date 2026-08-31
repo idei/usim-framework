@@ -4,6 +4,7 @@ namespace Idei\Usim\Console\Commands\Support;
 
 use Idei\Usim\Models\UsimLanguage;
 use Idei\Usim\Models\UsimRole;
+use Idei\Usim\Models\UsimUnit;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\DB;
@@ -119,6 +120,7 @@ class SeedAccessControl
                 }
             }
 
+            $this->upsertUnits($stats, $line);
             $this->upsertRootUser($stats, $rootUserEnvValues, $userModelClass, $guardName);
             $this->upsertConfiguredUsers($stats, $userModelClass, $guardName);
             $this->upsertLanguages($stats);
@@ -243,6 +245,87 @@ class SeedAccessControl
 
     /**
      * @param array<string, int> $stats
+     */
+    private function upsertUnits(array &$stats, ?callable $line = null): void
+    {
+        if (!config('permission.teams')) {
+            return;
+        }
+
+        $usimConfig = $this->loadUsimConfig();
+        $unitsConfig = $usimConfig['units'] ?? config('usim.units', []);
+        $structure = $unitsConfig['structure'] ?? [];
+
+        if (!is_array($structure) || empty($structure)) {
+            return;
+        }
+
+        if (is_callable($line)) {
+            $line('  ↳ Synchronizing organizational units...');
+        }
+
+        // 1. Crear o actualizar unidades básicas
+        foreach ($structure as $slug => $data) {
+            if (!is_string($slug) || trim($slug) === '') {
+                continue;
+            }
+
+            $type = is_array($data) && isset($data['type']) && is_string($data['type'])
+                ? $data['type']
+                : null;
+
+            UsimUnit::updateOrCreate(
+                ['slug' => $slug],
+                ['type' => $type]
+            );
+        }
+
+        // 2. Resolver jerarquía padre-hijo
+        foreach ($structure as $slug => $data) {
+            if (!is_string($slug) || !is_array($data)) {
+                continue;
+            }
+
+            $parentId = null;
+            if (!empty($data['parent']) && is_string($data['parent'])) {
+                $parentId = UsimUnit::where('slug', $data['parent'])->value('id');
+            }
+
+            UsimUnit::where('slug', $slug)->update(['parent_id' => $parentId]);
+        }
+
+        // 3. Sincronizar traducciones de unidades en los archivos de idioma
+        foreach ($structure as $slug => $data) {
+            if (!is_string($slug) || !is_array($data)) {
+                continue;
+            }
+
+            $translations = $this->normalizeDefaultTranslations($data['default_translations'] ?? null);
+            foreach ($translations as $locale => $meta) {
+                if (isset($meta['display_name'])) {
+                    $this->upsertLangValueByKey(
+                        $locale,
+                        "unit.{$slug}.display_name",
+                        $meta['display_name']
+                    );
+                }
+                if (isset($meta['description'])) {
+                    $this->upsertLangValueByKey(
+                        $locale,
+                        "unit.{$slug}.description",
+                        $meta['description']
+                    );
+                }
+            }
+        }
+
+        if (is_callable($line)) {
+            $line('    ✓ Organizational units synchronized successfully.');
+        }
+    }
+
+    /**
+     * @param array<string, int> $stats
      * @param array<string, string> $rootUserEnvValues
      */
     private function upsertRootUser(array &$stats, array $rootUserEnvValues, string $userModelClass, string $guardName): void
@@ -264,6 +347,7 @@ class SeedAccessControl
                 'last_name' => $this->normalizeStringConfigValue($rootConfig['last_name'] ?? config('usim.users.root.last_name', 'User'), 'User'),
                 'email' => $this->normalizeStringConfigValue($rootConfig['email'] ?? config('usim.users.root.email', ''), ''),
                 'password' => $this->normalizeStringConfigValue($rootConfig['password'] ?? config('usim.users.root.password', ''), ''),
+                'unit' => $this->normalizeStringConfigValue($rootConfig['unit'] ?? config('usim.users.root.unit', config('usim.units.default', 'main')), 'main'),
             ];
 
         $rootEnv = [
@@ -271,6 +355,7 @@ class SeedAccessControl
             'last_name' => (string) ($rootValues['last_name'] ?? 'User'),
             'email' => (string) ($rootValues['email'] ?? ''),
             'password' => (string) ($rootValues['password'] ?? ''),
+            'unit' => (string) ($rootValues['unit'] ?? ($rootConfig['unit'] ?? config('usim.users.root.unit', config('usim.units.default', 'main')))),
         ];
 
         $this->upsertSingleUser(
@@ -375,6 +460,21 @@ class SeedAccessControl
         }
 
         $user->save();
+
+        if (config('permission.teams')) {
+            $unitSlug = isset($userConfig['unit']) && is_string($userConfig['unit']) && trim($userConfig['unit']) !== ''
+                ? trim($userConfig['unit'])
+                : config('usim.units.default', 'main');
+
+            $unitModel = UsimUnit::firstOrCreate(['slug' => $unitSlug]);
+            setPermissionsTeamId($unitModel->id);
+
+            if (method_exists($user, 'usimUnits')) {
+                $user->usimUnits()->syncWithoutDetaching([$unitModel->id]);
+            } elseif (method_exists($user, 'units')) {
+                $user->units()->syncWithoutDetaching([$unitModel->id]);
+            }
+        }
 
         if (!method_exists($user, 'syncRoles')) {
             throw new \RuntimeException('User model must use Spatie HasRoles trait to sync roles.');
