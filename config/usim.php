@@ -79,7 +79,7 @@ return [
 
         // Default unit slug. It is used when a user is created without specifying a unit,
         // or when the system needs to resolve a unit for a user without an explicit one.
-        'default' => env('USIM_DEFAULT_UNIT', 'main'),
+        'default' => 'main',
 
         'structure' => [
             'main' => [
@@ -108,7 +108,7 @@ return [
             'email' => env('ROOT_EMAIL', 'root@example.com'),
             'password' => env('ROOT_PASSWORD', 'CHANGE_ME'),
             'roles' => ['root'],
-            'unit' => env('ROOT_UNIT', 'main')
+            'unit' => 'main'
         ],
     ],
 
