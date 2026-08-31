@@ -26,7 +26,12 @@ class RegisterService
      * @param array<string> $roles
      * @param string|null $unit
      * @param bool $sendVerificationEmail
-     * @return array<string, mixed>
+     * @return array{
+     *  status: string,
+     *  message: string,
+     *  user?: User,
+     *  data?: array<string, mixed>,
+     *  errors?: array<string, array<string>>}
      */
     public function register(
         string $name,

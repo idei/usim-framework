@@ -52,13 +52,7 @@ class UserSeeder extends Seeder
                 if ($teamsEnabled && $units->isNotEmpty()) {
                     /** @var UsimUnit $assignedUnit */
                     $assignedUnit = $units->random();
-
-                    if (method_exists($user, 'usimUnits')) {
-                        $user->usimUnits()->syncWithoutDetaching([$assignedUnit->id]);
-                    } elseif (method_exists($user, 'units')) {
-                        $user->units()->syncWithoutDetaching([$assignedUnit->id]);
-                    }
-
+                    $user->usimUnits()->syncWithoutDetaching([$assignedUnit->id]);
                     setPermissionsTeamId($assignedUnit->id);
                 }
 

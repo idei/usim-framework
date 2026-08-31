@@ -405,7 +405,7 @@ class InstallCommand extends Command
 
         throw new \RuntimeException(
             'Database migration is not ready for USIM install (' . implode('; ', $details) . '). ' .
-            'Run `php artisan migrate` before continuing.'
+                'Run `php artisan migrate` before continuing.'
         );
     }
 
@@ -518,8 +518,10 @@ class InstallCommand extends Command
             "     <fg=gray>Note: -r option removes database and starts fresh)</fg=gray>";
         $steps[] = "Installer state is tracked at <fg=yellow>{$this->installStateManager->getPath()}</>";
         $unitsCount = $this->syncStats['units_total'] ?? 0;
+        $unitsCreated = $this->syncStats['units_created'] ?? 0;
+        $unitsUpdated = $this->syncStats['units_updated'] ?? 0;
         $unitsSummary = $unitsCount > 0
-            ? ", units {$unitsCount} ({$this->syncStats['units_created']} new / {$this->syncStats['units_updated']} updated)"
+            ? ", units {$unitsCount} ({$unitsCreated} new / {$unitsUpdated} updated)"
             : '';
         $steps[] = "Upsert summary: permissions {$this->syncStats['permissions_total']} ({$this->syncStats['permissions_created']} new), roles {$this->syncStats['roles_total']} ({$this->syncStats['roles_created']} new), users {$this->syncStats['users_created']} new / {$this->syncStats['users_updated']} updated, languages {$this->syncStats['languages_created']} new / {$this->syncStats['languages_updated']} updated{$unitsSummary}";
 

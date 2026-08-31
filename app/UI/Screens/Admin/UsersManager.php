@@ -230,6 +230,9 @@ class UsersManager extends Screen
         $this->users_table->page(1);
     }
 
+    /**
+     * @param array<string, mixed> $params
+     */
     public function onRolesTableColumnClicked(array $params): void
     {
         $column = $this->optionalStringParam($params, 'sort_by');
@@ -241,6 +244,9 @@ class UsersManager extends Screen
         $this->roles_table->page(1);
     }
 
+    /**
+     * @param array<string, mixed> $params
+     */
     public function onPermissionsTableColumnClicked(array $params): void
     {
         $column = $this->optionalStringParam($params, 'sort_by');
@@ -492,7 +498,7 @@ class UsersManager extends Screen
         $selectedRole = $this->roles_table->select();
         $roleId = is_array($selectedRole) ? ($selectedRole[0] ?? null) : $selectedRole;
 
-        if ($roleId === null || $roleId === '') {
+        if ($roleId instanceof Table || $roleId === null || $roleId === '') {
             $this->toast(t(self::I18N_PREFIX . 'role_selection_warning'), 'warning');
             return;
         }

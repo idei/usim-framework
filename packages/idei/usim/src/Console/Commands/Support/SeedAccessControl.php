@@ -254,7 +254,8 @@ class SeedAccessControl
 
         $usimConfig = $this->loadUsimConfig();
         $unitsConfig = $usimConfig['units'] ?? config('usim.units', []);
-        $structure = $unitsConfig['structure'] ?? [];
+        $structure = \is_array($unitsConfig) ?
+            ($unitsConfig['structure'] ?? []) : [];
 
         if (!is_array($structure) || empty($structure)) {
             return;
@@ -355,7 +356,7 @@ class SeedAccessControl
             'last_name' => (string) ($rootValues['last_name'] ?? 'User'),
             'email' => (string) ($rootValues['email'] ?? ''),
             'password' => (string) ($rootValues['password'] ?? ''),
-            'unit' => (string) ($rootValues['unit'] ?? ($rootConfig['unit'] ?? config('usim.users.root.unit', config('usim.units.default', 'main')))),
+            'unit' => $rootValues['unit'] ?? 'main',
         ];
 
         $this->upsertSingleUser(
