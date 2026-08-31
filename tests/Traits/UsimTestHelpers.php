@@ -4,9 +4,12 @@ namespace Tests\Traits;
 
 use App\Models\User;
 use App\UI\Screens\Auth\Login;
+use Idei\Usim\Models\UsimUnit;
 use Idei\Usim\Screen;
 use InvalidArgumentException;
+use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
+use Spatie\Permission\PermissionRegistrar;
 
 /**
  * @mixin \Tests\TestCase
@@ -34,13 +37,17 @@ trait UsimTestHelpers
         $permissions = config("usim.roles.{$role}.permissions", []);
         if ($withScreenPermission !== null) {
             $screenPermission = array_keys($withScreenPermission::resolvedPermissions());
-            $permissions = array_merge($permissions, $screenPermission);
+            $permissions = \array_merge($permissions, $screenPermission);
         }
         foreach ($permissions as $permName) {
-            $permission = \Spatie\Permission\Models\Permission::findOrCreate($permName);
+            $permission = Permission::findOrCreate($permName);
             $roleModel->givePermissionTo($permission);
         }
-        app(\Spatie\Permission\PermissionRegistrar::class)->forgetCachedPermissions();
+        app(PermissionRegistrar::class)->forgetCachedPermissions();
+
+        $defaultUnitSlug = config('usim.units.default', 'main');
+        $unit = UsimUnit::firstOrCreate(['slug' => $defaultUnitSlug]);
+        setPermissionsTeamId($unit->id);
 
         $userConfig = config("usim.users.roles.{$role}.seed_user", config("users.roles.{$role}.seed_user", []));
         $firstName = $userConfig['first_name'] ?? ucfirst($role);
@@ -88,10 +95,14 @@ trait UsimTestHelpers
         $role = Role::findOrCreate('root');
         $permissions = config("usim.roles.root.permissions", []);
         foreach ($permissions as $permName) {
-            $permission = \Spatie\Permission\Models\Permission::findOrCreate($permName);
+            $permission = Permission::findOrCreate($permName);
             $role->givePermissionTo($permission);
         }
-        app(\Spatie\Permission\PermissionRegistrar::class)->forgetCachedPermissions();
+        app(PermissionRegistrar::class)->forgetCachedPermissions();
+
+        $defaultUnitSlug = config('usim.units.default', 'main');
+        $unit = UsimUnit::firstOrCreate(['slug' => $defaultUnitSlug]);
+        setPermissionsTeamId($unit->id);
 
         $userConfig = config("usim.users.roles.root.seed_user", []);
         $firstName = $userConfig['first_name'] ?? 'Root';
@@ -121,17 +132,21 @@ trait UsimTestHelpers
         $role = Role::findOrCreate($defaultRole);
         $permissions = config("usim.roles.{$defaultRole}.permissions", []);
         foreach ($permissions as $permName) {
-            $permission = \Spatie\Permission\Models\Permission::findOrCreate($permName);
+            $permission = Permission::findOrCreate($permName);
             $role->givePermissionTo($permission);
         }
-        app(\Spatie\Permission\PermissionRegistrar::class)->forgetCachedPermissions();
+        app(PermissionRegistrar::class)->forgetCachedPermissions();
+
+        $defaultUnitSlug = config('usim.units.default', 'main');
+        $unit = UsimUnit::firstOrCreate(['slug' => $defaultUnitSlug]);
+        setPermissionsTeamId($unit->id);
 
         $firstName = ucfirst('Default');
         $lastName = 'User';
         $email = "default@example.com";
         $password = 'password';
 
-        $user= User::factory()->create([
+        $user = User::factory()->create([
             'name' => trim("{$firstName} {$lastName}"),
             'email' => $email,
             'password' => bcrypt($password),

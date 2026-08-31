@@ -464,4 +464,204 @@ class ClassModifier
         $printer = new Standard();
         file_put_contents($filePath, $printer->prettyPrintFile($ast));
     }
+
+    public static function addImport(
+        string $filePath,
+        string $importFQN
+    ): void {
+        if (!file_exists($filePath)) {
+            return;
+        }
+
+        $code = file_get_contents($filePath);
+        if ($code === false) {
+            return;
+        }
+
+        $parser = (new ParserFactory())->createForNewestSupportedVersion();
+        $ast = $parser->parse($code);
+
+        if ($ast === null) {
+            return;
+        }
+
+        /** @var array<int, Node> $ast */
+
+        $namespaceFound = false;
+        foreach ($ast as $node) {
+            if ($node instanceof Namespace_) {
+                $namespaceFound = true;
+                break;
+            }
+        }
+
+        $traverser = new NodeTraverser();
+
+        $traverser->addVisitor(
+            new class ($importFQN) extends NodeVisitorAbstract {
+                public function __construct(
+                    private string $importFQN
+                ) {}
+
+                public function enterNode(Node $node): ?Node
+                {
+                    if ($node instanceof Namespace_) {
+                        $hasImport = false;
+
+                        foreach ($node->stmts as $stmt) {
+                            if ($stmt instanceof Use_) {
+                                foreach ($stmt->uses as $use) {
+                                    if ($use->name->toString() === $this->importFQN) {
+                                        $hasImport = true;
+                                    }
+                                }
+                            }
+                        }
+
+                        if (!$hasImport) {
+                            $newUse = new Use_([
+                                new UseUse(new Node\Name($this->importFQN))
+                            ]);
+
+                            $lastUseIndex = -1;
+                            foreach ($node->stmts as $i => $stmt) {
+                                if ($stmt instanceof Use_) {
+                                    $lastUseIndex = $i;
+                                }
+                            }
+
+                            if ($lastUseIndex >= 0) {
+                                array_splice($node->stmts, $lastUseIndex + 1, 0, [$newUse]);
+                            } else {
+                                array_unshift($node->stmts, $newUse);
+                            }
+                        }
+                    }
+
+                    return null;
+                }
+            }
+        );
+
+        $ast = $traverser->traverse($ast);
+
+        if (!$namespaceFound) {
+            $hasImport = false;
+
+            foreach ($ast as $node) {
+                if ($node instanceof Use_) {
+                    foreach ($node->uses as $use) {
+                        if ($use->name->toString() === $importFQN) {
+                            $hasImport = true;
+                        }
+                    }
+                }
+            }
+
+            if (!$hasImport) {
+                $newUse = new Use_([
+                    new UseUse(new Node\Name($importFQN))
+                ]);
+
+                $lastUseIndex = -1;
+                foreach ($ast as $i => $node) {
+                    if ($node instanceof Use_) {
+                        $lastUseIndex = $i;
+                    }
+                }
+
+                if ($lastUseIndex >= 0) {
+                    array_splice($ast, $lastUseIndex + 1, 0, [$newUse]);
+                } else {
+                    array_unshift($ast, $newUse);
+                }
+            }
+        }
+
+        $printer = new Standard();
+        file_put_contents($filePath, $printer->prettyPrintFile($ast));
+    }
+
+    public static function addMethodToClass(
+        string $filePath,
+        string $className,
+        string $methodCode
+    ): void {
+        if (!file_exists($filePath)) {
+            return;
+        }
+
+        $code = file_get_contents($filePath);
+        if ($code === false) {
+            return;
+        }
+
+        $parser = (new ParserFactory())->createForNewestSupportedVersion();
+        $ast = $parser->parse($code);
+
+        if ($ast === null) {
+            return;
+        }
+
+        /** @var array<int, Node> $ast */
+
+        $dummyCode = "<?php\nclass DummyClassWrapper {\n" . $methodCode . "\n}";
+        $parsedDummy = $parser->parse($dummyCode);
+        if ($parsedDummy === null || !isset($parsedDummy[0]) || !$parsedDummy[0] instanceof Class_) {
+            return;
+        }
+
+        $methodNodes = array_filter(
+            $parsedDummy[0]->stmts,
+            fn($stmt) => $stmt instanceof \PhpParser\Node\Stmt\ClassMethod
+        );
+
+        if (empty($methodNodes)) {
+            return;
+        }
+
+        $traverser = new NodeTraverser();
+
+        $traverser->addVisitor(
+            new class ($className, $methodNodes) extends NodeVisitorAbstract {
+                /**
+                 * @param array<int, \PhpParser\Node\Stmt\ClassMethod> $methodNodes
+                 */
+                public function __construct(
+                    private string $className,
+                    private array $methodNodes
+                ) {}
+
+                public function enterNode(Node $node): ?Node
+                {
+                    if (
+                        $node instanceof Class_
+                        && $node->name instanceof Identifier
+                        && $node->name->toString() === $this->className
+                    ) {
+                        $existingMethodNames = [];
+                        foreach ($node->stmts as $stmt) {
+                            if ($stmt instanceof \PhpParser\Node\Stmt\ClassMethod) {
+                                $existingMethodNames[] = $stmt->name->toString();
+                            }
+                        }
+
+                        foreach ($this->methodNodes as $methodNode) {
+                            if (!in_array($methodNode->name->toString(), $existingMethodNames, true)) {
+                                $node->stmts[] = $methodNode;
+                                $existingMethodNames[] = $methodNode->name->toString();
+                            }
+                        }
+                    }
+
+                    return null;
+                }
+            }
+        );
+
+        $ast = $traverser->traverse($ast);
+
+        $printer = new Standard();
+        file_put_contents($filePath, $printer->prettyPrintFile($ast));
+    }
 }

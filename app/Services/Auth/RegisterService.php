@@ -1,10 +1,12 @@
 <?php
-
+// @usim: feature="admin", type="service"
 namespace App\Services\Auth;
 
 use App\Models\User;
 use App\Services\Auth\AuthSessionService;
+use Idei\Usim\Models\UsimUnit;
 use Illuminate\Auth\Events\Registered;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 
@@ -15,41 +17,13 @@ class RegisterService
     ) {
     }
 
-    /**
-     * Register a new user.
-     *
-     * @param string $name
-     * @param string $email
-     * @param string $password
-     * @param string $passwordConfirmation
-     * @param list<string> $roles Roles to assign (default: ['user'])
-     * @param bool $sendVerificationEmail Whether to fire the Registered event
-     * @return array{
-     *     status: 'error',
-     *     message: string,
-     *     errors: array<string, list<string>>
-     * }|array{
-     *     status: 'success',
-     *     message: string,
-     *     data: array{
-     *         user: array{
-     *             id: int,
-     *             name: string,
-     *             email: string,
-     *             roles: list<string>,
-     *             permissions: list<string>
-     *         },
-     *         token: string
-     *     },
-     *     user: User
-     * }
-     */
     public function register(
         string $name,
         string $email,
         string $password,
         string $passwordConfirmation,
         array $roles = ['user'],
+        ?string $unit = null,
         bool $sendVerificationEmail = true,
     ): array {
         $validator = Validator::make([
@@ -71,29 +45,36 @@ class RegisterService
             ];
         }
 
-        $user = User::create([
-            'name' => $name,
-            'email' => $email,
-            'password' => Hash::make($password),
-            'terms_accepted_at' => now(), // Store the timestamp when terms were accepted
-        ]);
+        // Operación atómica de base de datos
+        $user = DB::transaction(function () use ($name, $email, $password, $roles, $unit) {
+            $user = User::create([
+                'name' => $name,
+                'email' => $email,
+                'password' => Hash::make($password),
+                'terms_accepted_at' => now(),
+            ]);
 
-        // Assign roles
-        foreach ($roles as $role) {
-            $user->assignRole($role);
-        }
+            // Asignación de unidad y contexto de Spatie si Teams está activo
+            if (config('permission.teams')) {
+                $unitSlug = $unit ?? config('usim.units.default', 'main');
+                $modelUnit = UsimUnit::firstOrCreate(['slug' => $unitSlug]);
 
-        // Fire Registered event (triggers verification email, etc.)
+                $user->usimUnits()->syncWithoutDetaching([$modelUnit->id]);
+                setPermissionsTeamId($modelUnit->id);
+            }
+
+            foreach ($roles as $role) {
+                $user->assignRole($role);
+            }
+
+            return $user;
+        });
+
         if ($sendVerificationEmail) {
             event(new Registered($user));
         }
 
         $token = $this->authSessionService->issueToken($user);
-
-        /** @var list<string> $permissions */
-        $permissions = $user->getAllPermissions()->pluck('name')->toArray();
-        /** @var list<string> $roles */
-        $roles = $user->getRoleNames()->toArray();
 
         return [
             'status' => 'success',
@@ -103,8 +84,8 @@ class RegisterService
                     'id' => $user->id,
                     'name' => $user->name,
                     'email' => $user->email,
-                    'roles' => $roles,
-                    'permissions' => $permissions,
+                    'roles' => $user->getRoleNames()->toArray(),
+                    'permissions' => $user->getAllPermissions()->pluck('name')->toArray(),
                 ],
                 'token' => $token,
             ],

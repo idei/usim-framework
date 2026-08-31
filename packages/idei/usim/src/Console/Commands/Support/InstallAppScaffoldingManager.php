@@ -339,7 +339,16 @@ class InstallAppScaffoldingManager
     }
 
     /**
+     * Configures the User model for USIM auth requirements.
+     *
+     * If the User model does not exist, it publishes the stub with default auth configurations.
+     * If it already exists, it injects required traits (HasApiTokens, HasRoles), interfaces
+     * (MustVerifyEmail, CanResetPassword), fillable attributes ('terms_accepted_at'), casts,
+     * the UsimUnit import, and the units() relationship method.
+     *
      * @param array<string, string|bool> $context
+     * @param callable $publishStub
+     * @param callable $line
      */
     private function configureUserModel(array $context, callable $publishStub, callable $line): void
     {
@@ -366,6 +375,22 @@ class InstallAppScaffoldingManager
 
         ClassModifier::addPropertyArrayValue($userModelPath, 'User', 'fillable', 'terms_accepted_at');
         ClassModifier::addCast($userModelPath, 'User', 'terms_accepted_at', 'datetime');
+
+        ClassModifier::addImport($userModelPath, \Idei\Usim\Models\UsimUnit::class);
+        ClassModifier::addImport($userModelPath, \Illuminate\Database\Eloquent\Relations\BelongsToMany::class);
+
+        $unitsMethod = <<<'PHP'
+    /**
+     * Units that the user belongs to.
+     * This manages MEMBERSHIP, independent of the roles (Spatie) they have within it
+     */
+    public function usimUnits(): BelongsToMany
+    {
+        return $this->belongsToMany(UsimUnit::class)->withTimestamps();
+    }
+PHP;
+
+        ClassModifier::addMethodToClass($userModelPath, 'User', $unitsMethod);
 
         $line('  <fg=green>✓</> User model updated with USIM auth defaults');
     }

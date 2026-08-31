@@ -414,6 +414,7 @@ class InstallCommand extends Command
         return [
             '.env',
             'config/usim.php',
+            'config/permission.php',
             'routes/web.php',
             'composer.json',
             'bootstrap/providers.php',

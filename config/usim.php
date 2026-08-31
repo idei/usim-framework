@@ -70,6 +70,31 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Organizational Units (Units)
+    |--------------------------------------------------------------------------
+    |
+    | Define organizational units (departments, directions, etc.) and their hierarchy.
+    */
+    'units' => [
+
+        // Default unit slug. It is used when a user is created without specifying a unit,
+        // or when the system needs to resolve a unit for a user without an explicit one.
+        'default' => env('USIM_DEFAULT_UNIT', 'main'),
+
+        'structure' => [
+            'main' => [
+                'parent' => null,
+                'type' => 'institution', // Optional: institution, department, division, team, etc.
+                'default_translations' => [
+                    'en' => ['display_name' => 'Main Organization', 'description' => 'Default system unit.'],
+                    'es' => ['display_name' => 'Organización Principal', 'description' => 'Unidad base del sistema.'],
+                ],
+            ],
+        ],
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | Default Users Configuration
     |--------------------------------------------------------------------------
     |

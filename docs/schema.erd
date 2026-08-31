@@ -1,0 +1,1972 @@
+{
+    "documentName": "USIM main tables",
+    "lastUpdatedAt": "2026-08-29T18:44:40.377Z",
+    "tableViewModels": [
+        {
+            "tableModel": {
+                "tableModelId": "1fc22049-3df6-42f5-9f3b-f7763924db15",
+                "physicalName": "users",
+                "logicalName": "users",
+                "columnModelIds": [
+                    "d13d862f-5c3d-4951-84d7-12e5f932d0eb",
+                    "cf2d028b-91dd-4fb4-a1d7-942185484a02",
+                    "7fa77a88-c9ec-49de-b357-e310a9cb05ad",
+                    "7cd64181-5349-4b25-8908-e550858fd948",
+                    "402a6bc4-b14d-4d57-aba2-e5f0f342cc0e",
+                    "940f07b5-5333-42d2-8711-8d12dae5e3b0",
+                    "f32bff31-d34a-48bb-981f-9f207942eae4",
+                    "caadaa4b-7152-436d-af07-d5938541594b",
+                    "c510dfde-3bfd-4e27-ae4a-e11423c7bba1",
+                    "c6c14493-0c85-40f2-b373-824b39724a5e"
+                ]
+            },
+            "top": 50,
+            "left": 50,
+            "headerBackgroundColor": {
+                "red": 227,
+                "green": 242,
+                "blue": 253
+            },
+            "headerForegroundColor": {
+                "red": 0,
+                "green": 0,
+                "blue": 0
+            },
+            "createdAt": "2026-08-29T18:25:40.474Z"
+        },
+        {
+            "tableModel": {
+                "tableModelId": "143b3fe8-fe3c-422e-ac57-ac9b2a5324f9",
+                "physicalName": "permissions",
+                "logicalName": "permissions",
+                "columnModelIds": [
+                    "21b9c501-0313-44fc-89c9-0be4cdf22c14",
+                    "b00d34f8-80be-4aa1-b85e-bf7af081de6a",
+                    "aac8dede-4f08-4408-a929-32364f5e9ffe",
+                    "ba5f6c81-43e0-4baa-b216-ac7aff6d8192",
+                    "25dd7f8b-2166-4800-a2f1-4c60e9099a53"
+                ]
+            },
+            "top": 47.18000000000001,
+            "left": 666.5699999999999,
+            "headerBackgroundColor": {
+                "red": 227,
+                "green": 242,
+                "blue": 253
+            },
+            "headerForegroundColor": {
+                "red": 0,
+                "green": 0,
+                "blue": 0
+            },
+            "createdAt": "2026-08-29T18:25:40.474Z"
+        },
+        {
+            "tableModel": {
+                "tableModelId": "1873183b-9de8-4578-a385-dc69f641463e",
+                "physicalName": "roles",
+                "logicalName": "roles",
+                "columnModelIds": [
+                    "d148fc27-4f0f-42a8-b9c0-86173bd3ed07",
+                    "8aeca76e-e61f-4514-aa91-9f5466e27f5f",
+                    "177c2369-f101-4d46-8d93-9f24ad632043",
+                    "2abcd14b-b7b9-43f8-906d-e53a70937980",
+                    "910e31ab-6314-470c-b5af-9ef565c3394b"
+                ]
+            },
+            "top": 36.71000000000002,
+            "left": 1557.6500000000003,
+            "headerBackgroundColor": {
+                "red": 227,
+                "green": 242,
+                "blue": 253
+            },
+            "headerForegroundColor": {
+                "red": 0,
+                "green": 0,
+                "blue": 0
+            },
+            "createdAt": "2026-08-29T18:25:40.474Z"
+        },
+        {
+            "tableModel": {
+                "tableModelId": "83a8a0f2-fb58-4da1-b647-fba8d3e1c5f8",
+                "physicalName": "model_has_permissions",
+                "logicalName": "model_has_permissions",
+                "columnModelIds": [
+                    "f9f0372d-7f5f-4a1a-8b9d-3848a0a69aad",
+                    "441e2692-5154-461a-aeb5-2d18de510582",
+                    "a4e3481b-6ac1-4480-9c6f-53c5b442ffe6"
+                ]
+            },
+            "top": 368.2,
+            "left": 653.7699999999998,
+            "headerBackgroundColor": {
+                "red": 227,
+                "green": 242,
+                "blue": 253
+            },
+            "headerForegroundColor": {
+                "red": 0,
+                "green": 0,
+                "blue": 0
+            },
+            "createdAt": "2026-08-29T18:25:40.474Z"
+        },
+        {
+            "tableModel": {
+                "tableModelId": "8caa53e3-1b2a-4b4b-8dc8-5ae8f49e2b0f",
+                "physicalName": "model_has_roles",
+                "logicalName": "model_has_roles",
+                "columnModelIds": [
+                    "45afaf72-3f24-445e-b8bf-56d9c2e42de4",
+                    "db2b19d2-eabc-45de-8d8a-26f71f426d73",
+                    "7a9162dd-c6c1-4885-ac7c-2613265aa319"
+                ]
+            },
+            "top": 413.11999999999995,
+            "left": 1137.75,
+            "headerBackgroundColor": {
+                "red": 227,
+                "green": 242,
+                "blue": 253
+            },
+            "headerForegroundColor": {
+                "red": 0,
+                "green": 0,
+                "blue": 0
+            },
+            "createdAt": "2026-08-29T18:25:40.474Z"
+        },
+        {
+            "tableModel": {
+                "tableModelId": "bd7a0614-4cef-4735-a2a5-61775462c731",
+                "physicalName": "role_has_permissions",
+                "logicalName": "role_has_permissions",
+                "columnModelIds": [
+                    "6852b4e4-c324-46e2-b898-5980ba15d036",
+                    "85a6b5b8-842d-454d-81cf-b5ffadb1ef64"
+                ]
+            },
+            "top": 92.5200000000001,
+            "left": 1111.13,
+            "headerBackgroundColor": {
+                "red": 128,
+                "green": 203,
+                "blue": 196
+            },
+            "headerForegroundColor": {
+                "red": 0,
+                "green": 0,
+                "blue": 0
+            },
+            "createdAt": "2026-08-29T18:25:40.474Z"
+        },
+        {
+            "tableModel": {
+                "tableModelId": "df336068-30ed-44c2-ad3d-99dc7a9dfc83",
+                "physicalName": "temporary_uploads",
+                "logicalName": "temporary_uploads",
+                "columnModelIds": [
+                    "ed0d7565-92e0-4562-a309-b00c2fb9a83a",
+                    "e081a3f1-a65c-445e-bb66-87399e7b94b0",
+                    "11665559-6897-4e5d-ae4a-921a73c08ddf",
+                    "796d027c-521e-4b54-8379-8ab37ea375ed",
+                    "c2e8230c-121b-40e1-a2a2-335a4b15cd9f",
+                    "d2b635d0-2771-4b08-bdf4-e5bb6294423f",
+                    "545906ef-bfc6-419d-800c-279ba8d5d417",
+                    "330eb21c-c8d2-401b-b59f-f7355a8299cd",
+                    "2e9eb3a5-03da-463b-af19-0d8c21fbbf32",
+                    "4bbbcc5d-ca21-4b73-8901-151529dc8fbb",
+                    "6f328570-ba21-4ea7-ac20-a3e791371c13",
+                    "1859b161-dbc2-47a7-a767-323f4cfa1eaf",
+                    "df004fdc-9376-4f74-a2be-439a8f696c34"
+                ]
+            },
+            "top": 518,
+            "left": 64,
+            "headerBackgroundColor": {
+                "red": 227,
+                "green": 242,
+                "blue": 253
+            },
+            "headerForegroundColor": {
+                "red": 0,
+                "green": 0,
+                "blue": 0
+            },
+            "createdAt": "2026-08-29T18:25:40.474Z"
+        },
+        {
+            "tableModel": {
+                "tableModelId": "1d7470f5-e1cf-4264-8f71-bec83d73b9ac",
+                "physicalName": "usim_languages",
+                "logicalName": "usim_languages",
+                "columnModelIds": [
+                    "e29b36e3-17a8-4564-83cf-7d32050c01a9",
+                    "b5838240-52a6-4be2-9348-ef9999fb281a",
+                    "02fd1cb4-32f0-4aa9-8004-14e357b35c81",
+                    "651a6d6d-b947-4f79-a2d9-c219b2291aa1",
+                    "f2b83a65-f10f-4957-966d-5831c40c4224",
+                    "de820111-41f1-4bf7-a568-0520b5ce6692",
+                    "7676bb96-eacc-4409-a92b-5095cd6db63d",
+                    "b6add26a-b3ab-4af8-b505-44525a0c59ee"
+                ]
+            },
+            "top": 1022.44,
+            "left": 106.5,
+            "headerBackgroundColor": {
+                "red": 227,
+                "green": 242,
+                "blue": 253
+            },
+            "headerForegroundColor": {
+                "red": 0,
+                "green": 0,
+                "blue": 0
+            },
+            "createdAt": "2026-08-29T18:25:40.475Z"
+        },
+        {
+            "tableModel": {
+                "tableModelId": "57d68b35-17af-452d-a883-c7ef37a98408",
+                "physicalName": "usim_text_keys",
+                "logicalName": "usim_text_keys",
+                "columnModelIds": [
+                    "9720d3b6-231f-4b32-8b0d-a0e64423536e",
+                    "a13ba50c-fccf-4233-b70c-a925d054b9eb",
+                    "567c6646-bd8d-47b7-8dc7-4296d2cb8cf4",
+                    "ff5619ab-2df9-4807-86e9-9a7b85ccc02d",
+                    "7c5810eb-539e-4202-8968-06a99270a5fa",
+                    "50fec047-18ce-4adf-9b39-3d38363f71db"
+                ]
+            },
+            "top": 1049.7,
+            "left": 989.49,
+            "headerBackgroundColor": {
+                "red": 227,
+                "green": 242,
+                "blue": 253
+            },
+            "headerForegroundColor": {
+                "red": 0,
+                "green": 0,
+                "blue": 0
+            },
+            "createdAt": "2026-08-29T18:25:40.475Z"
+        },
+        {
+            "tableModel": {
+                "tableModelId": "82b71bde-1dee-4888-b978-34bc0cfa94a2",
+                "physicalName": "usim_text_values",
+                "logicalName": "usim_text_values",
+                "columnModelIds": [
+                    "004a349e-6647-4c2e-b0d6-7aceeb129678",
+                    "a8379bc2-a607-4de7-9853-65c010f017eb",
+                    "8d689f78-4d3a-4e0c-8942-f6731a7aa9dd",
+                    "87c42543-7c20-4c84-8b53-1d62b039f142",
+                    "4e8e031e-94c9-4d92-8c1a-3774297b61e4",
+                    "dc4778b8-fce5-41f3-94dc-06deca58acdb",
+                    "11f88010-de13-4a07-bd2a-a044918b09d9",
+                    "0cc5c4cd-3dda-4e7d-8d97-b72e2d9be3d0",
+                    "30d69e92-0a3a-4685-b1fa-523f0aeeb907"
+                ]
+            },
+            "top": 1005.26,
+            "left": 529.51,
+            "headerBackgroundColor": {
+                "red": 128,
+                "green": 203,
+                "blue": 196
+            },
+            "headerForegroundColor": {
+                "red": 0,
+                "green": 0,
+                "blue": 0
+            },
+            "createdAt": "2026-08-29T18:25:40.475Z"
+        },
+        {
+            "tableModel": {
+                "tableModelId": "8c804a58-70fc-4714-8ad1-3cde4e89aa89",
+                "physicalName": "genres",
+                "logicalName": "genres",
+                "columnModelIds": [
+                    "965fc60c-584a-42f5-89e0-21cb25baff7e",
+                    "24090ede-3a30-42fe-9d13-695930fa7950",
+                    "99ed7dc5-8aec-4394-bb47-c2941edbe43f",
+                    "43bd19c0-61f7-40f3-b38d-eeefce58882c"
+                ]
+            },
+            "top": 1082.29,
+            "left": 1495.92,
+            "headerBackgroundColor": {
+                "red": 227,
+                "green": 242,
+                "blue": 253
+            },
+            "headerForegroundColor": {
+                "red": 0,
+                "green": 0,
+                "blue": 0
+            },
+            "createdAt": "2026-08-29T18:25:40.475Z"
+        },
+        {
+            "tableModel": {
+                "tableModelId": "cad99377-8e83-45ae-b81d-b11ec29a7290",
+                "physicalName": "movies",
+                "logicalName": "movies",
+                "columnModelIds": [
+                    "6f6d7f2e-cb10-41f4-8ef5-cbc697ca7a2c",
+                    "feb5df49-4a98-4576-99b0-f97238d2c5a3",
+                    "41c72575-03e4-456d-a8ec-27a02ebf2211",
+                    "0fbafa4c-6045-4537-a730-a5c046fb570f",
+                    "10bfffd6-a5aa-4384-89a7-d43b3b153da4",
+                    "40e56cbc-afbc-42c9-9739-43b89b40ae64",
+                    "c72e6ef6-b689-4ad6-a523-272a52333d09",
+                    "c9a56daf-25f2-419e-a0f5-49d0426984aa",
+                    "0830c14d-b940-45f8-9101-e5d373aea34b"
+                ]
+            },
+            "top": 637.8199999999998,
+            "left": 1471.81,
+            "headerBackgroundColor": {
+                "red": 227,
+                "green": 242,
+                "blue": 253
+            },
+            "headerForegroundColor": {
+                "red": 0,
+                "green": 0,
+                "blue": 0
+            },
+            "createdAt": "2026-08-29T18:25:40.475Z"
+        },
+        {
+            "tableModel": {
+                "tableModelId": "bb1fc77b-6dd9-4b11-916f-e4ffde4bc0a1",
+                "physicalName": "usim_role_settings",
+                "logicalName": "usim_role_settings",
+                "columnModelIds": [
+                    "8b12743e-1144-40a1-83df-cb145ad8b35b",
+                    "efca9d13-c377-4ab7-813d-54706c200260",
+                    "87719b53-85c8-4111-8719-ca98a6a31fb3",
+                    "e8fe024a-9938-4868-b44a-730a687ccdf5",
+                    "59680f8b-a0a2-466c-ad70-55ef78cc8d3f",
+                    "9b521dc2-7f78-4fd7-a421-3c7e3e6c95f2"
+                ]
+            },
+            "top": 312.74,
+            "left": 1553.3300000000004,
+            "headerBackgroundColor": {
+                "red": 227,
+                "green": 242,
+                "blue": 253
+            },
+            "headerForegroundColor": {
+                "red": 0,
+                "green": 0,
+                "blue": 0
+            },
+            "createdAt": "2026-08-29T18:25:40.475Z"
+        },
+        {
+            "tableModel": {
+                "tableModelId": "2ed70cbd-646a-494e-a6ee-578cd69e14bd",
+                "physicalName": "usim_units",
+                "logicalName": "usim_units",
+                "columnModelIds": [
+                    "9b20c460-83c3-4c20-a3a0-04b7c251955a",
+                    "b7193a55-c50d-4afd-8a75-74202e06a6a3",
+                    "f968bd57-01f7-4243-a682-ddccaaac31d0",
+                    "3648d260-e6cc-48fc-a013-a5ec00038ae5",
+                    "3a1f2bf0-f806-4a82-9508-c618c4804a15",
+                    "675c11d9-7548-44e0-b83c-29e6815845c4"
+                ]
+            },
+            "top": 639.5400000000001,
+            "left": 982.27,
+            "headerBackgroundColor": {
+                "red": 227,
+                "green": 242,
+                "blue": 253
+            },
+            "headerForegroundColor": {
+                "red": 0,
+                "green": 0,
+                "blue": 0
+            },
+            "createdAt": "2026-08-29T18:25:40.475Z"
+        },
+        {
+            "tableModel": {
+                "tableModelId": "009f0e1b-6f71-422b-898e-33bd2fc68516",
+                "physicalName": "unit_user",
+                "logicalName": "unit_user",
+                "columnModelIds": [
+                    "79ee3a8f-79c4-4819-9efa-f6cddbd3ff64",
+                    "bf8baad4-56b4-4b6e-ab11-e0a0819f4033",
+                    "d2620779-f068-43b6-b1ac-4c936feca3b7",
+                    "dcc4151a-b7cf-4817-bfe6-9c3af1b3e49a",
+                    "3123d9b2-862c-4883-b59c-a409fbbb7a49"
+                ]
+            },
+            "top": 658.8000000000001,
+            "left": 535.4699999999997,
+            "headerBackgroundColor": {
+                "red": 128,
+                "green": 203,
+                "blue": 196
+            },
+            "headerForegroundColor": {
+                "red": 0,
+                "green": 0,
+                "blue": 0
+            },
+            "createdAt": "2026-08-29T18:25:40.476Z"
+        }
+    ],
+    "columnGroupModels": [],
+    "columnModels": [
+        {
+            "columnModelId": "004a349e-6647-4c2e-b0d6-7aceeb129678",
+            "columnShareModelId": "819fe0b1-3b74-42bb-bc9e-f88cb5dab7fd",
+            "primaryKey": true,
+            "notNull": true
+        },
+        {
+            "columnModelId": "02fd1cb4-32f0-4aa9-8004-14e357b35c81",
+            "columnShareModelId": "c789adf8-9429-49aa-b3c9-7e1f4195a603",
+            "notNull": true
+        },
+        {
+            "columnModelId": "0830c14d-b940-45f8-9101-e5d373aea34b",
+            "columnShareModelId": "3042dcb9-b1af-4aa3-a353-440f2e413d15"
+        },
+        {
+            "columnModelId": "0cc5c4cd-3dda-4e7d-8d97-b72e2d9be3d0",
+            "columnShareModelId": "94b45540-7fe7-4bbc-b926-3448e09c9149"
+        },
+        {
+            "columnModelId": "0fbafa4c-6045-4537-a730-a5c046fb570f",
+            "columnShareModelId": "0d29c5d2-1666-436a-8452-74e4a3e3b3aa",
+            "notNull": true
+        },
+        {
+            "columnModelId": "10bfffd6-a5aa-4384-89a7-d43b3b153da4",
+            "columnShareModelId": "f6e4a5ea-e5b2-4214-9156-886f35891a90",
+            "notNull": true
+        },
+        {
+            "columnModelId": "11665559-6897-4e5d-ae4a-921a73c08ddf",
+            "columnShareModelId": "3d46f345-2431-4bda-999d-4e7732ffc00a",
+            "notNull": true
+        },
+        {
+            "columnModelId": "11f88010-de13-4a07-bd2a-a044918b09d9",
+            "columnShareModelId": "96788feb-f5cd-44e7-8513-411d2cbafcb1"
+        },
+        {
+            "columnModelId": "177c2369-f101-4d46-8d93-9f24ad632043",
+            "columnShareModelId": "cc6fa4e6-ecb6-45f4-9efa-5a34dc5afef1",
+            "notNull": true
+        },
+        {
+            "columnModelId": "1859b161-dbc2-47a7-a767-323f4cfa1eaf",
+            "columnShareModelId": "94b45540-7fe7-4bbc-b926-3448e09c9149"
+        },
+        {
+            "columnModelId": "21b9c501-0313-44fc-89c9-0be4cdf22c14",
+            "columnShareModelId": "819fe0b1-3b74-42bb-bc9e-f88cb5dab7fd",
+            "primaryKey": true,
+            "notNull": true
+        },
+        {
+            "columnModelId": "24090ede-3a30-42fe-9d13-695930fa7950",
+            "columnShareModelId": "c789adf8-9429-49aa-b3c9-7e1f4195a603",
+            "notNull": true
+        },
+        {
+            "columnModelId": "25dd7f8b-2166-4800-a2f1-4c60e9099a53",
+            "columnShareModelId": "3042dcb9-b1af-4aa3-a353-440f2e413d15"
+        },
+        {
+            "columnModelId": "2abcd14b-b7b9-43f8-906d-e53a70937980",
+            "columnShareModelId": "94b45540-7fe7-4bbc-b926-3448e09c9149"
+        },
+        {
+            "columnModelId": "2e9eb3a5-03da-463b-af19-0d8c21fbbf32",
+            "columnShareModelId": "fe876fd1-d316-414b-a906-d74278602624",
+            "notNull": true
+        },
+        {
+            "columnModelId": "30d69e92-0a3a-4685-b1fa-523f0aeeb907",
+            "columnShareModelId": "3042dcb9-b1af-4aa3-a353-440f2e413d15"
+        },
+        {
+            "columnModelId": "3123d9b2-862c-4883-b59c-a409fbbb7a49",
+            "columnShareModelId": "3042dcb9-b1af-4aa3-a353-440f2e413d15"
+        },
+        {
+            "columnModelId": "330eb21c-c8d2-401b-b59f-f7355a8299cd",
+            "columnShareModelId": "df0d45dd-eebe-4096-8057-7b3353429aff",
+            "notNull": true
+        },
+        {
+            "columnModelId": "3648d260-e6cc-48fc-a013-a5ec00038ae5",
+            "columnShareModelId": "b5613f77-a484-4dee-ad3c-0b7276a737f3"
+        },
+        {
+            "columnModelId": "3a1f2bf0-f806-4a82-9508-c618c4804a15",
+            "columnShareModelId": "94b45540-7fe7-4bbc-b926-3448e09c9149"
+        },
+        {
+            "columnModelId": "402a6bc4-b14d-4d57-aba2-e5f0f342cc0e",
+            "columnShareModelId": "74738483-6925-42bd-8e26-b3be7729185d",
+            "notNull": true
+        },
+        {
+            "columnModelId": "40e56cbc-afbc-42c9-9739-43b89b40ae64",
+            "columnShareModelId": "d379d6a5-bbc0-47a7-8c07-a7aed0bdbae7",
+            "notNull": true
+        },
+        {
+            "columnModelId": "41c72575-03e4-456d-a8ec-27a02ebf2211",
+            "columnShareModelId": "0a6af83f-0a84-4448-b1f3-e5c3bd1b343a",
+            "notNull": true
+        },
+        {
+            "columnModelId": "43bd19c0-61f7-40f3-b38d-eeefce58882c",
+            "columnShareModelId": "3042dcb9-b1af-4aa3-a353-440f2e413d15"
+        },
+        {
+            "columnModelId": "441e2692-5154-461a-aeb5-2d18de510582",
+            "columnShareModelId": "68d31aca-363b-46f9-abec-097450b112cc",
+            "primaryKey": true,
+            "notNull": true
+        },
+        {
+            "columnModelId": "45afaf72-3f24-445e-b8bf-56d9c2e42de4",
+            "columnShareModelId": "0a3368d3-5089-44a9-bbe2-d73dd16eda63",
+            "primaryKey": true,
+            "notNull": true
+        },
+        {
+            "columnModelId": "4bbbcc5d-ca21-4b73-8901-151529dc8fbb",
+            "columnShareModelId": "d7b52123-22a6-408a-97e2-f86a97530156"
+        },
+        {
+            "columnModelId": "4e8e031e-94c9-4d92-8c1a-3774297b61e4",
+            "columnShareModelId": "63aa5fc5-53ff-4a23-9317-448ca950d189",
+            "notNull": true,
+            "defaultValue": "'0'"
+        },
+        {
+            "columnModelId": "50fec047-18ce-4adf-9b39-3d38363f71db",
+            "columnShareModelId": "3042dcb9-b1af-4aa3-a353-440f2e413d15"
+        },
+        {
+            "columnModelId": "545906ef-bfc6-419d-800c-279ba8d5d417",
+            "columnShareModelId": "2e16726c-4b64-4140-9198-5eba5dd316b3",
+            "notNull": true
+        },
+        {
+            "columnModelId": "567c6646-bd8d-47b7-8dc7-4296d2cb8cf4",
+            "columnShareModelId": "43a061d7-e471-41df-933a-12734f8ec66e"
+        },
+        {
+            "columnModelId": "59680f8b-a0a2-466c-ad70-55ef78cc8d3f",
+            "columnShareModelId": "94b45540-7fe7-4bbc-b926-3448e09c9149"
+        },
+        {
+            "columnModelId": "651a6d6d-b947-4f79-a2d9-c219b2291aa1",
+            "columnShareModelId": "135be148-2b43-40f8-8f77-b00444546eb5"
+        },
+        {
+            "columnModelId": "675c11d9-7548-44e0-b83c-29e6815845c4",
+            "columnShareModelId": "3042dcb9-b1af-4aa3-a353-440f2e413d15"
+        },
+        {
+            "columnModelId": "6852b4e4-c324-46e2-b898-5980ba15d036",
+            "columnShareModelId": "77f71d24-4037-427b-8f66-f582578e3966",
+            "primaryKey": true,
+            "notNull": true
+        },
+        {
+            "columnModelId": "6f328570-ba21-4ea7-ac20-a3e791371c13",
+            "columnShareModelId": "dfc369e4-addf-4de1-ac48-b20a381952c5",
+            "notNull": true
+        },
+        {
+            "columnModelId": "6f6d7f2e-cb10-41f4-8ef5-cbc697ca7a2c",
+            "columnShareModelId": "819fe0b1-3b74-42bb-bc9e-f88cb5dab7fd",
+            "primaryKey": true,
+            "notNull": true
+        },
+        {
+            "columnModelId": "7676bb96-eacc-4409-a92b-5095cd6db63d",
+            "columnShareModelId": "94b45540-7fe7-4bbc-b926-3448e09c9149"
+        },
+        {
+            "columnModelId": "796d027c-521e-4b54-8379-8ab37ea375ed",
+            "columnShareModelId": "2e1e62d7-9bd1-4446-bb1a-7f807a3b473d",
+            "notNull": true
+        },
+        {
+            "columnModelId": "79ee3a8f-79c4-4819-9efa-f6cddbd3ff64",
+            "columnShareModelId": "819fe0b1-3b74-42bb-bc9e-f88cb5dab7fd",
+            "primaryKey": true,
+            "notNull": true
+        },
+        {
+            "columnModelId": "7a9162dd-c6c1-4885-ac7c-2613265aa319",
+            "columnShareModelId": "3eb74e12-1910-4e7b-b05b-68b45c7fcb77",
+            "primaryKey": true,
+            "notNull": true
+        },
+        {
+            "columnModelId": "7c5810eb-539e-4202-8968-06a99270a5fa",
+            "columnShareModelId": "94b45540-7fe7-4bbc-b926-3448e09c9149"
+        },
+        {
+            "columnModelId": "7cd64181-5349-4b25-8908-e550858fd948",
+            "columnShareModelId": "614e54bf-f727-4403-b479-fb51e9f4fd97"
+        },
+        {
+            "columnModelId": "7fa77a88-c9ec-49de-b357-e310a9cb05ad",
+            "columnShareModelId": "b8e40277-eab5-4585-b2f0-f111203eeb51",
+            "notNull": true
+        },
+        {
+            "columnModelId": "85a6b5b8-842d-454d-81cf-b5ffadb1ef64",
+            "columnShareModelId": "0a3368d3-5089-44a9-bbe2-d73dd16eda63",
+            "primaryKey": true,
+            "notNull": true
+        },
+        {
+            "columnModelId": "87719b53-85c8-4111-8719-ca98a6a31fb3",
+            "columnShareModelId": "a6ed5edd-e621-4fbb-b1c9-9adc1fe0731a"
+        },
+        {
+            "columnModelId": "87c42543-7c20-4c84-8b53-1d62b039f142",
+            "columnShareModelId": "252106d4-a6fa-4f1b-9066-12368f9da9b2"
+        },
+        {
+            "columnModelId": "8aeca76e-e61f-4514-aa91-9f5466e27f5f",
+            "columnShareModelId": "c789adf8-9429-49aa-b3c9-7e1f4195a603",
+            "notNull": true
+        },
+        {
+            "columnModelId": "8b12743e-1144-40a1-83df-cb145ad8b35b",
+            "columnShareModelId": "819fe0b1-3b74-42bb-bc9e-f88cb5dab7fd",
+            "primaryKey": true,
+            "notNull": true
+        },
+        {
+            "columnModelId": "8d689f78-4d3a-4e0c-8942-f6731a7aa9dd",
+            "columnShareModelId": "83f8e032-c0ba-4d39-aebf-95277b4493cf",
+            "notNull": true
+        },
+        {
+            "columnModelId": "910e31ab-6314-470c-b5af-9ef565c3394b",
+            "columnShareModelId": "3042dcb9-b1af-4aa3-a353-440f2e413d15"
+        },
+        {
+            "columnModelId": "940f07b5-5333-42d2-8711-8d12dae5e3b0",
+            "columnShareModelId": "ceb48928-a8ff-4a8f-84f8-6622b55f175c"
+        },
+        {
+            "columnModelId": "965fc60c-584a-42f5-89e0-21cb25baff7e",
+            "columnShareModelId": "819fe0b1-3b74-42bb-bc9e-f88cb5dab7fd",
+            "primaryKey": true,
+            "notNull": true
+        },
+        {
+            "columnModelId": "9720d3b6-231f-4b32-8b0d-a0e64423536e",
+            "columnShareModelId": "819fe0b1-3b74-42bb-bc9e-f88cb5dab7fd",
+            "primaryKey": true,
+            "notNull": true
+        },
+        {
+            "columnModelId": "99ed7dc5-8aec-4394-bb47-c2941edbe43f",
+            "columnShareModelId": "94b45540-7fe7-4bbc-b926-3448e09c9149"
+        },
+        {
+            "columnModelId": "9b20c460-83c3-4c20-a3a0-04b7c251955a",
+            "columnShareModelId": "819fe0b1-3b74-42bb-bc9e-f88cb5dab7fd",
+            "primaryKey": true,
+            "notNull": true
+        },
+        {
+            "columnModelId": "9b521dc2-7f78-4fd7-a421-3c7e3e6c95f2",
+            "columnShareModelId": "3042dcb9-b1af-4aa3-a353-440f2e413d15"
+        },
+        {
+            "columnModelId": "a13ba50c-fccf-4233-b70c-a925d054b9eb",
+            "columnShareModelId": "b53319ea-aa7d-4144-97ce-596916b81ff3",
+            "notNull": true
+        },
+        {
+            "columnModelId": "a4e3481b-6ac1-4480-9c6f-53c5b442ffe6",
+            "columnShareModelId": "3eb74e12-1910-4e7b-b05b-68b45c7fcb77",
+            "primaryKey": true,
+            "notNull": true
+        },
+        {
+            "columnModelId": "a8379bc2-a607-4de7-9853-65c010f017eb",
+            "columnShareModelId": "347602f4-47d0-4aa9-854a-ac32eacdd91e",
+            "notNull": true
+        },
+        {
+            "columnModelId": "aac8dede-4f08-4408-a929-32364f5e9ffe",
+            "columnShareModelId": "cc6fa4e6-ecb6-45f4-9efa-5a34dc5afef1",
+            "notNull": true
+        },
+        {
+            "columnModelId": "b00d34f8-80be-4aa1-b85e-bf7af081de6a",
+            "columnShareModelId": "c789adf8-9429-49aa-b3c9-7e1f4195a603",
+            "notNull": true
+        },
+        {
+            "columnModelId": "b5838240-52a6-4be2-9348-ef9999fb281a",
+            "columnShareModelId": "facf1071-ea66-498f-8b77-438d9c05fea3",
+            "notNull": true
+        },
+        {
+            "columnModelId": "b6add26a-b3ab-4af8-b505-44525a0c59ee",
+            "columnShareModelId": "3042dcb9-b1af-4aa3-a353-440f2e413d15"
+        },
+        {
+            "columnModelId": "b7193a55-c50d-4afd-8a75-74202e06a6a3",
+            "columnShareModelId": "46b83f23-11ec-4686-ac2f-a56bc1e754e8",
+            "notNull": true
+        },
+        {
+            "columnModelId": "ba5f6c81-43e0-4baa-b216-ac7aff6d8192",
+            "columnShareModelId": "94b45540-7fe7-4bbc-b926-3448e09c9149"
+        },
+        {
+            "columnModelId": "bf8baad4-56b4-4b6e-ab11-e0a0819f4033",
+            "columnShareModelId": "eab12819-52ba-4ea9-a7a9-300e8ea571d7",
+            "notNull": true
+        },
+        {
+            "columnModelId": "c2e8230c-121b-40e1-a2a2-335a4b15cd9f",
+            "columnShareModelId": "eab441ee-34c2-4b50-9535-a00a96d55322",
+            "notNull": true
+        },
+        {
+            "columnModelId": "c510dfde-3bfd-4e27-ae4a-e11423c7bba1",
+            "columnShareModelId": "9d947acd-e279-4e7e-b853-181a1f87e7a4"
+        },
+        {
+            "columnModelId": "c6c14493-0c85-40f2-b373-824b39724a5e",
+            "columnShareModelId": "425e618e-b3c7-4d96-b2f9-f7a6fba60230"
+        },
+        {
+            "columnModelId": "c72e6ef6-b689-4ad6-a523-272a52333d09",
+            "columnShareModelId": "52655741-21c9-424c-86af-231b8395fa11",
+            "notNull": true
+        },
+        {
+            "columnModelId": "c9a56daf-25f2-419e-a0f5-49d0426984aa",
+            "columnShareModelId": "94b45540-7fe7-4bbc-b926-3448e09c9149"
+        },
+        {
+            "columnModelId": "caadaa4b-7152-436d-af07-d5938541594b",
+            "columnShareModelId": "3042dcb9-b1af-4aa3-a353-440f2e413d15"
+        },
+        {
+            "columnModelId": "cf2d028b-91dd-4fb4-a1d7-942185484a02",
+            "columnShareModelId": "c789adf8-9429-49aa-b3c9-7e1f4195a603",
+            "notNull": true
+        },
+        {
+            "columnModelId": "d13d862f-5c3d-4951-84d7-12e5f932d0eb",
+            "columnShareModelId": "819fe0b1-3b74-42bb-bc9e-f88cb5dab7fd",
+            "primaryKey": true,
+            "notNull": true
+        },
+        {
+            "columnModelId": "d148fc27-4f0f-42a8-b9c0-86173bd3ed07",
+            "columnShareModelId": "819fe0b1-3b74-42bb-bc9e-f88cb5dab7fd",
+            "primaryKey": true,
+            "notNull": true
+        },
+        {
+            "columnModelId": "d2620779-f068-43b6-b1ac-4c936feca3b7",
+            "columnShareModelId": "61288a51-a13a-4887-9735-00b06d426e6e",
+            "notNull": true
+        },
+        {
+            "columnModelId": "d2b635d0-2771-4b08-bdf4-e5bb6294423f",
+            "columnShareModelId": "68c4c7ae-ce03-403d-ad42-e150266ea90a",
+            "notNull": true
+        },
+        {
+            "columnModelId": "db2b19d2-eabc-45de-8d8a-26f71f426d73",
+            "columnShareModelId": "68d31aca-363b-46f9-abec-097450b112cc",
+            "primaryKey": true,
+            "notNull": true
+        },
+        {
+            "columnModelId": "dc4778b8-fce5-41f3-94dc-06deca58acdb",
+            "columnShareModelId": "5820d202-bb5d-4806-ba74-2d71f7b90f59"
+        },
+        {
+            "columnModelId": "dcc4151a-b7cf-4817-bfe6-9c3af1b3e49a",
+            "columnShareModelId": "94b45540-7fe7-4bbc-b926-3448e09c9149"
+        },
+        {
+            "columnModelId": "de820111-41f1-4bf7-a568-0520b5ce6692",
+            "columnShareModelId": "d458f14a-704b-4d32-97fe-add54371b66d",
+            "notNull": true,
+            "defaultValue": "'0'"
+        },
+        {
+            "columnModelId": "df004fdc-9376-4f74-a2be-439a8f696c34",
+            "columnShareModelId": "3042dcb9-b1af-4aa3-a353-440f2e413d15"
+        },
+        {
+            "columnModelId": "e081a3f1-a65c-445e-bb66-87399e7b94b0",
+            "columnShareModelId": "61288a51-a13a-4887-9735-00b06d426e6e"
+        },
+        {
+            "columnModelId": "e29b36e3-17a8-4564-83cf-7d32050c01a9",
+            "columnShareModelId": "819fe0b1-3b74-42bb-bc9e-f88cb5dab7fd",
+            "primaryKey": true,
+            "notNull": true
+        },
+        {
+            "columnModelId": "e8fe024a-9938-4868-b44a-730a687ccdf5",
+            "columnShareModelId": "1545388d-c754-4a17-bc8f-c299ed192dac",
+            "notNull": true,
+            "defaultValue": "'100'"
+        },
+        {
+            "columnModelId": "ed0d7565-92e0-4562-a309-b00c2fb9a83a",
+            "columnShareModelId": "7b5d8c2f-0251-4257-a9c7-e1715548b80c",
+            "primaryKey": true,
+            "notNull": true
+        },
+        {
+            "columnModelId": "efca9d13-c377-4ab7-813d-54706c200260",
+            "columnShareModelId": "0a3368d3-5089-44a9-bbe2-d73dd16eda63",
+            "notNull": true
+        },
+        {
+            "columnModelId": "f2b83a65-f10f-4957-966d-5831c40c4224",
+            "columnShareModelId": "cbe0e240-0dcf-4b60-8ab7-4cf014260daf",
+            "notNull": true,
+            "defaultValue": "'1'"
+        },
+        {
+            "columnModelId": "f32bff31-d34a-48bb-981f-9f207942eae4",
+            "columnShareModelId": "94b45540-7fe7-4bbc-b926-3448e09c9149"
+        },
+        {
+            "columnModelId": "f968bd57-01f7-4243-a682-ddccaaac31d0",
+            "columnShareModelId": "fe876fd1-d316-414b-a906-d74278602624"
+        },
+        {
+            "columnModelId": "f9f0372d-7f5f-4a1a-8b9d-3848a0a69aad",
+            "columnShareModelId": "77f71d24-4037-427b-8f66-f582578e3966",
+            "primaryKey": true,
+            "notNull": true
+        },
+        {
+            "columnModelId": "feb5df49-4a98-4576-99b0-f97238d2c5a3",
+            "columnShareModelId": "a48f720b-0484-4f36-a0f2-58fbed02b20e",
+            "notNull": true
+        },
+        {
+            "columnModelId": "ff5619ab-2df9-4807-86e9-9a7b85ccc02d",
+            "columnShareModelId": "cbe0e240-0dcf-4b60-8ab7-4cf014260daf",
+            "notNull": true,
+            "defaultValue": "'1'"
+        }
+    ],
+    "columnShareModels": [
+        {
+            "columnShareModelId": "d379d6a5-bbc0-47a7-8c07-a7aed0bdbae7",
+            "physicalName": "cast_members",
+            "logicalName": "cast_members",
+            "columnTypeId": 325,
+            "createdAt": "2026-08-29T18:25:40.475Z"
+        },
+        {
+            "columnShareModelId": "facf1071-ea66-498f-8b77-438d9c05fea3",
+            "physicalName": "code",
+            "logicalName": "code",
+            "columnTypeId": 312,
+            "createdAt": "2026-08-29T18:25:40.475Z"
+        },
+        {
+            "columnShareModelId": "3d46f345-2431-4bda-999d-4e7732ffc00a",
+            "physicalName": "component_id",
+            "logicalName": "component_id",
+            "columnTypeId": 312,
+            "createdAt": "2026-08-29T18:25:40.474Z"
+        },
+        {
+            "columnShareModelId": "94b45540-7fe7-4bbc-b926-3448e09c9149",
+            "physicalName": "created_at",
+            "logicalName": "created_at",
+            "columnTypeId": 112,
+            "createdAt": "2026-08-29T18:25:40.473Z"
+        },
+        {
+            "columnShareModelId": "b8e40277-eab5-4585-b2f0-f111203eeb51",
+            "physicalName": "email",
+            "logicalName": "email",
+            "columnTypeId": 312,
+            "createdAt": "2026-08-29T18:25:40.473Z"
+        },
+        {
+            "columnShareModelId": "614e54bf-f727-4403-b479-fb51e9f4fd97",
+            "physicalName": "email_verified_at",
+            "logicalName": "email_verified_at",
+            "columnTypeId": 112,
+            "createdAt": "2026-08-29T18:25:40.473Z"
+        },
+        {
+            "columnShareModelId": "dfc369e4-addf-4de1-ac48-b20a381952c5",
+            "physicalName": "expires_at",
+            "logicalName": "expires_at",
+            "columnTypeId": 112,
+            "createdAt": "2026-08-29T18:25:40.474Z"
+        },
+        {
+            "columnShareModelId": "a48f720b-0484-4f36-a0f2-58fbed02b20e",
+            "physicalName": "genre_id",
+            "logicalName": "genre_id",
+            "columnTypeId": 15,
+            "createdAt": "2026-08-29T18:25:40.475Z"
+        },
+        {
+            "columnShareModelId": "43a061d7-e471-41df-933a-12734f8ec66e",
+            "physicalName": "group",
+            "logicalName": "group",
+            "columnTypeId": 312,
+            "createdAt": "2026-08-29T18:25:40.475Z"
+        },
+        {
+            "columnShareModelId": "cc6fa4e6-ecb6-45f4-9efa-5a34dc5afef1",
+            "physicalName": "guard_name",
+            "logicalName": "guard_name",
+            "columnTypeId": 312,
+            "createdAt": "2026-08-29T18:25:40.474Z"
+        },
+        {
+            "columnShareModelId": "a6ed5edd-e621-4fbb-b1c9-9adc1fe0731a",
+            "physicalName": "home_screen",
+            "logicalName": "home_screen",
+            "columnTypeId": 312,
+            "createdAt": "2026-08-29T18:25:40.475Z"
+        },
+        {
+            "columnShareModelId": "819fe0b1-3b74-42bb-bc9e-f88cb5dab7fd",
+            "physicalName": "id",
+            "logicalName": "id",
+            "columnTypeId": 15,
+            "createdAt": "2026-08-29T18:25:40.473Z"
+        },
+        {
+            "columnShareModelId": "7b5d8c2f-0251-4257-a9c7-e1715548b80c",
+            "physicalName": "id",
+            "logicalName": "id",
+            "columnTypeId": 312,
+            "createdAt": "2026-08-29T18:25:40.474Z"
+        },
+        {
+            "columnShareModelId": "0d29c5d2-1666-436a-8452-74e4a3e3b3aa",
+            "physicalName": "image_url",
+            "logicalName": "image_url",
+            "columnTypeId": 312,
+            "createdAt": "2026-08-29T18:25:40.475Z"
+        },
+        {
+            "columnShareModelId": "cbe0e240-0dcf-4b60-8ab7-4cf014260daf",
+            "physicalName": "is_active",
+            "logicalName": "is_active",
+            "columnTypeId": 15,
+            "createdAt": "2026-08-29T18:25:40.475Z"
+        },
+        {
+            "columnShareModelId": "d458f14a-704b-4d32-97fe-add54371b66d",
+            "physicalName": "is_fallback",
+            "logicalName": "is_fallback",
+            "columnTypeId": 15,
+            "createdAt": "2026-08-29T18:25:40.475Z"
+        },
+        {
+            "columnShareModelId": "b53319ea-aa7d-4144-97ce-596916b81ff3",
+            "physicalName": "key",
+            "logicalName": "key",
+            "columnTypeId": 312,
+            "createdAt": "2026-08-29T18:25:40.475Z"
+        },
+        {
+            "columnShareModelId": "83f8e032-c0ba-4d39-aebf-95277b4493cf",
+            "physicalName": "language_id",
+            "logicalName": "language_id",
+            "columnTypeId": 15,
+            "createdAt": "2026-08-29T18:25:40.475Z"
+        },
+        {
+            "columnShareModelId": "96788feb-f5cd-44e7-8513-411d2cbafcb1",
+            "physicalName": "media_meta",
+            "logicalName": "media_meta",
+            "columnTypeId": 325,
+            "createdAt": "2026-08-29T18:25:40.475Z"
+        },
+        {
+            "columnShareModelId": "5820d202-bb5d-4806-ba74-2d71f7b90f59",
+            "physicalName": "media_url",
+            "logicalName": "media_url",
+            "columnTypeId": 312,
+            "createdAt": "2026-08-29T18:25:40.475Z"
+        },
+        {
+            "columnShareModelId": "d7b52123-22a6-408a-97e2-f86a97530156",
+            "physicalName": "metadata",
+            "logicalName": "metadata",
+            "columnTypeId": 325,
+            "createdAt": "2026-08-29T18:25:40.474Z"
+        },
+        {
+            "columnShareModelId": "2e16726c-4b64-4140-9198-5eba5dd316b3",
+            "physicalName": "mime_type",
+            "logicalName": "mime_type",
+            "columnTypeId": 312,
+            "createdAt": "2026-08-29T18:25:40.474Z"
+        },
+        {
+            "columnShareModelId": "3eb74e12-1910-4e7b-b05b-68b45c7fcb77",
+            "physicalName": "model_id",
+            "logicalName": "model_id",
+            "columnTypeId": 15,
+            "createdAt": "2026-08-29T18:25:40.474Z"
+        },
+        {
+            "columnShareModelId": "68d31aca-363b-46f9-abec-097450b112cc",
+            "physicalName": "model_type",
+            "logicalName": "model_type",
+            "columnTypeId": 312,
+            "createdAt": "2026-08-29T18:25:40.474Z"
+        },
+        {
+            "columnShareModelId": "c789adf8-9429-49aa-b3c9-7e1f4195a603",
+            "physicalName": "name",
+            "logicalName": "name",
+            "columnTypeId": 312,
+            "createdAt": "2026-08-29T18:25:40.473Z"
+        },
+        {
+            "columnShareModelId": "135be148-2b43-40f8-8f77-b00444546eb5",
+            "physicalName": "native_name",
+            "logicalName": "native_name",
+            "columnTypeId": 312,
+            "createdAt": "2026-08-29T18:25:40.475Z"
+        },
+        {
+            "columnShareModelId": "63aa5fc5-53ff-4a23-9317-448ca950d189",
+            "physicalName": "needs_review",
+            "logicalName": "needs_review",
+            "columnTypeId": 15,
+            "createdAt": "2026-08-29T18:25:40.475Z"
+        },
+        {
+            "columnShareModelId": "2e1e62d7-9bd1-4446-bb1a-7f807a3b473d",
+            "physicalName": "original_filename",
+            "logicalName": "original_filename",
+            "columnTypeId": 312,
+            "createdAt": "2026-08-29T18:25:40.474Z"
+        },
+        {
+            "columnShareModelId": "b5613f77-a484-4dee-ad3c-0b7276a737f3",
+            "physicalName": "parent_id",
+            "logicalName": "parent_id",
+            "columnTypeId": 15,
+            "createdAt": "2026-08-29T18:25:40.475Z"
+        },
+        {
+            "columnShareModelId": "74738483-6925-42bd-8e26-b3be7729185d",
+            "physicalName": "password",
+            "logicalName": "password",
+            "columnTypeId": 312,
+            "createdAt": "2026-08-29T18:25:40.473Z"
+        },
+        {
+            "columnShareModelId": "68c4c7ae-ce03-403d-ad42-e150266ea90a",
+            "physicalName": "path",
+            "logicalName": "path",
+            "columnTypeId": 312,
+            "createdAt": "2026-08-29T18:25:40.474Z"
+        },
+        {
+            "columnShareModelId": "77f71d24-4037-427b-8f66-f582578e3966",
+            "physicalName": "permission_id",
+            "logicalName": "permission_id",
+            "columnTypeId": 15,
+            "createdAt": "2026-08-29T18:25:40.474Z"
+        },
+        {
+            "columnShareModelId": "1545388d-c754-4a17-bc8f-c299ed192dac",
+            "physicalName": "priority",
+            "logicalName": "priority",
+            "columnTypeId": 15,
+            "createdAt": "2026-08-29T18:25:40.475Z"
+        },
+        {
+            "columnShareModelId": "9d947acd-e279-4e7e-b853-181a1f87e7a4",
+            "physicalName": "profile_image",
+            "logicalName": "profile_image",
+            "columnTypeId": 312,
+            "createdAt": "2026-08-29T18:25:40.474Z"
+        },
+        {
+            "columnShareModelId": "f6e4a5ea-e5b2-4214-9156-886f35891a90",
+            "physicalName": "release_year",
+            "logicalName": "release_year",
+            "columnTypeId": 15,
+            "createdAt": "2026-08-29T18:25:40.475Z"
+        },
+        {
+            "columnShareModelId": "ceb48928-a8ff-4a8f-84f8-6622b55f175c",
+            "physicalName": "remember_token",
+            "logicalName": "remember_token",
+            "columnTypeId": 312,
+            "createdAt": "2026-08-29T18:25:40.473Z"
+        },
+        {
+            "columnShareModelId": "0a3368d3-5089-44a9-bbe2-d73dd16eda63",
+            "physicalName": "role_id",
+            "logicalName": "role_id",
+            "columnTypeId": 15,
+            "createdAt": "2026-08-29T18:25:40.474Z"
+        },
+        {
+            "columnShareModelId": "df0d45dd-eebe-4096-8057-7b3353429aff",
+            "physicalName": "size",
+            "logicalName": "size",
+            "columnTypeId": 15,
+            "createdAt": "2026-08-29T18:25:40.474Z"
+        },
+        {
+            "columnShareModelId": "46b83f23-11ec-4686-ac2f-a56bc1e754e8",
+            "physicalName": "slug",
+            "logicalName": "slug",
+            "columnTypeId": 312,
+            "createdAt": "2026-08-29T18:25:40.475Z"
+        },
+        {
+            "columnShareModelId": "eab441ee-34c2-4b50-9535-a00a96d55322",
+            "physicalName": "stored_filename",
+            "logicalName": "stored_filename",
+            "columnTypeId": 312,
+            "createdAt": "2026-08-29T18:25:40.474Z"
+        },
+        {
+            "columnShareModelId": "52655741-21c9-424c-86af-231b8395fa11",
+            "physicalName": "synopsis",
+            "logicalName": "synopsis",
+            "columnTypeId": 325,
+            "createdAt": "2026-08-29T18:25:40.475Z"
+        },
+        {
+            "columnShareModelId": "425e618e-b3c7-4d96-b2f9-f7a6fba60230",
+            "physicalName": "terms_accepted_at",
+            "logicalName": "terms_accepted_at",
+            "columnTypeId": 112,
+            "createdAt": "2026-08-29T18:25:40.474Z"
+        },
+        {
+            "columnShareModelId": "347602f4-47d0-4aa9-854a-ac32eacdd91e",
+            "physicalName": "text_key_id",
+            "logicalName": "text_key_id",
+            "columnTypeId": 15,
+            "createdAt": "2026-08-29T18:25:40.475Z"
+        },
+        {
+            "columnShareModelId": "252106d4-a6fa-4f1b-9066-12368f9da9b2",
+            "physicalName": "text_value",
+            "logicalName": "text_value",
+            "columnTypeId": 325,
+            "createdAt": "2026-08-29T18:25:40.475Z"
+        },
+        {
+            "columnShareModelId": "0a6af83f-0a84-4448-b1f3-e5c3bd1b343a",
+            "physicalName": "title",
+            "logicalName": "title",
+            "columnTypeId": 312,
+            "createdAt": "2026-08-29T18:25:40.475Z"
+        },
+        {
+            "columnShareModelId": "fe876fd1-d316-414b-a906-d74278602624",
+            "physicalName": "type",
+            "logicalName": "type",
+            "columnTypeId": 312,
+            "createdAt": "2026-08-29T18:25:40.474Z"
+        },
+        {
+            "columnShareModelId": "eab12819-52ba-4ea9-a7a9-300e8ea571d7",
+            "physicalName": "usim_unit_id",
+            "logicalName": "usim_unit_id",
+            "columnTypeId": 15,
+            "createdAt": "2026-08-29T18:25:40.475Z"
+        },
+        {
+            "columnShareModelId": "3042dcb9-b1af-4aa3-a353-440f2e413d15",
+            "physicalName": "updated_at",
+            "logicalName": "updated_at",
+            "columnTypeId": 112,
+            "createdAt": "2026-08-29T18:25:40.474Z"
+        },
+        {
+            "columnShareModelId": "61288a51-a13a-4887-9735-00b06d426e6e",
+            "physicalName": "user_id",
+            "logicalName": "user_id",
+            "columnTypeId": 15,
+            "createdAt": "2026-08-29T18:25:40.474Z"
+        }
+    ],
+    "relationViewModels": [
+        {
+            "relationModel": {
+                "relationModelId": "05042e4b-d81d-417a-b8ea-d6ee9a466b41",
+                "relationName": "fk_movies_genres",
+                "parentTableModelId": "8c804a58-70fc-4714-8ad1-3cde4e89aa89",
+                "parentCardinality": "1",
+                "childTableModelId": "cad99377-8e83-45ae-b81d-b11ec29a7290",
+                "childCardinality": "0..N",
+                "relationPairs": [
+                    {
+                        "parentColumnModelId": "965fc60c-584a-42f5-89e0-21cb25baff7e",
+                        "childColumnModelId": "feb5df49-4a98-4576-99b0-f97238d2c5a3"
+                    }
+                ],
+                "onUpdateAction": "RESTRICT",
+                "onDeleteAction": "CASCADE"
+            },
+            "lineViewModel": {
+                "strokeWidth": 1,
+                "edges": [],
+                "orthogonalLines": [],
+                "color": {
+                    "red": 0,
+                    "green": 0,
+                    "blue": 0
+                }
+            },
+            "labelViewModel": {
+                "label": "genres",
+                "position": {
+                    "segment": 0,
+                    "fraction": 0.5,
+                    "offsetX": 0,
+                    "offsetY": -20
+                },
+                "color": {
+                    "red": 0,
+                    "green": 0,
+                    "blue": 0
+                },
+                "style": {
+                    "bold": false,
+                    "italic": false,
+                    "strikethrough": false,
+                    "fontSize": 10
+                }
+            },
+            "createdAt": "2026-08-29T18:25:40.477Z"
+        },
+        {
+            "relationModel": {
+                "relationModelId": "138778ea-e2a3-4b57-8fa9-1f093fa2b3a8",
+                "relationName": "fk_usim_unit_user_units",
+                "parentTableModelId": "2ed70cbd-646a-494e-a6ee-578cd69e14bd",
+                "parentCardinality": "1",
+                "childTableModelId": "009f0e1b-6f71-422b-898e-33bd2fc68516",
+                "childCardinality": "0..N",
+                "relationPairs": [
+                    {
+                        "parentColumnModelId": "9b20c460-83c3-4c20-a3a0-04b7c251955a",
+                        "childColumnModelId": "bf8baad4-56b4-4b6e-ab11-e0a0819f4033"
+                    }
+                ],
+                "onUpdateAction": "RESTRICT",
+                "onDeleteAction": "CASCADE"
+            },
+            "lineViewModel": {
+                "strokeWidth": 1,
+                "edges": [],
+                "orthogonalLines": [],
+                "color": {
+                    "red": 0,
+                    "green": 0,
+                    "blue": 0
+                }
+            },
+            "labelViewModel": {
+                "label": "usim_units",
+                "position": {
+                    "segment": 0,
+                    "fraction": 0.5,
+                    "offsetX": 0,
+                    "offsetY": -20
+                },
+                "color": {
+                    "red": 0,
+                    "green": 0,
+                    "blue": 0
+                },
+                "style": {
+                    "bold": false,
+                    "italic": false,
+                    "strikethrough": false,
+                    "fontSize": 10
+                }
+            },
+            "createdAt": "2026-08-29T18:25:40.477Z"
+        },
+        {
+            "relationModel": {
+                "relationModelId": "15a67cba-f304-40c0-95a1-0a0b60d75f7e",
+                "relationName": "fk_role_has_permissions_roles",
+                "parentTableModelId": "1873183b-9de8-4578-a385-dc69f641463e",
+                "parentCardinality": "1",
+                "childTableModelId": "bd7a0614-4cef-4735-a2a5-61775462c731",
+                "childCardinality": "0..N",
+                "relationPairs": [
+                    {
+                        "parentColumnModelId": "d148fc27-4f0f-42a8-b9c0-86173bd3ed07",
+                        "childColumnModelId": "85a6b5b8-842d-454d-81cf-b5ffadb1ef64"
+                    }
+                ],
+                "onUpdateAction": "RESTRICT",
+                "onDeleteAction": "CASCADE"
+            },
+            "lineViewModel": {
+                "strokeWidth": 1,
+                "edges": [],
+                "orthogonalLines": [],
+                "color": {
+                    "red": 0,
+                    "green": 0,
+                    "blue": 0
+                }
+            },
+            "labelViewModel": {
+                "label": "roles",
+                "position": {
+                    "segment": 0,
+                    "fraction": 0.5,
+                    "offsetX": 0,
+                    "offsetY": -20
+                },
+                "color": {
+                    "red": 0,
+                    "green": 0,
+                    "blue": 0
+                },
+                "style": {
+                    "bold": false,
+                    "italic": false,
+                    "strikethrough": false,
+                    "fontSize": 10
+                }
+            },
+            "createdAt": "2026-08-29T18:25:40.477Z"
+        },
+        {
+            "relationModel": {
+                "relationModelId": "26b9d6eb-7839-4f5e-ae52-fb5d4d09c4eb",
+                "relationName": "fk_usim_text_values_usim_languages",
+                "parentTableModelId": "1d7470f5-e1cf-4264-8f71-bec83d73b9ac",
+                "parentCardinality": "1",
+                "childTableModelId": "82b71bde-1dee-4888-b978-34bc0cfa94a2",
+                "childCardinality": "0..N",
+                "relationPairs": [
+                    {
+                        "parentColumnModelId": "e29b36e3-17a8-4564-83cf-7d32050c01a9",
+                        "childColumnModelId": "8d689f78-4d3a-4e0c-8942-f6731a7aa9dd"
+                    }
+                ],
+                "onUpdateAction": "RESTRICT",
+                "onDeleteAction": "CASCADE"
+            },
+            "lineViewModel": {
+                "strokeWidth": 1,
+                "edges": [],
+                "orthogonalLines": [],
+                "color": {
+                    "red": 0,
+                    "green": 0,
+                    "blue": 0
+                }
+            },
+            "labelViewModel": {
+                "label": "usim_languages",
+                "position": {
+                    "segment": 0,
+                    "fraction": 0.5,
+                    "offsetX": 0,
+                    "offsetY": -20
+                },
+                "color": {
+                    "red": 0,
+                    "green": 0,
+                    "blue": 0
+                },
+                "style": {
+                    "bold": false,
+                    "italic": false,
+                    "strikethrough": false,
+                    "fontSize": 10
+                }
+            },
+            "createdAt": "2026-08-29T18:25:40.477Z"
+        },
+        {
+            "relationModel": {
+                "relationModelId": "33c70f10-f670-4d4d-a82c-9cab616ac910",
+                "relationName": "fk_usim_role_settings_roles",
+                "parentTableModelId": "1873183b-9de8-4578-a385-dc69f641463e",
+                "parentCardinality": "1",
+                "childTableModelId": "bb1fc77b-6dd9-4b11-916f-e4ffde4bc0a1",
+                "childCardinality": "1",
+                "relationPairs": [
+                    {
+                        "parentColumnModelId": "d148fc27-4f0f-42a8-b9c0-86173bd3ed07",
+                        "childColumnModelId": "efca9d13-c377-4ab7-813d-54706c200260"
+                    }
+                ],
+                "onUpdateAction": "RESTRICT",
+                "onDeleteAction": "CASCADE"
+            },
+            "lineViewModel": {
+                "strokeWidth": 1,
+                "edges": [],
+                "orthogonalLines": [],
+                "color": {
+                    "red": 0,
+                    "green": 0,
+                    "blue": 0
+                }
+            },
+            "labelViewModel": {
+                "label": "fk_usim_role_settings_roles",
+                "position": {
+                    "segment": 0,
+                    "fraction": 0.5,
+                    "offsetX": 0,
+                    "offsetY": -20
+                },
+                "color": {
+                    "red": 0,
+                    "green": 0,
+                    "blue": 0
+                },
+                "style": {
+                    "bold": false,
+                    "italic": false,
+                    "strikethrough": false,
+                    "fontSize": 10
+                }
+            },
+            "createdAt": "2026-08-29T18:25:40.477Z"
+        },
+        {
+            "relationModel": {
+                "relationModelId": "3a8af905-643b-41cf-819d-8c502c795bb5",
+                "relationName": "fk_unit_user_users",
+                "parentTableModelId": "1fc22049-3df6-42f5-9f3b-f7763924db15",
+                "parentCardinality": "1",
+                "childTableModelId": "009f0e1b-6f71-422b-898e-33bd2fc68516",
+                "childCardinality": "0..N",
+                "relationPairs": [
+                    {
+                        "parentColumnModelId": "d13d862f-5c3d-4951-84d7-12e5f932d0eb",
+                        "childColumnModelId": "d2620779-f068-43b6-b1ac-4c936feca3b7"
+                    }
+                ],
+                "onUpdateAction": "RESTRICT",
+                "onDeleteAction": "CASCADE"
+            },
+            "lineViewModel": {
+                "strokeWidth": 1,
+                "edges": [],
+                "orthogonalLines": [],
+                "color": {
+                    "red": 0,
+                    "green": 0,
+                    "blue": 0
+                }
+            },
+            "labelViewModel": {
+                "label": "users",
+                "position": {
+                    "segment": 0,
+                    "fraction": 0.5,
+                    "offsetX": 0,
+                    "offsetY": -20
+                },
+                "color": {
+                    "red": 0,
+                    "green": 0,
+                    "blue": 0
+                },
+                "style": {
+                    "bold": false,
+                    "italic": false,
+                    "strikethrough": false,
+                    "fontSize": 10
+                }
+            },
+            "createdAt": "2026-08-29T18:25:40.477Z"
+        },
+        {
+            "relationModel": {
+                "relationModelId": "3ace787c-7ef1-4cf4-8b5b-c9f4e1882f2f",
+                "relationName": "fk_model_has_permissions_permissions",
+                "parentTableModelId": "143b3fe8-fe3c-422e-ac57-ac9b2a5324f9",
+                "parentCardinality": "1",
+                "childTableModelId": "83a8a0f2-fb58-4da1-b647-fba8d3e1c5f8",
+                "childCardinality": "0..N",
+                "relationPairs": [
+                    {
+                        "parentColumnModelId": "21b9c501-0313-44fc-89c9-0be4cdf22c14",
+                        "childColumnModelId": "f9f0372d-7f5f-4a1a-8b9d-3848a0a69aad"
+                    }
+                ],
+                "onUpdateAction": "RESTRICT",
+                "onDeleteAction": "CASCADE"
+            },
+            "lineViewModel": {
+                "strokeWidth": 1,
+                "edges": [],
+                "orthogonalLines": [],
+                "color": {
+                    "red": 0,
+                    "green": 0,
+                    "blue": 0
+                }
+            },
+            "labelViewModel": {
+                "label": "permissions",
+                "position": {
+                    "segment": 0,
+                    "fraction": 0.5,
+                    "offsetX": 0,
+                    "offsetY": -20
+                },
+                "color": {
+                    "red": 0,
+                    "green": 0,
+                    "blue": 0
+                },
+                "style": {
+                    "bold": false,
+                    "italic": false,
+                    "strikethrough": false,
+                    "fontSize": 10
+                }
+            },
+            "createdAt": "2026-08-29T18:25:40.476Z"
+        },
+        {
+            "relationModel": {
+                "relationModelId": "488a9f92-046d-45e1-9471-1747002cfd9f",
+                "relationName": "fk_usim_text_values_usim_text_keys",
+                "parentTableModelId": "57d68b35-17af-452d-a883-c7ef37a98408",
+                "parentCardinality": "1",
+                "childTableModelId": "82b71bde-1dee-4888-b978-34bc0cfa94a2",
+                "childCardinality": "0..N",
+                "relationPairs": [
+                    {
+                        "parentColumnModelId": "9720d3b6-231f-4b32-8b0d-a0e64423536e",
+                        "childColumnModelId": "a8379bc2-a607-4de7-9853-65c010f017eb"
+                    }
+                ],
+                "onUpdateAction": "RESTRICT",
+                "onDeleteAction": "CASCADE"
+            },
+            "lineViewModel": {
+                "strokeWidth": 1,
+                "edges": [],
+                "orthogonalLines": [],
+                "color": {
+                    "red": 0,
+                    "green": 0,
+                    "blue": 0
+                }
+            },
+            "labelViewModel": {
+                "label": "usim_text_keys",
+                "position": {
+                    "segment": 0,
+                    "fraction": 0.5,
+                    "offsetX": 0,
+                    "offsetY": -20
+                },
+                "color": {
+                    "red": 0,
+                    "green": 0,
+                    "blue": 0
+                },
+                "style": {
+                    "bold": false,
+                    "italic": false,
+                    "strikethrough": false,
+                    "fontSize": 10
+                }
+            },
+            "createdAt": "2026-08-29T18:25:40.477Z"
+        },
+        {
+            "relationModel": {
+                "relationModelId": "6c33cafc-01d4-412b-8b7f-76d9c923a8e0",
+                "relationName": "fk_model_has_roles_roles",
+                "parentTableModelId": "1873183b-9de8-4578-a385-dc69f641463e",
+                "parentCardinality": "1",
+                "childTableModelId": "8caa53e3-1b2a-4b4b-8dc8-5ae8f49e2b0f",
+                "childCardinality": "0..N",
+                "relationPairs": [
+                    {
+                        "parentColumnModelId": "d148fc27-4f0f-42a8-b9c0-86173bd3ed07",
+                        "childColumnModelId": "45afaf72-3f24-445e-b8bf-56d9c2e42de4"
+                    }
+                ],
+                "onUpdateAction": "RESTRICT",
+                "onDeleteAction": "CASCADE"
+            },
+            "lineViewModel": {
+                "strokeWidth": 1,
+                "edges": [
+                    {
+                        "x": 1296.37,
+                        "y": 293.37
+                    }
+                ],
+                "orthogonalLines": [],
+                "color": {
+                    "red": 0,
+                    "green": 0,
+                    "blue": 0
+                }
+            },
+            "labelViewModel": {
+                "label": "roles",
+                "position": {
+                    "segment": 0,
+                    "fraction": 0.5,
+                    "offsetX": 0,
+                    "offsetY": -20
+                },
+                "color": {
+                    "red": 0,
+                    "green": 0,
+                    "blue": 0
+                },
+                "style": {
+                    "bold": false,
+                    "italic": false,
+                    "strikethrough": false,
+                    "fontSize": 10
+                }
+            },
+            "createdAt": "2026-08-29T18:25:40.477Z"
+        },
+        {
+            "relationModel": {
+                "relationModelId": "88ef93c0-fbab-470a-bdf3-b3f159fcbe8e",
+                "relationName": "fk_units_units",
+                "parentTableModelId": "2ed70cbd-646a-494e-a6ee-578cd69e14bd",
+                "parentCardinality": "1",
+                "childTableModelId": "2ed70cbd-646a-494e-a6ee-578cd69e14bd",
+                "childCardinality": "0..N",
+                "relationPairs": [
+                    {
+                        "parentColumnModelId": "9b20c460-83c3-4c20-a3a0-04b7c251955a",
+                        "childColumnModelId": "3648d260-e6cc-48fc-a013-a5ec00038ae5"
+                    }
+                ],
+                "onUpdateAction": "RESTRICT",
+                "onDeleteAction": "CASCADE"
+            },
+            "lineViewModel": {
+                "strokeWidth": 1,
+                "edges": [],
+                "orthogonalLines": [],
+                "color": {
+                    "red": 0,
+                    "green": 0,
+                    "blue": 0
+                }
+            },
+            "labelViewModel": {
+                "label": "usim_units",
+                "position": {
+                    "segment": 0,
+                    "fraction": 0.5,
+                    "offsetX": 0,
+                    "offsetY": -20
+                },
+                "color": {
+                    "red": 0,
+                    "green": 0,
+                    "blue": 0
+                },
+                "style": {
+                    "bold": false,
+                    "italic": false,
+                    "strikethrough": false,
+                    "fontSize": 10
+                }
+            },
+            "createdAt": "2026-08-29T18:25:40.477Z"
+        },
+        {
+            "relationModel": {
+                "relationModelId": "c67210c3-2781-4aa7-91ab-d23c5e95ac5f",
+                "relationName": "fk_temporary_uploads_users",
+                "parentTableModelId": "1fc22049-3df6-42f5-9f3b-f7763924db15",
+                "parentCardinality": "1",
+                "childTableModelId": "df336068-30ed-44c2-ad3d-99dc7a9dfc83",
+                "childCardinality": "0..N",
+                "relationPairs": [
+                    {
+                        "parentColumnModelId": "d13d862f-5c3d-4951-84d7-12e5f932d0eb",
+                        "childColumnModelId": "e081a3f1-a65c-445e-bb66-87399e7b94b0"
+                    }
+                ],
+                "onUpdateAction": "RESTRICT",
+                "onDeleteAction": "CASCADE"
+            },
+            "lineViewModel": {
+                "strokeWidth": 1,
+                "edges": [],
+                "orthogonalLines": [],
+                "color": {
+                    "red": 0,
+                    "green": 0,
+                    "blue": 0
+                }
+            },
+            "labelViewModel": {
+                "label": "users",
+                "position": {
+                    "segment": 0,
+                    "fraction": 0.5,
+                    "offsetX": 0,
+                    "offsetY": -20
+                },
+                "color": {
+                    "red": 0,
+                    "green": 0,
+                    "blue": 0
+                },
+                "style": {
+                    "bold": false,
+                    "italic": false,
+                    "strikethrough": false,
+                    "fontSize": 10
+                }
+            },
+            "createdAt": "2026-08-29T18:25:40.477Z"
+        },
+        {
+            "relationModel": {
+                "relationModelId": "f54932f7-6cce-41dd-99ae-e9779e12b7e4",
+                "relationName": "fk_role_has_permissions_permissions",
+                "parentTableModelId": "143b3fe8-fe3c-422e-ac57-ac9b2a5324f9",
+                "parentCardinality": "1",
+                "childTableModelId": "bd7a0614-4cef-4735-a2a5-61775462c731",
+                "childCardinality": "0..N",
+                "relationPairs": [
+                    {
+                        "parentColumnModelId": "21b9c501-0313-44fc-89c9-0be4cdf22c14",
+                        "childColumnModelId": "6852b4e4-c324-46e2-b898-5980ba15d036"
+                    }
+                ],
+                "onUpdateAction": "RESTRICT",
+                "onDeleteAction": "CASCADE"
+            },
+            "lineViewModel": {
+                "strokeWidth": 1,
+                "edges": [],
+                "orthogonalLines": [],
+                "color": {
+                    "red": 0,
+                    "green": 0,
+                    "blue": 0
+                }
+            },
+            "labelViewModel": {
+                "label": "permissions",
+                "position": {
+                    "segment": 0,
+                    "fraction": 0.5,
+                    "offsetX": 0,
+                    "offsetY": -20
+                },
+                "color": {
+                    "red": 0,
+                    "green": 0,
+                    "blue": 0
+                },
+                "style": {
+                    "bold": false,
+                    "italic": false,
+                    "strikethrough": false,
+                    "fontSize": 10
+                }
+            },
+            "createdAt": "2026-08-29T18:25:40.477Z"
+        }
+    ],
+    "foregroundMemos": [],
+    "backgroundMemos": [],
+    "erdSettingModel": {
+        "displayStyle": {
+            "styleName": "Physical"
+        },
+        "exportDdlSetting": {
+            "fileName": "USIM main tables",
+            "withTable": true,
+            "withIndex": true,
+            "withForeignKey": true,
+            "withSchema": true,
+            "withComment": true,
+            "commentStyle": "logical_name",
+            "commentSeparator": " : "
+        },
+        "perspectiveModels": [
+            {
+                "perspectiveId": "100f5b68-3ac9-4db3-95aa-aaaf185057e7",
+                "perspectiveName": "Movie Demo",
+                "description": "Display only movies demo tables",
+                "containIds": [
+                    "8c804a58-70fc-4714-8ad1-3cde4e89aa89",
+                    "cad99377-8e83-45ae-b81d-b11ec29a7290"
+                ]
+            },
+            {
+                "perspectiveId": "b9440cf2-fc4c-476a-9246-e45d47ace7e9",
+                "perspectiveName": "USIM",
+                "description": "Only USIM related tables",
+                "containIds": [
+                    "009f0e1b-6f71-422b-898e-33bd2fc68516",
+                    "143b3fe8-fe3c-422e-ac57-ac9b2a5324f9",
+                    "1873183b-9de8-4578-a385-dc69f641463e",
+                    "1fc22049-3df6-42f5-9f3b-f7763924db15",
+                    "2ed70cbd-646a-494e-a6ee-578cd69e14bd",
+                    "83a8a0f2-fb58-4da1-b647-fba8d3e1c5f8",
+                    "8caa53e3-1b2a-4b4b-8dc8-5ae8f49e2b0f",
+                    "bb1fc77b-6dd9-4b11-916f-e4ffde4bc0a1",
+                    "bd7a0614-4cef-4735-a2a5-61775462c731",
+                    "df336068-30ed-44c2-ad3d-99dc7a9dfc83"
+                ]
+            },
+            {
+                "perspectiveId": "a82d361b-750e-437c-86bb-16e03dbe974a",
+                "perspectiveName": "Language",
+                "description": "Only i18n tables",
+                "containIds": [
+                    "1d7470f5-e1cf-4264-8f71-bec83d73b9ac",
+                    "57d68b35-17af-452d-a883-c7ef37a98408",
+                    "82b71bde-1dee-4888-b978-34bc0cfa94a2"
+                ]
+            }
+        ]
+    },
+    "databaseSetting": {
+        "databaseType": "sqlite",
+        "columnTypes": [
+            {
+                "id": 15,
+                "name": "integer",
+                "description": "整数値。INTEGERアフィニティ。",
+                "baseQuery": "INTEGER",
+                "category": "integer"
+            },
+            {
+                "id": 33,
+                "name": "real",
+                "description": "浮動小数点数値。REALアフィニティ。",
+                "baseQuery": "REAL",
+                "category": "decimal"
+            },
+            {
+                "id": 325,
+                "name": "text",
+                "description": "文字列。TEXTアフィニティ。",
+                "baseQuery": "TEXT",
+                "category": "text"
+            },
+            {
+                "id": 363,
+                "name": "blob",
+                "description": "バイナリデータ。BLOBアフィニティ。",
+                "baseQuery": "BLOB",
+                "category": "bit"
+            },
+            {
+                "id": 36,
+                "name": "numeric",
+                "description": "数値。NUMERICアフィニティ。",
+                "baseQuery": "NUMERIC",
+                "category": "decimal"
+            },
+            {
+                "id": 6,
+                "name": "boolean",
+                "description": "論理値。",
+                "baseQuery": "BOOLEAN",
+                "category": "bit"
+            },
+            {
+                "id": 311,
+                "name": "char (n)",
+                "description": "固定長文字列。",
+                "baseQuery": "CHAR[[PARAM]]",
+                "category": "text",
+                "withPrecision": true
+            },
+            {
+                "id": 312,
+                "name": "varchar (n)",
+                "description": "可変長文字列。",
+                "baseQuery": "VARCHAR[[PARAM]]",
+                "category": "text",
+                "withPrecision": true
+            },
+            {
+                "id": 101,
+                "name": "date",
+                "description": "日付の実用エイリアス。",
+                "baseQuery": "DATE",
+                "category": "timestamp"
+            },
+            {
+                "id": 112,
+                "name": "datetime",
+                "description": "日時の実用エイリアス。",
+                "baseQuery": "DATETIME",
+                "category": "timestamp"
+            },
+            {
+                "id": 45,
+                "name": "decimal (p, s)",
+                "description": "固定小数点数。",
+                "baseQuery": "DECIMAL[[PARAM]]",
+                "category": "decimal",
+                "withPrecision": true,
+                "withScale": true
+            }
+        ],
+        "version": 20260504
+    }
+}
