@@ -57,4 +57,12 @@ class User extends Authenticatable implements MustVerifyEmail, CanResetPassword
     {
         return $this->belongsToMany(UsimUnit::class, 'usim_unit_user', 'user_id', 'usim_unit_id')->withTimestamps();
     }
+    /**
+     * Obtiene todos los roles del usuario a nivel global,
+     * ignorando el filtro de equipos (teams/units) de Spatie.
+     */
+    public function globalRoles()
+    {
+        return $this->morphToMany(config('permission.models.role'), 'model', config('permission.table_names.model_has_roles'), config('permission.column_names.model_morph_key'), 'role_id');
+    }
 }

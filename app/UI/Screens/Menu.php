@@ -31,13 +31,15 @@ use Idei\Usim\Enums\LayoutType;
 use Idei\Usim\Events\UsimEvent;
 use Idei\Usim\Modals\ConfirmDialogService;
 use Idei\Usim\Models\UsimLanguage;
+use Idei\Usim\Models\UsimUnit;
 use Idei\Usim\Screen;
 use Idei\Usim\UI;
 use Idei\Usim\Upload\UploadService;
 use Idei\Usim\ValueObjects\Size;
 use Idei\Usim\ValueObjects\Spacing;
-use InvalidArgumentException;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
+use InvalidArgumentException;
 
 /**
  * Menu Service
@@ -55,9 +57,11 @@ class Menu extends Screen
     protected MenuDropdown $main_menu;
     protected MenuDropdown $user_menu;
     protected MenuDropdown $lang_menu;
+    protected ?MenuDropdown $unit_menu = null;
     protected Button $theme_toggle;
     protected string $store_theme = 'light';
     protected string $store_lang = '';
+    protected string $store_unit = '';
 
     protected function buildBaseUI(Container $container, ...$params): void
     {
@@ -77,6 +81,7 @@ class Menu extends Screen
             $this->store_lang = $this->normalizeLocale(config('usim.i18n.fallback_locale', 'en'));
         }
         $this->lang_menu = $this->buildLangMenu();
+        $this->lang_menu->marginLeft(Spacing::px(12));
         $this->user_menu->marginLeft(Spacing::px(12));
 
         $container->add($this->main_menu);
@@ -85,6 +90,19 @@ class Menu extends Screen
             ->plain()
             ->marginLeft(Spacing::auto());
         $container->add($this->theme_toggle);
+
+        if (Auth::check()) {
+            $user = Auth::user();
+            if ($user instanceof User) {
+                $units = $this->getUserUnits($user);
+                if ($units->count() > 1) {
+                    $this->unit_menu = $this->buildUnitMenu($units);
+                    $this->unit_menu->marginLeft(Spacing::px(12));
+                    $container->add($this->unit_menu);
+                }
+            }
+        }
+
         $container->add($this->lang_menu);
         $container->add($this->user_menu);
         $this->updateThemeButton();
@@ -184,6 +202,209 @@ class Menu extends Screen
         $this->populateLangMenu($this->lang_menu);
     }
 
+    /**
+     * @param array<string, mixed> $params
+     */
+    public function onChangeUnit(array $params): void
+    {
+        $unitSlug = $this->stringParamOrDefault($params, 'unit', '');
+        $unitId = isset($params['unit_id']) ? (int) $params['unit_id'] : 0;
+
+        if (empty($unitSlug) && $unitId <= 0) {
+            return;
+        }
+
+        $user = Auth::user();
+        if (!$user instanceof User) {
+            return;
+        }
+
+        $units = $this->getUserUnits($user);
+        if ($unitId > 0) {
+            $unit = $units->firstWhere('id', $unitId);
+        } else {
+            $unit = $units->firstWhere('slug', $unitSlug);
+        }
+
+        if (!$unit instanceof UsimUnit) {
+            return;
+        }
+
+        if ($unit->slug === $this->store_unit) {
+            return;
+        }
+
+        $this->store_unit = $unit->slug;
+        session()->put('current_unit_id', $unit->id);
+        session()->put('current_unit_slug', $unit->slug);
+
+        if (function_exists('setPermissionsTeamId') && config('permission.teams')) {
+            setPermissionsTeamId($unit->id);
+        }
+
+        event(new UsimEvent('unit_changed', [
+            'unit_id' => $unit->id,
+            'unit_slug' => $unit->slug,
+            'user_id' => $user->id,
+        ]));
+
+        $this->updateUnitMenu();
+
+        event(new UsimEvent('reset_screen'));
+
+        $referer = request()->headers->get('referer');
+        if (empty($referer) || str_contains($referer, '/api/ui-event')) {
+            $referer = url('/');
+        }
+
+        $parts = parse_url($referer);
+        $path = $parts['path'] ?? '/';
+        $query = [];
+        $queryString = $parts['query'] ?? '';
+        if (!empty($queryString)) {
+            parse_str((string) $queryString, $query);
+        }
+
+        $target = $path;
+        if (!empty($query)) {
+            $target .= '?' . http_build_query($query);
+        }
+
+        $this->redirect($target);
+    }
+
+    /**
+     * @param Collection<int, UsimUnit> $units
+     */
+    private function buildUnitMenu(Collection $units): MenuDropdown
+    {
+        $this->initStoreUnit($units);
+
+        $unit_menu = UI::menuDropdown('unit_menu')
+            ->position('bottom-right')
+            ->width(Size::px(200));
+
+        $this->populateUnitMenu($unit_menu, $units);
+
+        return $unit_menu;
+    }
+
+    /**
+     * @param Collection<int, UsimUnit> $units
+     */
+    private function populateUnitMenu(MenuDropdown $menu, Collection $units): void
+    {
+        $menu->clearItems();
+        $this->initStoreUnit($units);
+
+        $activeUnit = $units->firstWhere('slug', $this->store_unit) ?? $units->first();
+        if ($activeUnit instanceof UsimUnit) {
+            $menu->trigger('🏢 ' . $this->getUnitDisplayName($activeUnit));
+        }
+
+        foreach ($units as $unit) {
+            $label = $this->getUnitDisplayName($unit);
+            if ($unit->slug === $this->store_unit) {
+                $label = "✓ $label";
+            }
+            $menu->item($label, 'changeUnit', ['unit' => $unit->slug, 'unit_id' => $unit->id]);
+        }
+    }
+
+    private function updateUnitMenu(): void
+    {
+        if ($this->unit_menu === null || !Auth::check()) {
+            return;
+        }
+
+        $user = Auth::user();
+        if (!$user instanceof User) {
+            return;
+        }
+
+        $units = $this->getUserUnits($user);
+        if ($units->count() <= 1) {
+            return;
+        }
+
+        $this->populateUnitMenu($this->unit_menu, $units);
+    }
+
+    /**
+     * @param Collection<int, UsimUnit> $units
+     */
+    private function initStoreUnit(Collection $units): void
+    {
+        if ($units->isEmpty()) {
+            $this->store_unit = '';
+            return;
+        }
+
+        if (!empty($this->store_unit) && $units->contains('slug', $this->store_unit)) {
+            return;
+        }
+
+        $sessionUnitSlug = session()->get('current_unit_slug');
+        if (is_string($sessionUnitSlug) && $sessionUnitSlug !== '' && $units->contains('slug', $sessionUnitSlug)) {
+            $this->store_unit = $sessionUnitSlug;
+            return;
+        }
+
+        $sessionUnitId = session()->get('current_unit_id');
+        if ($sessionUnitId && $units->contains('id', (int) $sessionUnitId)) {
+            $unit = $units->firstWhere('id', (int) $sessionUnitId);
+            if ($unit instanceof UsimUnit) {
+                $this->store_unit = $unit->slug;
+                return;
+            }
+        }
+
+        if (function_exists('getPermissionsTeamId')) {
+            $teamId = getPermissionsTeamId();
+            if ($teamId && $units->contains('id', (int) $teamId)) {
+                $unit = $units->firstWhere('id', (int) $teamId);
+                if ($unit instanceof UsimUnit) {
+                    $this->store_unit = $unit->slug;
+                    return;
+                }
+            }
+        }
+
+        $first = $units->first();
+        if ($first instanceof UsimUnit) {
+            $this->store_unit = $first->slug;
+            if (function_exists('setPermissionsTeamId') && config('permission.teams')) {
+                setPermissionsTeamId($first->id);
+            }
+        }
+    }
+
+    private function getUnitDisplayName(UsimUnit $unit): string
+    {
+        $displayName = $unit->display_name;
+        if (empty($displayName) || $displayName === $unit->translation_key) {
+            return ucfirst($unit->slug);
+        }
+
+        return $displayName;
+    }
+
+    /**
+     * @return Collection<int, UsimUnit>
+     */
+    private function getUserUnits(User $user): Collection
+    {
+        if (method_exists($user, 'usimUnits')) {
+            return $user->usimUnits()->get();
+        }
+
+        if (method_exists($user, 'units')) {
+            return $user->units()->get();
+        }
+
+        return collect();
+    }
+
     protected function postLoadUI(): void
     {
         $this->updateThemeButton();
@@ -193,6 +414,7 @@ class Menu extends Screen
             $user = Auth::user();
             if ($user instanceof User) {
                 $this->updateUserMenuTrigger($user);
+                $this->updateUnitMenu();
             } else {
                 $this->user_menu->trigger("⚙️");
             }
@@ -307,6 +529,8 @@ class Menu extends Screen
             // Rebuild main menu to check permissions for screen() items
             $this->main_menu->clearItems();
             $this->populateMainMenu($this->main_menu);
+
+            $this->updateUnitMenu();
         }
     }
 
@@ -331,6 +555,11 @@ class Menu extends Screen
     {
         // Menu logout is session-based in this screen context.
         Auth::logout();
+        session()->forget(['current_unit_id', 'current_unit_slug']);
+        if (function_exists('setPermissionsTeamId') && config('permission.teams')) {
+            setPermissionsTeamId(null);
+        }
+        $this->store_unit = '';
 
         $this->user_menu->trigger("⚙️");
 

@@ -142,6 +142,8 @@ it('shows profile, logout and admin dashboard items after admin login', function
     $ui->assertNoIssues();
 });
 
+use Idei\Usim\Models\UsimUnit;
+
 it('shows profile/logout and hides admin dashboard after regular user login', function () {
     $defaultRegisteringRole = config('usim.default_registering_role', 'user');
     /** @var \Tests\TestCase $this */
@@ -157,3 +159,69 @@ it('shows profile/logout and hides admin dashboard after regular user login', fu
 
     $ui->assertNoIssues();
 });
+
+it('does not include unit dropdown for guests', function () {
+    $ui = uiScenario($this, Menu::class, ['parent' => 'menu']);
+    expect(fn () => $ui->component('unit_menu'))->toThrow(RuntimeException::class);
+    $ui->assertNoIssues();
+});
+
+it('does not include unit dropdown for authenticated user with no units', function () {
+    /** @var \Tests\TestCase $this */
+    $user = User::factory()->create(['name' => 'No Units User']);
+    $this->actingAs($user);
+
+    $ui = uiScenario($this, Menu::class, ['parent' => 'menu']);
+    expect(fn () => $ui->component('unit_menu'))->toThrow(RuntimeException::class);
+    $ui->assertNoIssues();
+});
+
+it('does not include unit dropdown for authenticated user with only one unit', function () {
+    /** @var \Tests\TestCase $this */
+    $unit = UsimUnit::firstOrCreate(['slug' => 'main']);
+    $user = User::factory()->create(['name' => 'Single Unit User']);
+    $user->usimUnits()->attach($unit->id);
+    $this->actingAs($user);
+
+    $ui = uiScenario($this, Menu::class, ['parent' => 'menu']);
+    expect(fn () => $ui->component('unit_menu'))->toThrow(RuntimeException::class);
+    $ui->assertNoIssues();
+});
+
+it('includes unit dropdown when authenticated user has multiple units', function () {
+    /** @var \Tests\TestCase $this */
+    $unit1 = UsimUnit::firstOrCreate(['slug' => 'main']);
+    $unit2 = UsimUnit::firstOrCreate(['slug' => 'accounting']);
+    $user = User::factory()->create(['name' => 'Multi Unit User']);
+    $user->usimUnits()->attach([$unit1->id, $unit2->id]);
+    $this->actingAs($user);
+
+    $ui = uiScenario($this, Menu::class, ['parent' => 'menu']);
+    $unitMenu = $ui->component('unit_menu');
+
+    expect($unitMenu)->not->toBeNull();
+    $data = $unitMenu->data();
+    expect($data['type'] ?? null)->toBe('menudropdown');
+    expect($data['trigger']['label'] ?? '')->toContain('🏢');
+    expect(menuItemsContainLabel($data['items'] ?? [], '✓ ' . ($unit1->display_name ?: 'Main')))->toBeTrue();
+    expect(menuItemsContainLabel($data['items'] ?? [], 'Accounting'))->toBeTrue();
+
+    $ui->assertNoIssues();
+});
+
+it('allows switching units when user has multiple units', function () {
+    /** @var \Tests\TestCase $this */
+    $unit1 = UsimUnit::firstOrCreate(['slug' => 'main']);
+    $unit2 = UsimUnit::firstOrCreate(['slug' => 'finance']);
+    $user = User::factory()->create(['name' => 'Switch Unit User']);
+    $user->usimUnits()->attach([$unit1->id, $unit2->id]);
+    $this->actingAs($user);
+
+    $ui = uiScenario($this, Menu::class, ['parent' => 'menu']);
+    expect($ui->component('unit_menu'))->not->toBeNull();
+
+    $ui->action('unit_menu', 'changeUnit', ['unit' => 'finance', 'unit_id' => $unit2->id]);
+    expect(session('current_unit_id'))->toBe($unit2->id);
+    expect(session('current_unit_slug'))->toBe('finance');
+});
+

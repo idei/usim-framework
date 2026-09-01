@@ -81,8 +81,16 @@ return [
                 'parent' => null,
                 'type' => 'institution', // Optional: institution, department, division, team, etc.
                 'default_translations' => [
-                    'en' => ['display_name' => 'Main Organization', 'description' => 'Default system unit.'],
-                    'es' => ['display_name' => 'Organización Principal', 'description' => 'Unidad base del sistema.'],
+                    'en' => ['display_name' => 'Initial', 'description' => 'Default system unit.'],
+                    'es' => ['display_name' => 'Inicial', 'description' => 'Unidad base del sistema.'],
+                ],
+            ],
+            'idei' => [
+                'parent' => 'main',
+                'type' => 'institute',
+                'default_translations' => [
+                    'en' => ['display_name' => 'Institute of Informatics', 'description' => 'Institute for Idei operations.'],
+                    'es' => ['display_name' => 'Instituto de Informática', 'description' => 'Instituto de investigación.'],
                 ],
             ],
         ],
@@ -104,6 +112,17 @@ return [
             'password' => env('ROOT_PASSWORD', 'CHANGE_ME'),
             'unit_roles' => [
                 'main' => ['root'],
+            ],
+        ],
+
+        'test' => [
+            'first_name' => 'Test',
+            'last_name' => 'User',
+            'email' => 'test@example.com',
+            'password' => 'test1234',
+            'unit_roles' => [
+                'main' => ['admin'],
+                'idei' => ['translator'],
             ],
         ],
     ],
