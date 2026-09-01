@@ -218,7 +218,7 @@ abstract class Screen
         /** @var \App\Models\User $user */
         $user = Auth::guard($guard)->user();
 
-        if ($user->globalRoles()->where('name', 'root')->exists()) {
+        if ($user->isRoot()) {
             return true;
         }
 

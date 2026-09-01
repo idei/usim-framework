@@ -1,4 +1,5 @@
 <?php
+
 namespace App\UI\Screens;
 
 use App\Models\User;
@@ -51,8 +52,7 @@ class Menu extends Screen
     public function __construct(
         protected RegisterService $registerService,
         protected AuthSessionService $authSessionService
-    ) {
-    }
+    ) {}
 
     protected MenuDropdown $main_menu;
     protected MenuDropdown $user_menu;
@@ -94,7 +94,8 @@ class Menu extends Screen
         if (Auth::check()) {
             $user = Auth::user();
             if ($user instanceof User) {
-                $units = $this->getUserUnits($user);
+                /** @var Collection<int, UsimUnit> $units */
+                $units = $this->getAvailableUnits();
                 if ($units->count() > 1) {
                     $this->unit_menu = $this->buildUnitMenu($units);
                     $this->unit_menu->marginLeft(Spacing::px(12));
@@ -208,25 +209,21 @@ class Menu extends Screen
     public function onChangeUnit(array $params): void
     {
         $unitSlug = $this->stringParamOrDefault($params, 'unit', '');
-        $unitId = isset($params['unit_id']) ? (int) $params['unit_id'] : 0;
+        $unitId = $this->intParamOrDefault($params, 'unit_id', 0);
 
         if (empty($unitSlug) && $unitId <= 0) {
             return;
         }
 
+        /** @var User $user */
         $user = Auth::user();
-        if (!$user instanceof User) {
-            return;
-        }
+        /** @var Collection<int, UsimUnit> $units */
+        $units = $this->getAvailableUnits();
+        /** @var UsimUnit|null $unit */
+        $unit = $unitId > 0 ? $units->firstWhere('id', $unitId)
+            : $units->firstWhere('slug', $unitSlug);
 
-        $units = $this->getUserUnits($user);
-        if ($unitId > 0) {
-            $unit = $units->firstWhere('id', $unitId);
-        } else {
-            $unit = $units->firstWhere('slug', $unitSlug);
-        }
-
-        if (!$unit instanceof UsimUnit) {
+        if ($unit === null) {
             return;
         }
 
@@ -317,12 +314,7 @@ class Menu extends Screen
             return;
         }
 
-        $user = Auth::user();
-        if (!$user instanceof User) {
-            return;
-        }
-
-        $units = $this->getUserUnits($user);
+        $units = $this->getAvailableUnits();
         if ($units->count() <= 1) {
             return;
         }
@@ -350,9 +342,13 @@ class Menu extends Screen
             return;
         }
 
-        $sessionUnitId = session()->get('current_unit_id');
-        if ($sessionUnitId && $units->contains('id', (int) $sessionUnitId)) {
-            $unit = $units->firstWhere('id', (int) $sessionUnitId);
+        $sessionUnitId = $this->intParamOrDefault(
+            ['current_unit_id' => session()->get('current_unit_id')],
+            'current_unit_id',
+            0
+        );
+        if ($sessionUnitId && $units->contains('id', $sessionUnitId)) {
+            $unit = $units->firstWhere('id', $sessionUnitId);
             if ($unit instanceof UsimUnit) {
                 $this->store_unit = $unit->slug;
                 return;
@@ -371,11 +367,9 @@ class Menu extends Screen
         }
 
         $first = $units->first();
-        if ($first instanceof UsimUnit) {
-            $this->store_unit = $first->slug;
-            if (function_exists('setPermissionsTeamId') && config('permission.teams')) {
-                setPermissionsTeamId($first->id);
-            }
+        $this->store_unit = $first->slug;
+        if (function_exists('setPermissionsTeamId') && config('permission.teams')) {
+            setPermissionsTeamId($first->id);
         }
     }
 
@@ -390,19 +384,21 @@ class Menu extends Screen
     }
 
     /**
+     * Get the available units for the given user.
+     * If the user is a root user, return all units; otherwise,
+     *  return only the units associated with the user.
+     *
      * @return Collection<int, UsimUnit>
      */
-    private function getUserUnits(User $user): Collection
+    private function getAvailableUnits(): Collection
     {
-        if (method_exists($user, 'usimUnits')) {
-            return $user->usimUnits()->get();
+        /** @var User $user */
+        $user = Auth::user();
+        if ($user->isRoot()) {
+            return UsimUnit::all();
         }
 
-        if (method_exists($user, 'units')) {
-            return $user->units()->get();
-        }
-
-        return collect();
+        return $user->usimUnits()->get();
     }
 
     protected function postLoadUI(): void
@@ -760,7 +756,7 @@ class Menu extends Screen
     private function stringParamOrDefault(array $params, string $key, string $default): string
     {
         $value = $params[$key] ?? null;
-        return is_string($value) ? $value : $default;
+        return \is_string($value) ? $value : $default;
     }
 
     /**
@@ -769,7 +765,16 @@ class Menu extends Screen
     private function boolParamOrDefault(array $params, string $key, bool $default): bool
     {
         $value = $params[$key] ?? null;
-        return is_bool($value) ? $value : $default;
+        return \is_bool($value) ? $value : $default;
+    }
+
+    /**
+     * @param array<string, mixed> $params
+     */
+    private function intParamOrDefault(array $params, string $key, int $default): int
+    {
+        $value = $params[$key] ?? null;
+        return \is_int($value) ? $value : $default;
     }
 
     /**
@@ -778,7 +783,7 @@ class Menu extends Screen
      */
     private function normalizeRoles(mixed $roles): array
     {
-        if (is_string($roles)) {
+        if (\is_string($roles)) {
             return [$roles];
         }
 

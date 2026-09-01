@@ -10,10 +10,13 @@ use Illuminate\Contracts\Auth\CanResetPassword;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\MorphToMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
+use Spatie\Permission\Models\Role;
 use Spatie\Permission\Traits\HasRoles;
+
 class User extends Authenticatable implements MustVerifyEmail, CanResetPassword
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
@@ -57,12 +60,37 @@ class User extends Authenticatable implements MustVerifyEmail, CanResetPassword
     {
         return $this->belongsToMany(UsimUnit::class, 'usim_unit_user', 'user_id', 'usim_unit_id')->withTimestamps();
     }
+
     /**
      * Obtiene todos los roles del usuario a nivel global,
      * ignorando el filtro de equipos (teams/units) de Spatie.
+     *
+     * @return MorphToMany<Role, $this>
      */
     public function globalRoles()
     {
-        return $this->morphToMany(config('permission.models.role'), 'model', config('permission.table_names.model_has_roles'), config('permission.column_names.model_morph_key'), 'role_id');
+        /** @var class-string<Role> $roleModel */
+        $roleModel = config('permission.models.role');
+        /** @var string|null $modelHasRolesTable */
+        $modelHasRolesTable = config('permission.table_names.model_has_roles');
+        /** @var string|null $modelMorphKey */
+        $modelMorphKey = config('permission.column_names.model_morph_key');
+        return $this->morphToMany(
+            $roleModel,
+            'model',
+            $modelHasRolesTable,
+            $modelMorphKey,
+            'role_id'
+        );
+    }
+
+    /**
+     * Checks if the user is a root user.
+     *
+     * @return bool
+     */
+    public function isRoot(): bool
+    {
+        return $this->globalRoles()->where('name', 'root')->exists();
     }
 }
