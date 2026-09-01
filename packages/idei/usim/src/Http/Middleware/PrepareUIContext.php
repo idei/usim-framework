@@ -3,6 +3,7 @@
 namespace Idei\Usim\Http\Middleware;
 
 use Closure;
+use Idei\Usim\Models\UsimUnit;
 use Idei\Usim\Support\UIStateManager;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -53,14 +54,14 @@ class PrepareUIContext
         }
 
         $storageKeyConfig = config('usim.front_store_key');
-        $storageKey = is_string($storageKeyConfig) ? $storageKeyConfig : '';
+        $storageKey = \is_string($storageKeyConfig) ? $storageKeyConfig : '';
 
         // 2. Si no hay header válido, intentar desde Input storage_key
         if (empty($encrypted) && $request->has($storageKey)) {
             $encrypted = $request->input($storageKey);
         }
 
-        if (is_string($encrypted) && $encrypted !== '') {
+        if (\is_string($encrypted) && $encrypted !== '') {
             $decodedStorage = json_decode($encrypted, true);
             $storage = \is_array($decodedStorage) ? $decodedStorage : [];
         }
@@ -69,15 +70,23 @@ class PrepareUIContext
 
         // Apply locale from store_lang so all t() calls in this request use the user's selected language
         $storageLang = $storage['store_lang'] ?? null;
-        if (is_scalar($storageLang) && $storageLang !== '') {
+        if (\is_scalar($storageLang) && $storageLang !== '') {
             app()->setLocale((string) $storageLang);
         }
 
         $storeTokenValue = $storage['store_token'] ?? null;
-        $storeToken = is_scalar($storeTokenValue) ? (string) $storeTokenValue : null;
+        $storeToken = \is_scalar($storeTokenValue) ? (string) $storeTokenValue : null;
 
         $request->headers->set('Authorization', 'Bearer ' . ($storeToken ?? ''));
         UIStateManager::setAuthToken($storeToken);
+
+        $storeUsimUnit = $storage['store_unit'] ?? null;
+        if (\is_scalar($storeUsimUnit) && $storeUsimUnit !== '') {
+            $unit = UsimUnit::where('slug', (string) $storeUsimUnit)->first();
+            if ($unit) {
+                setPermissionsTeamId($unit->id);
+            }
+        }
     }
 
     /**

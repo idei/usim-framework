@@ -16,7 +16,6 @@ use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 use Spatie\Permission\Models\Role;
 use Spatie\Permission\Traits\HasRoles;
-
 class User extends Authenticatable implements MustVerifyEmail, CanResetPassword
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
@@ -60,7 +59,6 @@ class User extends Authenticatable implements MustVerifyEmail, CanResetPassword
     {
         return $this->belongsToMany(UsimUnit::class, 'usim_unit_user', 'user_id', 'usim_unit_id')->withTimestamps();
     }
-
     /**
      * Obtiene todos los roles del usuario a nivel global,
      * ignorando el filtro de equipos (teams/units) de Spatie.
@@ -75,15 +73,8 @@ class User extends Authenticatable implements MustVerifyEmail, CanResetPassword
         $modelHasRolesTable = config('permission.table_names.model_has_roles');
         /** @var string|null $modelMorphKey */
         $modelMorphKey = config('permission.column_names.model_morph_key');
-        return $this->morphToMany(
-            $roleModel,
-            'model',
-            $modelHasRolesTable,
-            $modelMorphKey,
-            'role_id'
-        );
+        return $this->morphToMany($roleModel, 'model', $modelHasRolesTable, $modelMorphKey, 'role_id');
     }
-
     /**
      * Checks if the user is a root user.
      *
