@@ -17,14 +17,6 @@ return Application::configure(basePath: dirname(__DIR__))
             'ui_client_id',
         ]);
 
-        $middleware->web(prepend: [
-            \Idei\Usim\Http\Middleware\PrepareUIContext::class,
-        ]);
-
-        $middleware->api(prepend: [
-            \Idei\Usim\Http\Middleware\PrepareUIContext::class,
-        ]);
-
         // Registrar alias de middleware de Spatie Permission
         $middleware->alias([
             'role' => \Spatie\Permission\Middleware\RoleMiddleware::class,

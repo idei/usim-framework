@@ -3,8 +3,8 @@
 namespace Idei\Usim\Http\Middleware;
 
 use Closure;
-use Idei\Usim\Models\UsimUnit;
 use Idei\Usim\Support\UIStateManager;
+use Idei\Usim\Support\UnitContextResolver;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -81,12 +81,8 @@ class PrepareUIContext
         UIStateManager::setAuthToken($storeToken);
 
         $storeUsimUnit = $storage['store_unit'] ?? null;
-        if (\is_scalar($storeUsimUnit) && $storeUsimUnit !== '') {
-            $unit = UsimUnit::where('slug', (string) $storeUsimUnit)->first();
-            if ($unit) {
-                setPermissionsTeamId($unit->id);
-            }
-        }
+        $unitSlug = \is_scalar($storeUsimUnit) && $storeUsimUnit !== '' ? (string) $storeUsimUnit : null;
+        UnitContextResolver::resolveAndApply($request->user(), $unitSlug);
     }
 
     /**
