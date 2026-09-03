@@ -51,3 +51,45 @@ it('authenticates configured default registering user role and returns redirect 
     expect($response->json('toast.type'))->toBe('success');
     $this->assertAuthenticatedAs($regularUser);
 });
+
+it('authenticates configured test user with multiple units and returns redirect contract', function () {
+    /** @var \Tests\TestCase $this */
+    $testConfig = config('usim.users.test');
+    $unitMain = \Idei\Usim\Models\UsimUnit::firstOrCreate(['slug' => 'main']);
+    $unitIdei = \Idei\Usim\Models\UsimUnit::firstOrCreate(['slug' => 'idei']);
+
+    $user = User::factory()->create([
+        'name' => $testConfig['first_name'] . ' ' . $testConfig['last_name'],
+        'email' => $testConfig['email'],
+        'password' => bcrypt($testConfig['password']),
+    ]);
+    $user->usimUnits()->sync([$unitMain->id, $unitIdei->id]);
+
+    $roleAdmin = \Spatie\Permission\Models\Role::findOrCreate('admin', 'web');
+    $roleTranslator = \Spatie\Permission\Models\Role::findOrCreate('translator', 'web');
+
+    setPermissionsTeamId($unitMain->id);
+    $user->assignRole($roleAdmin);
+
+    setPermissionsTeamId($unitIdei->id);
+    $user->assignRole($roleTranslator);
+
+    $uiResponse = getScreenJson($this, Login::class);
+    $uiResponse->assertOk();
+    $componentId = serviceRootComponentId($uiResponse->json());
+
+    $response = $this->postJson('/api/ui-event', [
+        'component_id' => $componentId,
+        'event' => 'click',
+        'action' => 'submit_login',
+        'parameters' => [
+            'login_email' => $testConfig['email'],
+            'login_password' => $testConfig['password'],
+        ],
+    ]);
+
+    $response->assertOk();
+    expect($response->json('toast.type'))->toBe('success');
+    expect($response->json('redirect'))->not->toBeNull();
+    $this->assertAuthenticatedAs($user);
+});

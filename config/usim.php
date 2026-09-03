@@ -113,6 +113,9 @@ return [
             'unit_roles' => [
                 'main' => ['root'],
             ],
+            'roles_units' => [
+                'root' => ['*'], // Root role has access to all units
+            ],
         ],
 
         'test' => [
@@ -123,6 +126,10 @@ return [
             'unit_roles' => [
                 'main' => ['admin'],
                 'idei' => ['translator'],
+            ],
+            'roles_units' => [
+                'admin' => ['main'],
+                'translator' => ['idei'],
             ],
         ],
     ],

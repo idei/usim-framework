@@ -12,15 +12,18 @@ use Idei\Usim\Enums\JustifyContent;
 use Idei\Usim\Enums\LayoutType;
 use Idei\Usim\Enums\Visibility;
 use Idei\Usim\Screen;
+use Idei\Usim\Services\UsimUnitsService;
 use Idei\Usim\UI;
 use Idei\Usim\ValueObjects\Size;
 use Idei\Usim\ValueObjects\Spacing;
+use Illuminate\Support\Facades\Log;
 
 class Login extends Screen
 {
     public function __construct(
         protected LoginService $loginService,
-        protected AuthSessionService $authSessionService
+        protected AuthSessionService $authSessionService,
+        protected UsimUnitsService $usimUnitsService
     ) {
     }
 
@@ -141,8 +144,8 @@ class Login extends Screen
     {
         $emailValue = $params['login_email'] ?? '';
         $passwordValue = $params['login_password'] ?? '';
-        $email = is_string($emailValue) ? $emailValue : '';
-        $password = is_string($passwordValue) ? $passwordValue : '';
+        $email = \is_string($emailValue) ? $emailValue : '';
+        $password = \is_string($passwordValue) ? $passwordValue : '';
         $remember = $params['remember'] ?? false;
 
         $response = $this->loginService->login($email, $password, (bool) $remember);
@@ -159,7 +162,13 @@ class Login extends Screen
         $this->store_token = $response['data']['token'];
         $this->store_email = $email;
 
+        /** @var \App\Models\User $user */
         $user = $response['user'];
+
+        $unitsWithRoles = $this->usimUnitsService->getUserUnitsWithRoles($user);
+
+        Log::info('User units with roles: ' . json_encode($unitsWithRoles));
+
 
         $redirectTo = $this->authSessionService->start($user, $this->store_token);
         $this->redirect($redirectTo);
