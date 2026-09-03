@@ -19,9 +19,9 @@ class AuthSessionService
             : $user->createToken($tokenName, ['*'], now()->addDay())->plainTextToken;
     }
 
-    public function start(User $user, ?string $token = null): string
+    public function start(User $user, string $unit, ?string $token = null): string
     {
-        if (is_string($token) && $token !== '') {
+        if (\is_string($token) && $token !== '') {
             UIStateManager::setAuthToken($token);
         }
 
@@ -30,6 +30,7 @@ class AuthSessionService
         event(new UsimEvent('logged_user', [
             'user' => $user,
             'timestamp' => now(),
+            'unit' => $unit,
         ]));
 
         return $this->resolvePostLoginRedirect($user);

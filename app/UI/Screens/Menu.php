@@ -445,7 +445,9 @@ class Menu extends Screen
      */
     public function onLoggedUser(array $params): void
     {
-        $user = Auth::user();
+        // $user = Auth::user();
+        $user = $params['user'] ?? null;
+        $this->store_unit = $params['unit'] ?? '';
         if ($user instanceof User) {
             $this->updateUserMenuTrigger($user);
 

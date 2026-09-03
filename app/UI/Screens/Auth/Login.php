@@ -24,13 +24,13 @@ class Login extends Screen
         protected LoginService $loginService,
         protected AuthSessionService $authSessionService,
         protected UsimUnitsService $usimUnitsService
-    ) {
-    }
+    ) {}
 
     public static Visibility $visibility = Visibility::GUEST;
 
     protected string $store_email = '';
     protected string $store_token = '';
+    protected string $store_unit = '';
     protected Label $lbl_login_result;
 
     public static function authorize(): bool
@@ -167,10 +167,16 @@ class Login extends Screen
 
         $unitsWithRoles = $this->usimUnitsService->getUserUnitsWithRoles($user);
 
-        Log::info('User units with roles: ' . json_encode($unitsWithRoles));
+        if (
+            empty($this->store_unit) ||
+            !\array_key_exists($this->store_unit, $unitsWithRoles)
+        ) {
+            $this->store_unit = array_key_first($unitsWithRoles);
+        }
 
+        // Log::info('User units with roles: ' . json_encode($unitsWithRoles));
 
-        $redirectTo = $this->authSessionService->start($user, $this->store_token);
+        $redirectTo = $this->authSessionService->start($user, $this->store_unit, $this->store_token);
         $this->redirect($redirectTo);
     }
 
