@@ -327,10 +327,10 @@ class Menu extends Screen
         /** @var User $user */
         $user = Auth::user();
         if ($user->isRoot()) {
-            return UsimUnit::all();
+            return UsimUnit::query()->where('type', '!=', 'system')->get();
         }
 
-        return $user->usimUnits()->get();
+        return $user->usimUnits()->where('type', '!=', 'system')->get();
     }
 
     protected function postLoadUI(): void

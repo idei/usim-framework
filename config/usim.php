@@ -79,10 +79,17 @@ return [
         'structure' => [
             'main' => [
                 'parent' => null,
-                'type' => 'institution', // Optional: institution, department, division, team, etc.
+                'type' => 'system', // Optional: institution, department, division, team, etc.
                 'default_translations' => [
                     'en' => ['display_name' => 'Initial', 'description' => 'Default system unit.'],
                     'es' => ['display_name' => 'Inicial', 'description' => 'Unidad base del sistema.'],
+                ],
+            ],
+            'lobby' => [
+                'type' => 'system',
+                'default_translations' => [
+                    'en' => ['display_name' => 'Lobby', 'description' => 'Default system unit.'],
+                    'es' => ['display_name' => 'Espera', 'description' => 'Unidad base del sistema.'],
                 ],
             ],
             'idei' => [
@@ -133,9 +140,6 @@ return [
             'unit_roles' => [
                 'main' => ['root'],
             ],
-            'roles_units' => [
-                'root' => ['*'], // Root role has access to all units
-            ],
         ],
 
         'admin' => [
@@ -147,9 +151,6 @@ return [
                 'oafa' => ['admin'],
                 'ingeo' => ['admin'],
             ],
-            'roles_units' => [
-                'admin' => ['*'], // Admin role has access to all units
-            ],
         ],
 
         'test' => [
@@ -159,10 +160,6 @@ return [
             'password' => '11111111',
             'unit_roles' => [
                 'idei' => ['admin', 'translator'],
-            ],
-            'roles_units' => [
-                'admin' => ['idei'],
-                'translator' => ['idei'],
             ],
         ],
 
@@ -174,9 +171,6 @@ return [
             'unit_roles' => [
                 'ingeo' => ['admin'],
             ],
-            'roles_units' => [
-                'admin' => ['ingeo'],
-            ],
         ],
 
         'test3' => [
@@ -186,9 +180,6 @@ return [
             'password' => '11111111',
             'unit_roles' => [
                 'oafa' => ['admin'],
-            ],
-            'roles_units' => [
-                'admin' => ['oafa', 'comunicación'],
             ],
         ],
 
@@ -200,18 +191,34 @@ return [
             'unit_roles' => [
                 'comunicación' => ['admin'],
             ],
-            'roles_units' => [
-                'admin' => ['comunicación'],
+        ],
+
+        'idei-user-1' => [
+            'first_name' => 'Idei',
+            'last_name' => 'User',
+            'email' => 'idei@example.com',
+            'password' => '11111111',
+            'unit_roles' => [
+                'idei' => ['member'],
             ],
         ],
 
+        'registered-user' => [
+            'first_name' => 'Registered',
+            'last_name' => 'User',
+            'email' => 'registered@example.com',
+            'password' => '11111111',
+            'unit_roles' => [
+                'lobby' => ['registered'],
+            ],
+        ],
     ],
 
     'roles' => [
-        'guest' => [
+        'registered' => [
             'default_translations' => [
-                'en' => ['display_name' => 'Guest', 'description' => 'User with basic access to the system.'],
-                'es' => ['display_name' => 'Invitado', 'description' => 'Usuario con acceso básico al sistema.'],
+                'en' => ['display_name' => 'Registered User', 'description' => 'User with basic access to the system.'],
+                'es' => ['display_name' => 'Usuario Registrado', 'description' => 'Usuario con acceso básico al sistema.'],
             ],
             'priority' => 0,
             'home_screen' => Home::class,
@@ -225,15 +232,6 @@ return [
             'priority' => 1,
             'home_screen' => UsersManager::class,
             'permissions' => ['admin.users_manager.access', 'manage.roles'],
-        ],
-        'registered' => [
-            'default_translations' => [
-                'en' => ['display_name' => 'Registered User', 'description' => 'User with basic access to the system.'],
-                'es' => ['display_name' => 'Usuario Registrado', 'description' => 'Usuario con acceso básico al sistema.'],
-            ],
-            'priority' => 100,
-            'home_screen' => Home::class,
-            'permissions' => ['home.access'],
         ],
         'admin' => [
             'default_translations' => [
@@ -252,6 +250,15 @@ return [
             'priority' => 3,
             'home_screen' => TranslateManager::class,
             'permissions' => ['admin.translate_manager.access'],
+        ],
+        'member' => [
+            'default_translations' => [
+                'en' => ['display_name' => 'Member', 'description' => 'User with access to specific features.'],
+                'es' => ['display_name' => 'Miembro', 'description' => 'Usuario con acceso a funciones específicas.'],
+            ],
+            'priority' => 4,
+            'home_screen' => Home::class,
+            'permissions' => ['home.access'],
         ],
     ],
 

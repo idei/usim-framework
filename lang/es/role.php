@@ -33,4 +33,8 @@ return [
         'name' => 'Invitado',
         'description' => 'Usuario con acceso básico al sistema.',
     ],
+    'member' => [
+        'name' => 'Miembro',
+        'description' => 'Usuario con acceso a funciones específicas.',
+    ],
 ];

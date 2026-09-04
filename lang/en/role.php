@@ -33,4 +33,8 @@ return [
         'name' => 'Guest',
         'description' => 'User with basic access to the system.',
     ],
+    'member' => [
+        'name' => 'Member',
+        'description' => 'User with access to specific features.',
+    ],
 ];

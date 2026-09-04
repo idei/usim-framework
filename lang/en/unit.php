@@ -21,4 +21,8 @@ return [
         'display_name' => 'Communication',
         'description' => 'Communication department.',
     ],
+    'lobby' => [
+        'display_name' => 'Lobby',
+        'description' => 'Default system unit.',
+    ],
 ];

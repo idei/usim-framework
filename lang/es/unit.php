@@ -21,4 +21,8 @@ return [
         'display_name' => 'Comunicación',
         'description' => 'Departamento de comunicación.',
     ],
+    'lobby' => [
+        'display_name' => 'Espera',
+        'description' => 'Unidad base del sistema.',
+    ],
 ];
