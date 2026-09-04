@@ -34,6 +34,7 @@ use Idei\Usim\Modals\ConfirmDialogService;
 use Idei\Usim\Models\UsimLanguage;
 use Idei\Usim\Models\UsimUnit;
 use Idei\Usim\Screen;
+use Idei\Usim\Services\UsimUnitsService;
 use Idei\Usim\UI;
 use Idei\Usim\Upload\UploadService;
 use Idei\Usim\ValueObjects\Size;
@@ -51,7 +52,8 @@ class Menu extends Screen
 {
     public function __construct(
         protected RegisterService $registerService,
-        protected AuthSessionService $authSessionService
+        protected AuthSessionService $authSessionService,
+        protected UsimUnitsService $usimUnitsService
     ) {
     }
 
@@ -92,7 +94,7 @@ class Menu extends Screen
             ->marginLeft(Spacing::auto());
         $container->add($this->theme_toggle);
 
-        $units = $this->getAvailableUnits();
+        $units = $this->usimUnitsService->getAvailableUnits();
         $this->unit_menu = $this->buildUnitMenu($units);
 
         $container->add($this->unit_menu);
@@ -209,7 +211,7 @@ class Menu extends Screen
         /** @var User $user */
         $user = Auth::user();
         /** @var Collection<int, UsimUnit> $units */
-        $units = $this->getAvailableUnits();
+        $units = $this->usimUnitsService->getAvailableUnits();
         /** @var UsimUnit|null $unit */
         $unit = $units->firstWhere('slug', $unitSlug);
 
@@ -298,7 +300,7 @@ class Menu extends Screen
 
     private function updateUnitMenu(): void
     {
-        $this->populateUnitMenu($this->unit_menu, $this->getAvailableUnits());
+        $this->populateUnitMenu($this->unit_menu, $this->usimUnitsService->getAvailableUnits());
     }
 
     private function getUnitDisplayName(UsimUnit $unit): string
@@ -309,28 +311,6 @@ class Menu extends Screen
         }
 
         return $displayName;
-    }
-
-    /**
-     * Get the available units for the given user.
-     * If the user is a root user, return all units; otherwise,
-     *  return only the units associated with the user.
-     *
-     * @return Collection<int, UsimUnit>
-     */
-    private function getAvailableUnits(): Collection
-    {
-        if (!Auth::check()) {
-            return collect();
-        }
-
-        /** @var User $user */
-        $user = Auth::user();
-        if ($user->isRoot()) {
-            return UsimUnit::query()->where('type', '!=', 'system')->get();
-        }
-
-        return $user->usimUnits()->where('type', '!=', 'system')->get();
     }
 
     protected function postLoadUI(): void

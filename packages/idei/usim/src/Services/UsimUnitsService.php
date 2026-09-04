@@ -3,10 +3,36 @@
 namespace Idei\Usim\Services;
 
 use App\Models\User;
+use Idei\Usim\Models\UsimUnit;
+use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
 class UsimUnitsService
 {
+
+    /**
+     * Get the available units for the given user.
+     * If the user is a root user, return all units; otherwise,
+     *  return only the units associated with the user.
+     *
+     * @return Collection<int, UsimUnit>
+     */
+    public function getAvailableUnits(): Collection
+    {
+        if (!Auth::check()) {
+            return collect();
+        }
+
+        /** @var User $user */
+        $user = Auth::user();
+        if ($user->isRoot()) {
+            return UsimUnit::query()->where('type', '!=', 'system')->get();
+        }
+
+        return $user->usimUnits()->where('type', '!=', 'system')->get();
+    }
+
     /**
      * Given a user, returns the units they have access to, and for each unit, the roles that the user has.
      * As a result:

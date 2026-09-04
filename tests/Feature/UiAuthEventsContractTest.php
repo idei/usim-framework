@@ -8,25 +8,9 @@ use App\UI\Screens\Menu;
 
 it('returns redirect contract on successful login event', function () {
     /** @var \Tests\TestCase $this */
-    $password = 'secret123';
-    User::factory()->create([
-        'email' => 'ui-login@example.com',
-        'password' => bcrypt($password),
-    ]);
 
-    $uiResponse = getScreenJson($this, Login::class);
-    $uiResponse->assertOk();
-    $componentId = serviceRootComponentId($uiResponse->json());
-
-    $response = $this->postJson('/api/ui-event', [
-        'component_id' => $componentId,
-        'event' => 'click',
-        'action' => 'submit_login',
-        'parameters' => [
-            'login_email' => 'ui-login@example.com',
-            'login_password' => $password,
-        ],
-    ]);
+    $data = $this->loginAsConfiguredUser('root', viaUi: true);
+    $response = $data['response'];
 
     $response->assertOk();
     expect($response->json('redirect'))->not->toBeNull();

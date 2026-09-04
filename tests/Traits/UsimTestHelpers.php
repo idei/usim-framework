@@ -6,6 +6,8 @@ use App\Models\User;
 use App\UI\Screens\Auth\Login;
 use Idei\Usim\Models\UsimUnit;
 use Idei\Usim\Screen;
+use Idei\Usim\Services\UsimUserService;
+use Illuminate\Testing\TestResponse;
 use InvalidArgumentException;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
@@ -151,5 +153,60 @@ trait UsimTestHelpers
         ]);
         $user->assignRole($defaultRole);
         return $user;
+    }
+
+    /**
+     * Aprovisiona un usuario desde la configuración y lo autentica en el test.
+     *
+     * @param string $configKey La key del usuario en config('usim.users') (ej: 'root', 'admin')
+     * @param bool $viaUi Si es true, simula el request JSON a /api/ui-event en lugar de usar actingAs()
+     * @return array{user: User, response?: TestResponse, config: array<string, mixed>}
+     */
+    public function loginAsConfiguredUser(string $configKey, bool $viaUi = false): array
+    {
+        /** @var UsimUserService $userService */
+        $userService = app(UsimUserService::class);
+
+        // El servicio centraliza la creación y asignación de unit_roles
+        $user = $userService->provisionFromConfig($configKey);
+        $userConfig = config("usim.users.{$configKey}");
+
+        // 1. Logueo rápido a nivel backend (ideal para tests de modelos, policies o endpoints directos)
+        if (!$viaUi) {
+            $this->actingAs($user);
+
+            return [
+                'user' => $user,
+                'config' => $userConfig,
+            ];
+        }
+
+        // 2. Logueo completo simulando el Server-Driven UI
+        // Obtenemos el componente inicial como en tu implementación original
+        /** @var UsimUserService $userService */
+        $userService = app(UsimUserService::class);
+
+        /** @var TestResponse $uiResponse */
+        $uiResponse = getScreenJson($this, Login::class);
+        $uiResponse->assertOk();
+
+        $componentId = serviceRootComponentId($uiResponse->json());
+
+        // Simulamos el evento click sobre el botón submit_login
+        $response = $this->postJson('/api/ui-event', [
+            'component_id' => $componentId,
+            'event' => 'click',
+            'action' => 'submit_login',
+            'parameters' => [
+                'login_email' => $userConfig['email'],
+                'login_password' => $userConfig['password'],
+            ],
+        ]);
+
+        return [
+            'user' => $user,
+            'response' => $response,
+            'config' => $userConfig,
+        ];
     }
 }
