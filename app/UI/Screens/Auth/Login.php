@@ -16,7 +16,6 @@ use Idei\Usim\Services\UsimUnitsService;
 use Idei\Usim\UI;
 use Idei\Usim\ValueObjects\Size;
 use Idei\Usim\ValueObjects\Spacing;
-use Illuminate\Support\Facades\Log;
 
 class Login extends Screen
 {
@@ -173,8 +172,6 @@ class Login extends Screen
         ) {
             $this->store_unit = array_key_first($unitsWithRoles);
         }
-
-        // Log::info('User units with roles: ' . json_encode($unitsWithRoles));
 
         $redirectTo = $this->authSessionService->start($user, $this->store_unit, $this->store_token);
         $this->redirect($redirectTo);

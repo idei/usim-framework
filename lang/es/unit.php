@@ -9,4 +9,16 @@ return [
         'display_name' => 'Instituto de Informática',
         'description' => 'Instituto de investigación.',
     ],
+    'ingeo' => [
+        'display_name' => 'Instituto de Geología',
+        'description' => 'Instituto de investigación.',
+    ],
+    'oafa' => [
+        'display_name' => 'O.A.F.A.',
+        'description' => 'Observatorio Astronómico Félix Aguilar',
+    ],
+    'comunicación' => [
+        'display_name' => 'Comunicación',
+        'description' => 'Departamento de comunicación.',
+    ],
 ];

@@ -52,7 +52,8 @@ class Menu extends Screen
     public function __construct(
         protected RegisterService $registerService,
         protected AuthSessionService $authSessionService
-    ) {}
+    ) {
+    }
 
     protected MenuDropdown $main_menu;
     protected MenuDropdown $user_menu;
@@ -445,22 +446,21 @@ class Menu extends Screen
      */
     public function onLoggedUser(array $params): void
     {
-        // $user = Auth::user();
+        /** @var User $user */
         $user = $params['user'] ?? null;
         $this->store_unit = $params['unit'] ?? '';
-        if ($user instanceof User) {
-            $this->updateUserMenuTrigger($user);
 
-            // Rebuild user menu to check permissions for items
-            $this->user_menu->clearItems();
-            $this->populateUserMenu($this->user_menu);
+        $this->updateUserMenuTrigger($user);
 
-            // Rebuild main menu to check permissions for screen() items
-            $this->main_menu->clearItems();
-            $this->populateMainMenu($this->main_menu);
+        // Rebuild user menu to check permissions for items
+        $this->user_menu->clearItems();
+        $this->populateUserMenu($this->user_menu);
 
-            $this->updateUnitMenu();
-        }
+        // Rebuild main menu to check permissions for screen() items
+        $this->main_menu->clearItems();
+        $this->populateMainMenu($this->main_menu);
+
+        $this->updateUnitMenu();
     }
 
     /**
@@ -483,7 +483,10 @@ class Menu extends Screen
     public function onConfirmLogout(array $params): void
     {
         Auth::logout();
+
         $this->store_unit = '';
+        $this->unit_menu->trigger('🏢');
+        $this->unit_menu->clearItems();
 
         $this->user_menu->trigger("⚙️");
 

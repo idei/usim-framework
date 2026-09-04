@@ -86,11 +86,31 @@ return [
                 ],
             ],
             'idei' => [
-                'parent' => 'main',
                 'type' => 'institute',
                 'default_translations' => [
                     'en' => ['display_name' => 'Institute of Informatics', 'description' => 'Institute for Idei operations.'],
                     'es' => ['display_name' => 'Instituto de Informática', 'description' => 'Instituto de investigación.'],
+                ],
+            ],
+            'ingeo' => [
+                'type' => 'institute',
+                'default_translations' => [
+                    'en' => ['display_name' => 'Institute of Geology', 'description' => 'Institute for Ingeo operations.'],
+                    'es' => ['display_name' => 'Instituto de Geología', 'description' => 'Instituto de investigación.'],
+                ],
+            ],
+            'oafa' => [
+                'type' => 'institute',
+                'default_translations' => [
+                    'en' => ['display_name' => 'A.O.F.A.', 'description' => 'Félix Aguilar Astronomical Observatory'],
+                    'es' => ['display_name' => 'O.A.F.A.', 'description' => 'Observatorio Astronómico Félix Aguilar'],
+                ],
+            ],
+            'comunicación' => [
+                'type' => 'department',
+                'default_translations' => [
+                    'en' => ['display_name' => 'Communication', 'description' => 'Communication department.'],
+                    'es' => ['display_name' => 'Comunicación', 'description' => 'Departamento de comunicación.'],
                 ],
             ],
         ],
@@ -118,20 +138,73 @@ return [
             ],
         ],
 
+        'admin' => [
+            'first_name' => 'Admin',
+            'last_name' => 'User',
+            'email' => 'admin@example.com',
+            'password' => '11111111',
+            'unit_roles' => [
+                'oafa' => ['admin'],
+                'ingeo' => ['admin'],
+            ],
+            'roles_units' => [
+                'admin' => ['*'], // Admin role has access to all units
+            ],
+        ],
+
         'test' => [
             'first_name' => 'Test',
             'last_name' => 'User',
             'email' => 'test@example.com',
-            'password' => 'test1234',
+            'password' => '11111111',
             'unit_roles' => [
-                'main' => ['admin'],
-                'idei' => ['translator'],
+                'idei' => ['admin', 'translator'],
             ],
             'roles_units' => [
-                'admin' => ['main'],
+                'admin' => ['idei'],
                 'translator' => ['idei'],
             ],
         ],
+
+        'test2' => [
+            'first_name' => 'Test2',
+            'last_name' => 'User2',
+            'email' => 'test2@example.com',
+            'password' => '11111111',
+            'unit_roles' => [
+                'ingeo' => ['admin'],
+            ],
+            'roles_units' => [
+                'admin' => ['ingeo'],
+            ],
+        ],
+
+        'test3' => [
+            'first_name' => 'Test3',
+            'last_name' => 'User3',
+            'email' => 'test3@example.com',
+            'password' => '11111111',
+            'unit_roles' => [
+                'oafa' => ['admin'],
+            ],
+            'roles_units' => [
+                'admin' => ['oafa', 'comunicación'],
+            ],
+        ],
+
+        'com-admin' => [
+            'first_name' => 'Comunicación',
+            'last_name' => 'User',
+            'email' => 'comunicacion@example.com',
+            'password' => '11111111',
+            'unit_roles' => [
+                'comunicación' => ['admin'],
+            ],
+            'roles_units' => [
+                'admin' => ['comunicación'],
+            ],
+        ],
+
     ],
 
     'roles' => [
@@ -193,6 +266,12 @@ return [
             'default_translations' => [
                 'en' => ['display_name' => 'Manage Roles', 'description' => 'Allows creating, editing, and deleting roles and their permissions.'],
                 'es' => ['display_name' => 'Gestionar Roles', 'description' => 'Permite crear, editar y eliminar roles y sus permisos.'],
+            ],
+        ],
+        'approve.publications' => [
+            'default_translations' => [
+                'en' => ['display_name' => 'Approve Publications', 'description' => 'Allows approving or rejecting publications submitted by users.'],
+                'es' => ['display_name' => 'Aprobar Publicaciones', 'description' => 'Permite aprobar o rechazar publicaciones enviadas por los usuarios.'],
             ],
         ],
     ],
