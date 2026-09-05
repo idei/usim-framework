@@ -64,7 +64,8 @@ it('submits register modal and sends verification notification', function () {
         ]));
 
         $submitResponse->assertOk();
-        expect($submitResponse->json('redirect'))->toBe(Home::getRoutePath());
+        $expectedRedirect = config('usim.roles.registered.home_screen', Home::class)::getRoutePath();
+        expect($submitResponse->json('redirect'))->toBe($expectedRedirect);
         expect($submitResponse->json('toast.type'))->toBe('success');
 
         $user = User::where('email', $email)->firstOrFail();

@@ -3,6 +3,7 @@
 use App\Models\User;
 use App\UI\Screens\Admin\UsersManager;
 use App\UI\Screens\Auth\Login;
+use App\UI\Screens\Registered;
 
 it('loads login screen with expected components and actions', function () {
     /** @var \Tests\TestCase $this */
@@ -93,3 +94,83 @@ it('authenticates configured test user with multiple units and returns redirect 
     expect($response->json('redirect'))->not->toBeNull();
     $this->assertAuthenticatedAs($user);
 });
+
+it('authenticates registered user and redirects directly to Registered screen contract', function () {
+    /** @var \Tests\TestCase $this */
+    $lobbyUnit = \Idei\Usim\Models\UsimUnit::firstOrCreate(['slug' => 'lobby']);
+    $roleRegistered = \Spatie\Permission\Models\Role::findOrCreate('registered', 'web');
+
+    $user = User::factory()->create([
+        'name' => 'Registered Tester',
+        'email' => 'regtester@example.com',
+        'password' => bcrypt('password123'),
+    ]);
+    $user->usimUnits()->sync([$lobbyUnit->id]);
+
+    setPermissionsTeamId($lobbyUnit->id);
+    $user->assignRole($roleRegistered);
+
+    // Explicitly reset permissions team ID to simulate a fresh incoming request
+    setPermissionsTeamId(null);
+
+    $uiResponse = getScreenJson($this, Login::class);
+    $uiResponse->assertOk();
+    $componentId = serviceRootComponentId($uiResponse->json());
+
+    $response = $this->postJson('/api/ui-event', [
+        'component_id' => $componentId,
+        'event' => 'click',
+        'action' => 'submit_login',
+        'parameters' => [
+            'login_email' => 'regtester@example.com',
+            'login_password' => 'password123',
+        ],
+    ]);
+
+    $response->assertOk();
+    expect($response->json('toast.type'))->toBe('success');
+    expect($response->json('redirect'))->toBe(Registered::getRoutePath());
+    $this->assertAuthenticatedAs($user);
+});
+
+it('redirects to the role screen with highest priority when user has multiple roles', function () {
+    /** @var \Tests\TestCase $this */
+    $mainUnit = \Idei\Usim\Models\UsimUnit::firstOrCreate(['slug' => 'main']);
+    $roleRegistered = \Spatie\Permission\Models\Role::findOrCreate('registered', 'web');
+    $roleAdmin = \Spatie\Permission\Models\Role::findOrCreate('admin', 'web');
+
+    $user = User::factory()->create([
+        'name' => 'Multi Role User',
+        'email' => 'multirole@example.com',
+        'password' => bcrypt('password123'),
+    ]);
+    $user->usimUnits()->sync([$mainUnit->id]);
+
+    setPermissionsTeamId($mainUnit->id);
+    $user->assignRole($roleRegistered);
+    $user->assignRole($roleAdmin);
+
+    // Reset permissions team ID
+    setPermissionsTeamId(null);
+
+    $uiResponse = getScreenJson($this, Login::class);
+    $uiResponse->assertOk();
+    $componentId = serviceRootComponentId($uiResponse->json());
+
+    $response = $this->postJson('/api/ui-event', [
+        'component_id' => $componentId,
+        'event' => 'click',
+        'action' => 'submit_login',
+        'parameters' => [
+            'login_email' => 'multirole@example.com',
+            'login_password' => 'password123',
+        ],
+    ]);
+
+    $response->assertOk();
+    expect($response->json('toast.type'))->toBe('success');
+    // Admin (priority 2) has higher precedence than Registered (priority 5)
+    expect($response->json('redirect'))->toBe(UsersManager::getRoutePath());
+    $this->assertAuthenticatedAs($user);
+});
+

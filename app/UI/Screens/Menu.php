@@ -60,7 +60,7 @@ class Menu extends Screen
     protected MenuDropdown $main_menu;
     protected MenuDropdown $user_menu;
     protected MenuDropdown $lang_menu;
-    protected MenuDropdown $unit_menu;
+    protected ?MenuDropdown $unit_menu = null;
     protected Button $theme_toggle;
     protected string $store_theme = 'light';
     protected string $store_lang = '';
@@ -95,9 +95,15 @@ class Menu extends Screen
         $container->add($this->theme_toggle);
 
         $units = $this->usimUnitsService->getAvailableUnits();
+        if ($units->count() > 1) {
+            $this->unit_menu = $this->buildUnitMenu($units);
+            $this->unit_menu->marginLeft(Spacing::px(12));
+            $container->add($this->unit_menu);
+        }
         $this->unit_menu = $this->buildUnitMenu($units);
-
+        $this->unit_menu->marginLeft(Spacing::px(12));
         $container->add($this->unit_menu);
+
         $container->add($this->lang_menu);
         $container->add($this->user_menu);
         $this->updateThemeButton();
@@ -203,8 +209,9 @@ class Menu extends Screen
     public function onChangeUnit(array $params): void
     {
         $unitSlug = $this->stringParamOrDefault($params, 'unit', '');
+        $unitId = is_numeric($params['unit_id'] ?? null) ? (int) $params['unit_id'] : 0;
 
-        if (empty($unitSlug)) {
+        if (empty($unitSlug) && $unitId <= 0) {
             return;
         }
 
@@ -213,7 +220,9 @@ class Menu extends Screen
         /** @var Collection<int, UsimUnit> $units */
         $units = $this->usimUnitsService->getAvailableUnits();
         /** @var UsimUnit|null $unit */
-        $unit = $units->firstWhere('slug', $unitSlug);
+        $unit = $unitId > 0
+            ? $units->firstWhere('id', $unitId)
+            : $units->firstWhere('slug', $unitSlug);
 
         if ($unit === null) {
             return;
@@ -224,6 +233,8 @@ class Menu extends Screen
         }
 
         $this->store_unit = $unit->slug;
+        session()->put('current_unit_id', $unit->id);
+        session()->put('current_unit_slug', $unit->slug);
 
         setPermissionsTeamId($unit->id);
 
@@ -242,25 +253,8 @@ class Menu extends Screen
 
         // event(new UsimEvent('reset_screen'));
 
-        $referer = request()->headers->get('referer');
-        if (empty($referer) || str_contains($referer, '/api/ui-event')) {
-            $referer = url('/');
-        }
-
-        $parts = parse_url($referer);
-        $path = $parts['path'] ?? '/';
-        $query = [];
-        $queryString = $parts['query'] ?? '';
-        if (!empty($queryString)) {
-            parse_str((string) $queryString, $query);
-        }
-
-        $target = $path;
-        if (!empty($query)) {
-            $target .= '?' . http_build_query($query);
-        }
-
-        $this->redirect($target);
+        $redirectTo = $this->authSessionService->resolvePostLoginRedirect($user, $unit->slug);
+        $this->redirect($redirectTo);
     }
 
     /**
@@ -284,6 +278,15 @@ class Menu extends Screen
     {
         $menu->clearItems();
 
+        if ($units->isEmpty()) {
+            $menu->visible(false);
+            return;
+        }
+
+        $this->initStoreUnit($units);
+
+        $menu->visible(true);
+
         $activeUnit = $units->firstWhere('slug', $this->store_unit) ?? $units->first();
         if ($activeUnit instanceof UsimUnit) {
             $menu->trigger('🏢 ' . $this->getUnitDisplayName($activeUnit));
@@ -294,12 +297,62 @@ class Menu extends Screen
             if ($unit->slug === $this->store_unit) {
                 $label = "✓ $label";
             }
-            $menu->item($label, 'changeUnit', ['unit' => $unit->slug]);
+            $menu->item($label, 'changeUnit', ['unit' => $unit->slug, 'unit_id' => $unit->id]);
+        }
+    }
+
+    /**
+     * @param Collection<int, UsimUnit> $units
+     */
+    private function initStoreUnit(Collection $units): void
+    {
+        if ($units->isEmpty()) {
+            $this->store_unit = '';
+            return;
+        }
+
+        if (!empty($this->store_unit) && $units->contains('slug', $this->store_unit)) {
+            return;
+        }
+
+        $sessionUnitSlug = session()->get('current_unit_slug');
+        if (is_string($sessionUnitSlug) && $sessionUnitSlug !== '' && $units->contains('slug', $sessionUnitSlug)) {
+            $this->store_unit = $sessionUnitSlug;
+            return;
+        }
+
+        $sessionUnitId = session()->get('current_unit_id');
+        if (is_numeric($sessionUnitId) && $units->contains('id', (int) $sessionUnitId)) {
+            $unit = $units->firstWhere('id', (int) $sessionUnitId);
+            if ($unit instanceof UsimUnit) {
+                $this->store_unit = $unit->slug;
+                return;
+            }
+        }
+
+        if (function_exists('getPermissionsTeamId')) {
+            $teamId = getPermissionsTeamId();
+            if ($teamId && $units->contains('id', (int) $teamId)) {
+                $unit = $units->firstWhere('id', (int) $teamId);
+                if ($unit instanceof UsimUnit) {
+                    $this->store_unit = $unit->slug;
+                    return;
+                }
+            }
+        }
+
+        $first = $units->first();
+        if ($first instanceof UsimUnit) {
+            $this->store_unit = $first->slug;
         }
     }
 
     private function updateUnitMenu(): void
     {
+        if ($this->unit_menu === null || !Auth::check()) {
+            return;
+        }
+
         $this->populateUnitMenu($this->unit_menu, $this->usimUnitsService->getAvailableUnits());
     }
 
@@ -428,7 +481,8 @@ class Menu extends Screen
     {
         /** @var User $user */
         $user = $params['user'] ?? null;
-        $this->store_unit = $params['unit'] ?? '';
+        $unitValue = $params['unit'] ?? '';
+        $this->store_unit = is_string($unitValue) ? $unitValue : '';
 
         $this->updateUserMenuTrigger($user);
 
@@ -463,10 +517,16 @@ class Menu extends Screen
     public function onConfirmLogout(array $params): void
     {
         Auth::logout();
+        session()->forget(['current_unit_id', 'current_unit_slug']);
+        if (function_exists('setPermissionsTeamId') && config('permission.teams')) {
+            setPermissionsTeamId(null);
+        }
 
         $this->store_unit = '';
-        $this->unit_menu->trigger('🏢');
-        $this->unit_menu->clearItems();
+        if ($this->unit_menu !== null) {
+            $this->unit_menu->trigger('🏢');
+            $this->unit_menu->clearItems();
+        }
 
         $this->user_menu->trigger("⚙️");
 
@@ -585,7 +645,7 @@ class Menu extends Screen
         }
 
         $token = data_get($response, 'data.token');
-        $redirectTo = $this->authSessionService->start($user, is_string($token) ? $token : null);
+        $redirectTo = $this->authSessionService->start($user, null, is_string($token) ? $token : null);
         $this->redirect($redirectTo);
     }
 
@@ -679,14 +739,6 @@ class Menu extends Screen
         return \is_bool($value) ? $value : $default;
     }
 
-    /**
-     * @param array<string, mixed> $params
-     */
-    private function intParamOrDefault(array $params, string $key, int $default): int
-    {
-        $value = $params[$key] ?? null;
-        return \is_int($value) ? $value : $default;
-    }
 
     /**
      * @param mixed $roles

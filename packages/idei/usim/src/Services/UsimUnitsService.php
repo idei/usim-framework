@@ -27,10 +27,14 @@ class UsimUnitsService
         /** @var User $user */
         $user = Auth::user();
         if ($user->isRoot()) {
-            return UsimUnit::query()->where('type', '!=', 'system')->get();
+            return UsimUnit::query()->where(function ($q) {
+                $q->where('type', '!=', 'system')->orWhereNull('type');
+            })->get();
         }
 
-        return $user->usimUnits()->where('type', '!=', 'system')->get();
+        return $user->usimUnits()->where(function ($q) {
+            $q->where('type', '!=', 'system')->orWhereNull('type');
+        })->get();
     }
 
     /**
@@ -42,19 +46,19 @@ class UsimUnitsService
      * ]
      *
      * @param User $user
-     * @return array<string, list<string>>
+     * @return array<string, array<mixed>>
      */
     public function getUserUnitsWithRoles(User $user): array
     {
         $unitsWithRoles = [];
 
-        $units = method_exists($user, 'usimUnits') ? $user->usimUnits : collect();
+        $units = $user->usimUnits;
         foreach ($units as $unit) {
             $unitsWithRoles[$unit->slug] = [];
         }
 
         if (!config('permission.teams', false)) {
-            $roles = method_exists($user, 'getRoleNames') ? $user->getRoleNames()->values()->toArray() : [];
+            $roles = $user->getRoleNames()->values()->toArray();
             foreach (array_keys($unitsWithRoles) as $slug) {
                 $unitsWithRoles[$slug] = $roles;
             }
@@ -62,9 +66,13 @@ class UsimUnitsService
             return $unitsWithRoles;
         }
 
+        /** @var string $teamForeignKey */
         $teamForeignKey = config('permission.column_names.team_foreign_key') ?? 'usim_unit_id';
+        /** @var class-string $modelHasRolesTable */
         $modelHasRolesTable = config('permission.table_names.model_has_roles') ?? 'model_has_roles';
+        /** @var class-string $rolesTable */
         $rolesTable = config('permission.table_names.roles') ?? 'roles';
+        /** @var string $modelMorphKey */
         $modelMorphKey = config('permission.column_names.model_morph_key') ?? 'model_id';
 
         $assignedRoles = DB::table($modelHasRolesTable)

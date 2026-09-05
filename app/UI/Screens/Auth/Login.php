@@ -170,10 +170,15 @@ class Login extends Screen
             empty($this->store_unit) ||
             !\array_key_exists($this->store_unit, $unitsWithRoles)
         ) {
-            $this->store_unit = array_key_first($unitsWithRoles);
+            $firstUnit = array_key_first($unitsWithRoles);
+            $this->store_unit = is_string($firstUnit) ? $firstUnit : '';
         }
 
-        $redirectTo = $this->authSessionService->start($user, $this->store_unit, $this->store_token);
+        $redirectTo = $this->authSessionService->start(
+            $user,
+            $this->store_unit !== '' ? $this->store_unit : null,
+            $this->store_token !== '' ? $this->store_token : null
+        );
         $this->redirect($redirectTo);
     }
 

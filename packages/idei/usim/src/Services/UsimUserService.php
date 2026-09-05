@@ -16,31 +16,47 @@ class UsimUserService
      */
     public function provisionFromConfig(string $configKey): User
     {
+        /** @var array<string, mixed> $userData */
         $userData = config("usim.users.{$configKey}");
 
         if (!$userData) {
             throw new InvalidArgumentException("La key '{$configKey}' no existe en la configuración usim.users.");
         }
 
+        /** @var string $firstName */
         $firstName = $userData['first_name'] ?? '';
+        /** @var string $lastName */
         $lastName = $userData['last_name'] ?? '';
+        /** @var string $name */
         $name = trim("{$firstName} {$lastName}");
+        /** @var string $password */
+        $password = $userData['password'] ?? 'password';
 
         $user = User::updateOrCreate(
             ['email' => $userData['email']],
             [
                 'name' => $name,
-                'password' => Hash::make($userData['password']),
+                'password' => Hash::make($password),
                 'email_verified_at' => now(), // Útil para que los tests no reboten en middleware de verificación
             ]
         );
 
+        /** @var array<string, array<string>> $unitRoles */
+        $unitRoles = $userData['unit_roles'];
+        /** @var array<int, int> $unitIdsForMembership */
         $unitIdsForMembership = [];
 
-        if (isset($userData['unit_roles'])) {
-            foreach ($userData['unit_roles'] as $unitSlug => $roles) {
+        if ($unitRoles) {
+            foreach ($unitRoles as $unitSlug => $roles) {
                 // En un entorno de test, si la unidad no existe, la creamos al vuelo.
-                $unit = UsimUnit::firstOrCreate(['slug' => $unitSlug]);
+                $unitType = config("usim.units.structure.{$unitSlug}.type");
+                $unit = UsimUnit::firstOrCreate(
+                    ['slug' => $unitSlug],
+                    ['type' => is_string($unitType) ? $unitType : null]
+                );
+                if (empty($unit->type) && is_string($unitType)) {
+                    $unit->update(['type' => $unitType]);
+                }
                 $unitIdsForMembership[] = $unit->id;
 
                 app(PermissionRegistrar::class)->setPermissionsTeamId($unit->id);

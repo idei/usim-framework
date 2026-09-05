@@ -3,6 +3,7 @@
 use App\UI\Screens\Admin\UsersManager;
 use App\UI\Screens\Admin\TranslateManager;
 use App\UI\Screens\Home;
+use App\UI\Screens\Registered;
 
 return [
 
@@ -150,6 +151,7 @@ return [
             'unit_roles' => [
                 'oafa' => ['admin'],
                 'ingeo' => ['admin'],
+                'idei' => ['translator'],
             ],
         ],
 
@@ -220,8 +222,8 @@ return [
                 'en' => ['display_name' => 'Registered User', 'description' => 'User with basic access to the system.'],
                 'es' => ['display_name' => 'Usuario Registrado', 'description' => 'Usuario con acceso básico al sistema.'],
             ],
-            'priority' => 0,
-            'home_screen' => Home::class,
+            'priority' => 5,
+            'home_screen' => Registered::class,
             'permissions' => ['home.access'],
         ],
         'root' => [

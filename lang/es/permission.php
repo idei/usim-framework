@@ -181,4 +181,10 @@ return [
             'description' => 'Permite aprobar o rechazar publicaciones enviadas por los usuarios.',
         ],
     ],
+    'registered' => [
+        'access' => [
+            'name' => 'Acceder a Registered',
+            'description' => 'Permite acceder a la pantalla Registered.',
+        ],
+    ],
 ];

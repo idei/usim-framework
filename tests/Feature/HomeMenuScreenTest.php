@@ -1,10 +1,13 @@
 <?php
 
 use App\Models\User;
+use App\UI\Screens\Admin\TranslateManager;
 use App\UI\Screens\Admin\UsersManager;
+use App\UI\Screens\Auth\Profile;
 use App\UI\Screens\Home;
 use App\UI\Screens\Menu;
-use App\UI\Screens\Auth\Profile;
+use Idei\Usim\Models\UsimUnit;
+use Idei\Usim\Services\UsimUserService;
 
 it('returns home screen with expected core components', function () {
     $ui = uiScenario($this, Home::class, ['reset' => true]);
@@ -142,8 +145,6 @@ it('shows profile, logout and admin dashboard items after admin login', function
     $ui->assertNoIssues();
 });
 
-use Idei\Usim\Models\UsimUnit;
-
 it('shows profile/logout and hides admin dashboard after regular user login', function () {
     $defaultRegisteringRole = config('usim.default_registering_role', 'user');
     /** @var \Tests\TestCase $this */
@@ -160,38 +161,62 @@ it('shows profile/logout and hides admin dashboard after regular user login', fu
     $ui->assertNoIssues();
 });
 
-it('does not include unit dropdown for guests', function () {
+it('hides unit dropdown for guests', function () {
     $ui = uiScenario($this, Menu::class, ['parent' => 'menu']);
-    expect(fn () => $ui->component('unit_menu'))->toThrow(RuntimeException::class);
+    $data = $ui->component('unit_menu')->data();
+    expect($data['visible'] ?? true)->toBeFalse();
+    expect($data['items'] ?? [])->toBeEmpty();
     $ui->assertNoIssues();
 });
 
-it('does not include unit dropdown for authenticated user with no units', function () {
+it('hides unit dropdown for authenticated user with no units', function () {
     /** @var \Tests\TestCase $this */
     $user = User::factory()->create(['name' => 'No Units User']);
     $this->actingAs($user);
 
     $ui = uiScenario($this, Menu::class, ['parent' => 'menu']);
-    expect(fn () => $ui->component('unit_menu'))->toThrow(RuntimeException::class);
+    $data = $ui->component('unit_menu')->data();
+    expect($data['visible'] ?? true)->toBeFalse();
+    expect($data['items'] ?? [])->toBeEmpty();
     $ui->assertNoIssues();
 });
 
-it('does not include unit dropdown for authenticated user with only one unit', function () {
+it('hides unit dropdown for authenticated user with only system unit', function () {
     /** @var \Tests\TestCase $this */
-    $unit = UsimUnit::firstOrCreate(['slug' => 'main']);
+    $unit = UsimUnit::firstOrCreate(['slug' => 'main'], ['type' => 'system']);
+    $unit->update(['type' => 'system']);
     $user = User::factory()->create(['name' => 'Single Unit User']);
     $user->usimUnits()->attach($unit->id);
     $this->actingAs($user);
 
     $ui = uiScenario($this, Menu::class, ['parent' => 'menu']);
-    expect(fn () => $ui->component('unit_menu'))->toThrow(RuntimeException::class);
+    $data = $ui->component('unit_menu')->data();
+    expect($data['visible'] ?? true)->toBeFalse();
+    expect($data['items'] ?? [])->toBeEmpty();
+    $ui->assertNoIssues();
+});
+
+it('shows unit dropdown for authenticated user with single operational unit', function () {
+    /** @var \Tests\TestCase $this */
+    $unit = UsimUnit::firstOrCreate(['slug' => 'idei'], ['type' => 'institute']);
+    $unit->update(['type' => 'institute']);
+    $user = User::factory()->create(['name' => 'Single Operational Unit User']);
+    $user->usimUnits()->attach($unit->id);
+    $this->actingAs($user);
+
+    $ui = uiScenario($this, Menu::class, ['parent' => 'menu']);
+    $data = $ui->component('unit_menu')->data();
+    expect($data['visible'] ?? true)->toBeTrue();
+    expect($data['trigger']['label'] ?? '')->toContain('🏢');
+    expect(menuItemsContainLabel($data['items'] ?? [], '✓ ' . ($unit->display_name ?: 'Idei')))->toBeTrue();
     $ui->assertNoIssues();
 });
 
 it('includes unit dropdown when authenticated user has multiple units', function () {
     /** @var \Tests\TestCase $this */
     $unit1 = UsimUnit::firstOrCreate(['slug' => 'main']);
-    $unit2 = UsimUnit::firstOrCreate(['slug' => 'accounting']);
+    $unit1->update(['type' => 'department']);
+    $unit2 = UsimUnit::firstOrCreate(['slug' => 'accounting'], ['type' => 'department']);
     $user = User::factory()->create(['name' => 'Multi Unit User']);
     $user->usimUnits()->attach([$unit1->id, $unit2->id]);
     $this->actingAs($user);
@@ -212,7 +237,8 @@ it('includes unit dropdown when authenticated user has multiple units', function
 it('allows switching units when user has multiple units', function () {
     /** @var \Tests\TestCase $this */
     $unit1 = UsimUnit::firstOrCreate(['slug' => 'main']);
-    $unit2 = UsimUnit::firstOrCreate(['slug' => 'finance']);
+    $unit1->update(['type' => 'department']);
+    $unit2 = UsimUnit::firstOrCreate(['slug' => 'finance'], ['type' => 'department']);
     $user = User::factory()->create(['name' => 'Switch Unit User']);
     $user->usimUnits()->attach([$unit1->id, $unit2->id]);
     $this->actingAs($user);
@@ -223,5 +249,60 @@ it('allows switching units when user has multiple units', function () {
     $ui->action('unit_menu', 'changeUnit', ['unit' => 'finance', 'unit_id' => $unit2->id]);
     expect(session('current_unit_id'))->toBe($unit2->id);
     expect(session('current_unit_slug'))->toBe('finance');
+});
+
+it('redirects to role default home screen on unit change based on unit roles', function () {
+    /** @var \Tests\TestCase $this */
+    $userService = app(UsimUserService::class);
+    $user = $userService->provisionFromConfig('admin');
+    $this->actingAs($user);
+
+    $oafaUnit = UsimUnit::where('slug', 'oafa')->firstOrFail();
+    $ideiUnit = UsimUnit::where('slug', 'idei')->firstOrFail();
+
+    // Start in OAFA
+    setPermissionsTeamId($oafaUnit->id);
+    session()->put('current_unit_id', $oafaUnit->id);
+    session()->put('current_unit_slug', 'oafa');
+
+    $ui = uiScenario($this, Menu::class, ['parent' => 'menu']);
+
+    // Switch to IDEI: role in IDEI is translator, so it should redirect to TranslateManager
+    $response = $ui->action('unit_menu', 'changeUnit', ['unit' => 'idei', 'unit_id' => $ideiUnit->id]);
+    $response->assertOk();
+    expect($response->json('redirect'))->toBe(TranslateManager::getRoutePath());
+    expect(session('current_unit_id'))->toBe($ideiUnit->id);
+    expect(session('current_unit_slug'))->toBe('idei');
+
+    // Switch back to OAFA: role in OAFA is admin, so it should redirect to UsersManager
+    $uiOafa = uiScenario($this, Menu::class, ['parent' => 'menu']);
+    $responseOafa = $uiOafa->action('unit_menu', 'changeUnit', ['unit' => 'oafa', 'unit_id' => $oafaUnit->id]);
+    $responseOafa->assertOk();
+    expect($responseOafa->json('redirect'))->toBe(UsersManager::getRoutePath());
+    expect(session('current_unit_id'))->toBe($oafaUnit->id);
+    expect(session('current_unit_slug'))->toBe('oafa');
+});
+
+it('redirects to highest priority role home screen when unit has multiple roles', function () {
+    /** @var \Tests\TestCase $this */
+    $userService = app(UsimUserService::class);
+    $user = $userService->provisionFromConfig('test'); // has idei => ['admin', 'translator']
+    $this->actingAs($user);
+
+    $ideiUnit = UsimUnit::where('slug', 'idei')->firstOrFail();
+    $otherUnit = UsimUnit::firstOrCreate(['slug' => 'other_dept'], ['type' => 'department']);
+    $user->usimUnits()->syncWithoutDetaching([$otherUnit->id]);
+
+    // Start in other_dept
+    setPermissionsTeamId($otherUnit->id);
+    session()->put('current_unit_id', $otherUnit->id);
+    session()->put('current_unit_slug', 'other_dept');
+
+    $ui = uiScenario($this, Menu::class, ['parent' => 'menu']);
+
+    // Switch to IDEI: user has ['admin', 'translator'] in idei. Admin priority (1) > Translator priority (2)
+    $response = $ui->action('unit_menu', 'changeUnit', ['unit' => 'idei', 'unit_id' => $ideiUnit->id]);
+    $response->assertOk();
+    expect($response->json('redirect'))->toBe(UsersManager::getRoutePath());
 });
 
