@@ -195,7 +195,12 @@ it('renders EditUserDialog appropriately for lobby user in Multi-Unit Mode', fun
 
     expect($userData['is_in_lobby'])->toBeTrue();
     expect($userData['has_operational_units'])->toBeTrue();
-    expect($userData['operational_units'])->not->toBeEmpty();
+    // Active unit context set (e.g. from local storage store_unit)
+    $userData['active_unit'] = [
+        'id' => $ideiUnit->id,
+        'slug' => $ideiUnit->slug,
+        'name' => 'Instituto de Informática',
+    ];
 
     app()->setLocale('es');
     $dialog = new EditUserDialog();
@@ -203,17 +208,23 @@ it('renders EditUserDialog appropriately for lobby user in Multi-Unit Mode', fun
 
     // Banner is present
     expect(findComponentByName($ui, 'lobby_banner'))->not->toBeNull();
-    // In multi-unit mode, target_unit select IS present
-    expect(findComponentByName($ui, 'target_unit'))->not->toBeNull();
-    // Submit button says 'Aprobar y Asignar a Unidad'
+    // In multi-unit mode, active_unit badge and help are present (no select dropdown)
+    expect(findComponentByName($ui, 'active_unit_badge'))->not->toBeNull();
+    expect(findComponentByName($ui, 'active_unit_help'))->not->toBeNull();
+    $hiddenTarget = findComponentByName($ui, 'target_unit');
+    expect($hiddenTarget)->not->toBeNull();
+    expect($hiddenTarget['value'])->toBe((string) $ideiUnit->id);
+
+    // Submit button says 'Aprobar en Instituto de Informática'
     $btn = findComponentByName($ui, 'btn_submit_register');
-    expect($btn['label'])->toBe('Aprobar y Asignar a Unidad');
+    expect($btn['label'])->toBe('Aprobar en Instituto de Informática');
 
     // Test English button label
     app()->setLocale('en');
+    $userData['active_unit']['name'] = 'Institute of Informatics';
     $uiEn = $dialog->getUI(user: $userData);
     $btnEn = findComponentByName($uiEn, 'btn_submit_register');
-    expect($btnEn['label'])->toBe('Approve & Assign to Unit');
+    expect($btnEn['label'])->toBe('Approve in Institute of Informatics');
 });
 
 it('successfully approves a lobby user into main in Simple Mode', function () {
@@ -289,4 +300,44 @@ it('successfully approves a lobby user into chosen operational unit in Multi-Uni
     expect($freshUser->hasRole('registered'))->toBeFalse();
     setPermissionsTeamId(null);
 });
+
+it('resolves the operational unit selected in store_unit for root user in UsersManager', function () {
+    $mainUnit = UsimUnit::firstOrCreate(['slug' => 'main'], ['type' => 'system']);
+    $lobbyUnit = UsimUnit::firstOrCreate(['slug' => 'lobby'], ['type' => 'system']);
+    $ideiUnit = UsimUnit::firstOrCreate(['slug' => 'idei'], ['type' => 'institute']);
+    Role::findOrCreate('root', 'web');
+
+    $rootUser = User::factory()->create([
+        'name' => 'Root Admin',
+        'email' => 'root.test@example.com',
+    ]);
+    $rootUser->usimUnits()->sync([$mainUnit->id]);
+    setPermissionsTeamId($mainUnit->id);
+    $rootUser->syncRoles(['root']);
+    setPermissionsTeamId(null);
+
+    $this->actingAs($rootUser);
+
+    // UnitContextResolver::resolve directly for root with operational unit slug
+    $resolved = Idei\Usim\Support\UnitContextResolver::resolve($rootUser, 'idei');
+    expect($resolved)->not->toBeNull();
+    expect($resolved->slug)->toBe('idei');
+
+    // Inside UsersManager screen context with injected store_unit
+    $manager = app(App\UI\Screens\Admin\UsersManager::class);
+    $reflection = new ReflectionClass($manager);
+    $prop = $reflection->getProperty('store_unit');
+    $prop->setAccessible(true);
+    $prop->setValue($manager, 'idei');
+
+    $resolveMethod = $reflection->getMethod('resolveActiveUnit');
+    $resolveMethod->setAccessible(true);
+    /** @var Idei\Usim\Models\UsimUnit $activeUnit */
+    $activeUnit = $resolveMethod->invoke($manager);
+
+    expect($activeUnit)->not->toBeNull();
+    expect($activeUnit->slug)->toBe('idei');
+    expect($activeUnit->slug)->not->toBe('main');
+});
+
 

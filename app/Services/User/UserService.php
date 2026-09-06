@@ -48,12 +48,8 @@ class UserService
         }
 
         $user->load('roles');
-        if (config('permission.teams') && method_exists($user, 'globalRoles')) {
-            $user->load('globalRoles');
-        }
-        if (method_exists($user, 'usimUnits')) {
-            $user->load('usimUnits');
-        }
+        $user->load('globalRoles');
+        $user->load('usimUnits');
 
         $userData = $user->toArray();
         if (empty($userData['roles']) && !empty($userData['global_roles'])) {
@@ -64,9 +60,7 @@ class UserService
         $unitsService = app(UsimUnitsService::class);
         $hasOperationalUnits = $unitsService->hasOperationalUnits();
 
-        $isInLobby = method_exists($user, 'usimUnits')
-            ? $user->usimUnits->contains('slug', 'lobby')
-            : false;
+        $isInLobby = $user->usimUnits->contains('slug', 'lobby');
 
         $operationalUnits = [];
         if ($hasOperationalUnits) {
@@ -76,7 +70,7 @@ class UserService
                 })
                 ->whereNotIn('slug', ['main', 'lobby'])
                 ->get()
-                ->map(static fn (UsimUnit $u): array => [
+                ->map(static fn(UsimUnit $u): array => [
                     'id' => $u->id,
                     'slug' => $u->slug,
                     'name' => ($u->display_name !== $u->translation_key) ? $u->display_name : ucfirst($u->slug),
@@ -181,8 +175,7 @@ class UserService
         $unitsService = app(UsimUnitsService::class);
         $hasOperationalUnits = $unitsService->hasOperationalUnits();
 
-        $isInLobby = method_exists($user, 'usimUnits')
-            && $user->usimUnits()->where('slug', 'lobby')->exists();
+        $isInLobby = $user->usimUnits()->where('slug', 'lobby')->exists();
 
         $targetUnit = null;
 
@@ -216,7 +209,7 @@ class UserService
                     : UsimUnit::where('slug', $data['target_unit'])->first();
             }
 
-            if (!$targetUnit && method_exists($user, 'usimUnits')) {
+            if (!$targetUnit) {
                 $targetUnit = $user->usimUnits()->whereNotIn('slug', ['lobby'])->first();
             }
 
@@ -234,21 +227,20 @@ class UserService
                     if (function_exists('setPermissionsTeamId')) {
                         setPermissionsTeamId($lobbyUnit->id);
                     }
+                    /** @var string $defaultRegRole */
                     $defaultRegRole = config('usim.default_registering_role', 'registered');
                     if ($user->hasRole($defaultRegRole)) {
                         $user->removeRole($defaultRegRole);
                     }
-                    if (method_exists($user, 'usimUnits')) {
-                        $user->usimUnits()->detach($lobbyUnit->id);
-                    }
+                    $user->usimUnits()->detach($lobbyUnit->id);
                 }
             }
 
-            if ($targetUnit && method_exists($user, 'usimUnits')) {
+            if ($targetUnit) {
                 $user->usimUnits()->syncWithoutDetaching([$targetUnit->id]);
             }
 
-            if ($targetUnit && function_exists('setPermissionsTeamId')) {
+            if ($targetUnit) {
                 setPermissionsTeamId($targetUnit->id);
             }
 
@@ -454,7 +446,7 @@ class UserService
      * Get paginated users list with search and sorting
      *
      * @param array{per_page?: int, search?: string|null, sort_by?: string, sort_direction?: string, page?: int} $params
-        * @return array{status: 'success', message: string, data: array{users: array<int, array<string, mixed>>, pagination: array{current_page: int, total_pages: int, per_page: int, total_items: int}}}
+     * @return array{status: 'success', message: string, data: array{users: array<int, array<string, mixed>>, pagination: array{current_page: int, total_pages: int, per_page: int, total_items: int}}}
      */
     public function getUsersList(array $params = []): array
     {
@@ -575,12 +567,10 @@ class UserService
         }
 
         $freshUser->load('roles');
-        if (config('permission.teams') && method_exists($freshUser, 'globalRoles')) {
+        if (config('permission.teams')) {
             $freshUser->load('globalRoles');
         }
-        if (method_exists($freshUser, 'usimUnits')) {
-            $freshUser->load('usimUnits');
-        }
+        $freshUser->load('usimUnits');
 
         return $freshUser;
     }

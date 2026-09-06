@@ -40,7 +40,8 @@ class UserSeeder extends Seeder
         /** @var list<string> $roles */
         $roles = array_keys($rolesData);
 
-        $registeringRole = (string) config('usim.default_registering_role', 'registered');
+        $defaultRegisteringRole = config('usim.default_registering_role', 'registered');
+        $registeringRole = is_string($defaultRegisteringRole) ? $defaultRegisteringRole : 'registered';
 
         // Roles permitidos para usuarios operativos (no registrados):
         // Excluimos 'root', 'guest' y el rol de registro ('registered').
@@ -62,7 +63,8 @@ class UserSeeder extends Seeder
         }
 
         // Aseguramos que los roles existan en Spatie
-        $guardName = config('auth.defaults.guard', 'web');
+        $defaultGuard = config('auth.defaults.guard', 'web');
+        $guardName = is_string($defaultGuard) ? $defaultGuard : 'web';
         $allRolesToEnsure = array_unique(array_merge([$registeringRole], $operationalRoles));
         foreach ($allRolesToEnsure as $roleName) {
             Role::findOrCreate($roleName, $guardName);
@@ -124,7 +126,8 @@ class UserSeeder extends Seeder
 
                 if ($isRegistered) {
                     // 1.a. Si está registrado: sólo puede estar en la unidad "lobby" y con role "registered"
-                    if ($teamsEnabled && $lobbyUnit instanceof UsimUnit) {
+                    // $lobbyUnit siempre es un UsimUnit cuando $teamsEnabled es true (ver bloque de inicialización)
+                    if ($teamsEnabled) {
                         $user->usimUnits()->sync([$lobbyUnit->id]);
                         setPermissionsTeamId($lobbyUnit->id);
                     }
@@ -138,10 +141,8 @@ class UserSeeder extends Seeder
                     // 1.b. No está registrado: sólo en unidades que no son de type "system" y roles != "registered"
                     if ($teamsEnabled && $operationalUnits->isNotEmpty()) {
                         $unitsCount = (fake()->boolean(20) && $operationalUnits->count() > 1) ? 2 : 1;
+                        // random() con $number no nulo siempre devuelve una Collection, nunca un único modelo
                         $assignedUnits = $operationalUnits->random($unitsCount);
-                        if ($assignedUnits instanceof UsimUnit) {
-                            $assignedUnits = collect([$assignedUnits]);
-                        }
 
                         $user->usimUnits()->sync($assignedUnits->pluck('id')->all());
 

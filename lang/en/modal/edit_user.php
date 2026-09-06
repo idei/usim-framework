@@ -3,11 +3,12 @@
 return [
     'title' => 'Edit User',
     'lobby_banner' => 'ℹ️ User in Waiting Room: This user has registered and is pending approval.',
-    'target_unit' => 'Destination Unit',
-    'target_unit_placeholder' => 'Select destination unit',
-    'target_unit_help' => 'Select the operational unit where the user will be assigned.',
+    'active_unit_label' => '🏛️ Active Unit: :unit',
+    'active_unit_help' => 'Roles will be assigned in this unit. To operate in another, switch it from the top menu.',
+    'other_units' => 'Other user memberships',
     'approve_simple' => 'Approve & Activate User',
     'approve_multi' => 'Approve & Assign to Unit',
+    'approve_in_unit' => 'Approve in :unit',
     'update_user' => 'Update User',
     'cancel' => 'Cancel',
     'delete_user' => 'Delete User',
@@ -19,4 +20,3 @@ return [
     'send_reset_email' => 'Send password reset email to user',
     'send_verification_email' => 'Send email verification to user',
 ];
-

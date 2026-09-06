@@ -21,7 +21,9 @@ use Idei\Usim\Enums\DialogType;
 use Idei\Usim\Enums\LayoutType;
 use Idei\Usim\Enums\SelectionMode;
 use Idei\Usim\Modals\ConfirmDialogService;
+use Idei\Usim\Models\UsimUnit;
 use Idei\Usim\Screen;
+use Idei\Usim\Support\UnitContextResolver;
 use Idei\Usim\UI;
 use Idei\Usim\ValueObjects\Size;
 use Idei\Usim\ValueObjects\Spacing;
@@ -60,6 +62,7 @@ class UsersManager extends Screen
     protected Button $add_user_btn;
     protected Split $roles_split;
     protected Container $tabs_container;
+    protected string $store_unit = '';
 
     protected function buildBaseUI(Container $container, ...$params): void
     {
@@ -317,8 +320,19 @@ class UsersManager extends Screen
 
         $this->users_table->select($userId);
 
-        /** @var array{id:int|string,name:string,email:string,roles?:list<array{name?:string}>,email_verified_at?:mixed} $modalUser */
+        /** @var array<string, mixed> $modalUser */
         $modalUser = $user;
+
+        $activeUnit = $this->resolveActiveUnit();
+        if ($activeUnit) {
+            $modalUser['active_unit'] = [
+                'id' => $activeUnit->id,
+                'slug' => $activeUnit->slug,
+                'name' => ($activeUnit->display_name !== $activeUnit->translation_key)
+                    ? $activeUnit->display_name
+                    : ucfirst($activeUnit->slug),
+            ];
+        }
 
         EditUserDialog::open(
             user: $modalUser,
@@ -348,6 +362,12 @@ class UsersManager extends Screen
         $updateData = $params;
         if (isset($updateData['roles'])) {
             $updateData['roles'] = (array) $updateData['roles'];
+        }
+
+        // Target unit is bound to the active unit in store_unit
+        $activeUnit = $this->resolveActiveUnit();
+        if ($activeUnit) {
+            $updateData['target_unit'] = $activeUnit->id;
         }
 
         $response = $this->userService->updateUser($user, $updateData);
@@ -635,5 +655,33 @@ class UsersManager extends Screen
 
         $name = $user['name'] ?? null;
         return is_string($name) ? $name : '';
+    }
+
+    protected function resolveActiveUnit(): ?UsimUnit
+    {
+        $user = auth()->user();
+        $unitSlug = !empty($this->store_unit) ? $this->store_unit : null;
+        if (!$unitSlug) {
+            $storageUnit = request()->input('storage.store_unit') ?? request()->storage['store_unit'] ?? null;
+            if (is_string($storageUnit) && $storageUnit !== '') {
+                $unitSlug = $storageUnit;
+            }
+        }
+
+        if ($unitSlug !== null) {
+            $unit = UnitContextResolver::resolve($user, $unitSlug);
+            if ($unit) {
+                return $unit;
+            }
+        }
+
+        if (function_exists('getPermissionsTeamId') && getPermissionsTeamId()) {
+            $unit = UsimUnit::find(getPermissionsTeamId());
+            if ($unit) {
+                return $unit;
+            }
+        }
+
+        return UnitContextResolver::resolve($user, null) ?? UsimUnit::where('slug', 'main')->first();
     }
 }

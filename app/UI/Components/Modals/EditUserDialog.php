@@ -29,6 +29,7 @@ class EditUserDialog
      *     email_verified_at?: mixed,
      *     is_in_lobby?: bool,
      *     has_operational_units?: bool,
+    *     active_unit?: array{id: int|string, slug: string, name: string}|null,
      *     operational_units?: list<array{id: int|string, slug: string, name: string}>,
      *     units_with_roles?: array<string, list<string>>
      * }|null $user
@@ -52,15 +53,16 @@ class EditUserDialog
      * @param string $submitAction Action to call when form is submitted
      * @param string|null $cancelAction Action to call when cancel is clicked
      * @param array{
-     *     id: int|string,
-     *     name: string,
-     *     email: string,
-     *     roles?: list<array{name?: string}|string>,
-     *     email_verified_at?: mixed,
-     *     is_in_lobby?: bool,
-     *     has_operational_units?: bool,
-     *     operational_units?: list<array{id: int|string, slug: string, name: string}>,
-     *     units_with_roles?: array<string, list<string>>
+     *      id: int|string,
+     *      name: string,
+     *      email: string,
+     *      roles?: list<array{name?: string}|string>,
+     *      email_verified_at?: mixed,
+     *      is_in_lobby?: bool,
+     *      has_operational_units?: bool,
+     *      active_unit?: array{id: int|string, slug: string, name: string}|null,
+     *      operational_units?: list<array{id: int|string, slug: string, name: string}>,
+     *      units_with_roles?: array<string, list<string>>
      * }|null $user
      * @param int|null $callerServiceId Service ID that will receive callbacks
      * @return array<int, array<string, mixed>> UI components for the modal
@@ -68,7 +70,7 @@ class EditUserDialog
     public function getUI(
         string $submitAction = 'submit_update_user',
         ?string $cancelAction = 'close_modal',
-        array $user = null,
+        ?array $user = null,
         ?int $callerServiceId = null
     ): array {
         $name = $user ? $user['name'] : '';
@@ -76,8 +78,16 @@ class EditUserDialog
         $isInLobby = !empty($user['is_in_lobby']);
         $hasOperationalUnits = !empty($user['has_operational_units']);
 
+        $activeUnit = $user ? $user['active_unit'] ?? null : null;
+        if (!$activeUnit && $hasOperationalUnits && !empty($user['operational_units'])) {
+            $activeUnit = $user['operational_units'][0];
+        }
+
         $selectedRoles = [];
-        if ($user && !empty($user['roles'])) {
+        $activeSlug = $activeUnit['slug'] ?? null;
+        if ($activeSlug && !empty($user['units_with_roles'][$activeSlug])) {
+            $selectedRoles = $user['units_with_roles'][$activeSlug];
+        } elseif (!$isInLobby && $user && !empty($user['roles'])) {
             foreach ($user['roles'] as $r) {
                 if (is_array($r) && isset($r['name'])) {
                     $selectedRoles[] = $r['name'];
@@ -151,44 +161,51 @@ class EditUserDialog
                 ->autocomplete('off')
         );
 
-        // Operational unit selector (in Multi-Unit mode)
-        if ($hasOperationalUnits) {
-            $unitOptions = [];
-            if (!empty($user['operational_units'])) {
-                foreach ($user['operational_units'] as $unit) {
-                    $unitOptions[] = [
-                        'value' => (string) $unit['id'],
-                        'label' => $unit['name'],
-                    ];
-                }
-            }
-
-            $selectedUnitValue = null;
-            if (!$isInLobby && !empty($user['units_with_roles'])) {
-                $currentUnitSlug = array_key_first($user['units_with_roles']);
-                if ($currentUnitSlug && !empty($user['operational_units'])) {
-                    foreach ($user['operational_units'] as $u) {
-                        if ($u['slug'] === $currentUnitSlug) {
-                            $selectedUnitValue = (string) $u['id'];
-                            break;
-                        }
-                    }
-                }
-            }
-
-            if ($selectedUnitValue === null && !empty($unitOptions)) {
-                $selectedUnitValue = $unitOptions[0]['value'];
-            }
+        // Active operational unit context indicator (in Multi-Unit mode)
+        if ($hasOperationalUnits && !empty($activeUnit)) {
+            $registerContainer->add(
+                UI::label('active_unit_badge')
+                    ->text(t('modal.edit_user.active_unit_label', ['unit' => $activeUnit['name']]))
+                    ->style('primary')
+                    ->size('medium')
+            );
 
             $registerContainer->add(
-                UI::select('target_unit')
-                    ->label(t('modal.edit_user.target_unit'))
-                    ->placeholder(t('modal.edit_user.target_unit_placeholder'))
-                    ->helpText(t('modal.edit_user.target_unit_help'))
-                    ->options($unitOptions)
-                    ->value($selectedUnitValue)
-                    ->required(true)
+                UI::label('active_unit_help')
+                    ->text(t('modal.edit_user.active_unit_help'))
+                    ->style('muted')
+                    ->size('small')
             );
+
+            $registerContainer->add(
+                UI::input('target_unit')
+                    ->type('hidden')
+                    ->value((string) $activeUnit['id'])
+            );
+        }
+
+        // Other memberships of this user (for situational awareness)
+        if (!empty($user['units_with_roles'])) {
+            $currentActiveSlug = $activeUnit['slug'] ?? '';
+            $otherMemberships = [];
+            foreach ($user['units_with_roles'] as $slug => $rolesList) {
+                if ($slug === $currentActiveSlug || in_array($slug, ['lobby', 'main'], true)) {
+                    continue;
+                }
+                $uModel = \Idei\Usim\Models\UsimUnit::where('slug', $slug)->first();
+                $uName = $uModel ? (($uModel->display_name !== $uModel->translation_key) ? $uModel->display_name : ucfirst($slug)) : ucfirst($slug);
+                $rolesTranslated = array_map(static fn(string $r): string => t("role.{$r}.name"), $rolesList);
+                $otherMemberships[] = $uName . ' (' . (empty($rolesTranslated) ? t('role.none') : implode(', ', $rolesTranslated)) . ')';
+            }
+
+            if (!empty($otherMemberships)) {
+                $registerContainer->add(
+                    UI::label('other_units_info')
+                        ->text(t('modal.edit_user.other_units') . ': ' . implode(' | ', $otherMemberships))
+                        ->style('secondary')
+                        ->size('small')
+                );
+            }
         }
 
         // Role checkboxes
@@ -255,9 +272,13 @@ class EditUserDialog
         }
 
         // Submit button
-        $submitLabel = $isInLobby
-            ? ($hasOperationalUnits ? t('modal.edit_user.approve_multi') : t('modal.edit_user.approve_simple'))
-            : t('modal.edit_user.update_user');
+        if ($isInLobby) {
+            $submitLabel = ($hasOperationalUnits && !empty($activeUnit))
+                ? t('modal.edit_user.approve_in_unit', ['unit' => $activeUnit['name']])
+                : t('modal.edit_user.approve_simple');
+        } else {
+            $submitLabel = t('modal.edit_user.update_user');
+        }
 
         $buttonsContainer->add(
             UI::button('btn_submit_register')

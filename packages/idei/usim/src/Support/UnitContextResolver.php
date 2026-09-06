@@ -36,21 +36,41 @@ class UnitContextResolver
      */
     public static function resolve(?Authenticatable $user, ?string $slug): ?UsimUnit
     {
-        if (!$user || !method_exists($user, 'usimUnits')) {
+        if (!$user) {
             return null;
         }
 
-        // Scoped to the user's own units (not a global UsimUnit lookup) so an
+        $isRoot = method_exists($user, 'isRoot') && $user->isRoot();
+
+        // Scoped to the user's own units (unless root) so an
         // untrusted client-supplied slug can't grant access to another unit.
         if (\is_string($slug) && $slug !== '') {
-            $unit = $user->usimUnits()->where('slug', $slug)->first();
-            if ($unit) {
-                return $unit;
+            if ($isRoot) {
+                $unit = UsimUnit::where('slug', $slug)->first();
+                if ($unit) {
+                    return $unit;
+                }
+            } elseif (method_exists($user, 'usimUnits')) {
+                $unit = $user->usimUnits()->where('slug', $slug)->first();
+                if ($unit) {
+                    return $unit;
+                }
             }
         }
 
         // Requested slug is missing or doesn't belong to the user: fall back to the
         // first unit the user is registered in, deterministically ordered by id.
-        return $user->usimUnits()->orderBy('usim_units.id')->first();
+        if (method_exists($user, 'usimUnits')) {
+            $firstUnit = $user->usimUnits()->orderBy('usim_units.id')->first();
+            if ($firstUnit) {
+                return $firstUnit;
+            }
+        }
+
+        if ($isRoot) {
+            return UsimUnit::where('slug', 'main')->first();
+        }
+
+        return null;
     }
 }

@@ -159,7 +159,7 @@ class UserTableModel extends AbstractTableModel
 
     private function formatRoles(User $user, bool $hasOperationalUnits): string
     {
-        $rolesCollection = method_exists($user, 'globalRoles') && $user->globalRoles->isNotEmpty()
+        $rolesCollection = $user->globalRoles->isNotEmpty()
             ? $user->globalRoles
             : $user->roles;
 

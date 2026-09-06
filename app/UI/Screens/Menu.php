@@ -342,9 +342,7 @@ class Menu extends Screen
         }
 
         $first = $units->first();
-        if ($first instanceof UsimUnit) {
-            $this->store_unit = $first->slug;
-        }
+        $this->store_unit = $first->slug;
     }
 
     private function updateUnitMenu(): void
