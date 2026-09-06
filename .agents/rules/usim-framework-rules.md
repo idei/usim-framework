@@ -569,6 +569,9 @@ Cuando el usuario diga "publica el paquete" o una frase equivalente, sigue estos
 - Si una solicitud contradice la arquitectura backend-driven de USIM, senalalo y propone una alternativa alineada con el proyecto.
 - Cuando falte contexto, prioriza leer README, CHANGELOG, docs y prompts relevantes antes de inventar arquitectura.
 
+## Reglas de copilot
+- Ten en cuenta las reglas que están en ./github/copilot-instructions.md
+
 ## General
 
 Al final de cada respuesta dime "Ready!" para que sepa que terminaste de responder.
