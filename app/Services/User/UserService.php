@@ -44,10 +44,20 @@ class UserService
             ];
         }
 
+        $user->load('roles');
+        if (config('permission.teams') && method_exists($user, 'globalRoles')) {
+            $user->load('globalRoles');
+        }
+
+        $userData = $user->toArray();
+        if (empty($userData['roles']) && !empty($userData['global_roles'])) {
+            $userData['roles'] = $userData['global_roles'];
+        }
+
         return [
             'status' => 'success',
             'message' => "Usuario $user->name recuperado exitosamente",
-            'data' => $user->load('roles')->toArray(),
+            'data' => $userData,
         ];
     }
 

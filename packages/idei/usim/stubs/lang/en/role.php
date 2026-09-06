@@ -35,4 +35,5 @@ return [
         'name' => 'Guest',
         'description' => 'User with basic access to the system.',
     ],
+    'none' => 'None',
 ];

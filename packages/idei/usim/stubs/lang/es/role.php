@@ -35,4 +35,5 @@ return [
         'name' => 'Invitado',
         'description' => 'Usuario con acceso básico al sistema.',
     ],
+    'none' => 'Ninguno',
 ];

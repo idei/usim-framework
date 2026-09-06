@@ -16,17 +16,19 @@ class UserListingService extends EloquentListingService
 {
     protected string $modelClass = User::class;
 
-    protected array $with = ['roles'];
+    protected array $with = ['roles', 'globalRoles'];
 
     /**
      * @return array<string, string>
      */
     protected function searchableFields(): array
     {
+        $roleField = config('permission.teams') ? 'globalRoles.name' : 'roles.name';
+
         return [
             'name' => 'name',
             'email' => 'email',
-            'role_name' => 'roles.name',
+            'role_name' => $roleField,
         ];
     }
 
@@ -35,9 +37,11 @@ class UserListingService extends EloquentListingService
      */
     protected function filterableFields(): array
     {
+        $roleField = config('permission.teams') ? 'globalRoles.name' : 'roles.name';
+
         return [
             'role_name' => [
-                'path' => 'roles.name',
+                'path' => $roleField,
                 'operator' => 'like',
             ],
         ];

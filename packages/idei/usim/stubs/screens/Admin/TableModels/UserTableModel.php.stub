@@ -98,10 +98,15 @@ class UserTableModel extends AbstractTableModel
 
     private function formatRoles(User $user): string
     {
+        $rolesCollection = method_exists($user, 'globalRoles') && $user->globalRoles->isNotEmpty()
+            ? $user->globalRoles
+            : $user->roles;
+
         /** @var list<string> $roleNames */
-        $roleNames = $user->roles
+        $roleNames = $rolesCollection
             ->pluck('name')
             ->filter(static fn ($name): bool => is_string($name))
+            ->unique()
             ->values()
             ->toArray();
 

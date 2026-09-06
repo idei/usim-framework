@@ -37,4 +37,5 @@ return [
         'name' => 'Miembro',
         'description' => 'Usuario con acceso a funciones específicas.',
     ],
+    'none' => 'Ninguno',
 ];
