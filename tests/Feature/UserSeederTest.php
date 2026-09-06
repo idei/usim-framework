@@ -3,10 +3,11 @@
 use App\Models\User;
 use Database\Seeders\UserSeeder;
 use Idei\Usim\Models\UsimUnit;
-use Spatie\Permission\Models\Role;
+use Tests\TestCase;
 
 it('seeds realistic users adhering to role and unit assignment policies', function () {
     // Run the seeder
+    /** @var TestCase $this */
     $this->seed(UserSeeder::class);
 
     $users = User::with('usimUnits')->get();
