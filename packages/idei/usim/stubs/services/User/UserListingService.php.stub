@@ -16,7 +16,7 @@ class UserListingService extends EloquentListingService
 {
     protected string $modelClass = User::class;
 
-    protected array $with = ['roles', 'globalRoles'];
+    protected array $with = ['roles', 'globalRoles', 'usimUnits'];
 
     /**
      * @return array<string, string>

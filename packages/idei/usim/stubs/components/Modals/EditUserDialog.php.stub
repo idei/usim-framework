@@ -26,7 +26,11 @@ class EditUserDialog
      *     name: string,
      *     email: string,
      *     roles?: list<array{name?: string}|string>,
-     *     email_verified_at?: mixed
+     *     email_verified_at?: mixed,
+     *     is_in_lobby?: bool,
+     *     has_operational_units?: bool,
+     *     operational_units?: list<array{id: int|string, slug: string, name: string}>,
+     *     units_with_roles?: array<string, list<string>>
      * }|null $user
      */
     public static function open(
@@ -52,7 +56,11 @@ class EditUserDialog
      *     name: string,
      *     email: string,
      *     roles?: list<array{name?: string}|string>,
-     *     email_verified_at?: mixed
+     *     email_verified_at?: mixed,
+     *     is_in_lobby?: bool,
+     *     has_operational_units?: bool,
+     *     operational_units?: list<array{id: int|string, slug: string, name: string}>,
+     *     units_with_roles?: array<string, list<string>>
      * }|null $user
      * @param int|null $callerServiceId Service ID that will receive callbacks
      * @return array<int, array<string, mixed>> UI components for the modal
@@ -65,6 +73,9 @@ class EditUserDialog
     ): array {
         $name = $user ? $user['name'] : '';
         $email = $user ? $user['email'] : '';
+        $isInLobby = !empty($user['is_in_lobby']);
+        $hasOperationalUnits = !empty($user['has_operational_units']);
+
         $selectedRoles = [];
         if ($user && !empty($user['roles'])) {
             foreach ($user['roles'] as $r) {
@@ -75,9 +86,16 @@ class EditUserDialog
                 }
             }
         }
+
+        // If user is in lobby, exclude the system 'registered' role from pre-selection
+        if ($isInLobby) {
+            $selectedRoles = array_values(array_filter($selectedRoles, static fn($r) => $r !== 'registered'));
+        }
+
         if (empty($selectedRoles)) {
             $selectedRoles = ['user'];
         }
+
         $emailVerified = $user
             ? (array_key_exists('email_verified_at', $user) && $user['email_verified_at'] !== null)
             : false;
@@ -89,6 +107,16 @@ class EditUserDialog
             ->plain()
             ->padding(Spacing::px(20));
 
+        // Lobby banner if user is pending approval
+        if ($isInLobby) {
+            $registerContainer->add(
+                UI::label('lobby_banner')
+                    ->text(t('modal.edit_user.lobby_banner'))
+                    ->style('warning')
+                    ->size('medium')
+            );
+        }
+
         // Id input (hidden)
         $registerContainer->add(
             UI::input('user_id')
@@ -96,11 +124,18 @@ class EditUserDialog
                 ->value($user ? $user['id'] : '')
         );
 
+        // Lobby state input (hidden)
+        $registerContainer->add(
+            UI::input('is_in_lobby')
+                ->type('hidden')
+                ->value($isInLobby ? '1' : '0')
+        );
+
         // Name input
         $registerContainer->add(
             UI::input('name')
-                ->label('Full Name')
-                ->placeholder('Enter your full name')
+                ->label(t('modal.edit_user.name'))
+                ->placeholder(t('modal.edit_user.name_placeholder'))
                 ->required(true)
                 ->value($name)
                 ->autocomplete('off')
@@ -109,12 +144,52 @@ class EditUserDialog
         // Email input
         $registerContainer->add(
             UI::input('email')
-                ->label('Email')
-                ->placeholder('Enter your email')
+                ->label(t('modal.edit_user.email'))
+                ->placeholder(t('modal.edit_user.email_placeholder'))
                 ->required(true)
                 ->value($email)
                 ->autocomplete('off')
         );
+
+        // Operational unit selector (in Multi-Unit mode)
+        if ($hasOperationalUnits) {
+            $unitOptions = [];
+            if (!empty($user['operational_units'])) {
+                foreach ($user['operational_units'] as $unit) {
+                    $unitOptions[] = [
+                        'value' => (string) $unit['id'],
+                        'label' => $unit['name'],
+                    ];
+                }
+            }
+
+            $selectedUnitValue = null;
+            if (!$isInLobby && !empty($user['units_with_roles'])) {
+                $currentUnitSlug = array_key_first($user['units_with_roles']);
+                if ($currentUnitSlug && !empty($user['operational_units'])) {
+                    foreach ($user['operational_units'] as $u) {
+                        if ($u['slug'] === $currentUnitSlug) {
+                            $selectedUnitValue = (string) $u['id'];
+                            break;
+                        }
+                    }
+                }
+            }
+
+            if ($selectedUnitValue === null && !empty($unitOptions)) {
+                $selectedUnitValue = $unitOptions[0]['value'];
+            }
+
+            $registerContainer->add(
+                UI::select('target_unit')
+                    ->label(t('modal.edit_user.target_unit'))
+                    ->placeholder(t('modal.edit_user.target_unit_placeholder'))
+                    ->helpText(t('modal.edit_user.target_unit_help'))
+                    ->options($unitOptions)
+                    ->value($selectedUnitValue)
+                    ->required(true)
+            );
+        }
 
         // Role checkboxes
         $roleService = app(RoleService::class);
@@ -135,7 +210,7 @@ class EditUserDialog
 
         $registerContainer->add(
             UI::checkbox('roles')
-                ->label(t('modal.register_dialog.role.label'))
+                ->label(t('modal.edit_user.roles'))
                 ->options($roleOptions)
                 ->vertical()
                 ->selectedValues($selectedRoles)
@@ -145,7 +220,7 @@ class EditUserDialog
         // Checkbox for sending reset password email
         $registerContainer->add(
             UI::checkbox('send_reset_email')
-                ->label('Send password reset email to user')
+                ->label(t('modal.edit_user.send_reset_email'))
                 ->checked(false)
         );
 
@@ -153,7 +228,7 @@ class EditUserDialog
         if (!$emailVerified) {
             $registerContainer->add(
                 UI::checkbox('send_verification_email')
-                    ->label('Send email verification to user')
+                    ->label(t('modal.edit_user.send_verification_email'))
                     ->checked(false)
             );
         }
@@ -171,7 +246,7 @@ class EditUserDialog
         if ($cancelAction) {
             $buttonsContainer->add(
                 UI::button('btn_cancel_register')
-                    ->label('Cancel')
+                    ->label(t('modal.edit_user.cancel'))
                     ->style('secondary')
                     ->action($cancelAction, [
                         '_caller_service_id' => $callerServiceId
@@ -180,9 +255,13 @@ class EditUserDialog
         }
 
         // Submit button
+        $submitLabel = $isInLobby
+            ? ($hasOperationalUnits ? t('modal.edit_user.approve_multi') : t('modal.edit_user.approve_simple'))
+            : t('modal.edit_user.update_user');
+
         $buttonsContainer->add(
             UI::button('btn_submit_register')
-                ->label('Update User')
+                ->label($submitLabel)
                 ->style('primary')
                 ->action($submitAction, [
                     '_caller_service_id' => $callerServiceId
@@ -192,7 +271,7 @@ class EditUserDialog
         // Remove button
         $buttonsContainer->add(
             UI::button('btn_delete_user')
-                ->label('Delete User')
+                ->label(t('modal.edit_user.delete_user'))
                 ->style('danger')
                 ->action('delete_user', [
                     '_caller_service_id' => $callerServiceId

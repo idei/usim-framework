@@ -14,6 +14,7 @@ return [
     'registered' => [
         'description' => 'User with basic access to the system.',
         'name' => 'Registered User',
+        'waiting' => 'Waiting (Registered)',
     ],
     'approved' => [
         'description' => 'Approved user with access to additional features.',

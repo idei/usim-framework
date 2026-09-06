@@ -15,6 +15,7 @@ return [
         'email' => 'Correo',
         'name' => 'Nombre',
         'roles' => 'Rol',
+        'units' => 'Unidades',
         'permission' => 'Permisos',
         'updated' => 'Actualizado',
         'email_verified' => 'Verificado',

@@ -12,6 +12,7 @@ return [
     'registered' => [
         'description' => 'Usuario con acceso básico al sistema.',
         'name' => 'Usuario Registrado',
+        'waiting' => 'En espera (Registrado)',
     ],
     'approved' => [
         'description' => 'Usuario aprobado con acceso a funciones adicionales.',

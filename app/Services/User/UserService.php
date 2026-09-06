@@ -6,12 +6,15 @@ namespace App\Services\User;
 
 use App\Models\User;
 use Idei\Usim\Events\UsimEvent;
+use Idei\Usim\Models\UsimUnit;
+use Idei\Usim\Services\UsimUnitsService;
 use Illuminate\Auth\Events\Verified;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Password as PasswordBroker;
+use Spatie\Permission\PermissionRegistrar;
 
 class UserService
 {
@@ -48,11 +51,44 @@ class UserService
         if (config('permission.teams') && method_exists($user, 'globalRoles')) {
             $user->load('globalRoles');
         }
+        if (method_exists($user, 'usimUnits')) {
+            $user->load('usimUnits');
+        }
 
         $userData = $user->toArray();
         if (empty($userData['roles']) && !empty($userData['global_roles'])) {
             $userData['roles'] = $userData['global_roles'];
         }
+
+        /** @var UsimUnitsService $unitsService */
+        $unitsService = app(UsimUnitsService::class);
+        $hasOperationalUnits = $unitsService->hasOperationalUnits();
+
+        $isInLobby = method_exists($user, 'usimUnits')
+            ? $user->usimUnits->contains('slug', 'lobby')
+            : false;
+
+        $operationalUnits = [];
+        if ($hasOperationalUnits) {
+            $operationalUnits = UsimUnit::query()
+                ->where(function ($q) {
+                    $q->where('type', '!=', 'system')->orWhereNull('type');
+                })
+                ->whereNotIn('slug', ['main', 'lobby'])
+                ->get()
+                ->map(static fn (UsimUnit $u): array => [
+                    'id' => $u->id,
+                    'slug' => $u->slug,
+                    'name' => ($u->display_name !== $u->translation_key) ? $u->display_name : ucfirst($u->slug),
+                ])
+                ->values()
+                ->toArray();
+        }
+
+        $userData['is_in_lobby'] = $isInLobby;
+        $userData['has_operational_units'] = $hasOperationalUnits;
+        $userData['operational_units'] = $operationalUnits;
+        $userData['units_with_roles'] = $unitsService->getUserUnitsWithRoles($user);
 
         return [
             'status' => 'success',
@@ -88,7 +124,7 @@ class UserService
         if (array_key_exists('roles', $data)) {
             /** @var array<int, string> $roles */
             $roles = $data['roles'];
-            $rolesError = $this->syncRoles($user, $roles);
+            $rolesError = $this->syncUserRolesAndUnits($user, $roles, $data);
             if ($rolesError) {
                 return $rolesError;
             }
@@ -114,11 +150,120 @@ class UserService
             ]));
         }
 
+        $fresh = $this->freshUserWithRoles($user);
+        $freshData = $fresh->toArray();
+        if (empty($freshData['roles']) && !empty($freshData['global_roles'])) {
+            $freshData['roles'] = $freshData['global_roles'];
+        }
+
         return [
             'status' => 'success',
             'message' => 'Usuario actualizado exitosamente',
-            'data' => $this->freshUserWithRoles($user)->toArray(),
+            'data' => $freshData,
         ];
+    }
+
+    /**
+     * Synchronize user roles and unit memberships, managing transitions from lobby to operational units or main.
+     *
+     * @param User $user
+     * @param array<int, string> $roles
+     * @param array<string, mixed> $data
+     * @return array{status: 'error', message: string, errors: array<string, string[]>}|null
+     */
+    protected function syncUserRolesAndUnits(User $user, array $roles, array $data): ?array
+    {
+        if (!config('permission.teams')) {
+            return $this->syncRoles($user, $roles);
+        }
+
+        /** @var UsimUnitsService $unitsService */
+        $unitsService = app(UsimUnitsService::class);
+        $hasOperationalUnits = $unitsService->hasOperationalUnits();
+
+        $isInLobby = method_exists($user, 'usimUnits')
+            && $user->usimUnits()->where('slug', 'lobby')->exists();
+
+        $targetUnit = null;
+
+        if ($isInLobby) {
+            if ($hasOperationalUnits) {
+                if (!empty($data['target_unit'])) {
+                    $targetUnit = is_numeric($data['target_unit'])
+                        ? UsimUnit::find($data['target_unit'])
+                        : UsimUnit::where('slug', $data['target_unit'])->first();
+                }
+
+                if (!$targetUnit) {
+                    $targetUnit = UsimUnit::query()
+                        ->where(function ($q) {
+                            $q->where('type', '!=', 'system')->orWhereNull('type');
+                        })
+                        ->whereNotIn('slug', ['main', 'lobby'])
+                        ->first();
+                }
+
+                if (!$targetUnit) {
+                    return $this->validationError('target_unit', 'A valid operational unit is required.');
+                }
+            } else {
+                $targetUnit = UsimUnit::firstOrCreate(['slug' => 'main'], ['type' => 'system']);
+            }
+        } else {
+            if (!empty($data['target_unit'])) {
+                $targetUnit = is_numeric($data['target_unit'])
+                    ? UsimUnit::find($data['target_unit'])
+                    : UsimUnit::where('slug', $data['target_unit'])->first();
+            }
+
+            if (!$targetUnit && method_exists($user, 'usimUnits')) {
+                $targetUnit = $user->usimUnits()->whereNotIn('slug', ['lobby'])->first();
+            }
+
+            if (!$targetUnit) {
+                $targetUnit = UsimUnit::where('slug', 'main')->first();
+            }
+        }
+
+        $previousTeamId = function_exists('getPermissionsTeamId') ? getPermissionsTeamId() : null;
+
+        try {
+            if ($isInLobby) {
+                $lobbyUnit = UsimUnit::where('slug', 'lobby')->first();
+                if ($lobbyUnit) {
+                    if (function_exists('setPermissionsTeamId')) {
+                        setPermissionsTeamId($lobbyUnit->id);
+                    }
+                    $defaultRegRole = config('usim.default_registering_role', 'registered');
+                    if ($user->hasRole($defaultRegRole)) {
+                        $user->removeRole($defaultRegRole);
+                    }
+                    if (method_exists($user, 'usimUnits')) {
+                        $user->usimUnits()->detach($lobbyUnit->id);
+                    }
+                }
+            }
+
+            if ($targetUnit && method_exists($user, 'usimUnits')) {
+                $user->usimUnits()->syncWithoutDetaching([$targetUnit->id]);
+            }
+
+            if ($targetUnit && function_exists('setPermissionsTeamId')) {
+                setPermissionsTeamId($targetUnit->id);
+            }
+
+            $rolesError = $this->syncRoles($user, $roles);
+            if ($rolesError) {
+                return $rolesError;
+            }
+        } finally {
+            if (function_exists('setPermissionsTeamId')) {
+                setPermissionsTeamId($previousTeamId);
+            }
+            app(PermissionRegistrar::class)->forgetCachedPermissions();
+        }
+
+        return null;
     }
 
     /**
@@ -429,7 +574,15 @@ class UserService
             $freshUser = $user;
         }
 
-        return $freshUser->load('roles');
+        $freshUser->load('roles');
+        if (config('permission.teams') && method_exists($freshUser, 'globalRoles')) {
+            $freshUser->load('globalRoles');
+        }
+        if (method_exists($freshUser, 'usimUnits')) {
+            $freshUser->load('usimUnits');
+        }
+
+        return $freshUser;
     }
 
     /**

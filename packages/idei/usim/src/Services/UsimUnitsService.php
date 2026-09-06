@@ -10,6 +10,19 @@ use Illuminate\Support\Facades\DB;
 
 class UsimUnitsService
 {
+    /**
+     * Determines whether there are any operational units (departments, institutes, etc.)
+     * defined in the system beyond the standard system units ('main' and 'lobby').
+     */
+    public function hasOperationalUnits(): bool
+    {
+        return UsimUnit::query()
+            ->where(function ($q) {
+                $q->where('type', '!=', 'system')->orWhereNull('type');
+            })
+            ->whereNotIn('slug', ['main', 'lobby'])
+            ->exists();
+    }
 
     /**
      * Get the available units for the given user.

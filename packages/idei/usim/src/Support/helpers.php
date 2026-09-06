@@ -51,8 +51,19 @@ if (!function_exists('t')) {
             $candidates = [$key];
             $segments = explode('.', $key);
 
-            // Support 3-level namespace files like lang/{locale}/a/b/c.php
+            // Support 2-level and 3-level namespace files like lang/{locale}/a/b.php or lang/{locale}/a/b/c.php
             // while still allowing calls with dotted keys: a.b.c(.rest).
+            if (count($segments) >= 2) {
+                $fileKey2 = implode('/', array_slice($segments, 0, 2));
+                $remaining2 = array_slice($segments, 2);
+
+                if ($remaining2 === []) {
+                    $candidates[] = $fileKey2 . '.value';
+                } else {
+                    $candidates[] = $fileKey2 . '.' . implode('.', $remaining2);
+                }
+            }
+
             if (count($segments) >= 3) {
                 $fileKey = implode('/', array_slice($segments, 0, 3));
                 $remaining = array_slice($segments, 3);
