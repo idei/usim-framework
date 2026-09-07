@@ -5,6 +5,7 @@
 use App\UI\Screens\Admin\UsersManager;
 use App\UI\Screens\Admin\TranslateManager;
 use App\UI\Screens\Home;
+use App\UI\Screens\Registered;
 
 return [
 
@@ -80,10 +81,17 @@ return [
         'structure' => [
             'main' => [
                 'parent' => null,
-                'type' => 'institution', // Optional: institution, department, division, team, etc.
+                'type' => 'system', // Optional: institution, department, division, team, etc.
                 'default_translations' => [
-                    'en' => ['display_name' => 'Main Organization', 'description' => 'Default system unit.'],
-                    'es' => ['display_name' => 'Organización Principal', 'description' => 'Unidad base del sistema.'],
+                    'en' => ['display_name' => 'Initial', 'description' => 'Default system unit.'],
+                    'es' => ['display_name' => 'Inicial', 'description' => 'Unidad base del sistema.'],
+                ],
+            ],
+            'lobby' => [
+                'type' => 'system',
+                'default_translations' => [
+                    'en' => ['display_name' => 'Lobby', 'description' => 'Default system unit.'],
+                    'es' => ['display_name' => 'Espera', 'description' => 'Unidad base del sistema.'],
                 ],
             ],
         ],
@@ -146,15 +154,15 @@ return [
 			'home_screen' => TranslateManager::class,
 			'permissions' => ['admin.translate_manager.access'],
 		],
-		'registered' => [
-			'default_translations' => [
-				'en' => ['display_name' => 'Registered User', 'description' => 'User with basic access to the system.'],
-				'es' => ['display_name' => 'Usuario Registrado', 'description' => 'Usuario con acceso básico al sistema.'],
-			],
-			'priority' => 4,
-			'home_screen' => Home::class,
-			'permissions' => ['home.access'],
-		],
+        'registered' => [
+            'default_translations' => [
+                'en' => ['display_name' => 'Registered User', 'description' => 'User with basic access to the system.'],
+                'es' => ['display_name' => 'Usuario Registrado', 'description' => 'Usuario con acceso básico al sistema.'],
+            ],
+            'priority' => 5,
+            'home_screen' => Registered::class,
+            'permissions' => ['home.access'],
+        ],
 	],
 
 	'permissions' => [

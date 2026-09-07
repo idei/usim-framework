@@ -23,6 +23,7 @@ class InstallAppScaffoldingManager
     ): void {
         $this->installScreen('Home.php.stub', 'Home.php', null, $context, $publishStub, $line);
         $this->installScreen('Menu.php.stub', 'Menu.php', null, $context, $publishStub, $line);
+        $this->installScreen('Registered.php.stub', 'Registered.php', null, $context, $publishStub, $line);
         $this->installScreen('Admin/UsersManager.php.stub', 'UsersManager.php', 'Admin', $context, $publishStub, $line);
 
         $installTranslationManagerScaffolding();
@@ -173,6 +174,9 @@ class InstallAppScaffoldingManager
         $this->installService('Role/RoleService.php.stub', 'RoleService.php', 'Role', $context, $publishStub, $line);
         $this->installService('User/UserListingService.php.stub', 'UserListingService.php', 'User', $context, $publishStub, $line);
         $this->installService('Role/RoleListingService.php.stub', 'RoleListingService.php', 'Role', $context, $publishStub, $line);
+        $this->installService('Units/UnitContextResolver.php.stub', 'UnitContextResolver.php', 'Units', $context, $publishStub, $line);
+        $this->installService('Units/UsimUnitsService.php.stub', 'UsimUnitsService.php', 'Units', $context, $publishStub, $line);
+
         $this->installService('Permissions/PermissionListingService.php.stub', 'PermissionListingService.php', 'Permissions', $context, $publishStub, $line);
     }
 

@@ -1,8 +1,8 @@
 <?php
 // @usim: feature="admin", type="screen"
-namespace App\UI\Screens;
+namespace {{ namespace }};
 
-use App\Models\User;
+use {{ userModel }};
 use Idei\Usim\Components\Container;
 use Idei\Usim\Enums\LayoutType;
 use Idei\Usim\Screen;
@@ -149,4 +149,3 @@ class Registered extends Screen
         $this->redirect('/auth/profile');
     }
 }
-
