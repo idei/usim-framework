@@ -1,0 +1,21 @@
+<?php
+// @usim: feature="admin", type="contract"
+namespace App\Contracts;
+
+interface UnitTranslationGeneratorContract
+{
+    /**
+     * Generate physical translation files from unit configuration.
+     *
+     * @param array<string, array{
+     *     type?: string|null,
+     *     parent?: string|null,
+     *     default_translations?: array<string, mixed>
+     * }> $structure
+     * @param string $filePrefix
+     * @param string|null $baseLangPath Optional base directory (defaults to lang_path())
+     * @return array<int, string> List of generated file paths
+     */
+    public function generate(array $structure, string $filePrefix = 'unit', ?string $baseLangPath = null): array;
+}
+

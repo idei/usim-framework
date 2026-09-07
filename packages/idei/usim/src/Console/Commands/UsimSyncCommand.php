@@ -2,9 +2,8 @@
 
 namespace Idei\Usim\Console\Commands;
 
+use App\Contracts\UnitsServiceContract;
 use Illuminate\Console\Command;
-use Illuminate\Support\Facades\File;
-use Idei\Usim\Models\UsimUnit;
 
 class UsimSyncCommand extends Command
 {
@@ -12,121 +11,58 @@ class UsimSyncCommand extends Command
 
     protected $description = 'Syncs the system configuration with the database. This includes units, roles, permissions, and other related entities.';
 
+    public function __construct(
+        protected UnitsServiceContract $unitsService
+    ) {
+        parent::__construct();
+    }
+
     public function handle(): int
     {
         $target = $this->argument('target') ?? 'all';
 
-        if (\in_array($target, ['units', 'all'])) {
+        if (\in_array($target, ['units', 'all'], true)) {
             $this->syncUnits();
         }
 
         // Here you can add $this->syncRoles(), $this->syncPermissions(), etc.
-        return 0;
+        return self::SUCCESS;
     }
 
     protected function syncUnits(): void
     {
-        if (!config('permission.teams')) {
+        if (!$this->unitsService->isTeamsEnabled()) {
             $this->warn('Units are disabled in the Spatie (permission.php) configuration. Skipping unit synchronization.');
             return;
         }
 
         $this->info('Synchronizing organizational units...');
-        /**
-         * @var array<string, array{
-         *     type?: string|null,
-         *     parent?: string|null,
-         *     default_translations?: array<string, mixed>
-         * }> $structure
-         */
-        $structure = config('usim.units.structure', []);
-        $configuredSlugs = array_keys($structure);
 
-        // 1. DELETE: Remove units that are no longer in the configuration
-        // This ensures that the database reflects the current configuration
-        /** @var int $deleted */
-        $deleted = UsimUnit::whereNotIn('slug', $configuredSlugs)->delete();
-        if ($deleted > 0) {
-            $this->warn("Se eliminaron {$deleted} unidades obsoletas.");
-        }
+        $progressBar = null;
 
-        // 2. UPSERT: Create or update (without hierarchy yet)
-        $bar = $this->output->createProgressBar(count($structure));
-        $bar->start();
-
-        foreach ($structure as $slug => $data) {
-            UsimUnit::updateOrCreate(
-                ['slug' => $slug],
-                ['type' => $data['type'] ?? null]
-            );
-
-            $bar->advance();
-        }
-
-        $bar->finish();
-        $this->newLine(2);
-
-        // 3. HIERARCHY: Update parent-child relationships
-        // This ensures that the parent unit exists before assigning it to a child unit
-        foreach ($structure as $slug => $data) {
-            $parentId = null;
-            if (!empty($data['parent'])) {
-                $parentId = UsimUnit::where('slug', $data['parent'])->value('id');
+        $result = $this->unitsService->sync(
+            onProgress: function (int $current, int $total, string $slug) use (&$progressBar): void {
+                if ($progressBar === null) {
+                    $progressBar = $this->output->createProgressBar($total);
+                    $progressBar->start();
+                }
+                $progressBar->advance();
             }
+        );
 
-            UsimUnit::where('slug', $slug)->update(['parent_id' => $parentId]);
+        if ($progressBar !== null) {
+            $progressBar->finish();
+            $this->newLine(2);
         }
 
-        // 4. I18N: Generate language files for unit translations
-        $this->syncI18n($structure, 'unit');
+        if ($result->deletedCount > 0) {
+            $this->warn("Removed {$result->deletedCount} obsolete units.");
+        }
+
+        if (!empty($result->generatedTranslationFiles)) {
+            $this->line('<comment>Language files generated:</comment> lang/{locale}/unit.php');
+        }
 
         $this->info('Synchronization of organizational units completed successfully.');
-    }
-
-    /**
-     * @param array<string, array{
-     *     type?: string|null,
-     *     parent?: string|null,
-     *     default_translations?: array<string, mixed>
-     * }> $structure
-    */
-    protected function syncI18n(array $structure, string $filePrefix): void
-    {
-        $locales = [];
-
-        // Extraer y agrupar las traducciones por idioma
-        foreach ($structure as $slug => $data) {
-            if (!isset($data['default_translations']))
-                continue;
-
-            foreach ($data['default_translations'] as $locale => $translations) {
-                $locales[$locale][$slug] = $translations;
-            }
-        }
-
-        // Generar los archivos físicos
-        foreach ($locales as $locale => $keys) {
-            $path = lang_path($locale);
-
-            if (!File::exists($path)) {
-                File::makeDirectory($path, 0755, true);
-            }
-
-            $filePath = "{$path}/{$filePrefix}.php";
-
-            // Convertir el array a sintaxis de PHP usando var_export
-            $export = var_export($keys, true);
-
-            // Reemplazar sintaxis antigua de array() por corchetes cortos []
-            $export = (string) preg_replace("/^([ ]*)array \(/m", "$1[", $export);
-            $export = (string) preg_replace("/^([ ]*)\)/m", "$1]", $export);
-            $export = str_replace("=> \n[", "=> [", $export);
-
-            $content = "<?php\n\n// Auto-generated by php artisan usim:sync\n// Do not edit manually, changes will be overwritten.\n\nreturn {$export};\n";
-
-            File::put($filePath, $content);
-        }
-
-        $this->line("<comment>Language files generated:</comment> lang/{locale}/{$filePrefix}.php");
     }
 }
