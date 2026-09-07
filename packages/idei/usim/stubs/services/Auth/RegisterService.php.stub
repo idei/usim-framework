@@ -1,25 +1,45 @@
 <?php
-
+// @usim: feature="admin", type="service"
 namespace {{ namespace }};
 
 use {{ userModel }};
+use App\Services\Auth\AuthSessionService;
+use Idei\Usim\Models\UsimUnit;
 use Illuminate\Auth\Events\Registered;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 
 class RegisterService
 {
     public function __construct(
-        protected AuthSessionService $authSessionService,
+        protected AuthSessionService $authSessionService
     ) {
     }
 
+    /**
+     * Summary of register
+     * @param string $name
+     * @param string $email
+     * @param string $password
+     * @param string $passwordConfirmation
+     * @param array<string> $roles
+     * @param string|null $unit
+     * @param bool $sendVerificationEmail
+     * @return array{
+     *  status: string,
+     *  message: string,
+     *  user?: User,
+     *  data?: array<string, mixed>,
+     *  errors?: array<string, array<string>>}
+     */
     public function register(
         string $name,
         string $email,
         string $password,
         string $passwordConfirmation,
         array $roles = ['user'],
+        ?string $unit = null,
         bool $sendVerificationEmail = true,
     ): array {
         $validator = Validator::make([
@@ -41,15 +61,30 @@ class RegisterService
             ];
         }
 
-        $user = {{ userModelClass }}::create([
-            'name' => $name,
-            'email' => $email,
-            'password' => Hash::make($password),
-        ]);
+        // Operación atómica de base de datos
+        $user = DB::transaction(function () use ($name, $email, $password, $roles, $unit) {
+            $user = User::create([
+                'name' => $name,
+                'email' => $email,
+                'password' => Hash::make($password),
+                'terms_accepted_at' => now(),
+            ]);
 
-        foreach ($roles as $role) {
-            $user->assignRole($role);
-        }
+            // Asignación de unidad y contexto de Spatie si Teams está activo
+            if (config('permission.teams')) {
+                $unitSlug = $unit ?? 'main';
+                $modelUnit = UsimUnit::firstOrCreate(['slug' => $unitSlug]);
+
+                $user->usimUnits()->syncWithoutDetaching([$modelUnit->id]);
+                setPermissionsTeamId($modelUnit->id);
+            }
+
+            foreach ($roles as $role) {
+                $user->assignRole($role);
+            }
+
+            return $user;
+        });
 
         if ($sendVerificationEmail) {
             event(new Registered($user));

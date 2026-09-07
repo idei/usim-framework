@@ -12,7 +12,9 @@ return new class extends Migration {
             return;
         }
 
+        /** @var array<string, string> $tableNames */
         $tableNames = config('permission.table_names');
+        /** @var string $columnName */
         $columnName = config('permission.team_foreign_key', 'usim_unit_id');
 
         if (empty($tableNames)) {
@@ -66,7 +68,9 @@ return new class extends Migration {
             return;
         }
 
+        /** @var array<string, string> $tableNames */
         $tableNames = config('permission.table_names');
+        /** @var string $columnName */
         $columnName = config('permission.team_foreign_key', 'usim_unit_id');
 
         if (empty($tableNames)) {

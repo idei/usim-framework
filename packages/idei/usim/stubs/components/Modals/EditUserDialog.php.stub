@@ -29,6 +29,7 @@ class EditUserDialog
      *     email_verified_at?: mixed,
      *     is_in_lobby?: bool,
      *     has_operational_units?: bool,
+    *     active_unit?: array{id: int|string, slug: string, name: string}|null,
      *     operational_units?: list<array{id: int|string, slug: string, name: string}>,
      *     units_with_roles?: array<string, list<string>>
      * }|null $user
@@ -52,15 +53,16 @@ class EditUserDialog
      * @param string $submitAction Action to call when form is submitted
      * @param string|null $cancelAction Action to call when cancel is clicked
      * @param array{
-     *     id: int|string,
-     *     name: string,
-     *     email: string,
-     *     roles?: list<array{name?: string}|string>,
-     *     email_verified_at?: mixed,
-     *     is_in_lobby?: bool,
-     *     has_operational_units?: bool,
-     *     operational_units?: list<array{id: int|string, slug: string, name: string}>,
-     *     units_with_roles?: array<string, list<string>>
+     *      id: int|string,
+     *      name: string,
+     *      email: string,
+     *      roles?: list<array{name?: string}|string>,
+     *      email_verified_at?: mixed,
+     *      is_in_lobby?: bool,
+     *      has_operational_units?: bool,
+     *      active_unit?: array{id: int|string, slug: string, name: string}|null,
+     *      operational_units?: list<array{id: int|string, slug: string, name: string}>,
+     *      units_with_roles?: array<string, list<string>>
      * }|null $user
      * @param int|null $callerServiceId Service ID that will receive callbacks
      * @return array<int, array<string, mixed>> UI components for the modal
@@ -68,7 +70,7 @@ class EditUserDialog
     public function getUI(
         string $submitAction = 'submit_update_user',
         ?string $cancelAction = 'close_modal',
-        array $user = null,
+        ?array $user = null,
         ?int $callerServiceId = null
     ): array {
         $name = $user ? $user['name'] : '';
@@ -76,7 +78,7 @@ class EditUserDialog
         $isInLobby = !empty($user['is_in_lobby']);
         $hasOperationalUnits = !empty($user['has_operational_units']);
 
-        $activeUnit = $user['active_unit'] ?? null;
+        $activeUnit = $user ? $user['active_unit'] ?? null : null;
         if (!$activeUnit && $hasOperationalUnits && !empty($user['operational_units'])) {
             $activeUnit = $user['operational_units'][0];
         }

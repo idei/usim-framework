@@ -6,6 +6,7 @@ namespace {{ namespace }};
 
 use App\Services\Auth\AuthSessionService;
 use App\Services\Auth\LoginService;
+use App\Services\Units\UsimUnitsService;
 use Idei\Usim\Components\Container;
 use Idei\Usim\Components\Label;
 use Idei\Usim\Enums\JustifyContent;
@@ -20,14 +21,15 @@ class Login extends Screen
 {
     public function __construct(
         protected LoginService $loginService,
-        protected AuthSessionService $authSessionService
-    ) {
-    }
+        protected AuthSessionService $authSessionService,
+        protected UsimUnitsService $usimUnitsService
+    ) {}
 
     public static Visibility $visibility = Visibility::GUEST;
 
     protected string $store_email = '';
     protected string $store_token = '';
+    protected string $store_unit = '';
     protected Label $lbl_login_result;
 
     public static function authorize(): bool
@@ -141,8 +143,8 @@ class Login extends Screen
     {
         $emailValue = $params['login_email'] ?? '';
         $passwordValue = $params['login_password'] ?? '';
-        $email = is_string($emailValue) ? $emailValue : '';
-        $password = is_string($passwordValue) ? $passwordValue : '';
+        $email = \is_string($emailValue) ? $emailValue : '';
+        $password = \is_string($passwordValue) ? $passwordValue : '';
         $remember = $params['remember'] ?? false;
 
         $response = $this->loginService->login($email, $password, (bool) $remember);
@@ -159,9 +161,24 @@ class Login extends Screen
         $this->store_token = $response['data']['token'];
         $this->store_email = $email;
 
+        /** @var \App\Models\User $user */
         $user = $response['user'];
 
-        $redirectTo = $this->authSessionService->start($user, $this->store_token);
+        $unitsWithRoles = $this->usimUnitsService->getUserUnitsWithRoles($user);
+
+        if (
+            empty($this->store_unit) ||
+            !\array_key_exists($this->store_unit, $unitsWithRoles)
+        ) {
+            $firstUnit = array_key_first($unitsWithRoles);
+            $this->store_unit = is_string($firstUnit) ? $firstUnit : '';
+        }
+
+        $redirectTo = $this->authSessionService->start(
+            $user,
+            $this->store_unit !== '' ? $this->store_unit : null,
+            $this->store_token !== '' ? $this->store_token : null
+        );
         $this->redirect($redirectTo);
     }
 

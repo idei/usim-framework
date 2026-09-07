@@ -1,6 +1,6 @@
 <?php
 
-// @usim: feature="admin", type="lang"
+// @usim: feature="core", type="lang"
 
 return [
     'title' => 'Editar Usuario',

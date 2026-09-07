@@ -7,23 +7,23 @@ use Illuminate\Support\Facades\Schema;
 return new class extends Migration {
     public function up(): void
     {
-        Schema::create('units', function (Blueprint $table) {
+        Schema::create('usim_units', function (Blueprint $table) {
             $table->id();
             $table->string('slug')->unique();
             $table->string('type')->nullable();
 
             $table->foreignId('parent_id')
                 ->nullable()
-                ->constrained('units')
+                ->constrained('usim_units')
                 ->cascadeOnDelete();
 
             $table->timestamps();
         });
 
-        Schema::create('unit_user', function (Blueprint $table) {
+        Schema::create('usim_unit_user', function (Blueprint $table) {
             $table->id();
 
-            $table->foreignId('usim_unit_id')->constrained('units')->cascadeOnDelete();
+            $table->foreignId('usim_unit_id')->constrained('usim_units')->cascadeOnDelete();
             $table->foreignId('user_id')->constrained('users')->cascadeOnDelete();
 
             $table->unique(['usim_unit_id', 'user_id']);
@@ -35,7 +35,7 @@ return new class extends Migration {
     public function down(): void
     {
         // Se elimina primero la tabla pivote para liberar las dependencias
-        Schema::dropIfExists('unit_user');
-        Schema::dropIfExists('units');
+        Schema::dropIfExists('usim_unit_user');
+        Schema::dropIfExists('usim_units');
     }
 };

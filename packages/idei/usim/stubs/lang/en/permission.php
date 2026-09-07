@@ -177,4 +177,16 @@ return [
         'name' => 'Write Access',
         'description' => 'Allows creating and modifying content.',
     ],
+    'approve' => [
+        'publications' => [
+            'name' => 'Approve Publications',
+            'description' => 'Allows approving or rejecting publications submitted by users.',
+        ],
+    ],
+    'registered' => [
+        'access' => [
+            'name' => 'Access Registered',
+            'description' => 'Permission to access Registered.',
+        ],
+    ],
 ];

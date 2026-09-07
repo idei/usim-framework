@@ -177,4 +177,16 @@ return [
         'name' => 'Acceso de Escritura',
         'description' => 'Permite crear y modificar contenido.',
     ],
+    'approve' => [
+        'publications' => [
+            'name' => 'Aprobar Publicaciones',
+            'description' => 'Permite aprobar o rechazar publicaciones enviadas por los usuarios.',
+        ],
+    ],
+    'registered' => [
+        'access' => [
+            'name' => 'Acceder a Registered',
+            'description' => 'Permite acceder a la pantalla Registered.',
+        ],
+    ],
 ];
