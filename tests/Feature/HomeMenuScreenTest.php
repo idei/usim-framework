@@ -1,13 +1,13 @@
 <?php
 
 use App\Models\User;
+use App\Services\User\UsimUserService;
 use App\UI\Screens\Admin\TranslateManager;
 use App\UI\Screens\Admin\UsersManager;
 use App\UI\Screens\Auth\Profile;
 use App\UI\Screens\Home;
 use App\UI\Screens\Menu;
 use Idei\Usim\Models\UsimUnit;
-use Idei\Usim\Services\UsimUserService;
 
 it('returns home screen with expected core components', function () {
     $ui = uiScenario($this, Home::class, ['reset' => true]);

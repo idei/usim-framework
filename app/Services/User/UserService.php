@@ -1,13 +1,11 @@
 <?php
-
 // @usim: feature="admin", type="service"
-
 namespace App\Services\User;
 
 use App\Models\User;
+use App\Services\Units\UsimUnitsService;
 use Idei\Usim\Events\UsimEvent;
 use Idei\Usim\Models\UsimUnit;
-use Idei\Usim\Services\UsimUnitsService;
 use Illuminate\Auth\Events\Verified;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Auth;

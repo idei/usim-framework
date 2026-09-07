@@ -1,13 +1,13 @@
 <?php
-
+// @usim: feature="admin", type="service"
 namespace App\Services\Auth;
 
 use App\Models\User;
+use App\Services\Units\UnitContextResolver;
 use Idei\Usim\Events\UsimEvent;
 use Idei\Usim\Models\UsimUnit;
 use Idei\Usim\Screen;
 use Idei\Usim\Support\UIStateManager;
-use Idei\Usim\Support\UnitContextResolver;
 use Illuminate\Support\Facades\Auth;
 
 class AuthSessionService

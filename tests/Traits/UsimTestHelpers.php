@@ -3,10 +3,10 @@
 namespace Tests\Traits;
 
 use App\Models\User;
+use App\Services\User\UsimUserService;
 use App\UI\Screens\Auth\Login;
 use Idei\Usim\Models\UsimUnit;
 use Idei\Usim\Screen;
-use Idei\Usim\Services\UsimUserService;
 use Illuminate\Testing\TestResponse;
 use InvalidArgumentException;
 use Spatie\Permission\Models\Permission;
@@ -25,7 +25,7 @@ trait UsimTestHelpers
      *
      * @param string $role
      * @param class-string<Screen>|null $withScreenPermission
-     * @return array{user: User, response: \Illuminate\Testing\TestResponse, config: array<string, mixed>}
+     * @return array{user: User, response: TestResponse, config: array<string, mixed>}
      */
     public function loginAs(string $role, ?string $withScreenPermission = null): array
     {
@@ -63,7 +63,7 @@ trait UsimTestHelpers
         ]);
         $user->assignRole($role);
 
-        /** @var \Illuminate\Testing\TestResponse $uiResponse */
+        /** @var TestResponse $uiResponse */
         $uiResponse = getScreenJson($this, Login::class);
         $uiResponse->assertOk();
         $componentId = serviceRootComponentId($uiResponse->json());

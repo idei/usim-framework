@@ -1,6 +1,6 @@
 <?php
-
-namespace Idei\Usim\Services;
+// @usim: feature="admin", type="service"
+namespace App\Services\Units;
 
 use App\Models\User;
 use Idei\Usim\Models\UsimUnit;

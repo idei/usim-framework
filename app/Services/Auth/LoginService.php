@@ -1,5 +1,5 @@
 <?php
-
+// @usim: feature="admin", type="service"
 namespace App\Services\Auth;
 
 use App\Models\User;

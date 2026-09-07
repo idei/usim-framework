@@ -1,9 +1,9 @@
 <?php
 
 use App\Models\User;
+use App\Services\Units\UsimUnitsService;
 use Idei\Usim\Models\UsimRole;
 use Idei\Usim\Models\UsimUnit;
-use Idei\Usim\Services\UsimUnitsService;
 
 it('returns empty array when user has no units or roles', function () {
     $user = User::factory()->create();

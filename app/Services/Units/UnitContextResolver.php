@@ -1,6 +1,6 @@
 <?php
-
-namespace Idei\Usim\Support;
+// @usim: feature="admin", type="service"
+namespace App\Services\Units;
 
 use Idei\Usim\Models\UsimUnit;
 use Illuminate\Contracts\Auth\Authenticatable;

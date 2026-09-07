@@ -8,7 +8,7 @@ use {{ userModel }};
 use App\Services\User\UserListingService;
 use Idei\Usim\Components\Table;
 use Idei\Usim\DataTable\AbstractTableModel;
-use Idei\Usim\Services\UsimUnitsService;
+use App\Services\Units\UsimUnitsService;
 
 class UserTableModel extends AbstractTableModel
 {

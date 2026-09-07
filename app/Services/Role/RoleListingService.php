@@ -1,7 +1,5 @@
 <?php
-
 // @usim: feature="admin", type="service"
-
 namespace App\Services\Role;
 
 use Idei\Usim\Models\UsimRole;

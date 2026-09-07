@@ -5,10 +5,10 @@
 namespace App\UI\Screens\Admin\TableModels;
 
 use App\Models\User;
+use App\Services\Units\UsimUnitsService;
 use App\Services\User\UserListingService;
 use Idei\Usim\Components\Table;
 use Idei\Usim\DataTable\AbstractTableModel;
-use Idei\Usim\Services\UsimUnitsService;
 
 class UserTableModel extends AbstractTableModel
 {

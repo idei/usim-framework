@@ -1,12 +1,15 @@
 <?php
 
 use App\Models\User;
+use App\Services\Units\UnitContextResolver;
 use App\Services\User\UserService;
 use App\UI\Components\Modals\EditUserDialog;
 use App\UI\Screens\Admin\TableModels\UserTableModel;
+use App\UI\Screens\Admin\UsersManager;
 use Idei\Usim\Models\UsimUnit;
 use Idei\Usim\UI;
 use Spatie\Permission\Models\Role;
+use Tests\TestCase;
 
 it('adapts table columns and role labels in Simple Mode (only system units)', function () {
     // Ensure only system units exist
@@ -316,15 +319,16 @@ it('resolves the operational unit selected in store_unit for root user in UsersM
     $rootUser->syncRoles(['root']);
     setPermissionsTeamId(null);
 
+    /** @var TestCase $this */
     $this->actingAs($rootUser);
 
     // UnitContextResolver::resolve directly for root with operational unit slug
-    $resolved = Idei\Usim\Support\UnitContextResolver::resolve($rootUser, 'idei');
+    $resolved = UnitContextResolver::resolve($rootUser, 'idei');
     expect($resolved)->not->toBeNull();
     expect($resolved->slug)->toBe('idei');
 
     // Inside UsersManager screen context with injected store_unit
-    $manager = app(App\UI\Screens\Admin\UsersManager::class);
+    $manager = app(UsersManager::class);
     $reflection = new ReflectionClass($manager);
     $prop = $reflection->getProperty('store_unit');
     $prop->setAccessible(true);

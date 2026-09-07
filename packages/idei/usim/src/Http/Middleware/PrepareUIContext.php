@@ -2,9 +2,9 @@
 
 namespace Idei\Usim\Http\Middleware;
 
+use App\Services\Units\UnitContextResolver;
 use Closure;
 use Idei\Usim\Support\UIStateManager;
-use Idei\Usim\Support\UnitContextResolver;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 
