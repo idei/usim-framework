@@ -73,7 +73,7 @@ show_help() {
     echo -e "  ${GREEN}-f, --feature <nombre>${NC}   Sincroniza solo los archivos de una feature específica"
     echo -e "                           (ej. core, auth, lang, settings)."
     echo -e "  ${GREEN}-t, --type <tipo>${NC}        Filtra por tipo de recurso"
-    echo -e "                           (screen, component, service, controller, model,"
+    echo -e "                           (screen, component, service, contract, controller, model,"
     echo -e "                            migration, seeder, factory, test, view, lang, asset, script)."
     echo -e "  ${GREEN}-n, --dry-run${NC}            Simula la ejecución mostrando los archivos que serían"
     echo -e "                           creados o modificados sin tocar el disco."
@@ -259,7 +259,7 @@ matches_exclude_pattern() {
     local filename="$1"
     local rel_to_dir="$2"
     local patterns="$3"
-    
+
     [[ -z "$patterns" ]] && return 1
 
     # Normalizar separadores y quitar comillas/corchetes
@@ -268,7 +268,7 @@ matches_exclude_pattern() {
     clean_patterns="${clean_patterns//\]/}"
     clean_patterns="${clean_patterns//\"/}"
     clean_patterns="${clean_patterns//\'/}"
-    
+
     for pat in $clean_patterns; do
         [[ -z "$pat" ]] && continue
         # shellcheck disable=SC2053
@@ -285,6 +285,7 @@ infer_type_from_path() {
     case "$rel_path" in
         app/UI/Screens/*)     echo "screen" ;;
         app/UI/Components/*)  echo "component" ;;
+        app/Contracts/*)      echo "contract" ;;
         app/Services/*)       echo "service" ;;
         app/Http/Controllers/*) echo "controller" ;;
         app/Models/*)         echo "model" ;;
@@ -310,6 +311,7 @@ resolve_default_target() {
         case "$type" in
             screen)     echo "screens/${subpath%.stub}.stub" ;;
             component)  echo "components/${subpath%.stub}.stub" ;;
+            contract)   echo "contracts/${subpath%.stub}.stub" ;;
             service)    echo "services/${subpath%.stub}.stub" ;;
             controller) echo "controllers/${subpath%.stub}.stub" ;;
             model)      echo "models/${subpath%.stub}.stub" ;;
@@ -334,6 +336,10 @@ resolve_default_target() {
         component)
             local rel="${src_rel#app/UI/Components/}"
             echo "components/${rel}.stub"
+            ;;
+        contract)
+            local rel="${src_rel#app/Contracts/}"
+            echo "contracts/${rel}.stub"
             ;;
         service)
             local rel="${src_rel#app/Services/}"
@@ -595,6 +601,13 @@ transform_content_to_stub() {
             content="$(echo "$content" | sed -E 's|use App\\UI\\Components\\|use {{ componentsNamespace }}\\|g')"
             # Reemplazar imports cruzados de Screens
             content="$(echo "$content" | sed -E 's|use App\\UI\\Screens\\|use {{ screensNamespace }}\\|g')"
+            # Reemplazar imports de modelo User
+            content="$(echo "$content" | sed -E 's|use App\\Models\\User;|use {{ userModel }};|g')"
+            ;;
+
+        contract)
+            # Reemplazar declaración de namespace de contratos
+            content="$(echo "$content" | sed -E 's|^namespace App\\Contracts(\\[a-zA-Z0-9_]+)*;|namespace {{ namespace }};|g')"
             # Reemplazar imports de modelo User
             content="$(echo "$content" | sed -E 's|use App\\Models\\User;|use {{ userModel }};|g')"
             ;;
@@ -916,6 +929,7 @@ echo ""
 # Escanear directorios clave del monorepo
 SCAN_DIRS=(
     "app/UI"
+    "app/Contracts"
     "app/Services"
     "app/Http/Controllers"
     "app/Models"

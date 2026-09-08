@@ -23,7 +23,7 @@ flowchart LR
 
 Para que un archivo sea reconocido y sincronizado como stub, se debe incluir la directiva `@usim` (o `@usim-stub`) en su cabecera:
 
-### A. Archivos PHP (Screens, Services, Models, Controllers, Tests, Seeders)
+### A. Archivos PHP (Screens, Components, Contracts, Services, Models, Controllers, Tests, Seeders)
 Se coloca en las primeras líneas del archivo (debajo de `<?php`):
 
 ```php
@@ -36,6 +36,21 @@ namespace App\UI\Screens\Auth;
 use App\UI\Screens\Home;
 use App\UI\Components\Modals\LoginDialog;
 use App\Models\User;
+```
+
+Las interfaces reutilizables pueden declararse con `type="contract"` y deben ubicarse en `app/Contracts/`, usando el namespace `App\Contracts`:
+
+```php
+<?php
+
+// @usim: feature="admin", type="contract"
+
+namespace App\Contracts;
+
+interface UnitsServiceContract
+{
+   // ...
+}
 ```
 
 ### B. Vistas Blade (`resources/views/`)
@@ -99,7 +114,7 @@ Para exportar **carpetas enteras** (como `lang/es/`, directorios de assets, o m�
 | Atributo | Requerido | Valores / Formato | Propósito y Descripción |
 | :--- | :---: | :--- | :--- |
 | `feature` | Opcional | `"core"`, `"auth"`, `"lang"`, `"settings"`, etc. | Define a qué módulo/feature pertenece el recurso. Si se omite, por defecto es `"core"`. |
-| `type` | Opcional | `"screen"`, `"component"`, `"service"`, `"controller"`, `"model"`, `"migration"`, `"seeder"`, `"factory"`, `"test"`, `"view"`, `"lang"`, `"asset"`, `"script"` | Tipo lógico del recurso. Si se omite, se infiere automáticamente de la ruta. |
+| `type` | Opcional | `"screen"`, `"component"`, `"contract"`, `"service"`, `"controller"`, `"model"`, `"migration"`, `"seeder"`, `"factory"`, `"test"`, `"view"`, `"lang"`, `"asset"`, `"script"` | Tipo lógico del recurso. Para interfaces, usa `"contract"` y ubica el archivo en `app/Contracts/`. Si se omite, se infiere automáticamente de la ruta. |
 | `recursive` | Opcional | `"true"` (default), `"false"` | *(Exclusivo de `.usim-dir.meta`)* Aplica la directiva recursivamente a subdirectorios. |
 | `exclude` | Opcional | `"*.tmp,Draft*"` | *(Exclusivo de `.usim-dir.meta`)* Lista de patrones glob a ignorar. |
 | `target` | Opcional | Ruta relativa en `stubs/` (ej. `"screens/Admin/Dashboard.php.stub"`) | Permite sobrescribir la ruta destino o renombrar el archivo en el paquete de stubs. |
@@ -116,6 +131,7 @@ El script aplica transformaciones inversas de forma automática según el `type`
 | :--- | :--- | :--- | :--- |
 | `screen` | `app/UI/Screens/Auth/Login.php` | `screens/Auth/Login.php.stub` | `namespace` $\rightarrow$ `{{ namespace }}`<br>`App\UI\Screens\` $\rightarrow$ `{{ screensNamespace }}\`<br>`App\UI\Components\` $\rightarrow$ `{{ componentsNamespace }}\`<br>`App\Models\User` $\rightarrow$ `{{ userModel }}` |
 | `component` | `app/UI/Components/Modals/LoginDialog.php` | `components/Modals/LoginDialog.php.stub` | `namespace` $\rightarrow$ `{{ componentsNamespace }}`<br>`App\UI\Components\` $\rightarrow$ `{{ componentsNamespace }}\`<br>`App\UI\Screens\` $\rightarrow$ `{{ screensNamespace }}\` |
+| `contract` | `app/Contracts/UnitsServiceContract.php` | `contracts/UnitsServiceContract.php.stub` | `namespace App\Contracts` $\rightarrow$ `namespace {{ namespace }}`<br>`App\Models\User` $\rightarrow$ `{{ userModel }}` |
 | `service` | `app/Services/Auth/LoginService.php` | `services/Auth/LoginService.php.stub` | `namespace` $\rightarrow$ `{{ namespace }}`<br>`App\Models\User` $\rightarrow$ `{{ userModel }}` |
 | `controller` | `app/Http/Controllers/Api/AuthController.php` | `controllers/AuthController.php.stub` | `namespace` $\rightarrow$ `{{ namespace }}`<br>`App\Models\User` $\rightarrow$ `{{ userModel }}` |
 | `model` | `app/Models/User.php` | `models/User.php.stub` | `namespace` $\rightarrow$ `{{ namespace }}` |
