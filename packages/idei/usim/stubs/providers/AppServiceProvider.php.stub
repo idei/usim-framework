@@ -1,6 +1,6 @@
 <?php
 // @usim: feature="admin", type="provider"
-namespace App\Providers;
+namespace {{ namespace }};
 
 use App\Contracts\UnitsServiceContract;
 use App\Contracts\UnitTranslationGeneratorContract;

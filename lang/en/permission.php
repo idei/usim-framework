@@ -187,4 +187,10 @@ return [
             'description' => 'Permission to access Registered.',
         ],
     ],
+    'menu_stub' => [
+        'access' => [
+            'name' => 'Access Menu Stub',
+            'description' => 'Permission to access Menu Stub.',
+        ],
+    ],
 ];

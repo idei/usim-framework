@@ -73,7 +73,7 @@ show_help() {
     echo -e "  ${GREEN}-f, --feature <nombre>${NC}   Sincroniza solo los archivos de una feature específica"
     echo -e "                           (ej. core, auth, lang, settings)."
     echo -e "  ${GREEN}-t, --type <tipo>${NC}        Filtra por tipo de recurso"
-    echo -e "                           (screen, component, service, contract, controller, model,"
+    echo -e "                           (screen, component, service, provider, contract, controller, model,"
     echo -e "                            migration, seeder, factory, test, view, lang, asset, script, resource)."
     echo -e "  ${GREEN}-n, --dry-run${NC}            Simula la ejecución mostrando los archivos que serían"
     echo -e "                           creados o modificados sin tocar el disco."
@@ -287,6 +287,7 @@ infer_type_from_path() {
         app/UI/Components/*)  echo "component" ;;
         app/Contracts/*)      echo "contract" ;;
         app/Services/*)       echo "service" ;;
+        app/Providers/*)      echo "provider" ;;
         app/Http/Controllers/*) echo "controller" ;;
         app/Models/*)         echo "model" ;;
         database/migrations/*)echo "migration" ;;
@@ -314,6 +315,7 @@ resolve_default_target() {
             component)  echo "components/${subpath%.stub}.stub" ;;
             contract)   echo "contracts/${subpath%.stub}.stub" ;;
             service)    echo "services/${subpath%.stub}.stub" ;;
+            provider)   echo "providers/${subpath%.stub}.stub" ;;
             controller) echo "controllers/${subpath%.stub}.stub" ;;
             model)      echo "models/${subpath%.stub}.stub" ;;
             migration)  echo "migrations/${subpath%.stub}.stub" ;;
@@ -346,6 +348,10 @@ resolve_default_target() {
         service)
             local rel="${src_rel#app/Services/}"
             echo "services/${rel}.stub"
+            ;;
+        provider)
+            local rel="${src_rel#app/Providers/}"
+            echo "providers/${rel}.stub"
             ;;
         controller)
             local rel="${src_rel#app/Http/Controllers/}"
@@ -621,6 +627,13 @@ transform_content_to_stub() {
         service)
             # Reemplazar declaración de namespace de servicios
             content="$(echo "$content" | sed -E 's|^namespace App\\Services(\\[a-zA-Z0-9_]+)*;|namespace {{ namespace }};|g')"
+            # Reemplazar imports de modelo User
+            content="$(echo "$content" | sed -E 's|use App\\Models\\User;|use {{ userModel }};|g')"
+            ;;
+
+        provider)
+            # Reemplazar declaración de namespace de proveedores
+            content="$(echo "$content" | sed -E 's|^namespace App\\Providers(\\[a-zA-Z0-9_]+)*;|namespace {{ namespace }};|g')"
             # Reemplazar imports de modelo User
             content="$(echo "$content" | sed -E 's|use App\\Models\\User;|use {{ userModel }};|g')"
             ;;
@@ -937,6 +950,7 @@ SCAN_DIRS=(
     "app/UI"
     "app/Contracts"
     "app/Services"
+    "app/Providers"
     "app/Http/Controllers"
     "app/Models"
     "database/migrations"

@@ -3,13 +3,18 @@
 namespace Idei\Usim\Console\Commands\Support;
 
 use Idei\Usim\Support\CodeModifier\ClassModifier;
+use Idei\Usim\Support\CodeModifier\StubClassAnalyzer;
+use Idei\Usim\Support\CodeModifier\StubClassMerger;
 use Illuminate\Filesystem\Filesystem;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
 class InstallAppScaffoldingManager
 {
-    public function __construct(private readonly Filesystem $files)
-    {
+    public function __construct(
+        private readonly Filesystem $files,
+        private readonly StubClassAnalyzer $stubClassAnalyzer,
+        private readonly StubClassMerger $stubClassMerger,
+    ) {
     }
 
     /**
@@ -85,6 +90,11 @@ class InstallAppScaffoldingManager
         $newLine();
         $info('Installing EventServiceProvider...');
         $this->installEventServiceProvider($context, $publishStub, $line);
+        $this->registerBootstrapProviders($line);
+
+        $newLine();
+        $info('Installing AppServiceProvider...');
+        $this->installAppServiceProvider($context, $publishStub, $line);
         $this->registerBootstrapProviders($line);
 
         $newLine();
@@ -182,6 +192,9 @@ class InstallAppScaffoldingManager
         $this->installService('Role/RoleListingService.php.stub', 'RoleListingService.php', 'Role', $context, $publishStub, $line);
         $this->installService('Units/UnitContextResolver.php.stub', 'UnitContextResolver.php', 'Units', $context, $publishStub, $line);
         $this->installService('Units/UsimUnitsService.php.stub', 'UsimUnitsService.php', 'Units', $context, $publishStub, $line);
+        $this->installService('Units/UnitsService.php.stub', 'UnitsService.php', 'Units', $context, $publishStub, $line);
+        $this->installService('Units/UnitSyncResult.php.stub', 'UnitSyncResult.php', 'Units', $context, $publishStub, $line);
+        $this->installService('Units/UnitTranslationGenerator.php.stub', 'UnitTranslationGenerator.php', 'Units',$context, $publishStub, $line);
 
         $this->installService('Permissions/PermissionListingService.php.stub', 'PermissionListingService.php', 'Permissions', $context, $publishStub, $line);
     }
@@ -411,9 +424,9 @@ class InstallAppScaffoldingManager
      * Configures the User model for USIM auth requirements.
      *
      * If the User model does not exist, it publishes the stub with default auth configurations.
-     * If it already exists, it injects required traits (HasApiTokens, HasRoles), interfaces
-     * (MustVerifyEmail, CanResetPassword), fillable attributes ('terms_accepted_at'), casts,
-     * the UsimUnit import, and the units() relationship method.
+     * If it already exists, it derives the required traits, interfaces, fillable attributes,
+     * casts, imports and methods directly from the stub and merges only what's missing, so the
+     * stub remains the single source of truth for what a USIM-ready User model needs.
      *
      * @param array<string, string|bool> $context
      * @param callable $publishStub
@@ -422,12 +435,10 @@ class InstallAppScaffoldingManager
     private function configureUserModel(array $context, callable $publishStub, callable $line): void
     {
         $stubsBasePath = (string) $context['stubsBasePath'];
-
+        $stubPath = $stubsBasePath . '/models/User.php.stub';
         $userModelPath = app_path('Models/User.php');
 
         if (!$this->files->exists($userModelPath)) {
-            $stubPath = $stubsBasePath . '/models/User.php.stub';
-
             $publishStub($stubPath, $userModelPath, false, [
                 '{{ namespace }}' => 'App\\Models',
             ]);
@@ -436,35 +447,8 @@ class InstallAppScaffoldingManager
             return;
         }
 
-        ClassModifier::addTraitToClass($userModelPath, 'User', \Laravel\Sanctum\HasApiTokens::class);
-        ClassModifier::addTraitToClass($userModelPath, 'User', \Spatie\Permission\Traits\HasRoles::class);
-
-        ClassModifier::addInterface($userModelPath, 'User', \Illuminate\Contracts\Auth\MustVerifyEmail::class);
-        ClassModifier::addInterface($userModelPath, 'User', \Illuminate\Contracts\Auth\CanResetPassword::class);
-
-        ClassModifier::addPropertyArrayValue($userModelPath, 'User', 'fillable', 'terms_accepted_at');
-        ClassModifier::addCast($userModelPath, 'User', 'terms_accepted_at', 'datetime');
-
-        ClassModifier::addImport($userModelPath, \Idei\Usim\Models\UsimUnit::class);
-        ClassModifier::addImport($userModelPath, \Illuminate\Database\Eloquent\Relations\BelongsToMany::class);
-
-        $unitsMethod = <<<'PHP'
-    /**
-     * Units that the user belongs to.
-     * This manages MEMBERSHIP, independent of the roles (Spatie) they have within it
-     */
-    public function usimUnits(): BelongsToMany
-    {
-        return $this->belongsToMany(
-            UsimUnit::class,
-            'usim_unit_user',
-            'user_id',
-            'usim_unit_id'
-        )->withTimestamps();
-    }
-PHP;
-
-        ClassModifier::addMethodToClass($userModelPath, 'User', $unitsMethod);
+        $spec = $this->stubClassAnalyzer->analyze($stubPath, 'App\\Models');
+        $this->stubClassMerger->merge($userModelPath, 'User', $spec);
 
         $line('  <fg=green>✓</> User model updated with USIM auth defaults');
     }
@@ -479,7 +463,27 @@ PHP;
         $targetPath = app_path('Providers/EventServiceProvider.php');
         $stubPath = $stubsBasePath . '/providers/EventServiceProvider.php.stub';
 
-        $publishStub($stubPath, $targetPath, false, []);
+        $publishStub($stubPath, $targetPath, false, [
+            '{{ namespace }}' => 'App\\Providers',
+        ]);
+
+        $relativePath = str_replace(base_path() . '/', '', $targetPath);
+        $line("  <fg=green>✓</> {$relativePath}");
+    }
+
+    /**
+     * @param array<string, string|bool> $context
+     */
+    private function installAppServiceProvider(array $context, callable $publishStub, callable $line): void
+    {
+        $stubsBasePath = (string) $context['stubsBasePath'];
+
+        $targetPath = app_path('Providers/AppServiceProvider.php');
+        $stubPath = $stubsBasePath . '/providers/AppServiceProvider.php.stub';
+
+        $publishStub($stubPath, $targetPath, true, [
+            '{{ namespace }}' => 'App\\Providers',
+        ]);
 
         $relativePath = str_replace(base_path() . '/', '', $targetPath);
         $line("  <fg=green>✓</> {$relativePath}");

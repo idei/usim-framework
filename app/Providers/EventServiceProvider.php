@@ -1,5 +1,5 @@
 <?php
-// app/Providers/EventServiceProvider.php
+// @usim: feature="admin", type="provider"
 namespace App\Providers;
 
 use Illuminate\Support\Facades\Log;

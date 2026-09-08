@@ -189,4 +189,10 @@ return [
             'description' => 'Permite acceder a la pantalla Registered.',
         ],
     ],
+    'menu_stub' => [
+        'access' => [
+            'name' => 'Acceder a Menu Stub',
+            'description' => 'Permite acceder a la pantalla Menu Stub.',
+        ],
+    ],
 ];

@@ -84,4 +84,17 @@ class User extends Authenticatable implements MustVerifyEmail, CanResetPassword
     {
         return $this->globalRoles()->where('name', 'root')->exists();
     }
+    /**
+     * Checks if the user is registered in the lobby.
+     *
+     * @return bool
+     */
+    public function isRegisteredInLobby(): bool
+    {
+        $defaultRegisteringRole = config('usim.default_registering_role');
+        if (empty($defaultRegisteringRole)) {
+            return false;
+        }
+        return $this->globalRoles()->where('name', $defaultRegisteringRole)->exists() && $this->usimUnits()->where('slug', 'lobby')->exists();
+    }
 }
