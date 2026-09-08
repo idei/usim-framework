@@ -354,12 +354,12 @@ class InstallMigrationStatusChecker
         }
 
         $criticalSignatures = [
-            'create_permission_tables',
+            // 'create_permission_tables',
             'create_usim_languages_table',
             'create_usim_text_keys_table',
             'create_usim_text_values_table',
             'create_usim_role_settings_table',
-            'update_spatie_units_support',
+            // 'update_spatie_units_support',
             'create_units_support_tables',
         ];
 

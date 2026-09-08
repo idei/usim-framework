@@ -18,26 +18,35 @@ echo ""
 echo "1) Preparing Laravel template..."
 
 if [ ! -d "$CACHE_DIR" ]; then
-    echo "Downloading Laravel template (first time only)..."
-    composer create-project laravel/laravel:^12.0 "$CACHE_DIR" --prefer-dist --no-interaction --no-progress
-    cd "$CACHE_DIR"
+	echo "Downloading Laravel template (first time only)..."
+	composer create-project laravel/laravel:^12.0 "$CACHE_DIR" --prefer-dist --no-interaction --no-progress
+	cd "$CACHE_DIR"
 
-    rm composer.lock
+	rm composer.lock
 
-    # Install Pest
-    composer require pestphp/pest --dev -w --no-interaction
+	# Install Pest
+	composer require pestphp/pest --dev -w --no-interaction
 
-    # Initialize Pest
-    ./vendor/bin/pest --init --no-interaction
+	# Initialize Pest
+	./vendor/bin/pest --init --no-interaction
 
-    # Now Install Octane in the cached template to speed up future installs
-    composer require laravel/octane
-    php artisan octane:install --server=roadrunner -n
+	# Now Install Octane in the cached template to speed up future installs
+	composer require laravel/octane
+	php artisan octane:install --server=roadrunner -n
 
-    # Config the storagele symlink for the cached template
-    php artisan storage:link
+	# Config the storagele symlink for the cached template
+	php artisan storage:link
+
+	# Install Spatie Laravel-Permission
+	composer require spatie/laravel-permission --no-interaction
+	php artisan vendor:publish --provider="Spatie\Permission\PermissionServiceProvider" --no-interaction
+
+	# Enable teams support in permission config
+	sed -i "s/'teams' => false,/'teams' => true,/" config/permission.php
+	sed -i "s/'team_foreign_key' => 'team_id',/'team_foreign_key' => 'usim_unit_id',/" config/permission.php
+
 else
-    echo "Laravel template already cached."
+	echo "Laravel template already cached."
 fi
 
 echo ""

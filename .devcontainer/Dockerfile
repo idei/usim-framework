@@ -12,14 +12,19 @@ RUN apt-get update && \
 ENV LANG=es_ES.UTF-8
 ENV LC_ALL=es_ES.UTF-8
 
-# Instala PHP 8.3 y extensiones comunes para Laravel, incluyendo SQLite
+# Instala la versión de PHP 8.5 o superior más reciente disponible en el PPA,
+# junto con extensiones comunes para Laravel, incluyendo SQLite
 RUN apt-get update && \
     apt-get install -y software-properties-common tzdata ca-certificates gnupg && \
     add-apt-repository ppa:ondrej/php -y && \
     apt-get update && \
+    PHP_VERSION=$(apt-cache search --names-only '^php8\.[5-9]$' | awk '{print $1}' | sed 's/^php//' | sort -V | tail -n1) && \
+    echo "Instalando PHP ${PHP_VERSION}" && \
     apt-get install -y \
-        php8.3 php8.3-cli php8.3-mbstring php8.3-xml php8.3-bcmath php8.3-curl php8.3-zip \
-        php8.3-sqlite3 php8.3-pdo php8.3-pdo-mysql php8.3-gd php8.3-intl php8.3-readline \
+        php${PHP_VERSION} php${PHP_VERSION}-cli php${PHP_VERSION}-mbstring php${PHP_VERSION}-xml \
+        php${PHP_VERSION}-bcmath php${PHP_VERSION}-curl php${PHP_VERSION}-zip \
+        php${PHP_VERSION}-sqlite3 php${PHP_VERSION}-pdo php${PHP_VERSION}-pdo-mysql \
+        php${PHP_VERSION}-gd php${PHP_VERSION}-intl php${PHP_VERSION}-readline \
         openssl curl git unzip composer \
         # Herramientas de red y diagnóstico
         iputils-ping \

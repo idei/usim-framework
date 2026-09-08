@@ -14,7 +14,7 @@ trait InstallsDatabaseScaffolding
             ['name' => 'create_usim_text_keys_table', 'autoForce' => true],
             ['name' => 'create_usim_text_values_table', 'autoForce' => true],
             ['name' => 'create_usim_role_settings_table', 'autoForce' => true],
-            ['name' => 'update_spatie_units_support', 'autoForce' => true ],
+            // ['name' => 'update_spatie_units_support', 'autoForce' => true ],
             ['name' => 'create_units_support_tables', 'autoForce' => true]
         ];
 
@@ -32,15 +32,15 @@ trait InstallsDatabaseScaffolding
             $this->line('  <fg=blue>→</> Sanctum migrations already exist');
         }
 
-        if (!$this->migrationExists('create_permission_tables')) {
-            $this->callSilently('vendor:publish', [
-                '--provider' => 'Spatie\\Permission\\PermissionServiceProvider',
-                '--tag' => 'permission-migrations',
-            ]);
-            $this->line('  <fg=green>✓</> Spatie Permission migrations published');
-        } else {
-            $this->line('  <fg=blue>→</> Spatie Permission migrations already exist');
-        }
+        // if (!$this->migrationExists('create_permission_tables')) {
+        //     $this->callSilently('vendor:publish', [
+        //         '--provider' => 'Spatie\\Permission\\PermissionServiceProvider',
+        //         '--tag' => 'permission-migrations',
+        //     ]);
+        //     $this->line('  <fg=green>✓</> Spatie Permission migrations published');
+        // } else {
+        //     $this->line('  <fg=blue>→</> Spatie Permission migrations already exist');
+        // }
 
         $this->call('migrate', ['--force' => true]);
         $this->line('  <fg=green>✓</> Migrations executed');
