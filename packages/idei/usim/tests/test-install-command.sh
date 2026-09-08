@@ -61,6 +61,14 @@ if [ ! -f "config/users.php" ]; then
     echo "❌ Error: config/users.php no se creó."
     exit 1
 fi
+if [ ! -f "resources/legal/terms.en.md" ]; then
+    echo "❌ Error: resources/legal/terms.en.md no se creó."
+    exit 1
+fi
+if [ ! -f "resources/legal/terms.es.md" ]; then
+    echo "❌ Error: resources/legal/terms.es.md no se creó."
+    exit 1
+fi
 
 # Verificar sintaxis PHP
 echo "🔍 Verificando sintaxis PHP en archivos generados..."

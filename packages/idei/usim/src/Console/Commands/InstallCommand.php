@@ -252,6 +252,20 @@ class InstallCommand extends Command
                     }
                 );
             },
+            installResources: function (): void {
+                $this->installScaffoldingManager->installResources(
+                    newLine: function (): void {
+                        $this->newLine();
+                    },
+                    info: function (string $message): void {
+                        $this->info($message);
+                    },
+                    line: function (string $message): void {
+                        $this->line($message);
+                    },
+                    stubsPath: fn(string $path): string => $this->stubsPath($path)
+                );
+            },
             installLanguageStubs: function (): void {
                 $this->installLanguageStubsStep();
             },
@@ -414,7 +428,7 @@ class InstallCommand extends Command
      */
     protected function rollbackTrackedPaths(): array
     {
-        return [
+        return array_merge([
             '.env',
             'config/usim.php',
             'config/permission.php',
@@ -449,7 +463,24 @@ class InstallCommand extends Command
             'lang/es/landing.php',
             'lang/es/modal/edit_translation_dialog.php',
             'database/migrations',
-        ];
+        ], $this->resourceStubRollbackPaths());
+    }
+
+    /**
+     * @return array<int, string>
+     */
+    protected function resourceStubRollbackPaths(): array
+    {
+        $sourceRoot = $this->stubsPath('resources');
+
+        if (!$this->files->isDirectory($sourceRoot)) {
+            return [];
+        }
+
+        return array_map(
+            static fn ($file): string => 'resources/' . $file->getRelativePathname(),
+            $this->files->allFiles($sourceRoot)
+        );
     }
 
     // =========================================================================

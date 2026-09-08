@@ -1,10 +1,11 @@
 <?php
-
+// @usim: feature="admin", type="component"
 namespace {{ componentsNamespace }};
 
-use Idei\Usim\UI;
-use Idei\Usim\Enums\LayoutType;
 use Idei\Usim\Enums\JustifyContent;
+use Idei\Usim\Enums\LayoutType;
+use Idei\Usim\UI;
+use Idei\Usim\ValueObjects\Spacing;
 
 /**
  * Login Dialog Service
@@ -13,6 +14,14 @@ use Idei\Usim\Enums\JustifyContent;
  */
 class LoginDialog
 {
+    /**
+     * Build login dialog UI
+     *
+     * @param string $submitAction Action to call when form is submitted
+     * @param string|null $cancelAction Action to call when cancel is clicked
+     * @param int|null $callerServiceId Service ID that will receive callbacks
+     * @return array<int, array<string, mixed>> UI components for the modal
+     */
     public function getUI(
         ?int $callerServiceId = null,
         string $submitAction = 'submit_login',
@@ -20,39 +29,44 @@ class LoginDialog
         string $defaultEmail = '',
         string $defaultPassword = ''
     ): array {
+        // Main container for the modal
         $loginContainer = UI::container('login_dialog')
             ->parent('modal')
             ->shadow(false)
-            ->padding('30px');
+            ->padding(Spacing::px(30));
 
+        // Email input
         $loginContainer->add(
             UI::input('login_email')
-                ->label(t('usim.common.email'))
-                ->placeholder(t('usim.auth.login.placeholder.email'))
+                ->label('Email')
+                ->placeholder('Enter your email')
                 ->value($defaultEmail)
                 ->required(true)
         );
 
+        // Password input
         $loginContainer->add(
             UI::input('login_password')
-                ->label(t('usim.common.password'))
+                ->label('Password')
                 ->type('password')
-                ->placeholder(t('usim.auth.login.placeholder.password'))
+                ->placeholder('Enter your password')
                 ->value($defaultPassword)
                 ->required(true)
         );
 
+        // Buttons container
         $buttonsContainer = UI::container('login_buttons')
             ->layout(LayoutType::HORIZONTAL)
             ->justifyContent(JustifyContent::SPACE_BETWEEN)
-            ->gap('10px')
+            ->gap(Spacing::px(10))
             ->shadow(false)
-            ->padding('20px 0 0 0');
+            ->padding(Spacing::each(Spacing::px(20)));
 
+        // Cancel button
         if ($cancelAction) {
             $buttonsContainer->add(
                 UI::button('btn_cancel_login')
-                    ->label(t('usim.common.cancel'))
+                    ->label('Cancel')
                     ->style('secondary')
                     ->action($cancelAction, [
                         '_caller_service_id' => $callerServiceId
@@ -60,9 +74,10 @@ class LoginDialog
             );
         }
 
+        // Submit button
         $buttonsContainer->add(
             UI::button('btn_submit_login')
-                ->label(t('usim.auth.login.menu_label'))
+                ->label('Login')
                 ->style('primary')
                 ->action($submitAction, [
                     '_caller_service_id' => $callerServiceId

@@ -2,7 +2,6 @@
 
 namespace Idei\Usim\Console\Commands;
 
-use App\Contracts\UnitsServiceContract;
 use Illuminate\Console\Command;
 
 class UsimSyncCommand extends Command
@@ -11,14 +10,17 @@ class UsimSyncCommand extends Command
 
     protected $description = 'Syncs the system configuration with the database. This includes units, roles, permissions, and other related entities.';
 
-    public function __construct(
-        protected UnitsServiceContract $unitsService
-    ) {
-        parent::__construct();
-    }
-
     public function handle(): int
     {
+        // App\Contracts\UnitsServiceContract only exists after `usim:install` has
+        // published its stub, so it must be resolved lazily (not via constructor
+        // injection) to avoid breaking `composer install`/`package:discover` on a
+        // fresh app that hasn't installed USIM yet.
+        if (!interface_exists(\App\Contracts\UnitsServiceContract::class)) {
+            $this->warn('App\\Contracts\\UnitsServiceContract not found. Run "php artisan usim:install" first.');
+            return self::SUCCESS;
+        }
+
         $target = $this->argument('target') ?? 'all';
 
         if (\in_array($target, ['units', 'all'], true)) {
@@ -31,7 +33,9 @@ class UsimSyncCommand extends Command
 
     protected function syncUnits(): void
     {
-        if (!$this->unitsService->isTeamsEnabled()) {
+        $unitsService = $this->laravel->make(\App\Contracts\UnitsServiceContract::class);
+
+        if (!$unitsService->isTeamsEnabled()) {
             $this->warn('Units are disabled in the Spatie (permission.php) configuration. Skipping unit synchronization.');
             return;
         }
@@ -40,7 +44,7 @@ class UsimSyncCommand extends Command
 
         $progressBar = null;
 
-        $result = $this->unitsService->sync(
+        $result = $unitsService->sync(
             onProgress: function (int $current, int $total, string $slug) use (&$progressBar): void {
                 if ($progressBar === null) {
                     $progressBar = $this->output->createProgressBar($total);

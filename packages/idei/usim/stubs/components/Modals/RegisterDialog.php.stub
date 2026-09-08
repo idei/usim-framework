@@ -1,5 +1,5 @@
 <?php
-
+// @usim: feature="admin", type="component"
 namespace {{ componentsNamespace }};
 
 use App\Services\Role\RoleService;
@@ -9,6 +9,7 @@ use Idei\Usim\Models\UsimRole;
 use Idei\Usim\Support\FakeDataHelper;
 use Idei\Usim\UI;
 use Idei\Usim\UIChangesCollector;
+use Idei\Usim\ValueObjects\Spacing;
 
 /**
  * Register Dialog Service
@@ -17,14 +18,35 @@ use Idei\Usim\UIChangesCollector;
  */
 class RegisterDialog
 {
-    public static function open(...$params): void
-    {
+
+    /**
+     * @param string $submitAction
+     * @param string|null $cancelAction
+     * @param bool $fakeData
+     * @param bool $askForRole
+     * @param int|null $callerServiceId
+     */
+    public static function open(
+        string $submitAction = 'submit_register',
+        ?string $cancelAction = 'close_modal',
+        bool $fakeData = false,
+        bool $askForRole = false,
+        ?int $callerServiceId = null
+    ): void {
         $dialog = new self();
-        $format = $dialog->getUI(...$params);
+        $format = $dialog->getUI($submitAction, $cancelAction, $fakeData, $askForRole, $callerServiceId);
         $uiChanges = app(UIChangesCollector::class);
         $uiChanges->add($format);
     }
 
+    /**
+     * Build register dialog UI
+     *
+     * @param string $submitAction Action to call when form is submitted
+     * @param string|null $cancelAction Action to call when cancel is clicked
+     * @param int|null $callerServiceId Service ID that will receive callbacks
+     * @return array<int, array<string, mixed>> UI components for the modal
+     */
     public function getUI(
         string $submitAction = 'submit_register',
         ?string $cancelAction = 'close_modal',
@@ -36,7 +58,8 @@ class RegisterDialog
         $email = '';
         $password = '';
         $password_confirmation = '';
-        $selectedRoles = ['user'];
+        /** @var list<string> $selectedRoles */
+        $selectedRoles = [config('usim.default_registering_role')];
 
         if ($fakeData) {
             $roleService = app(RoleService::class);
@@ -55,13 +78,14 @@ class RegisterDialog
             $password_confirmation = $userData['password_confirmation'];
             $selectedRoles = [$userData['role']];
         }
-
+        // Main container for the modal
         $registerContainer = UI::container('register_dialog')
             ->parent('modal')
             ->shadow(false)
             ->plain()
-            ->padding('20px');
+            ->padding(Spacing::px(20));
 
+        // Name input
         $registerContainer->add(
             UI::input('name')
                 ->label(t('modal.register_dialog.name.label'))
@@ -71,6 +95,7 @@ class RegisterDialog
                 ->autocomplete('off')
         );
 
+        // Email input
         $registerContainer->add(
             UI::input('email')
                 ->label(t('modal.register_dialog.email.label'))
@@ -80,6 +105,7 @@ class RegisterDialog
                 ->autocomplete('off')
         );
 
+        // Password input
         $registerContainer->add(
             UI::input('password')
                 ->label(t('modal.register_dialog.password.label'))
@@ -90,6 +116,7 @@ class RegisterDialog
                 ->autocomplete('new-password')
         );
 
+        // Password confirmation
         $registerContainer->add(
             UI::input('password_confirmation')
                 ->label(t('modal.register_dialog.confirm_password.label'))
@@ -117,6 +144,7 @@ class RegisterDialog
                 ];
             }
 
+            // Role checkbox list
             $registerContainer->add(
                 UI::checkbox('roles')
                     ->label(t('modal.register_dialog.role.label'))
@@ -126,21 +154,42 @@ class RegisterDialog
                     ->required(true)
             );
 
+            // Checkbox for sending verification email
             $registerContainer->add(
                 UI::checkbox('send_verification_email')
                     ->label(t('modal.register_dialog.send_verification_email'))
                     ->checked(true)
             );
+
+        } else {
+
+            // Add Checkbox for accepting terms and conditions
+            $registerContainer->add(
+                UI::checkbox('accept_terms')
+                    ->label(t('modal.register_dialog.accept_terms'))
+                    ->checked(false)
+                    ->required(true)
+            );
+
+            // The link to the page with terms and conditions (a button with link style)
+            $registerContainer->add(
+                UI::button('btn_terms')
+                    ->label(t('modal.register_dialog.read_terms'))
+                    ->style('link')
+                    ->action('open_terms_and_conditions')
+            );
         }
 
+        // Buttons container
         $buttonsContainer = UI::container('register_buttons')
             ->layout(LayoutType::HORIZONTAL)
             ->justifyContent(JustifyContent::SPACE_BETWEEN)
             ->shadow(false)
             ->plain()
-            ->gap('10px')
-            ->padding('10px 0 0 0');
+            ->gap(Spacing::px(10))
+            ->padding(Spacing::each(Spacing::px(10)));
 
+        // Cancel button
         if ($cancelAction) {
             $buttonsContainer->add(
                 UI::button('btn_cancel_register')
@@ -152,6 +201,7 @@ class RegisterDialog
             );
         }
 
+        // Submit button
         $buttonsContainer->add(
             UI::button('btn_submit_register')
                 ->label(t('modal.register_dialog.submit'))

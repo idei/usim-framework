@@ -12,6 +12,7 @@ class InstallWorkflowBuilder
      * @param callable(): void $installCoreScreens
      * @param callable(): void $installAuthScaffolding
      * @param callable(): void $installViews
+    * @param callable(): void $installResources
      * @param callable(): void $installLanguageStubs
      * @param callable(): void $installWebRoutes
      * @param callable(): void $appendEnvVars
@@ -29,6 +30,7 @@ class InstallWorkflowBuilder
         callable $installCoreScreens,
         callable $installAuthScaffolding,
         callable $installViews,
+        callable $installResources,
         callable $installLanguageStubs,
         callable $installWebRoutes,
         callable $appendEnvVars,
@@ -45,6 +47,7 @@ class InstallWorkflowBuilder
             ['key' => 'scaffold.install-screens', 'label' => 'Installing core screens', 'run' => $installCoreScreens],
             ['key' => 'scaffold.install-auth', 'label' => 'Installing auth scaffolding', 'run' => $installAuthScaffolding],
             ['key' => 'scaffold.install-views', 'label' => 'Installing views', 'run' => $installViews],
+            ['key' => 'scaffold.install-resources', 'label' => 'Installing package resources', 'run' => $installResources],
             ['key' => 'scaffold.install-lang-stubs', 'label' => 'Publishing language stubs', 'run' => $installLanguageStubs],
             ['key' => 'routing.install-web-routes', 'label' => 'Installing web routes', 'run' => $installWebRoutes],
             ['key' => 'env.append-usim-vars', 'label' => 'Ensuring USIM env variables', 'run' => $appendEnvVars],

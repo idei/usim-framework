@@ -1,5 +1,5 @@
 <?php
-
+// @usim: feature="admin", type="component"
 namespace App\UI\Components\Modals;
 
 use App\Services\Role\RoleService;

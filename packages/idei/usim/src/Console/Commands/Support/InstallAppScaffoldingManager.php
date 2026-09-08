@@ -22,7 +22,7 @@ class InstallAppScaffoldingManager
         callable $installTranslationManagerScaffolding
     ): void {
         $this->installScreen('Home.php.stub', 'Home.php', null, $context, $publishStub, $line);
-        $this->installScreen('Menu.php.stub', 'Menu.php', null, $context, $publishStub, $line);
+        $this->installScreen('MenuStub.php.stub', 'Menu.php', null, $context, $publishStub, $line);
         $this->installScreen('Registered.php.stub', 'Registered.php', null, $context, $publishStub, $line);
         $this->installScreen('Admin/UsersManager.php.stub', 'UsersManager.php', 'Admin', $context, $publishStub, $line);
 
@@ -42,6 +42,10 @@ class InstallAppScaffoldingManager
         callable $installUsersConfigNotice
     ): void {
         $newLine();
+        $info('Installing Contracts...');
+        $this->installContracts($context, $publishStub, $line);
+
+        $newLine();
         $info('Installing Auth services...');
         $this->installAuthServices($context, $publishStub, $line);
 
@@ -59,6 +63,8 @@ class InstallAppScaffoldingManager
         $this->installComponent('Modals/RegisterDialog.php.stub', 'RegisterDialog.php', 'Modals', $context, $publishStub, $line);
         $this->installComponent('Modals/EditUserDialog.php.stub', 'EditUserDialog.php', 'Modals', $context, $publishStub, $line);
         $this->installComponent('Modals/EditTranslationDialog.php.stub', 'EditTranslationDialog.php', 'Modals', $context, $publishStub, $line);
+        $this->installComponent('Modals/TermsDialog.php.stub', 'TermsDialog.php', 'Modals', $context, $publishStub, $line);
+
 
         $newLine();
         $info('Installing DataTable components...');
@@ -178,6 +184,65 @@ class InstallAppScaffoldingManager
         $this->installService('Units/UsimUnitsService.php.stub', 'UsimUnitsService.php', 'Units', $context, $publishStub, $line);
 
         $this->installService('Permissions/PermissionListingService.php.stub', 'PermissionListingService.php', 'Permissions', $context, $publishStub, $line);
+    }
+
+    /**
+     * @param array<string, string|bool> $context
+     */
+    private function installContracts(array $context, callable $publishStub, callable $line): void
+    {
+        $stubsBasePath = (string) $context['stubsBasePath'];
+        $contractsPath = $stubsBasePath . '/contracts';
+
+        if (!$this->files->isDirectory($contractsPath)) {
+            return;
+        }
+
+        foreach ($this->files->allFiles($contractsPath) as $stubFile) {
+            if ($stubFile->getExtension() !== 'stub') {
+                continue;
+            }
+
+            $stubName = ltrim(str_replace($contractsPath, '', $stubFile->getPathname()), DIRECTORY_SEPARATOR);
+            $targetName = preg_replace('/\.stub$/', '', $stubName);
+
+            if (!is_string($targetName) || $targetName === '') {
+                continue;
+            }
+
+            $this->installContract($stubName, $targetName, $context, $publishStub, $line);
+        }
+    }
+
+    /**
+     * @param array<string, string|bool> $context
+     */
+    private function installContract(
+        string $stubName,
+        string $targetName,
+        array $context,
+        callable $publishStub,
+        callable $line
+    ): void {
+        $stubsBasePath = (string) $context['stubsBasePath'];
+        $userModelImport = (string) $context['userModelImport'];
+        $userModelClass = (string) $context['userModelClass'];
+
+        $stubPath = $stubsBasePath . '/contracts/' . $stubName;
+        $targetFile = app_path('Contracts/' . $targetName);
+        $subdirectory = dirname($targetName);
+        $namespace = $subdirectory === '.'
+            ? 'App\\Contracts'
+            : 'App\\Contracts\\' . str_replace('/', '\\', $subdirectory);
+
+        $publishStub($stubPath, $targetFile, false, [
+            '{{ namespace }}' => $namespace,
+            '{{ userModel }}' => $userModelImport,
+            '{{ userModelClass }}' => $userModelClass,
+        ]);
+
+        $relativePath = str_replace(base_path() . '/', '', $targetFile);
+        $line("  <fg=green>✓</> {$relativePath}");
     }
 
     /**

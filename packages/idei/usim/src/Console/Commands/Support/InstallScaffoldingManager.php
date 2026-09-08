@@ -54,6 +54,54 @@ class InstallScaffoldingManager
         }
     }
 
+    /**
+     * Copy every package resource stub into the consuming application while
+     * preserving the directory structure under stubs/resources.
+     */
+    public function installResources(callable $newLine, callable $info, callable $line, callable $stubsPath): void
+    {
+        $newLine();
+        $info('Publishing package resources...');
+
+        $sourceRoot = $stubsPath('resources');
+        $targetRoot = resource_path();
+
+        if (!$this->files->isDirectory($sourceRoot)) {
+            $line('  <fg=yellow>!</> stubs/resources not found, skipping');
+            return;
+        }
+
+        $created = 0;
+        $skipped = 0;
+
+        foreach ($this->files->allFiles($sourceRoot) as $sourceFile) {
+            $relativePath = $sourceFile->getRelativePathname();
+            $targetPath = $targetRoot . DIRECTORY_SEPARATOR . $relativePath;
+
+            if ($this->files->exists($targetPath)) {
+                $skipped++;
+                continue;
+            }
+
+            $targetDirectory = dirname($targetPath);
+            if (!$this->files->isDirectory($targetDirectory)) {
+                $this->files->makeDirectory($targetDirectory, 0755, true);
+            }
+
+            $this->files->copy($sourceFile->getPathname(), $targetPath);
+            $created++;
+            $relativeTarget = str_replace(base_path() . '/', '', $targetPath);
+            $line("  <fg=green>✓</> {$relativeTarget}");
+        }
+
+        if ($created === 0) {
+            $line('  <fg=blue>→</> Package resources already present, no files copied');
+            return;
+        }
+
+        $line("  <fg=blue>→</> Package resources copied: {$created} (skipped: {$skipped})");
+    }
+
     public function installUsersConfigNotice(callable $line): void
     {
         $line('  <fg=blue>→</> Users config now lives in config/usim.php (usim.users.*)');

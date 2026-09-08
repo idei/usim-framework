@@ -6,6 +6,9 @@ The format is based on Keep a Changelog, and this project follows Semantic Versi
 
 ## [Unreleased]
 
+### Added
+- `usim:install` now recursively publishes all files under `stubs/resources` into the consuming application's `resources` directory while preserving their relative paths and existing files.
+
 ### Changed
 - Unified published package configuration into `config/usim.php` (includes `users.roles`), replacing the previous split publish target (`config/ui-services.php` + `config/users.php`) for new installs.
 - Runtime config resolution now uses `usim.*` keys only; legacy `ui-services.*` fallbacks were removed.

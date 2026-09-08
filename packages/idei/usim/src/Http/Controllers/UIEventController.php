@@ -85,6 +85,8 @@ class UIEventController extends Controller
 
             return response()->json($this->uiChanges->all());
         } catch (\Throwable $exception) {
+            report($exception);
+
             return $this->internalErrorResponse($exception);
         }
     }

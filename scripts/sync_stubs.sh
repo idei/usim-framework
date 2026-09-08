@@ -74,7 +74,7 @@ show_help() {
     echo -e "                           (ej. core, auth, lang, settings)."
     echo -e "  ${GREEN}-t, --type <tipo>${NC}        Filtra por tipo de recurso"
     echo -e "                           (screen, component, service, contract, controller, model,"
-    echo -e "                            migration, seeder, factory, test, view, lang, asset, script)."
+    echo -e "                            migration, seeder, factory, test, view, lang, asset, script, resource)."
     echo -e "  ${GREEN}-n, --dry-run${NC}            Simula la ejecución mostrando los archivos que serían"
     echo -e "                           creados o modificados sin tocar el disco."
     echo -e "  ${GREEN}-l, --list-features${NC}      Escanea el proyecto y lista todas las features y recursos"
@@ -294,6 +294,7 @@ infer_type_from_path() {
         database/factories/*) echo "factory" ;;
         tests/*)              echo "test" ;;
         resources/views/*)    echo "view" ;;
+        resources/*)          echo "resource" ;;
         lang/*)               echo "lang" ;;
         scripts/*)            echo "script" ;;
         public/*)             echo "asset" ;;
@@ -320,6 +321,7 @@ resolve_default_target() {
             factory)    echo "factories/${subpath%.stub}.stub" ;;
             test)       echo "tests/${subpath%.stub}.stub" ;;
             view)       echo "views/$subpath" ;;
+            resource)   echo "resources/$subpath" ;;
             lang)       echo "lang/$subpath" ;;
             script)     echo "scripts/${subpath%.stub}.stub" ;;
             asset)      echo "assets/$subpath" ;;
@@ -374,6 +376,10 @@ resolve_default_target() {
         view)
             local rel="${src_rel#resources/views/}"
             echo "views/$rel"
+            ;;
+        resource)
+            local rel="${src_rel#resources/}"
+            echo "resources/$rel"
             ;;
         lang)
             local rel="${src_rel#lang/}"
@@ -937,6 +943,7 @@ SCAN_DIRS=(
     "database/seeders"
     "database/factories"
     "tests"
+    "resources"
     "resources/views"
     "lang"
     "scripts"

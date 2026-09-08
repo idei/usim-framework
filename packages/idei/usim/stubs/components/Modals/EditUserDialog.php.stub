@@ -1,7 +1,5 @@
 <?php
-
 // @usim: feature="admin", type="component"
-
 namespace {{ componentsNamespace }};
 
 use App\Services\Role\RoleService;

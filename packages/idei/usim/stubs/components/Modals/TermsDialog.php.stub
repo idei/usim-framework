@@ -1,6 +1,6 @@
 <?php
 // @usim: feature="admin", type="component"
-namespace App\UI\Components\Modals;
+namespace {{ componentsNamespace }};
 
 use Idei\Usim\Enums\JustifyContent;
 use Idei\Usim\Enums\LayoutType;
