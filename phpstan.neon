@@ -9,6 +9,9 @@ parameters:
         - routes/
         - packages/
     level: 9
+    excludePaths:
+        - database/migrations/*_create_permission_tables.php
+
     ignoreErrors:
         -
             identifier: larastan.noEnvCallsOutsideOfConfig
