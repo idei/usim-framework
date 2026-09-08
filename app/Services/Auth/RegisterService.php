@@ -72,7 +72,11 @@ class RegisterService
 
             // Asignación de unidad y contexto de Spatie si Teams está activo
             if (config('permission.teams')) {
-                $unitSlug = $unit ?? 'main';
+                /** @var string $defaultRegisteringRole */
+                $defaultRegisteringRole = config('usim.default_registering_role', 'registered');
+                // Users registering with only the pending/default role must land in 'lobby', not 'main'
+                $isPendingRegistration = $roles === [$defaultRegisteringRole];
+                $unitSlug = $unit ?? ($isPendingRegistration ? 'lobby' : 'main');
                 $modelUnit = UsimUnit::firstOrCreate(['slug' => $unitSlug]);
 
                 $user->usimUnits()->syncWithoutDetaching([$modelUnit->id]);
