@@ -37,7 +37,7 @@ use InvalidArgumentException;
  *
  * Builds the main navigation menu for screens
  */
-class MenuStub extends Screen
+class Menu extends Screen
 {
     public function __construct(
         protected RegisterService $registerService,

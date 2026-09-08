@@ -575,6 +575,10 @@ inspect_path() {
     if [[ "$skip" == "true" ]]; then
         echo -e "Flag Skip:       ${YELLOW}Marcado como skip=true (se ignorará durante la ejecución)${NC}"
     fi
+    local as_class="$(extract_meta_attr "$directive" "as-class")"
+    if [[ -n "$as_class" ]]; then
+        echo -e "Renombre Clase:  ${YELLOW}as-class=\"${as_class}\"${NC} (la clase del stub generado se llamará ${as_class})"
+    fi
     echo ""
     echo -e "Directiva:       ${GRAY}$directive${NC}"
     echo ""
@@ -589,9 +593,15 @@ transform_content_to_stub() {
     local type="$2"
     local feature="$3"
     local subpath="$4"
+    local as_class="$5"
 
     local content
     content="$(cat "$src_file")"
+
+    # Renombrar la declaración de clase de nivel superior si se indicó as-class="..."
+    if [[ -n "$as_class" ]]; then
+        content="$(echo "$content" | sed -E "s/^class [A-Za-z_][A-Za-z0-9_]*/class ${as_class}/")"
+    fi
 
     # 1. Transformaciones específicas según el tipo de recurso
     case "$type" in
@@ -759,6 +769,7 @@ process_file() {
     local target="$(extract_meta_attr "$directive" "target")"
     local subpath="$(extract_meta_attr "$directive" "subpath")"
     local skip="$(extract_meta_attr "$directive" "skip")"
+    local as_class="$(extract_meta_attr "$directive" "as-class")"
 
     # Valores por defecto
     feature="${feature:-core}"
@@ -870,7 +881,7 @@ process_file() {
     # Archivo de texto: aplicar transformaciones (perezoso: solo si va a escribir a disco o mostrar preview)
     local transformed_content=""
     if [ "$DRY_RUN" = false ] || [ "$VERBOSE" = true ]; then
-        transformed_content="$(transform_content_to_stub "$src_file" "$type" "$feature" "$subpath")"
+        transformed_content="$(transform_content_to_stub "$src_file" "$type" "$feature" "$subpath" "$as_class")"
     fi
 
     if [ "$DRY_RUN" = true ]; then

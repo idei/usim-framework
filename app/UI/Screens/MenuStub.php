@@ -1,5 +1,5 @@
 <?php
-// @usim: feature="admin", type="screen"
+// @usim: feature="admin", type="screen", as-class="Menu"
 namespace App\UI\Screens;
 
 use App\Models\User;
