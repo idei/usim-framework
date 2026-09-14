@@ -2,7 +2,6 @@
 
 namespace Idei\Usim\Models;
 
-use App\Models\Device;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -61,7 +60,11 @@ class UsimUnit extends Model
 
     public function devices(): MorphToMany
     {
-        return $this->morphedByMany(Device::class, 'actor', 'usim_unit_actors')->withTimestamps();
+        // Resolvemos el nombre del modelo de dispositivos por string. Si el modelo no existe, la
+        // relación simplemente no funcionará, pero no romperá la carga de la clase.
+        $deviceClass = config('usim.models.device', '\\App\\Models\\Device');
+
+        return $this->morphedByMany($deviceClass, 'actor', 'usim_unit_actors')->withTimestamps();
     }
 
     /**

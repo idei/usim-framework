@@ -7,7 +7,6 @@ use Idei\Usim\Models\UsimUnit;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;
-use Spatie\Permission\Models\Role;
 use Spatie\Permission\PermissionRegistrar;
 
 class UserSeeder extends Seeder
@@ -43,31 +42,37 @@ class UserSeeder extends Seeder
         $defaultRegisteringRole = config('usim.default_registering_role', 'registered');
         $registeringRole = is_string($defaultRegisteringRole) ? $defaultRegisteringRole : 'registered';
 
+        // Determinamos el guard por defecto de los usuarios humanos antes de filtrar
+        $defaultGuard = config('auth.defaults.guard', 'web');
+        $guardName = is_string($defaultGuard) ? $defaultGuard : 'web';
+
         // Roles permitidos para usuarios operativos (no registrados):
-        // Excluimos 'root', 'guest' y el rol de registro ('registered').
         $systemRoles = ['root', 'guest', $registeringRole];
+
         $operationalRoles = array_values(array_filter(
             $roles,
-            static fn (string $role): bool => !in_array($role, $systemRoles, true)
+            static function (string $role) use ($systemRoles, $rolesData, $guardName): bool {
+                // 1. Excluir roles del sistema
+                if (in_array($role, $systemRoles, true)) {
+                    return false;
+                }
+
+                // 2. Excluir roles que no pertenezcan al guard de humanos ('web' normalmente)
+                $roleGuard = $rolesData[$role]['guard_name'] ?? 'web';
+
+                return $roleGuard === $guardName;
+            }
         ));
 
         if (empty($operationalRoles)) {
             $operationalRoles = array_values(array_filter(
                 $roles,
-                static fn (string $role): bool => $role !== $registeringRole && $role !== 'registered'
+                static fn(string $role): bool => $role !== $registeringRole && $role !== 'registered'
             ));
         }
 
         if (empty($operationalRoles)) {
             $operationalRoles = ['member'];
-        }
-
-        // Aseguramos que los roles existan en Spatie
-        $defaultGuard = config('auth.defaults.guard', 'web');
-        $guardName = is_string($defaultGuard) ? $defaultGuard : 'web';
-        $allRolesToEnsure = array_unique(array_merge([$registeringRole], $operationalRoles));
-        foreach ($allRolesToEnsure as $roleName) {
-            Role::findOrCreate($roleName, $guardName);
         }
 
         $teamsEnabled = (bool) config('permission.teams', false);
@@ -94,7 +99,7 @@ class UserSeeder extends Seeder
                 ?? UsimUnit::firstOrCreate(['slug' => 'lobby'], ['type' => 'system']);
 
             $operationalUnits = $units->filter(
-                static fn (UsimUnit $unit): bool => $unit->type !== 'system' && !in_array($unit->slug, ['lobby', 'main'], true)
+                static fn(UsimUnit $unit): bool => $unit->type !== 'system' && !in_array($unit->slug, ['lobby', 'main'], true)
             );
 
             if ($operationalUnits->isEmpty()) {

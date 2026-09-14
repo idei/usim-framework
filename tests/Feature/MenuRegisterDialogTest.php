@@ -39,11 +39,11 @@ it('submits register modal and sends verification notification', function () {
     /** @var \Tests\TestCase $this */
     $originalLocale = app()->getLocale();
 
+    app(\Idei\Usim\Support\RoleAndPermissionSyncService::class)->sync();
+
     foreach (['en', 'es'] as $locale) {
         app()->setLocale($locale);
         Notification::fake();
-        $defaultRole = config('usim.default_registering_role', 'user');
-        Role::findOrCreate($defaultRole);
 
         $ui = uiScenario($this, Menu::class, ['parent' => 'menu']);
         $openResponse = $ui->action('user_menu', 'show_register_form');
@@ -85,12 +85,11 @@ it('submits register modal and sends verification notification', function () {
 it('verifies the registered user after opening the email verification link', function () {
     $originalLocale = app()->getLocale();
 
+    app(\Idei\Usim\Support\RoleAndPermissionSyncService::class)->sync();
+
     foreach (['en', 'es'] as $locale) {
         app()->setLocale($locale);
         Notification::fake();
-
-        $defaultRole = config('usim.default_registering_role', 'user');
-        Role::findOrCreate($defaultRole);
 
         $ui = uiScenario($this, Menu::class, ['parent' => 'menu']);
         $ui->action('user_menu', 'show_register_form')->assertOk();

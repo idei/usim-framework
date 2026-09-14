@@ -2,6 +2,8 @@
 
 namespace Idei\Usim\Console\Commands;
 
+use Idei\Usim\Support\DeviceSyncService;
+use Idei\Usim\Support\RoleAndPermissionSyncService;
 use Illuminate\Console\Command;
 
 class UsimSyncCommand extends Command
@@ -23,12 +25,34 @@ class UsimSyncCommand extends Command
 
         $target = $this->argument('target') ?? 'all';
 
+        if (\in_array($target, ['roles', 'permissions', 'all'], true)) {
+            $this->syncRolesAndPermissions();
+        }
+
         if (\in_array($target, ['units', 'all'], true)) {
             $this->syncUnits();
         }
 
-        // Here you can add $this->syncRoles(), $this->syncPermissions(), etc.
+        if (\in_array($target, ['devices', 'all'], true)) {
+            $this->syncDevices();
+        }
+
         return self::SUCCESS;
+    }
+
+    protected function syncRolesAndPermissions(): void
+    {
+        $this->info('Synchronizing roles and permissions...');
+
+        $syncService = $this->laravel->make(RoleAndPermissionSyncService::class);
+        $stats = $syncService->sync();
+
+        $this->line("<fg=green>✓</> Permissions created: {$stats['permissions_created']}");
+        $this->line("<fg=green>✓</> Roles created: {$stats['roles_created']}");
+        $this->line("<fg=green>✓</> Roles updated: {$stats['roles_updated']}");
+
+        $this->info('Synchronization of roles and permissions completed.');
+        $this->newLine();
     }
 
     protected function syncUnits(): void
@@ -68,5 +92,33 @@ class UsimSyncCommand extends Command
         }
 
         $this->info('Synchronization of organizational units completed successfully.');
+    }
+
+    protected function syncDevices(): void
+    {
+        // El servicio DeviceSyncService es interno del paquete, así que podemos resolverlo directamente
+        $syncService = $this->laravel->make(DeviceSyncService::class);
+        $devicesConfig = config('usim.devices', []);
+
+        if (empty($devicesConfig)) {
+            $this->line('No devices configured in usim.php to sync. Skipping.');
+            return;
+        }
+
+        $this->info('Synchronizing hardware devices...');
+
+        $results = $syncService->sync($devicesConfig);
+
+        // Feedback visual de éxitos
+        foreach ($results['synced'] as $syncedName) {
+            $this->line("<fg=green>✓</> Dispositivo sincronizado: {$syncedName}");
+        }
+
+        // Feedback visual de errores (Ej: Modelo no publicado, o Unidad faltante)
+        foreach ($results['errors'] as $error) {
+            $this->warn("⚠ {$error}");
+        }
+
+        $this->info('Synchronization of hardware devices completed.');
     }
 }

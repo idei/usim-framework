@@ -16,6 +16,8 @@ use Spatie\Permission\PermissionRegistrar;
 class SeedAccessControl
 {
     /**
+     * Sincroniza roles, permisos, usuarios y unidades desde la configuración de USIM hacia la base de datos.
+     *
      * @param array<string, string> $rootUserEnvValues
      * @return array{permissions_created:int,permissions_total:int,roles_created:int,roles_total:int,users_created:int,users_updated:int,languages_created:int,languages_updated:int}
      */
@@ -37,87 +39,23 @@ class SeedAccessControl
             app(PermissionRegistrar::class)->forgetCachedPermissions();
             $guardName = $this->resolveGuardNameForUserModel($userModelClass);
 
-            // 1. Sincronización de PERMISOS
+            if (is_callable($line)) {
+                $line("  ↳ Synchronizing roles and permissions...");
+            }
+
+            // Delegamos la carga dura al nuevo servicio
+            $roleSyncService = app(\Idei\Usim\Support\RoleAndPermissionSyncService::class);
+            $roleStats = $roleSyncService->sync($guardName);
+
+            $stats['permissions_created'] = $roleStats['permissions_created'];
+            $stats['roles_created'] = $roleStats['roles_created'];
+
             $usimConfig = $this->loadUsimConfig();
-            $permissionConfig = $usimConfig['permissions'] ?? config('usim.permissions', []);
-            if (!is_array($permissionConfig)) {
-                $permissionConfig = [];
-            }
+            $stats['roles_total'] = \count($usimConfig['roles'] ?? config('usim.roles', []));
+            $stats['permissions_total'] = \count($usimConfig['permissions'] ?? config('usim.permissions', []));
 
-            $permissions = $this->collectPermissionNames();
-            $stats['permissions_total'] = count($permissions);
-
-            foreach ($permissions as $permissionName) {
-                $permission = Permission::query()
-                    ->where('name', $permissionName)
-                    ->where('guard_name', $guardName)
-                    ->first();
-
-                if ($permission === null) {
-                    // Pasamos el valor directo (sea array o string), Permission se encargará de parsearlo
-                    $configValue = $permissionConfig[$permissionName] ?? "Permission for $permissionName";
-
-                    Permission::create(
-                        ['name' => $permissionName, 'guard_name' => $guardName],
-                    );
-                    $stats['permissions_created']++;
-                }
-            }
-
-            // 2. Sincronización de ROLES (con Screen Home y Priority)
-            $roles = $this->normalizeRolesConfig();
-            $stats['roles_total'] = count($roles);
-
-            foreach ($roles as $roleName => $roleMeta) {
-                $isRootRole = $roleName === 'root';
-                if (is_callable($line)) {
-                    $line("  ↳ Reviewing role [{$roleName}]...");
-                }
-
-                // Buscamos usando el modelo extendido de USIM
-                $role = UsimRole::query()
-                    ->where('name', $roleName)
-                    ->where('guard_name', $guardName)
-                    ->first();
-
-                if ($role === null) {
-                    // Extraemos la home_screen y prioridad definidas en el config de USIM
-                    $homeScreenValue = $roleMeta['home_screen'] ?? 'welcome';
-                    $priorityValue = $roleMeta['priority'] ?? 100;
-                    $homeScreen = is_string($homeScreenValue) && trim($homeScreenValue) !== ''
-                        ? trim($homeScreenValue)
-                        : 'welcome';
-                    if (is_int($priorityValue)) {
-                        $priority = $priorityValue;
-                    } elseif (is_string($priorityValue) || is_float($priorityValue)) {
-                        $priority = (int) $priorityValue;
-                    } else {
-                        $priority = 100;
-                    }
-
-                    // ⚡ Creamos el Rol inyectando su settings automáticamente
-                    $role = UsimRole::createWithHome(
-                        name: $roleName,
-                        homeScreenSlug: $homeScreen,
-                        priority: $priority,
-                        guardName: $guardName
-                    );
-                    $stats['roles_created']++;
-
-                    if (is_callable($line)) {
-                        $line("    ✓ Role [{$roleName}] created for guard [{$guardName}] (Home: {$homeScreen}, Priority: {$priority})");
-                    }
-                } elseif (is_callable($line)) {
-                    $line("    → Role [{$roleName}] already exists for guard [{$guardName}]");
-                }
-
-                /** @var UsimRole $role */
-                $rolePermissions = $this->normalizeRolePermissions($roleMeta, $permissions, $isRootRole);
-                $role->syncPermissions($rolePermissions);
-
-                if (is_callable($line)) {
-                    $line("    ✓ Role [{$roleName}] permissions synced: " . implode(', ', $rolePermissions));
-                }
+            if (is_callable($line)) {
+                $line("    ✓ Roles and permissions synchronized via service.");
             }
 
             $this->upsertUnits($stats, $line);
@@ -130,117 +68,6 @@ class SeedAccessControl
         app(PermissionRegistrar::class)->forgetCachedPermissions();
 
         return $this->normalizeSeedStats($stats);
-    }
-
-    /**
-     * @return array<int, string>
-     */
-    private function collectPermissionNames(): array
-    {
-        $usimConfig = $this->loadUsimConfig();
-        $permissionConfig = $usimConfig['permissions'] ?? config('usim.permissions', []);
-        $defined = [];
-
-        if (is_array($permissionConfig)) {
-            foreach (array_keys($permissionConfig) as $permissionName) {
-                if (is_string($permissionName) && trim($permissionName) !== '') {
-                    $defined[] = trim($permissionName);
-                }
-            }
-        }
-
-        $rolePermissions = [];
-        foreach ($this->normalizeRolesConfig() as $roleMeta) {
-            $configured = $roleMeta['permissions'] ?? [];
-            $configured = is_array($configured) ? $configured : [];
-
-            foreach ($configured as $permissionName) {
-                if (!is_string($permissionName)) {
-                    continue;
-                }
-
-                $permissionName = trim($permissionName);
-                if ($permissionName === '') {
-                    continue;
-                }
-
-                $rolePermissions[] = $permissionName;
-            }
-        }
-
-        $all = array_values(array_unique([...$defined, ...$rolePermissions]));
-        sort($all);
-
-        return $all;
-    }
-
-    /**
-     * @return array<string, array<string, mixed>>
-     */
-    private function normalizeRolesConfig(): array
-    {
-        $usimConfig = $this->loadUsimConfig();
-        $roles = $usimConfig['roles'] ?? config('usim.roles', []);
-        if (!is_array($roles)) {
-            $roles = [];
-        }
-
-        $normalizedRoles = [];
-        foreach ($roles as $roleName => $roleMeta) {
-            if (!is_string($roleName) || trim($roleName) === '' || !is_array($roleMeta)) {
-                continue;
-            }
-
-            $normalizedRoles[$roleName] = $roleMeta;
-        }
-
-        // if (!array_key_exists('root', $normalizedRoles)) {
-        //     $normalizedRoles['root'] = ['permissions' => ['*']];
-        // }
-
-        // $normalizedRoles['root']['permissions'] = ['*'];
-
-        /** @var array<string, array<string, mixed>> $normalizedRoles */
-        return $normalizedRoles;
-    }
-
-    /**
-     * @param array<string, mixed> $roleMeta
-     * @param array<int, string> $allPermissions
-     * @return array<int, string>
-     */
-    private function normalizeRolePermissions(array $roleMeta, array $allPermissions, bool $isRootRole): array
-    {
-        if ($isRootRole) {
-            return $allPermissions;
-        }
-
-        $permissionsValue = $roleMeta['permissions'] ?? [];
-        /** @var array<int, mixed> $permissions */
-        $permissions = is_array($permissionsValue) ? $permissionsValue : [];
-
-        $normalized = [];
-        foreach ($permissions as $permissionName) {
-            if (!is_string($permissionName)) {
-                continue;
-            }
-
-            $permissionName = trim($permissionName);
-            if ($permissionName === '') {
-                continue;
-            }
-
-            $normalized[] = $permissionName;
-        }
-
-        if (in_array('*', $normalized, true)) {
-            return $allPermissions;
-        }
-
-        $normalized = array_values(array_unique($normalized));
-        sort($normalized);
-
-        return $normalized;
     }
 
     /**
@@ -709,8 +536,18 @@ class SeedAccessControl
         $rolePrefix = $this->normalizeTranslationPrefix($prefixes['role'] ?? 'role.');
         $permissionPrefix = $this->normalizeTranslationPrefix($prefixes['permission'] ?? 'permission.');
 
-        $roles = $this->normalizeRolesConfig();
+        // Leemos los roles directamente de la configuración
+        $roles = $usimConfig['roles'] ?? config('usim.roles', []);
+        if (!is_array($roles)) {
+            $roles = [];
+        }
+
         foreach ($roles as $roleName => $roleMeta) {
+            // Validación que antes hacía normalizeRolesConfig
+            if (!is_string($roleName) || trim($roleName) === '' || !is_array($roleMeta)) {
+                continue;
+            }
+
             $translations = $this->normalizeDefaultTranslations($roleMeta['default_translations'] ?? null);
 
             foreach ($translations as $locale => $meta) {

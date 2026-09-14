@@ -6,6 +6,8 @@ use Idei\Usim\Models\UsimUnit;
 use Tests\TestCase;
 
 it('seeds realistic users adhering to role and unit assignment policies', function () {
+    app(\Idei\Usim\Support\RoleAndPermissionSyncService::class)->sync();
+
     // Run the seeder
     /** @var TestCase $this */
     $this->seed(UserSeeder::class);

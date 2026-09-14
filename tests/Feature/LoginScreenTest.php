@@ -5,6 +5,10 @@ use App\UI\Screens\Admin\UsersManager;
 use App\UI\Screens\Auth\Login;
 use App\UI\Screens\Registered;
 
+beforeEach(function () {
+    app(\Idei\Usim\Support\RoleAndPermissionSyncService::class)->sync();
+});
+
 it('loads login screen with expected components and actions', function () {
     /** @var \Tests\TestCase $this */
     $ui = uiScenario($this, Login::class, ['reset' => true]);

@@ -127,7 +127,7 @@ it('renders registered screen message in English', function () {
 });
 
 it('resolves post login redirect to registered screen route for registered user', function () {
-    Role::findOrCreate('registered');
+    app(\Idei\Usim\Support\RoleAndPermissionSyncService::class)->sync();
     $unit = UsimUnit::firstOrCreate(['slug' => 'lobby']);
     if (config('permission.teams')) {
         setPermissionsTeamId($unit->id);

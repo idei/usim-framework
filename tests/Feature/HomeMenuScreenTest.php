@@ -9,6 +9,10 @@ use App\UI\Screens\Home;
 use App\UI\Screens\Menu;
 use Idei\Usim\Models\UsimUnit;
 
+beforeEach(function () {
+    app(\Idei\Usim\Support\RoleAndPermissionSyncService::class)->sync();
+});
+
 it('returns home screen with expected core components', function () {
     $ui = uiScenario($this, Home::class, ['reset' => true]);
 

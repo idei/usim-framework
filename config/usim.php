@@ -71,6 +71,18 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Models Configuration
+    |--------------------------------------------------------------------------
+    |
+    | Define the paths for the models used by the application and the framework.
+    */
+    'models' => [
+        'user' => \App\Models\User::class,
+        'device' => \App\Models\Device::class,
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | Organizational Units (Units)
     |--------------------------------------------------------------------------
     |
@@ -300,6 +312,7 @@ return [
             // Aquí definirás más adelante la Screen del carrusel (ej: CarrouselScreen::class)
             'home_screen' => 'home',
             'permissions' => [],
+            'guard_name' => 'device',
         ],
         'sensor' => [
             'default_translations' => [
@@ -310,6 +323,7 @@ return [
             // Los sensores puros (headless) no renderizan UI, pero requieren este campo por tu diseño de modelo.
             'home_screen' => 'home',
             'permissions' => [],
+            'guard_name' => 'device',
         ],
     ],
 

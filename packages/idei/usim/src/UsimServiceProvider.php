@@ -92,13 +92,13 @@ class UsimServiceProvider extends ServiceProvider
      */
     protected function injectUsimAuthGuards(): void
     {
+        $deviceClass = config('usim.models.device', '\\App\\Models\\Device');
+
         config([
-            // Provider para Devices
             'auth.providers.devices' => [
                 'driver' => 'eloquent',
-                'model' => \App\Models\Device::class,
+                'model' => $deviceClass,
             ],
-            // Guard para Devices (Session)
             'auth.guards.device' => [
                 'driver' => 'session',
                 'provider' => 'devices',
