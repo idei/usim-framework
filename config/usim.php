@@ -216,6 +216,35 @@ return [
         ],
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Default Devices Configuration
+    |--------------------------------------------------------------------------
+    |
+    | Define dispositivos de hardware pre-aprobados.
+    | Pueden ser exclusivos de una unidad o compartidos.
+    */
+    'devices' => [
+        'tv-consultorio' => [
+            'name' => 'TV de la puerta del instituto',
+            'specs' => ['aspect_ratio' => '16:9', 'has_sound' => true, 'interactive' => false],
+            // Dispositivo EXCLUSIVO: Solo existe y opera dentro de Idei
+            'unit_roles' => [
+                'idei' => ['smart_tv'],
+            ],
+        ],
+
+        'sensor-hall' => [
+            'name' => 'Sensor de Movimiento Hall Central',
+            'specs' => ['aspect_ratio' => null, 'has_sound' => false, 'type' => 'motion'],
+            // Dispositivo COMPARTIDO: Reporta y existe para Ingeo y Oafa simultáneamente
+            'unit_roles' => [
+                'ingeo' => ['sensor'],
+                'oafa' => ['sensor'],
+            ],
+        ],
+    ],
+
     'roles' => [
         'registered' => [
             'default_translations' => [
@@ -261,6 +290,26 @@ return [
             'priority' => 4,
             'home_screen' => Home::class,
             'permissions' => ['home.access'],
+        ],
+        'smart_tv' => [
+            'default_translations' => [
+                'en' => ['display_name' => 'Smart TV', 'description' => 'Kiosk mode display.'],
+                'es' => ['display_name' => 'Smart TV', 'description' => 'Pantalla en modo kiosco.'],
+            ],
+            'priority' => 10,
+            // Aquí definirás más adelante la Screen del carrusel (ej: CarrouselScreen::class)
+            'home_screen' => 'home',
+            'permissions' => [],
+        ],
+        'sensor' => [
+            'default_translations' => [
+                'en' => ['display_name' => 'Hardware Sensor', 'description' => 'IoT data provider.'],
+                'es' => ['display_name' => 'Sensor de Hardware', 'description' => 'Proveedor de datos IoT.'],
+            ],
+            'priority' => 11,
+            // Los sensores puros (headless) no renderizan UI, pero requieren este campo por tu diseño de modelo.
+            'home_screen' => 'home',
+            'permissions' => [],
         ],
     ],
 

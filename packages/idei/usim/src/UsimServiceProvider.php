@@ -82,5 +82,27 @@ class UsimServiceProvider extends ServiceProvider
             'permission.models.role' => UsimRole::class,
         ]);
 
+        // Inyectamos dinámicamente los Guards y Providers para los actores de USIM
+        $this->injectUsimAuthGuards();
+    }
+
+    /**
+     * Inyecta los Guards y Providers necesarios para los Actores Polimórficos de USIM
+     * sin modificar el archivo físico config/auth.php del usuario.
+     */
+    protected function injectUsimAuthGuards(): void
+    {
+        config([
+            // Provider para Devices
+            'auth.providers.devices' => [
+                'driver' => 'eloquent',
+                'model' => \App\Models\Device::class,
+            ],
+            // Guard para Devices (Session)
+            'auth.guards.device' => [
+                'driver' => 'session',
+                'provider' => 'devices',
+            ]
+        ]);
     }
 }

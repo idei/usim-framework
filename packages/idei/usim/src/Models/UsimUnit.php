@@ -1,11 +1,13 @@
 <?php
+
 namespace Idei\Usim\Models;
 
+use App\Models\Device;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\MorphToMany;
 
 class UsimUnit extends Model
 {
@@ -52,14 +54,14 @@ class UsimUnit extends Model
         return $this->parent()->with('ancestors');
     }
 
-    /**
-     * Relación: Usuarios que pertenecen a esta unidad.
-     * Esto gestiona la MEMBRESÍA, independiente de los roles (Spatie) que tengan dentro de ella.
-     * @return BelongsToMany<User, $this>
-     */
-    public function users(): BelongsToMany
+    public function users(): MorphToMany
     {
-        return $this->belongsToMany(User::class)->withTimestamps();
+        return $this->morphedByMany(User::class, 'actor', 'usim_unit_actors')->withTimestamps();
+    }
+
+    public function devices(): MorphToMany
+    {
+        return $this->morphedByMany(Device::class, 'actor', 'usim_unit_actors')->withTimestamps();
     }
 
     /**
