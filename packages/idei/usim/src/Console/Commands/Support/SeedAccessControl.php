@@ -51,8 +51,10 @@ class SeedAccessControl
             $stats['roles_created'] = $roleStats['roles_created'];
 
             $usimConfig = $this->loadUsimConfig();
-            $stats['roles_total'] = \count($usimConfig['roles'] ?? config('usim.roles', []));
-            $stats['permissions_total'] = \count($usimConfig['permissions'] ?? config('usim.permissions', []));
+            $rolesConfig = is_array($usimConfig['roles'] ?? null) ? $usimConfig['roles'] : (is_array(config('usim.roles')) ? config('usim.roles') : []);
+            $permissionsConfig = is_array($usimConfig['permissions'] ?? null) ? $usimConfig['permissions'] : (is_array(config('usim.permissions')) ? config('usim.permissions') : []);
+            $stats['roles_total'] = count($rolesConfig);
+            $stats['permissions_total'] = count($permissionsConfig);
 
             if (is_callable($line)) {
                 $line("    ✓ Roles and permissions synchronized via service.");

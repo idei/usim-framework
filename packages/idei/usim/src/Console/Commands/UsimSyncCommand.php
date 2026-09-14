@@ -98,7 +98,12 @@ class UsimSyncCommand extends Command
     {
         // El servicio DeviceSyncService es interno del paquete, así que podemos resolverlo directamente
         $syncService = $this->laravel->make(DeviceSyncService::class);
-        $devicesConfig = config('usim.devices', []);
+
+        /** @var mixed $rawDevicesConfig */
+        $rawDevicesConfig = config('usim.devices', []);
+
+        /** @var array<string, array<string, mixed>> $devicesConfig */
+        $devicesConfig = is_array($rawDevicesConfig) ? $rawDevicesConfig : [];
 
         if (empty($devicesConfig)) {
             $this->line('No devices configured in usim.php to sync. Skipping.');

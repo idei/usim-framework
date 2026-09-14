@@ -19,38 +19,64 @@ class RoleAndPermissionSyncService
     {
         $stats = ['permissions_created' => 0, 'roles_created' => 0, 'roles_updated' => 0];
 
-        $usimConfig = config('usim');
-        $permissionsConfig = $usimConfig['permissions'] ?? [];
-        $definedPermissions = array_keys($permissionsConfig);
-        $rolesConfig = $usimConfig['roles'] ?? [];
+        /** @var array<string, mixed> $usimConfig */
+        $usimConfig = config('usim', []);
+
+        /** @var array<string, mixed> $permissionsConfig */
+        $permissionsConfig = is_array($usimConfig['permissions'] ?? null) ? $usimConfig['permissions'] : [];
+
+        /** @var list<string> $definedPermissions */
+        $definedPermissions = [];
+        foreach (array_keys($permissionsConfig) as $permissionName) {
+            $definedPermissions[] = $permissionName;
+        }
+
+        /** @var array<string, mixed> $rolesConfig */
+        $rolesConfig = is_array($usimConfig['roles'] ?? null) ? $usimConfig['roles'] : [];
 
         DB::beginTransaction();
         try {
             app(PermissionRegistrar::class)->forgetCachedPermissions();
 
             foreach ($rolesConfig as $roleName => $roleMeta) {
-                if (!is_string($roleName) || trim($roleName) === '') {
+                if (trim($roleName) === '') {
                     continue;
                 }
 
-                $guardName = $roleMeta['guard_name'] ?? $defaultGuard;
-                $homeScreen = $roleMeta['home_screen'] ?? 'welcome';
-                $priority = (int) ($roleMeta['priority'] ?? 100);
+                if (!is_array($roleMeta)) {
+                    continue;
+                }
+
+                $guardName = $this->normalizeStringValue($roleMeta['guard_name'] ?? null, $defaultGuard);
+                $homeScreen = $this->normalizeStringValue($roleMeta['home_screen'] ?? 'welcome', 'welcome');
+
+                $priorityValue = $roleMeta['priority'] ?? 100;
+                $priority = is_int($priorityValue) ? $priorityValue : (is_numeric($priorityValue) ? (int) $priorityValue : 100);
 
                 // 1. Resolver permisos requeridos por este rol
+                /** @var list<string> $rolePermissions */
                 $rolePermissions = $roleName === 'root'
                     ? $definedPermissions // Root hereda todos los permisos declarados
-                    : ($roleMeta['permissions'] ?? []);
+                    : [];
 
+                if ($roleName !== 'root' && is_array($roleMeta['permissions'] ?? null)) {
+                    foreach ($roleMeta['permissions'] as $permName) {
+                        if (is_string($permName)) {
+                            $rolePermissions[] = trim($permName);
+                        }
+                    }
+                }
+
+                /** @var list<string> $validPermissions */
                 $validPermissions = [];
 
                 // 2. Crear permisos inexistentes para el Guard actual
                 foreach ($rolePermissions as $permName) {
-                    if (!is_string($permName) || trim($permName) === '') {
+                    $permName = trim($permName);
+                    if ($permName === '') {
                         continue;
                     }
 
-                    $permName = trim($permName);
                     $validPermissions[] = $permName;
 
                     $perm = Permission::firstOrCreate([
@@ -101,5 +127,13 @@ class RoleAndPermissionSyncService
         app(PermissionRegistrar::class)->forgetCachedPermissions();
 
         return $stats;
+    }
+
+    private function normalizeStringValue(mixed $value, string $fallback): string
+    {
+        $normalized = is_scalar($value) || $value instanceof \Stringable ? (string) $value : $fallback;
+        $trimmed = trim($normalized);
+
+        return $trimmed !== '' ? $trimmed : $fallback;
     }
 }

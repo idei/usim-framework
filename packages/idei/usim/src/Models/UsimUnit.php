@@ -53,16 +53,26 @@ class UsimUnit extends Model
         return $this->parent()->with('ancestors');
     }
 
+    /**
+     * @return MorphToMany<User, $this>
+     */
     public function users(): MorphToMany
     {
         return $this->morphedByMany(User::class, 'actor', 'usim_unit_actors')->withTimestamps();
     }
 
+    /**
+     * @return MorphToMany<Model, $this>
+     */
     public function devices(): MorphToMany
     {
         // Resolvemos el nombre del modelo de dispositivos por string. Si el modelo no existe, la
         // relación simplemente no funcionará, pero no romperá la carga de la clase.
+        /** @var class-string<Model> $deviceClass */
         $deviceClass = config('usim.models.device', '\\App\\Models\\Device');
+        if (!class_exists($deviceClass)) {
+            $deviceClass = '\\App\\Models\\Device';
+        }
 
         return $this->morphedByMany($deviceClass, 'actor', 'usim_unit_actors')->withTimestamps();
     }
