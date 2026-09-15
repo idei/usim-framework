@@ -21,6 +21,7 @@ use Idei\Usim\Components\Uploader;
 use Idei\Usim\Contracts\UIElement;
 use Idei\Usim\Enums\LayoutType;
 use Idei\Usim\Enums\Visibility;
+use Idei\Usim\Models\UsimUnit;
 use Idei\Usim\Support\UIDiffer;
 use Idei\Usim\Support\UIIdGenerator;
 use Idei\Usim\Support\UIStateManager;
@@ -173,14 +174,36 @@ abstract class Screen
     }
 
     /**
+     * Resolve a unit ID from an instance, integer ID, or slug.
+     */
+    protected static function resolveUnitId(mixed $unit): ?int
+    {
+        if ($unit instanceof UsimUnit) {
+            return (int) $unit->id;
+        }
+
+        if (is_numeric($unit) && (int) $unit > 0) {
+            return (int) $unit;
+        }
+
+        if (is_string($unit) && $unit !== '') {
+            $id = UsimUnit::where('slug', $unit)->value('id');
+            return is_numeric($id) ? (int) $id : null;
+        }
+
+        return null;
+    }
+
+    /**
      * Helper to require a role (implies authentication).
      * Use this inside your authorize() method.
      *
      * @param string|list<string> $roles
-     * @param string $guard
+     * @param string|null $guard
+     * @param \Idei\Usim\Models\UsimUnit|int|string|null $unit Optional unit context
      * @return bool
      */
-    protected static function requireRole(string|array $roles, ?string $guard = null): bool
+    protected static function requireRole(string|array $roles, ?string $guard = null, mixed $unit = null): bool
     {
         // Implicitly require authentication first
         if (!self::requireAuth()) {
@@ -188,6 +211,25 @@ abstract class Screen
         }
 
         $user = Auth::guard($guard)->user();
+        if ($user === null) {
+            return false;
+        }
+
+        if (method_exists($user, 'isRoot') && $user->isRoot()) {
+            return true;
+        }
+
+        $targetUnitId = self::resolveUnitId($unit);
+
+        if ($targetUnitId !== null && function_exists('getPermissionsTeamId') && function_exists('setPermissionsTeamId')) {
+            $previousTeamId = getPermissionsTeamId();
+            try {
+                setPermissionsTeamId($targetUnitId);
+                return self::callUserBoolMethod($user, 'hasAnyRole', $roles);
+            } finally {
+                setPermissionsTeamId($previousTeamId);
+            }
+        }
 
         if (!self::callUserBoolMethod($user, 'hasAnyRole', $roles)) {
             // user is authenticated but lacks role
@@ -205,30 +247,37 @@ abstract class Screen
      * Use this inside your authorize() method.
      *
      * @param string|list<string> $permissions
-     * @param string $guard
+     * @param string|null $guard
+     * @param \Idei\Usim\Models\UsimUnit|int|string|null $unit Optional unit context
      * @return bool
      */
-    protected static function requirePermission(string|array $permissions, ?string $guard = null): bool
+    protected static function requirePermission(string|array $permissions, ?string $guard = null, mixed $unit = null): bool
     {
         // Implicitly require authentication first
         if (!self::requireAuth()) {
             return false;
         }
 
-        /** @var \App\Models\User $user */
         $user = Auth::guard($guard)->user();
+        if ($user === null) {
+            return false;
+        }
 
-        if ($user->isRoot()) {
+        if (method_exists($user, 'isRoot') && $user->isRoot()) {
             return true;
         }
 
-        // $mainUnit = UsimUnit::firstOrCreate(['slug' => 'main']);
-        // TODO: This is a temporary solution. We should refactor this to allow specifying the unit context for permission checks.
-        // setPermissionsTeamId($mainUnit->id);
+        $targetUnitId = self::resolveUnitId($unit);
 
-        // if ($user->roles()->where('name', 'root')->exists()) {
-        //     return true;
-        // }
+        if ($targetUnitId !== null && function_exists('getPermissionsTeamId') && function_exists('setPermissionsTeamId')) {
+            $previousTeamId = getPermissionsTeamId();
+            try {
+                setPermissionsTeamId($targetUnitId);
+                return self::callUserBoolMethod($user, 'hasAnyPermission', $permissions);
+            } finally {
+                setPermissionsTeamId($previousTeamId);
+            }
+        }
 
         if (!self::callUserBoolMethod($user, 'hasAnyPermission', $permissions)) {
             return false;
@@ -318,9 +367,11 @@ abstract class Screen
      *
      * @param string $permission The short permission name (e.g., "publish") that will be resolved to a full permission
      * string based on the screen's slug (e.g., "blog.post_management.publish").
+     * @param UsimUnit|int|string|null $unit Optional unit context (instance, ID, or slug).
+     * Defaults to the screen's active unit ($this->store_unit) or the ambient permissions team.
      * @return bool
      */
-    public function userCan(string $permission): bool
+    public function userCan(string $permission, mixed $unit = null): bool
     {
         if (static::$visibility === Visibility::PUBLIC) {
             return true;
@@ -331,6 +382,13 @@ abstract class Screen
         }
 
         $user = Auth::user();
+        if ($user === null) {
+            return false;
+        }
+
+        if (method_exists($user, 'isRoot') && $user->isRoot()) {
+            return true;
+        }
 
         // If the permission doesn't contain a dot, we assume it's a local permission and resolve
         //  it using the screen's slug.
@@ -338,7 +396,67 @@ abstract class Screen
             $permission = static::getScreenSlug() . '.' . $permission;
         }
 
+        $targetUnitId = self::resolveUnitId($unit);
+        if ($targetUnitId === null && property_exists($this, 'store_unit') && !empty($this->store_unit)) {
+            $targetUnitId = self::resolveUnitId($this->store_unit);
+        }
+
+        if ($targetUnitId !== null && function_exists('getPermissionsTeamId') && function_exists('setPermissionsTeamId')) {
+            $previousTeamId = getPermissionsTeamId();
+            try {
+                setPermissionsTeamId($targetUnitId);
+                return self::callUserBoolMethod($user, 'hasPermissionTo', $permission);
+            } finally {
+                setPermissionsTeamId($previousTeamId);
+            }
+        }
+
         return self::callUserBoolMethod($user, 'hasPermissionTo', $permission);
+    }
+
+    /**
+     * Determines if the currently authenticated user has any of the given roles within the context of this screen.
+     *
+     * @param string|list<string> $roles
+     * @param UsimUnit|int|string|null $unit Optional unit context (instance, ID, or slug).
+     * Defaults to the screen's active unit ($this->store_unit) or the ambient permissions team.
+     * @return bool
+     */
+    public function userHasRole(string|array $roles, mixed $unit = null): bool
+    {
+        if (static::$visibility === Visibility::PUBLIC) {
+            return true;
+        }
+
+        if (!Auth::check()) {
+            return false;
+        }
+
+        $user = Auth::user();
+        if ($user === null) {
+            return false;
+        }
+
+        if (method_exists($user, 'isRoot') && $user->isRoot()) {
+            return true;
+        }
+
+        $targetUnitId = self::resolveUnitId($unit);
+        if ($targetUnitId === null && property_exists($this, 'store_unit') && !empty($this->store_unit)) {
+            $targetUnitId = self::resolveUnitId($this->store_unit);
+        }
+
+        if ($targetUnitId !== null && function_exists('getPermissionsTeamId') && function_exists('setPermissionsTeamId')) {
+            $previousTeamId = getPermissionsTeamId();
+            try {
+                setPermissionsTeamId($targetUnitId);
+                return self::callUserBoolMethod($user, 'hasAnyRole', $roles);
+            } finally {
+                setPermissionsTeamId($previousTeamId);
+            }
+        }
+
+        return self::callUserBoolMethod($user, 'hasAnyRole', $roles);
     }
 
     /**
