@@ -158,6 +158,12 @@ return [
                 'description' => 'Permite acceder a la pantalla Admin Users Manager.',
             ],
         ],
+        'admin_device_pairing' => [
+            'access' => [
+                'name' => 'Acceder a Admin Admin Device Pairing',
+                'description' => 'Permite acceder a la pantalla Admin Admin Device Pairing.',
+            ],
+        ],
     ],
     'home' => [
         'access' => [
@@ -191,6 +197,14 @@ return [
         'access' => [
             'name' => 'Acceder a Menu Stub',
             'description' => 'Permite acceder a la pantalla Menu Stub.',
+        ],
+    ],
+    'device' => [
+        'device_pairing' => [
+            'access' => [
+                'name' => 'Acceder a Device Device Pairing',
+                'description' => 'Permite acceder a la pantalla Device Device Pairing.',
+            ],
         ],
     ],
 ];

@@ -158,6 +158,12 @@ return [
                 'description' => 'Permission to access Admin Users Manager.',
             ],
         ],
+        'admin_device_pairing' => [
+            'access' => [
+                'name' => 'Access Admin Admin Device Pairing',
+                'description' => 'Permission to access Admin Admin Device Pairing.',
+            ],
+        ],
     ],
     'home' => [
         'access' => [
@@ -191,6 +197,14 @@ return [
         'access' => [
             'name' => 'Access Menu Stub',
             'description' => 'Permission to access Menu Stub.',
+        ],
+    ],
+    'device' => [
+        'device_pairing' => [
+            'access' => [
+                'name' => 'Access Device Device Pairing',
+                'description' => 'Permission to access Device Device Pairing.',
+            ],
         ],
     ],
 ];
