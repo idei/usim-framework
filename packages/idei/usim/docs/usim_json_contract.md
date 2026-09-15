@@ -161,6 +161,8 @@ Keys reservadas observadas:
 - `redirect`
 - `toast`
 - `abort`
+- `change_theme`
+- `change_language`
 - `modal`
 - `update_modal`
 - `clear_uploaders`
@@ -176,28 +178,43 @@ Importante:
 
 `storage`
 
-- Contenedor de estado serializado en `storage.usim`.
+- Contenedor de estado serializado en `storage.usim` (o bajo la clave configurada en `usim.front_store_key`).
 - `storage.usim` representa un objeto JSON de variables persistidas `store_*`.
-- `_crypt` indica valor protegido por backend.
+- `_crypt` indica valor protegido y encriptado simétricamente por el backend (vía `encrypt()` de Laravel).
 
 `toast`
 
 - Mensaje transitorio para UX.
-- En tests se valida `toast.type` (por ejemplo `success`).
+- Parámetros soportados: `message`, `type` (`info|success|warning|error`), `duration`, `position`, `open_effect`, `show_effect`, `close_effect`.
+- En tests se valida comúnmente `toast.type` (por ejemplo `success`) y `toast.message`.
 
 `redirect`
 
 - Instruccion de navegacion.
-- Si viene no-nulo, el cliente debe navegar segun el payload.
+- Si viene no-nulo (URL string), el cliente debe navegar segun el payload.
 
 `abort`
 
-- Instruccion de detener flujo por error o estado invalido.
-- El cliente debe tratarlo como evento de error de negocio/UI.
+- Instruccion de detener flujo por error o estado invalido / acceso no autorizado.
+- Emitido por `Screen::abort($statusCode, $message)` con la forma: `{"abort": {"status_code": 403, "message": "..."}}`.
+- Emitido por respuestas de acceso denegado (`checkAccess`) con la forma: `{"abort": {"code": 403, "message": "..."}}`.
+- El cliente debe soportar tanto `status_code` como `code` y tratarlo como evento de error de negocio/UI.
+
+`change_theme`
+
+- Instrucción emitida por `Screen::changeTheme(string $theme)`.
+- Payload: string con el nombre del tema (ej. `"dark"`, `"light"`).
+- El cliente debe cambiar reactivamente el tema visual de la aplicación.
+
+`change_language`
+
+- Instrucción emitida por `Screen::changeLanguage(string $language)`.
+- Payload: string con el código de idioma (ej. `"es"`, `"en"`).
+- El cliente debe cambiar reactivamente el idioma/locale en el frontend.
 
 `action`
 
-- Meta accion de servidor; usar para instrumentacion si aplica.
+- Meta accion de servidor; usar para instrumentacion si aplica (ej. `{"action": "close_modal"}`).
 
 `modal`
 
@@ -205,7 +222,7 @@ Importante:
 
 `update_modal`
 
-- Actualizacion de modal existente.
+- Actualizacion de modal existente emitida por `Screen::updateModal(array $content)`.
 
 `clear_uploaders`
 
@@ -273,6 +290,7 @@ Regla observada en `UiMemoryRenderer::mergeComponent`:
 
 - Merge superficial por campo (replace por key).
 - Si llega `{ "11": { "label": "Nuevo" } }`, solo se actualiza `label` en componente `11`.
+- **Garantía del framework (`Screen::buildDiffResponse`):** Todo delta generado por el backend siempre incluye el atributo `'type'` correspondiente al componente modificado (ej. `{ "11": { "type": "label", "text": "Nuevo" } }`). Esto permite al cliente conocer con precisión la fábrica y semántica del componente al recibir una actualización incremental.
 
 ## 6.2 Resolucion de key en deltas
 
@@ -442,7 +460,7 @@ Algoritmo:
 - Envia eventos con `component_id`, `event`, `action`, `parameters`.
 - Distingue componentes vs meta-keys reservadas.
 - Aplica merge incremental de deltas.
-- Interpreta `toast`, `redirect`, `abort`, `modal`, `update_modal`.
+- Interpreta `toast`, `redirect`, `abort`, `change_theme`, `change_language`, `modal`, `update_modal`.
 - Tolera campos y keys nuevos sin fallar.
 - Tiene estrategia de resync por snapshot completo.
 
@@ -483,7 +501,7 @@ Caso 5: respuesta solo meta
 
 - Ejecutar evento que devuelva solo meta-keys.
 - Verificar que no se rompe el snapshot local.
-- Verificar aplicacion de `toast`/`redirect`/`abort` si vienen.
+- Verificar aplicacion de `toast`/`redirect`/`abort`/`change_theme`/`change_language` si vienen.
 
 Caso 6: resync por inconsistencia
 

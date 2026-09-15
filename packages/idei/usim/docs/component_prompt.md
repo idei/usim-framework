@@ -29,7 +29,7 @@ Define and implement the JSON contract for this component:
 - Delta behavior (update fields only): `<delta_rules>`
 
 Important:
-- Preserve reserved meta keys and contracts: `storage`, `action`, `redirect`, `toast`, `abort`, `modal`, `update_modal`, `clear_uploaders`, `set_uploader_existing_file`.
+- Preserve reserved meta keys and contracts: `storage`, `action`, `redirect`, `toast`, `abort`, `change_theme`, `change_language`, `modal`, `update_modal`, `clear_uploaders`, `set_uploader_existing_file`, `agent_context`.
 - Do not break existing payload shapes.
 
 ## Implementation scope (must be complete)

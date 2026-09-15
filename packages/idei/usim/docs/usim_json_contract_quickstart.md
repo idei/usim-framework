@@ -59,10 +59,13 @@ X-USIM-Storage: <serialized-storage-json-string>
 - `redirect`
 - `toast`
 - `abort`
+- `change_theme`
+- `change_language`
 - `modal`
 - `update_modal`
 - `clear_uploaders`
 - `set_uploader_existing_file`
+- `agent_context`
 
 Interpretacion minima:
 
@@ -70,8 +73,11 @@ Interpretacion minima:
 - `*_crypt`: valores protegidos por backend; tratarlos como opacos en cliente.
 - `toast`: mensaje UX.
 - `redirect`: navegacion.
-- `abort`: error/flujo abortado.
-- `modal` y `update_modal`: estado de modal.
+- `abort`: error/flujo abortado o acceso denegado (`status_code` o `code`).
+- `change_theme`: cambio de tema visual (`dark`, `light`).
+- `change_language`: cambio de idioma activo (`es`, `en`).
+- `modal` y `update_modal`: estado y actualización de modales.
+- `agent_context`: metadata semántica del Screen para clientes IA y headless.
 
 ## 4. Reglas de estado local
 
@@ -89,6 +95,7 @@ Interpretacion minima:
 - Distingue componentes de meta-keys.
 - Soporta `click`, `input`, `change`, `action`, `timeout`.
 - Aplica merge incremental de deltas.
+- Interpreta meta-keys: `toast`, `redirect`, `abort`, `change_theme`, `change_language`, `modal`, `update_modal`.
 - Tolera campos y keys nuevas sin romperse.
 - Implementa resync por snapshot completo.
 

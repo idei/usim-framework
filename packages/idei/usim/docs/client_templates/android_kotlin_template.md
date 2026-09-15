@@ -27,11 +27,14 @@ data class UiMeta(
     val toast: Map<String, Any?>? = null,
     val redirect: Any? = null,
     val abort: Any? = null,
+    val change_theme: String? = null,
+    val change_language: String? = null,
     val action: Any? = null,
     val modal: Any? = null,
     val update_modal: Any? = null,
     val clear_uploaders: Any? = null,
     val set_uploader_existing_file: Any? = null,
+    val agent_context: Map<String, Any?>? = null,
 )
 ```
 

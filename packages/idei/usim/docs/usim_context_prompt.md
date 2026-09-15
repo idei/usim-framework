@@ -63,10 +63,13 @@ In addition to component diffs, backend may return meta keys such as:
 - `toast`
 - `redirect`
 - `abort`
+- `change_theme`
+- `change_language`
 - `modal`
 - `update_modal`
 - `clear_uploaders`
 - `set_uploader_existing_file`
+- `agent_context`
 
 When implementing features, preserve these contracts and avoid introducing breaking payload shape changes.
 

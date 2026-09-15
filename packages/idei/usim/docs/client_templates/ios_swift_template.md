@@ -53,8 +53,11 @@ Nota: `CodableValue` representa un wrapper para tipos JSON dinamicos.
 
 - `toast`: banner/snackbar nativo.
 - `redirect`: navegacion.
-- `abort`: estado de error controlado.
+- `abort`: estado de error controlado (`status_code` / `code`).
+- `change_theme`: ajuste reactivo de Appearance (light/dark mode).
+- `change_language`: ajuste reactivo de locale/idioma.
 - `modal` / `update_modal`: presentacion/actualizacion modal.
+- `agent_context`: metadata para clientes headless o agentes.
 
 ## 7. Conformance tests
 

@@ -45,7 +45,7 @@ TypeAttr        ::= '"type"' ":" '"' ComponentType '"'
 ParentAttr      ::= '"parent"' ":" ParentValue
 
 (* Valores de Atributos *)
-ComponentType   ::= "container" | "button" | "input" | "dropdown" | "select" | CustomType
+ComponentType   ::= "container" | "button" | "input" | "select" | "checkbox" | "card" | "table" | "tablerow" | "tablecell" | "tableheadercell" | "form" | "tableheaderrow" | "menudropdown" | "uploader" | "calendar" | "carousel" | "textarea" | "split" | "label" | CustomType
 ParentValue     ::= '"' ComponentID '"' | '"' AnchorKeyword '"' | "null"
 GenericAttr     ::= StringLiteral ":" ValueLiteral
 
@@ -70,7 +70,7 @@ El cliente procesará el mensaje iterando sobre cada `ComponentID`. La operació
 2.  **Mutación ($ID \in C$):**
     *   Ocurre cuando se recibe un ID que ya existe en memoria.
     *   Se actualizan únicamente los atributos presentes en el mensaje (fusión de propiedades).
-    *   No es necesario reenviar `type` o `parent` a menos que estos cambien.
+    *   **Garantía del framework (`Screen::buildDiffResponse`):** El backend de USIM siempre incluye el atributo `'type'` correspondiente al estado final del componente en cada entrada del delta, garantizando que el cliente conozca inequívocamente la fábrica de componente que debe gestionar la mutación sin depender exclusivamente de inferencias.
 
 3.  **Eliminación (Destrucción):**
     *   Se activa explícitamente cuando el atributo `parent` tiene el valor `null`.
@@ -98,12 +98,12 @@ El sistema combina dos estrategias para generar IDs numéricos únicos:
 
 **1. Offsets por Contexto (Context-Based Offsets)**
 
-Cada servicio o contexto de UI obtiene un "espacio de numeración" propio basado en su nombre de clase. Por ejemplo:
-- `App\Services\UI\AuthService` podría obtener el offset `50000000`
-- `App\Services\UI\DashboardService` podría obtener el offset `120000000`
-- `App\Services\UI\FormsService` podría obtener el offset `230000000`
+Cada pantalla (Screen) o contexto de UI obtiene un "espacio de numeración" propio basado en su nombre de clase. Por ejemplo:
+- `App\UI\Screens\Auth\LoginScreen` podría obtener el offset `50000000`
+- `App\UI\Screens\DashboardScreen` podría obtener el offset `120000000`
+- `App\UI\Screens\Admin\UsersManager` podría obtener el offset `230000000`
 
-Estos offsets se calculan usando un hash CRC32 del nombre completo de la clase, escalado en múltiplos de 10,000. Esto significa que cada servicio tiene un "rango" de 10,000 IDs únicos disponibles (ejemplo: desde 50000000 hasta 50009999).
+Estos offsets se calculan usando un hash CRC32 del nombre completo de la clase, escalado en múltiplos de 10,000. Esto significa que cada Screen tiene un "rango" de 10,000 IDs únicos disponibles (ejemplo: desde 50000000 hasta 50009999).
 
 **2. IDs Locales Auto-incrementales o Determinísticos**
 
@@ -124,20 +124,20 @@ Dentro de cada contexto, se pueden generar IDs de dos formas:
 
 #### 4.4.2 Garantías del Sistema
 
-- **Unicidad Global:** El offset por contexto evita colisiones entre servicios diferentes.
-- **Determinismo:** Para un mismo nombre de componente en el mismo contexto, siempre se genera el mismo ID.
-- **Trazabilidad:** Dado un ID numérico, es posible determinar qué servicio lo generó mediante reverse lookup del offset.
+- **Unicidad Global:** El offset por contexto evita colisiones entre pantallas diferentes.
+- **Determinismo:** Para un mismo nombre de componente en el mismo contexto de Screen, siempre se genera el mismo ID.
+- **Trazabilidad:** Dado un ID numérico, es posible determinar qué Screen lo generó mediante reverse lookup del offset (`UIIdGenerator::getContextFromId($id)`).
 - **Sin Estado Persistente:** Los IDs se calculan en tiempo de ejecución sin consultar base de datos, lo que garantiza alto rendimiento.
 
 #### 4.4.3 Ejemplo Conceptual
 
 ```php
 // Componente con nombre explícito (minoría de casos)
-UIIdGenerator::generateFromName('App\Services\UI\AuthService', 'login_button');
+UIIdGenerator::generateFromName('App\UI\Screens\Auth\LoginScreen', 'login_button');
 // Resultado: 50006234 (siempre el mismo)
 
 // Componente dinámico sin nombre (mayoría de casos)
-UIIdGenerator::generate('App\Services\UI\DashboardService');
+UIIdGenerator::generate('App\UI\Screens\DashboardScreen');
 // Primera llamada: 120000001
 // Segunda llamada: 120000002
 // Tercera llamada: 120000003
@@ -259,21 +259,41 @@ Tras un login exitoso, el servidor ordena destruir el formulario completo. Al el
 
 **Nota:** Solo se necesita eliminar el contenedor raíz (`50001234`). Los componentes `50001235`, `50001236`, `50006789` y `50001237` se destruyen automáticamente por la regla de cascada del árbol DOM.
 
-## 6. Comunicación Frontend → Backend (Event Payload)
+## 6. Comunicación Frontend ↔ Backend (Endpoints y Ciclo de Vida)
 
-Cuando el usuario interactúa con un componente UI (click, change, input, etc.), el frontend envía una solicitud HTTP POST al backend con información sobre el evento. Esta sección describe la estructura del payload de eventos.
+La comunicación entre el cliente y el framework USIM se basa en dos endpoints HTTP principales: uno para la carga y renderizado inicial de pantallas (`Screen`), y otro para el despacho de eventos de interacción.
 
-### 6.1 Estructura del Request
+### 6.1 Carga Inicial de Pantalla (Screen Load)
+
+**Endpoint:** `GET /api/ui{screen_route_path}?{query_params}`
+
+Donde `screen_route_path` corresponde a la ruta canónica derivada por `Screen::getRoutePath()` (por ejemplo: `/admin/users-manager`, `/auth/login`).
+
+#### 6.1.1 Parámetros de Query Especiales
+- `reset=true`: Solicita reiniciar el estado almacenado en caché para la pantalla. Cuando está presente, el backend invoca el hook `Screen::onResetScreen()`, el cual limpia el snapshot en `UIStateManager` (`clearCachedScreenSnapshot()`) y fuerza la regeneración completa de la UI desde `buildBaseUI()`.
+
+#### 6.1.2 Ciclo de Vida en el Backend durante la Carga
+1. **Resolución de Screen:** `UIController` resuelve la clase PHP `Screen` correspondiente a la ruta.
+2. **Control de Acceso:** Ejecuta `Screen::checkAccess()`. Si no es permitido, devuelve una respuesta de redirección o abort (ver Sección 8).
+3. **Reset condicional:** Si `reset=true`, ejecuta `$screen->onResetScreen()`.
+4. **Inicialización de Contexto:** Invoca `$screen->initializeEventContext($incomingStorage, $queryParams)`.
+   - Si no hay snapshot en caché (o fue invalidado), invoca `buildBaseUI($container)`.
+5. **Finalización con Reload:** Invoca `$screen->finalizeEventContext(reload: true)`, lo que a su vez dispara el hook `postLoadUI()` y persiste el snapshot en caché.
+6. **Inyección de Contexto de Agente (Headless):** Si `Screen::getAgentContext()` devuelve metadatos, se inyecta la clave `agent_context` en la respuesta.
+7. **Respuesta:** Devuelve un snapshot JSON con todos los componentes iniciales y las meta-keys requeridas.
+
+### 6.2 Envío de Eventos de Interfaz (UI Events)
 
 **Endpoint:** `POST /api/ui-event`
 
-**Headers requeridos:**
+**Headers recomendados:**
 ```http
 Content-Type: application/json
 Accept: application/json
 X-CSRF-TOKEN: {token}
 X-Requested-With: XMLHttpRequest
-X-USIM-Storage: {encrypted_storage}
+X-USIM-Storage: {storage_json_string}
+Cookie: {client_id_cookie}
 ```
 
 **Body (JSON):**
@@ -290,335 +310,290 @@ X-USIM-Storage: {encrypted_storage}
 }
 ```
 
-### 6.2 Descripción de Campos
+### 6.3 Descripción de Campos del Request
 
-#### 6.2.1 `component_id` (integer, required)
-Identificador numérico único del componente que generó el evento. Este ID permite al backend:
-1. Determinar qué servicio debe procesar el evento (mediante reverse lookup del offset)
-2. Identificar el componente específico que emitió la acción
+#### 6.3.1 `component_id` (integer, required)
+Identificador numérico único del componente que disparó el evento. A partir de este ID, el backend determina qué clase `Screen` debe procesar la acción mediante búsqueda inversa del hash en `UIIdGenerator::getContextFromId()`.
 
-**Ejemplo:** `50006789` → Servicio: `App\Services\UI\AuthService`
+#### 6.3.2 `event` (string, required)
+Tipo de interacción producida en el cliente:
+- `"click"`: Clic en botones, links o elementos accionables.
+- `"input"`: Entrada incremental en campos de texto.
+- `"change"`: Modificación de valor en selects, checkboxes o radios.
+- `"action"`: Disparo programático o directo de una acción sin evento nativo DOM.
+- `"timeout"`: Evento generado al expirar un temporizador (común en modales de alerta o cuenta regresiva).
 
-#### 6.2.2 `event` (string, required)
-Tipo de evento del DOM que activó la acción. Valores comunes:
-- `"click"` - Click en botones, enlaces, cards clickeables
-- `"change"` - Cambio en selects, checkboxes, radio buttons
-- `"input"` - Escritura en inputs (con debounce)
-- `"submit"` - Envío de formularios
-- `"keypress"` - Tecla presionada (ej: Enter en inputs)
-
-**Nota:** Este campo es principalmente informativo; el backend toma decisiones basándose en `action`, no en `event`.
-
-#### 6.2.3 `action` (string, required)
-Nombre de la acción a ejecutar en el backend, en formato **snake_case**. El backend convierte automáticamente este nombre al método correspondiente.
-
-**Convención de naming:**
+#### 6.3.3 `action` (string, required)
+Nombre de la acción del componente en formato **snake_case**. En el backend, `UIEventController` convierte automáticamente este valor al método correspondiente del Screen en convención `onPascalCase`:
 ```
-Frontend (action)    →    Backend (método)
-─────────────────────────────────────────
-"submit_form"        →    onSubmitForm()
-"delete_user"        →    onDeleteUser()
-"open_settings"      →    onOpenSettings()
-"update_profile"     →    onUpdateProfile()
+Frontend (action)    →    Backend (Screen método)
+─────────────────────────────────────────────────
+"submit_form"        →    onSubmitForm(array $params)
+"delete_user"        →    onDeleteUser(array $params)
+"change_theme"       →    onChangeTheme(array $params)
+"close_modal"        →    onCloseModal(array $params)
 ```
 
-#### 6.2.4 `parameters` (object, optional)
-Objeto con datos adicionales del evento. Puede incluir:
+#### 6.3.4 `parameters` (object, optional)
+Diccionario asociativo de datos asociados al evento:
+1. **Valores autocolectados de formulario:** Valores de inputs dentro del mismo contenedor o contexto de formulario.
+2. **Parámetros explícitos:** Valores definidos en la declaración del componente (ej. `user_id: 42`).
+3. **Identificador del Screen emisor:**
+   - `_caller_screen_id`: ID del componente o contenedor raíz del Screen que abrió un modal (usado para enrutar el callback de regreso al Screen original mediante `Screen::getScreenComponentId()`).
+   - `_caller_service_id`: Variante heredada (legacy), soportada por retrocompatibilidad.
 
-**a) Valores de formularios (auto-recolectados):**
+### 6.4 Ciclo de Vida del Evento en `Screen.php`
 
-Los botones recolectan automáticamente valores de todos los inputs en su contexto (mismo contenedor o modal):
+Cuando se despacha un evento a `POST /api/ui-event`, la clase `Screen` ejecuta el siguiente flujo garantizado:
 
+1. **`initializeEventContext($incomingStorage, $queryParams)`:**
+   - Reconstruye el árbol de componentes desde la caché de sesión (`reconstructScreenTreeFromCache()`).
+   - Captura el estado original serializado: `$this->oldUI = $this->container->toJson()`.
+   - **Inyección de variables de storage:** Localiza propiedades declaradas con visibilidad `protected` cuyo nombre inicie con `store_`. Si existen en el payload de almacenamiento recibido, inyecta su valor. Aquellas propiedades con sufijo `_crypt` (ej. `protected string $store_token_crypt;`) son **desencriptadas automáticamente** usando `decrypt()` de Laravel antes de la inyección.
+   - **Inyección de referencias de componentes:** Localiza propiedades protegidas tipadas con clases de componentes (ej. `protected Input $user_email;`) y las enlaza automáticamente al componente del árbol cuyo nombre coincida con la propiedad (`$container->findByName(...)`).
+2. **Ejecución del Handler:**
+   - El controlador invoca el método correspondiente `$screen->$method($parameters)`. Durante la ejecución, el handler puede mutar propiedades de componentes, invocar helpers de acción (`$this->toast(...)`, `$this->changeTheme(...)`, `$this->redirect(...)`, etc.) o modificar variables `store_*`.
+3. **`finalizeEventContext()`:**
+   - Serializa el estado mutado: `$this->newUI = $this->container->toJson()`.
+   - Persiste el nuevo árbol en la caché de pantalla (`cacheScreenSnapshot()`).
+   - **Cálculo de Deltas (`buildDiffResponse`):** Compara `$this->oldUI` con `$this->newUI` mediante `UIDiffer::compare()`. **Garantía:** cada componente mutado incluye obligatoriamente el atributo `'type'` de `$this->newUI` para guiar al frontend en la deserialización reactiva.
+   - **Recolección de Storage (`getStorageVariables`):** Inspecciona las propiedades `protected store_*`. Si el nombre termina en `_crypt`, el valor se **encripta automáticamente** con `encrypt()` de Laravel.
+   - Envía los deltas y el almacenamiento actualizado al recolector `UIChangesCollector`.
+
+### 6.5 Gestión del Estado Persistente (`X-USIM-Storage`)
+
+El framework USIM permite persistir estado entre peticiones sin requerir tablas adicionales de sesión.
+
+#### 6.5.1 Envelope de Respuesta del Storage
+En la respuesta JSON, el backend entrega el almacenamiento en el siguiente formato:
 ```json
 {
-  "email": "user@example.com",
-  "password": "secretpass",
-  "remember_me": true,
-  "age": 25
-}
-```
-
-**b) Parámetros explícitos (definidos en el componente):**
-
-```json
-{
-  "user_id": 123,
-  "resource_type": "document",
-  "delete_permanent": false
-}
-```
-
-**c) Parámetros internos del sistema:**
-
-- `_caller_service_id`: ID del servicio que abrió un modal (para callbacks)
-
-```json
-{
-  "_caller_service_id": 120000001,
-  "confirmed": true
-}
-```
-
-**Prioridad:** Los parámetros explícitos sobrescriben los valores auto-recolectados si hay conflicto.
-
-### 6.3 Header `X-USIM-Storage`
-
-Este header transporta variables de estado persistente encriptadas que el backend necesita mantener entre requests. El contenido es opaco para el cliente (string encriptado).
-
-**Flujo:**
-1. Backend genera variables `store_*` y las serializa/encripta
-2. Frontend las almacena en `localStorage` bajo una clave basada en `FRONT_STORE_KEY`
-3. Frontend las reenvía en cada request mediante el header `X-USIM-Storage`
-4. Backend las desencripta e inyecta en las propiedades `protected store_*` del servicio
-
-**Ejemplo de variables de estado en el backend:**
-```php
-protected int $store_user_id;
-protected string $store_session_token;
-protected array $store_selected_filters;
-```
-
-### 6.4 Ejemplo Completo de Request
-
-**Escenario:** Usuario hace click en "Eliminar Usuario" en una tabla de administración.
-
-```http
-POST /api/ui-event HTTP/1.1
-Host: example.com
-Content-Type: application/json
-X-CSRF-TOKEN: abc123token
-X-USIM-Storage: eyJpdiI6Ik...encrypted_data...
-
-{
-  "component_id": 230004521,
-  "event": "click",
-  "action": "delete_user",
-  "parameters": {
-    "user_id": 42,
-    "confirm": true
+  "storage": {
+    "my-app": "{\"store_theme\":\"dark\",\"store_token_crypt\":\"eyJpdiI6...\"}"
   }
 }
 ```
+Donde `"my-app"` corresponde a la clave configurada en `config('usim.front_store_key')` (por defecto `'my-app'` o `'usim'`).
 
-**Procesamiento en el backend:**
+#### 6.5.2 Obligaciones del Cliente
+1. Almacenar el valor string de `storage[front_store_key]` (en `localStorage` o memoria del cliente).
+2. Reenviarlo en cada solicitud posterior mediante el header HTTP `X-USIM-Storage: <string>` (o como fallback en el cuerpo JSON en la clave `storage` o `usim`).
+3. Tratar las variables con sufijo `_crypt` como cadenas **completamente opacas**. El cliente no debe intentar desencriptarlas ni modificarlas.
 
-1. **Resolución del servicio:**
-   ```php
-   UIIdGenerator::getContextFromId(230004521)
-   // → "App\Services\UI\UserManagementService"
-   ```
+---
 
-2. **Conversión de acción a método:**
-   ```php
-   "delete_user" → "onDeleteUser"
-   ```
+## 7. Acciones del Sistema y Meta-Contratos (System Actions)
 
-3. **Invocación del método:**
-   ```php
-   $service = app('App\Services\UI\UserManagementService');
-   $service->initializeEventContext($decryptedStorage);
-   $service->onDeleteUser(['user_id' => 42, 'confirm' => true]);
-   $service->finalizeEventContext();
-   ```
+Además de los deltas sobre componentes de la interfaz, el protocolo contempla un conjunto de **acciones del sistema (meta-keys)** que operan a nivel global de la aplicación. Se emiten desde `Screen.php` a través de métodos utilitarios nativos.
 
-4. **Respuesta al frontend:**
-   ```json
-   {
-     "toast": {
-       "message": "Usuario eliminado correctamente",
-       "type": "success"
-     },
-     "230004520": {
-       "parent": null
-     }
-   }
-   ```
-
-### 6.5 Validación del Request
-
-El backend valida automáticamente:
-- `component_id`: Debe ser un entero válido
-- `event`: Debe ser una cadena no vacía
-- `action`: Debe ser una cadena no vacía
-- `parameters`: Debe ser un objeto (si está presente)
-
-**Respuestas de error:**
-
-**404 - Servicio no encontrado:**
-```json
-{
-  "error": "Service not found for this component"
-}
-```
-
-**404 - Acción no implementada:**
-```json
-{
-  "error": "Action 'invalid_action' not implemented"
-}
-```
-
-**500 - Error interno:**
-```json
-{
-  "error": "Internal server error",
-  "message": "Detailed error (solo en modo debug)"
-}
-```
-
-## 7. Acciones del Sistema (System Actions)
-
-Además de la manipulación de componentes UI, el protocolo contempla un conjunto de **acciones del sistema** que el backend puede enviar al frontend para controlar aspectos de la aplicación que trascienden el árbol de componentes. Estas acciones se incluyen en el mismo mensaje JSON de respuesta, pero operan a nivel de aplicación en lugar de nivel de componente.
-
-### 7.1 Catálogo de Acciones
+### 7.1 Catálogo de Acciones del Sistema
 
 #### 7.1.1 `close_modal`
-Cierra el modal activo en el frontend.
-
-```json
-{
-  "action": "close_modal"
-}
-```
-
-**Uso típico:** Después de que el usuario completa una acción en un diálogo modal (guardar, cancelar, confirmar), el servidor envía esta acción para cerrar el modal automáticamente.
-
-**Ejemplo integrado:**
-```json
-{
-  "action": "close_modal",
-  "50001234": {
-    "text": "Guardado exitosamente"
+Cierra cualquier modal o diálogo activo en el cliente.
+- **Emisión en Screen:** `$this->closeModal()` (o handler genérico `$this->onCloseModal($params)`).
+- **Payload:**
+  ```json
+  {
+    "action": "close_modal"
   }
-}
-```
+  ```
 
 #### 7.1.2 `redirect`
-Ordena al frontend realizar una redirección a una URL específica.
+Ordena al frontend navegar a una nueva ruta o recargar la vista actual.
+- **Emisión en Screen:** `$this->redirect(?string $url = null)`. Si `$url` es `null`, se utiliza la redirección prevista (`redirect()->intended('/')`).
+- **Payload:**
+  ```json
+  {
+    "redirect": "/dashboard"
+  }
+  ```
+
+#### 7.1.3 `toast`
+Muestra una notificación transitoria flotante en el cliente.
+- **Emisión en Screen:**
+  ```php
+  $this->toast(
+      message: 'Operación realizada con éxito',
+      type: 'success',        // 'info' | 'success' | 'warning' | 'error'
+      duration: 5000,         // milisegundos
+      openEffect: 'fade',     // 'fade' | 'slide' | 'zoom'
+      showEffect: 'bounce',   // 'bounce' | 'pulse' | 'shake'
+      closeEffect: 'fade',    // 'fade' | 'slide'
+      position: 'top-right'   // 'top-right' | 'top-left' | 'bottom-right' | 'bottom-left' | 'top-center' | 'bottom-center'
+  );
+  ```
+- **Payload:**
+  ```json
+  {
+    "toast": {
+      "message": "Operación realizada con éxito",
+      "type": "success",
+      "duration": 5000,
+      "open_effect": "fade",
+      "show_effect": "bounce",
+      "close_effect": "fade",
+      "position": "top-right"
+    }
+  }
+  ```
+
+#### 7.1.4 `abort`
+Indica que el flujo actual fue cancelado por una condición de error o denegación de permisos.
+- **Emisión en Screen:** `$this->abort(int $statusCode, string $message = '')`.
+- **Emisión en Control de Acceso:** Devuelto por `checkAccess()` cuando el usuario carece de permisos suficientes.
+- **Payload:**
+  ```json
+  {
+    "abort": {
+      "status_code": 403,
+      "message": "Unauthorized: Insufficient permissions."
+    }
+  }
+  ```
+  *(Nota: en respuestas de control de acceso, puede aparecer como `code` en lugar de `status_code`. Los clientes deben soportar ambos campos).*
+
+#### 7.1.5 `change_theme`
+Ordena al frontend conmutar dinámicamente el tema visual activo de la aplicación.
+- **Emisión en Screen:** `$this->changeTheme(string $theme)`.
+- **Payload:**
+  ```json
+  {
+    "change_theme": "dark"
+  }
+  ```
+- **Valores comunes:** `"light"`, `"dark"`, `"system"`.
+
+#### 7.1.6 `change_language`
+Solicita al cliente cambiar el idioma activo. En el backend, `Screen::changeLanguage` actualiza además el locale de Laravel vía `app()->setLocale($language)`.
+- **Emisión en Screen:** `$this->changeLanguage(string $language)`.
+- **Payload:**
+  ```json
+  {
+    "change_language": "es"
+  }
+  ```
+
+#### 7.1.7 `update_modal`
+Actualiza dinámicamente los componentes o propiedades de un modal activo sin reiniciarlo ni cerrarlo.
+- **Emisión en Screen:** `$this->updateModal(array $content)`.
+- **Payload:**
+  ```json
+  {
+    "update_modal": {
+      "120005001": {
+        "text": "Paso 2 completado. Verificando datos..."
+      }
+    }
+  }
+  ```
+
+#### 7.1.8 `agent_context` (Headless / Clientes de Inteligencia Artificial)
+Metadatos semánticos emitidos en la carga de la pantalla para describir su propósito, parámetros esperados y salidas posibles.
+- **Emisión en Screen:** Sobrescribiendo `Screen::getAgentContext(): array`.
+- **Payload:**
+  ```json
+  {
+    "agent_context": {
+      "purpose": "Autenticación de usuarios por credenciales",
+      "inputs": ["email", "password"],
+      "outputs": ["redirect", "toast", "abort"],
+      "constraints": "Contraseña mínima de 8 caracteres"
+    }
+  }
+  ```
+
+#### 7.1.9 `clear_uploaders` y `set_uploader_existing_file`
+Contratos auxiliares para la gestión del ciclo de vida de archivos en componentes de tipo `uploader`:
+- `clear_uploaders`: Limpia la cola o estado de los componentes uploader especificados.
+- `set_uploader_existing_file`: Notifica al frontend la presencia de un archivo ya almacenado en el servidor para mostrarlo como preview.
+
+---
+
+### 7.2 Composición de Respuestas
+
+El servidor combina libremente cambios de componentes y múltiples acciones de sistema en una sola carga útil JSON:
 
 ```json
 {
+  "50001234": {
+    "type": "container",
+    "parent": null
+  },
+  "toast": {
+    "message": "Tema actualizado y sesión iniciada",
+    "type": "success"
+  },
+  "change_theme": "dark",
+  "storage": {
+    "my-app": "{\"store_theme\":\"dark\"}"
+  },
   "redirect": "/dashboard"
 }
 ```
 
-**Uso típico:** Después de un login exitoso, registro completado, o cuando se requiere navegar a otra vista de la aplicación.
+### 7.3 Orden de Procesamiento en el Cliente
 
-**Ejemplo con URL absoluta:**
-```json
-{
-  "redirect": "https://external-service.com/callback"
-}
+Para asegurar una experiencia coherente y predecible, los clientes del protocolo USIM deben procesar el mensaje en el siguiente orden secuencial:
+
+1. **Abort:** Si `abort` está presente, interrumpir el renderizado y presentar el estado de error (`status_code` / `code`).
+2. **Deltas de Componentes:** Aplicar creaciones, mutaciones y eliminaciones al árbol de componentes en memoria.
+3. **Temas y Localización:** Aplicar `change_theme` y `change_language`.
+4. **Modales y Diálogos:** Procesar `update_modal` y posteriormente `close_modal`.
+5. **Uploaders:** Aplicar `clear_uploaders` y `set_uploader_existing_file`.
+6. **Notificaciones (`toast`):** Desplegar notificaciones transitorias.
+7. **Storage:** Guardar el valor actualizado de `storage` para peticiones futuras.
+8. **Redirección (`redirect`):** Ejecutar cualquier redirección **siempre al final**, dado que invalida la vista y el árbol actual.
+
+---
+
+## 8. Contrato de Autorización y Acceso en Pantallas (`Screen`)
+
+Toda pantalla en USIM hereda un mecanismo estático de control de acceso antes de ser instanciada:
+
+```php
+public static function checkAccess(): array
 ```
 
-**Nota:** Si el backend envía `redirect: null`, el frontend utilizará la URL previa guardada (patrón "intended redirect" de Laravel).
+### 8.1 Respuestas de Acceso
+Devuelve una estructura normalizada `array{allowed: bool, action: ?string, params: array<string, mixed>}`:
 
-#### 7.1.3 `toast`
-Muestra una notificación tipo "toast" (mensaje temporal flotante) al usuario.
+1. **Acceso Concedido:**
+   ```json
+   {
+     "allowed": true,
+     "action": null,
+     "params": []
+   }
+   ```
 
-```json
-{
-  "toast": {
-    "message": "Datos guardados correctamente",
-    "type": "success",
-    "duration": 5000,
-    "position": "top-right"
-  }
-}
-```
+2. **Acceso Denegado a Invitados (No autenticados):**
+   ```json
+   {
+     "allowed": false,
+     "action": "redirect",
+     "params": {
+       "url": "http://example.com/auth/login",
+       "message": "Please login to access this page."
+     }
+   }
+   ```
 
-**Parámetros:**
-- `message` (string): Texto del mensaje
-- `type` (string): Tipo de notificación - `"info"`, `"success"`, `"warning"`, `"error"`
-- `duration` (int): Duración en milisegundos (por defecto: 5000)
-- `position` (string): Posición en pantalla - `"top-right"`, `"top-left"`, `"bottom-right"`, `"bottom-left"`, `"top-center"`, `"bottom-center"`
-- `open_effect` (string): Efecto de apertura - `"fade"`, `"slide"`, `"zoom"`
-- `show_effect` (string): Efecto de visualización - `"bounce"`, `"pulse"`, `"shake"`
-- `close_effect` (string): Efecto de cierre - `"fade"`, `"slide"`
+3. **Acceso Denegado a Usuarios Autenticados (Sin permisos suficientes):**
+   ```json
+   {
+     "allowed": false,
+     "action": "abort",
+     "params": {
+       "code": 403,
+       "message": "Unauthorized: Insufficient permissions."
+     }
+   }
+   ```
 
-**Uso típico:** Confirmar acciones del usuario sin interrumpir el flujo de trabajo (guardados, eliminaciones, validaciones exitosas).
-
-**Ejemplo de error:**
-```json
-{
-  "toast": {
-    "message": "No se pudo conectar con el servidor",
-    "type": "error",
-    "duration": 8000,
-    "position": "top-center",
-    "show_effect": "shake"
-  }
-}
-```
-
-#### 7.1.4 `update_modal`
-Actualiza dinámicamente el contenido de un modal ya abierto sin cerrarlo.
-
-```json
-{
-  "update_modal": {
-    "120005001": {
-      "type": "label",
-      "parent": "modal",
-      "text": "Procesando paso 2 de 3..."
-    }
-  }
-}
-```
-
-**Uso típico:** Para wizards multi-paso, barras de progreso, o cuando el usuario debe permanecer en el mismo modal mientras cambia el contenido (por ejemplo, validación de formularios en tiempo real).
-
-**Ejemplo de wizard:**
-```json
-{
-  "update_modal": {
-    "modal_title": {
-      "text": "Paso 2: Información de contacto"
-    },
-    "modal_content": {
-      "parent": null
-    },
-    "new_modal_content": {
-      "type": "container",
-      "parent": "modal",
-      "orientation": "vertical"
-    }
-  }
-}
-```
-
-### 7.2 Composición de Respuestas
-
-El servidor puede combinar múltiples acciones y cambios de componentes en una sola respuesta. El frontend procesa las acciones y los cambios de componentes en el orden apropiado.
-
-**Ejemplo de flujo completo:**
-```json
-{
-  "toast": {
-    "message": "Sesión iniciada correctamente",
-    "type": "success",
-    "duration": 3000
-  },
-  "redirect": "/dashboard",
-  "50001234": {
-    "parent": null
-  }
-}
-```
-
-Este ejemplo:
-1. Muestra un toast de éxito
-2. Elimina el formulario de login
-3. Redirige al dashboard
-
-### 7.3 Orden de Procesamiento
-
-El frontend debe procesar las acciones en el siguiente orden para garantizar una experiencia de usuario coherente:
-
-1. **Actualización de componentes:** Todos los cambios en el árbol de componentes (creación, modificación, eliminación)
-2. **Toast:** Mostrar notificaciones
-3. **Update Modal:** Actualizar contenido de modales
-4. **Close Modal:** Cerrar modales
-5. **Redirect:** Redirecciones (siempre al final)
-
-**Justificación:** Las redirecciones deben ser la última acción porque invalidan todo el estado de la aplicación actual. Los toasts deben mostrarse antes de cerrar modales para que el usuario pueda verlos.
+### 8.2 Helpers de Seguridad y Resolución de Permisos
+- `Screen::$visibility`: Nivel de visibilidad (`Visibility::PUBLIC`, `Visibility::AUTHENTICATED`, `Visibility::GUEST`).
+- `Screen::authorize()`: Hook estático donde el desarrollador define la regla de autorización (apoyándose en `requireAuth()`, `requireRole('admin')` o `requirePermission('manage-users')`).
+- `Screen::getScreenSlug()`: Convierte la ubicación del Screen en un slug canónico (ej. `App\UI\Screens\Admin\UserManagerScreen` → `admin.user_manager`).
+- `Screen::resolvedPermissions()`: Mapea automáticamente los permisos definidos en `permissions()` y `requiredPermissions()` combinándolos con el slug (ej. `admin.user_manager.access`).
+- `Screen::userCan(string $permission)`: Determina si el usuario autenticado posee el permiso especificado en el contexto de dicha pantalla.
+- `Screen::getRoutePath()`: Deriva la ruta URL pública del Screen de forma kebab-case a partir de su espacio de nombres.

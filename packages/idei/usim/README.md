@@ -500,6 +500,9 @@ $this->abort(404, 'Not found');
 
 // Switch theme on the client
 $this->changeTheme('dark');
+
+// Switch language on the client and set application locale
+$this->changeLanguage('es');
 ```
 
 Labels can now render raw HTML or an existing Blade view:

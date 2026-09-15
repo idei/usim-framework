@@ -51,13 +51,23 @@ class UiEventRequest {
 - Estructura de arbol por `parent`.
 - `name` como id estable para pruebas.
 
-## 6. Eventos soportados
+## 6. Eventos y contratos meta
 
+Eventos soportados:
 - `click`
 - `input`
 - `change`
 - `action`
 - `timeout`
+
+Contratos meta a despachar:
+- `toast`: snackbars / banners reactivos.
+- `redirect`: navegacion con Navigator o GoRouter.
+- `abort`: vista o dialogo de error (`status_code` o `code`).
+- `change_theme`: actualizacion reactiva de `ThemeMode` (`dark`/`light`).
+- `change_language`: actualizacion reactiva de `Locale` (`es`, `en`, etc.).
+- `modal` / `update_modal`: gestion de BottomSheets o Dialogs nativos.
+- `agent_context`: metadata para clientes headless o agentes.
 
 ## 7. Recomendacion de QA
 

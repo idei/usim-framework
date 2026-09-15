@@ -41,6 +41,8 @@ Todas las respuestas de `GET /api/ui...` y `POST /api/ui-event` deben incluir:
     "toast": null,
     "redirect": null,
     "abort": null,
+    "change_theme": null,
+    "change_language": null,
     "modal": null,
     "update_modal": null,
     "clear_uploaders": null,
@@ -214,6 +216,26 @@ Catalogo inicial de `code` recomendado:
   }
 }
 ```
+
+## 5.8 change_theme
+
+```json
+{
+  "change_theme": "dark"
+}
+```
+
+- Solicita al cliente conmutar el tema visual activo (ej. `light`, `dark`, `system`).
+
+## 5.9 change_language
+
+```json
+{
+  "change_language": "es"
+}
+```
+
+- Solicita al cliente conmutar el idioma/locale activo en la interfaz (ej. `es`, `en`).
 
 ## 6. Requests de evento v1
 

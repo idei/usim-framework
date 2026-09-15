@@ -9,6 +9,7 @@ docs/
 ├── README.md                          # Este archivo - Índice principal
 │
 ├── framework/                         # Framework USIM
+│   ├── PROTOCOLO_UI.md               # 📜 Especificación formal del protocolo USIM
 │   ├── USIM_ACADEMIC_REPORT.md       # ⭐ Documentación principal
 │   ├── UI_BUILDER_REFERENCE.md       # Referencia de UI API
 │   ├── CONTAINER_ALIGNMENT_GUIDE.md  # Guía de alineación de contenedores
@@ -35,6 +36,7 @@ docs/
 
 | Documento | Descripción | Tamaño |
 |-----------|-------------|--------|
+| **[PROTOCOLO_UI.md](framework/PROTOCOLO_UI.md)** 📜 | Especificación formal del protocolo USIM (Server-Driven UI), gramática EBNF, endpoints, ciclo de vida de Screen y meta-acciones | 22K |
 | **[USIM_ACADEMIC_REPORT.md](framework/USIM_ACADEMIC_REPORT.md)** ⭐ | Documentación académica completa del framework. Arquitectura, características, ejemplos de servicios reales y comparativas con stack tradicional | 41K |
 | **[UI_BUILDER_REFERENCE.md](framework/UI_BUILDER_REFERENCE.md)** | Referencia técnica de UI. Patrón Composite, manipulación de árbol, todos los componentes disponibles | 13K |
 | **[FRONTEND_COMPONENTS_GUIDE.md](framework/FRONTEND_COMPONENTS_GUIDE.md)** | Guía operativa para agregar, modificar y fixear componentes frontend del renderer modular actual | 15K |
@@ -46,7 +48,7 @@ Notas de versión funcional recientes:
 - **Headless Mode** (`USIM_HEADLESS_MODE=true`): USIM puede correr en modo API-only usando `GET /api/ui/{screen}` + `POST /api/ui-event`.
 - **Agent Context** (`Screen::getAgentContext()`): metadata opcional para clientes IA/headless en la key `agent_context` del payload.
 
-**Total Framework:** 4 documentos, ~72K
+**Total Framework:** 5 documentos, ~94K
 
 ---
 
