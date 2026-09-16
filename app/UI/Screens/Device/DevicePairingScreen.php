@@ -76,6 +76,8 @@ class DevicePairingScreen extends Screen
 
     /**
      * Handle the polling action from the Smart TV
+     *
+     * @param array<string, mixed> $params
      */
     public function onCheckStatus(array $params): void
     {

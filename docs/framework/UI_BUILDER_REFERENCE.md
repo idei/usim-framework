@@ -78,6 +78,9 @@ UI::table('id')
     ->build();
 ```
 
+> Para tablas dinámicas conectadas a servicios y bases de datos con paginación automática y ordenamiento, consulta la [Guía de TableModels (AbstractListingTableModel)](TABLE_MODELS_GUIDE.md).
+
+
 ## 🌳 Manipulación de Árbol
 
 ### Agregar Elementos

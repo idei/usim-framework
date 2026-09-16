@@ -5,18 +5,19 @@
 namespace App\UI\Screens\Admin\TableModels;
 
 use App\Services\Role\RoleListingService;
-use Idei\Usim\Components\Table;
-use Idei\Usim\DataTable\AbstractTableModel;
+use Idei\Usim\DataTable\AbstractListingTableModel;
 use Idei\Usim\Models\UsimRole;
 
-class RoleTableModel extends AbstractTableModel
+/**
+ * Table model for managing roles listing.
+ *
+ * @extends AbstractListingTableModel<UsimRole>
+ */
+class RoleTableModel extends AbstractListingTableModel
 {
-    private RoleListingService $listingService;
-
-    public function __construct(Table $tableBuilder)
+    protected function resolveListingService(): RoleListingService
     {
-        parent::__construct($tableBuilder);
-        $this->listingService = app(RoleListingService::class);
+        return app(RoleListingService::class);
     }
 
     public function getColumns(): array
@@ -29,66 +30,20 @@ class RoleTableModel extends AbstractTableModel
         ];
     }
 
-    protected function countTotal(): int
-    {
-        return $this->listingService->countMatching(
-            $this->tableBuilder->getSearchTerm()
-        );
-    }
-
-    public function getPageData(): array
-    {
-        /** @var list<UsimRole> $roles */
-        $roles = $this->getRoleItems();
-
-        return array_map(
-            static fn(UsimRole $role): array => [
-                'id' => $role->id,
-                'name' => $role->name,
-                'home_screen' => $role->home_screen,
-                'priority' => $role->priority,
-            ],
-            $roles
-        );
-    }
-
     /**
-     * @return list<UsimRole>
+     * @param UsimRole $item
+     * @return array{_model_id: int|string, name: string, home_screen: string, priority: mixed}
      */
-    private function getRoleItems(): array
+    protected function formatRow(object $item): array
     {
-        $pagination = $this->tableBuilder->getPaginationData();
-        $sortBy = $this->tableBuilder->getSortColumn();
-        $sortDir = $this->tableBuilder->getSortDirection();
-        $searchTerm = $this->tableBuilder->getSearchTerm();
+        /** @var UsimRole $item */
+        $homeScreen = str_replace('App\\UI\\Screens\\', '', (string) $item->home_screen);
 
-        $result = $this->listingService->paginate(
-            page: (int) $pagination['current_page'],
-            perPage: (int) $pagination['per_page'],
-            search: $searchTerm ?: null,
-            sortField: $sortBy ?: null,
-            sortDirection: (string) ($sortDir ?: 'asc'),
-        );
-
-        return array_values($result['items']);
-    }
-
-    public function getFormattedPageData(int $currentPage, int $perPage): array
-    {
-        $roles = $this->getRoleItems();
-        $formatted = [];
-
-        /** @var UsimRole $role */
-        foreach ($roles as $role) {
-            $homeScreen = str_replace('App\\UI\\Screens\\', '', $role->home_screen);
-            $formatted[] = [
-                '_model_id' => $role->id,
-                'name' => t("role.{$role->name}.name"),
-                'home_screen' => $homeScreen,
-                'priority' => $role->priority,
-            ];
-        }
-
-        return $formatted;
+        return [
+            '_model_id' => $item->id,
+            'name' => t("role.{$item->name}.name"),
+            'home_screen' => $homeScreen,
+            'priority' => $item->priority,
+        ];
     }
 }

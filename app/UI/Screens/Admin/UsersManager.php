@@ -1,28 +1,31 @@
 <?php
-
 // @usim: feature="admin", type="screen"
-
 namespace App\UI\Screens\Admin;
 
 use App\Models\User;
 use App\Services\Auth\RegisterService;
+use App\Services\Device\DeviceService;
 use App\Services\Role\RoleService;
 use App\Services\Units\UnitContextResolver;
 use App\Services\User\UserService;
+use App\UI\Components\Modals\DevicePairingDialog;
+use App\UI\Components\Modals\EditDeviceDialog;
 use App\UI\Components\Modals\EditUserDialog;
 use App\UI\Components\Modals\RegisterDialog;
-use App\UI\Screens\Admin\TableModels\PermissionTableModel;
-use App\UI\Screens\Admin\TableModels\RoleTableModel;
-use App\UI\Screens\Admin\TableModels\UserTableModel;
+use App\UI\Screens\Admin\Concerns\BuildsDevicesSection;
+use App\UI\Screens\Admin\Concerns\BuildsRolesSection;
+use App\UI\Screens\Admin\Concerns\BuildsUsersSection;
+use App\UI\Screens\Admin\Concerns\HandlesModalFeedback;
+use App\UI\Screens\Admin\Concerns\HandlesScreenParameters;
+use App\UI\Screens\Admin\Presenters\UserEditDialogPresenter;
 use Idei\Usim\Components\Button;
 use Idei\Usim\Components\Container;
 use Idei\Usim\Components\Input;
 use Idei\Usim\Components\Split;
 use Idei\Usim\Components\Table;
 use Idei\Usim\Enums\DialogType;
-use Idei\Usim\Enums\LayoutType;
-use Idei\Usim\Enums\SelectionMode;
 use Idei\Usim\Modals\ConfirmDialogService;
+use Idei\Usim\Models\UsimRole;
 use Idei\Usim\Models\UsimUnit;
 use Idei\Usim\Screen;
 use Idei\Usim\UI;
@@ -30,17 +33,40 @@ use Idei\Usim\ValueObjects\Size;
 use Idei\Usim\ValueObjects\Spacing;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Support\Facades\Auth;
-use InvalidArgumentException;
 
 class UsersManager extends Screen
 {
+    use HandlesScreenParameters;
+    use HandlesModalFeedback;
+    use BuildsUsersSection;
+    use BuildsDevicesSection;
+    use BuildsRolesSection;
+
     private const I18N_PREFIX = 'screen.admin.users_manager.';
+
+    protected Table $users_table;
+    protected Table $devices_table;
+    protected Table $roles_table;
+    protected Table $permissions_table;
+    protected Input $search_users;
+    protected Input $search_devices;
+    protected Button $add_user_btn;
+    protected Button $add_device_btn;
+    protected Button $pair_device_btn;
+    protected Split $roles_split;
+    protected Container $tabs_container;
+    protected string $store_unit = '';
+    protected DeviceService $deviceService;
 
     public function __construct(
         protected RegisterService $registerService,
         protected UserService $userService,
-        protected RoleService $roleService
+        protected RoleService $roleService,
+        ?DeviceService $deviceService = null,
+        protected ?UserEditDialogPresenter $userEditDialogPresenter = null,
     ) {
+        $this->deviceService = $deviceService ?? app(DeviceService::class);
+        $this->userEditDialogPresenter = $userEditDialogPresenter ?? new UserEditDialogPresenter();
     }
 
     public static function authorize(): bool
@@ -57,15 +83,6 @@ class UsersManager extends Screen
     {
         return '🛠️';
     }
-
-    protected Table $users_table;
-    protected Table $roles_table;
-    protected Table $permissions_table;
-    protected Input $search_users;
-    protected Button $add_user_btn;
-    protected Split $roles_split;
-    protected Container $tabs_container;
-    protected string $store_unit = '';
 
     protected function buildBaseUI(Container $container, ...$params): void
     {
@@ -84,6 +101,7 @@ class UsersManager extends Screen
             ->tabs(
                 [
                     'users_tab' => ['label' => t(self::I18N_PREFIX . 'users_tab')],
+                    'devices_tab' => ['label' => t(self::I18N_PREFIX . 'devices_tab')],
                     'roles_tab' => [
                         'label' => t(self::I18N_PREFIX . 'roles_tab'),
                         'disabled' => !$this->userCan('manage.roles'),
@@ -93,121 +111,9 @@ class UsersManager extends Screen
             );
 
         $this->tabs_container->add($this->buildUsersCrudContainer(), tab: 'users_tab');
+        $this->tabs_container->add($this->buildDevicesCrudContainer(), tab: 'devices_tab');
         $this->tabs_container->add($this->buildRolesContainer(), tab: 'roles_tab');
         $container->add($this->tabs_container);
-    }
-
-    private function buildUsersCrudContainer(): Container
-    {
-        $users_crud_container = UI::container('users_crud_container')
-            ->layout(LayoutType::VERTICAL)
-            ->gap(Spacing::px(4))
-            ->rounded(0)
-            ->height(Size::px(340))
-            ->plain();
-
-        $toolbar = UI::container('users_toolbar')
-            ->layout(LayoutType::HORIZONTAL)
-            ->fullWidth()
-            ->padding(Spacing::px(10))
-            ->gap(Spacing::px(10));
-
-        $search = UI::input('search_users')
-            ->placeholder(t(self::I18N_PREFIX . 'search_placeholder'))
-            ->width(Size::px(300))
-            ->autocomplete('off')
-            ->onInput('search_users', [])
-            ->debounce(500);
-
-        $addBtn = UI::button('add_user_btn')
-            ->label(t(self::I18N_PREFIX . 'add_user'))
-            ->style('secondary')
-            ->action('add_user_clicked')
-            ->icon('plus');
-
-        $toolbar->add($search)->add($addBtn);
-
-        $users_table = $this->requireTable(UI::table('users_table'));
-        $users_table->pagination(7);
-        $users_table->sortedBy('name');
-        $users_table->dataModel(UserTableModel::class);
-        $users_table->selectionMode(SelectionMode::SINGLE);
-        $users_table->bodyOverflowX('hidden');
-        $users_table->bodyOverflowY('auto');
-        $users_table->minHeight(Size::px(440));
-        $users_table->bodyMinHeight('340px');
-        $users_table->align('center');
-
-        $users_crud_container
-            ->add($toolbar)
-            ->add($users_table);
-
-        return $users_crud_container;
-    }
-
-    private function buildRolesContainer(): Container
-    {
-        $roles_container = UI::container('roles_container')
-            ->layout(LayoutType::VERTICAL)
-            ->gap(Spacing::px(4))
-            ->rounded(0)
-            ->plain();
-
-        $this->roles_split = UI::split('roles_split')
-            ->horizontal()
-            ->splitSize('65%')
-            ->splitterSize('8px')
-            ->draggable(true)
-            ->minFirstSize('500px')
-            ->minSecondSize('750px')
-            ->padding(Spacing::px(4))
-            ->height(Size::px(530))
-            ->width(Size::full())
-            ->plain();
-
-        $roles_left_panel = UI::container('roles_left_panel')
-            ->layout(LayoutType::VERTICAL)
-            ->padding(Spacing::px(4))
-            ->plain();
-
-        $roles_right_panel = UI::container('roles_right_panel')
-            ->layout(LayoutType::VERTICAL)
-            ->padding(Spacing::px(4))
-            ->plain();
-
-        $roles_table = $this->requireTable(UI::table('roles_table'));
-        $roles_table->pagination(0);
-        $roles_table->height(Size::px(500));
-        $roles_table->rounded(0);
-        $roles_table->sortedBy('name');
-        $roles_table->dataModel(RoleTableModel::class);
-        $roles_table->bodyOverflowX('hidden');
-        $roles_table->bodyOverflowY('auto');
-        $roles_table->selectionMode(SelectionMode::SINGLE);
-
-        $roles_left_panel
-            ->add($roles_table);
-
-        $permissions_table = $this->requireTable(UI::table('permissions_table'));
-        $permissions_table->pagination(0);
-        $permissions_table->height(Size::px(500));
-        $permissions_table->bodyHeight(Size::px(450));
-        $permissions_table->rounded(0);
-        $permissions_table->sortedBy('name');
-        $permissions_table->dataModel(PermissionTableModel::class);
-        $permissions_table->bodyOverflowX('hidden');
-        $permissions_table->bodyOverflowY('auto');
-        $permissions_table->selectionMode(SelectionMode::MULTIPLE);
-
-        $roles_right_panel->add($permissions_table);
-
-        $this->roles_split
-            ->addFirst($roles_left_panel)
-            ->addSecond($roles_right_panel);
-
-        $roles_container->add($this->roles_split);
-
-        return $roles_container;
     }
 
     /**
@@ -227,13 +133,15 @@ class UsersManager extends Screen
      */
     public function onUsersTableColumnClicked(array $params): void
     {
-        $column = $this->optionalStringParam($params, 'sort_by');
-        if ($column === null || $column === '') {
-            return;
-        }
+        $this->handleTableSort($this->users_table, $params);
+    }
 
-        $this->users_table->sortedBy($column);
-        $this->users_table->page(1);
+    /**
+     * @param array<string, mixed> $params
+     */
+    public function onDevicesTableColumnClicked(array $params): void
+    {
+        $this->handleTableSort($this->devices_table, $params);
     }
 
     /**
@@ -241,13 +149,7 @@ class UsersManager extends Screen
      */
     public function onRolesTableColumnClicked(array $params): void
     {
-        $column = $this->optionalStringParam($params, 'sort_by');
-        if ($column === null || $column === '') {
-            return;
-        }
-
-        $this->roles_table->sortedBy($column);
-        $this->roles_table->page(1);
+        $this->handleTableSort($this->roles_table, $params);
     }
 
     /**
@@ -255,13 +157,24 @@ class UsersManager extends Screen
      */
     public function onPermissionsTableColumnClicked(array $params): void
     {
+        $this->handleTableSort($this->permissions_table, $params);
+    }
+
+    /**
+     * Generic table sorting helper (DRY).
+     *
+     * @param Table $table
+     * @param array<string, mixed> $params
+     */
+    private function handleTableSort(Table $table, array $params): void
+    {
         $column = $this->optionalStringParam($params, 'sort_by');
         if ($column === null || $column === '') {
             return;
         }
 
-        $this->permissions_table->sortedBy($column);
-        $this->permissions_table->page(1);
+        $table->sortedBy($column);
+        $table->page(1);
     }
 
     /**
@@ -286,21 +199,7 @@ class UsersManager extends Screen
             $this->users_table->refresh();
             $this->closeModal();
         } else {
-            // Update modal inputs with validation errors
-            $errors = $response['errors'] ?? [];
-
-            if (!empty($errors)) {
-                $modalUpdates = [];
-
-                foreach ($errors as $fieldName => $messages) {
-                    // Concatenate all error messages for the field
-                    $modalUpdates[$fieldName] = [
-                        'error' => implode(' ', $messages)
-                    ];
-                }
-
-                $this->updateModal($modalUpdates);
-            }
+            $this->updateModalWithErrors($response['errors'] ?? []);
         }
     }
 
@@ -316,34 +215,19 @@ class UsersManager extends Screen
         }
 
         $response = $this->userService->getUser($userId);
-        if ($response['status'] !== 'success') {
+        if ($response['status'] !== 'success' || empty($response['data'])) {
             $this->toast($response['message'], 'error');
-            return;
-        }
-
-        $user = $response['data'];
-        if (!$user) {
-            $this->toast(t('User not found'), 'error');
             return;
         }
 
         $this->users_table->select($userId);
 
-        $modalUser = $this->editDialogUser($user);
+        $activeUnit = $this->resolveActiveUnit();
+        $presenter = $this->userEditDialogPresenter ?? new UserEditDialogPresenter();
+        $modalUser = $presenter->present($response['data'], $activeUnit);
         if ($modalUser === null) {
             $this->toast(t('User not found'), 'error');
             return;
-        }
-
-        $activeUnit = $this->resolveActiveUnit();
-        if ($activeUnit) {
-            $modalUser['active_unit'] = [
-                'id' => $activeUnit->id,
-                'slug' => $activeUnit->slug,
-                'name' => ($activeUnit->display_name !== $activeUnit->translation_key)
-                    ? $activeUnit->display_name
-                    : ucfirst($activeUnit->slug),
-            ];
         }
 
         EditUserDialog::open(
@@ -363,20 +247,17 @@ class UsersManager extends Screen
             return;
         }
 
-        // Get the user model
         $user = $this->userService->findUser($userId);
         if (!$user) {
             $this->toast(t('User not found'), 'error');
             return;
         }
 
-        // Prepare data for update
         $updateData = $params;
         if (isset($updateData['roles'])) {
             $updateData['roles'] = (array) $updateData['roles'];
         }
 
-        // Target unit is bound to the active unit in store_unit
         $activeUnit = $this->resolveActiveUnit();
         if ($activeUnit) {
             $updateData['target_unit'] = $activeUnit->id;
@@ -392,22 +273,7 @@ class UsersManager extends Screen
             $this->closeModal();
         } else {
             $this->toast($message, 'error');
-
-            // Update modal inputs with validation errors
-            $errors = $response['errors'] ?? [];
-
-            if (!empty($errors)) {
-                $modalUpdates = [];
-
-                foreach ($errors as $fieldName => $messages) {
-                    // Concatenate all error messages for the field
-                    $modalUpdates[$fieldName] = [
-                        'error' => implode(' ', $messages)
-                    ];
-                }
-
-                $this->updateModal($modalUpdates);
-            }
+            $this->updateModalWithErrors($response['errors'] ?? []);
         }
     }
 
@@ -423,21 +289,19 @@ class UsersManager extends Screen
         }
 
         $response = $this->userService->getUser($userId);
-        if ($response['status'] !== 'success') {
+        if ($response['status'] !== 'success' || empty($response['data'])) {
             $this->toast(t('User not found'), 'error');
             return;
         }
 
         $user = $response['data'];
-        if (!$user) {
-            $this->toast(t('User not found'), 'error');
-            return;
-        }
+        $name = $user['name'] ?? null;
+        $userName = is_string($name) ? $name : '';
 
         ConfirmDialogService::open(
             type: DialogType::WARNING,
             title: t("Delete User"),
-            message: t("Are you sure you want to delete user '{$this->userNameForDeleteMessage($user)}'?"),
+            message: t("Are you sure you want to delete user '{$userName}'?"),
             confirmAction: 'confirm_delete_user',
             confirmParams: ['user_id' => $userId],
             callerServiceId: $this->getScreenComponentId()
@@ -476,6 +340,15 @@ class UsersManager extends Screen
     public function onChangePage(array $params): void
     {
         $page = $this->intParamOrDefault($params, 'page', 1);
+        $rawCompId = $this->optionalIntParam($params, '_component_id')
+            ?? request()->input('component_id');
+        $componentId = is_numeric($rawCompId) ? (int) $rawCompId : null;
+
+        if (isset($this->devices_table) && $componentId !== null && $componentId === $this->devices_table->getId()) {
+            $this->devices_table->page($page);
+            return;
+        }
+
         $this->users_table->page($page);
     }
 
@@ -487,6 +360,224 @@ class UsersManager extends Screen
         $search = trim($this->searchParam($params, ['value', 'search_users']));
         $this->users_table->setSearchTerm($search);
         $this->search_users->value($search);
+    }
+
+    /**
+     * @param array<string, mixed> $params
+     */
+    public function onSearchDevices(array $params): void
+    {
+        $search = trim($this->searchParam($params, ['value', 'search_devices']));
+        $this->devices_table->setSearchTerm($search);
+        $this->search_devices->value($search);
+    }
+
+    /**
+     * @param array<string, mixed> $params
+     */
+    public function onAddDeviceClicked(array $params): void
+    {
+        EditDeviceDialog::open(
+            callerServiceId: $this->getScreenComponentId()
+        );
+    }
+
+    /**
+     * @param array<string, mixed> $params
+     */
+    public function onPairDeviceClicked(array $params): void
+    {
+        $deviceId = $this->optionalIntParam($params, 'device_id');
+        if ($deviceId === null) {
+            $selected = $this->devices_table->select();
+            if (is_int($selected) || (is_string($selected) && is_numeric($selected))) {
+                $deviceId = (int) $selected;
+            }
+        }
+
+        $device = $deviceId !== null ? $this->deviceService->getDevice($deviceId) : null;
+        $devicesOptions = [];
+        if (!$device) {
+            $devices = $this->deviceService->getAllDevices();
+            foreach ($devices as $d) {
+                $devicesOptions[] = [
+                    'value' => $d->id,
+                    'label' => $d->name,
+                ];
+            }
+        }
+
+        DevicePairingDialog::open(
+            device: $device,
+            devicesOptions: $devicesOptions,
+            callerServiceId: $this->getScreenComponentId()
+        );
+    }
+
+    /**
+     * @param array<string, mixed> $params
+     */
+    public function onDevicesTableRowClicked(array $params): void
+    {
+        $deviceId = $this->selectableId($params, 'model_id');
+        if ($deviceId === null) {
+            $this->toast('Dispositivo no encontrado', 'error');
+            return;
+        }
+
+        $device = $this->deviceService->getDevice($deviceId);
+        if (!$device) {
+            $this->toast('Dispositivo no encontrado', 'error');
+            return;
+        }
+
+        $this->devices_table->select($deviceId);
+
+        EditDeviceDialog::open(
+            device: $device,
+            callerServiceId: $this->getScreenComponentId()
+        );
+    }
+
+    /**
+     * @param array<string, mixed> $params
+     */
+    public function onSubmitSaveDevice(array $params): void
+    {
+        $deviceId = $this->optionalIntParam($params, 'device_id') ?? $this->optionalIntParam($params, 'id');
+        $name = trim($this->stringParamOrDefault($params, 'device_name', $this->stringParamOrDefault($params, 'name', '')));
+
+        if ($name === '') {
+            $this->toast(t('validation.required', ['attribute' => t(self::I18N_PREFIX . 'device_name_label')]), 'error');
+            return;
+        }
+
+        $rawUnitId = $params['device_unit_id'] ?? $params['unit_id'] ?? null;
+        $unitId = null;
+        if (is_int($rawUnitId) || (is_string($rawUnitId) && $rawUnitId !== '' && $rawUnitId !== '0')) {
+            $unitId = is_numeric($rawUnitId) ? (int) $rawUnitId : $rawUnitId;
+        }
+
+        $rawRoles = $params['device_roles'] ?? $params['roles'] ?? [];
+        if (is_string($rawRoles)) {
+            $roles = [$rawRoles];
+        } elseif (is_array($rawRoles)) {
+            $roles = array_values(array_filter($rawRoles, static fn($r): bool => is_string($r) && $r !== ''));
+        } else {
+            $roles = [];
+        }
+
+        if ($deviceId) {
+            $this->deviceService->updateDevice($deviceId, [
+                'name' => $name,
+                'unit_id' => $unitId,
+                'roles' => $roles,
+            ]);
+            $this->toast(t(self::I18N_PREFIX . 'device_updated'), 'success');
+        } else {
+            $this->deviceService->createDevice([
+                'name' => $name,
+                'unit_id' => $unitId,
+                'roles' => $roles,
+            ]);
+            $this->toast(t(self::I18N_PREFIX . 'device_created'), 'success');
+        }
+
+        $this->devices_table->refresh();
+        $this->closeModal();
+    }
+
+    /**
+     * @param array<string, mixed> $params
+     */
+    public function onSubmitApproveDevicePairing(array $params): void
+    {
+        $deviceId = $this->optionalIntParam($params, 'pairing_device_id')
+            ?? $this->optionalIntParam($params, 'device_id');
+        $pin = trim($this->stringParamOrDefault($params, 'input_pin', $this->stringParamOrDefault($params, 'pin', '')));
+
+        if ($deviceId === null) {
+            $this->toast(t(self::I18N_PREFIX . 'device_select_label'), 'error');
+            return;
+        }
+
+        if (strlen($pin) !== 4) {
+            $this->toast(t(self::I18N_PREFIX . 'device_pin_length_error'), 'error');
+            return;
+        }
+
+        $result = $this->deviceService->pairDevice($deviceId, $pin);
+        if ($result['success']) {
+            $this->toast($result['message'], 'success');
+            $this->devices_table->refresh();
+            $this->closeModal();
+        } else {
+            $this->toast($result['message'], 'error');
+        }
+    }
+
+    /**
+     * @param array<string, mixed> $params
+     */
+    public function onUnpairDevice(array $params): void
+    {
+        $deviceId = $this->optionalIntParam($params, 'device_id');
+        if ($deviceId === null) {
+            $this->toast(t('Device ID is required'), 'error');
+            return;
+        }
+
+        $this->deviceService->unpairDevice($deviceId);
+        $this->toast(t(self::I18N_PREFIX . 'device_unpaired'), 'success');
+        $this->devices_table->refresh();
+        $this->closeModal();
+    }
+
+    /**
+     * @param array<string, mixed> $params
+     */
+    public function onDeleteDevice(array $params): void
+    {
+        $deviceId = $this->optionalIntParam($params, 'device_id');
+        if ($deviceId === null) {
+            $this->toast(t('Device ID is required'), 'error');
+            return;
+        }
+
+        $device = $this->deviceService->getDevice($deviceId);
+        if (!$device) {
+            $this->toast(t('Device not found'), 'error');
+            return;
+        }
+
+        ConfirmDialogService::open(
+            type: DialogType::WARNING,
+            title: t(self::I18N_PREFIX . 'device_delete_confirm_title'),
+            message: t(self::I18N_PREFIX . 'device_delete_confirm_msg', ['name' => $device->name]),
+            confirmAction: 'confirm_delete_device',
+            confirmParams: ['device_id' => $deviceId],
+            callerServiceId: $this->getScreenComponentId()
+        );
+    }
+
+    /**
+     * @param array<string, mixed> $params
+     */
+    public function onConfirmDeleteDevice(array $params): void
+    {
+        $deviceId = $this->optionalIntParam($params, 'device_id');
+        if ($deviceId === null) {
+            $this->toast(t('Device ID is required for deletion'), 'error');
+            return;
+        }
+
+        $deleted = $this->deviceService->deleteDevice($deviceId);
+        if ($deleted) {
+            $this->toast(t(self::I18N_PREFIX . 'device_deleted'), 'success');
+        }
+
+        $this->devices_table->refresh();
+        $this->closeModal();
     }
 
     /**
@@ -541,97 +632,6 @@ class UsersManager extends Screen
         $this->permissions_table->select($permissionIds);
     }
 
-    private function requireTable(mixed $component): Table
-    {
-        if (!$component instanceof Table) {
-            throw new InvalidArgumentException('Expected table component instance.');
-        }
-
-        return $component;
-    }
-
-    /**
-     * @param array<string, mixed> $params
-     */
-    private function optionalStringParam(array $params, string $key): ?string
-    {
-        $value = $params[$key] ?? null;
-        return is_string($value) ? $value : null;
-    }
-
-    /**
-     * @param array<string, mixed> $params
-     */
-    private function stringParamOrDefault(array $params, string $key, string $default): string
-    {
-        $value = $params[$key] ?? null;
-        return is_string($value) ? $value : $default;
-    }
-
-    /**
-     * @param array<string, mixed> $params
-     */
-    private function optionalIntParam(array $params, string $key): ?int
-    {
-        $value = $params[$key] ?? null;
-        if (is_int($value)) {
-            return $value;
-        }
-
-        if (is_string($value) && ctype_digit($value)) {
-            return (int) $value;
-        }
-
-        return null;
-    }
-
-    /**
-     * @param array<string, mixed> $params
-     */
-    private function intParamOrDefault(array $params, string $key, int $default): int
-    {
-        $value = $this->optionalIntParam($params, $key);
-        return $value ?? $default;
-    }
-
-    /**
-     * @param array<string, mixed> $params
-     */
-    private function boolParamOrDefault(array $params, string $key, bool $default): bool
-    {
-        $value = $params[$key] ?? null;
-        return is_bool($value) ? $value : $default;
-    }
-
-    /**
-     * @param list<string> $keys
-     * @param array<string, mixed> $params
-     */
-    private function searchParam(array $params, array $keys): string
-    {
-        foreach ($keys as $key) {
-            $value = $params[$key] ?? null;
-            if (is_string($value)) {
-                return $value;
-            }
-        }
-
-        return '';
-    }
-
-    /**
-     * @param array<string, mixed> $params
-     */
-    private function selectableId(array $params, string $key): int|string|null
-    {
-        $value = $params[$key] ?? null;
-        if (is_int($value) || is_string($value)) {
-            return $value;
-        }
-
-        return null;
-    }
-
     /**
      * @param mixed $roles
      * @return list<string>
@@ -657,102 +657,21 @@ class UsersManager extends Screen
     }
 
     /**
-     * @param mixed $user
+     * Legacy proxy for backwards compatibility.
+     *
+     * @deprecated Use UserEditDialogPresenter::present() instead.
+     * @param array<string, mixed> $user
+     * @return array<string, mixed>|null
      */
-    private function userNameForDeleteMessage(mixed $user): string
+    protected function editDialogUser(array $user): ?array
     {
-        if (!is_array($user)) {
-            return '';
-        }
-
-        $name = $user['name'] ?? null;
-        return is_string($name) ? $name : '';
+        $presenter = $this->userEditDialogPresenter ?? new UserEditDialogPresenter();
+        return $presenter->present($user);
     }
 
     /**
-     * @param array<string, mixed> $user
-     * @return array{
-     *     id: int|string,
-     *     name: string,
-     *     email: string,
-     *     roles?: list<array{name?: string}|string>,
-     *     email_verified_at?: mixed,
-     *     is_in_lobby?: bool,
-     *     has_operational_units?: bool,
-     *     operational_units?: list<array{id: int|string, slug: string, name: string}>,
-     *     units_with_roles?: array<string, list<string>>
-     * }|null
+     * Resolves the active organizational unit for the current user and context.
      */
-    private function editDialogUser(array $user): ?array
-    {
-        $id = $user['id'] ?? null;
-        $name = $user['name'] ?? null;
-        $email = $user['email'] ?? null;
-
-        if ((!is_int($id) && !is_string($id)) || !is_string($name) || !is_string($email)) {
-            return null;
-        }
-
-        $modalUser = [
-            'id' => $id,
-            'name' => $name,
-            'email' => $email,
-        ];
-
-        if (array_key_exists('email_verified_at', $user)) {
-            $modalUser['email_verified_at'] = $user['email_verified_at'];
-        }
-
-        foreach (['is_in_lobby', 'has_operational_units'] as $key) {
-            if (isset($user[$key]) && is_bool($user[$key])) {
-                $modalUser[$key] = $user[$key];
-            }
-        }
-
-        if (isset($user['roles']) && is_array($user['roles'])) {
-            $roles = [];
-            foreach ($user['roles'] as $role) {
-                if (is_string($role)) {
-                    $roles[] = $role;
-                } elseif (is_array($role) && isset($role['name']) && is_string($role['name'])) {
-                    $roles[] = ['name' => $role['name']];
-                }
-            }
-            $modalUser['roles'] = $roles;
-        }
-
-        if (isset($user['operational_units']) && is_array($user['operational_units'])) {
-            $operationalUnits = [];
-            foreach ($user['operational_units'] as $unit) {
-                if (!is_array($unit)) {
-                    continue;
-                }
-
-                $unitId = $unit['id'] ?? null;
-                $unitSlug = $unit['slug'] ?? null;
-                $unitName = $unit['name'] ?? null;
-                if ((is_int($unitId) || is_string($unitId)) && is_string($unitSlug) && is_string($unitName)) {
-                    $operationalUnits[] = ['id' => $unitId, 'slug' => $unitSlug, 'name' => $unitName];
-                }
-            }
-            $modalUser['operational_units'] = $operationalUnits;
-        }
-
-        if (isset($user['units_with_roles']) && is_array($user['units_with_roles'])) {
-            $unitsWithRoles = [];
-            foreach ($user['units_with_roles'] as $slug => $unitRoles) {
-                if (!is_string($slug) || !is_array($unitRoles)) {
-                    continue;
-                }
-
-                $unitsWithRoles[$slug] = array_values(array_filter($unitRoles, 'is_string'));
-            }
-            $modalUser['units_with_roles'] = $unitsWithRoles;
-        }
-
-        return $modalUser;
-    }
-
     protected function resolveActiveUnit(): ?UsimUnit
     {
         /** @var Authenticatable|null $user */

@@ -62,6 +62,8 @@ class AdminDevicePairingScreen extends Screen
 
     /**
      * Handler que recibe el PIN enviado por el administrador
+     *
+     * @param array<string, mixed> $params
      */
     public function onApprovePairing(array $params): void
     {
