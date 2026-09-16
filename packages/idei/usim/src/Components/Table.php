@@ -113,6 +113,7 @@ class Table extends UIComponent
             'sort_direction' => 'asc', // asc or desc
             'search_term' => null,
             'row_min_height' => self::DEFAULT_ROW_MIN_HEIGHT,
+            'row_height' => self::DEFAULT_ROW_MIN_HEIGHT,
             'body_height' => self::DEFAULT_BODY_HEIGHT,
             'body_min_height' => self::DEFAULT_BODY_HEIGHT,
             'body_max_height' => self::DEFAULT_BODY_HEIGHT,
@@ -461,11 +462,13 @@ class Table extends UIComponent
                 $rowBuilder = $this->createRow();
                 $rowBuilder->row($row);
 
-                $rowMinHeight = $this->config['row_min_height'] ?? null;
+                $rowMinHeight = $this->config['row_height'] ?? ($this->config['row_min_height'] ?? null);
 
                 $rowMinHeightValue = $this->normalizeSizeInput($rowMinHeight);
                 if ($rowMinHeightValue !== null) {
-                    $rowBuilder->minHeight(Size::from($rowMinHeightValue));
+                    $rowSize = Size::from($rowMinHeightValue);
+                    $rowBuilder->minHeight($rowSize);
+                    $rowBuilder->height($rowSize);
                 }
 
                 $this->rowBuilders[$row] = $rowBuilder;
@@ -540,11 +543,13 @@ class Table extends UIComponent
                 $rowBuilder = $this->createRow();
                 $rowBuilder->row($row);
 
-                $rowMinHeight = $this->config['row_min_height'] ?? null;
+                $rowMinHeight = $this->config['row_height'] ?? ($this->config['row_min_height'] ?? null);
 
                 $rowMinHeightValue = $this->normalizeSizeInput($rowMinHeight);
                 if ($rowMinHeightValue !== null) {
-                    $rowBuilder->minHeight(Size::from($rowMinHeightValue));
+                    $rowSize = Size::from($rowMinHeightValue);
+                    $rowBuilder->minHeight($rowSize);
+                    $rowBuilder->height($rowSize);
                 }
 
                 $this->rowBuilders[$row] = $rowBuilder;
@@ -834,11 +839,13 @@ class Table extends UIComponent
             $rowBuilder = $this->createRow();
             $rowBuilder->row($row); // Set row index for ordering
 
-            $rowMinHeight = $this->config['row_min_height'] ?? null;
+            $rowMinHeight = $this->config['row_height'] ?? ($this->config['row_min_height'] ?? null);
 
             $rowMinHeightValue = $this->normalizeSizeInput($rowMinHeight);
             if ($rowMinHeightValue !== null) {
-                $rowBuilder->minHeight(Size::from($rowMinHeightValue));
+                $rowSize = Size::from($rowMinHeightValue);
+                $rowBuilder->minHeight($rowSize);
+                $rowBuilder->height($rowSize);
             }
             $this->rowBuilders[$row] = $rowBuilder;
 
@@ -1205,19 +1212,58 @@ class Table extends UIComponent
     }
 
     /**
-     * Set minimum height for all rows
+     * Set row height for all rows in the table.
      *
-     * @param int $height Minimum height in pixels
+     * @param int|string $height Height in pixels or CSS size string
      * @return self
      */
-    public function rowMinHeight(int $height): self
+    public function rowHeight(int|string $height): self
+    {
+        $size = Size::from($height);
+        $this->setConfig('row_height', (string) $size);
+        $this->setConfig('row_min_height', (string) $size);
+
+        foreach ($this->rowBuilders as $row) {
+            $row->height($size);
+            $row->minHeight($size);
+        }
+
+        return $this;
+    }
+
+    /**
+     * Get configured row height.
+     *
+     * @return Size|null
+     */
+    public function getRowHeight(): ?Size
+    {
+        $v = $this->config['row_height'] ?? ($this->config['row_min_height'] ?? null);
+        if ($v instanceof Size || is_int($v) || is_string($v)) {
+            return Size::from($v);
+        }
+
+        return null;
+    }
+
+    /**
+     * Set minimum height for all rows
+     *
+     * @param int|string $height Minimum height in pixels or CSS size string
+     * @return self
+     */
+    public function rowMinHeight(int|string $height): self
     {
         $rowMinHeight = Size::from($height);
         $this->setConfig('row_min_height', (string) $rowMinHeight);
+        if (!isset($this->config['row_height'])) {
+            $this->setConfig('row_height', (string) $rowMinHeight);
+        }
 
         // Apply min height to all existing rows
         foreach ($this->rowBuilders as $row) {
             $row->minHeight($rowMinHeight);
+            $row->height($rowMinHeight);
         }
 
         return $this;
@@ -1414,7 +1460,7 @@ class Table extends UIComponent
         ?int $rowHeight = null,
         int $paddingVertical = 0
     ): self {
-        $rawRowHeight = $rowHeight ?? ($this->config['row_min_height'] ?? self::DEFAULT_ROW_MIN_HEIGHT);
+        $rawRowHeight = $rowHeight ?? ($this->config['row_height'] ?? ($this->config['row_min_height'] ?? self::DEFAULT_ROW_MIN_HEIGHT));
         $effectiveRowHeight = max(1, is_numeric($rawRowHeight) ? (int) $rawRowHeight : self::DEFAULT_ROW_MIN_HEIGHT);
         $headerHeight = self::DEFAULT_HEADER_HEIGHT;
         $paginationHeight = $paginated ? self::DEFAULT_PAGINATION_HEIGHT : 0;
@@ -1426,6 +1472,7 @@ class Table extends UIComponent
         $rowCount = max(1, (int) floor($availableBodyHeight / $effectiveRowHeight));
         $exactBodyHeight = $rowCount * $effectiveRowHeight;
 
+        $this->rowHeight($effectiveRowHeight);
         $this->pagination($paginated ? $rowCount : 0);
         $this->bodyHeight($exactBodyHeight);
         $this->bodyOverflow('hidden', $paginated ? 'hidden' : 'auto');

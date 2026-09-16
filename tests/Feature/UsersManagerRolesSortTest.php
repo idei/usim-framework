@@ -41,6 +41,12 @@ it('correctly sorts roles by name, home_screen and priority in RoleListingServic
     $sortedByPriorityDesc = $service->paginate(page: 1, perPage: 10, search: '_test', sortField: 'priority', sortDirection: 'desc');
     $priorityDesc = array_map(fn (UsimRole $r) => $r->priority, $sortedByPriorityDesc['items']);
     expect($priorityDesc)->toBe([50, 10, 5]);
+
+    // Sort by guard_name ASC
+    $deviceRole = UsimRole::createWithHome('device_test', 'device_home', 1, 'device');
+    $sortedByGuardAsc = $service->paginate(page: 1, perPage: 10, search: '_test', sortField: 'guard_name', sortDirection: 'asc');
+    $guardsAsc = array_map(fn (UsimRole $r) => $r->guard_name, $sortedByGuardAsc['items']);
+    expect($guardsAsc[0])->toBe('device');
 });
 
 it('handles roles table column clicked sorting in UsersManager screen', function () {
@@ -57,6 +63,15 @@ it('handles roles table column clicked sorting in UsersManager screen', function
     $response->assertOk();
     expect($response->json('error'))->toBeNull();
     $ui->component('roles_table')->expect('sort_column')->toBe('name');
+
+    // Click sort by guard_name
+    $response = $ui->action('roles_table', 'roles_table_column_clicked', [
+        'sort_by' => 'guard_name',
+        'column_text' => 'Guard',
+    ]);
+    $response->assertOk();
+    expect($response->json('error'))->toBeNull();
+    $ui->component('roles_table')->expect('sort_column')->toBe('guard_name');
 
     // Click sort by home_screen
     $response = $ui->action('roles_table', 'roles_table_column_clicked', [

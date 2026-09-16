@@ -33,6 +33,7 @@ return [
     'permissions_column_name' => 'Permisos del rol',
     'permissions_column_description' => 'Descripción',
     'roles_column_name' => 'Rol',
+    'roles_column_guard' => 'Guard',
     'roles_column_home_screen' => 'Inicio',
     'roles_column_priority' => 'Prioridad',
     'role_selection_warning' => 'Primero debes seleccionar un rol',

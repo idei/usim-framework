@@ -17,12 +17,15 @@ class UsimTableRowComponent extends UIComponent {
             row.classList.add(this.config.style);
         }
 
-        if (this.config.min_height !== undefined && this.config.min_height !== null && this.config.min_height !== '') {
-            const minHeight = typeof this.config.min_height === 'number'
-                ? `${this.config.min_height}px`
-                : this.config.min_height;
+        const rawHeight = this.config.height ?? this.config.min_height;
+        if (rawHeight !== undefined && rawHeight !== null && rawHeight !== '') {
+            const minHeight = typeof rawHeight === 'number'
+                ? `${rawHeight}px`
+                : (typeof rawHeight === 'string' && /^\d+$/.test(rawHeight.trim()) ? `${rawHeight.trim()}px` : String(rawHeight));
 
             row.style.minHeight = minHeight;
+            row.style.height = minHeight;
+            row.style.setProperty('--ui-table-row-height', minHeight);
             row.setAttribute('data-min-height', minHeight);
         }
 
@@ -51,15 +54,20 @@ class UsimTableRowComponent extends UIComponent {
             this.element.classList.add(this.config.style);
         }
 
-        if (this.config.min_height !== undefined && this.config.min_height !== null && this.config.min_height !== '') {
-            const minHeight = typeof this.config.min_height === 'number'
-                ? `${this.config.min_height}px`
-                : this.config.min_height;
+        const rawHeight = this.config.height ?? this.config.min_height;
+        if (rawHeight !== undefined && rawHeight !== null && rawHeight !== '') {
+            const minHeight = typeof rawHeight === 'number'
+                ? `${rawHeight}px`
+                : (typeof rawHeight === 'string' && /^\d+$/.test(rawHeight.trim()) ? `${rawHeight.trim()}px` : String(rawHeight));
 
             this.element.style.minHeight = minHeight;
+            this.element.style.height = minHeight;
+            this.element.style.setProperty('--ui-table-row-height', minHeight);
             this.element.setAttribute('data-min-height', minHeight);
         } else {
             this.element.style.minHeight = '';
+            this.element.style.height = '';
+            this.element.style.removeProperty('--ui-table-row-height');
             this.element.removeAttribute('data-min-height');
         }
 

@@ -25,6 +25,7 @@ class RoleTableModel extends AbstractListingTableModel
         $prefix = 'screen.admin.users_manager';
         return [
             'name' => ['label' => t("{$prefix}.roles_column_name"), 'sort_by' => 'name'],
+            'guard_name' => ['label' => t("{$prefix}.roles_column_guard"), 'sort_by' => 'guard_name'],
             'home_screen' => ['label' => t("{$prefix}.roles_column_home_screen"), 'sort_by' => 'home_screen'],
             'priority' => ['label' => t("{$prefix}.roles_column_priority"), 'sort_by' => 'priority'],
         ];
@@ -32,7 +33,7 @@ class RoleTableModel extends AbstractListingTableModel
 
     /**
      * @param UsimRole $item
-     * @return array{_model_id: int|string, name: string, home_screen: string, priority: mixed}
+     * @return array{_model_id: int|string, name: string, guard_name: string, home_screen: string, priority: mixed}
      */
     protected function formatRow(object $item): array
     {
@@ -42,6 +43,7 @@ class RoleTableModel extends AbstractListingTableModel
         return [
             '_model_id' => $item->id,
             'name' => t("role.{$item->name}.name"),
+            'guard_name' => (string) $item->guard_name,
             'home_screen' => $homeScreen,
             'priority' => $item->priority,
         ];

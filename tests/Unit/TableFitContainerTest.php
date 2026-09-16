@@ -73,8 +73,35 @@ class TableFitContainerTest extends TestCase
         // availableBody = 600 - 184 = 416, rowHeight = 50 -> rowCount = 8
         $this->assertSame(8, $pagination['per_page']);
         $this->assertSame('400px', $table->get('body_height'));
+        $this->assertSame('50px', $table->get('row_height'));
+        $this->assertSame('50px', $table->get('row_min_height'));
         // table minHeight = 400 + 48 + 56 = 504px
         $this->assertSame('504px', (string) $table->getMinHeight());
         $this->assertSame('hidden', $table->get('body_overflow_y'));
+    }
+
+    public function test_fit_container_with_row_height_40(): void
+    {
+        $table = new Table('users_table');
+        $table->fitContainer(
+            availableHeight: 550,
+            hasToolbar: true,
+            paginated: true,
+            rowHeight: 40
+        );
+
+        $pagination = $table->getPaginationData();
+        $this->assertTrue($pagination['enabled']);
+        // overhead = 60 (toolbar) + 48 (header) + 56 (pagination) = 164
+        // availableBody = 550 - 164 = 386
+        // rowCount = floor(386 / 40) = 9
+        // exactBodyHeight = 9 * 40 = 360
+        $this->assertSame(9, $pagination['per_page']);
+        $this->assertSame('360px', $table->get('body_height'));
+        $this->assertSame('360px', $table->get('body_min_height'));
+        $this->assertSame('360px', $table->get('body_max_height'));
+        $this->assertSame('40px', $table->get('row_height'));
+        $this->assertSame('40px', $table->get('row_min_height'));
+        $this->assertSame('464px', (string) $table->getMinHeight());
     }
 }

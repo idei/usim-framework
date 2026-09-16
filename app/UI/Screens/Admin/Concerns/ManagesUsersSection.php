@@ -29,7 +29,7 @@ use Idei\Usim\ValueObjects\Spacing;
  */
 trait ManagesUsersSection
 {
-    protected const USERS_I18N_PREFIX = 'screen.admin.users_manager.';
+    protected const string USERS_I18N_PREFIX = 'screen.admin.users_manager.';
 
     protected Table $users_table;
     protected Input $search_users;
@@ -69,7 +69,12 @@ trait ManagesUsersSection
             ->dataModel(UserTableModel::class)
             ->selectionMode(SelectionMode::SINGLE)
             ->sortedBy('name')
-            ->fitContainer(availableHeight: 550, hasToolbar: true, paginated: true);
+            ->fitContainer(
+                availableHeight: 550,
+                rowHeight: 45,
+                hasToolbar: true,
+                paginated: true
+            );
 
         $usersCrudContainer
             ->add($toolbar)

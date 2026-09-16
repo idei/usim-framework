@@ -50,9 +50,9 @@ trait ManagesRolesSection
             ->horizontal()
             ->width(Size::full())
             ->height(Size::px(550))
-            ->minFirstSize('350px')
+            ->minFirstSize('380px')
             ->minSecondSize('450px')
-            ->splitSize('35%')
+            ->splitSize('40%')
             ->addFirst($rolesTable)
             ->addSecond($permissionsTable);
 

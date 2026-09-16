@@ -59,6 +59,10 @@ class RoleTableModel extends AbstractListingTableModel
                 'label' => t('screen.admin.users_manager.roles_column_name'),
                 'sort_by' => 'name'
             ],
+            'guard_name' => [
+                'label' => t('screen.admin.users_manager.roles_column_guard'),
+                'sort_by' => 'guard_name'
+            ],
             'home_screen' => [
                 'label' => t('screen.admin.users_manager.roles_column_home_screen'),
                 'sort_by' => 'home_screen'
@@ -82,6 +86,7 @@ class RoleTableModel extends AbstractListingTableModel
         return [
             '_model_id' => $item->id,
             'name' => t("role.{$item->name}.name"),
+            'guard_name' => (string) $item->guard_name,
             'home_screen' => str_replace('App\\UI\\Screens\\', '', (string) $item->home_screen),
             'priority' => $item->priority,
         ];

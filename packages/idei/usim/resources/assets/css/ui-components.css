@@ -575,6 +575,8 @@ body {
     border-collapse: collapse;
     font-size: 14px;
     table-layout: fixed; /* Keep fixed for consistent sizing */
+    --ui-table-row-height: 48px;
+    --ui-table-cell-padding-y: clamp(2px, calc((var(--ui-table-row-height, 48px) - 20px) / 2), 24px);
 }
 
 /* Body viewport mode keeps head/foot visible while body can scroll with fixed height */
@@ -601,6 +603,8 @@ body {
     display: table;
     width: 100%;
     table-layout: fixed;
+    height: var(--ui-table-row-height, 48px);
+    box-sizing: border-box;
 }
 
 /* Header Row */
@@ -629,6 +633,9 @@ body {
 .ui-table-row {
     transition: all 0.2s ease;
     border-bottom: 1px solid var(--ui-border);
+    height: var(--ui-table-row-height, 48px);
+    box-sizing: border-box;
+    --ui-table-cell-padding-y: clamp(2px, calc((var(--ui-table-row-height, 48px) - 20px) / 2), 24px);
 }
 
 .ui-table-row.clickable {
@@ -641,7 +648,9 @@ body {
 }
 
 /* Support for min-height on rows (applied via inline style) */
-.ui-table-row[style*="min-height"] td {
+.ui-table-row[style*="min-height"] td,
+.ui-table-row[style*="height"] td,
+.ui-table-row[data-min-height] td {
     height: inherit;
 }
 
@@ -687,12 +696,15 @@ body {
 
 /* Table Cells */
 .ui-table-cell {
-    padding: 14px 16px;
+    padding: var(--ui-table-cell-padding-y, clamp(2px, calc((var(--ui-table-row-height, 48px) - 20px) / 2), 14px)) 16px;
     color: var(--ui-text-strong);
     vertical-align: middle;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+    line-height: 20px;
+    box-sizing: border-box;
+    height: inherit;
 }
 
 /* Cells with min/max width constraints should respect them */

@@ -213,6 +213,14 @@ class UsimTableComponent extends UIComponent {
         this.tbodyElement.style.maxHeight = maxHeight || '';
         this.tbodyElement.style.overflowX = overflowX || '';
         this.tbodyElement.style.overflowY = overflowY || '';
+
+        const rowHeight = this.normalizeSize(this.config?.row_height || this.config?.row_min_height);
+        if (rowHeight) {
+            this.tableElement.style.setProperty('--ui-table-row-height', rowHeight);
+            if (this.element) {
+                this.element.style.setProperty('--ui-table-row-height', rowHeight);
+            }
+        }
     }
 
     normalizeSize(value) {
@@ -224,7 +232,8 @@ class UsimTableComponent extends UIComponent {
             return `${value}px`;
         }
 
-        return String(value);
+        const str = String(value).trim();
+        return /^\d+$/.test(str) ? `${str}px` : str;
     }
 
     normalizeOverflow(value) {

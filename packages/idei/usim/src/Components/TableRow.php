@@ -3,6 +3,7 @@
 namespace Idei\Usim\Components;
 
 use Idei\Usim\Contracts\UIElement;
+use Idei\Usim\ValueObjects\Size;
 
 /**
  * Builder for Table Row UI components
@@ -40,6 +41,7 @@ class TableRow extends UIComponent
             'empty' => null,
             'row' => null, // Row index for ordering
             'min_height' => null, // Minimum height in pixels
+            'height' => null,
             'action' => null,
             'parameters' => null,
         ];
@@ -225,6 +227,34 @@ class TableRow extends UIComponent
     public function empty(bool $empty = true): self
     {
         return $this->setConfig('empty', $empty);
+    }
+
+    /**
+     * Set row minimum height, also ensuring height is synchronized.
+     *
+     * @param Size $height
+     * @return static
+     */
+    public function minHeight(Size $height): static
+    {
+        $this->setConfig('min_height', (string) $height);
+        $this->setConfig('height', (string) $height);
+
+        return $this;
+    }
+
+    /**
+     * Set row height, also ensuring min_height is synchronized.
+     *
+     * @param Size $height
+     * @return static
+     */
+    public function height(Size $height): static
+    {
+        $this->setConfig('height', (string) $height);
+        $this->setConfig('min_height', (string) $height);
+
+        return $this;
     }
 
     /**

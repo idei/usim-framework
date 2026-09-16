@@ -23,6 +23,7 @@ class RoleListingService extends EloquentListingService
     {
         return [
             'name' => 'name',
+            'guard_name' => 'guard_name',
             'home_screen' => 'usimSetting.home_screen',
             'priority' => 'usimSetting.priority',
         ];
@@ -33,7 +34,9 @@ class RoleListingService extends EloquentListingService
      */
     protected function filterableFields(): array
     {
-        return [];
+        return [
+            'guard_name' => ['path' => 'guard_name'],
+        ];
     }
 
     /**
@@ -43,6 +46,7 @@ class RoleListingService extends EloquentListingService
     {
         return [
             'name' => 'name',
+            'guard_name' => 'guard_name',
             'home_screen' => 'usimSetting.home_screen',
             'priority' => 'usimSetting.priority',
         ];

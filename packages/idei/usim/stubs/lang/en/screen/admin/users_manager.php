@@ -33,6 +33,7 @@ return [
     'permissions_column_name' => 'Role permissions',
     'permissions_column_description' => 'Description',
     'roles_column_name' => 'Role',
+    'roles_column_guard' => 'Guard',
     'roles_column_home_screen' => 'Home Screen',
     'roles_column_priority' => 'Priority',
     'role_selection_warning' => 'You must select a role first',
