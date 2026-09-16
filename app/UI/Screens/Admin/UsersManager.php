@@ -73,7 +73,7 @@ class UsersManager extends Screen
 
         $this->tabs_container = UI::container('tabs_container')
             ->width(Size::full())
-            ->padding(Spacing::px(10))
+            ->padding(Spacing::px(0))
             ->minHeight(Size::px(620))
             ->rounded(0)
             ->gap(Spacing::px(2))

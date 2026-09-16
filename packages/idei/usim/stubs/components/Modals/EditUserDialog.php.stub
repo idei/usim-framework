@@ -3,9 +3,11 @@
 namespace {{ componentsNamespace }};
 
 use App\Services\Role\RoleService;
+use Idei\Usim\Components\Container;
 use Idei\Usim\Enums\JustifyContent;
 use Idei\Usim\Enums\LayoutType;
 use Idei\Usim\Models\UsimRole;
+use Idei\Usim\Models\UsimUnit;
 use Idei\Usim\UI;
 use Idei\Usim\UIChangesCollector;
 use Idei\Usim\ValueObjects\Spacing;
@@ -14,11 +16,46 @@ use Idei\Usim\ValueObjects\Spacing;
  * Edit User Dialog Service
  *
  * Provides a modal dialog with user edit form
+ *
+ * @phpstan-type UserPayload array{
+ *     id: int|string,
+ *     name: string,
+ *     email: string,
+ *     roles?: list<array{name?: string}|string>,
+ *     email_verified_at?: mixed,
+ *     is_in_lobby?: bool,
+ *     has_operational_units?: bool,
+ *     active_unit?: array{id: int|string, slug: string, name: string}|null,
+ *     operational_units?: list<array{id: int|string, slug: string, name: string}>,
+ *     units_with_roles?: array<string, list<string>>
+ * }
  */
 class EditUserDialog
 {
+    public const DEFAULT_SUBMIT_ACTION = 'submit_update_user';
+    public const DEFAULT_CANCEL_ACTION = 'close_modal';
+    public const DELETE_ACTION = 'delete_user';
+
+    private const SYSTEM_REGISTERED_ROLE = 'registered';
+    private const DEFAULT_FALLBACK_ROLE = 'user';
+    private const EXCLUDED_MEMBERSHIP_SLUGS = ['lobby', 'main'];
+
+    private const CONTAINER_PADDING = 20;
+    private const BUTTONS_GAP = 10;
+    private const BUTTONS_PADDING = 10;
+
+    protected RoleService $roleService;
+
+    public function __construct(
+        ?RoleService $roleService = null
+    ) {
+        /** @var RoleService $service */
+        $service = $roleService ?? app(RoleService::class);
+        $this->roleService = $service;
+    }
 
     /**
+     * @phpstan-param UserPayload|null $user
      * @param array{
      *     id: int|string,
      *     name: string,
@@ -27,20 +64,20 @@ class EditUserDialog
      *     email_verified_at?: mixed,
      *     is_in_lobby?: bool,
      *     has_operational_units?: bool,
-    *     active_unit?: array{id: int|string, slug: string, name: string}|null,
+     *     active_unit?: array{id: int|string, slug: string, name: string}|null,
      *     operational_units?: list<array{id: int|string, slug: string, name: string}>,
      *     units_with_roles?: array<string, list<string>>
      * }|null $user
      */
     public static function open(
-        string $submitAction = 'submit_update_user',
-        ?string $cancelAction = 'close_modal',
+        string $submitAction = self::DEFAULT_SUBMIT_ACTION,
+        ?string $cancelAction = self::DEFAULT_CANCEL_ACTION,
         ?array $user = null,
         ?int $callerServiceId = null
-    ): void
-    {
+    ): void {
         $dialog = new self();
         $format = $dialog->getUI($submitAction, $cancelAction, $user, $callerServiceId);
+        /** @var UIChangesCollector $uiChanges */
         $uiChanges = app(UIChangesCollector::class);
         $uiChanges->add($format);
     }
@@ -50,6 +87,7 @@ class EditUserDialog
      *
      * @param string $submitAction Action to call when form is submitted
      * @param string|null $cancelAction Action to call when cancel is clicked
+     * @phpstan-param UserPayload|null $user
      * @param array{
      *      id: int|string,
      *      name: string,
@@ -66,81 +104,97 @@ class EditUserDialog
      * @return array<int, array<string, mixed>> UI components for the modal
      */
     public function getUI(
-        string $submitAction = 'submit_update_user',
-        ?string $cancelAction = 'close_modal',
+        string $submitAction = self::DEFAULT_SUBMIT_ACTION,
+        ?string $cancelAction = self::DEFAULT_CANCEL_ACTION,
         ?array $user = null,
         ?int $callerServiceId = null
     ): array {
-        $name = $user ? $user['name'] : '';
-        $email = $user ? $user['email'] : '';
-        $isInLobby = !empty($user['is_in_lobby']);
-        $hasOperationalUnits = !empty($user['has_operational_units']);
-
-        $activeUnit = $user ? $user['active_unit'] ?? null : null;
-        if (!$activeUnit && $hasOperationalUnits && !empty($user['operational_units'])) {
-            $activeUnit = $user['operational_units'][0];
-        }
-
-        $selectedRoles = [];
+        $isInLobby = ($user !== null) && !empty($user['is_in_lobby']);
+        $hasOperationalUnits = ($user !== null) && !empty($user['has_operational_units']);
+        $activeUnit = $this->resolveActiveUnit($user, $hasOperationalUnits);
         $activeSlug = $activeUnit['slug'] ?? null;
-        if ($activeSlug && !empty($user['units_with_roles'][$activeSlug])) {
-            $selectedRoles = $user['units_with_roles'][$activeSlug];
-        } elseif (!$isInLobby && $user && !empty($user['roles'])) {
-            foreach ($user['roles'] as $r) {
-                if (is_array($r) && isset($r['name'])) {
-                    $selectedRoles[] = $r['name'];
-                } elseif (is_string($r)) {
-                    $selectedRoles[] = $r;
-                }
-            }
-        }
+        $selectedRoles = $this->resolveSelectedRoles($user, $activeSlug, $isInLobby);
+        $emailVerified = $this->isEmailVerified($user);
 
-        // If user is in lobby, exclude the system 'registered' role from pre-selection
+        $dialogContainer = $this->createDialogContainer();
+
         if ($isInLobby) {
-            $selectedRoles = array_values(array_filter($selectedRoles, static fn($r) => $r !== 'registered'));
+            $this->buildLobbyBanner($dialogContainer);
         }
 
-        if (empty($selectedRoles)) {
-            $selectedRoles = ['user'];
+        $this->buildHiddenInputs($dialogContainer, $user, $isInLobby);
+
+        $name = $user !== null ? $user['name'] : '';
+        $email = $user !== null ? $user['email'] : '';
+        $this->buildUserInputs($dialogContainer, $name, $email);
+
+        if ($hasOperationalUnits && $activeUnit !== null) {
+            $this->buildActiveUnitSection($dialogContainer, $activeUnit);
         }
 
-        $emailVerified = $user
-            ? (array_key_exists('email_verified_at', $user) && $user['email_verified_at'] !== null)
-            : false;
+        if ($user !== null && !empty($user['units_with_roles'])) {
+            $this->buildOtherMembershipsSection($dialogContainer, $user['units_with_roles'], $activeSlug);
+        }
 
-        // Main container for the modal
-        $registerContainer = UI::container('edit_user_dialog')
+        $this->buildRoleCheckboxes($dialogContainer, $selectedRoles);
+        $this->buildEmailCheckboxes($dialogContainer, $emailVerified);
+
+        $submitLabel = $this->resolveSubmitLabel($isInLobby, $hasOperationalUnits, $activeUnit);
+        $this->buildActionButtons(
+            $dialogContainer,
+            $submitAction,
+            $cancelAction,
+            $callerServiceId,
+            $submitLabel,
+            $user !== null
+        );
+
+        return $dialogContainer->toJson();
+    }
+
+    private function createDialogContainer(): Container
+    {
+        return UI::container('edit_user_dialog')
             ->parent('modal')
             ->shadow(false)
             ->plain()
-            ->padding(Spacing::px(20));
+            ->padding(Spacing::px(self::CONTAINER_PADDING));
+    }
 
-        // Lobby banner if user is pending approval
-        if ($isInLobby) {
-            $registerContainer->add(
-                UI::label('lobby_banner')
-                    ->text(t('modal.edit_user.lobby_banner'))
-                    ->style('warning')
-                    ->size('medium')
-            );
-        }
+    private function buildLobbyBanner(Container $container): void
+    {
+        $container->add(
+            UI::label('lobby_banner')
+                ->text(t('modal.edit_user.lobby_banner'))
+                ->style('warning')
+                ->size('medium')
+        );
+    }
 
-        // Id input (hidden)
-        $registerContainer->add(
+    /**
+     * @phpstan-param UserPayload|null $user
+     * @param array<string, mixed>|null $user
+     */
+    private function buildHiddenInputs(Container $container, ?array $user, bool $isInLobby): void
+    {
+        $userId = $user !== null ? (string) $user['id'] : '';
+
+        $container->add(
             UI::input('user_id')
                 ->type('hidden')
-                ->value($user ? $user['id'] : '')
+                ->value($userId)
         );
 
-        // Lobby state input (hidden)
-        $registerContainer->add(
+        $container->add(
             UI::input('is_in_lobby')
                 ->type('hidden')
                 ->value($isInLobby ? '1' : '0')
         );
+    }
 
-        // Name input
-        $registerContainer->add(
+    private function buildUserInputs(Container $container, string $name, string $email): void
+    {
+        $container->add(
             UI::input('name')
                 ->label(t('modal.edit_user.name'))
                 ->placeholder(t('modal.edit_user.name_placeholder'))
@@ -149,8 +203,7 @@ class EditUserDialog
                 ->autocomplete('off')
         );
 
-        // Email input
-        $registerContainer->add(
+        $container->add(
             UI::input('email')
                 ->label(t('modal.edit_user.email'))
                 ->placeholder(t('modal.edit_user.email_placeholder'))
@@ -158,148 +211,305 @@ class EditUserDialog
                 ->value($email)
                 ->autocomplete('off')
         );
+    }
 
-        // Active operational unit context indicator (in Multi-Unit mode)
-        if ($hasOperationalUnits && !empty($activeUnit)) {
-            $registerContainer->add(
-                UI::label('active_unit_badge')
-                    ->text(t('modal.edit_user.active_unit_label', ['unit' => $activeUnit['name']]))
-                    ->style('primary')
-                    ->size('medium')
-            );
+    /**
+     * @param array{id: int|string, slug: string, name: string} $activeUnit
+     */
+    private function buildActiveUnitSection(Container $container, array $activeUnit): void
+    {
+        $container->add(
+            UI::label('active_unit_badge')
+                ->text(t('modal.edit_user.active_unit_label', ['unit' => $activeUnit['name']]))
+                ->style('primary')
+                ->size('medium')
+        );
 
-            $registerContainer->add(
-                UI::label('active_unit_help')
-                    ->text(t('modal.edit_user.active_unit_help'))
-                    ->style('muted')
-                    ->size('small')
-            );
+        $container->add(
+            UI::label('active_unit_help')
+                ->text(t('modal.edit_user.active_unit_help'))
+                ->style('muted')
+                ->size('small')
+        );
 
-            $registerContainer->add(
-                UI::input('target_unit')
-                    ->type('hidden')
-                    ->value((string) $activeUnit['id'])
-            );
+        $container->add(
+            UI::input('target_unit')
+                ->type('hidden')
+                ->value((string) $activeUnit['id'])
+        );
+    }
+
+    /**
+     * @param array<string, list<string>> $unitsWithRoles
+     */
+    private function buildOtherMembershipsSection(
+        Container $container,
+        array $unitsWithRoles,
+        ?string $activeSlug
+    ): void {
+        $memberships = $this->formatOtherMemberships($unitsWithRoles, $activeSlug);
+        if (empty($memberships)) {
+            return;
         }
 
-        // Other memberships of this user (for situational awareness)
-        if (!empty($user['units_with_roles'])) {
-            $currentActiveSlug = $activeUnit['slug'] ?? '';
-            $otherMemberships = [];
-            foreach ($user['units_with_roles'] as $slug => $rolesList) {
-                if ($slug === $currentActiveSlug || in_array($slug, ['lobby', 'main'], true)) {
-                    continue;
-                }
-                $uModel = \Idei\Usim\Models\UsimUnit::where('slug', $slug)->first();
-                $uName = $uModel ? (($uModel->display_name !== $uModel->translation_key) ? $uModel->display_name : ucfirst($slug)) : ucfirst($slug);
-                $rolesTranslated = array_map(static fn(string $r): string => t("role.{$r}.name"), $rolesList);
-                $otherMemberships[] = $uName . ' (' . (empty($rolesTranslated) ? t('role.none') : implode(', ', $rolesTranslated)) . ')';
-            }
+        $container->add(
+            UI::label('other_units_info')
+                ->text(t('modal.edit_user.other_units') . ': ' . implode(' | ', $memberships))
+                ->style('secondary')
+                ->size('small')
+        );
+    }
 
-            if (!empty($otherMemberships)) {
-                $registerContainer->add(
-                    UI::label('other_units_info')
-                        ->text(t('modal.edit_user.other_units') . ': ' . implode(' | ', $otherMemberships))
-                        ->style('secondary')
-                        ->size('small')
-                );
+    /**
+     * @param array<string, list<string>> $unitsWithRoles
+     * @return list<string>
+     */
+    private function formatOtherMemberships(array $unitsWithRoles, ?string $activeSlug): array
+    {
+        $relevantSlugs = [];
+        foreach (array_keys($unitsWithRoles) as $slugKey) {
+            $slug = (string) $slugKey;
+            if ($slug !== $activeSlug && !in_array($slug, self::EXCLUDED_MEMBERSHIP_SLUGS, true)) {
+                $relevantSlugs[] = $slug;
             }
         }
 
-        // Role checkboxes
-        $roleService = app(RoleService::class);
-        $roles = $roleService->getAllowedRoles();
+        if (empty($relevantSlugs)) {
+            return [];
+        }
+
+        /** @var \Illuminate\Database\Eloquent\Collection<string, UsimUnit>|\Illuminate\Support\Collection<string, UsimUnit> $unitModels */
+        $unitModels = UsimUnit::whereIn('slug', $relevantSlugs)->get()->keyBy('slug');
+
+        $memberships = [];
+        foreach ($relevantSlugs as $slug) {
+            $rolesList = $unitsWithRoles[$slug] ?? [];
+            $unitModel = $unitModels->get($slug);
+            $unit = $unitModel instanceof UsimUnit ? $unitModel : null;
+            $unitName = $this->resolveUnitDisplayName($unit, $slug);
+
+            $rolesTranslated = array_values(array_map(
+                static fn(string $role): string => t("role.{$role}.name"),
+                $rolesList
+            ));
+
+            $rolesText = empty($rolesTranslated) ? t('role.none') : implode(', ', $rolesTranslated);
+            $memberships[] = "{$unitName} ({$rolesText})";
+        }
+
+        return $memberships;
+    }
+
+    private function resolveUnitDisplayName(?UsimUnit $unit, string $slug): string
+    {
+        if ($unit !== null) {
+            $displayName = (string) $unit->display_name;
+            $translationKey = (string) $unit->translation_key;
+
+            if ($displayName !== '' && $displayName !== $translationKey) {
+                return $displayName;
+            }
+        }
+
+        return ucfirst($slug);
+    }
+
+    /**
+     * @param list<string> $selectedRoles
+     */
+    private function buildRoleCheckboxes(Container $container, array $selectedRoles): void
+    {
+        $container->add(
+            UI::checkbox('roles')
+                ->label(t('modal.edit_user.roles'))
+                ->options($this->resolveRoleOptions())
+                ->vertical()
+                ->selectedValues($selectedRoles)
+                ->required(true)
+        );
+    }
+
+    /**
+     * @return list<array{value: string, label: string}>
+     */
+    private function resolveRoleOptions(): array
+    {
+        $roles = $this->roleService->getAllowedRoles();
 
         /** @var list<array{value: string, label: string}> $roleOptions */
-        $roleOptions = array_map(static fn(UsimRole $role): array => [
-            'value' => $role->name,
+        $roleOptions = array_values(array_map(static fn(UsimRole $role): array => [
+            'value' => (string) $role->name,
             'label' => t("role.{$role->name}.name"),
-        ], $roles);
+        ], $roles));
 
         if (empty($roleOptions)) {
-            $roleOptions = [
+            return [
                 ['value' => 'user', 'label' => t('role.user.name')],
                 ['value' => 'admin', 'label' => t('role.admin.name')],
             ];
         }
 
-        $registerContainer->add(
-            UI::checkbox('roles')
-                ->label(t('modal.edit_user.roles'))
-                ->options($roleOptions)
-                ->vertical()
-                ->selectedValues($selectedRoles)
-                ->required(true)
-        );
+        return $roleOptions;
+    }
 
-        // Checkbox for sending reset password email
-        $registerContainer->add(
+    private function buildEmailCheckboxes(Container $container, bool $emailVerified): void
+    {
+        $container->add(
             UI::checkbox('send_reset_email')
                 ->label(t('modal.edit_user.send_reset_email'))
                 ->checked(false)
         );
 
-        // If the email is not verified, checkbox to send verification email
         if (!$emailVerified) {
-            $registerContainer->add(
+            $container->add(
                 UI::checkbox('send_verification_email')
                     ->label(t('modal.edit_user.send_verification_email'))
                     ->checked(false)
             );
         }
+    }
 
-        // Buttons container
+    private function buildActionButtons(
+        Container $container,
+        string $submitAction,
+        ?string $cancelAction,
+        ?int $callerServiceId,
+        string $submitLabel,
+        bool $canDelete
+    ): void {
         $buttonsContainer = UI::container('edit_user_buttons')
             ->layout(LayoutType::HORIZONTAL)
             ->justifyContent(JustifyContent::SPACE_BETWEEN)
             ->shadow(false)
             ->plain()
-            ->gap(Spacing::px(10))
-            ->padding(Spacing::each(Spacing::px(10)));
+            ->gap(Spacing::px(self::BUTTONS_GAP))
+            ->padding(Spacing::each(Spacing::px(self::BUTTONS_PADDING)));
 
-        // Cancel button
-        if ($cancelAction) {
+        /** @var array<string, mixed> $callerPayload */
+        $callerPayload = [
+            '_caller_service_id' => $callerServiceId,
+        ];
+
+        if ($cancelAction !== null && $cancelAction !== '') {
             $buttonsContainer->add(
                 UI::button('btn_cancel_register')
                     ->label(t('modal.edit_user.cancel'))
                     ->style('secondary')
-                    ->action($cancelAction, [
-                        '_caller_service_id' => $callerServiceId
-                    ])
+                    ->action($cancelAction, $callerPayload)
             );
-        }
-
-        // Submit button
-        if ($isInLobby) {
-            $submitLabel = ($hasOperationalUnits && !empty($activeUnit))
-                ? t('modal.edit_user.approve_in_unit', ['unit' => $activeUnit['name']])
-                : t('modal.edit_user.approve_simple');
-        } else {
-            $submitLabel = t('modal.edit_user.update_user');
         }
 
         $buttonsContainer->add(
             UI::button('btn_submit_register')
                 ->label($submitLabel)
                 ->style('primary')
-                ->action($submitAction, [
-                    '_caller_service_id' => $callerServiceId
-                ])
+                ->action($submitAction, $callerPayload)
         );
 
-        // Remove button
         $buttonsContainer->add(
             UI::button('btn_delete_user')
                 ->label(t('modal.edit_user.delete_user'))
                 ->style('danger')
-                ->action('delete_user', [
-                    '_caller_service_id' => $callerServiceId
-                ])
-                ->visible($user !== null) // Only show delete if editing an existing user
+                ->action(self::DELETE_ACTION, $callerPayload)
+                ->visible($canDelete)
         );
 
-        $registerContainer->add($buttonsContainer);
+        $container->add($buttonsContainer);
+    }
 
-        return $registerContainer->toJson();
+    /**
+     * @param array{id: int|string, slug: string, name: string}|null $activeUnit
+     */
+    private function resolveSubmitLabel(bool $isInLobby, bool $hasOperationalUnits, ?array $activeUnit): string
+    {
+        if (!$isInLobby) {
+            return t('modal.edit_user.update_user');
+        }
+
+        if ($hasOperationalUnits && $activeUnit !== null && $activeUnit['name'] !== '') {
+            return t('modal.edit_user.approve_in_unit', ['unit' => $activeUnit['name']]);
+        }
+
+        return t('modal.edit_user.approve_simple');
+    }
+
+    /**
+     * @phpstan-param UserPayload|null $user
+     * @param array<string, mixed>|null $user
+     * @return array{id: int|string, slug: string, name: string}|null
+     */
+    private function resolveActiveUnit(?array $user, bool $hasOperationalUnits): ?array
+    {
+        if ($user === null) {
+            return null;
+        }
+
+        if (!empty($user['active_unit'])) {
+            return $user['active_unit'];
+        }
+
+        if ($hasOperationalUnits && !empty($user['operational_units'])) {
+            return $user['operational_units'][0];
+        }
+
+        return null;
+    }
+
+    /**
+     * @phpstan-param UserPayload|null $user
+     * @param array<string, mixed>|null $user
+     * @return list<string>
+     */
+    private function resolveSelectedRoles(?array $user, ?string $activeSlug, bool $isInLobby): array
+    {
+        $selectedRoles = [];
+
+        if ($user !== null) {
+            if ($activeSlug !== null && isset($user['units_with_roles'][$activeSlug]) && !empty($user['units_with_roles'][$activeSlug])) {
+                $selectedRoles = $user['units_with_roles'][$activeSlug];
+            } elseif (!$isInLobby && !empty($user['roles'])) {
+                $selectedRoles = $this->extractRoleNames($user['roles']);
+            }
+        }
+
+        if ($isInLobby) {
+            $selectedRoles = array_values(array_filter(
+                $selectedRoles,
+                static fn(string $role): bool => $role !== self::SYSTEM_REGISTERED_ROLE
+            ));
+        }
+
+        return !empty($selectedRoles) ? $selectedRoles : [self::DEFAULT_FALLBACK_ROLE];
+    }
+
+    /**
+     * @param list<array{name?: string}|string> $roles
+     * @return list<string>
+     */
+    private function extractRoleNames(array $roles): array
+    {
+        $names = [];
+        foreach ($roles as $role) {
+            if (is_array($role)) {
+                if (isset($role['name']) && is_string($role['name']) && $role['name'] !== '') {
+                    $names[] = $role['name'];
+                }
+            } elseif (is_string($role) && $role !== '') {
+                $names[] = $role;
+            }
+        }
+
+        return array_values($names);
+    }
+
+    /**
+     * @phpstan-param UserPayload|null $user
+     * @param array<string, mixed>|null $user
+     */
+    private function isEmailVerified(?array $user): bool
+    {
+        return $user !== null
+            && array_key_exists('email_verified_at', $user)
+            && $user['email_verified_at'] !== null;
     }
 }
