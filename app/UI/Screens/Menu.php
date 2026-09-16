@@ -634,7 +634,11 @@ class Menu extends Screen
     {
         $messageValue = $response['message'] ?? t('screen.menu.register_success_default');
         $message = is_string($messageValue) ? $messageValue : t('screen.menu.register_success_default');
-        $this->toast($message, 'success');
+        $this->toast(
+            message: $message,
+            type: 'success',
+            position: 'top-middle'
+        );
 
         $user = $response['user'] ?? null;
         if (!$user instanceof User) {
@@ -654,7 +658,11 @@ class Menu extends Screen
     {
         $messageValue = $response['message'] ?? t('screen.menu.validation_errors_default');
         $message = is_string($messageValue) ? $messageValue : t('screen.menu.validation_errors_default');
-        $this->toast($message, 'error');
+        $this->toast(
+            message: $message,
+            type: 'error',
+            position: 'top-middle'
+        );
         $this->updateModalValidationErrors($this->normalizeErrors($response['errors'] ?? []));
     }
 

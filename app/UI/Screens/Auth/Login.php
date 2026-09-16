@@ -151,7 +151,11 @@ class Login extends Screen
 
         $message = $response['message'];
         $status = $response['status'];
-        $this->toast($message, $status);
+        $this->toast(
+            message: $message,
+            type: $status,
+            position: 'top-middle',
+        );
         $this->lbl_login_result->text($message)->style($status);
 
         if ($response['status'] === 'error') {
