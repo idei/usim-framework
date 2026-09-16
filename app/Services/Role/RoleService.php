@@ -18,13 +18,22 @@ class RoleService
      * Return all allowed roles.
      *
      * @param bool $excludeSystemRoles Whether to exclude the 'root', 'guest' and 'default registering' roles
+     * @param array<string> $excludedGuards A list of excluded guards
      * @return list<UsimRole>
      */
     public function getAllowedRoles(
-        bool $excludeSystemRoles = true
+        bool $excludeSystemRoles = true,
+        array $excludedGuards = []
     ): array {
         $systemRoles = ['root', 'guest', config('usim.default_registering_role')];
         $roles = $this->roleListingService->sortBy('priority');
+
+        if (!empty($excludedGuards)) {
+            $roles = array_values(array_filter(
+                $roles,
+                static fn(UsimRole $role): bool => !\in_array($role->guard_name, $excludedGuards, true)
+            ));
+        }
 
         if ($excludeSystemRoles) {
             $roles = array_values(array_filter(
