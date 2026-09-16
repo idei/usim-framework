@@ -84,6 +84,7 @@ php artisan view:clear
 # Register UI Screens/Components
 echo "Discovering UI Screens..."
 php artisan usim:discover
+php artisan usim:sync all
 
 # Start queue worker in background
 echo "Starting queue worker in background..."
