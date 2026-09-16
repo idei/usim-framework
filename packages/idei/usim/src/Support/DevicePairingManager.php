@@ -48,13 +48,13 @@ class DevicePairingManager
     {
         $pin = Cache::get("usim_pairing_session:{$sessionToken}");
 
-        if (!$pin) {
+        if (!is_string($pin) || $pin === '') {
             return null; // Expiró o el token de sesión es inválido
         }
 
         $data = Cache::get("usim_pairing_pin:{$pin}");
 
-        if ($data && $data['status'] === 'approved' && !empty($data['access_token'])) {
+        if (is_array($data) && ($data['status'] ?? null) === 'approved' && !empty($data['access_token']) && is_string($data['access_token'])) {
             // El admin ya lo aprobó. Limpiamos la caché para un solo uso.
             Cache::forget("usim_pairing_pin:{$pin}");
             Cache::forget("usim_pairing_session:{$sessionToken}");
@@ -69,19 +69,25 @@ class DevicePairingManager
      * 3. El Administrador aprueba el PIN y genera el Token Definitivo.
      *
      * @param string $pin El PIN que el admin leyó de la pantalla.
-     * @param mixed $device La instancia del modelo App\Models\Device.
+     * @param object $device La instancia del modelo App\Models\Device.
      * @return bool True si fue exitoso, False si el PIN no existe o expiró.
      */
-    public function approve(string $pin, $device): bool
+    public function approve(string $pin, object $device): bool
     {
         $data = Cache::get("usim_pairing_pin:{$pin}");
 
-        if (!$data || $data['status'] !== 'pending') {
+        if (!is_array($data) || ($data['status'] ?? null) !== 'pending') {
+            return false;
+        }
+
+        if (!method_exists($device, 'createToken')) {
             return false;
         }
 
         // Generamos el token definitivo mediante Sanctum/Passport para este dispositivo
-        $token = $device->createToken('Device Access Token')->plainTextToken;
+        /** @var object{plainTextToken: string} $tokenResult */
+        $tokenResult = $device->createToken('Device Access Token');
+        $token = $tokenResult->plainTextToken;
 
         $data['status'] = 'approved';
         $data['access_token'] = $token;

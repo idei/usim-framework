@@ -38,7 +38,7 @@ trait ManagesDevicesSection
             ->layout(LayoutType::VERTICAL)
             ->gap(Spacing::px(4))
             ->rounded(0)
-            ->height(Size::px(340))
+            ->minHeight(Size::px(550))
             ->plain();
 
         $toolbar = UI::container('devices_toolbar')
@@ -71,16 +71,11 @@ trait ManagesDevicesSection
             ->add($addBtn)
             ->add($pairBtn);
 
-        $devicesTable = UI::table('devices_table');
-        $devicesTable->pagination(10);
-        $devicesTable->sortedBy('name');
-        $devicesTable->dataModel(DeviceTableModel::class);
-        $devicesTable->selectionMode(SelectionMode::SINGLE);
-        $devicesTable->bodyOverflowX('hidden');
-        $devicesTable->bodyOverflowY('auto');
-        $devicesTable->minHeight(Size::px(440));
-        $devicesTable->bodyMinHeight('340px');
-        $devicesTable->align('center');
+        $devicesTable = UI::table('devices_table')
+            ->dataModel(DeviceTableModel::class)
+            ->selectionMode(SelectionMode::SINGLE)
+            ->sortedBy('name')
+            ->fitContainer(availableHeight: 550, hasToolbar: true, paginated: true);
 
         $devicesCrudContainer
             ->add($toolbar)

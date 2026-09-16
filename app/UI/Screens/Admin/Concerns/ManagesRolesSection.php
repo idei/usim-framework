@@ -33,26 +33,18 @@ trait ManagesRolesSection
             ->layout(LayoutType::VERTICAL)
             ->gap(Spacing::px(2))
             ->rounded(0)
-            ->height(Size::px(340))
+            ->minHeight(Size::px(550))
             ->plain();
 
-        $rolesTable = UI::table('roles_table');
-        $rolesTable->pagination(10);
-        $rolesTable->dataModel(RoleTableModel::class);
-        $rolesTable->selectionMode(SelectionMode::SINGLE);
-        $rolesTable->bodyOverflowX('hidden');
-        $rolesTable->bodyOverflowY('auto');
-        $rolesTable->minHeight(Size::px(500));
-        $rolesTable->bodyMinHeight('340px');
+        $rolesTable = UI::table('roles_table')
+            ->dataModel(RoleTableModel::class)
+            ->selectionMode(SelectionMode::SINGLE)
+            ->fitContainer(availableHeight: 550, hasToolbar: false, paginated: true);
 
-        $permissionsTable = UI::table('permissions_table');
-        $permissionsTable->pagination(10);
-        $permissionsTable->dataModel(PermissionTableModel::class);
-        $permissionsTable->selectionMode(SelectionMode::MULTIPLE);
-        $permissionsTable->bodyOverflowX('hidden');
-        $permissionsTable->bodyOverflowY('auto');
-        $permissionsTable->minHeight(Size::px(500));
-        $permissionsTable->bodyMinHeight('340px');
+        $permissionsTable = UI::table('permissions_table')
+            ->dataModel(PermissionTableModel::class)
+            ->selectionMode(SelectionMode::MULTIPLE)
+            ->fitContainer(availableHeight: 550, hasToolbar: false, paginated: false);
 
         $rolesSplit = UI::split('roles_split')
             ->horizontal()

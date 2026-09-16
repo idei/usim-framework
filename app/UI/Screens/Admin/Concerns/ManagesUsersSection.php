@@ -41,7 +41,7 @@ trait ManagesUsersSection
             ->layout(LayoutType::VERTICAL)
             ->gap(Spacing::px(4))
             ->rounded(0)
-            ->height(Size::px(340))
+            ->minHeight(Size::px(550))
             ->plain();
 
         $toolbar = UI::container('users_toolbar')
@@ -65,16 +65,11 @@ trait ManagesUsersSection
 
         $toolbar->add($search)->add($addBtn);
 
-        $usersTable = UI::table('users_table');
-        $usersTable->pagination(10);
-        $usersTable->sortedBy('name');
-        $usersTable->dataModel(UserTableModel::class);
-        $usersTable->selectionMode(SelectionMode::SINGLE);
-        $usersTable->bodyOverflowX('hidden');
-        $usersTable->bodyOverflowY('auto');
-        $usersTable->minHeight(Size::px(460));
-        $usersTable->bodyMinHeight('340px');
-        $usersTable->align('center');
+        $usersTable = UI::table('users_table')
+            ->dataModel(UserTableModel::class)
+            ->selectionMode(SelectionMode::SINGLE)
+            ->sortedBy('name')
+            ->fitContainer(availableHeight: 550, hasToolbar: true, paginated: true);
 
         $usersCrudContainer
             ->add($toolbar)

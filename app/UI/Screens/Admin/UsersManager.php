@@ -127,6 +127,11 @@ class UsersManager extends Screen
             return;
         }
 
+        if (isset($this->roles_table) && $componentId !== null && $componentId === $this->roles_table->getId()) {
+            $this->roles_table->page($page);
+            return;
+        }
+
         $this->users_table->page($page);
     }
 }

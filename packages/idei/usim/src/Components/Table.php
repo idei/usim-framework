@@ -22,7 +22,10 @@ class Table extends UIComponent
 {
     public const DEFAULT_COLUMN_WIDTH = 160;
     public const DEFAULT_PAGINATION_PER_PAGE = 7;
-    public const DEFAULT_ROW_MIN_HEIGHT = 45;
+    public const DEFAULT_ROW_MIN_HEIGHT = 48;
+    public const DEFAULT_HEADER_HEIGHT = 48;
+    public const DEFAULT_PAGINATION_HEIGHT = 56;
+    public const DEFAULT_TOOLBAR_OVERHEAD = 60;
     public const DEFAULT_BODY_HEIGHT = 520;
     public const DEFAULT_BODY_OVERFLOW_X = 'visible';
     public const DEFAULT_BODY_OVERFLOW_Y = 'visible';
@@ -197,7 +200,7 @@ class Table extends UIComponent
      * If $mode is null, returns current mode.
      *
      * @param SelectionMode|null $mode
-     * @return static|string
+     * @return ($mode is null ? string : static)
      */
     public function selectionMode(?SelectionMode $mode = null): static|string
     {
@@ -1383,6 +1386,52 @@ class Table extends UIComponent
         $pagination['enabled'] = $perPage > 0;
         $pagination['per_page'] = $perPage;
         $this->setConfig('pagination', $pagination);
+
+        if ($this->model !== null) {
+            $this->updatePaginationData();
+            $this->updateTableData();
+        }
+
+        return $this;
+    }
+
+    /**
+     * Automatically calculate pagination per-page, body height, and table min-height
+     * based on the container's available height, avoiding scroll overflows and keeping
+     * the pagination bar visible and pinned at the bottom.
+     *
+     * @param int $availableHeight Total available height in pixels of the parent container/viewport (default: 550)
+     * @param bool $hasToolbar Whether a search/action toolbar exists above the table in the same container (default: true)
+     * @param bool $paginated Whether the table should be paginated (default: true)
+     * @param int|null $rowHeight Estimated or configured row min height in px (null for DEFAULT_ROW_MIN_HEIGHT)
+     * @param int $paddingVertical Total vertical padding/margins of the container or section in px (default: 0)
+     * @return self
+     */
+    public function fitContainer(
+        int $availableHeight = 550,
+        bool $hasToolbar = true,
+        bool $paginated = true,
+        ?int $rowHeight = null,
+        int $paddingVertical = 0
+    ): self {
+        $rawRowHeight = $rowHeight ?? ($this->config['row_min_height'] ?? self::DEFAULT_ROW_MIN_HEIGHT);
+        $effectiveRowHeight = max(1, is_numeric($rawRowHeight) ? (int) $rawRowHeight : self::DEFAULT_ROW_MIN_HEIGHT);
+        $headerHeight = self::DEFAULT_HEADER_HEIGHT;
+        $paginationHeight = $paginated ? self::DEFAULT_PAGINATION_HEIGHT : 0;
+        $toolbarHeight = $hasToolbar ? self::DEFAULT_TOOLBAR_OVERHEAD : 0;
+
+        $overhead = $toolbarHeight + $headerHeight + $paginationHeight + max(0, $paddingVertical);
+        $availableBodyHeight = max(0, $availableHeight - $overhead);
+
+        $rowCount = max(1, (int) floor($availableBodyHeight / $effectiveRowHeight));
+        $exactBodyHeight = $rowCount * $effectiveRowHeight;
+
+        $this->pagination($paginated ? $rowCount : 0);
+        $this->bodyHeight($exactBodyHeight);
+        $this->bodyOverflow('hidden', $paginated ? 'hidden' : 'auto');
+        $this->align('center');
+        $this->minHeight(Size::px($exactBodyHeight + $headerHeight + $paginationHeight));
+
         return $this;
     }
 
