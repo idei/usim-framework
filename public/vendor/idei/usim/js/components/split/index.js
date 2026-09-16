@@ -9,6 +9,8 @@ class UsimSplitComponent extends UIComponent {
         this.dragState = null;
         this.lastExpandedSize = null;
         this.observer = null;
+        this.resizeObserver = null;
+        this._lastObservedSize = null;
     }
 
     render() {
@@ -45,6 +47,7 @@ class UsimSplitComponent extends UIComponent {
 
         this._bindSplitBehavior();
         this._observeAndRouteChildContainers(root);
+        this._observeResize(root);
 
         this.element = this.applyCommonAttributes(root);
         this._applyConfig();
@@ -53,6 +56,7 @@ class UsimSplitComponent extends UIComponent {
     }
 
     update(newConfig) {
+        const oldSplitSize = this.config?.split_size;
         this.config = {
             ...this.config,
             ...newConfig,
@@ -60,6 +64,10 @@ class UsimSplitComponent extends UIComponent {
 
         if (!this.element) {
             return;
+        }
+
+        if (newConfig?.split_size !== undefined && newConfig.split_size !== oldSplitSize) {
+            this.lastExpandedSize = null;
         }
 
         this.applyCommonAttributes(this.element);
@@ -77,6 +85,15 @@ class UsimSplitComponent extends UIComponent {
         this.element.classList.remove('ui-container-card', 'ui-container-plain', 'ui-split--horizontal', 'ui-split--vertical');
         this.element.classList.add(`ui-container-${appearance}`);
         this.element.classList.add(`ui-split--${orientation}`);
+
+        if (this.config.border_radius !== undefined && this.config.border_radius !== null && this.config.border_radius !== '') {
+            const radiusValue = typeof this.config.border_radius === 'number' ? `${this.config.border_radius}px` : this.config.border_radius;
+            this.element.style.setProperty('--split-radius', radiusValue);
+        } else if (appearance === 'plain') {
+            this.element.style.setProperty('--split-radius', '0px');
+        } else {
+            this.element.style.setProperty('--split-radius', '12px');
+        }
 
         if (this.config.title) {
             this.titleEl.textContent = this.config.title;
@@ -132,6 +149,37 @@ class UsimSplitComponent extends UIComponent {
         });
 
         this.observer.observe(root, { childList: true });
+    }
+
+    _observeResize(root) {
+        if (typeof ResizeObserver === 'undefined') {
+            return;
+        }
+
+        this.resizeObserver = new ResizeObserver((entries) => {
+            for (const entry of entries) {
+                const { width, height } = entry.contentRect;
+                if (width <= 0 && height <= 0) {
+                    continue;
+                }
+
+                if (this.dragState) {
+                    continue;
+                }
+
+                const orientation = this._normalizeOrientation(this.config?.split_orientation);
+                const currentSize = orientation === 'horizontal' ? width : height;
+
+                if (this._lastObservedSize !== null && Math.abs(currentSize - this._lastObservedSize) < 1) {
+                    continue;
+                }
+
+                this._lastObservedSize = currentSize;
+                this._applySplitSizeFromConfig();
+            }
+        });
+
+        this.resizeObserver.observe(root);
     }
 
     _routeUnmanagedChildren() {
@@ -230,7 +278,7 @@ class UsimSplitComponent extends UIComponent {
         this.secondPaneEl.style.display = '';
         this.firstPaneEl.style.display = '';
 
-        const preferredSize = this.config.split_size || this.lastExpandedSize || '50%';
+        const preferredSize = this.lastExpandedSize || this.config.split_size || '50%';
         this._applySize(preferredSize);
     }
 
@@ -255,6 +303,28 @@ class UsimSplitComponent extends UIComponent {
         const containerRect = this.element.getBoundingClientRect();
         const dividerSize = this._sizeToPx(this.config.splitter_size || '8px', orientation === 'horizontal' ? containerRect.width : containerRect.height);
         const totalPx = (orientation === 'horizontal' ? containerRect.width : containerRect.height) - dividerSize;
+
+        if (totalPx <= 0) {
+            const raw = String(rawSize || '50%').trim();
+            const minFirst = this._normalizeCssSize(this.config.min_first_size || '120px');
+            const minSecond = this._normalizeCssSize(this.config.min_second_size || '120px');
+
+            this.firstPaneEl.style.flex = `0 0 ${raw}`;
+            this.secondPaneEl.style.flex = '1 1 0%';
+            if (orientation === 'horizontal') {
+                this.firstPaneEl.style.minWidth = minFirst;
+                this.secondPaneEl.style.minWidth = minSecond;
+                this.firstPaneEl.style.minHeight = '0';
+                this.secondPaneEl.style.minHeight = '0';
+            } else {
+                this.firstPaneEl.style.minHeight = minFirst;
+                this.secondPaneEl.style.minHeight = minSecond;
+                this.firstPaneEl.style.minWidth = '0';
+                this.secondPaneEl.style.minWidth = '0';
+            }
+            return;
+        }
+
         const firstPx = this._sizeToPx(rawSize, totalPx);
         this._setSplitFromFirstPx(firstPx);
     }
@@ -266,14 +336,17 @@ class UsimSplitComponent extends UIComponent {
         const dividerPx = this._sizeToPx(this.config.splitter_size || '8px', rawTotal);
         const totalPx = Math.max(rawTotal - dividerPx, 0);
 
+        if (totalPx <= 0) {
+            return;
+        }
+
         const minFirstPx = this._sizeToPx(this.config.min_first_size || '120px', totalPx);
         const minSecondPx = this._sizeToPx(this.config.min_second_size || '120px', totalPx);
         const maxFirst = Math.max(totalPx - minSecondPx, minFirstPx);
         const boundedFirst = Math.max(minFirstPx, Math.min(desiredFirstPx, maxFirst));
-        const secondPx = Math.max(totalPx - boundedFirst, 0);
 
         this.firstPaneEl.style.flex = `0 0 ${boundedFirst}px`;
-        this.secondPaneEl.style.flex = `0 0 ${secondPx}px`;
+        this.secondPaneEl.style.flex = '1 1 0%';
         this.firstPaneEl.style.minWidth = orientation === 'horizontal' ? `${minFirstPx}px` : '0';
         this.secondPaneEl.style.minWidth = orientation === 'horizontal' ? `${minSecondPx}px` : '0';
         this.firstPaneEl.style.minHeight = orientation === 'vertical' ? `${minFirstPx}px` : '0';

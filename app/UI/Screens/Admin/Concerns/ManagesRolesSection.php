@@ -39,18 +39,20 @@ trait ManagesRolesSection
         $rolesTable = UI::table('roles_table')
             ->dataModel(RoleTableModel::class)
             ->selectionMode(SelectionMode::SINGLE)
-            ->fitContainer(availableHeight: 550, hasToolbar: false, paginated: true);
+            ->fitContainer(availableHeight: 546, hasToolbar: false, paginated: true);
 
         $permissionsTable = UI::table('permissions_table')
             ->dataModel(PermissionTableModel::class)
             ->selectionMode(SelectionMode::MULTIPLE)
-            ->fitContainer(availableHeight: 550, hasToolbar: false, paginated: false);
+            ->fitContainer(availableHeight: 546, hasToolbar: false, paginated: false);
 
         $rolesSplit = UI::split('roles_split')
             ->horizontal()
+            ->width(Size::full())
+            ->height(Size::px(550))
             ->minFirstSize('350px')
             ->minSecondSize('450px')
-            ->splitSize('65%')
+            ->splitSize('35%')
             ->addFirst($rolesTable)
             ->addSecond($permissionsTable);
 

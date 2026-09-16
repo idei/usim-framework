@@ -3,6 +3,7 @@
 namespace Idei\Usim\Components;
 
 use Idei\Usim\Contracts\UIElement;
+use Idei\Usim\ValueObjects\Size;
 
 /**
  * Split container component with draggable and collapsible divider.
@@ -54,6 +55,7 @@ class Split extends Container
         $this->config['collapse_target'] = 'first';
         $this->config['collapsed_panel'] = null;
         $this->config['collapse_size'] = '0px';
+        $this->width(Size::full());
     }
 
     public function orientation(string $orientation): static
