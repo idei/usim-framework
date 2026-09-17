@@ -44,7 +44,8 @@
 
     @php
         // Obtener todos los parámetros de ruta automáticamente
-        $routeParams = request()->route()->parameters();
+        $route = request()->route();
+        $routeParams = $route ? $route->parameters() : [];
 
         // Crear un array con prefijo "route_" para diferenciarlos de query params
         $prefixedRouteParams = [];
@@ -58,9 +59,9 @@
 
     <script>
         // Pass service name from Laravel to JavaScript
-        window.SCREEN_NAME = '{{ $screen }}';
+        window.SCREEN_NAME = @json($screen);
         window.RESET_STATE = {{ $reset ? 'true' : 'false' }};
-        window.MENU_SERVICE = {{ ($hasMenu ?? true) ? "'menu'" : 'null' }};
+        window.MENU_SERVICE = @json(($hasMenu ?? true) ? 'menu' : null);
         window.PARAMS = @json($allParams);
         window.QUERY_PARAMS = new URLSearchParams(window.location.search);
     </script>
