@@ -115,7 +115,11 @@ class EditDeviceDialog
         /** @var list<string> $selectedUnitIds */
         $selectedUnitIds = [];
         if ($isEditing) {
-            $selectedUnitIds = $device->usimUnits->pluck('id')->map(static fn(mixed $id): string => (string) $id)->all();
+            $selectedUnitIds = array_values(
+                $device->usimUnits->pluck('id')->map(static function (mixed $id): string {
+                    return is_int($id) || is_string($id) ? (string) $id : '';
+                })->filter(static fn(string $id): bool => $id !== '')->all()
+            );
         } elseif ($activeUnitId) {
             $selectedUnitIds = [(string) $activeUnitId];
         }

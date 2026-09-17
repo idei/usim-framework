@@ -4,6 +4,7 @@ namespace Tests;
 
 use App\Models\User;
 use App\UI\Screens\Auth\Login;
+use Idei\Usim\Support\UIIdGenerator;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\TestCase as BaseTestCase;
 use Illuminate\Testing\TestResponse;
@@ -16,6 +17,17 @@ use Spatie\Permission\Models\Role;
 abstract class TestCase extends BaseTestCase
 {
     use RefreshDatabase;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        // UIIdGenerator only resets automatically on Octane's RequestReceived event,
+        // which never fires in tests. Without this, its static per-context caches
+        // accumulate across the whole suite (single PHP process) until a context's
+        // 9999-slot ID space saturates, causing an infinite loop in generateFromName().
+        UIIdGenerator::reset();
+    }
 
     /**
      * Logs in a configured role user via the real UI event endpoint.

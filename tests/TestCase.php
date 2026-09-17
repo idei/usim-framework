@@ -3,6 +3,7 @@
 namespace Tests;
 
 use Tests\Traits\UsimTestHelpers;
+use Idei\Usim\Support\UIIdGenerator;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\TestCase as BaseTestCase;
 use Illuminate\Testing\TestResponse;
@@ -13,4 +14,15 @@ abstract class TestCase extends BaseTestCase
 {
     use UsimTestHelpers;
     use RefreshDatabase;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        // UIIdGenerator only resets automatically on Octane's RequestReceived event,
+        // which never fires in tests. Without this, its static per-context caches
+        // accumulate across the whole suite (single PHP process) until a context's
+        // 9999-slot ID space saturates, causing an infinite loop in generateFromName().
+        UIIdGenerator::reset();
+    }
 }

@@ -37,8 +37,8 @@ class DeviceService
 
         /** @var list<int> $unitIds */
         $unitIds = [];
-        if (!empty($data['unit_ids']) && is_array($data['unit_ids'])) {
-            $unitIds = array_values(array_map('intval', $data['unit_ids']));
+        if (!empty($data['unit_ids'])) {
+            $unitIds = array_map(static fn(int|string $unitId): int => (int) $unitId, $data['unit_ids']);
         } elseif (!empty($data['unit_id'])) {
             $unitIds = [(int) $data['unit_id']];
         }
@@ -99,7 +99,7 @@ class DeviceService
         /** @var list<int>|null $unitIds */
         $unitIds = null;
         if (array_key_exists('unit_ids', $data)) {
-            $unitIds = is_array($data['unit_ids']) ? array_values(array_map('intval', $data['unit_ids'])) : [];
+            $unitIds = array_map(static fn(int|string $unitId): int => (int) $unitId, $data['unit_ids']);
         } elseif (array_key_exists('unit_id', $data)) {
             $unitIds = $data['unit_id'] !== null ? [(int) $data['unit_id']] : [];
         }
@@ -111,7 +111,10 @@ class DeviceService
         if (isset($data['roles'])) {
             $roles = is_array($data['roles']) ? $data['roles'] : [$data['roles']];
             /** @var list<int> $effectiveUnits */
-            $effectiveUnits = $unitIds ?? array_values(array_map('intval', $device->usimUnits->pluck('id')->all()));
+            $effectiveUnits = $unitIds ?? array_map(
+                static fn(mixed $unitId): int => is_int($unitId) || is_string($unitId) ? (int) $unitId : 0,
+                $device->usimUnits->pluck('id')->all()
+            );
             $targetUnits = !empty($effectiveUnits) ? $effectiveUnits : [null];
 
             foreach ($targetUnits as $targetUnitId) {
@@ -146,7 +149,9 @@ class DeviceService
             return null;
         }
 
-        $units = is_array($unitIds) ? array_values(array_map('intval', $unitIds)) : [(int) $unitIds];
+        $units = is_array($unitIds)
+            ? array_map(static fn(int|string $unitId): int => (int) $unitId, $unitIds)
+            : [(int) $unitIds];
         $device->usimUnits()->syncWithoutDetaching($units);
 
         $existingRoles = $device->roles->pluck('name')->filter('is_string')->all();
