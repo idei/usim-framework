@@ -25,6 +25,11 @@ class Device extends Authenticatable
 {
     use HasRoles, HasApiTokens;
 
+    /**
+     * Guard de autenticación de Spatie y Laravel para dispositivos.
+     */
+    protected string $guard_name = 'device';
+
     protected $fillable = [
         'name',
         'pairing_pin',

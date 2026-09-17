@@ -6,6 +6,8 @@ use App\Services\Units\UnitContextResolver;
 use Closure;
 use Idei\Usim\Support\UIStateManager;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Laravel\Sanctum\PersonalAccessToken;
 use Symfony\Component\HttpFoundation\Response;
 
 /**
@@ -80,9 +82,26 @@ class PrepareUIContext
         $request->headers->set('Authorization', 'Bearer ' . ($storeToken ?? ''));
         UIStateManager::setAuthToken($storeToken);
 
+        // Si el request no tiene sesión activa en 'device' pero trae un token válido,
+        // resolvemos la entidad tokenable (ej. Device) y la hidratamos en Auth::guard('device')
+        if (!empty($storeToken) && !Auth::guard('device')->check()) {
+            if (class_exists(PersonalAccessToken::class)) {
+                $tokenModel = PersonalAccessToken::findToken($storeToken);
+                if ($tokenModel && $tokenModel->tokenable instanceof \Illuminate\Contracts\Auth\Authenticatable) {
+                    $actor = $tokenModel->tokenable;
+                    if ($actor instanceof \App\Models\Device) {
+                        Auth::guard('device')->setUser($actor);
+                        $request->setUserResolver(fn () => $actor);
+                    }
+                }
+            }
+        }
+
+        $effectiveUser = $request->user() ?? Auth::guard('device')->user();
+
         $storeUsimUnit = $storage['store_unit'] ?? null;
         $unitSlug = \is_scalar($storeUsimUnit) && $storeUsimUnit !== '' ? (string) $storeUsimUnit : null;
-        UnitContextResolver::resolveAndApply($request->user(), $unitSlug);
+        UnitContextResolver::resolveAndApply($effectiveUser, $unitSlug);
     }
 
     /**

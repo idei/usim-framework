@@ -33,10 +33,12 @@
     <link rel="stylesheet" href="{{ asset('vendor/idei/usim/css/components/container/index.css') }}?v={{ $usimAssetVersion('vendor/idei/usim/css/components/container/index.css') }}">
 </head>
 <body>
+@if($hasMenu ?? true)
     <header id="top-menu-bar">
         <div id="menu"></div>
     </header>
-    <main id="main"></main>
+@endif
+    <main id="main" class="{{ !($hasMenu ?? true) ? 'usim-kiosk-mode' : '' }}"></main>
     <div id="modal-root"></div>
     {{-- <button id="reset-btn" onclick="location.href='?reset=true'">Reset</button> --}}
 
@@ -58,7 +60,7 @@
         // Pass service name from Laravel to JavaScript
         window.SCREEN_NAME = '{{ $screen }}';
         window.RESET_STATE = {{ $reset ? 'true' : 'false' }};
-        window.MENU_SERVICE = 'menu';
+        window.MENU_SERVICE = {{ ($hasMenu ?? true) ? "'menu'" : 'null' }};
         window.PARAMS = @json($allParams);
         window.QUERY_PARAMS = new URLSearchParams(window.location.search);
     </script>

@@ -336,9 +336,7 @@ class EditUserDialog
      */
     private function resolveRoleOptions(): array
     {
-        $roles = $this->roleService->getAllowedRoles(
-            excludedGuards: ['device', 'api']
-        );
+        $roles = $this->roleService->getRolesForActor(\App\Models\User::class);
 
         /** @var list<array{value: string, label: string}> $roleOptions */
         $roleOptions = array_map(static fn(UsimRole $role): array => [

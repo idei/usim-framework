@@ -16,9 +16,15 @@ class DevicePairingScreen extends Screen
 {
     public static Visibility $visibility = Visibility::PUBLIC;
 
+    /**
+     * La pantalla de emparejamiento no debe mostrar menú de navegación.
+     */
+    public static bool $hasMenu = false;
+
     // Variables de estado persistente (Zero-Database)
     protected string $store_session_token = '';
     protected string $store_pin = '';
+    protected string $store_token = '';
 
     // Componentes interactivos que mutaremos en tiempo de ejecución
     protected Label $lbl_pin_display;
@@ -101,11 +107,17 @@ class DevicePairingScreen extends Screen
             $this->store_session_token = '';
             $this->store_pin = '';
 
-            // Aquí podríamos guardar el token definitivo en otra variable store_
-            // $this->store_device_token_crypt = $status;
+            // Persistimos el token en el storage del dispositivo
+            $this->store_token = $status;
+
+            // Iniciar sesión en el guard 'device' (manejado por sesión e inyectado por UsimServiceProvider)
+            $tokenModel = \Laravel\Sanctum\PersonalAccessToken::findToken($status);
+            if ($tokenModel && $tokenModel->tokenable instanceof \App\Models\Device) {
+                \Illuminate\Support\Facades\Auth::guard('device')->login($tokenModel->tokenable);
+            }
 
             $this->toast('¡Dispositivo vinculado exitosamente!', 'success');
-            $this->redirect('/device/kiosk-home'); // Ruta destino tras emparejar
+            $this->redirect(\App\UI\Screens\Device\KioskScreen::getRoutePath());
             return;
         }
 

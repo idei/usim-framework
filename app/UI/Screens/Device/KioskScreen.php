@@ -11,7 +11,15 @@ use Idei\Usim\ValueObjects\Spacing;
 
 class KioskScreen extends Screen
 {
-//    public static Visibility $visibility = Visibility::PUBLIC;
+    /**
+     * Dispositivo / terminal Kiosk autenticado mediante guard 'device'.
+     */
+    public static ?string $guard = 'device';
+
+    /**
+     * El modo kiosco se despliega a pantalla completa sin barra de navegación superior.
+     */
+    public static bool $hasMenu = false;
 
     protected Carousel $device_carousel;
 
@@ -21,17 +29,7 @@ class KioskScreen extends Screen
 
     public static function authorize(): bool
     {
-        return self::requirePermission('device.kiosk_screen.access');
-    }
-
-    public static function getMenuLabel(): string
-    {
-        return t('screen.device.kiosk.title');
-    }
-
-    public static function getMenuIcon(): ?string
-    {
-        return '📺';
+        return self::requirePermission('device.kiosk_screen.access', 'device');
     }
 
     protected function buildBaseUI(Container $container, ...$params): void

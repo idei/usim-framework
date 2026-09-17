@@ -88,6 +88,51 @@ abstract class Screen
      */
     public static Visibility $visibility = Visibility::AUTHENTICATED;
 
+    /**
+     * Authentication guard required for this screen ('web', 'device', etc.).
+     * If null, it is automatically resolved by getAuthGuard().
+     */
+    public static ?string $guard = null;
+
+    /**
+     * Determines whether this screen should render the top navigation menu.
+     */
+    public static bool $hasMenu = true;
+
+    /**
+     * Resolve the authentication guard for this screen.
+     */
+    public static function getAuthGuard(): string
+    {
+        if (static::$guard !== null) {
+            return static::$guard;
+        }
+
+        // Screens under the Device namespace default to the 'device' guard
+        if (str_contains(static::class, 'Screens\\Device\\')) {
+            return 'device';
+        }
+
+        return 'web';
+    }
+
+    /**
+     * Determine if this screen should display the top navigation menu.
+     */
+    public static function hasMenu(): bool
+    {
+        if (!static::$hasMenu) {
+            return false;
+        }
+
+        // Screens under the Device namespace default to no menu (clean display)
+        if (str_contains(static::class, 'Screens\\Device\\')) {
+            return false;
+        }
+
+        return true;
+    }
+
     protected function uiChanges(): UIChangesCollector
     {
         return app(UIChangesCollector::class);
@@ -106,14 +151,20 @@ abstract class Screen
             return ['allowed' => true, 'action' => null, 'params' => []];
         }
 
+        $guard = static::getAuthGuard();
+
         // 2. Handle failure based on authentication state
-        if (!Auth::check()) {
+        if (!Auth::guard($guard)->check()) {
+            $redirectUrl = ($guard === 'device')
+                ? url('/device/device-pairing-screen')
+                : url('/auth/login');
+
             return [
                 'allowed' => false,
                 'action' => 'redirect',
                 'params' => [
-                    'url' => url('/auth/login'),
-                    'message' => 'Please login to access this page.'
+                    'url' => $redirectUrl,
+                    'message' => 'Please authenticate to access this page.'
                 ]
             ];
         }
@@ -143,15 +194,14 @@ abstract class Screen
      * Helper to require authentication.
      * Use this inside your authorize() method.
      *
+     * @param string|null $guard Optional guard to check. Defaults to getAuthGuard().
      * @return bool
      */
-    protected static function requireAuth(): bool
+    protected static function requireAuth(?string $guard = null): bool
     {
-        if (!Auth::check()) {
-            return false;
-        }
+        $effectiveGuard = $guard ?? static::getAuthGuard();
 
-        return true;
+        return Auth::guard($effectiveGuard)->check();
     }
 
     /**
@@ -205,12 +255,14 @@ abstract class Screen
      */
     protected static function requireRole(string|array $roles, ?string $guard = null, mixed $unit = null): bool
     {
+        $effectiveGuard = $guard ?? static::getAuthGuard();
+
         // Implicitly require authentication first
-        if (!self::requireAuth()) {
+        if (!self::requireAuth($effectiveGuard)) {
             return false;
         }
 
-        $user = Auth::guard($guard)->user();
+        $user = Auth::guard($effectiveGuard)->user();
         if ($user === null) {
             return false;
         }
@@ -253,12 +305,14 @@ abstract class Screen
      */
     protected static function requirePermission(string|array $permissions, ?string $guard = null, mixed $unit = null): bool
     {
+        $effectiveGuard = $guard ?? static::getAuthGuard();
+
         // Implicitly require authentication first
-        if (!self::requireAuth()) {
+        if (!self::requireAuth($effectiveGuard)) {
             return false;
         }
 
-        $user = Auth::guard($guard)->user();
+        $user = Auth::guard($effectiveGuard)->user();
         if ($user === null) {
             return false;
         }

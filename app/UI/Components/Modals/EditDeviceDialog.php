@@ -140,9 +140,7 @@ class EditDeviceDialog
 
         // Role checkboxes
         $roleService = app(RoleService::class);
-        $roles = $roleService->getAllowedRoles(
-            excludedGuards: ['web', 'api']
-        );
+        $roles = $roleService->getRolesForActor(Device::class);
 
         /** @var list<array{value: string, label: string}> $roleOptions */
         $roleOptions = array_map(static fn(UsimRole $role): array => [

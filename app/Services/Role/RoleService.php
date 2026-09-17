@@ -46,6 +46,41 @@ class RoleService
     }
 
     /**
+     * Devuelve los roles permitidos para una clase de actor específica ('web' para User, 'device' para Device).
+     *
+     * @param string $actorClass FQCN del modelo (ej. User::class o Device::class)
+     * @param bool $excludeSystemRoles
+     * @return list<UsimRole>
+     */
+    public function getRolesForActor(string $actorClass, bool $excludeSystemRoles = true): array
+    {
+        $targetGuard = match ($actorClass) {
+            \App\Models\Device::class => 'device',
+            default => 'web',
+        };
+
+        $roles = $this->roleListingService->sortBy('priority');
+
+        $filtered = array_filter(
+            $roles,
+            static fn(UsimRole $role): bool => $role->guard_name === $targetGuard
+        );
+
+        if ($excludeSystemRoles) {
+            /** @var \Idei\Usim\Support\UsimConfig $usimConfig */
+            $usimConfig = app(\Idei\Usim\Support\UsimConfig::class);
+            $systemRoles = ['root', 'guest', $usimConfig->defaultRegisteringRole];
+
+            $filtered = array_filter(
+                $filtered,
+                static fn(UsimRole $role): bool => !\in_array($role->name, $systemRoles, true)
+            );
+        }
+
+        return array_values($filtered);
+    }
+
+    /**
      * Return all permission IDs associated with a role.
      *
      * @param UsimRole|int|string $role

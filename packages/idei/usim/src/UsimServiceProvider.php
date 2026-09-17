@@ -39,6 +39,10 @@ class UsimServiceProvider extends ServiceProvider
             );
         });
 
+        $this->app->singleton(\Idei\Usim\Support\UsimConfig::class, function () {
+            return new \Idei\Usim\Support\UsimConfig();
+        });
+
         $this->commands([
             DiscoverScreensCommand::class,
             InstallCommand::class,
