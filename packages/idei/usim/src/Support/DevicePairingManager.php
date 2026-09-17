@@ -66,6 +66,16 @@ class DevicePairingManager
     }
 
     /**
+     * Verifica si un PIN existe y está pendiente de vinculación.
+     */
+    public function isValidPin(string $pin): bool
+    {
+        $data = Cache::get("usim_pairing_pin:{$pin}");
+
+        return is_array($data) && ($data['status'] ?? null) === 'pending';
+    }
+
+    /**
      * 3. El Administrador aprueba el PIN y genera el Token Definitivo.
      *
      * @param string $pin El PIN que el admin leyó de la pantalla.

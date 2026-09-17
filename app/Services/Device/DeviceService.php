@@ -5,8 +5,10 @@
 namespace App\Services\Device;
 
 use App\Models\Device;
+use Idei\Usim\Models\UsimUnit;
 use Idei\Usim\Support\DevicePairingManager;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
 class DeviceService
@@ -22,6 +24,7 @@ class DeviceService
      *     name: string,
      *     roles?: list<string>|string,
      *     unit_id?: int|string|null,
+     *     unit_ids?: list<int|string>,
      *     specs?: array<string, mixed>|null
      * } $data
      */
@@ -32,13 +35,35 @@ class DeviceService
             'specs' => $data['specs'] ?? null,
         ]);
 
-        if (!empty($data['roles'])) {
-            $roles = is_array($data['roles']) ? $data['roles'] : [$data['roles']];
-            $device->syncRoles($roles);
+        /** @var list<int> $unitIds */
+        $unitIds = [];
+        if (!empty($data['unit_ids']) && is_array($data['unit_ids'])) {
+            $unitIds = array_values(array_map('intval', $data['unit_ids']));
+        } elseif (!empty($data['unit_id'])) {
+            $unitIds = [(int) $data['unit_id']];
         }
 
-        if (!empty($data['unit_id'])) {
-            $device->usimUnits()->sync([(int) $data['unit_id']]);
+        if (!empty($unitIds)) {
+            $device->usimUnits()->sync($unitIds);
+        }
+
+        if (!empty($data['roles'])) {
+            $roles = is_array($data['roles']) ? $data['roles'] : [$data['roles']];
+            $targetUnits = !empty($unitIds) ? $unitIds : [null];
+
+            foreach ($targetUnits as $targetUnitId) {
+                if ($targetUnitId !== null && function_exists('setPermissionsTeamId') && function_exists('getPermissionsTeamId')) {
+                    $prevTeamId = getPermissionsTeamId();
+                    try {
+                        setPermissionsTeamId($targetUnitId);
+                        $device->syncRoles($roles);
+                    } finally {
+                        setPermissionsTeamId($prevTeamId);
+                    }
+                } else {
+                    $device->syncRoles($roles);
+                }
+            }
         }
 
         return $device;
@@ -50,6 +75,7 @@ class DeviceService
      *     name?: string,
      *     roles?: list<string>|string,
      *     unit_id?: int|string|null,
+     *     unit_ids?: list<int|string>,
      *     specs?: array<string, mixed>|null
      * } $data
      */
@@ -70,20 +96,90 @@ class DeviceService
 
         $device->save();
 
-        if (isset($data['roles'])) {
-            $roles = is_array($data['roles']) ? $data['roles'] : [$data['roles']];
-            $device->syncRoles($roles);
+        /** @var list<int>|null $unitIds */
+        $unitIds = null;
+        if (array_key_exists('unit_ids', $data)) {
+            $unitIds = is_array($data['unit_ids']) ? array_values(array_map('intval', $data['unit_ids'])) : [];
+        } elseif (array_key_exists('unit_id', $data)) {
+            $unitIds = $data['unit_id'] !== null ? [(int) $data['unit_id']] : [];
         }
 
-        if (array_key_exists('unit_id', $data)) {
-            if ($data['unit_id'] !== null) {
-                $device->usimUnits()->sync([(int) $data['unit_id']]);
-            } else {
-                $device->usimUnits()->detach();
+        if ($unitIds !== null) {
+            $device->usimUnits()->sync($unitIds);
+        }
+
+        if (isset($data['roles'])) {
+            $roles = is_array($data['roles']) ? $data['roles'] : [$data['roles']];
+            /** @var list<int> $effectiveUnits */
+            $effectiveUnits = $unitIds ?? array_values(array_map('intval', $device->usimUnits->pluck('id')->all()));
+            $targetUnits = !empty($effectiveUnits) ? $effectiveUnits : [null];
+
+            foreach ($targetUnits as $targetUnitId) {
+                if ($targetUnitId !== null && function_exists('setPermissionsTeamId') && function_exists('getPermissionsTeamId')) {
+                    $prevTeamId = getPermissionsTeamId();
+                    try {
+                        setPermissionsTeamId($targetUnitId);
+                        $device->syncRoles($roles);
+                    } finally {
+                        setPermissionsTeamId($prevTeamId);
+                    }
+                } else {
+                    $device->syncRoles($roles);
+                }
             }
         }
 
         return $device;
+    }
+
+    /**
+     * Share a device with specified unit(s), replicating its roles in those units.
+     *
+     * @param int|string $id
+     * @param int|string|list<int|string> $unitIds
+     * @return Device|null
+     */
+    public function shareDevice(int|string $id, int|string|array $unitIds): ?Device
+    {
+        $device = $this->getDevice($id);
+        if (!$device) {
+            return null;
+        }
+
+        $units = is_array($unitIds) ? array_values(array_map('intval', $unitIds)) : [(int) $unitIds];
+        $device->usimUnits()->syncWithoutDetaching($units);
+
+        $existingRoles = $device->roles->pluck('name')->filter('is_string')->all();
+        if (empty($existingRoles) && $device->relationLoaded('globalRoles')) {
+            $existingRoles = $device->globalRoles->pluck('name')->filter('is_string')->all();
+        }
+
+        if (!empty($existingRoles) && function_exists('setPermissionsTeamId') && function_exists('getPermissionsTeamId')) {
+            $prevTeamId = getPermissionsTeamId();
+            try {
+                foreach ($units as $uId) {
+                    setPermissionsTeamId($uId);
+                    $device->assignRole($existingRoles);
+                }
+            } finally {
+                setPermissionsTeamId($prevTeamId);
+            }
+        }
+
+        return $device;
+    }
+
+    /**
+     * Promote a device to public / institutional scope by assigning it to 'main'.
+     */
+    public function makeDeviceInstitutional(int|string $id): ?Device
+    {
+        $rawMainId = UsimUnit::where('slug', 'main')->value('id');
+        if (!is_numeric($rawMainId)) {
+            return null;
+        }
+
+        return $this->shareDevice($id, (int) $rawMainId);
     }
 
     public function deleteDevice(int|string $id): bool
@@ -157,9 +253,71 @@ class DeviceService
         ];
     }
 
+    /**
+     * Just-In-Time pairing flow: registers and pairs a new device simultaneously.
+     *
+     * @param array{
+     *     name: string,
+     *     roles?: list<string>|string,
+     *     unit_id?: int|string|null,
+     *     unit_ids?: list<int|string>,
+     *     specs?: array<string, mixed>|null
+     * } $data
+     * @return array{success: bool, message: string, device?: Device}
+     */
+    public function pairAndCreateDevice(string $pin, array $data): array
+    {
+        $cleanPin = trim($pin);
+        if (strlen($cleanPin) !== 4) {
+            return [
+                'success' => false,
+                'message' => t('screen.admin.users_manager.device_pin_length_error'),
+            ];
+        }
+
+        $manager = $this->pairingManager ?? app(DevicePairingManager::class);
+        if (!$manager->isValidPin($cleanPin)) {
+            return [
+                'success' => false,
+                'message' => t('screen.admin.users_manager.device_invalid_pin'),
+            ];
+        }
+
+        DB::beginTransaction();
+        try {
+            $device = $this->createDevice($data);
+            $success = $manager->approve($cleanPin, $device);
+
+            if (!$success) {
+                DB::rollBack();
+                return [
+                    'success' => false,
+                    'message' => t('screen.admin.users_manager.device_invalid_pin'),
+                ];
+            }
+
+            $device->pairing_pin = $cleanPin;
+            if (empty($device->device_token)) {
+                $device->device_token = Str::random(60);
+            }
+            $device->save();
+
+            DB::commit();
+
+            return [
+                'success' => true,
+                'message' => t('screen.admin.users_manager.device_paired_success'),
+                'device' => $device,
+            ];
+        } catch (\Throwable $e) {
+            DB::rollBack();
+            throw $e;
+        }
+    }
+
     public function getDevice(int|string $id): ?Device
     {
-        return Device::with(['tokens', 'roles', 'usimUnits'])->find($id);
+        return Device::with(['tokens', 'roles', 'globalRoles', 'usimUnits'])->find($id);
     }
 
     /**
@@ -167,7 +325,7 @@ class DeviceService
      */
     public function getAllDevices(): Collection
     {
-        return Device::with(['tokens', 'roles', 'usimUnits'])->orderBy('name')->get();
+        return Device::with(['tokens', 'roles', 'globalRoles', 'usimUnits'])->orderBy('name')->get();
     }
 }
 

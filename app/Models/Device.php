@@ -18,6 +18,7 @@ use Laravel\Sanctum\HasApiTokens; // Lo dejamos preparado para el Token definiti
  * @property \Illuminate\Support\Carbon|null $updated_at
  * @property-read \Illuminate\Database\Eloquent\Collection<int, \Laravel\Sanctum\PersonalAccessToken> $tokens
  * @property-read \Illuminate\Database\Eloquent\Collection<int, \Idei\Usim\Models\UsimRole> $roles
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \Idei\Usim\Models\UsimRole> $globalRoles
  * @property-read \Illuminate\Database\Eloquent\Collection<int, UsimUnit> $usimUnits
  */
 class Device extends Authenticatable
@@ -51,5 +52,40 @@ class Device extends Authenticatable
     public function usimUnits(): MorphToMany
     {
         return $this->morphToMany(UsimUnit::class, 'actor', 'usim_unit_actors')->withTimestamps();
+    }
+
+    /**
+     * Roles across all units, bypassing Spatie's team filter.
+     *
+     * @return MorphToMany<\Idei\Usim\Models\UsimRole, $this>
+     */
+    public function globalRoles(): MorphToMany
+    {
+        /** @var class-string<\Idei\Usim\Models\UsimRole> $roleModel */
+        $roleModel = config('permission.models.role', \Idei\Usim\Models\UsimRole::class);
+        /** @var string $modelHasRolesTable */
+        $modelHasRolesTable = config('permission.table_names.model_has_roles', 'model_has_roles');
+        /** @var string $modelMorphKey */
+        $modelMorphKey = config('permission.column_names.model_morph_key', 'model_id');
+
+        return $this->morphToMany($roleModel, 'model', $modelHasRolesTable, $modelMorphKey, 'role_id');
+    }
+
+    /**
+     * Determine if this device is public / institutional (assigned to 'main').
+     */
+    public function isPublic(): bool
+    {
+        $units = $this->relationLoaded('usimUnits') ? $this->usimUnits : $this->usimUnits()->get();
+        return $units->contains('slug', 'main');
+    }
+
+    /**
+     * Determine if this device is shared across multiple operational units.
+     */
+    public function isShared(): bool
+    {
+        $units = $this->relationLoaded('usimUnits') ? $this->usimUnits : $this->usimUnits()->get();
+        return $units->filter(static fn(UsimUnit $u): bool => $u->type !== 'system' && !in_array($u->slug, ['main', 'lobby'], true))->count() > 1;
     }
 }

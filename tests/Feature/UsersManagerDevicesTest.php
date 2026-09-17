@@ -1,8 +1,24 @@
 <?php
 
 use App\Models\Device;
+use App\Services\Device\DeviceListingService;
+use App\Services\Device\DeviceService;
 use App\UI\Screens\Admin\UsersManager;
+use Idei\Usim\Models\UsimRole;
+use Idei\Usim\Models\UsimUnit;
 use Idei\Usim\Support\DevicePairingManager;
+
+beforeEach(function () {
+    $prev = function_exists('getPermissionsTeamId') ? getPermissionsTeamId() : null;
+    if (function_exists('setPermissionsTeamId')) {
+        setPermissionsTeamId(null);
+    }
+    UsimRole::firstOrCreate(['name' => 'smart_tv', 'guard_name' => 'device']);
+    UsimRole::firstOrCreate(['name' => 'sensor', 'guard_name' => 'device']);
+    if (function_exists('setPermissionsTeamId')) {
+        setPermissionsTeamId($prev);
+    }
+});
 
 it('renders devices tab and table in users manager', function () {
     /** @var \Tests\TestCase $this */
@@ -219,4 +235,155 @@ it('unpairs and deletes a device', function () {
     $deleteResponse->assertOk();
 
     expect(Device::find($device->id))->toBeNull();
+});
+
+it('isolates devices by active unit and includes institutional devices', function () {
+    /** @var \Tests\TestCase $this */
+    $this->loginAs('root');
+
+    $mainUnit = UsimUnit::firstOrCreate(['slug' => 'main'], ['type' => 'system']);
+    $ideiUnit = UsimUnit::firstOrCreate(['slug' => 'idei'], ['type' => 'institute']);
+    $ingeoUnit = UsimUnit::firstOrCreate(['slug' => 'ingeo'], ['type' => 'institute']);
+
+    $deviceService = app(DeviceService::class);
+    $deviceListing = app(DeviceListingService::class);
+
+    $tvIdei = $deviceService->createDevice([
+        'name' => 'TV Consulta Idei',
+        'unit_id' => $ideiUnit->id,
+        'roles' => ['smart_tv'],
+    ]);
+
+    $sensorIngeo = $deviceService->createDevice([
+        'name' => 'Sensor Entrada Ingeo',
+        'unit_id' => $ingeoUnit->id,
+        'roles' => ['sensor'],
+    ]);
+
+    $totemMain = $deviceService->createDevice([
+        'name' => 'Totem Campus Principal',
+        'unit_id' => $mainUnit->id,
+        'roles' => ['smart_tv'],
+    ]);
+
+    // Active context: Idei
+    setPermissionsTeamId($ideiUnit->id);
+    session()->put('current_unit_id', $ideiUnit->id);
+    $deviceListing->setUnitContext($ideiUnit->id);
+
+    $ideiDevices = collect($deviceListing->all());
+    $ideiDeviceIds = $ideiDevices->pluck('id')->all();
+
+    expect($ideiDeviceIds)->toContain($tvIdei->id);
+    expect($ideiDeviceIds)->toContain($totemMain->id);
+    expect($ideiDeviceIds)->not->toContain($sensorIngeo->id);
+
+    // Active context: Ingeo
+    setPermissionsTeamId($ingeoUnit->id);
+    session()->put('current_unit_id', $ingeoUnit->id);
+    $deviceListing->setUnitContext($ingeoUnit->id);
+
+    $ingeoDevices = collect($deviceListing->all());
+    $ingeoDeviceIds = $ingeoDevices->pluck('id')->all();
+
+    expect($ingeoDeviceIds)->toContain($sensorIngeo->id);
+    expect($ingeoDeviceIds)->toContain($totemMain->id);
+    expect($ingeoDeviceIds)->not->toContain($tvIdei->id);
+});
+
+it('handles shared devices across multiple units', function () {
+    /** @var \Tests\TestCase $this */
+    $this->loginAs('root');
+
+    $ideiUnit = UsimUnit::firstOrCreate(['slug' => 'idei'], ['type' => 'institute']);
+    $ingeoUnit = UsimUnit::firstOrCreate(['slug' => 'ingeo'], ['type' => 'institute']);
+    $oafaUnit = UsimUnit::firstOrCreate(['slug' => 'oafa'], ['type' => 'institute']);
+
+    $deviceService = app(DeviceService::class);
+    $deviceListing = app(DeviceListingService::class);
+
+    $sharedSensor = $deviceService->createDevice([
+        'name' => 'Sensor Hall Interdepartamental',
+        'unit_ids' => [$ingeoUnit->id, $oafaUnit->id],
+        'roles' => ['sensor'],
+    ]);
+
+    expect($sharedSensor->isShared())->toBeTrue();
+    expect($sharedSensor->isPublic())->toBeFalse();
+
+    // Context: Ingeo -> Visible
+    $deviceListing->setUnitContext($ingeoUnit->id);
+    setPermissionsTeamId($ingeoUnit->id);
+    expect(collect($deviceListing->all())->pluck('id'))->toContain($sharedSensor->id);
+
+    // Context: Oafa -> Visible
+    $deviceListing->setUnitContext($oafaUnit->id);
+    setPermissionsTeamId($oafaUnit->id);
+    expect(collect($deviceListing->all())->pluck('id'))->toContain($sharedSensor->id);
+
+    // Context: Idei -> Not visible
+    $deviceListing->setUnitContext($ideiUnit->id);
+    setPermissionsTeamId($ideiUnit->id);
+    expect(collect($deviceListing->all())->pluck('id'))->not->toContain($sharedSensor->id);
+});
+
+it('supports just-in-time device pairing and registration in one step', function () {
+    /** @var \Tests\TestCase $this */
+    $this->loginAs('root');
+
+    $ingeoUnit = UsimUnit::firstOrCreate(['slug' => 'ingeo'], ['type' => 'institute']);
+    setPermissionsTeamId($ingeoUnit->id);
+    session()->put('current_unit_id', $ingeoUnit->id);
+
+    // Simulate device waiting with PIN
+    $pairingManager = app(DevicePairingManager::class);
+    $pairing = $pairingManager->initiate();
+    $pin = $pairing['pin'];
+
+    $ui = uiScenario($this, UsersManager::class, ['reset' => true]);
+
+    // Open pair dialog
+    $ui->action('pair_device_btn', 'pair_device_clicked', []);
+
+    // Admin submits pairing modal with "new" device data
+    $response = $ui->action('btn_submit_pairing', 'submit_approve_device_pairing', [
+        'pairing_device_id' => 'new',
+        'new_device_name' => 'Tótem Entrada Ingeo JIT',
+        'new_device_role' => 'smart_tv',
+        'device_unit_id' => $ingeoUnit->id,
+        'input_pin' => $pin,
+    ]);
+    $response->assertOk();
+
+    $device = Device::where('name', 'Tótem Entrada Ingeo JIT')->first();
+    expect($device)->not->toBeNull();
+    expect($device->tokens()->count())->toBeGreaterThan(0);
+    expect($device->pairing_pin)->toBe($pin);
+    expect($device->usimUnits->pluck('id'))->toContain($ingeoUnit->id);
+});
+
+it('saves device with multiple units via modal submit', function () {
+    /** @var \Tests\TestCase $this */
+    $this->loginAs('root');
+
+    $ideiUnit = UsimUnit::firstOrCreate(['slug' => 'idei'], ['type' => 'institute']);
+    $ingeoUnit = UsimUnit::firstOrCreate(['slug' => 'ingeo'], ['type' => 'institute']);
+
+    $ui = uiScenario($this, UsersManager::class, ['reset' => true]);
+
+    // Open create modal
+    $ui->action('add_device_btn', 'add_device_clicked', []);
+
+    // Create device with multiple units
+    $response = $ui->action('btn_save_device', 'submit_save_device', [
+        'device_name' => 'Display Compartido Multi',
+        'device_units' => [(string) $ideiUnit->id, (string) $ingeoUnit->id],
+        'device_roles' => ['smart_tv'],
+    ]);
+    $response->assertOk();
+
+    $device = Device::where('name', 'Display Compartido Multi')->first();
+    expect($device)->not->toBeNull();
+    expect($device->usimUnits->pluck('id')->all())->toContain($ideiUnit->id);
+    expect($device->usimUnits->pluck('id')->all())->toContain($ingeoUnit->id);
 });

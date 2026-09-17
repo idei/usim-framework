@@ -182,10 +182,18 @@ trait ManagesDevicesSection
             return;
         }
 
+        $rawUnits = $params['device_units'] ?? $params['unit_ids'] ?? null;
         $rawUnitId = $params['device_unit_id'] ?? $params['unit_id'] ?? null;
-        $unitId = null;
-        if (is_int($rawUnitId) || (is_string($rawUnitId) && $rawUnitId !== '' && $rawUnitId !== '0')) {
-            $unitId = is_numeric($rawUnitId) ? (int) $rawUnitId : $rawUnitId;
+
+        /** @var list<int>|null $unitIds */
+        $unitIds = null;
+        if (is_array($rawUnits)) {
+            $unitIds = array_values(array_filter(
+                array_map(static fn(mixed $u): ?int => is_numeric($u) ? (int) $u : null, $rawUnits),
+                static fn(?int $id): bool => $id !== null && $id > 0
+            ));
+        } elseif (is_int($rawUnitId) || (is_string($rawUnitId) && $rawUnitId !== '' && $rawUnitId !== '0')) {
+            $unitIds = is_numeric($rawUnitId) ? [(int) $rawUnitId] : null;
         }
 
         $rawRoles = $params['device_roles'] ?? $params['roles'] ?? [];
@@ -197,19 +205,20 @@ trait ManagesDevicesSection
             $roles = [];
         }
 
+        /** @var array{name: string, roles: list<string>, unit_ids?: list<int>} $devicePayload */
+        $devicePayload = [
+            'name' => $name,
+            'roles' => $roles,
+        ];
+        if ($unitIds !== null) {
+            $devicePayload['unit_ids'] = $unitIds;
+        }
+
         if ($deviceId) {
-            $this->deviceService->updateDevice($deviceId, [
-                'name' => $name,
-                'unit_id' => $unitId,
-                'roles' => $roles,
-            ]);
+            $this->deviceService->updateDevice($deviceId, $devicePayload);
             $this->toast(t(self::DEVICES_I18N_PREFIX . 'device_updated'), 'success');
         } else {
-            $this->deviceService->createDevice([
-                'name' => $name,
-                'unit_id' => $unitId,
-                'roles' => $roles,
-            ]);
+            $this->deviceService->createDevice($devicePayload);
             $this->toast(t(self::DEVICES_I18N_PREFIX . 'device_created'), 'success');
         }
 
@@ -222,17 +231,43 @@ trait ManagesDevicesSection
      */
     public function onSubmitApproveDevicePairing(array $params): void
     {
-        $deviceId = $this->optionalIntParam($params, 'pairing_device_id')
-            ?? $this->optionalIntParam($params, 'device_id');
+        $pairingIdRaw = $params['pairing_device_id'] ?? $params['device_id'] ?? null;
         $pin = trim($this->stringParamOrDefault($params, 'input_pin', $this->stringParamOrDefault($params, 'pin', '')));
-
-        if ($deviceId === null) {
-            $this->toast(t(self::DEVICES_I18N_PREFIX . 'device_select_label'), 'error');
-            return;
-        }
 
         if (strlen($pin) !== 4) {
             $this->toast(t(self::DEVICES_I18N_PREFIX . 'device_pin_length_error'), 'error');
+            return;
+        }
+
+        $newDeviceName = trim($this->stringParamOrDefault($params, 'new_device_name', ''));
+        $isNewDevice = ($pairingIdRaw === 'new' || $pairingIdRaw === null || $pairingIdRaw === '') && $newDeviceName !== '';
+
+        if ($isNewDevice) {
+            $rawRole = $params['new_device_role'] ?? $params['device_role'] ?? null;
+            $roles = is_string($rawRole) && $rawRole !== '' ? [$rawRole] : [];
+            $rawUnitId = $params['device_unit_id'] ?? $params['unit_id'] ?? null;
+            $activeUnit = $this->resolveActiveUnit();
+            $unitId = is_numeric($rawUnitId) ? (int) $rawUnitId : $activeUnit?->id;
+
+            $result = $this->deviceService->pairAndCreateDevice($pin, [
+                'name' => $newDeviceName,
+                'roles' => $roles,
+                'unit_id' => $unitId,
+            ]);
+
+            if ($result['success']) {
+                $this->toast($result['message'], 'success');
+                $this->devices_table->refresh();
+                $this->closeModal();
+            } else {
+                $this->toast($result['message'], 'error');
+            }
+            return;
+        }
+
+        $deviceId = is_numeric($pairingIdRaw) ? (int) $pairingIdRaw : null;
+        if ($deviceId === null) {
+            $this->toast(t(self::DEVICES_I18N_PREFIX . 'device_select_label'), 'error');
             return;
         }
 

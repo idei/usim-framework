@@ -10,6 +10,7 @@ use App\Services\Units\UsimUnitsService;
 use Idei\Usim\Enums\JustifyContent;
 use Idei\Usim\Enums\LayoutType;
 use Idei\Usim\Models\UsimRole;
+use Idei\Usim\Models\UsimUnit;
 use Idei\Usim\UI;
 use Idei\Usim\UIChangesCollector;
 use Idei\Usim\ValueObjects\Size;
@@ -88,32 +89,43 @@ class EditDeviceDialog
             );
         }
 
-        // Unit selector (if units system exists)
+        // Unit checkboxes (including main/institutional option)
         $unitsService = app(UsimUnitsService::class);
         $units = $unitsService->getAvailableUnits();
-        $unitOptions = [
-            ['value' => '', 'label' => '- ' . t('role.none') . ' -'],
-        ];
+        $mainUnit = UsimUnit::where('slug', 'main')->first();
+        if ($mainUnit && !$units->contains('id', $mainUnit->id)) {
+            $units = $units->prepend($mainUnit);
+        }
 
+        $unitOptions = [];
         foreach ($units as $u) {
             $uName = ($u->display_name !== $u->translation_key) ? $u->display_name : ucfirst($u->slug);
+            if ($u->slug === 'main') {
+                $label = '🏛️ ' . t('screen.admin.users_manager.device_unit_institutional', [], "Institucional / Todos ({$uName})");
+            } else {
+                $label = $uName;
+            }
             $unitOptions[] = [
                 'value' => (string) $u->id,
-                'label' => $uName,
+                'label' => $label,
             ];
         }
 
-        $selectedUnitId = '';
-        if ($isEditing && $device->usimUnits->isNotEmpty()) {
-            $selectedUnitId = (string) $device->usimUnits->first()->id;
+        $activeUnitId = function_exists('getPermissionsTeamId') ? getPermissionsTeamId() : null;
+        /** @var list<string> $selectedUnitIds */
+        $selectedUnitIds = [];
+        if ($isEditing) {
+            $selectedUnitIds = $device->usimUnits->pluck('id')->map(static fn(mixed $id): string => (string) $id)->all();
+        } elseif ($activeUnitId) {
+            $selectedUnitIds = [(string) $activeUnitId];
         }
 
         $container->add(
-            UI::select('device_unit_id')
+            UI::checkbox('device_units')
                 ->label(t($prefix . 'device_units_label'))
                 ->options($unitOptions)
-                ->value($selectedUnitId)
-                ->width(Size::full())
+                ->selectedValues($selectedUnitIds)
+                ->vertical()
         );
 
         // Role checkboxes
@@ -130,9 +142,15 @@ class EditDeviceDialog
 
         /** @var list<string> $selectedRoles */
         $selectedRoles = [];
-        if ($isEditing && $device->roles->isNotEmpty()) {
+        if ($isEditing) {
+            $rolesCollection = $device->roles->isNotEmpty()
+                ? $device->roles
+                : ($device->relationLoaded('globalRoles') && $device->globalRoles->isNotEmpty()
+                    ? $device->globalRoles
+                    : $device->roles);
+
             $selectedRoles = array_values(array_filter(
-                $device->roles->pluck('name')->all(),
+                $rolesCollection->pluck('name')->all(),
                 static fn($name): bool => is_string($name) && $name !== ''
             ));
         }

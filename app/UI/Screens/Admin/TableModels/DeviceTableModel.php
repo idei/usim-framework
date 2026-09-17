@@ -100,6 +100,17 @@ class DeviceTableModel extends AbstractListingTableModel
             return $unit->type !== 'system' && !in_array($unit->slug, ['main', 'lobby'], true);
         })->values();
 
+        if ($units->contains('slug', 'main')) {
+            $main = $units->firstWhere('slug', 'main');
+            $mainLabel = ($main && $main->display_name !== $main->translation_key)
+                ? $main->display_name
+                : 'Institucional';
+
+            if ($operationalUnits->isEmpty()) {
+                return t('screen.admin.users_manager.device_unit_institutional', [], "🏛️ {$mainLabel} (Todos)");
+            }
+        }
+
         if ($operationalUnits->isNotEmpty()) {
             $first = $operationalUnits->first();
             $firstName = ($first->display_name !== $first->translation_key)
@@ -126,7 +137,13 @@ class DeviceTableModel extends AbstractListingTableModel
 
     private function formatRoles(Device $device): string
     {
-        $roleNames = $device->roles
+        $rolesCollection = $device->roles->isNotEmpty()
+            ? $device->roles
+            : ($device->relationLoaded('globalRoles') && $device->globalRoles->isNotEmpty()
+                ? $device->globalRoles
+                : $device->roles);
+
+        $roleNames = $rolesCollection
             ->pluck('name')
             ->filter(static fn ($name): bool => is_string($name))
             ->unique()
