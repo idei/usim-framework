@@ -14,11 +14,9 @@ abstract class TestCase extends BaseTestCase
 {
     use UsimTestHelpers;
     use RefreshDatabase;
-
     protected function setUp(): void
     {
         parent::setUp();
-
         // UIIdGenerator only resets automatically on Octane's RequestReceived event,
         // which never fires in tests. Without this, its static per-context caches
         // accumulate across the whole suite (single PHP process) until a context's
