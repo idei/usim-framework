@@ -85,3 +85,33 @@ it('reports removed obsolete units when synchronizing', function () {
     expect(UsimUnit::where('slug', 'deprecated_unit')->exists())->toBeFalse();
     expect(UsimUnit::where('slug', 'active_unit')->exists())->toBeTrue();
 });
+
+it('syncs root role with configured permissions from config', function () {
+    /** @var TestCase $this */
+    $this->artisan('usim:sync roles')
+        ->expectsOutput('Synchronizing roles and permissions...')
+        ->assertSuccessful();
+
+    $rootRole = \Idei\Usim\Models\UsimRole::where('name', 'root')->where('guard_name', 'web')->first();
+    expect($rootRole)->not->toBeNull();
+
+    $permissionNames = $rootRole->permissions->pluck('name')->toArray();
+    expect($permissionNames)->toContain('admin.users_manager.access');
+    expect($permissionNames)->toContain('manage.roles');
+});
+
+it('discovers screens and prunes obsolete permissions when target is screens or discover flag is set', function () {
+    // Manually create an obsolete public screen permission
+    \Spatie\Permission\Models\Permission::firstOrCreate([
+        'name' => 'demo.temporary_obsolete.access',
+        'guard_name' => 'web',
+    ]);
+
+    expect(\Spatie\Permission\Models\Permission::where('name', 'demo.temporary_obsolete.access')->exists())->toBeTrue();
+
+    /** @var TestCase $this */
+    $this->artisan('usim:sync screens')
+        ->assertSuccessful();
+
+    expect(\Spatie\Permission\Models\Permission::where('name', 'demo.temporary_obsolete.access')->exists())->toBeFalse();
+});

@@ -6,6 +6,7 @@ use Idei\Usim\Components\Checkbox;
 use Idei\Usim\Components\Container;
 use Idei\Usim\Components\Label;
 use Idei\Usim\Components\Select;
+use Idei\Usim\Enums\Visibility;
 use Idei\Usim\Screen;
 use Idei\Usim\UI;
 use Idei\Usim\ValueObjects\Size;
@@ -27,6 +28,8 @@ use Idei\Usim\ValueObjects\Spacing;
  */
 class SelectDemo extends Screen
 {
+    public static Visibility $visibility = Visibility::PUBLIC;
+
     protected Select $sel_country;
     protected Select $sel_city;
     protected Select $sel_languages;

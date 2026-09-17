@@ -328,22 +328,10 @@ return [
     ],
 
     'permissions' => [
-        'debug.logs' => [
-            'default_translations' => [
-                'en' => ['display_name' => 'View System Logs', 'description' => 'Allows viewing system activity and error logs.'],
-                'es' => ['display_name' => 'Ver Registros del Sistema', 'description' => 'Permite ver los registros de actividad y errores del sistema.'],
-            ],
-        ],
         'manage.roles' => [
             'default_translations' => [
                 'en' => ['display_name' => 'Manage Roles', 'description' => 'Allows creating, editing, and deleting roles and their permissions.'],
                 'es' => ['display_name' => 'Gestionar Roles', 'description' => 'Permite crear, editar y eliminar roles y sus permisos.'],
-            ],
-        ],
-        'approve.publications' => [
-            'default_translations' => [
-                'en' => ['display_name' => 'Approve Publications', 'description' => 'Allows approving or rejecting publications submitted by users.'],
-                'es' => ['display_name' => 'Aprobar Publicaciones', 'description' => 'Permite aprobar o rechazar publicaciones enviadas por los usuarios.'],
             ],
         ],
     ],

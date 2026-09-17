@@ -8,9 +8,9 @@ use Illuminate\Console\Command;
 
 class UsimSyncCommand extends Command
 {
-    protected $signature = 'usim:sync {target? : Element to sync (units, roles, permissions, all)}';
+    protected $signature = 'usim:sync {target? : Element to sync (units, roles, permissions, screens, all)} {--discover : Force running screen discovery before sync}';
 
-    protected $description = 'Syncs the system configuration with the database. This includes units, roles, permissions, and other related entities.';
+    protected $description = 'Syncs the system configuration with the database. This includes units, roles, permissions, screens, and other related entities.';
 
     public function handle(): int
     {
@@ -24,6 +24,15 @@ class UsimSyncCommand extends Command
         }
 
         $target = $this->argument('target') ?? 'all';
+        $shouldDiscover = (bool) $this->option('discover') || \in_array($target, ['screens', 'all'], true);
+
+        if ($shouldDiscover) {
+            if (!app()->environment('production')) {
+                $this->call('usim:discover');
+            } else {
+                $this->line('<comment>Skipping screen discovery in production environment.</comment>');
+            }
+        }
 
         if (\in_array($target, ['roles', 'permissions', 'all'], true)) {
             $this->syncRolesAndPermissions();

@@ -3,6 +3,7 @@ namespace App\UI\Screens\Demo;
 
 use Idei\Usim\Components\Container;
 use Idei\Usim\Components\Textarea;
+use Idei\Usim\Enums\Visibility;
 use Idei\Usim\Screen;
 use Idei\Usim\UI;
 use Idei\Usim\ValueObjects\Size;
@@ -17,6 +18,8 @@ use Idei\Usim\ValueObjects\Spacing;
  */
 class TextareaDemo extends Screen
 {
+    public static Visibility $visibility = Visibility::PUBLIC;
+
     protected Textarea $plain_textarea;
     protected Textarea $md_textarea;
 

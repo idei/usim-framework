@@ -5,6 +5,7 @@ namespace Idei\Usim\Support;
 use Idei\Usim\Screen;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
 use Symfony\Component\Finder\Finder;
 use Spatie\Permission\Models\Permission;
@@ -13,6 +14,12 @@ use Spatie\Permission\PermissionRegistrar;
 
 class ScreenDiscoveryService
 {
+    protected int $lastPrunedCount = 0;
+
+    public function getLastPrunedCount(): int
+    {
+        return $this->lastPrunedCount;
+    }
     /**
      * Scan the application for UI Screens and generate a manifest.
      *
@@ -65,6 +72,7 @@ class ScreenDiscoveryService
 
         $this->createOrUpdateSpatiePermissions($permissions);
         $this->upsertScreenPermissionTranslations($permissionTranslationKeys);
+        $this->pruneOrphanedPermissions($permissions);
 
         return $manifest;
     }
@@ -336,7 +344,7 @@ class ScreenDiscoveryService
         $relativePath = $file->getRelativePathname();
 
         $namespace = config('usim.screens_namespace', 'App\\UI\\Screens');
-        $namespace = is_string($namespace) ? $namespace : 'App\\UI\\Screens';
+        $namespace = \is_string($namespace) ? $namespace : 'App\\UI\\Screens';
         $namespace = rtrim($namespace, '\\');
 
         $class = $namespace . '\\' . str_replace(['/', '.php'], ['\\', ''], $relativePath);
@@ -352,5 +360,129 @@ class ScreenDiscoveryService
 
         $reflection = new \ReflectionClass($className);
         return $reflection->isSubclassOf(Screen::class) && !$reflection->isAbstract();
+    }
+
+    /**
+     * Remove screen permissions from Spatie and translation files that are no longer declared by active screens.
+     *
+     * @param array<int, string> $activePermissions
+     */
+    public function pruneOrphanedPermissions(array $activePermissions): int
+    {
+        if (!class_exists(Permission::class)) {
+            return 0;
+        }
+
+        $activeMap = array_fill_keys(array_map('trim', $activePermissions), true);
+
+        // Protect permissions explicitly configured in config('usim')
+        $rawUsimConfig = config('usim', []);
+        $usimConfig = \is_array($rawUsimConfig) ? $rawUsimConfig : [];
+
+        $rawPermissions = $usimConfig['permissions'] ?? null;
+        $configPermissions = \is_array($rawPermissions) ? array_keys($rawPermissions) : [];
+        foreach ($configPermissions as $perm) {
+            $activeMap[trim((string) $perm)] = true;
+        }
+
+        $rawRoles = $usimConfig['roles'] ?? null;
+        $rolesConfig = \is_array($rawRoles) ? $rawRoles : [];
+        foreach ($rolesConfig as $role) {
+            if (\is_array($role) && isset($role['permissions']) && \is_array($role['permissions'])) {
+                foreach ($role['permissions'] as $perm) {
+                    if (\is_string($perm)) {
+                        $activeMap[trim($perm)] = true;
+                    }
+                }
+            }
+        }
+
+        /** @var \Illuminate\Database\Eloquent\Collection<int, Permission> $orphaned */
+        $orphaned = Permission::query()
+            ->where('name', 'like', '%.access')
+            ->get()
+            ->filter(static fn(Permission $p): bool => !isset($activeMap[$p->name]));
+
+        $prunedCount = 0;
+        $prunedNames = [];
+
+        foreach ($orphaned as $perm) {
+            DB::table('role_has_permissions')->where('permission_id', $perm->id)->delete();
+            $perm->delete();
+            $prunedCount++;
+            $prunedNames[] = $perm->name;
+        }
+
+        if ($prunedCount > 0) {
+            app()[PermissionRegistrar::class]->forgetCachedPermissions();
+            $this->prunePermissionTranslations($prunedNames);
+        }
+
+        $this->lastPrunedCount = $prunedCount;
+
+        return $prunedCount;
+    }
+
+    /**
+     * @param array<int, string> $prunedPermissions
+     */
+    private function prunePermissionTranslations(array $prunedPermissions): void
+    {
+        if ($prunedPermissions === []) {
+            return;
+        }
+
+        $permissionPrefix = $this->normalizeTranslationPrefix(config('usim.i18n.i18n_key_prefixes.permission', 'permission.'));
+
+        foreach ($this->resolveTranslationLocales() as $locale) {
+            $langDir = lang_path($locale);
+            $langFile = "$langDir/permission.php";
+
+            if (!File::exists($langFile)) {
+                continue;
+            }
+
+            $payload = $this->loadLangArrayFile($langFile);
+            $modified = false;
+
+            foreach ($prunedPermissions as $permission) {
+                $targetKey = $permission;
+                if (\str_starts_with($targetKey, $permissionPrefix)) {
+                    $targetKey = Str::after($targetKey, $permissionPrefix);
+                }
+
+                if (Arr::has($payload, $targetKey)) {
+                    Arr::forget($payload, $targetKey);
+                    $modified = true;
+                }
+            }
+
+            if ($modified) {
+                $payload = $this->removeEmptyArrayBranches($payload);
+                File::put($langFile, "<?php\n\nreturn " . $this->exportPhpArrayShort($payload) . ";\n");
+            }
+        }
+    }
+
+    /**
+     * Recursively remove empty array branches.
+     *
+     * @param array<array-key, mixed> $array
+     * @return array<array-key, mixed>
+     */
+    private function removeEmptyArrayBranches(array $array): array
+    {
+        foreach ($array as $key => $value) {
+            if (\is_array($value)) {
+                $cleaned = $this->removeEmptyArrayBranches($value);
+                if (empty($cleaned)) {
+                    unset($array[$key]);
+                } else {
+                    $array[$key] = $cleaned;
+                }
+            }
+        }
+
+        return $array;
     }
 }

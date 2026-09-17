@@ -4,6 +4,7 @@ namespace App\UI\Screens\Demo;
 
 use Idei\Usim\Components\Calendar;
 use Idei\Usim\Components\Container;
+use Idei\Usim\Enums\Visibility;
 use Idei\Usim\Screen;
 use Idei\Usim\UI;
 use Idei\Usim\ValueObjects\Size;
@@ -11,6 +12,8 @@ use Idei\Usim\ValueObjects\Spacing;
 
 class CalendarDemo extends Screen
 {
+    public static Visibility $visibility = Visibility::PUBLIC;
+
     protected Calendar $academic_calendar;
 
     protected function buildBaseUI(Container $container, ...$params): void

@@ -4,6 +4,7 @@ namespace App\UI\Screens\Demo;
 use Idei\Usim\Components\Container;
 use Idei\Usim\Components\Input;
 use Idei\Usim\Components\Label;
+use Idei\Usim\Enums\Visibility;
 use Idei\Usim\Screen;
 use Idei\Usim\UI;
 use Idei\Usim\ValueObjects\Size;
@@ -25,6 +26,8 @@ use Idei\Usim\ValueObjects\Spacing;
  */
 class InputDemo extends Screen
 {
+    public static Visibility $visibility = Visibility::PUBLIC;
+
     protected Input $input_text;
     protected Label $lbl_result;
 

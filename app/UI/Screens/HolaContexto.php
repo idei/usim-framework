@@ -3,12 +3,15 @@
 namespace App\UI\Screens;
 
 use Idei\Usim\Components\Container;
+use Idei\Usim\Enums\Visibility;
 use Idei\Usim\Screen;
 use Idei\Usim\UI;
 use Idei\Usim\ValueObjects\Spacing;
 
 class HolaContexto extends Screen
 {
+    public static Visibility $visibility = Visibility::PUBLIC;
+
     protected function buildBaseUI(Container $container, ...$params): void
     {
         $container

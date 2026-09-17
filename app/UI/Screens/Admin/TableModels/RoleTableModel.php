@@ -25,7 +25,7 @@ class RoleTableModel extends AbstractListingTableModel
         $prefix = 'screen.admin.users_manager';
         return [
             'name' => ['label' => t("{$prefix}.roles_column_name"), 'sort_by' => 'name'],
-            'guard_name' => ['label' => t("{$prefix}.roles_column_guard"), 'sort_by' => 'guard_name'],
+            'guard_name' => ['label' => t("{$prefix}.roles_column_guard"), 'sort_by' => 'guard_name', 'width' => 100],
             'home_screen' => ['label' => t("{$prefix}.roles_column_home_screen"), 'sort_by' => 'home_screen'],
             'priority' => ['label' => t("{$prefix}.roles_column_priority"), 'sort_by' => 'priority'],
         ];

@@ -9,6 +9,7 @@ use Idei\Usim\Components\Input;
 use Idei\Usim\Components\Table;
 use Idei\Usim\Enums\LayoutType;
 use Idei\Usim\Enums\SelectionMode;
+use Idei\Usim\Enums\Visibility;
 use Idei\Usim\Screen;
 use Idei\Usim\UI;
 use Idei\Usim\ValueObjects\Size;
@@ -17,6 +18,8 @@ use Override;
 
 class TableDemo extends Screen
 {
+    public static Visibility $visibility = Visibility::PUBLIC;
+
     protected Table $movies_table;
     protected Input $search_movies;
 

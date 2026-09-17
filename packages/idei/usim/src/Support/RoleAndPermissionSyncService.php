@@ -59,9 +59,9 @@ class RoleAndPermissionSyncService
                     ? $definedPermissions // Root hereda todos los permisos declarados
                     : [];
 
-                if ($roleName !== 'root' && is_array($roleMeta['permissions'] ?? null)) {
+                if (\is_array($roleMeta['permissions'] ?? null)) {
                     foreach ($roleMeta['permissions'] as $permName) {
-                        if (is_string($permName)) {
+                        if (\is_string($permName)) {
                             $rolePermissions[] = trim($permName);
                         }
                     }
@@ -73,7 +73,7 @@ class RoleAndPermissionSyncService
                 // 2. Crear permisos inexistentes para el Guard actual
                 foreach ($rolePermissions as $permName) {
                     $permName = trim($permName);
-                    if ($permName === '') {
+                    if ($permName === '' || \in_array($permName, $validPermissions, true)) {
                         continue;
                     }
 

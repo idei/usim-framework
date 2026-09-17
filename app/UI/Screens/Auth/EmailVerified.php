@@ -7,6 +7,7 @@ namespace App\UI\Screens\Auth;
 use App\Services\User\UserService;
 use Idei\Usim\Components\Container;
 use Idei\Usim\Enums\LayoutType;
+use Idei\Usim\Enums\Visibility;
 use Idei\Usim\Screen;
 use Idei\Usim\UI;
 use Idei\Usim\ValueObjects\Size;
@@ -14,6 +15,8 @@ use Idei\Usim\ValueObjects\Spacing;
 
 class EmailVerified extends Screen
 {
+    public static Visibility $visibility = Visibility::PUBLIC;
+
     public function __construct(
         protected UserService $userService
     ) {

@@ -5,6 +5,7 @@ namespace App\UI\Screens\Device;
 use Idei\Usim\Components\Button;
 use Idei\Usim\Components\Container;
 use Idei\Usim\Components\Label;
+use Idei\Usim\Enums\Visibility;
 use Idei\Usim\Screen;
 use Idei\Usim\UI;
 use Idei\Usim\ValueObjects\Size;
@@ -13,6 +14,8 @@ use Idei\Usim\Support\DevicePairingManager;
 
 class DevicePairingScreen extends Screen
 {
+    public static Visibility $visibility = Visibility::PUBLIC;
+
     // Variables de estado persistente (Zero-Database)
     protected string $store_session_token = '';
     protected string $store_pin = '';

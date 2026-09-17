@@ -8,6 +8,7 @@ use Idei\Usim\Components\Input;
 use Idei\Usim\Components\Select;
 use Idei\Usim\Components\Split;
 use Idei\Usim\Enums\LayoutType;
+use Idei\Usim\Enums\Visibility;
 use Idei\Usim\Screen;
 use Idei\Usim\UI;
 use Idei\Usim\ValueObjects\Size;
@@ -15,6 +16,8 @@ use Idei\Usim\ValueObjects\Spacing;
 
 class SplitDemo extends Screen
 {
+    public static Visibility $visibility = Visibility::PUBLIC;
+
     protected Split $split_workspace;
     protected Select $sel_split_orientation;
     protected Select $sel_collapse_target;

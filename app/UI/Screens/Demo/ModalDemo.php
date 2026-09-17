@@ -7,6 +7,7 @@ use Idei\Usim\Enums\DialogType;
 use Idei\Usim\Enums\LayoutType;
 use Idei\Usim\Enums\TimeUnit;
 use Idei\Usim\Modals\ConfirmDialogService;
+use Idei\Usim\Enums\Visibility;
 use Idei\Usim\Screen;
 use Idei\Usim\UI;
 use Idei\Usim\ValueObjects\Size;
@@ -22,6 +23,8 @@ use Idei\Usim\ValueObjects\Spacing;
  */
 class ModalDemo extends Screen
 {
+    public static Visibility $visibility = Visibility::PUBLIC;
+
     protected Label $lbl_result;
     protected Label $lbl_instruction;
 

@@ -21,6 +21,11 @@ class DiscoverScreensCommand extends Command
         $count = \count($screens);
         $this->info("Found {$count} screens.");
 
+        $pruned = $discoveryService->getLastPrunedCount();
+        if ($pruned > 0) {
+            $this->warn("Pruned {$pruned} obsolete screen permissions.");
+        }
+
         $this->writeManifest($screens);
 
         $this->info('USIM manifest generated successfully!');

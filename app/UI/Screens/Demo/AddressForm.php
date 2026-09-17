@@ -6,6 +6,7 @@ use Idei\Usim\Components\Container;
 use Idei\Usim\Components\Input;
 use Idei\Usim\Components\Label;
 use Idei\Usim\Components\Select;
+use Idei\Usim\Enums\Visibility;
 use Idei\Usim\Screen;
 use Idei\Usim\UI;
 use Idei\Usim\ValueObjects\Size;
@@ -16,6 +17,8 @@ use Throwable;
 
 class AddressForm extends Screen
 {
+    public static Visibility $visibility = Visibility::PUBLIC;
+
     private const COUNTRIES_URL = 'https://countriesnow.space/api/v0.1/countries/positions';
     private const STATES_URL = 'https://countriesnow.space/api/v0.1/countries/states/q';
 

@@ -6,6 +6,7 @@ use Idei\Usim\Components\Container;
 use Idei\Usim\Components\Label;
 use Idei\Usim\Components\Button;
 use Idei\Usim\Components\Uploader;
+use Idei\Usim\Enums\Visibility;
 use Idei\Usim\Screen;
 use Idei\Usim\UI;
 use Idei\Usim\ValueObjects\Size;
@@ -20,6 +21,8 @@ use Illuminate\Support\Facades\Storage;
  */
 class UploaderDemo extends Screen
 {
+    public static Visibility $visibility = Visibility::PUBLIC;
+
     protected Uploader $uploader_profile;
     protected Uploader $uploader_banner;
     protected Uploader $uploader_story;
