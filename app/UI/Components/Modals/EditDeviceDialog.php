@@ -34,6 +34,12 @@ class EditDeviceDialog
     }
 
     /**
+     * Get the UI for the edit device dialog.
+     *
+     * @param string $submitAction
+     * @param string $cancelAction
+     * @param Device|null $device
+     * @param int|null $callerServiceId
      * @return array<int, array<string, mixed>>
      */
     public function getUI(
@@ -49,13 +55,13 @@ class EditDeviceDialog
             ->parent('modal')
             ->shadow(false)
             ->plain()
-            ->padding(Spacing::px(20))
+            ->padding(Spacing::px(10))
             ->gap(Spacing::px(16));
 
         $container->add(
             UI::label('dialog_title')
                 ->text(t($prefix . ($isEditing ? 'edit_device_title' : 'create_device_title')))
-                ->style('title')
+                ->style('heading')
         );
 
         $container->add(
@@ -170,11 +176,14 @@ class EditDeviceDialog
         // Buttons
         $buttonsContainer = UI::container('device_dialog_buttons')
             ->layout(LayoutType::HORIZONTAL)
+            ->plain()
             ->justifyContent(JustifyContent::SPACE_BETWEEN)
+            ->gap(Spacing::px(8))
             ->width(Size::full());
 
         $leftButtons = UI::container('device_left_buttons')
             ->layout(LayoutType::HORIZONTAL)
+            ->rounded(false)
             ->gap(Spacing::px(8));
 
         if ($isEditing) {
@@ -214,6 +223,7 @@ class EditDeviceDialog
 
         $rightButtons = UI::container('device_right_buttons')
             ->layout(LayoutType::HORIZONTAL)
+            ->rounded(false)
             ->gap(Spacing::px(8));
 
         $rightButtons->add(

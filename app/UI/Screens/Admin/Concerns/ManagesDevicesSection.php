@@ -75,7 +75,12 @@ trait ManagesDevicesSection
             ->dataModel(DeviceTableModel::class)
             ->selectionMode(SelectionMode::SINGLE)
             ->sortedBy('name')
-            ->fitContainer(availableHeight: 550, hasToolbar: true, paginated: true);
+            ->fitContainer(
+                availableHeight: 550,
+                rowHeight: 45,
+                hasToolbar: true,
+                paginated: true
+            );
 
         $devicesCrudContainer
             ->add($toolbar)
@@ -345,4 +350,3 @@ trait ManagesDevicesSection
         $this->closeModal();
     }
 }
-
