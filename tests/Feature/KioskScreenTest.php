@@ -1,8 +1,53 @@
 <?php
 
+use App\Models\Device;
 use App\UI\Screens\Device\KioskScreen;
+use Idei\Usim\Models\UsimRole;
+use Idei\Usim\Models\UsimUnit;
+use Spatie\Permission\Models\Permission;
+use Spatie\Permission\PermissionRegistrar;
+
+beforeEach(function () {
+    $prev = function_exists('getPermissionsTeamId') ? getPermissionsTeamId() : null;
+    if (function_exists('setPermissionsTeamId')) {
+        setPermissionsTeamId(null);
+    }
+
+    $perm = Permission::findOrCreate('device.kiosk_screen.access', 'device');
+    $role = UsimRole::firstOrCreate(['name' => 'smart_tv', 'guard_name' => 'device']);
+    $role->givePermissionTo($perm);
+
+    if (function_exists('setPermissionsTeamId')) {
+        setPermissionsTeamId($prev);
+    }
+    app(PermissionRegistrar::class)->forgetCachedPermissions();
+});
+
+function createAuthenticatedKioskDevice(Tests\TestCase $test): Device
+{
+    $unit = UsimUnit::firstOrCreate(['slug' => 'main'], ['type' => 'system']);
+    setPermissionsTeamId($unit->id);
+
+    $device = Device::create(['name' => 'Kiosk TV Display']);
+    $device->usimUnits()->sync([$unit->id]);
+    $device->assignRole('smart_tv');
+
+    $test->actingAs($device, 'device');
+
+    return $device;
+}
+
+it('redirects unauthenticated client to device pairing screen', function () {
+    /** @var Tests\TestCase $this */
+    $response = $this->getJson(screenApiUrl(KioskScreen::class, ['reset' => true]));
+    $response->assertOk();
+    expect($response->json('redirect'))->toBe(url('/device/device-pairing-screen'));
+});
 
 it('loads automated kiosk carousel screen without user interaction controls', function () {
+    /** @var Tests\TestCase $this */
+    createAuthenticatedKioskDevice($this);
+
     $ui = uiScenario($this, KioskScreen::class, ['reset' => true]);
 
     $carousel = $ui->component('device_carousel')->data();
@@ -26,6 +71,9 @@ it('loads automated kiosk carousel screen without user interaction controls', fu
 });
 
 it('automatically advances slides on timer tick in continuous loop', function () {
+    /** @var Tests\TestCase $this */
+    createAuthenticatedKioskDevice($this);
+
     $ui = uiScenario($this, KioskScreen::class, ['reset' => true]);
 
     $carousel = $ui->component('device_carousel')->data();

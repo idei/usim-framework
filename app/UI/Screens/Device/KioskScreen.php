@@ -38,7 +38,7 @@ class KioskScreen extends Screen
         $this->store_current_index = $this->normalizeIndex($this->store_current_index, count($items));
 
         $currentItem = $items[$this->store_current_index];
-        $this->store_timeout_ms = max(1000, (int) ($currentItem['duration_ms'] ?? 5000));
+        $this->store_timeout_ms = max(1000, $currentItem['duration_ms']);
 
         $container
             ->title(t('screen.device.kiosk.title'))
@@ -78,8 +78,7 @@ class KioskScreen extends Screen
         $this->store_current_index = $this->normalizeIndex($this->store_current_index + 1, $count);
 
         $next = $items[$this->store_current_index];
-        $nextTimeout = (int) ($next['duration_ms'] ?? 5000);
-        $this->store_timeout_ms = max(1000, $nextTimeout);
+        $this->store_timeout_ms = max(1000, $next['duration_ms']);
 
         $this->device_carousel
             ->currentIndex($this->store_current_index)
