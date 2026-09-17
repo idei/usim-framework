@@ -71,4 +71,12 @@ return [
             'description' => 'Permission to access Registered.',
         ],
     ],
+    'device' => [
+        'kiosk' => [
+            'access' => [
+                'name' => 'Access Device Kiosk',
+                'description' => 'Permission to access Device Kiosk.',
+            ],
+        ],
+    ],
 ];

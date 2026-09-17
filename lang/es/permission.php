@@ -71,4 +71,12 @@ return [
             'description' => 'Permite acceder a la pantalla Registered.',
         ],
     ],
+    'device' => [
+        'kiosk' => [
+            'access' => [
+                'name' => 'Acceder a Device Kiosk',
+                'description' => 'Permite acceder a la pantalla Device Kiosk.',
+            ],
+        ],
+    ],
 ];

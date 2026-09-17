@@ -1,7 +1,8 @@
 <?php
 
-use App\UI\Screens\Admin\UsersManager;
 use App\UI\Screens\Admin\TranslateManager;
+use App\UI\Screens\Admin\UsersManager;
+use App\UI\Screens\Device\KioskScreen;
 use App\UI\Screens\Home;
 use App\UI\Screens\Registered;
 
@@ -309,9 +310,8 @@ return [
                 'es' => ['display_name' => 'Smart TV', 'description' => 'Pantalla en modo kiosco.'],
             ],
             'priority' => 10,
-            // Aquí definirás más adelante la Screen del carrusel (ej: CarrouselScreen::class)
-            'home_screen' => 'home',
-            'permissions' => [],
+            'home_screen' => KioskScreen::class,
+            'permissions' => ['device.kiosk_screen.access'],
             'guard_name' => 'device',
         ],
         'sensor' => [
