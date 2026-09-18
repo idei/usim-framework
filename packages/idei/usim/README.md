@@ -285,6 +285,8 @@ Use `_crypt` only when the value should not be readable from the client's local 
 | `UI::uploader()` | `Uploader` | File upload with preview and crop |
 | `UI::calendar()` | `Calendar` | Calendar/date picker |
 | `UI::carousel()` | `Carousel` | Media carousel for image/audio/video with manual/auto modes |
+| `UI::split()` | `Split` | Resizable/collapsible split panel layout |
+| `UI::timer()` | `Timer` | Autonomous timer for polling, delays, and scheduled events |
 
 Builders share a fluent API across `UIComponent` and `Container` with common methods like:
 

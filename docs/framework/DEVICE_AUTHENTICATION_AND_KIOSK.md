@@ -65,7 +65,7 @@ sequenceDiagram
     Pairing-->>TV: Muestra PIN en pantalla
     Admin->>AdminUI: Ingresa el PIN y aprueba
     AdminUI->>DPM: approve(pin, device) -> Crea PersonalAccessToken de Sanctum
-    TV->>Pairing: Polling onCheckStatus()
+    TV->>Pairing: Polling automático onCheckStatus() (mediante UI::timer)
     Pairing->>DPM: pollStatus() -> Retorna Sanctum plainTextToken
     Note over Pairing: Guarda token en store_token y hace login en guard 'device'
     Pairing-->>TV: Redirige a KioskScreen::getRoutePath()

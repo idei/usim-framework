@@ -321,7 +321,7 @@ Tipo de interacción producida en el cliente:
 - `"input"`: Entrada incremental en campos de texto.
 - `"change"`: Modificación de valor en selects, checkboxes o radios.
 - `"action"`: Disparo programático o directo de una acción sin evento nativo DOM.
-- `"timeout"`: Evento generado al expirar un temporizador (común en modales de alerta o cuenta regresiva).
+- `"timeout"`: Evento generado al expirar un temporizador (componente `Timer` para polling recurrente/one-shot, modales de alerta o cuenta regresiva).
 
 #### 6.3.3 `action` (string, required)
 Nombre de la acción del componente en formato **snake_case**. En el backend, `UIEventController` convierte automáticamente este valor al método correspondiente del Screen en convención `onPascalCase`:

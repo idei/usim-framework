@@ -17,6 +17,7 @@ use Idei\Usim\Components\Uploader;
 use Idei\Usim\Components\Calendar;
 use Idei\Usim\Components\Carousel;
 use Idei\Usim\Components\Split;
+use Idei\Usim\Components\Timer;
 
 /**
  * UI component factory
@@ -204,5 +205,16 @@ class UI
     {
         $textareaClass = 'Idei\\Usim\\Components\\Textarea';
         return new $textareaClass($name);
+    }
+
+    /**
+     * Create a new timer component
+     *
+     * @param string|null $name The optional semantic name for the timer
+     * @return Timer
+     */
+    public static function timer(?string $name = null): Timer
+    {
+        return new Timer($name);
     }
 }

@@ -990,6 +990,7 @@ abstract class Screen
             'carousel' => \Idei\Usim\Components\Carousel::class,
             'textarea' => 'Idei\\Usim\\Components\\Textarea',
             'split' => Split::class,
+            'timer' => \Idei\Usim\Components\Timer::class,
             default => null,
         };
     }

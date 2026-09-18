@@ -5,6 +5,7 @@ namespace App\UI\Screens\Device;
 use Idei\Usim\Components\Button;
 use Idei\Usim\Components\Container;
 use Idei\Usim\Components\Label;
+use Idei\Usim\Components\Timer;
 use Idei\Usim\Enums\Visibility;
 use Idei\Usim\Screen;
 use Idei\Usim\UI;
@@ -21,19 +22,18 @@ class DevicePairingScreen extends Screen
      */
     public static bool $hasMenu = false;
 
-    // Variables de estado persistente (Zero-Database)
     protected string $store_session_token = '';
     protected string $store_pin = '';
     protected string $store_token = '';
-
-    // Componentes interactivos que mutaremos en tiempo de ejecución
     protected Label $lbl_pin_display;
     protected Label $lbl_status;
     protected Button $btn_check_status;
+    protected ?Timer $tmr_pairing_poll = null;
 
     protected function buildBaseUI(Container $container, ...$params): void
     {
-        // 1. Construcción de la Interfaz Declarativa
+        $this->updatePIN();
+
         $container
             ->maxWidth(Size::px(800))
             ->centerHorizontal()
@@ -43,7 +43,6 @@ class DevicePairingScreen extends Screen
             UI::label('lbl_title')
                 ->text('Vincular este Dispositivo')
                 ->style('primary')
-            // Asumiendo que existen métodos para fuentes grandes, o usando clases CSS
         );
 
         $container->add(
@@ -54,9 +53,8 @@ class DevicePairingScreen extends Screen
 
         $container->add(
             UI::label('lbl_pin_display')
-                ->text('')
+                ->text($this->store_pin)
                 ->style('primary')
-            // Idealmente un texto gigante
         );
 
         $container->add(
@@ -65,7 +63,12 @@ class DevicePairingScreen extends Screen
                 ->style('warning')
         );
 
-        // TODO: Reemplazar por un Timer si USIM soporta componentes ocultos de polling
+        $container->add(
+            UI::timer('tmr_pairing_poll')
+                ->action('check_status')
+                ->every(4000)
+        );
+
         $container->add(
             UI::button('btn_check_status')
                 ->label('Verificar Estado')
@@ -74,11 +77,13 @@ class DevicePairingScreen extends Screen
         );
     }
 
-    /**
-     * Inicialización dinámica de datos en cada carga/recarga con estado.
-     * Se ejecuta después de la inyección de storage y componentes.
-     */
     protected function postLoadUI(): void
+    {
+        $this->updatePIN();
+        $this->lbl_pin_display->text($this->store_pin);
+    }
+
+    protected function updatePIN(): void
     {
         /** @var DevicePairingManager $manager */
         $manager = app(DevicePairingManager::class);
@@ -93,8 +98,6 @@ class DevicePairingScreen extends Screen
             $this->store_session_token = $pairingData['session_token'];
             $this->store_pin = $pairingData['pin'];
         }
-
-        $this->lbl_pin_display->text($this->store_pin);
     }
 
     /**
@@ -104,6 +107,7 @@ class DevicePairingScreen extends Screen
      */
     public function onCheckStatus(array $params): void
     {
+        /** @var DevicePairingManager $manager */
         $manager = app(DevicePairingManager::class);
         $status = $manager->pollStatus($this->store_session_token);
 
@@ -111,6 +115,7 @@ class DevicePairingScreen extends Screen
             // Expiró
             $this->store_session_token = '';
             $this->store_pin = '';
+            $this->tmr_pairing_poll?->stop();
             $this->toast('El PIN expiró. Generando uno nuevo...', 'warning');
             $this->redirect(self::getRoutePath());
             return;
@@ -120,6 +125,7 @@ class DevicePairingScreen extends Screen
             // ¡Aprobado! $status contiene el token de Sanctum
             $this->store_session_token = '';
             $this->store_pin = '';
+            $this->tmr_pairing_poll?->stop();
 
             // Persistimos el token en el storage del dispositivo
             $this->store_token = $status;

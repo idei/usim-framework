@@ -43,6 +43,7 @@ resources/assets/
 │       ├── button/index.js
 │       ├── input/index.js
 │       ├── table/index.js
+│       ├── timer/index.js
 │       ├── shared/ui-event.js
 │       └── shared/content-render.js
 └── css/

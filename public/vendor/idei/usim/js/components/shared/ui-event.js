@@ -5,7 +5,11 @@
     const namespace = global.USIM_COMPONENT_HELPERS || {};
 
     async function sendUiEvent({ componentId, event, action, parameters = {}, credentials = 'same-origin' }) {
-        const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
+        const csrfHeaders = typeof global.getCsrfHeaders === 'function'
+            ? global.getCsrfHeaders()
+            : (document.querySelector('meta[name="csrf-token"]')?.content
+                ? { 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content }
+                : {});
         const usimStorage = typeof getUsimStorageHeaderValue === 'function'
             ? getUsimStorageHeaderValue()
             : '';
@@ -15,9 +19,9 @@
             headers: {
                 'Content-Type': 'application/json',
                 'Accept': 'application/json',
-                'X-CSRF-TOKEN': csrfToken,
                 'X-Requested-With': 'XMLHttpRequest',
                 'X-USIM-Storage': usimStorage,
+                ...csrfHeaders,
             },
             credentials,
             body: JSON.stringify({
@@ -27,6 +31,16 @@
                 parameters,
             }),
         });
+
+        if (response.status === 419) {
+            const renderer = global.globalRenderer || (typeof globalRenderer !== 'undefined' ? globalRenderer : null);
+            if (renderer && typeof renderer.destroy === 'function') {
+                renderer.destroy();
+            }
+            setTimeout(() => {
+                window.location.reload();
+            }, 1200);
+        }
 
         let result = null;
         try {

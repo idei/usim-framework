@@ -119,6 +119,32 @@ function getUsimStorageHeaderValue() {
     return encodeHeaderSafeValue(getUsimStorageValue());
 }
 
+/**
+ * Get CSRF headers for HTTP requests.
+ * Prefers dynamic XSRF-TOKEN cookie updated automatically by Laravel on each web response,
+ * falling back to the meta tag if cookie is not yet accessible.
+ */
+function getCsrfHeaders() {
+    const match = document.cookie.match(new RegExp('(^|;\\s*)(XSRF-TOKEN)=([^;]*)'));
+    if (match && match[3]) {
+        return {
+            'X-XSRF-TOKEN': decodeURIComponent(match[3]),
+        };
+    }
+
+    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
+    if (csrfToken) {
+        return {
+            'X-CSRF-TOKEN': csrfToken,
+        };
+    }
+
+    return {};
+}
+
+// Make available globally for other modular components
+window.getCsrfHeaders = getCsrfHeaders;
+
 function getUsimStorageObject() {
     const storageRaw = getUsimStorageValue();
     return safeParseJsonObject(storageRaw) || {};
@@ -666,25 +692,24 @@ class UIComponent {
      */
     async sendEventToBackend(event, action, parameters = {}) {
         try {
-
-            // Get CSRF token from meta tag
-            const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
+            // Get dynamic CSRF headers (prefers XSRF-TOKEN cookie over static meta tag)
+            const csrfHeaders = getCsrfHeaders();
 
             const componentId = this.getComponentId();
 
             // Get USIM storage from localStorage
             const usimStorage = getUsimStorageHeaderValue();
 
-            // console.log('Sending event:', { component_id: componentId, action, csrfToken });
+            // console.log('Sending event:', { component_id: componentId, action, csrfHeaders });
 
             const response = await fetch('/api/ui-event', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                     'Accept': 'application/json',
-                    'X-CSRF-TOKEN': csrfToken,
                     'X-Requested-With': 'XMLHttpRequest',
                     'X-USIM-Storage': usimStorage,
+                    ...csrfHeaders,
                 },
                 credentials: 'same-origin',
                 body: JSON.stringify({
@@ -695,7 +720,12 @@ class UIComponent {
                 }),
             });
 
-            const result = await response.json();
+            let result = {};
+            try {
+                result = await response.json();
+            } catch (_err) {
+                result = {};
+            }
 
             // ÉXITO: response.ok = true (status 200-299)
             if (response.ok) {
@@ -717,14 +747,31 @@ class UIComponent {
                 if (result.redirect) {
                     window.location.href = result.redirect;
                 }
+
+                return result;
             } else {
+                // Handle 419 (CSRF token mismatch / Session expired)
+                if (response.status === 419) {
+                    console.warn('⚠️ Session expired or CSRF token mismatch (419). Stopping background timers.');
+                    if (globalRenderer && typeof globalRenderer.destroy === 'function') {
+                        globalRenderer.destroy();
+                    }
+                    this.showNotification('Tu sesión ha expirado o el token CSRF es inválido. Recargando...', 'warning');
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 1200);
+                    return null;
+                }
+
                 // ERROR: response.ok = false (status 400+)
                 console.error('❌ Action failed:', action, result);
-                this.showNotification(result.error || 'Action failed', 'error');
+                this.showNotification(result.error || result.message || 'Action failed', 'error');
+                return null;
             }
         } catch (error) {
             console.error('❌ Network error:', error);
             this.showNotification('Network error: ' + error.message, 'error');
+            return null;
         }
     }
 
@@ -832,6 +879,15 @@ class UIRenderer {
     constructor(data) {
         this.data = data;
         this.components = new Map();
+    }
+
+    destroy() {
+        for (const [mapKey, component] of this.components.entries()) {
+            if (component && typeof component.destroy === 'function') {
+                component.destroy();
+            }
+        }
+        this.components.clear();
     }
 
     render() {
@@ -1537,6 +1593,9 @@ class UIRenderer {
             const internalId = String(mapKey);
 
             if (removedIds.has(internalId) || removedIds.has(String(mapKey))) {
+                if (component && typeof component.destroy === 'function') {
+                    component.destroy();
+                }
                 this.components.delete(mapKey);
             }
         }
@@ -1613,7 +1672,7 @@ class UIRenderer {
                 // Handle button click
                 if (changes.button.action) {
                     btn.addEventListener('click', async () => {
-                        const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
+                        const csrfHeaders = getCsrfHeaders();
                         const componentId = element.getAttribute('data-component-id');
                         const usimStorage = getUsimStorageHeaderValue();
 
@@ -1623,9 +1682,9 @@ class UIRenderer {
                                 headers: {
                                     'Content-Type': 'application/json',
                                     'Accept': 'application/json',
-                                    'X-CSRF-TOKEN': csrfToken,
                                     'X-Requested-With': 'XMLHttpRequest',
                                     'X-USIM-Storage': usimStorage,
+                                    ...csrfHeaders,
                                 },
                                 credentials: 'same-origin',
                                 body: JSON.stringify({
@@ -2441,15 +2500,15 @@ async function loadScreenUI(screenName = null, forceReset = null) {
         const queryString = urlParams.toString() ? `?${urlParams.toString()}` : '';
 
         const usimStorage = getUsimStorageHeaderValue();
-        const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+        const csrfHeaders = getCsrfHeaders();
         // Use /api/ui/ prefix to separate UI definitions from Data API
         const response = await fetch(`/api/ui/${screen}${queryString}`, {
             method: 'GET',
             headers: {
                 'Accept': 'application/json',
-                'X-CSRF-TOKEN': csrfToken,
                 'X-Requested-With': 'XMLHttpRequest',
                 'X-USIM-Storage': usimStorage,
+                ...csrfHeaders,
             }
         });
 
@@ -2460,6 +2519,11 @@ async function loadScreenUI(screenName = null, forceReset = null) {
         }
 
         const uiData = await response.json();
+
+        // Destroy previous renderer and its active timers/components if any
+        if (globalRenderer && typeof globalRenderer.destroy === 'function') {
+            globalRenderer.destroy();
+        }
 
         // Create and store global renderer
         globalRenderer = new UIRenderer(uiData);
@@ -2826,7 +2890,7 @@ async function executeTimeoutAction(action, callerServiceId) {
     } else {
         // Execute custom action via backend
         try {
-            const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
+            const csrfHeaders = getCsrfHeaders();
             const usimStorage = getUsimStorageHeaderValue();
 
             const response = await fetch('/api/ui-event', {
@@ -2834,9 +2898,9 @@ async function executeTimeoutAction(action, callerServiceId) {
                 headers: {
                     'Content-Type': 'application/json',
                     'Accept': 'application/json',
-                    'X-CSRF-TOKEN': csrfToken,
                     'X-Requested-With': 'XMLHttpRequest',
                     'X-USIM-Storage': usimStorage,
+                    ...csrfHeaders,
                 },
                 credentials: 'same-origin',
                 body: JSON.stringify({

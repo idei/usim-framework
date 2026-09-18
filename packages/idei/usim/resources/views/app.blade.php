@@ -90,5 +90,6 @@
     <script src="{{ asset('vendor/idei/usim/js/lib/marked.min.js') }}?v={{ $usimAssetVersion('vendor/idei/usim/js/lib/marked.min.js') }}"></script>
     <script src="{{ asset('vendor/idei/usim/js/components/textarea/index.js') }}?v={{ $usimAssetVersion('vendor/idei/usim/js/components/textarea/index.js') }}"></script>
     <script src="{{ asset('vendor/idei/usim/js/components/split/index.js') }}?v={{ $usimAssetVersion('vendor/idei/usim/js/components/split/index.js') }}"></script>
+    <script src="{{ asset('vendor/idei/usim/js/components/timer/index.js') }}?v={{ $usimAssetVersion('vendor/idei/usim/js/components/timer/index.js') }}"></script>
 </body>
 </html>
