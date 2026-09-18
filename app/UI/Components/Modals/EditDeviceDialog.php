@@ -161,6 +161,8 @@ class EditDeviceDialog
                 $rolesCollection->pluck('name')->all(),
                 static fn($name): bool => is_string($name) && $name !== ''
             ));
+        } elseif (!empty($roles)) {
+            $selectedRoles = [$roles[0]->name];
         }
 
         $container->add(
@@ -168,6 +170,7 @@ class EditDeviceDialog
                 ->label(t($prefix . 'device_roles_label'))
                 ->options($roleOptions)
                 ->selectedValues($selectedRoles)
+                ->required(true)
                 ->vertical()
         );
 

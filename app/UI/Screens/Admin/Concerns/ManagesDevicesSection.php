@@ -210,6 +210,11 @@ trait ManagesDevicesSection
             $roles = [];
         }
 
+        if (empty($roles)) {
+            $this->toast(t('validation.required', ['attribute' => t(self::DEVICES_I18N_PREFIX . 'device_roles_label')]), 'error');
+            return;
+        }
+
         /** @var array{name: string, roles: list<string>, unit_ids?: list<int>} $devicePayload */
         $devicePayload = [
             'name' => $name,
@@ -244,34 +249,8 @@ trait ManagesDevicesSection
             return;
         }
 
-        $newDeviceName = trim($this->stringParamOrDefault($params, 'new_device_name', ''));
-        $isNewDevice = ($pairingIdRaw === 'new' || $pairingIdRaw === null || $pairingIdRaw === '') && $newDeviceName !== '';
-
-        if ($isNewDevice) {
-            $rawRole = $params['new_device_role'] ?? $params['device_role'] ?? null;
-            $roles = is_string($rawRole) && $rawRole !== '' ? [$rawRole] : [];
-            $rawUnitId = $params['device_unit_id'] ?? $params['unit_id'] ?? null;
-            $activeUnit = $this->resolveActiveUnit();
-            $unitId = is_numeric($rawUnitId) ? (int) $rawUnitId : $activeUnit?->id;
-
-            $result = $this->deviceService->pairAndCreateDevice($pin, [
-                'name' => $newDeviceName,
-                'roles' => $roles,
-                'unit_id' => $unitId,
-            ]);
-
-            if ($result['success']) {
-                $this->toast($result['message'], 'success');
-                $this->devices_table->refresh();
-                $this->closeModal();
-            } else {
-                $this->toast($result['message'], 'error');
-            }
-            return;
-        }
-
         $deviceId = is_numeric($pairingIdRaw) ? (int) $pairingIdRaw : null;
-        if ($deviceId === null) {
+        if ($deviceId === null || $deviceId <= 0) {
             $this->toast(t(self::DEVICES_I18N_PREFIX . 'device_select_label'), 'error');
             return;
         }

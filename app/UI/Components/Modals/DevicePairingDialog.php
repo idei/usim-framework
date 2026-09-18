@@ -5,10 +5,8 @@
 namespace App\UI\Components\Modals;
 
 use App\Models\Device;
-use App\Services\Role\RoleService;
 use Idei\Usim\Enums\JustifyContent;
 use Idei\Usim\Enums\LayoutType;
-use Idei\Usim\Models\UsimRole;
 use Idei\Usim\UI;
 use Idei\Usim\UIChangesCollector;
 use Idei\Usim\ValueObjects\Size;
@@ -79,48 +77,18 @@ class DevicePairingDialog
                     ->value((string) $device->id)
             );
         } else {
-            $selectOptions = array_merge([
-                [
-                    'value' => 'new',
-                    'label' => '➕ ' . t($prefix . 'pair_new_device_option', [], 'Registrar y vincular nuevo dispositivo...'),
-                ],
-            ], $devicesOptions);
+            $selectOptions = !empty($devicesOptions)
+                ? $devicesOptions
+                : [
+                    ['value' => '', 'label' => '- ' . t($prefix . 'no_devices_available', [], 'No hay dispositivos registrados') . ' -'],
+                ];
 
             $container->add(
                 UI::select('pairing_device_id')
                     ->label(t($prefix . 'device_select_label'))
                     ->options($selectOptions)
-                    ->value(!empty($devicesOptions) ? (string) $devicesOptions[0]['value'] : 'new')
+                    ->value(!empty($devicesOptions) ? (string) $devicesOptions[0]['value'] : '')
                     ->required(true)
-                    ->width(Size::full())
-            );
-
-            $container->add(
-                UI::input('new_device_name')
-                    ->label(t($prefix . 'device_name_label'))
-                    ->placeholder('Ej: Tótem de Entrada')
-                    ->value('')
-                    ->autocomplete('off')
-                    ->width(Size::full())
-            );
-
-            $roleService = app(RoleService::class);
-            $roles = $roleService->getAllowedRoles(excludedGuards: ['web', 'api']);
-            $roleOptions = [
-                ['value' => '', 'label' => '- ' . t('role.none') . ' -'],
-            ];
-            foreach ($roles as $r) {
-                $roleOptions[] = [
-                    'value' => $r->name,
-                    'label' => t("role.{$r->name}.name"),
-                ];
-            }
-
-            $container->add(
-                UI::select('new_device_role')
-                    ->label(t($prefix . 'device_roles_label'))
-                    ->options($roleOptions)
-                    ->value(!empty($roles) ? $roles[0]->name : '')
                     ->width(Size::full())
             );
         }

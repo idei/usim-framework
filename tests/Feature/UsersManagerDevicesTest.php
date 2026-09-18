@@ -119,6 +119,7 @@ it('creates and updates device via modal submit', function () {
     // Create device
     $response = $ui->action('btn_save_device', 'submit_save_device', [
         'device_name' => 'Sensor Temperatura Sala A',
+        'device_roles' => ['smart_tv'],
     ]);
     $response->assertOk();
 
@@ -134,11 +135,31 @@ it('creates and updates device via modal submit', function () {
     $updateResponse = $ui->action('btn_save_device', 'submit_save_device', [
         'device_id' => $device->id,
         'device_name' => 'Sensor Temperatura Sala A (Actualizado)',
+        'device_roles' => ['smart_tv'],
     ]);
     $updateResponse->assertOk();
 
     $device->refresh();
     expect($device->name)->toBe('Sensor Temperatura Sala A (Actualizado)');
+});
+
+it('rejects saving a device without a selected role', function () {
+    /** @var \Tests\TestCase $this */
+    $this->loginAs('root');
+
+    $ui = uiScenario($this, UsersManager::class, ['reset' => true]);
+
+    // Open create modal
+    $ui->action('add_device_btn', 'add_device_clicked', []);
+
+    $response = $ui->action('btn_save_device', 'submit_save_device', [
+        'device_name' => 'Device Without Roles',
+        'device_roles' => [],
+    ]);
+    $response->assertOk();
+
+    $device = Device::where('name', 'Device Without Roles')->first();
+    expect($device)->toBeNull();
 });
 
 it('pairs a device successfully using PIN workflow', function () {
@@ -327,13 +348,11 @@ it('handles shared devices across multiple units', function () {
     expect(collect($deviceListing->all())->pluck('id'))->not->toContain($sharedSensor->id);
 });
 
-it('supports just-in-time device pairing and registration in one step', function () {
+it('pairs an existing device selected from dropdown when no row was selected in table', function () {
     /** @var \Tests\TestCase $this */
     $this->loginAs('root');
 
-    $ingeoUnit = UsimUnit::firstOrCreate(['slug' => 'ingeo'], ['type' => 'institute']);
-    setPermissionsTeamId($ingeoUnit->id);
-    session()->put('current_unit_id', $ingeoUnit->id);
+    $device = Device::create(['name' => 'Tótem Entrada Ingeo']);
 
     // Simulate device waiting with PIN
     $pairingManager = app(DevicePairingManager::class);
@@ -342,24 +361,19 @@ it('supports just-in-time device pairing and registration in one step', function
 
     $ui = uiScenario($this, UsersManager::class, ['reset' => true]);
 
-    // Open pair dialog
+    // Open pair dialog without pre-selecting a row
     $ui->action('pair_device_btn', 'pair_device_clicked', []);
 
-    // Admin submits pairing modal with "new" device data
+    // Admin submits pairing modal choosing the device from dropdown
     $response = $ui->action('btn_submit_pairing', 'submit_approve_device_pairing', [
-        'pairing_device_id' => 'new',
-        'new_device_name' => 'Tótem Entrada Ingeo JIT',
-        'new_device_role' => 'smart_tv',
-        'device_unit_id' => $ingeoUnit->id,
+        'pairing_device_id' => $device->id,
         'input_pin' => $pin,
     ]);
     $response->assertOk();
 
-    $device = Device::where('name', 'Tótem Entrada Ingeo JIT')->first();
-    expect($device)->not->toBeNull();
+    $device->refresh();
     expect($device->tokens()->count())->toBeGreaterThan(0);
     expect($device->pairing_pin)->toBe($pin);
-    expect($device->usimUnits->pluck('id'))->toContain($ingeoUnit->id);
 });
 
 it('saves device with multiple units via modal submit', function () {
