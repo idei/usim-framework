@@ -2,6 +2,7 @@
 
 namespace App\UI\Screens\Admin\Concerns;
 
+use App\Services\Device\DeviceListingService;
 use App\Services\Device\DeviceService;
 use App\UI\Components\Modals\DevicePairingDialog;
 use App\UI\Components\Modals\EditDeviceDialog;
@@ -133,7 +134,7 @@ trait ManagesDevicesSection
         $device = $deviceId !== null ? $this->deviceService->getDevice($deviceId) : null;
         $devicesOptions = [];
         if (!$device) {
-            $devices = $this->deviceService->getAllDevices();
+            $devices = app(DeviceListingService::class)->all();
             foreach ($devices as $d) {
                 $devicesOptions[] = [
                     'value' => $d->id,

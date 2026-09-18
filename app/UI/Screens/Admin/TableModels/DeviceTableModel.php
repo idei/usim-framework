@@ -100,15 +100,15 @@ class DeviceTableModel extends AbstractListingTableModel
             return $unit->type !== 'system' && !in_array($unit->slug, ['main', 'lobby'], true);
         })->values();
 
-        if ($units->contains('slug', 'main')) {
-            $main = $units->firstWhere('slug', 'main');
-            $mainLabel = ($main && $main->display_name !== $main->translation_key)
-                ? $main->display_name
-                : 'Institucional';
+        $isPublic = $units->isEmpty() || $units->contains('slug', 'main');
 
-            if ($operationalUnits->isEmpty()) {
-                return t('screen.admin.users_manager.device_unit_institutional', [], "🏛️ {$mainLabel} (Todos)");
-            }
+        $main = $units->firstWhere('slug', 'main');
+        $mainLabel = ($main && $main->display_name !== $main->translation_key)
+            ? $main->display_name
+            : 'Institucional';
+
+        if ($isPublic && $operationalUnits->isEmpty()) {
+            return '🏛️ ' . t('screen.admin.users_manager.device_unit_institutional', [], "{$mainLabel} (Todos)");
         }
 
         if ($operationalUnits->isNotEmpty()) {
@@ -118,14 +118,15 @@ class DeviceTableModel extends AbstractListingTableModel
                 : ucfirst($first->slug);
 
             $extraCount = $operationalUnits->count() - 1;
-            if ($extraCount > 0) {
-                return "{$firstName} (+{$extraCount})";
+            $suffix = $extraCount > 0 ? " (+{$extraCount})" : '';
+
+            if ($isPublic) {
+                return "🏛️ {$firstName}{$suffix}";
             }
 
-            return $firstName;
+            return "{$firstName}{$suffix}";
         }
 
-        $main = $units->firstWhere('slug', 'main');
         if ($main) {
             return ($main->display_name !== $main->translation_key)
                 ? $main->display_name

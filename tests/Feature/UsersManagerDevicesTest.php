@@ -7,6 +7,7 @@ use App\UI\Screens\Admin\UsersManager;
 use Idei\Usim\Models\UsimRole;
 use Idei\Usim\Models\UsimUnit;
 use Idei\Usim\Support\DevicePairingManager;
+use Idei\Usim\UI;
 
 beforeEach(function () {
     $prev = function_exists('getPermissionsTeamId') ? getPermissionsTeamId() : null;
@@ -400,4 +401,72 @@ it('saves device with multiple units via modal submit', function () {
     expect($device)->not->toBeNull();
     expect($device->usimUnits->pluck('id')->all())->toContain($ideiUnit->id);
     expect($device->usimUnits->pluck('id')->all())->toContain($ingeoUnit->id);
+});
+
+it('shows both area devices and public main devices in devices table', function () {
+    /** @var \Tests\TestCase $this */
+    $this->loginAs('root');
+
+    $mainUnit = UsimUnit::firstOrCreate(['slug' => 'main'], ['type' => 'system']);
+    $ideiUnit = UsimUnit::firstOrCreate(['slug' => 'idei'], ['type' => 'institute']);
+    $ingeoUnit = UsimUnit::firstOrCreate(['slug' => 'ingeo'], ['type' => 'institute']);
+
+    $deviceService = app(DeviceService::class);
+
+    $tvIdei = $deviceService->createDevice([
+        'name' => 'TV Sala Idei Area',
+        'unit_ids' => [$ideiUnit->id],
+        'roles' => ['smart_tv'],
+    ]);
+
+    $publicTotem = $deviceService->createDevice([
+        'name' => 'Totem Hall Publico Main',
+        'unit_ids' => [$mainUnit->id],
+        'roles' => ['smart_tv'],
+    ]);
+
+    $tvIngeo = $deviceService->createDevice([
+        'name' => 'TV Privada Ingeo Area',
+        'unit_ids' => [$ingeoUnit->id],
+        'roles' => ['smart_tv'],
+    ]);
+
+    $unassignedDevice = Device::create([
+        'name' => 'Tablet Global Sin Asignar',
+    ]);
+    $unassignedDevice->syncRoles(['smart_tv']);
+
+    // Set active unit context to Idei
+    setPermissionsTeamId($ideiUnit->id);
+    session()->put('current_unit_id', $ideiUnit->id);
+
+    $deviceListing = app(DeviceListingService::class);
+    $deviceListing->setUnitContext($ideiUnit->id);
+    $devicesInIdei = collect($deviceListing->all());
+    $deviceIds = $devicesInIdei->pluck('id')->all();
+
+    expect($deviceIds)->toContain($tvIdei->id);
+    expect($deviceIds)->toContain($publicTotem->id);
+    expect($deviceIds)->toContain($unassignedDevice->id);
+    expect($deviceIds)->not->toContain($tvIngeo->id);
+
+    // Format units check
+    $table = UI::table('devices_table');
+    $tableModel = new \App\UI\Screens\Admin\TableModels\DeviceTableModel($table);
+    $reflection = new ReflectionClass($tableModel);
+    $method = $reflection->getMethod('formatRow');
+    $method->setAccessible(true);
+
+    /** @var array{units: string} $publicRow */
+    $publicRow = $method->invoke($tableModel, $publicTotem);
+    expect($publicRow['units'])->toContain('🏛️');
+
+    /** @var array{units: string} $unassignedRow */
+    $unassignedRow = $method->invoke($tableModel, $unassignedDevice);
+    expect($unassignedRow['units'])->toContain('🏛️');
+
+    /** @var array{units: string} $ideiRow */
+    $ideiRow = $method->invoke($tableModel, $tvIdei);
+    expect($ideiRow['units'])->not->toContain('🏛️');
+    expect($ideiRow['units'])->toContain('Informatics');
 });

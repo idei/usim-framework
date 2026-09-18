@@ -77,12 +77,12 @@ class Device extends Authenticatable
     }
 
     /**
-     * Determine if this device is public / institutional (assigned to 'main').
+     * Determine if this device is public / institutional (assigned to 'main' or unassigned).
      */
     public function isPublic(): bool
     {
         $units = $this->relationLoaded('usimUnits') ? $this->usimUnits : $this->usimUnits()->get();
-        return $units->contains('slug', 'main');
+        return $units->isEmpty() || $units->contains('slug', 'main');
     }
 
     /**

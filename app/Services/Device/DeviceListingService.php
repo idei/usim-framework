@@ -54,7 +54,18 @@ class DeviceListingService extends EloquentListingService
             return (int) $sessionUnitId;
         }
 
-        return null;
+        $requestStorage = request()->storage;
+        $storageUnit = request()->input('storage.store_unit')
+            ?? (is_array($requestStorage) ? $requestStorage['store_unit'] ?? null : null);
+        if (is_string($storageUnit) && $storageUnit !== '') {
+            $rawId = UsimUnit::where('slug', $storageUnit)->value('id');
+            if (is_numeric($rawId)) {
+                return (int) $rawId;
+            }
+        }
+
+        $rawMainId = UsimUnit::where('slug', 'main')->value('id');
+        return is_numeric($rawMainId) ? (int) $rawMainId : null;
     }
 
     /**
@@ -69,23 +80,41 @@ class DeviceListingService extends EloquentListingService
             $rawMainId = UsimUnit::where('slug', 'main')->value('id');
             $mainUnitId = is_numeric($rawMainId) ? (int) $rawMainId : null;
 
-            if ($activeUnitId !== null) {
+            if ($activeUnitId !== null || $mainUnitId !== null) {
                 $query->where(function (Builder $q) use ($activeUnitId, $mainUnitId): void {
-                    $q->whereHas('usimUnits', static function (Builder $uq) use ($activeUnitId): void {
-                        $uq->where('usim_units.id', $activeUnitId);
-                    })
-                    ->orWhereHas('roles', static function (Builder $rq) use ($activeUnitId): void {
-                        $rq->wherePivot('usim_unit_id', $activeUnitId);
-                    });
+                    if ($activeUnitId !== null) {
+                        $q->where(function (Builder $aq) use ($activeUnitId): void {
+                            $aq->whereHas('usimUnits', static function (Builder $uq) use ($activeUnitId): void {
+                                $uq->where('usim_units.id', $activeUnitId);
+                            })
+                            ->orWhereHas('roles', static function (Builder $rq) use ($activeUnitId): void {
+                                $rq->wherePivot('usim_unit_id', $activeUnitId);
+                            });
+                        });
 
-                    if ($mainUnitId !== null && $activeUnitId !== $mainUnitId) {
-                        $q->orWhereHas('usimUnits', static function (Builder $uq) use ($mainUnitId): void {
-                            $uq->where('usim_units.id', $mainUnitId);
-                        })
-                        ->orWhereHas('roles', static function (Builder $rq) use ($mainUnitId): void {
-                            $rq->wherePivot('usim_unit_id', $mainUnitId);
+                        if ($mainUnitId !== null && $mainUnitId !== $activeUnitId) {
+                            $q->orWhere(function (Builder $mq) use ($mainUnitId): void {
+                                $mq->whereHas('usimUnits', static function (Builder $uq) use ($mainUnitId): void {
+                                    $uq->where('usim_units.id', $mainUnitId);
+                                })
+                                ->orWhereHas('roles', static function (Builder $rq) use ($mainUnitId): void {
+                                    $rq->wherePivot('usim_unit_id', $mainUnitId);
+                                });
+                            });
+                        }
+                    } elseif ($mainUnitId !== null) {
+                        $q->where(function (Builder $mq) use ($mainUnitId): void {
+                            $mq->whereHas('usimUnits', static function (Builder $uq) use ($mainUnitId): void {
+                                $uq->where('usim_units.id', $mainUnitId);
+                            })
+                            ->orWhereHas('roles', static function (Builder $rq) use ($mainUnitId): void {
+                                $rq->wherePivot('usim_unit_id', $mainUnitId);
+                            });
                         });
                     }
+
+                    // Devices without any unit assignment are considered institutional/public (main)
+                    $q->orWhereDoesntHave('usimUnits');
                 });
             }
         }

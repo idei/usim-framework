@@ -128,6 +128,8 @@ class EditDeviceDialog
             );
         } elseif ($activeUnitId) {
             $selectedUnitIds = [(string) $activeUnitId];
+        } elseif ($mainUnit) {
+            $selectedUnitIds = [(string) $mainUnit->id];
         }
 
         $container->add(
