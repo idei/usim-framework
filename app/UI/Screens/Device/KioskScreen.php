@@ -4,7 +4,6 @@ namespace App\UI\Screens\Device;
 
 use Idei\Usim\Components\Carousel;
 use Idei\Usim\Components\Container;
-// use Idei\Usim\Enums\Visibility;
 use Idei\Usim\Screen;
 use Idei\Usim\UI;
 use Idei\Usim\ValueObjects\Spacing;
@@ -35,7 +34,7 @@ class KioskScreen extends Screen
     protected function buildBaseUI(Container $container, ...$params): void
     {
         $items = $this->mediaItems();
-        $this->store_current_index = $this->normalizeIndex($this->store_current_index, count($items));
+        $this->store_current_index = $this->normalizeIndex($this->store_current_index, \count($items));
 
         $currentItem = $items[$this->store_current_index];
         $this->store_timeout_ms = max(1000, $currentItem['duration_ms']);
@@ -74,7 +73,7 @@ class KioskScreen extends Screen
         }
 
         $items = $this->mediaItems();
-        $count = count($items);
+        $count = \count($items);
         $this->store_current_index = $this->normalizeIndex($this->store_current_index + 1, $count);
 
         $next = $items[$this->store_current_index];
