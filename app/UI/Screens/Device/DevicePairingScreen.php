@@ -33,16 +33,7 @@ class DevicePairingScreen extends Screen
 
     protected function buildBaseUI(Container $container, ...$params): void
     {
-        $manager = app(DevicePairingManager::class);
-
-        // 1. Iniciamos el caso de uso si no hay sesión
-        if (empty($this->store_session_token) || empty($this->store_pin)) {
-            $pairingData = $manager->initiate();
-            $this->store_session_token = $pairingData['session_token'];
-            $this->store_pin = $pairingData['pin'];
-        }
-
-        // 2. Construcción de la Interfaz Declarativa
+        // 1. Construcción de la Interfaz Declarativa
         $container
             ->maxWidth(Size::px(800))
             ->centerHorizontal()
@@ -63,7 +54,7 @@ class DevicePairingScreen extends Screen
 
         $container->add(
             UI::label('lbl_pin_display')
-                ->text($this->store_pin)
+                ->text('')
                 ->style('primary')
             // Idealmente un texto gigante
         );
@@ -81,6 +72,29 @@ class DevicePairingScreen extends Screen
                 ->action('check_status')
                 ->style('outline-primary')
         );
+    }
+
+    /**
+     * Inicialización dinámica de datos en cada carga/recarga con estado.
+     * Se ejecuta después de la inyección de storage y componentes.
+     */
+    protected function postLoadUI(): void
+    {
+        /** @var DevicePairingManager $manager */
+        $manager = app(DevicePairingManager::class);
+
+        $hasActiveSession = false;
+        if (!empty($this->store_session_token)) {
+            $hasActiveSession = $manager->pollStatus($this->store_session_token) !== null;
+        }
+
+        if (!$hasActiveSession || empty($this->store_pin)) {
+            $pairingData = $manager->initiate();
+            $this->store_session_token = $pairingData['session_token'];
+            $this->store_pin = $pairingData['pin'];
+        }
+
+        $this->lbl_pin_display->text($this->store_pin);
     }
 
     /**

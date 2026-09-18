@@ -842,8 +842,17 @@ class UIRenderer {
             return;
         }
 
+        // Handle storage updates if present on initial render
+        if (this.data.storage) {
+            this.handleStorageUpdate(this.data.storage);
+        }
+
         if (this.data.change_theme) {
             this.handleThemeChange(this.data.change_theme);
+        }
+
+        if (this.data.change_language) {
+            this.handleLanguageChange(this.data.change_language);
         }
 
         // Check for redirect instruction immediately
