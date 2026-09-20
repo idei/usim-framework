@@ -69,3 +69,64 @@ it('resolves Windows absolute path correctly in InstallExecutionRollbackManager'
     expect($resolvedRelative)->toBe(base_path('.env'));
 });
 
+it('falls back to ask when secret returns empty for password', function () {
+    $files = Mockery::mock(Filesystem::class);
+    $files->shouldReceive('exists')->andReturn(true);
+    $files->shouldReceive('get')->andReturn('');
+    $files->shouldReceive('put')->andReturn(true);
+
+    $envManager = new \Idei\Usim\Console\Commands\Support\InstallEnvironmentManager($files);
+
+    $secretCalled = false;
+    $askCalled = false;
+
+    $result = $envManager->promptAndPersistRootUserEnv(
+        envPath: base_path('.env'),
+        interactive: true,
+        ask: function (string $label, string $default) use (&$askCalled): string {
+            if ($label === 'Root password') {
+                $askCalled = true;
+                return 'fallbackPassword123';
+            }
+            return $default;
+        },
+        secret: function (string $prompt) use (&$secretCalled): string {
+            $secretCalled = true;
+            return ''; // Simulates hiddeninput.exe failing immediately on Windows
+        },
+        error: fn (string $msg) => null,
+        line: fn (string $msg) => null,
+    );
+
+    expect($secretCalled)->toBeTrue();
+    expect($askCalled)->toBeTrue();
+    expect($result['password'])->toBe('fallbackPassword123');
+});
+
+it('prevents infinite loop when input is repeatedly empty', function () {
+    $files = Mockery::mock(Filesystem::class);
+    $files->shouldReceive('exists')->andReturn(true);
+    $files->shouldReceive('get')->andReturn('');
+
+    $envManager = new \Idei\Usim\Console\Commands\Support\InstallEnvironmentManager($files);
+
+    $errorCalled = false;
+    $errorMessage = '';
+
+    $result = $envManager->promptAndPersistRootUserEnv(
+        envPath: base_path('.env'),
+        interactive: true,
+        ask: fn (string $label, string $default) => '',
+        secret: fn (string $prompt) => '',
+        error: function (string $msg) use (&$errorCalled, &$errorMessage) {
+            $errorCalled = true;
+            $errorMessage = $msg;
+        },
+        line: fn (string $msg) => null,
+    );
+
+    expect($result)->toBe([]);
+    expect($errorCalled)->toBeTrue();
+    expect($errorMessage)->toContain('Too many failed attempts');
+});
+

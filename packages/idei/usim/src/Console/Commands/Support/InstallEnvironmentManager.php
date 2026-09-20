@@ -110,7 +110,7 @@ class InstallEnvironmentManager
             $firstName = $this->askRootValue('Root first name', $defaults['ROOT_FIRST_NAME'], $interactive, $ask);
             $lastName = $this->askRootValue('Root last name', $defaults['ROOT_LAST_NAME'], $interactive, $ask);
             $email = $this->askRootEmail($defaults['ROOT_EMAIL'], $interactive, $ask, $error);
-            $password = $this->askRootPassword($defaults['ROOT_PASSWORD'], $interactive, $secret, $line, $error);
+            $password = $this->askRootPassword($defaults['ROOT_PASSWORD'], $interactive, $secret, $ask, $line, $error);
 
             $this->upsertEnvEntries($envPath, [
                 'ROOT_FIRST_NAME' => $firstName,
@@ -205,7 +205,12 @@ class InstallEnvironmentManager
             return $value;
         }
 
+        $attempts = 0;
         do {
+            $attempts++;
+            if ($attempts > 20) {
+                throw new \RuntimeException("Too many failed attempts while setting {$label}. Installation aborted.");
+            }
             $value = trim((string) $ask($label, $default));
         } while ($value === '');
 
@@ -223,7 +228,13 @@ class InstallEnvironmentManager
             return $value;
         }
 
+        $attempts = 0;
         while (true) {
+            $attempts++;
+            if ($attempts > 20) {
+                throw new \RuntimeException('Too many failed attempts while setting root email. Installation aborted.');
+            }
+
             $value = trim((string) $ask('Root email', $default));
             if (filter_var($value, FILTER_VALIDATE_EMAIL)) {
                 return $value;
@@ -233,8 +244,14 @@ class InstallEnvironmentManager
         }
     }
 
-    private function askRootPassword(string $default, bool $interactive, callable $secret, callable $line, callable $error): string
-    {
+    private function askRootPassword(
+        string $default,
+        bool $interactive,
+        callable $secret,
+        ?callable $ask,
+        callable $line,
+        callable $error
+    ): string {
         if (!$interactive) {
             $value = trim($default);
             if ($value === '' || strtoupper($value) === 'CHANGE_ME') {
@@ -244,10 +261,29 @@ class InstallEnvironmentManager
             return $value;
         }
 
+        $attempts = 0;
+        $fallbackAttempted = false;
+
         while (true) {
+            $attempts++;
+            if ($attempts > 20) {
+                throw new \RuntimeException('Too many failed attempts while setting root password. Installation aborted.');
+            }
+
             $hint = $default !== '' && strtoupper($default) !== 'CHANGE_ME' ? 'Press enter to keep current password' : null;
-            $value = (string) $secret($hint ?? 'Root password');
+            $promptLabel = $hint ?? 'Root password';
+            $value = (string) $secret($promptLabel);
             $value = trim($value) !== '' ? trim($value) : trim($default);
+
+            // If secret input returned empty (e.g. on terminals where hidden input fails immediately),
+            // attempt standard input via $ask if available.
+            if (($value === '' || strtoupper($value) === 'CHANGE_ME') && $ask !== null && !$fallbackAttempted) {
+                $fallbackAttempted = true;
+                $fallbackValue = trim((string) $ask($promptLabel, $default));
+                if ($fallbackValue !== '') {
+                    $value = $fallbackValue;
+                }
+            }
 
             if ($value === '' || strtoupper($value) === 'CHANGE_ME') {
                 $line('Root password is required and cannot be CHANGE_ME.');

@@ -35,8 +35,18 @@ trait ConfiguresRootEnvironment
                 return is_string($answer) ? $answer : $default;
             },
             secret: function (string $prompt): string {
-                $secret = $this->secret($prompt);
-                return is_string($secret) ? $secret : '';
+                if (windows_os()) {
+                    $answer = $this->ask($prompt);
+                    return is_string($answer) ? $answer : '';
+                }
+
+                try {
+                    $secret = $this->secret($prompt);
+                    return is_string($secret) ? $secret : '';
+                } catch (\Throwable) {
+                    $answer = $this->ask($prompt);
+                    return is_string($answer) ? $answer : '';
+                }
             },
             error: $error,
             line: $this->line(...),
