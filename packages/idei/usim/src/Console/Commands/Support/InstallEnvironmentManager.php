@@ -3,6 +3,7 @@
 namespace Idei\Usim\Console\Commands\Support;
 
 use Illuminate\Filesystem\Filesystem;
+use Illuminate\Support\Str;
 
 class InstallEnvironmentManager
 {
@@ -110,7 +111,7 @@ class InstallEnvironmentManager
             $firstName = $this->askRootValue('Root first name', $defaults['ROOT_FIRST_NAME'], $interactive, $ask);
             $lastName = $this->askRootValue('Root last name', $defaults['ROOT_LAST_NAME'], $interactive, $ask);
             $email = $this->askRootEmail($defaults['ROOT_EMAIL'], $interactive, $ask, $error);
-            $password = $this->askRootPassword($defaults['ROOT_PASSWORD'], $interactive, $secret, $ask, $line, $error);
+            $password = $this->askRootPassword($defaults['ROOT_PASSWORD'], $interactive, $secret, (PHP_OS_FAMILY === 'Windows') ? null : $ask, $line, $error);
 
             $this->upsertEnvEntries($envPath, [
                 'ROOT_FIRST_NAME' => $firstName,
@@ -196,10 +197,14 @@ class InstallEnvironmentManager
 
     private function askRootValue(string $label, string $default, bool $interactive, callable $ask): string
     {
+        $fallback = $default !== '' && strtoupper($default) !== 'CHANGE_ME'
+            ? $default
+            : ($label === 'Root first name' ? 'Root' : 'User');
+
         if (!$interactive) {
             $value = trim($default);
             if ($value === '' || strtoupper($value) === 'CHANGE_ME') {
-                throw new \RuntimeException("{$label} is required in .env for non-interactive install.");
+                return $fallback;
             }
 
             return $value;
@@ -219,10 +224,12 @@ class InstallEnvironmentManager
 
     private function askRootEmail(string $default, bool $interactive, callable $ask, callable $error): string
     {
+        $fallback = filter_var($default, FILTER_VALIDATE_EMAIL) ? $default : 'root@example.com';
+
         if (!$interactive) {
             $value = trim($default);
             if (!filter_var($value, FILTER_VALIDATE_EMAIL)) {
-                throw new \RuntimeException('ROOT_EMAIL must be a valid email in .env for non-interactive install.');
+                return $fallback;
             }
 
             return $value;
@@ -252,13 +259,17 @@ class InstallEnvironmentManager
         callable $line,
         callable $error
     ): string {
+        $hasExistingPassword = $default !== '' && strtoupper($default) !== 'CHANGE_ME';
+
         if (!$interactive) {
-            $value = trim($default);
-            if ($value === '' || strtoupper($value) === 'CHANGE_ME') {
-                throw new \RuntimeException('ROOT_PASSWORD must be set in .env, and cannot be "CHANGE_ME" for non-interactive install.');
+            if ($hasExistingPassword) {
+                return trim($default);
             }
 
-            return $value;
+            $generated = Str::random(16);
+            $line("  <fg=yellow>!</> Non-interactive environment detected. Generated root password: <fg=green>{$generated}</>");
+
+            return $generated;
         }
 
         $attempts = 0;
@@ -266,26 +277,47 @@ class InstallEnvironmentManager
 
         while (true) {
             $attempts++;
-            if ($attempts > 20) {
-                throw new \RuntimeException('Too many failed attempts while setting root password. Installation aborted.');
+            if ($attempts > 20 || (defined('STDIN') && @feof(STDIN))) {
+                if ($hasExistingPassword) {
+                    return trim($default);
+                }
+
+                $generated = Str::random(16);
+                $line("  <fg=yellow>!</> Generated root password: <fg=green>{$generated}</>");
+
+                return $generated;
             }
 
-            $hint = $default !== '' && strtoupper($default) !== 'CHANGE_ME' ? 'Press enter to keep current password' : null;
-            $promptLabel = $hint ?? 'Root password';
+            $promptLabel = $hasExistingPassword
+                ? 'Root password [Press enter to keep current password]'
+                : 'Root password [leave blank to generate random]';
+
             $value = (string) $secret($promptLabel);
-            $value = trim($value) !== '' ? trim($value) : trim($default);
+            $value = trim($value);
 
             // If secret input returned empty (e.g. on terminals where hidden input fails immediately),
             // attempt standard input via $ask if available.
-            if (($value === '' || strtoupper($value) === 'CHANGE_ME') && $ask !== null && !$fallbackAttempted) {
+            if ($value === '' && $ask !== null && !$fallbackAttempted) {
                 $fallbackAttempted = true;
-                $fallbackValue = trim((string) $ask($promptLabel, $default));
+                $fallbackValue = trim((string) $ask($promptLabel, ''));
                 if ($fallbackValue !== '') {
                     $value = $fallbackValue;
                 }
             }
 
-            if ($value === '' || strtoupper($value) === 'CHANGE_ME') {
+            // User pressed enter or input was empty
+            if ($value === '') {
+                if ($hasExistingPassword) {
+                    return trim($default);
+                }
+
+                $generated = Str::random(16);
+                $line("  <fg=yellow>!</> Generated root password: <fg=green>{$generated}</>");
+
+                return $generated;
+            }
+
+            if (strtoupper($value) === 'CHANGE_ME') {
                 $line('Root password is required and cannot be CHANGE_ME.');
                 continue;
             }

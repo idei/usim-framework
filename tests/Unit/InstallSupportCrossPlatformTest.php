@@ -84,7 +84,7 @@ it('falls back to ask when secret returns empty for password', function () {
         envPath: base_path('.env'),
         interactive: true,
         ask: function (string $label, string $default) use (&$askCalled): string {
-            if ($label === 'Root password') {
+            if (str_starts_with($label, 'Root password')) {
                 $askCalled = true;
                 return 'fallbackPassword123';
             }
@@ -129,4 +129,78 @@ it('prevents infinite loop when input is repeatedly empty', function () {
     expect($errorCalled)->toBeTrue();
     expect($errorMessage)->toContain('Too many failed attempts');
 });
+
+it('generates random root password in non-interactive environment when ROOT_PASSWORD is CHANGE_ME', function () {
+    $files = Mockery::mock(Filesystem::class);
+    $files->shouldReceive('exists')->andReturn(true);
+    $files->shouldReceive('get')->andReturn("ROOT_PASSWORD=CHANGE_ME\nROOT_EMAIL=root@example.com\n");
+    $files->shouldReceive('put')->andReturn(true);
+
+    $envManager = new \Idei\Usim\Console\Commands\Support\InstallEnvironmentManager($files);
+
+    $lines = [];
+    $result = $envManager->promptAndPersistRootUserEnv(
+        envPath: base_path('.env'),
+        interactive: false,
+        ask: fn (string $label, string $default) => $default,
+        secret: fn (string $prompt) => '',
+        error: fn (string $msg) => null,
+        line: function (string $msg) use (&$lines) {
+            $lines[] = $msg;
+        },
+    );
+
+    expect($result)->toHaveKeys(['first_name', 'last_name', 'email', 'password']);
+    expect($result['password'])->not->toBe('');
+    expect($result['password'])->not->toBe('CHANGE_ME');
+    expect(strlen($result['password']))->toBe(16);
+    expect(collect($lines)->some(fn ($l) => str_contains($l, 'Non-interactive environment detected')))->toBeTrue();
+});
+
+it('preserves existing root password in non-interactive environment', function () {
+    $files = Mockery::mock(Filesystem::class);
+    $files->shouldReceive('exists')->andReturn(true);
+    $files->shouldReceive('get')->andReturn("ROOT_PASSWORD=ExistingSecret123!\nROOT_EMAIL=root@example.com\n");
+    $files->shouldReceive('put')->andReturn(true);
+
+    $envManager = new \Idei\Usim\Console\Commands\Support\InstallEnvironmentManager($files);
+
+    $result = $envManager->promptAndPersistRootUserEnv(
+        envPath: base_path('.env'),
+        interactive: false,
+        ask: fn (string $label, string $default) => $default,
+        secret: fn (string $prompt) => '',
+        error: fn (string $msg) => null,
+        line: fn (string $msg) => null,
+    );
+
+    expect($result['password'])->toBe('ExistingSecret123!');
+});
+
+it('generates random root password when user leaves password blank in interactive mode', function () {
+    $files = Mockery::mock(Filesystem::class);
+    $files->shouldReceive('exists')->andReturn(true);
+    $files->shouldReceive('get')->andReturn('');
+    $files->shouldReceive('put')->andReturn(true);
+
+    $envManager = new \Idei\Usim\Console\Commands\Support\InstallEnvironmentManager($files);
+
+    $lines = [];
+    $result = $envManager->promptAndPersistRootUserEnv(
+        envPath: base_path('.env'),
+        interactive: true,
+        ask: fn (string $label, string $default) => $default,
+        secret: fn (string $prompt) => '', // User leaves blank / presses Enter
+        error: fn (string $msg) => null,
+        line: function (string $msg) use (&$lines) {
+            $lines[] = $msg;
+        },
+    );
+
+    expect($result)->toHaveKeys(['first_name', 'last_name', 'email', 'password']);
+    expect($result['password'])->not->toBe('');
+    expect(strlen($result['password']))->toBe(16);
+    expect(collect($lines)->some(fn ($l) => str_contains($l, 'Generated root password')))->toBeTrue();
+});
+
 

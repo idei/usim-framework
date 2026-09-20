@@ -27,15 +27,17 @@ trait ConfiguresRootEnvironment
             );
         }
 
+         $isInteractive = $this->input->isInteractive() && defined('STDIN') && @stream_isatty(STDIN);
+
          $this->rootUserEnvValues = $this->installEnvironmentManager->promptAndPersistRootUserEnv(
             envPath: $envPath,
-            interactive: $this->input->isInteractive(),
+            interactive: $isInteractive,
             ask: function (string $question, string $default): string {
                 $answer = $this->ask($question, $default);
                 return is_string($answer) ? $answer : $default;
             },
             secret: function (string $prompt): string {
-                if (windows_os()) {
+                if (PHP_OS_FAMILY === 'Windows') {
                     $answer = $this->ask($prompt);
                     return is_string($answer) ? $answer : '';
                 }
