@@ -19,7 +19,8 @@ echo "1) Preparing Laravel template..."
 
 if [ ! -d "$CACHE_DIR" ]; then
 	echo "Downloading Laravel template (first time only)..."
-	composer create-project laravel/laravel:^12.0 "$CACHE_DIR" --prefer-dist --no-interaction --no-progress
+	# composer create-project laravel/laravel:^12.0 "$CACHE_DIR" --prefer-dist --no-interaction --no-progress
+    composer create-project laravel/laravel:^13.0 "$CACHE_DIR" --prefer-dist --no-interaction --no-progress
 	cd "$CACHE_DIR"
 
 	rm composer.lock
