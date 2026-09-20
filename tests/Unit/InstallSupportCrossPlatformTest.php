@@ -5,6 +5,7 @@ use Idei\Usim\Console\Commands\Support\InstallExecutionRollbackManager;
 use Idei\Usim\Console\Commands\Support\InstallMigrationStatusChecker;
 use Illuminate\Filesystem\Filesystem;
 use Illuminate\Support\Facades\Config;
+use Mockery;
 
 it('correctly resolves componentsPath when screensPath uses Windows backslashes', function () {
     Config::set('usim.screens_path', 'C:\\Users\\emili\\Desktop\\Prueba3\\app\\UI\\Screens');
