@@ -49,7 +49,7 @@ class InstallScaffoldingManager
         foreach ($views as $stub => $target) {
             $stubPath = $stubsPath("views/{$stub}");
             $publishStub($stubPath, $target, false, []);
-            $relativePath = str_replace(base_path() . '/', '', $target);
+            $relativePath = $this->toRelativePath($target);
             $line("  <fg=green>✓</> {$relativePath}");
         }
     }
@@ -90,7 +90,7 @@ class InstallScaffoldingManager
 
             $this->files->copy($sourceFile->getPathname(), $targetPath);
             $created++;
-            $relativeTarget = str_replace(base_path() . '/', '', $targetPath);
+            $relativeTarget = $this->toRelativePath($targetPath);
             $line("  <fg=green>✓</> {$relativeTarget}");
         }
 
@@ -164,5 +164,15 @@ class InstallScaffoldingManager
         }
 
         return [$contents, $disabled];
+    }
+
+    private function toRelativePath(string $path): string
+    {
+        $base = rtrim(str_replace('\\', '/', base_path()), '/') . '/';
+        $normalized = str_replace('\\', '/', $path);
+
+        return str_starts_with($normalized, $base)
+            ? substr($normalized, strlen($base))
+            : $path;
     }
 }

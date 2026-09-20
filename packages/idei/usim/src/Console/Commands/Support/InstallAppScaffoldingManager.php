@@ -144,7 +144,7 @@ class InstallAppScaffoldingManager
             '{{ userModelClass }}' => $userModelClass,
         ]);
 
-        $relativePath = str_replace(base_path() . '/', '', $targetFile);
+        $relativePath = $this->toRelativePath($targetFile);
         $line("  <fg=green>✓</> {$relativePath}");
     }
 
@@ -174,7 +174,7 @@ class InstallAppScaffoldingManager
             '{{ componentsNamespace }}' => $namespace,
         ]);
 
-        $relativePath = str_replace(base_path() . '/', '', $targetFile);
+        $relativePath = $this->toRelativePath($targetFile);
         $line("  <fg=green>✓</> {$relativePath}");
     }
 
@@ -257,7 +257,7 @@ class InstallAppScaffoldingManager
             '{{ userModelClass }}' => $userModelClass,
         ]);
 
-        $relativePath = str_replace(base_path() . '/', '', $targetFile);
+        $relativePath = $this->toRelativePath($targetFile);
         $line("  <fg=green>✓</> {$relativePath}");
     }
 
@@ -289,7 +289,7 @@ class InstallAppScaffoldingManager
             '{{ userModelClass }}' => $userModelClass,
         ]);
 
-        $relativePath = str_replace(base_path() . '/', '', $targetFile);
+        $relativePath = $this->toRelativePath($targetFile);
         $line("  <fg=green>✓</> {$relativePath}");
     }
 
@@ -360,7 +360,7 @@ class InstallAppScaffoldingManager
             '{{ userModelClass }}' => $userModelClass,
         ], $postInstallCallback);
 
-        $relativePath = str_replace(base_path() . '/', '', $targetFile);
+        $relativePath = $this->toRelativePath($targetFile);
         $line("  <fg=green>✓</> {$relativePath}");
     }
 
@@ -419,7 +419,7 @@ class InstallAppScaffoldingManager
             '{{ userModelClass }}' => $userModelClass,
         ]);
 
-        $relativePath = str_replace(base_path() . '/', '', $controllerPath);
+        $relativePath = $this->toRelativePath($controllerPath);
         $line("  <fg=green>✓</> {$relativePath}");
     }
 
@@ -470,7 +470,7 @@ class InstallAppScaffoldingManager
             '{{ namespace }}' => 'App\\Providers',
         ]);
 
-        $relativePath = str_replace(base_path() . '/', '', $targetPath);
+        $relativePath = $this->toRelativePath($targetPath);
         $line("  <fg=green>✓</> {$relativePath}");
     }
 
@@ -488,7 +488,7 @@ class InstallAppScaffoldingManager
             '{{ namespace }}' => 'App\\Providers',
         ]);
 
-        $relativePath = str_replace(base_path() . '/', '', $targetPath);
+        $relativePath = $this->toRelativePath($targetPath);
         $line("  <fg=green>✓</> {$relativePath}");
     }
 
@@ -518,4 +518,15 @@ class InstallAppScaffoldingManager
             $line('  <fg=green>✓</> EventServiceProvider registered in bootstrap/providers.php');
         }
     }
+
+    private function toRelativePath(string $path): string
+    {
+        $base = rtrim(str_replace('\\', '/', base_path()), '/') . '/';
+        $normalized = str_replace('\\', '/', $path);
+
+        return str_starts_with($normalized, $base)
+            ? substr($normalized, strlen($base))
+            : $path;
+    }
 }
+

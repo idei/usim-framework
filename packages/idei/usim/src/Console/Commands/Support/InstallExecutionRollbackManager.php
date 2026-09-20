@@ -95,11 +95,17 @@ class InstallExecutionRollbackManager
 
     private function resolveAbsolutePath(string $path): string
     {
-        if (str_starts_with($path, '/')) {
+        if ($this->isAbsolutePath($path)) {
             return $path;
         }
-
         return base_path($path);
+    }
+
+    private function isAbsolutePath(string $path): bool
+    {
+        return str_starts_with($path, '/')
+            || str_starts_with($path, '\\')
+            || (bool) preg_match('/^[a-zA-Z]:[\\\\\/]/', $path);
     }
 
     private function removePathIfExists(string $path): void

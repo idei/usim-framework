@@ -41,7 +41,11 @@ trait InstallsLangStubs
 
             $this->files->copy($sourceFile->getPathname(), $targetPath);
             $created++;
-            $relativeTarget = str_replace(\base_path() . '/', '', $targetPath);
+            $base = rtrim(str_replace('\\', '/', \base_path()), '/') . '/';
+            $normalizedTarget = str_replace('\\', '/', $targetPath);
+            $relativeTarget = str_starts_with($normalizedTarget, $base)
+                ? substr($normalizedTarget, strlen($base))
+                : $targetPath;
             $this->line("  <fg=green>✓</> {$relativeTarget}");
         }
 

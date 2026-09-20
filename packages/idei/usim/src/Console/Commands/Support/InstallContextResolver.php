@@ -21,6 +21,8 @@ class InstallContextResolver
             ? $screensPath
             : app_path('UI/Screens');
 
+        $normalizedScreensPath = str_replace('\\', '/', $normalizedScreensPath);
+
         return [
             'screensNamespace' => $normalizedScreensNamespace,
             'screensPath' => $normalizedScreensPath,
@@ -54,6 +56,6 @@ class InstallContextResolver
 
     public function stubsPath(string $path = ''): string
     {
-        return dirname(__DIR__, 4) . '/stubs/' . ltrim($path, '/');
+        return dirname(__DIR__, 4) . '/stubs/' . ltrim($path, '/\\');
     }
 }

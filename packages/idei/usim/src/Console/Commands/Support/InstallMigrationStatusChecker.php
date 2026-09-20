@@ -157,7 +157,7 @@ class InstallMigrationStatusChecker
             return ['exists' => true, 'issue' => null];
         }
 
-        $isAbsolutePath = str_starts_with($database, '/');
+        $isAbsolutePath = $this->isAbsolutePath($database);
         $databasePath = $isAbsolutePath ? $database : base_path($database);
 
         if (!is_file($databasePath)) {
@@ -168,6 +168,17 @@ class InstallMigrationStatusChecker
         }
 
         return ['exists' => true, 'issue' => null];
+    }
+
+    /**
+     * @param string $path
+     * @return bool
+     */
+    private function isAbsolutePath(string $path): bool
+    {
+        return str_starts_with($path, '/')
+            || str_starts_with($path, '\\')
+            || (bool) preg_match('/^[a-zA-Z]:[\\\\\/]/', $path);
     }
 
     /**
@@ -365,8 +376,8 @@ class InstallMigrationStatusChecker
 
         $executed = DB::table('migrations')
             ->pluck('migration')
-            ->filter(static fn ($name): bool => \is_string($name) && $name !== '')
-            ->map(static fn (string $name): string => trim($name))
+            ->filter(static fn($name): bool => \is_string($name) && $name !== '')
+            ->map(static fn(string $name): string => trim($name))
             ->values()
             ->all();
 
