@@ -23,6 +23,7 @@ use Idei\Usim\Events\UsimEvent;
 use Idei\Usim\Modals\ConfirmDialogService;
 use Idei\Usim\Models\UsimLanguage;
 use Idei\Usim\Models\UsimUnit;
+use Idei\Usim\Enums\Visibility;
 use Idei\Usim\Screen;
 use Idei\Usim\UI;
 use Idei\Usim\Upload\UploadService;
@@ -39,6 +40,8 @@ use InvalidArgumentException;
  */
 class Menu extends Screen
 {
+    public static Visibility $visibility = Visibility::PUBLIC;
+
     public function __construct(
         protected RegisterService $registerService,
         protected AuthSessionService $authSessionService,

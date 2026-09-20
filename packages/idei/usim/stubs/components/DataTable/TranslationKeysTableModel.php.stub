@@ -1,5 +1,5 @@
 <?php
-
+// @usim: feature="admin", type="component"
 namespace {{ componentsNamespace }};
 
 use Idei\Usim\Models\UsimTextKey;
@@ -7,6 +7,7 @@ use Idei\Usim\Components\Table;
 use Idei\Usim\DataTable\AbstractTableModel;
 use Idei\Usim\Support\TranslationService;
 use Idei\Usim\Support\UIStateManager;
+use Illuminate\Database\Eloquent\Builder;
 
 class TranslationKeysTableModel extends AbstractTableModel
 {
@@ -39,13 +40,19 @@ SVG;
         $this->translationService = app(TranslationService::class);
 
         $dataset = $this->translationService->listLanguagesDataset();
-        foreach (($dataset['items'] ?? []) as $language) {
-            $code = (string) ($language['code'] ?? '');
+        foreach ($dataset['items'] as $language) {
+            $code = $this->mixedToString($language['code'] ?? null);
             if ($code === '') {
                 continue;
             }
 
-            $name = (string) ($language['native_name'] ?? $language['name'] ?? strtoupper($code));
+            $name = $this->mixedToString($language['native_name'] ?? null);
+            if ($name === '') {
+                $name = $this->mixedToString($language['name'] ?? null);
+            }
+            if ($name === '') {
+                $name = strtoupper($code);
+            }
             $this->languages[$code] = $name;
             $this->languageCodes[] = $code;
 
@@ -59,9 +66,9 @@ SVG;
     {
         $columns = [
             // Fixed width: keep key column stable regardless of content length.
-            'key' => ['label' => t('datatable.translation_keys.columns.key'), 'width' => [320, 320], 'sort_by' => 'key'],
+            'key' => ['label' => t('datatable.translation_keys.columns.key'), 'width' => 320, 'sort_by' => 'key'],
             // Fixed width: narrow column showing only the percentage value.
-            'completion' => ['label' => t('datatable.translation_keys.columns.completion'), 'width' => [52, 52]],
+            'completion' => ['label' => t('datatable.translation_keys.columns.completion'), 'width' => 52],
         ];
 
         // Fallback language column — always visible
@@ -69,7 +76,7 @@ SVG;
         $columns['lang_fallback'] = [
             'label' => strtoupper($this->fallbackCode) . ' (' . $fallbackName . ')',
             // Fixed width: keep fallback translation column stable regardless of content length.
-            'width' => [320, 320],
+            'width' => 320,
         ];
 
         // Selected language column — always present to keep column count stable;
@@ -83,44 +90,24 @@ SVG;
             $selectedName = $this->languages[$selectedCode];
             $columns['lang_selected'] = [
                 'label' => strtoupper($selectedCode) . ' (' . $selectedName . ')',
-                'width' => [320, 320],
+                'width' => 320,
             ];
         } else {
             $columns['lang_selected'] = [
                 'label' => '',
-                'width' => [0, 0],
+                'width' => 0,
             ];
         }
 
-        $columns['edit'] = ['label' => '', 'width' => [20, 20]];
-        $columns['delete'] = ['label' => '', 'width' => [20, 20]];
+        $columns['edit'] = ['label' => '', 'width' => 20];
+        $columns['delete'] = ['label' => '', 'width' => 20];
 
         return $columns;
-    }
-
-    protected function getAllData(): array
-    {
-        return [];
     }
 
     protected function countTotal(): int
     {
         return $this->buildBaseQuery()->count();
-    }
-
-    public function setSearchTerm(?string $searchTerm): void
-    {
-        UIStateManager::storeKeyValue(self::SEARCH_KEY, $searchTerm);
-    }
-
-    public function getSearchTerm(): ?string
-    {
-        return UIStateManager::getKeyValue(self::SEARCH_KEY);
-    }
-
-    public function clearSearch(): void
-    {
-        UIStateManager::clearKeyValue(self::SEARCH_KEY);
     }
 
     public function setLanguageFilter(?string $languageCode): void
@@ -130,7 +117,9 @@ SVG;
 
     public function getLanguageFilter(): string
     {
-        return $this->normalizeFilterValue(UIStateManager::getKeyValue(self::LANGUAGE_FILTER_KEY));
+        $value = UIStateManager::getKeyValue(self::LANGUAGE_FILTER_KEY);
+
+        return $this->normalizeFilterValue($this->mixedToNullableString($value));
     }
 
     public function setGroupFilter(?string $group): void
@@ -140,10 +129,28 @@ SVG;
 
     public function getGroupFilter(): string
     {
-        return $this->normalizeFilterValue(UIStateManager::getKeyValue(self::GROUP_FILTER_KEY));
+        $value = UIStateManager::getKeyValue(self::GROUP_FILTER_KEY);
+
+        return $this->normalizeFilterValue($this->mixedToNullableString($value));
     }
 
     public function getPageData(): array
+    {
+        $rows = $this->getTextKeysPageItems();
+
+        return array_map(
+            static fn (UsimTextKey $row): array => [
+                'key' => $row->key,
+                'group' => $row->group,
+            ],
+            $rows
+        );
+    }
+
+    /**
+     * @return list<UsimTextKey>
+     */
+    private function getTextKeysPageItems(): array
     {
         $pagination = $this->tableBuilder->getPaginationData();
         $sortBy = $this->tableBuilder->getSortColumn();
@@ -157,15 +164,17 @@ SVG;
             ->with(['values.language'])
             ->orderBy($sortColumn, $direction);
 
-        return $query
+        $items = $query
             ->forPage((int) $pagination['current_page'], (int) $pagination['per_page'])
             ->get()
             ->all();
+
+        return array_values($items);
     }
 
     public function getFormattedPageData(int $currentPage, int $perPage): array
     {
-        $rows = $this->getPageData();
+        $rows = $this->getTextKeysPageItems();
         $formatted = [];
 
         foreach ($rows as $row) {
@@ -250,7 +259,7 @@ SVG;
      */
     protected function buildTranslationCell(?array $entry): string|array
     {
-        $text = trim((string) ($entry['text'] ?? ''));
+        $text = trim($this->mixedToString($entry['text'] ?? null));
         if ($text === '') {
             return '—';
         }
@@ -287,7 +296,7 @@ SVG;
 
         foreach ($this->languageCodes as $code) {
             $entry = $valuesByCode[$code] ?? null;
-            $text = trim((string) ($entry['text'] ?? ''));
+            $text = trim($this->mixedToString($entry['text'] ?? null));
             if ($text !== '') {
                 $completedTranslations++;
             }
@@ -344,9 +353,12 @@ SVG;
         return 'rgba(230, 126, 34, 0.32)';
     }
 
-    protected function buildBaseQuery()
+    /**
+     * @return Builder<UsimTextKey>
+     */
+    protected function buildBaseQuery(): Builder
     {
-        $searchTerm = trim((string) ($this->getSearchTerm() ?? ''));
+        $searchTerm = trim((string) ($this->tableBuilder->getSearchTerm() ?? ''));
         $groupFilter = $this->getGroupFilter();
 
         return UsimTextKey::query()
@@ -373,5 +385,23 @@ SVG;
     protected function svgDataUri(string $svg): string
     {
         return 'data:image/svg+xml;utf8,' . rawurlencode($svg);
+    }
+
+    private function mixedToNullableString(mixed $value): ?string
+    {
+        if (is_string($value)) {
+            return $value;
+        }
+
+        if (is_int($value) || is_float($value) || is_bool($value)) {
+            return (string) $value;
+        }
+
+        return null;
+    }
+
+    private function mixedToString(mixed $value): string
+    {
+        return $this->mixedToNullableString($value) ?? '';
     }
 }

@@ -363,6 +363,7 @@ class UserService
         foreach ($roles as $roleName) {
             $roleExists = DB::table('roles')
                 ->where('name', $roleName)
+                ->where('guard_name', 'web')
                 ->exists();
 
             if (!$roleExists) {

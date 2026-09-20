@@ -1,7 +1,5 @@
 <?php
-
 // @usim: feature="admin", type="screen"
-
 namespace App\UI\Screens\Auth;
 
 use App\Services\Auth\AuthSessionService;

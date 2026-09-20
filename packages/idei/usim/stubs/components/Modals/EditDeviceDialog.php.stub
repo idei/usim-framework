@@ -1,0 +1,256 @@
+<?php
+// @usim: feature="admin", type="component"
+namespace {{ componentsNamespace }};
+
+use App\Models\Device;
+use App\Services\Role\RoleService;
+use App\Services\Units\UsimUnitsService;
+use Idei\Usim\Enums\JustifyContent;
+use Idei\Usim\Enums\LayoutType;
+use Idei\Usim\Models\UsimRole;
+use Idei\Usim\Models\UsimUnit;
+use Idei\Usim\UI;
+use Idei\Usim\UIChangesCollector;
+use Idei\Usim\ValueObjects\Size;
+use Idei\Usim\ValueObjects\Spacing;
+
+class EditDeviceDialog
+{
+    /**
+     * @param Device|null $device
+     */
+    public static function open(
+        string $submitAction = 'submit_save_device',
+        string $cancelAction = 'close_modal',
+        ?Device $device = null,
+        ?int $callerServiceId = null
+    ): void {
+        $dialog = new self();
+        $format = $dialog->getUI($submitAction, $cancelAction, $device, $callerServiceId);
+        $uiChanges = app(UIChangesCollector::class);
+        $uiChanges->add($format);
+    }
+
+    /**
+     * Get the UI for the edit device dialog.
+     *
+     * @param string $submitAction
+     * @param string $cancelAction
+     * @param Device|null $device
+     * @param int|null $callerServiceId
+     * @return array<int, array<string, mixed>>
+     */
+    public function getUI(
+        string $submitAction = 'submit_save_device',
+        string $cancelAction = 'close_modal',
+        ?Device $device = null,
+        ?int $callerServiceId = null
+    ): array {
+        $prefix = 'screen.admin.users_manager.';
+        $isEditing = $device !== null;
+
+        $container = UI::container('edit_device_dialog')
+            ->parent('modal')
+            ->shadow(false)
+            ->plain()
+            ->padding(Spacing::px(10))
+            ->gap(Spacing::px(16));
+
+        $container->add(
+            UI::label('dialog_title')
+                ->text(t($prefix . ($isEditing ? 'edit_device_title' : 'create_device_title')))
+                ->style('heading')
+        );
+
+        $container->add(
+            UI::input('device_id')
+                ->type('hidden')
+                ->value($isEditing ? (string) $device->id : '')
+        );
+
+        // Name input
+        $container->add(
+            UI::input('device_name')
+                ->label(t($prefix . 'device_name_label'))
+                ->placeholder('Ej: Smart TV Sala Principal')
+                ->value($isEditing ? $device->name : '')
+                ->required(true)
+                ->autocomplete('off')
+                ->width(Size::full())
+        );
+
+        // Status banner if editing
+        if ($isEditing) {
+            $isPaired = $device->tokens->isNotEmpty() || !empty($device->device_token);
+            $statusText = $isPaired
+                ? '✅ ' . t($prefix . 'devices_status_paired')
+                : '⚠️ ' . t($prefix . 'devices_status_unpaired');
+
+            $container->add(
+                UI::label('device_status_banner')
+                    ->text($statusText)
+                    ->style($isPaired ? 'success' : 'warning')
+            );
+        }
+
+        // Unit checkboxes (including main/institutional option)
+        $unitsService = app(UsimUnitsService::class);
+        $units = $unitsService->getAvailableUnits();
+        $mainUnit = UsimUnit::where('slug', 'main')->first();
+        if ($mainUnit && !$units->contains('id', $mainUnit->id)) {
+            $units = $units->prepend($mainUnit);
+        }
+
+        $unitOptions = [];
+        foreach ($units as $u) {
+            $uName = ($u->display_name !== $u->translation_key) ? $u->display_name : ucfirst($u->slug);
+            if ($u->slug === 'main') {
+                $label = '🏛️ ' . t('screen.admin.users_manager.device_unit_institutional', [], "Institucional / Todos ({$uName})");
+            } else {
+                $label = $uName;
+            }
+            $unitOptions[] = [
+                'value' => (string) $u->id,
+                'label' => $label,
+            ];
+        }
+
+        $activeUnitId = function_exists('getPermissionsTeamId') ? getPermissionsTeamId() : null;
+        /** @var list<string> $selectedUnitIds */
+        $selectedUnitIds = [];
+        if ($isEditing) {
+            $selectedUnitIds = array_values(
+                $device->usimUnits->pluck('id')->map(static function (mixed $id): string {
+                    return is_int($id) || is_string($id) ? (string) $id : '';
+                })->filter(static fn(string $id): bool => $id !== '')->all()
+            );
+        } elseif ($activeUnitId) {
+            $selectedUnitIds = [(string) $activeUnitId];
+        } elseif ($mainUnit) {
+            $selectedUnitIds = [(string) $mainUnit->id];
+        }
+
+        $container->add(
+            UI::checkbox('device_units')
+                ->label(t($prefix . 'device_units_label'))
+                ->options($unitOptions)
+                ->selectedValues($selectedUnitIds)
+                ->vertical()
+        );
+
+        // Role checkboxes
+        $roleService = app(RoleService::class);
+        $roles = $roleService->getRolesForActor(Device::class);
+
+        /** @var list<array{value: string, label: string}> $roleOptions */
+        $roleOptions = array_map(static fn(UsimRole $role): array => [
+            'value' => $role->name,
+            'label' => t("role.{$role->name}.name"),
+        ], $roles);
+
+        /** @var list<string> $selectedRoles */
+        $selectedRoles = [];
+        if ($isEditing) {
+            $rolesCollection = $device->roles->isNotEmpty()
+                ? $device->roles
+                : ($device->relationLoaded('globalRoles') && $device->globalRoles->isNotEmpty()
+                    ? $device->globalRoles
+                    : $device->roles);
+
+            $selectedRoles = array_values(array_filter(
+                $rolesCollection->pluck('name')->all(),
+                static fn($name): bool => is_string($name) && $name !== ''
+            ));
+        } elseif (!empty($roles)) {
+            $selectedRoles = [$roles[0]->name];
+        }
+
+        $container->add(
+            UI::checkbox('device_roles')
+                ->label(t($prefix . 'device_roles_label'))
+                ->options($roleOptions)
+                ->selectedValues($selectedRoles)
+                ->required(true)
+                ->vertical()
+        );
+
+        // Buttons
+        $buttonsContainer = UI::container('device_dialog_buttons')
+            ->layout(LayoutType::HORIZONTAL)
+            ->plain()
+            ->justifyContent(JustifyContent::SPACE_BETWEEN)
+            ->gap(Spacing::px(8))
+            ->width(Size::full());
+
+        $leftButtons = UI::container('device_left_buttons')
+            ->layout(LayoutType::HORIZONTAL)
+            ->rounded(false)
+            ->gap(Spacing::px(8));
+
+        if ($isEditing) {
+            $isPaired = $device->tokens->isNotEmpty() || !empty($device->device_token);
+            if ($isPaired) {
+                $leftButtons->add(
+                    UI::button('btn_unpair_device')
+                        ->label(t($prefix . 'device_unpair_button'))
+                        ->style('warning')
+                        ->action('unpair_device', [
+                            'device_id' => $device->id,
+                            '_caller_service_id' => $callerServiceId,
+                        ])
+                );
+            } else {
+                $leftButtons->add(
+                    UI::button('btn_pair_this_device')
+                        ->label(t($prefix . 'pair_device'))
+                        ->style('secondary')
+                        ->action('pair_device_clicked', [
+                            'device_id' => $device->id,
+                            '_caller_service_id' => $callerServiceId,
+                        ])
+                );
+            }
+
+            $leftButtons->add(
+                UI::button('btn_delete_device')
+                    ->label(t($prefix . 'device_delete_button'))
+                    ->style('danger')
+                    ->action('delete_device', [
+                        'device_id' => $device->id,
+                        '_caller_service_id' => $callerServiceId,
+                    ])
+            );
+        }
+
+        $rightButtons = UI::container('device_right_buttons')
+            ->layout(LayoutType::HORIZONTAL)
+            ->rounded(false)
+            ->gap(Spacing::px(8));
+
+        $rightButtons->add(
+            UI::button('btn_cancel_device')
+                ->label(t('modal.cancel'))
+                ->style('secondary')
+                ->action($cancelAction, [
+                    '_caller_service_id' => $callerServiceId,
+                ])
+        );
+
+        $rightButtons->add(
+            UI::button('btn_save_device')
+                ->label(t($prefix . ($isEditing ? 'edit_button' : 'add_device')))
+                ->style('primary')
+                ->action($submitAction, [
+                    '_caller_service_id' => $callerServiceId,
+                ])
+        );
+
+        $buttonsContainer
+            ->add($leftButtons)
+            ->add($rightButtons);
+
+        $container->add($buttonsContainer);
+
+        return $container->toJson();
+    }
+}

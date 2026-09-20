@@ -1,6 +1,5 @@
 <?php
 // @usim: feature="admin", type="service"
-
 namespace {{ namespace }};
 
 use {{ userModel }};

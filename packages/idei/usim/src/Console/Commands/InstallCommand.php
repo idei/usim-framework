@@ -3,6 +3,7 @@
 namespace Idei\Usim\Console\Commands;
 
 use Idei\Usim\Console\Commands\Concerns\ConfiguresRootEnvironment;
+use Idei\Usim\Console\Commands\Concerns\InstallsActorsManagerScaffolding;
 use Idei\Usim\Console\Commands\Concerns\InstallsDatabaseScaffolding;
 use Idei\Usim\Console\Commands\Concerns\InstallsLangStubs;
 use Idei\Usim\Console\Commands\Concerns\InstallsTranslationManagerScaffolding;
@@ -27,6 +28,7 @@ class InstallCommand extends Command
     use InstallsDatabaseScaffolding;
     use InstallsLangStubs;
     use InstallsTranslationManagerScaffolding;
+    use InstallsActorsManagerScaffolding;
     use RegistersPackageHelperAutoload;
     use ConfiguresRootEnvironment;
 
@@ -175,6 +177,9 @@ class InstallCommand extends Command
             },
             installTranslationManagerScaffolding: function (): void {
                 $this->installTranslationManagerScaffolding();
+            },
+            installActorsManagerScaffolding: function (): void {
+                $this->installActorsManagerScaffolding();
             }
         );
     }
@@ -635,6 +640,32 @@ class InstallCommand extends Command
         );
 
         $relativePath = 'app/UI/Components/' . ($subDirectory ? $subDirectory . '/' : '') . $fileName;
+        $this->line("  <fg=green>✓</> {$relativePath}");
+    }
+
+    protected function installModel(string $stub, string $fileName, ?string $subDirectory = null): void
+    {
+        $context = $this->buildScaffoldingContext();
+        $userModelImport = (string) $context['userModelImport'];
+        $userModelClass = (string) $context['userModelClass'];
+
+        $targetDir = 'app/Models' . ($subDirectory ? '/' . $subDirectory : '');
+        $targetFile = $targetDir . '/' . $fileName;
+
+        $namespace = 'App\\Models' . ($subDirectory ? '\\' . str_replace('/', '\\', $subDirectory) : '');
+
+        $this->publishStub(
+            $this->stubsPath('models/' . $stub),
+            $targetFile,
+            false,
+            [
+                '{{ namespace }}' => $namespace,
+                '{{ userModel }}' => $userModelImport,
+                '{{ userModelClass }}' => $userModelClass,
+            ]
+        );
+
+        $relativePath = 'app/Models/' . ($subDirectory ? $subDirectory . '/' : '') . $fileName;
         $this->line("  <fg=green>✓</> {$relativePath}");
     }
 

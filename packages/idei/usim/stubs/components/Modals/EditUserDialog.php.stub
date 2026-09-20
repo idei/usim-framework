@@ -13,10 +13,6 @@ use Idei\Usim\UIChangesCollector;
 use Idei\Usim\ValueObjects\Spacing;
 
 /**
- * Edit User Dialog Service
- *
- * Provides a modal dialog with user edit form
- *
  * @phpstan-type UserPayload array{
  *     id: int|string,
  *     name: string,
@@ -55,7 +51,6 @@ class EditUserDialog
     }
 
     /**
-     * @phpstan-param UserPayload|null $user
      * @param array{
      *     id: int|string,
      *     name: string,
@@ -87,7 +82,6 @@ class EditUserDialog
      *
      * @param string $submitAction Action to call when form is submitted
      * @param string|null $cancelAction Action to call when cancel is clicked
-     * @phpstan-param UserPayload|null $user
      * @param array{
      *      id: int|string,
      *      name: string,
@@ -172,12 +166,11 @@ class EditUserDialog
     }
 
     /**
-     * @phpstan-param UserPayload|null $user
      * @param array<string, mixed>|null $user
      */
     private function buildHiddenInputs(Container $container, ?array $user, bool $isInLobby): void
     {
-        $userId = $user !== null ? (string) $user['id'] : '';
+        $userId = $user !== null ? $this->normalizeStringValue($user['id'] ?? null, '') : '';
 
         $container->add(
             UI::input('user_id')
@@ -288,10 +281,10 @@ class EditUserDialog
             $unit = $unitModel instanceof UsimUnit ? $unitModel : null;
             $unitName = $this->resolveUnitDisplayName($unit, $slug);
 
-            $rolesTranslated = array_values(array_map(
+            $rolesTranslated = array_map(
                 static fn(string $role): string => t("role.{$role}.name"),
                 $rolesList
-            ));
+            );
 
             $rolesText = empty($rolesTranslated) ? t('role.none') : implode(', ', $rolesTranslated);
             $memberships[] = "{$unitName} ({$rolesText})";
@@ -314,6 +307,15 @@ class EditUserDialog
         return ucfirst($slug);
     }
 
+    private function normalizeStringValue(mixed $value, string $fallback = ''): string
+    {
+        if (is_int($value) || is_float($value) || is_bool($value) || is_string($value) || $value instanceof \Stringable) {
+            return (string) $value;
+        }
+
+        return $fallback;
+    }
+
     /**
      * @param list<string> $selectedRoles
      */
@@ -334,13 +336,13 @@ class EditUserDialog
      */
     private function resolveRoleOptions(): array
     {
-        $roles = $this->roleService->getAllowedRoles();
+        $roles = $this->roleService->getRolesForActor(\App\Models\User::class);
 
         /** @var list<array{value: string, label: string}> $roleOptions */
-        $roleOptions = array_values(array_map(static fn(UsimRole $role): array => [
+        $roleOptions = array_map(static fn(UsimRole $role): array => [
             'value' => (string) $role->name,
             'label' => t("role.{$role->name}.name"),
-        ], $roles));
+        ], $roles);
 
         if (empty($roleOptions)) {
             return [
@@ -434,7 +436,6 @@ class EditUserDialog
     }
 
     /**
-     * @phpstan-param UserPayload|null $user
      * @param array<string, mixed>|null $user
      * @return array{id: int|string, slug: string, name: string}|null
      */
@@ -444,72 +445,109 @@ class EditUserDialog
             return null;
         }
 
-        if (!empty($user['active_unit'])) {
-            return $user['active_unit'];
+        $activeUnit = $user['active_unit'] ?? null;
+        if (is_array($activeUnit) && isset($activeUnit['slug'], $activeUnit['name'])) {
+            return [
+                'id' => $activeUnit['id'] ?? 0,
+                'slug' => (string) $activeUnit['slug'],
+                'name' => (string) $activeUnit['name'],
+            ];
         }
 
-        if ($hasOperationalUnits && !empty($user['operational_units'])) {
-            return $user['operational_units'][0];
+        if ($hasOperationalUnits) {
+            $operationalUnits = $user['operational_units'] ?? null;
+            if (is_array($operationalUnits) && isset($operationalUnits[0]) && is_array($operationalUnits[0])) {
+                $firstOperationalUnit = $operationalUnits[0];
+                if (isset($firstOperationalUnit['slug'], $firstOperationalUnit['name'])) {
+                    return [
+                        'id' => $firstOperationalUnit['id'] ?? 0,
+                        'slug' => (string) $firstOperationalUnit['slug'],
+                        'name' => (string) $firstOperationalUnit['name'],
+                    ];
+                }
+            }
         }
 
         return null;
     }
 
     /**
-     * @phpstan-param UserPayload|null $user
      * @param array<string, mixed>|null $user
      * @return list<string>
      */
     private function resolveSelectedRoles(?array $user, ?string $activeSlug, bool $isInLobby): array
     {
+        /** @var list<string> $selectedRoles */
         $selectedRoles = [];
 
         if ($user !== null) {
-            if ($activeSlug !== null && isset($user['units_with_roles'][$activeSlug]) && !empty($user['units_with_roles'][$activeSlug])) {
-                $selectedRoles = $user['units_with_roles'][$activeSlug];
-            } elseif (!$isInLobby && !empty($user['roles'])) {
+            $unitsWithRoles = $user['units_with_roles'] ?? null;
+            if ($activeSlug !== null && is_array($unitsWithRoles) && isset($unitsWithRoles[$activeSlug]) && is_array($unitsWithRoles[$activeSlug])) {
+                $selectedRoles = $this->normalizeStringList($unitsWithRoles[$activeSlug]);
+            } elseif (!$isInLobby && is_array($user['roles'] ?? null)) {
                 $selectedRoles = $this->extractRoleNames($user['roles']);
             }
         }
 
         if ($isInLobby) {
-            $selectedRoles = array_values(array_filter(
-                $selectedRoles,
-                static fn(string $role): bool => $role !== self::SYSTEM_REGISTERED_ROLE
-            ));
+            $filteredRoles = [];
+            foreach ($selectedRoles as $role) {
+                if ($role !== self::SYSTEM_REGISTERED_ROLE) {
+                    $filteredRoles[] = $role;
+                }
+            }
+
+            $selectedRoles = $filteredRoles;
         }
 
-        return !empty($selectedRoles) ? $selectedRoles : [self::DEFAULT_FALLBACK_ROLE];
+        return $selectedRoles !== [] ? $selectedRoles : [self::DEFAULT_FALLBACK_ROLE];
     }
 
     /**
-     * @param list<array{name?: string}|string> $roles
+     * @param array<mixed> $roles
      * @return list<string>
      */
     private function extractRoleNames(array $roles): array
     {
+        /** @var list<string> $names */
         $names = [];
         foreach ($roles as $role) {
-            if (is_array($role)) {
-                if (isset($role['name']) && is_string($role['name']) && $role['name'] !== '') {
-                    $names[] = $role['name'];
+            if (is_array($role) && isset($role['name'])) {
+                $roleName = $role['name'];
+                if (is_string($roleName) && $roleName !== '') {
+                    $names[] = (string) $roleName;
                 }
             } elseif (is_string($role) && $role !== '') {
-                $names[] = $role;
+                $names[] = (string) $role;
             }
         }
 
-        return array_values($names);
+        return $names;
     }
 
     /**
-     * @phpstan-param UserPayload|null $user
+     * @param array<mixed> $values
+     * @return list<string>
+     */
+    private function normalizeStringList(array $values): array
+    {
+        /** @var list<string> $normalized */
+        $normalized = [];
+
+        foreach ($values as $value) {
+            if (is_string($value) && $value !== '') {
+                $normalized[] = $value;
+            }
+        }
+
+        return $normalized;
+    }
+
+    /**
      * @param array<string, mixed>|null $user
      */
     private function isEmailVerified(?array $user): bool
     {
-        return $user !== null
-            && array_key_exists('email_verified_at', $user)
-            && $user['email_verified_at'] !== null;
+        return $user !== null && ($user['email_verified_at'] ?? null) !== null;
     }
 }

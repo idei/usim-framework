@@ -1,7 +1,5 @@
 <?php
-
 // @usim: feature="admin", type="service"
-
 namespace App\Services\Device;
 
 use App\Models\Device;

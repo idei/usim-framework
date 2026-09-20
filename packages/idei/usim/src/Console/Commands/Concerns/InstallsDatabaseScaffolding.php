@@ -10,11 +10,12 @@ trait InstallsDatabaseScaffolding
             ['name' => 'create_temporary_uploads_table', 'autoForce' => true],
             ['name' => 'add_profile_image_to_users_table', 'autoForce' => true],
             ['name' => 'add_terms_accepted_at_to_users_table', 'autoForce' => true],
+            ['name' => 'create_devices_table', 'autoForce' => true],
+            ['name' => 'create_usim_unit_actors_table', 'autoForce' => true],
             ['name' => 'create_usim_languages_table', 'autoForce' => true],
             ['name' => 'create_usim_text_keys_table', 'autoForce' => true],
             ['name' => 'create_usim_text_values_table', 'autoForce' => true],
             ['name' => 'create_usim_role_settings_table', 'autoForce' => true],
-            // ['name' => 'update_spatie_units_support', 'autoForce' => true ],
             ['name' => 'create_units_support_tables', 'autoForce' => true]
         ];
 

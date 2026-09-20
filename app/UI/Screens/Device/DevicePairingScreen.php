@@ -1,5 +1,5 @@
 <?php
-
+// @usim: feature="admin", type="screen"
 namespace App\UI\Screens\Device;
 
 use Idei\Usim\Components\Button;

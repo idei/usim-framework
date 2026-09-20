@@ -1,22 +1,21 @@
 <?php
-
 // @usim: feature="admin", type="screen"
-
 namespace {{ namespace }};
 
-use Idei\Usim\Components\Table;
-use Spatie\Permission\Models\Permission;
-use Idei\Usim\DataTable\AbstractTableModel;
 use App\Services\Permissions\PermissionListingService;
+use Idei\Usim\DataTable\AbstractListingTableModel;
+use Spatie\Permission\Models\Permission;
 
-class PermissionTableModel extends AbstractTableModel
+/**
+ * Table model for managing permissions listing.
+ *
+ * @extends AbstractListingTableModel<Permission>
+ */
+class PermissionTableModel extends AbstractListingTableModel
 {
-    private PermissionListingService $listingService;
-
-    public function __construct(Table $tableBuilder)
+    protected function resolveListingService(): PermissionListingService
     {
-        parent::__construct($tableBuilder);
-        $this->listingService = app(PermissionListingService::class);
+        return app(PermissionListingService::class);
     }
 
     public function getColumns(): array
@@ -25,70 +24,26 @@ class PermissionTableModel extends AbstractTableModel
             'name' => [
                 'label' => t('screen.admin.users_manager.permissions_column_name'),
                 'width' => 100,
-                'sort_by' => 'name'
+                'sort_by' => 'name',
             ],
             'description' => [
                 'label' => t('screen.admin.users_manager.permissions_column_description'),
-                'width' => 200
+                'width' => 200,
             ],
         ];
     }
 
-    protected function countTotal(): int
-    {
-        return $this->listingService->countMatching(
-            $this->tableBuilder->getSearchTerm()
-        );
-    }
-
-    public function getPageData(): array
-    {
-        $permissions = $this->getPermissionItems();
-
-        return array_map(
-            fn(Permission $permission): array => [
-                'id' => $permission->id,
-                'name' => $permission->name,
-                'description' => t("permission.{$permission->name}.description"),
-            ],
-            $permissions
-        );
-    }
-
     /**
-     * @return list<Permission>
+     * @param Permission $item
+     * @return array{_model_id: int|string, name: string, description: string}
      */
-    private function getPermissionItems(): array
+    protected function formatRow(object $item): array
     {
-        $pagination = $this->tableBuilder->getPaginationData();
-        $sortBy = $this->tableBuilder->getSortColumn();
-        $sortDir = $this->tableBuilder->getSortDirection();
-        $searchTerm = $this->tableBuilder->getSearchTerm();
-
-        $result = $this->listingService->paginate(
-            page: (int) $pagination['current_page'],
-            perPage: (int) $pagination['per_page'],
-            search: $searchTerm ?: null,
-            sortField: $sortBy ?: null,
-            sortDirection: (string) ($sortDir ?: 'asc'),
-        );
-
-        return array_values($result['items']);
-    }
-
-    public function getFormattedPageData(int $currentPage, int $perPage): array
-    {
-        $permissions = $this->getPermissionItems();
-        $formatted = [];
-
-        foreach ($permissions as $permission) {
-            $formatted[] = [
-                '_model_id' => $permission->id,
-                'name' => t("permission.{$permission->name}.name"),
-                'description' => t("permission.{$permission->name}.description"),
-            ];
-        }
-
-        return $formatted;
+        /** @var Permission $item */
+        return [
+            '_model_id' => $item->id,
+            'name' => t("permission.{$item->name}.name"),
+            'description' => t("permission.{$item->name}.description"),
+        ];
     }
 }

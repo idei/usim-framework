@@ -41,4 +41,12 @@ return [
         'description' => 'User with access to specific features.',
     ],
     'none' => 'None',
+    'smart_tv' => [
+        'name' => 'Smart TV',
+        'description' => 'Kiosk mode display.',
+    ],
+    'sensor' => [
+        'name' => 'Hardware Sensor',
+        'description' => 'IoT data provider.',
+    ],
 ];

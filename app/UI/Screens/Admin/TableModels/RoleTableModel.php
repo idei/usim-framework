@@ -1,7 +1,5 @@
 <?php
-
 // @usim: feature="admin", type="screen"
-
 namespace App\UI\Screens\Admin\TableModels;
 
 use App\Services\Role\RoleListingService;

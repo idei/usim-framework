@@ -1,5 +1,5 @@
 <?php
-
+// @usim: feature="admin", type="component"
 namespace App\UI\Components\DataTable;
 
 use Idei\Usim\Models\UsimTextKey;

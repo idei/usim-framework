@@ -24,13 +24,14 @@ class InstallAppScaffoldingManager
         array $context,
         callable $publishStub,
         callable $line,
-        callable $installTranslationManagerScaffolding
+        callable $installTranslationManagerScaffolding,
+        callable $installActorsManagerScaffolding
     ): void {
         $this->installScreen('Home.php.stub', 'Home.php', null, $context, $publishStub, $line);
         $this->installScreen('MenuStub.php.stub', 'Menu.php', null, $context, $publishStub, $line);
         $this->installScreen('Registered.php.stub', 'Registered.php', null, $context, $publishStub, $line);
-        $this->installScreen('Admin/UsersManager.php.stub', 'UsersManager.php', 'Admin', $context, $publishStub, $line);
 
+        $installActorsManagerScaffolding();
         $installTranslationManagerScaffolding();
     }
 
@@ -71,13 +72,13 @@ class InstallAppScaffoldingManager
         $this->installComponent('Modals/TermsDialog.php.stub', 'TermsDialog.php', 'Modals', $context, $publishStub, $line);
 
 
-        $newLine();
-        $info('Installing DataTable components...');
-        $this->installScreen('Admin/TableModels/UserTableModel.php.stub', 'UserTableModel.php', 'Admin/TableModels', $context, $publishStub, $line);
-        $this->installScreen('Admin/TableModels/RoleTableModel.php.stub', 'RoleTableModel.php', 'Admin/TableModels', $context, $publishStub, $line);
-        $this->installScreen('Admin/TableModels/PermissionTableModel.php.stub', 'PermissionTableModel.php', 'Admin/TableModels', $context, $publishStub, $line);
-        // TODO: A ESTO HAY QUE MOFIFICARLO
-        // $this->installComponent('DataTable/UserTableModel.php.stub', 'UserTableModel.php', 'DataTable', $context, $publishStub, $line);
+        // $newLine();
+        // $info('Installing DataTable components...');
+        // $this->installScreen('Admin/TableModels/UserTableModel.php.stub', 'UserTableModel.php', 'Admin/TableModels', $context, $publishStub, $line);
+        // $this->installScreen('Admin/TableModels/RoleTableModel.php.stub', 'RoleTableModel.php', 'Admin/TableModels', $context, $publishStub, $line);
+        // $this->installScreen('Admin/TableModels/PermissionTableModel.php.stub', 'PermissionTableModel.php', 'Admin/TableModels', $context, $publishStub, $line);
+        // // TODO: A ESTO HAY QUE MOFIFICARLO
+        // // $this->installComponent('DataTable/UserTableModel.php.stub', 'UserTableModel.php', 'DataTable', $context, $publishStub, $line);
 
         $newLine();
         $info('Installing AuthController...');
@@ -195,6 +196,8 @@ class InstallAppScaffoldingManager
         $this->installService('Units/UnitsService.php.stub', 'UnitsService.php', 'Units', $context, $publishStub, $line);
         $this->installService('Units/UnitSyncResult.php.stub', 'UnitSyncResult.php', 'Units', $context, $publishStub, $line);
         $this->installService('Units/UnitTranslationGenerator.php.stub', 'UnitTranslationGenerator.php', 'Units',$context, $publishStub, $line);
+        $this->installService('Device/DeviceListingService.php.stub', 'DeviceListingService.php', 'Device', $context, $publishStub, $line);
+        $this->installService('Device/DeviceService.php.stub', 'DeviceService.php', 'Device', $context, $publishStub, $line);
 
         $this->installService('Permissions/PermissionListingService.php.stub', 'PermissionListingService.php', 'Permissions', $context, $publishStub, $line);
     }

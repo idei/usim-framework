@@ -1,0 +1,130 @@
+<?php
+// @usim: feature="admin", type="screen"
+namespace {{ namespace }};
+
+use Idei\Usim\Components\Carousel;
+use Idei\Usim\Components\Container;
+use Idei\Usim\Screen;
+use Idei\Usim\UI;
+use Idei\Usim\ValueObjects\Spacing;
+
+class KioskScreen extends Screen
+{
+    /**
+     * Dispositivo / terminal Kiosk autenticado mediante guard 'device'.
+     */
+    public static ?string $guard = 'device';
+
+    /**
+     * El modo kiosco se despliega a pantalla completa sin barra de navegación superior.
+     */
+    public static bool $hasMenu = false;
+
+    protected Carousel $device_carousel;
+
+    protected int $store_current_index = 0;
+
+    protected int $store_timeout_ms = 5000;
+
+    public static function authorize(): bool
+    {
+        return self::requirePermission('device.kiosk_screen.access', 'device');
+    }
+
+    protected function buildBaseUI(Container $container, ...$params): void
+    {
+        $items = $this->mediaItems();
+        $this->store_current_index = $this->normalizeIndex($this->store_current_index, \count($items));
+
+        $currentItem = $items[$this->store_current_index];
+        $this->store_timeout_ms = max(1000, $currentItem['duration_ms']);
+
+        $container
+            ->title(t('screen.device.kiosk.title'))
+            ->plain()
+            ->padding(Spacing::px(0));
+
+        $container->add(
+            UI::carousel('device_carousel')
+                ->modeAuto()
+                ->autoplay(true)
+                ->autoAction('carousel_tick')
+                ->autoTimeoutMs($this->store_timeout_ms)
+                ->loop(true)
+                ->fullscreen(false)
+                ->showPrev(false)
+                ->showNext(false)
+                ->knownCount(null)
+                ->currentIndex($this->store_current_index)
+                ->currentMedia($currentItem)
+                ->hideIndicators()
+        );
+    }
+
+    /**
+     * @param  array<string, mixed>  $params
+     */
+    public function onCarouselTick(array $params): void
+    {
+        $carouselName = $params['carousel_name'] ?? 'device_carousel';
+
+        if ($carouselName !== 'device_carousel') {
+            return;
+        }
+
+        $items = $this->mediaItems();
+        $count = \count($items);
+        $this->store_current_index = $this->normalizeIndex($this->store_current_index + 1, $count);
+
+        $next = $items[$this->store_current_index];
+        $this->store_timeout_ms = max(1000, $next['duration_ms']);
+
+        $this->device_carousel
+            ->currentIndex($this->store_current_index)
+            ->currentMedia($next)
+            ->autoTimeoutMs($this->store_timeout_ms)
+            ->knownCount(null);
+    }
+
+    private function normalizeIndex(int $index, int $count): int
+    {
+        if ($count <= 0) {
+            return 0;
+        }
+
+        return (($index % $count) + $count) % $count;
+    }
+
+    /**
+     * @return list<array{id: string, kind: string, url: string, mime: string, title: string, duration_ms: int}>
+     */
+    protected function mediaItems(): array
+    {
+        return [
+            [
+                'id' => 'd1',
+                'kind' => 'image',
+                'url' => 'https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=1200&q=80',
+                'mime' => 'image/jpeg',
+                'title' => t('screen.device.kiosk.media.welcome'),
+                'duration_ms' => 5000,
+            ],
+            [
+                'id' => 'd2',
+                'kind' => 'video',
+                'url' => 'https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4',
+                'mime' => 'video/mp4',
+                'title' => t('screen.device.kiosk.media.showcase'),
+                'duration_ms' => 5000,
+            ],
+            [
+                'id' => 'd3',
+                'kind' => 'image',
+                'url' => 'https://images.unsplash.com/photo-1491553895911-0055eca6402d?auto=format&fit=crop&w=1200&q=80',
+                'mime' => 'image/jpeg',
+                'title' => t('screen.device.kiosk.media.announcement'),
+                'duration_ms' => 6000,
+            ],
+        ];
+    }
+}

@@ -1,7 +1,5 @@
 <?php
-
 // @usim: feature="admin", type="screen"
-
 namespace {{ namespace }};
 
 use {{ componentsNamespace }}\DataTable\TranslationKeysTableModel;

@@ -84,8 +84,6 @@ class AuthSessionService
             }
         }
 
-        $rolesConfig = config('usim.roles', config('users.roles', []));
-
         $roleNames = $user->getRoleNames()->values()->toArray();
 
         if ($user->isRoot() && !in_array('root', $roleNames, true)) {
@@ -98,18 +96,19 @@ class AuthSessionService
 
         $roleNames = array_values(array_unique(array_filter($roleNames, 'is_string')));
 
-        // Sort roles by priority in usim.roles (lower priority number = higher precedence)
-        usort($roleNames, static function (string $a, string $b) use ($rolesConfig): int {
-            $pA = data_get($rolesConfig, "{$a}.priority", 100);
-            $pB = data_get($rolesConfig, "{$b}.priority", 100);
-            $pA = is_numeric($pA) && (int) $pA >= 0 ? (int) $pA : 100;
-            $pB = is_numeric($pB) && (int) $pB >= 0 ? (int) $pB : 100;
+        // 1. Obtenemos los modelos de roles desde la base de datos junto con sus configuraciones
+        $roles = \Idei\Usim\Models\UsimRole::with('usimSetting')
+            ->whereIn('name', $roleNames)
+            ->get();
 
-            return $pA <=> $pB;
+        // 2. Ordenamos por la prioridad definida en la base de datos (usim_role_settings)
+        $sortedRoles = $roles->sortBy(function ($role) {
+            return $role->usimSetting ? $role->usimSetting->priority : 100;
         });
 
-        foreach ($roleNames as $roleName) {
-            $screenClass = data_get($rolesConfig, "{$roleName}.home_screen");
+        // 3. Buscamos la primera pantalla de inicio válida según la prioridad
+        foreach ($sortedRoles as $role) {
+            $screenClass = $role->usimSetting ? $role->usimSetting->home_screen : null;
 
             if (
                 is_string($screenClass)

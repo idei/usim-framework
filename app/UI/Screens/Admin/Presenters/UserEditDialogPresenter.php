@@ -1,5 +1,5 @@
 <?php
-
+// @usim: feature="admin", type="screen"
 namespace App\UI\Screens\Admin\Presenters;
 
 use Idei\Usim\Models\UsimUnit;

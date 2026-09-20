@@ -1,5 +1,5 @@
 <?php
-
+// @usim: feature="admin", type="screen"
 namespace App\UI\Screens\Admin;
 
 use App\Models\Device; // Tu modelo polimórfico de dispositivo
