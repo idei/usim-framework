@@ -411,7 +411,7 @@ class InstallAppScaffoldingManager
         $userModelClass = (string) $context['userModelClass'];
 
         $controllerPath = app_path('Http/Controllers/Api/AuthController.php');
-        $stubPath = $stubsBasePath . '/controllers/AuthController.php.stub';
+        $stubPath = $stubsBasePath . '/controllers/Api/AuthController.php.stub';
 
         $publishStub($stubPath, $controllerPath, false, [
             '{{ namespace }}' => 'App\\Http\\Controllers\\Api',

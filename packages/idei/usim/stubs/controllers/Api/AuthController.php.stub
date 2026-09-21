@@ -1,8 +1,8 @@
 <?php
 // @usim: feature="admin", type="controller"
-namespace App\Http\Controllers\Api;
+namespace {{ namespace }};
 
-use App\Models\User;
+use {{ userModel }};
 use App\Services\Auth\LoginService;
 use App\Services\Auth\RegisterService;
 use App\Services\Auth\PasswordService;

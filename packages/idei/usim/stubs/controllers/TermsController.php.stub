@@ -1,6 +1,6 @@
 <?php
 // @usim: feature="admin", type="controller"
-namespace App\Http\Controllers;
+namespace {{ namespace }};
 
 use Illuminate\Support\Str;
 
