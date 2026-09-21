@@ -1,6 +1,7 @@
 {
     "name": "USIM Framework Dev Container",
     "dockerFile": "Dockerfile",
+    "shutdownAction": "none",
     "forwardPorts": [
         8000,
         8025
