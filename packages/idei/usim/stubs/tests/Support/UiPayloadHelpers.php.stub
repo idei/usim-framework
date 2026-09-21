@@ -1,5 +1,5 @@
 <?php
-
+// @usim: feature="core", type="test"
 if (!function_exists('uiFind')) {
     /**
      * Depth-first search over nested arrays/scalars.

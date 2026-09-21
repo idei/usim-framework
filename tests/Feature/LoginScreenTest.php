@@ -1,5 +1,5 @@
 <?php
-
+// @usim: feature="admin", type="test"
 use App\Models\User;
 use App\UI\Screens\Admin\UsersManager;
 use App\UI\Screens\Auth\Login;

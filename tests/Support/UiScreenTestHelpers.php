@@ -1,5 +1,5 @@
 <?php
-
+// @usim: feature="core", type="test"
 use Illuminate\Testing\TestResponse;
 use Tests\TestCase;
 

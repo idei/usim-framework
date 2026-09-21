@@ -1,5 +1,5 @@
 <?php
-
+// @usim: feature="core", type="test"
 namespace Tests\Support;
 
 final class UiComponentRef
