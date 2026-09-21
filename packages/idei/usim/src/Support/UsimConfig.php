@@ -32,6 +32,9 @@ final class UsimConfig
     /** @var array<string, UserConfig> */
     public private(set) array $users = [];
 
+    /** @var UserConfig|null */
+    public private(set) ?UserConfig $rootUser = null;
+
     /** @var array<string, DeviceConfig> */
     public private(set) array $devices = [];
 
@@ -47,7 +50,7 @@ final class UsimConfig
     /** @var array<string, mixed> */
     private array $memoizationCache = [];
 
-   public function __construct()
+    public function __construct()
     {
         $raw = config('usim');
         if (!\is_array($raw)) {
@@ -164,13 +167,21 @@ final class UsimConfig
                 /** @var array<string, array<int, string>> $parsedUnitRoles */
                 $parsedUnitRoles = \is_array($meta['unit_roles'] ?? null) ? $meta['unit_roles'] : [];
 
-                $this->users[$slug] = new UserConfig(
+                $userConfig = new UserConfig(
                     firstName: \is_string($meta['first_name'] ?? null) ? $meta['first_name'] : '',
                     lastName: \is_string($meta['last_name'] ?? null) ? $meta['last_name'] : '',
                     email: \is_string($meta['email'] ?? null) ? $meta['email'] : '',
                     password: \is_string($meta['password'] ?? null) ? $meta['password'] : '',
                     unitRoles: $parsedUnitRoles,
                 );
+
+                if ($slug === 'root') {
+                    $this->rootUser = $userConfig;
+                    continue;
+                }
+
+                $this->users[$slug] = $userConfig;
+
             }
         }
 

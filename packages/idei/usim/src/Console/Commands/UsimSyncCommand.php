@@ -4,6 +4,7 @@ namespace Idei\Usim\Console\Commands;
 
 use Idei\Usim\Support\DeviceSyncService;
 use Idei\Usim\Support\RoleAndPermissionSyncService;
+use Idei\Usim\Support\UsersSyncService;
 use Illuminate\Console\Command;
 
 class UsimSyncCommand extends Command
@@ -42,11 +43,30 @@ class UsimSyncCommand extends Command
             $this->syncUnits();
         }
 
+        if (\in_array($target, ['users', 'all'], true)) {
+            $this->syncUsers();
+        }
+
         if (\in_array($target, ['devices', 'all'], true)) {
             $this->syncDevices();
         }
 
         return self::SUCCESS;
+    }
+
+    protected function syncUsers(): void
+    {
+        $this->info('Synchronizing users...');
+
+        $syncService = $this->laravel->make(UsersSyncService::class);
+        $stats = $syncService->sync();
+
+        $this->line("<fg=green>✓</> Users created: {$stats['users_created']}");
+        $this->line("<fg=green>✓</> Users updated: {$stats['users_updated']}");
+        $this->line("<fg=green>✓</> Users deleted: {$stats['users_deleted']}");
+
+        $this->info('Synchronization of users completed.');
+        $this->newLine();
     }
 
     protected function syncRolesAndPermissions(): void
