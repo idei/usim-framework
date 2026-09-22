@@ -94,11 +94,6 @@ class InstallAppScaffoldingManager
         $this->registerBootstrapProviders($line);
 
         $newLine();
-        $info('Installing AppServiceProvider...');
-        $this->installAppServiceProvider($context, $publishStub, $line);
-        $this->registerBootstrapProviders($line);
-
-        $newLine();
         $info('Publishing migrations...');
         $installMigrations();
 
@@ -350,6 +345,7 @@ class InstallAppScaffoldingManager
         $stubsBasePath = (string) $context['stubsBasePath'];
         $userModelImport = (string) $context['userModelImport'];
         $userModelClass = (string) $context['userModelClass'];
+        $screensNamespace = (string) $context['screensNamespace'];
 
         $stubPath = $stubsBasePath . '/tests/' . $stubName;
         $targetDir = $subdirectory ? base_path('tests/' . $subdirectory) : base_path('tests');
@@ -358,6 +354,7 @@ class InstallAppScaffoldingManager
         $publishStub($stubPath, $targetFile, false, [
             '{{ userModel }}' => $userModelImport,
             '{{ userModelClass }}' => $userModelClass,
+            '{{ screensNamespace }}' => $screensNamespace,
         ], $postInstallCallback);
 
         $relativePath = $this->toRelativePath($targetFile);
@@ -467,24 +464,6 @@ class InstallAppScaffoldingManager
         $stubPath = $stubsBasePath . '/providers/EventServiceProvider.php.stub';
 
         $publishStub($stubPath, $targetPath, false, [
-            '{{ namespace }}' => 'App\\Providers',
-        ]);
-
-        $relativePath = $this->toRelativePath($targetPath);
-        $line("  <fg=green>✓</> {$relativePath}");
-    }
-
-    /**
-     * @param array<string, string|bool> $context
-     */
-    private function installAppServiceProvider(array $context, callable $publishStub, callable $line): void
-    {
-        $stubsBasePath = (string) $context['stubsBasePath'];
-
-        $targetPath = app_path('Providers/AppServiceProvider.php');
-        $stubPath = $stubsBasePath . '/providers/AppServiceProvider.php.stub';
-
-        $publishStub($stubPath, $targetPath, true, [
             '{{ namespace }}' => 'App\\Providers',
         ]);
 

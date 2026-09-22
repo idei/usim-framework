@@ -79,4 +79,16 @@ return [
             ],
         ],
     ],
+    'create' => [
+        'users' => [
+            'name' => 'Create Users',
+            'description' => 'Allows creating new users in the system.',
+        ],
+    ],
+    'remove' => [
+        'users' => [
+            'name' => 'Remove Users',
+            'description' => 'Allows removing users from the system.',
+        ],
+    ],
 ];

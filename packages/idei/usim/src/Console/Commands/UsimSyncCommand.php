@@ -2,6 +2,7 @@
 
 namespace Idei\Usim\Console\Commands;
 
+use App\Services\Units\UnitsService;
 use Idei\Usim\Support\DeviceSyncService;
 use Idei\Usim\Support\RoleAndPermissionSyncService;
 use Idei\Usim\Support\UsersSyncService;
@@ -15,15 +16,6 @@ class UsimSyncCommand extends Command
 
     public function handle(): int
     {
-        // App\Contracts\UnitsServiceContract only exists after `usim:install` has
-        // published its stub, so it must be resolved lazily (not via constructor
-        // injection) to avoid breaking `composer install`/`package:discover` on a
-        // fresh app that hasn't installed USIM yet.
-        if (!interface_exists(\App\Contracts\UnitsServiceContract::class)) {
-            $this->warn('App\\Contracts\\UnitsServiceContract not found. Run "php artisan usim:install" first.');
-            return self::SUCCESS;
-        }
-
         $target = $this->argument('target') ?? 'all';
         $shouldDiscover = (bool) $this->option('discover') || \in_array($target, ['screens', 'all'], true);
 
@@ -86,7 +78,7 @@ class UsimSyncCommand extends Command
 
     protected function syncUnits(): void
     {
-        $unitsService = $this->laravel->make(\App\Contracts\UnitsServiceContract::class);
+        $unitsService = app(UnitsService::class);
 
         if (!$unitsService->isTeamsEnabled()) {
             $this->warn('Units are disabled in the Spatie (permission.php) configuration. Skipping unit synchronization.');

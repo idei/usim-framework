@@ -1,6 +1,5 @@
 <?php
 
-use App\Contracts\UnitsServiceContract;
 use Idei\Usim\Models\UsimUnit;
 use App\Services\Units\UnitsService;
 use App\Services\Units\UnitTranslationGenerator;
@@ -14,15 +13,9 @@ afterEach(function () {
     config(['permission.teams' => true]);
 });
 
-it('resolves UnitsServiceContract from the service container', function () {
-    $service = app(UnitsServiceContract::class);
-
-    expect($service)->toBeInstanceOf(UnitsService::class);
-});
-
 it('checks if teams are enabled', function () {
     /** @var UnitsService $service */
-    $service = app(UnitsServiceContract::class);
+    $service = app(UnitsService::class);
 
     config(['permission.teams' => true]);
     expect($service->isTeamsEnabled())->toBeTrue();
@@ -35,7 +28,7 @@ it('skips sync when teams are disabled', function () {
     config(['permission.teams' => false]);
 
     /** @var UnitsService $service */
-    $service = app(UnitsServiceContract::class);
+    $service = app(UnitsService::class);
     $result = $service->sync();
 
     expect($result->isSkipped())->toBeTrue();
@@ -44,7 +37,7 @@ it('skips sync when teams are disabled', function () {
 
 it('upserts units from structure', function () {
     /** @var UnitsService $service */
-    $service = app(UnitsServiceContract::class);
+    $service = app(UnitsService::class);
 
     $structure = [
         'hq' => ['type' => 'headquarters'],
@@ -68,7 +61,7 @@ it('upserts units from structure', function () {
 
 it('updates parent-child hierarchy correctly', function () {
     /** @var UnitsService $service */
-    $service = app(UnitsServiceContract::class);
+    $service = app(UnitsService::class);
 
     $structure = [
         'parent_unit' => ['type' => 'department'],
@@ -88,7 +81,7 @@ it('updates parent-child hierarchy correctly', function () {
 
 it('deletes obsolete units while protecting child units from cascade deletion', function () {
     /** @var UnitsService $service */
-    $service = app(UnitsServiceContract::class);
+    $service = app(UnitsService::class);
 
     $parent = UsimUnit::create(['slug' => 'obsolete_parent', 'type' => 'temp']);
     $child = UsimUnit::create(['slug' => 'kept_child', 'type' => 'temp', 'parent_id' => $parent->id]);
@@ -136,7 +129,7 @@ it('generates translation files using UnitTranslationGenerator', function () {
 
 it('runs full sync with custom structure and returns UnitSyncResult', function () {
     /** @var UnitsService $service */
-    $service = app(UnitsServiceContract::class);
+    $service = app(UnitsService::class);
 
     // Create an old unit that should be deleted
     UsimUnit::create(['slug' => 'old_unit']);

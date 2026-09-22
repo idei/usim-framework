@@ -79,4 +79,16 @@ return [
             ],
         ],
     ],
+    'create' => [
+        'users' => [
+            'name' => 'Crear Usuarios',
+            'description' => 'Permite crear nuevos usuarios en el sistema.',
+        ],
+    ],
+    'remove' => [
+        'users' => [
+            'name' => 'Eliminar Usuarios',
+            'description' => 'Permite eliminar usuarios del sistema.',
+        ],
+    ],
 ];

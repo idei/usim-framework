@@ -1,25 +1,10 @@
 <?php
 
-use App\Contracts\UnitTranslationGeneratorContract;
 use Idei\Usim\Models\UsimUnit;
 use Tests\TestCase;
 
 beforeEach(function () {
     config(['permission.teams' => true]);
-
-    // Usamos una implementación aislada del generador de traducciones para no sobrescribir
-    // los archivos físicos lang/ de la aplicación durante las pruebas de consola
-    $fakeGenerator = new class implements UnitTranslationGeneratorContract {
-        public function generate(array $structure, string $filePrefix = 'unit', ?string $baseLangPath = null): array
-        {
-            return [
-                "lang/en/{$filePrefix}.php",
-                "lang/es/{$filePrefix}.php",
-            ];
-        }
-    };
-
-    app()->instance(UnitTranslationGeneratorContract::class, $fakeGenerator);
 });
 
 it('warns and skips synchronization when teams are disabled', function () {

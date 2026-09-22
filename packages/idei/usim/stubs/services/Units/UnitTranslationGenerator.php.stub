@@ -2,10 +2,9 @@
 // @usim: feature="admin", type="service"
 namespace {{ namespace }};
 
-use App\Contracts\UnitTranslationGeneratorContract;
 use Illuminate\Filesystem\Filesystem;
 
-class UnitTranslationGenerator implements UnitTranslationGeneratorContract
+class UnitTranslationGenerator
 {
     public function __construct(
         protected Filesystem $files

@@ -47,7 +47,7 @@ Las interfaces reutilizables pueden declararse con `type="contract"` y deben ubi
 
 namespace App\Contracts;
 
-interface UnitsServiceContract
+interface ExampleServiceContract
 {
    // ...
 }
@@ -131,7 +131,7 @@ El script aplica transformaciones inversas de forma automática según el `type`
 | :--- | :--- | :--- | :--- |
 | `screen` | `app/UI/Screens/Auth/Login.php` | `screens/Auth/Login.php.stub` | `namespace` $\rightarrow$ `{{ namespace }}`<br>`App\UI\Screens\` $\rightarrow$ `{{ screensNamespace }}\`<br>`App\UI\Components\` $\rightarrow$ `{{ componentsNamespace }}\`<br>`App\Models\User` $\rightarrow$ `{{ userModel }}` |
 | `component` | `app/UI/Components/Modals/LoginDialog.php` | `components/Modals/LoginDialog.php.stub` | `namespace` $\rightarrow$ `{{ componentsNamespace }}`<br>`App\UI\Components\` $\rightarrow$ `{{ componentsNamespace }}\`<br>`App\UI\Screens\` $\rightarrow$ `{{ screensNamespace }}\` |
-| `contract` | `app/Contracts/UnitsServiceContract.php` | `contracts/UnitsServiceContract.php.stub` | `namespace App\Contracts` $\rightarrow$ `namespace {{ namespace }}`<br>`App\Models\User` $\rightarrow$ `{{ userModel }}` |
+| `contract` | `app/Contracts/ExampleServiceContract.php` | `contracts/ExampleServiceContract.php.stub` | `namespace App\Contracts` $\rightarrow$ `namespace {{ namespace }}`<br>`App\Models\User` $\rightarrow$ `{{ userModel }}` |
 | `service` | `app/Services/Auth/LoginService.php` | `services/Auth/LoginService.php.stub` | `namespace` $\rightarrow$ `{{ namespace }}`<br>`App\Models\User` $\rightarrow$ `{{ userModel }}` |
 | `controller` | `app/Http/Controllers/Api/AuthController.php` | `controllers/AuthController.php.stub` | `namespace` $\rightarrow$ `{{ namespace }}`<br>`App\Models\User` $\rightarrow$ `{{ userModel }}` |
 | `model` | `app/Models/User.php` | `models/User.php.stub` | `namespace` $\rightarrow$ `{{ namespace }}` |
