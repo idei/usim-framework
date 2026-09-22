@@ -1,10 +1,23 @@
 <?php
 
 use Idei\Usim\Models\UsimUnit;
+use Illuminate\Support\Facades\File;
 use Tests\TestCase;
 
 beforeEach(function () {
     config(['permission.teams' => true]);
+    $this->originalLangPath = app()->langPath();
+    $this->tempLangPath = sys_get_temp_dir() . '/usim_sync_cmd_test_lang_' . uniqid();
+    app()->useLangPath($this->tempLangPath);
+});
+
+afterEach(function () {
+    if (isset($this->originalLangPath)) {
+        app()->useLangPath($this->originalLangPath);
+    }
+    if (isset($this->tempLangPath) && File::isDirectory($this->tempLangPath)) {
+        File::deleteDirectory($this->tempLangPath);
+    }
 });
 
 it('warns and skips synchronization when teams are disabled', function () {

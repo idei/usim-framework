@@ -6,6 +6,7 @@ use App\Services\Units\UnitsService;
 use Idei\Usim\Support\DeviceSyncService;
 use Idei\Usim\Support\RoleAndPermissionSyncService;
 use Idei\Usim\Support\UsersSyncService;
+use Idei\Usim\Support\LangSyncService;
 use Illuminate\Console\Command;
 
 class UsimSyncCommand extends Command
@@ -41,6 +42,10 @@ class UsimSyncCommand extends Command
 
         if (\in_array($target, ['devices', 'all'], true)) {
             $this->syncDevices();
+        }
+
+        if (\in_array($target, ['lang', 'all'], true)) {
+            $this->syncLang();
         }
 
         return self::SUCCESS;
@@ -146,5 +151,19 @@ class UsimSyncCommand extends Command
         }
 
         $this->info('Synchronization of hardware devices completed.');
+    }
+
+    protected function syncLang(): void
+    {
+        $this->info('Synchronizing language files...');
+        // El servicio LangSyncService es interno del paquete, así que podemos resolverlo directamente
+        $syncService = $this->laravel->make(LangSyncService::class);
+        $stats = $syncService->sync();
+
+        $this->line("<fg=green>✓</> Languages created: {$stats['languages_created']}");
+        $this->line("<fg=green>✓</> Languages updated: {$stats['languages_updated']}");
+
+        $this->info('Synchronization of languages completed.');
+        $this->newLine();
     }
 }
