@@ -155,78 +155,6 @@ return [
                 'main' => ['root'],
             ],
         ],
-
-        'admin' => [
-            'first_name' => 'Admin',
-            'last_name' => 'User',
-            'email' => 'admin@example.com',
-            'password' => '11111111',
-            'unit_roles' => [
-                'oafa' => ['admin'],
-                'ingeo' => ['admin'],
-                'idei' => ['translator'],
-            ],
-        ],
-
-        'test' => [
-            'first_name' => 'Test',
-            'last_name' => 'User',
-            'email' => 'test@example.com',
-            'password' => '11111111',
-            'unit_roles' => [
-                'idei' => ['admin', 'translator'],
-            ],
-        ],
-
-        'test2' => [
-            'first_name' => 'Test2',
-            'last_name' => 'User2',
-            'email' => 'test2@example.com',
-            'password' => '11111111',
-            'unit_roles' => [
-                'ingeo' => ['admin'],
-            ],
-        ],
-
-        'test3' => [
-            'first_name' => 'Test3',
-            'last_name' => 'User3',
-            'email' => 'test3@example.com',
-            'password' => '11111111',
-            'unit_roles' => [
-                'oafa' => ['admin'],
-            ],
-        ],
-
-        'com-admin' => [
-            'first_name' => 'Comunicación',
-            'last_name' => 'User',
-            'email' => 'comunicacion@example.com',
-            'password' => '11111111',
-            'unit_roles' => [
-                'comunicación' => ['admin'],
-            ],
-        ],
-
-        'idei-user-1' => [
-            'first_name' => 'Idei',
-            'last_name' => 'User',
-            'email' => 'idei@example.com',
-            'password' => '11111111',
-            'unit_roles' => [
-                'idei' => ['member'],
-            ],
-        ],
-
-        'registered-user' => [
-            'first_name' => 'Registered',
-            'last_name' => 'User',
-            'email' => 'registered@example.com',
-            'password' => '11111111',
-            'unit_roles' => [
-                'lobby' => ['registered'],
-            ],
-        ],
     ],
 
     /*
@@ -332,6 +260,18 @@ return [
             'default_translations' => [
                 'en' => ['display_name' => 'Manage Roles', 'description' => 'Allows creating, editing, and deleting roles and their permissions.'],
                 'es' => ['display_name' => 'Gestionar Roles', 'description' => 'Permite crear, editar y eliminar roles y sus permisos.'],
+            ],
+        ],
+        'create.users' => [
+            'default_translations' => [
+                'en' => ['display_name' => 'Create Users', 'description' => 'Allows creating new users in the system.'],
+                'es' => ['display_name' => 'Crear Usuarios', 'description' => 'Permite crear nuevos usuarios en el sistema.'],
+            ],
+        ],
+        'remove.users' => [
+            'default_translations' => [
+                'en' => ['display_name' => 'Remove Users', 'description' => 'Allows removing users from the system.'],
+                'es' => ['display_name' => 'Eliminar Usuarios', 'description' => 'Permite eliminar usuarios del sistema.'],
             ],
         ],
     ],
