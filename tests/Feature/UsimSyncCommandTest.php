@@ -6,9 +6,9 @@ use Tests\TestCase;
 
 beforeEach(function () {
     config(['permission.teams' => true]);
-    $this->originalLangPath = app()->langPath();
-    $this->tempLangPath = sys_get_temp_dir() . '/usim_sync_cmd_test_lang_' . uniqid();
-    app()->useLangPath($this->tempLangPath);
+    $originalLangPath = app()->langPath();
+    $tempLangPath = sys_get_temp_dir() . '/usim_sync_cmd_test_lang_' . uniqid();
+    app()->useLangPath($tempLangPath);
 });
 
 afterEach(function () {
