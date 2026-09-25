@@ -10,6 +10,7 @@ use Idei\Usim\Screen;
 use Idei\Usim\UI;
 use Idei\Usim\ValueObjects\Size;
 use Idei\Usim\ValueObjects\Spacing;
+use Illuminate\Support\Str;
 
 class Left extends Screen
 {
@@ -31,8 +32,23 @@ class Left extends Screen
                     ->type('text')
                     ->width(Size::full())
                     ->autocomplete('off')
+                    ->onInput('check_text', [])
                     ->onEnter('send_text', [])
+                    ->debounce(500)
             );
+    }
+
+    /**
+     * Recibe el evento del Input y valida si el texto no está vacío
+     *
+     * @param array<string, mixed> $params
+     */
+    public function onCheckText(array $params): void
+    {
+        $raw = $params['value'] ?? $params['input_text'] ?? '';
+        $text = \is_string($raw) ? $raw : '';
+
+        $this->input_text->value(Str::headline($text));
     }
 
     /**
@@ -43,7 +59,7 @@ class Left extends Screen
     public function onSendText(array $params): void
     {
         $raw = $params['value'] ?? $params['input_text'] ?? '';
-        $text = is_string($raw) ? trim($raw) : '';
+        $text = \is_string($raw) ? trim($raw) : '';
 
         if ($text === '') {
             return;
