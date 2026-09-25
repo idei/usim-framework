@@ -1,6 +1,8 @@
 <?php
 
 return [
+    'menu_title' => 'Profile',
+    'icon' => '👤',
     'actions' => [
         'change_password' => 'Cambiar Contraseña',
         'save' => 'Guardar Cambios',

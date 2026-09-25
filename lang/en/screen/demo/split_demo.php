@@ -1,7 +1,8 @@
 <?php
 
 return [
-    'menu_label' => 'Split Demo',
+    'icon' => '↔️',
+    'menu_label' => 'Splits',
     'title' => 'Split Container Demo',
     'intro' => 'Configure orientation, initial size and collapse behavior. The split bar is draggable.',
     'orientation' => [

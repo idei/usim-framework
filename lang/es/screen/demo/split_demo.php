@@ -1,7 +1,8 @@
 <?php
 
 return [
-    'menu_label' => 'Demo de Split',
+    'menu_title' => 'Separadores',
+    'icon' => '↔️',
     'title' => 'Demo de Contenedor Split',
     'intro' => 'Configura orientación, tamaño inicial y comportamiento de colapso. La barra del split es arrastrable.',
     'orientation' => [

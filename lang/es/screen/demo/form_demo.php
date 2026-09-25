@@ -1,6 +1,8 @@
 <?php
 
 return [
+    'menu_title' => 'Formularios',
+    'icon' => '📝',
     'actions' => [
         'submit' => 'Enviar Formulario',
     ],

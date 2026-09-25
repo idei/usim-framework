@@ -1,7 +1,8 @@
 <?php
 
 return [
-    'menu_label' => 'Demo de Tabs',
+    'menu_title' => 'Pestañas',
+    'icon' => '🗂️',
     'title' => 'Contenedor con Tabs',
     'tabs' => [
         'overview' => [

@@ -1,6 +1,8 @@
 <?php
 
 return [
+    'menu_title' => 'Modals',
+    'icon' => '🖼️',
     'actions' => [
         'open_confirmation' => 'Open Confirmation Dialog',
         'open_error' => 'Open Error Dialog',

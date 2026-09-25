@@ -1,6 +1,8 @@
 <?php
 
 return [
+    'menu_title' => 'Profile',
+    'icon' => '👤',
     'actions' => [
         'change_password' => 'Change Password',
         'save' => 'Save Changes',

@@ -181,7 +181,6 @@ final class UsimConfig
                 }
 
                 $this->users[$slug] = $userConfig;
-
             }
         }
 
@@ -221,6 +220,21 @@ final class UsimConfig
                 $this->roles,
                 fn(RoleConfig $role) => $role->guardName === 'device'
             );
+            return $cached;
+        }
+    }
+
+    /** @var array<int, string> */
+    public array $activeLanguageCodes {
+        get {
+            /** @var array<int, string> $cached */
+            $cached = $this->memoizationCache['activeLanguageCodes'] ??= array_values(array_unique(array_filter(
+                array_map(
+                    static fn(LanguageConfig $lang): string => $lang->active ? trim($lang->code) : '',
+                    $this->i18n->languages
+                ),
+                static fn(string $code): bool => $code !== ''
+            )));
             return $cached;
         }
     }

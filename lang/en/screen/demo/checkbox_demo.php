@@ -1,6 +1,8 @@
 <?php
 
 return [
+    'menu_title' => 'Checkboxs',
+    'icon' => '✅',
     'actions' => [
         'submit' => 'Submit Selection',
     ],

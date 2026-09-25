@@ -1,7 +1,8 @@
 <?php
 
 return [
-    'menu_label' => 'Tabs Demo',
+    'menu_title' => 'Tabs',
+    'icon' => '🗂️',
     'title' => 'Tabbed Container',
     'tabs' => [
         'overview' => [

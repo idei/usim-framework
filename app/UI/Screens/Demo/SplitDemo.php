@@ -34,16 +34,6 @@ class SplitDemo extends Screen
     protected bool $store_split_draggable = true;
     protected bool $store_split_collapsible = true;
 
-    public static function getMenuLabel(): string
-    {
-        return t('screen.demo.split_demo.menu_label');
-    }
-
-    public static function getMenuIcon(): ?string
-    {
-        return '↔️';
-    }
-
     protected function buildBaseUI(Container $container, ...$params): void
     {
         $container

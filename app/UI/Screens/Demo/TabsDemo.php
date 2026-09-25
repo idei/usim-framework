@@ -15,16 +15,6 @@ class TabsDemo extends Screen
 
     protected Container $tabs_container;
 
-    public static function getMenuLabel(): string
-    {
-        return t('screen.demo.tabs_demo.menu_label');
-    }
-
-    public static function getMenuIcon(): ?string
-    {
-        return '🗂️';
-    }
-
     protected function buildBaseUI(Container $container, ...$params): void
     {
         $container

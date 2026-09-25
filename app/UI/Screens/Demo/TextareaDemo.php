@@ -23,16 +23,6 @@ class TextareaDemo extends Screen
     protected Textarea $plain_textarea;
     protected Textarea $md_textarea;
 
-    public static function getMenuLabel(): string
-    {
-        return t('screen.demo.textarea_demo.menu_label');
-    }
-
-    public static function getMenuIcon(): ?string
-    {
-        return '📝';
-    }
-
     protected function buildBaseUI(Container $container, ...$params): void
     {
         $container

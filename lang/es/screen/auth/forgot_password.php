@@ -1,6 +1,8 @@
 <?php
 
 return [
+    'menu_title' => 'Forgot Password',
+    'icon' => '',
     'actions' => [
         'back' => 'Volver al Login',
         'send' => 'Enviar Enlace',

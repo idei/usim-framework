@@ -1,6 +1,8 @@
 <?php
 
 return [
+    'menu_title' => 'Uploader Demo',
+    'icon' => '',
     'banner' => [
         'confirm' => 'Confirm Banner',
         'label' => 'Banner for posts - 256x144px',

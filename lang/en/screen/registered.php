@@ -1,6 +1,8 @@
 <?php
 
 return [
+    'menu_title' => 'Registered',
+    'icon' => '',
     'title' => 'Registration Successful!',
     'greeting' => 'Hello, :name',
     'card_title' => 'Pending assignment',
@@ -15,4 +17,3 @@ return [
     'notice' => 'A system administrator will review your registration to assign you an operational unit and corresponding role.',
     'btn_profile' => 'View My Profile',
 ];
-

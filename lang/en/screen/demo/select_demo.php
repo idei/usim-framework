@@ -1,6 +1,8 @@
 <?php
 
 return [
+    'menu_title' => 'Selects',
+    'icon' => '🖱️',
     'actions' => [
         'reset_all' => 'Reset All',
     ],

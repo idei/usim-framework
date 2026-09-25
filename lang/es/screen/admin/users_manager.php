@@ -1,6 +1,8 @@
 <?php
 
 return [
+    'menu_title' => 'Users Manager',
+    'icon' => '🛠️',
     'add_user' => 'Agregar Usuario',
     'edit_button' => 'Actualizar',
     'edit_email_label' => 'Correo',

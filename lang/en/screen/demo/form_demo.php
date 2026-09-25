@@ -1,6 +1,8 @@
 <?php
 
 return [
+    'menu_title' => 'Forms',
+    'icon' => '📝',
     'actions' => [
         'submit' => 'Submit Form',
     ],

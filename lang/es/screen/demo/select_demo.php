@@ -1,6 +1,8 @@
 <?php
 
 return [
+    'menu_title' => 'Selectores',
+    'icon' => '🖱️',
     'actions' => [
         'reset_all' => 'Reiniciar Todo',
     ],

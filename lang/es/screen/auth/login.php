@@ -1,6 +1,8 @@
 <?php
 
 return [
+    'menu_title' => 'Login',
+    'icon' => '🔑',
     'actions' => [
         'cancel' => 'Cancelar',
         'forgot_password' => '¿Olvidaste tu contraseña?',

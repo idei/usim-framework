@@ -1,6 +1,8 @@
 <?php
 
 return [
+    'menu_title' => 'Reset Password',
+    'icon' => '',
     'actions' => [
         'submit' => 'Change Password',
     ],

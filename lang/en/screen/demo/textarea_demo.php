@@ -1,6 +1,7 @@
 <?php
 
 return [
-    'menu_label' => 'Textarea Demo',
+    'menu_title' => 'Textareas',
+    'icon' => '📝',
     'title' => 'Textarea Container Demo',
 ];

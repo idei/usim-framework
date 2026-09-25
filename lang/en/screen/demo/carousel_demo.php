@@ -1,6 +1,8 @@
 <?php
 
 return [
+    'menu_title' => 'Carousel Demo',
+    'icon' => '',
     'actions' => [
         'reset' => 'Reset Demo',
         'toggle_auto_fullscreen' => 'Toggle Auto Fullscreen',

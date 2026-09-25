@@ -548,7 +548,7 @@ abstract class Screen
      */
     public static function getMenuLabel(): string
     {
-        return class_basename(static::class);
+        return t('screen.' . self::getScreenSlug() . '.menu_title');
     }
 
     /**
@@ -557,7 +557,7 @@ abstract class Screen
      */
     public static function getMenuIcon(): ?string
     {
-        return null;
+        return t('screen.' . self::getScreenSlug() . '.icon');
     }
 
     /**
@@ -591,9 +591,7 @@ abstract class Screen
      */
     abstract protected function buildBaseUI(Container $container, ...$params): void;
 
-    protected function postLoadUI(): void
-    {
-    }
+    protected function postLoadUI(): void {}
 
     /**
      * Initialize event context
@@ -751,7 +749,7 @@ abstract class Screen
                     // Component not found and property is not nullable
                     throw new RuntimeException(
                         "Component '{$componentName}' not found in {$className}. " .
-                        "Make sure the component exists or make the property nullable: protected ?{$typeName} \${$componentName};"
+                            "Make sure the component exists or make the property nullable: protected ?{$typeName} \${$componentName};"
                     );
                 }
             }

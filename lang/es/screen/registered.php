@@ -1,6 +1,8 @@
 <?php
 
 return [
+    'menu_title' => 'Registered',
+    'icon' => '',
     'title' => '¡Registro Exitoso!',
     'greeting' => 'Hola, :name',
     'card_title' => 'Asignación pendiente',
@@ -15,4 +17,3 @@ return [
     'notice' => 'Un administrador del sistema revisará su alta para asignarle una unidad operativa y el rol correspondiente.',
     'btn_profile' => 'Ver Mi Perfil',
 ];
-

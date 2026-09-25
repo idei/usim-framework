@@ -1,6 +1,8 @@
 <?php
 
 return [
+    'menu_title' => 'Translate Manager',
+    'icon' => '🌐',
     'delete' => [
         'confirm' => '¿Seguro que deseas eliminar la traducción ":key"?',
         'success' => 'Traducción eliminada exitosamente',

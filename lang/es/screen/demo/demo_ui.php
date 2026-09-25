@@ -1,6 +1,8 @@
 <?php
 
 return [
+    'menu_title' => 'Demo Ui',
+    'icon' => '',
     'actions' => [
         'decrement' => '➖',
         'increment' => '➕',
