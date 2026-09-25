@@ -441,6 +441,9 @@ class UIComponent {
             : null;
 
         element.setAttribute('data-component-id', componentId);
+        if (this.config._order !== undefined && this.config._order !== null) {
+            element.setAttribute('data-order', String(this.config._order));
+        }
         if (this.config.name) {
             element.id = this.config.name;
         }
@@ -1424,7 +1427,14 @@ class UIRenderer {
                 }
             }
 
-            // 3) Resolve creates in multiple passes so parents mount before children.
+            // 3) Sort creates by _order (JS Object.entries sorts integer keys by numeric hash ID, not _order)
+            //    and resolve in multiple passes so parents mount before children.
+            creates.sort(([, changesA], [, changesB]) => {
+                const orderA = Number.isFinite(Number(changesA?._order)) ? Number(changesA._order) : Number.MAX_SAFE_INTEGER;
+                const orderB = Number.isFinite(Number(changesB?._order)) ? Number(changesB._order) : Number.MAX_SAFE_INTEGER;
+                return orderA - orderB;
+            });
+
             let pendingCreates = creates;
             const maxPasses = 4;
 
@@ -2307,7 +2317,22 @@ class UIRenderer {
 
             if (parentElement) {
                 if (!insertByTableOrder(parentElement, element, config)) {
-                    parentElement.appendChild(element);
+                    const orderIndex = Number(config._order);
+                    if (Number.isInteger(orderIndex) && orderIndex > 0) {
+                        element.setAttribute('data-order', String(orderIndex));
+                        const nextSibling = Array.from(parentElement.children).find((node) => {
+                            if (!(node instanceof HTMLElement)) return false;
+                            const siblingOrder = Number(node.getAttribute('data-order'));
+                            return Number.isInteger(siblingOrder) && siblingOrder > orderIndex;
+                        });
+                        if (nextSibling) {
+                            parentElement.insertBefore(element, nextSibling);
+                        } else {
+                            parentElement.appendChild(element);
+                        }
+                    } else {
+                        parentElement.appendChild(element);
+                    }
                 }
                 console.debug(`➕ Component ${jsonKey} added to parent ${config.parent}`);
                 return true;
