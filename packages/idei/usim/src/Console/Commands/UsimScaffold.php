@@ -2,7 +2,6 @@
 
 namespace Idei\Usim\Console\Commands;
 
-use Faker\Core\File;
 use Idei\Usim\Support\UsimConfig;
 use Illuminate\Console\Command;
 use Illuminate\Filesystem\Filesystem;
