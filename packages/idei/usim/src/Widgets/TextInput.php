@@ -35,9 +35,9 @@ class TextInput extends Widget
     public function mount(Container $parent, string $contextClass): UIElement
     {
         $input = new \Idei\Usim\Components\Input($this->name, $contextClass);
-        $input->inputType($this->inputType)
+        $input->type($this->inputType)
             ->required($this->required)
-            ->enabled(!$this->disabled);
+            ->disabled($this->disabled);
 
         if ($this->label !== null) {
             $input->label($this->label);
