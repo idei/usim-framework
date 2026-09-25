@@ -34,8 +34,8 @@ class TextInput extends Widget
 
     public function mount(Container $parent, string $contextClass): UIElement
     {
-        $input = UI::input($this->name)
-            ->inputType($this->inputType)
+        $input = new \Idei\Usim\Components\Input($this->name, $contextClass);
+        $input->inputType($this->inputType)
             ->required($this->required)
             ->enabled(!$this->disabled);
 

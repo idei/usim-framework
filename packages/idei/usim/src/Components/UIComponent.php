@@ -28,12 +28,12 @@ abstract class UIComponent implements UIElement, Sizeable, Marginable
     /** @var array<string, mixed> */
     protected array $config = [];
 
-    public function __construct(?string $name = null)
+    public function __construct(?string $name = null, ?string $contextClass = null)
     {
         $this->name = $name;
 
-        // Detectar automáticamente el contexto desde la clase que invoca
-        $context = $this->detectCallingContext();
+        // Detectar automáticamente el contexto desde la clase que invoca si no fue provisto
+        $context = $contextClass ?? $this->detectCallingContext();
 
         // Generar ID según si tiene nombre o no
         if ($this->name !== null) {

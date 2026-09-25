@@ -55,21 +55,6 @@ if [[ "$*" == *"-r"* ]]; then
     php artisan usim:sync
 fi
 
-# Check if port 8000 is already in use (server already running)
-if netstat -tuln 2>/dev/null | grep -q ":8000 " || ss -tuln 2>/dev/null | grep -q ":8000 "; then
-    echo "✓ Server already running on port 8000"
-    if [ -n "$BROWSER" ]; then
-        "$BROWSER" "http://127.0.0.1:8000" 2>/dev/null || true
-    elif grep -q Microsoft /proc/version 2>/dev/null || [ -n "$WSL_DISTRO_NAME" ]; then
-        cmd.exe /c start "http://127.0.0.1:8000"
-    elif command -v xdg-open > /dev/null; then
-        xdg-open "http://127.0.0.1:8000" &
-    else
-        echo "  → http://127.0.0.1:8000"
-    fi
-    exit 0
-fi
-
 # Find available port and update .env
 SERVER_PORT=$(find_available_port)
 update_env_url "$SERVER_PORT"

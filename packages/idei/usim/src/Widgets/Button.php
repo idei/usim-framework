@@ -32,8 +32,8 @@ class Button extends Widget
     public function mount(Container $parent, string $contextClass): UIElement
     {
         $name = $this->key ?? 'btn_' . substr(md5(uniqid((string)mt_rand(), true)), 0, 8);
-        $button = UI::button($name)
-            ->label($this->label)
+        $button = new \Idei\Usim\Components\Button($name, $contextClass);
+        $button->label($this->label)
             ->style($this->style)
             ->enabled(!$this->disabled);
 

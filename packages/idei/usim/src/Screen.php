@@ -815,7 +815,8 @@ abstract class Screen
             $current_class = static::class;
             $current_class_slug = strtolower(str_replace('\\', '_', $current_class));
             $newContainer = UI::container($current_class_slug, $current_class)
-                ->parent($this->parent);
+                ->parent($this->parent)
+                ->root(true);
 
             $widget = $this->build();
             if ($widget !== null) {
@@ -1068,7 +1069,7 @@ abstract class Screen
         foreach ($components as $id => $component) {
             $parentId = $jsonUI[$id]['parent'] ?? null;
 
-            if ($component instanceof Container && $component->isRoot()) {
+            if ($component instanceof Container && ($component->isRoot() || $rootContainer === null)) {
                 $rootContainer = $component;
             }
 
