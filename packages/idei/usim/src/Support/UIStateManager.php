@@ -73,6 +73,29 @@ class UIStateManager
     }
 
     /**
+     * Header name for tab isolation
+     */
+    public const TAB_ID_HEADER = 'X-USIM-Tab-Id';
+
+    /**
+     * Get active tab identifier to prevent multi-tab state collision.
+     *
+     * @return string|null
+     */
+    public static function getActiveTabId(): ?string
+    {
+        $tabId = request()->header(self::TAB_ID_HEADER)
+            ?? request()->input('tab_id')
+            ?? request()->query('tab_id');
+
+        if (\is_string($tabId) && $tabId !== '') {
+            return preg_replace('/[^a-zA-Z0-9_\-]/', '', $tabId);
+        }
+
+        return null;
+    }
+
+    /**
      * Generate cache key for a service
      *
      * @param string $serviceClass Full service class name
@@ -82,8 +105,11 @@ class UIStateManager
     {
         $serviceBaseName = $serviceClass ? class_basename($serviceClass) : '';
         $clientId = self::getOrCreateClientId();
+        $tabId = self::getActiveTabId();
 
-        return "{$prefix}:{$serviceBaseName}:{$clientId}";
+        return $tabId
+            ? "{$prefix}:{$serviceBaseName}:{$clientId}:{$tabId}"
+            : "{$prefix}:{$serviceBaseName}:{$clientId}";
     }
 
     // /**
@@ -167,7 +193,8 @@ class UIStateManager
     private static function storeClientOpenedScreens(string $screenId): void
     {
         $clientId = self::getOrCreateClientId();
-        $cacheKey = "ui_open_screens:{$clientId}";
+        $tabId = self::getActiveTabId();
+        $cacheKey = $tabId ? "ui_open_screens:{$clientId}:{$tabId}" : "ui_open_screens:{$clientId}";
         $ttlConfig = config('usim.ui_cache_ttl', 60);
         $ttl = \is_int($ttlConfig) ? $ttlConfig : 60;
         if (\is_string($ttlConfig) && ctype_digit($ttlConfig)) {
@@ -185,7 +212,8 @@ class UIStateManager
     public static function getClientOpenedScreens(?string $clientId = null): array
     {
         $clientId ??= self::getOrCreateClientId();
-        $cacheKey = "ui_open_screens:{$clientId}";
+        $tabId = self::getActiveTabId();
+        $cacheKey = $tabId ? "ui_open_screens:{$clientId}:{$tabId}" : "ui_open_screens:{$clientId}";
         $openedScreens = Cache::get($cacheKey, []);
         return \is_array($openedScreens) ? array_keys($openedScreens) : [];
     }
@@ -279,5 +307,47 @@ class UIStateManager
     {
         $cacheKey = self::getCacheKey(prefix: "ui_key_{$key}");
         return Cache::forget($cacheKey);
+    }
+
+    /**
+     * Store declarative screen state in cache
+     *
+     * @param string $serviceClass Service class name
+     * @param array<string, mixed> $state State dictionary
+     * @return bool
+     */
+    public static function storeScreenState(string $serviceClass, array $state): bool
+    {
+        if (empty($state)) {
+            return false;
+        }
+
+        $cacheKey = self::getCacheKey($serviceClass, 'ui_screen_state');
+        $ttlConfig = config('usim.ui_cache_ttl', 60);
+        $ttl = \is_int($ttlConfig) ? $ttlConfig : 60;
+        if (\is_string($ttlConfig) && ctype_digit($ttlConfig)) {
+            $ttl = (int) $ttlConfig;
+        }
+
+        return Cache::put($cacheKey, json_encode($state), $ttl);
+    }
+
+    /**
+     * Retrieve declarative screen state from cache
+     *
+     * @param string $serviceClass Service class name
+     * @return array<string, mixed>
+     */
+    public static function getScreenState(string $serviceClass): array
+    {
+        $cacheKey = self::getCacheKey($serviceClass, 'ui_screen_state');
+        $data = Cache::get($cacheKey);
+
+        if (\is_string($data)) {
+            $decoded = json_decode($data, true);
+            return \is_array($decoded) ? $decoded : [];
+        }
+
+        return \is_array($data) ? $data : [];
     }
 }

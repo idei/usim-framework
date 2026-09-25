@@ -119,6 +119,19 @@ function getUsimStorageHeaderValue() {
     return encodeHeaderSafeValue(getUsimStorageValue());
 }
 
+function getUsimTabId() {
+    try {
+        let tabId = sessionStorage.getItem('usim_tab_id');
+        if (!tabId) {
+            tabId = typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : 'tab_' + Math.random().toString(36).substring(2, 15);
+            sessionStorage.setItem('usim_tab_id', tabId);
+        }
+        return tabId;
+    } catch (_e) {
+        return '';
+    }
+}
+
 /**
  * Get CSRF headers for HTTP requests.
  * Prefers dynamic XSRF-TOKEN cookie updated automatically by Laravel on each web response,
@@ -709,6 +722,7 @@ class UIComponent {
                     'Accept': 'application/json',
                     'X-Requested-With': 'XMLHttpRequest',
                     'X-USIM-Storage': usimStorage,
+                    'X-USIM-Tab-Id': getUsimTabId(),
                     ...csrfHeaders,
                 },
                 credentials: 'same-origin',
@@ -1684,6 +1698,7 @@ class UIRenderer {
                                     'Accept': 'application/json',
                                     'X-Requested-With': 'XMLHttpRequest',
                                     'X-USIM-Storage': usimStorage,
+                                    'X-USIM-Tab-Id': getUsimTabId(),
                                     ...csrfHeaders,
                                 },
                                 credentials: 'same-origin',
@@ -2508,6 +2523,7 @@ async function loadScreenUI(screenName = null, forceReset = null) {
                 'Accept': 'application/json',
                 'X-Requested-With': 'XMLHttpRequest',
                 'X-USIM-Storage': usimStorage,
+                'X-USIM-Tab-Id': getUsimTabId(),
                 ...csrfHeaders,
             }
         });
@@ -2900,6 +2916,7 @@ async function executeTimeoutAction(action, callerServiceId) {
                     'Accept': 'application/json',
                     'X-Requested-With': 'XMLHttpRequest',
                     'X-USIM-Storage': usimStorage,
+                    'X-USIM-Tab-Id': getUsimTabId(),
                     ...csrfHeaders,
                 },
                 credentials: 'same-origin',
@@ -2977,6 +2994,7 @@ async function loadMenuUI(forceReset = null) {
                     'Accept': 'application/json',
                     'X-Requested-With': 'XMLHttpRequest',
                     'X-USIM-Storage': usimStorage,
+                    'X-USIM-Tab-Id': getUsimTabId(),
                 }
             }
         );

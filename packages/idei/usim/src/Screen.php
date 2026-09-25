@@ -19,6 +19,7 @@ use Idei\Usim\Components\TableHeaderRow;
 use Idei\Usim\Components\TableRow;
 use Idei\Usim\Components\Uploader;
 use Idei\Usim\Contracts\UIElement;
+use Idei\Usim\Widgets\Widget;
 use Idei\Usim\Enums\LayoutType;
 use Idei\Usim\Enums\Visibility;
 use Idei\Usim\Models\UsimUnit;
@@ -582,14 +583,43 @@ abstract class Screen
     }
 
     /**
+     * Declarative build method (Flutter-style).
+     *
+     * Override this method in declarative screens to return a Widget tree.
+     * When implemented, USIM automatically evaluates build() on state changes
+     * and performs reactive diffing without requiring manual component mutations.
+     *
+     * @return Widget|null
+     */
+    public function build(): ?Widget
+    {
+        return null;
+    }
+
+    /**
+     * Check if this screen is using the declarative Widget architecture.
+     */
+    public function isDeclarative(): bool
+    {
+        return $this->build() !== null;
+    }
+
+    /**
      * Build base user Interface structure
      *
-     * Override this method in your service to define the base user Interface.
-     * This will be called automatically if the cache expires.
+     * In legacy screens, override this method to imperatively construct the UI.
+     * In declarative screens, this method delegates automatically to build().
      *
+     * @param Container $container Root container
      * @param mixed ...$params Optional parameters for user Interface construction
      */
-    abstract protected function buildBaseUI(Container $container, ...$params): void;
+    protected function buildBaseUI(Container $container, ...$params): void
+    {
+        $widget = $this->build();
+        if ($widget !== null) {
+            $widget->mount($container, static::class);
+        }
+    }
 
     protected function postLoadUI(): void {}
 
@@ -624,6 +654,14 @@ abstract class Screen
 
         // Inject component references into protected properties
         $this->injectComponentReferences();
+
+        // Restore declarative state if screen is declarative
+        if ($this->isDeclarative()) {
+            $cachedState = UIStateManager::getScreenState(static::class);
+            if (!empty($cachedState)) {
+                $this->restoreDeclarativeState($cachedState);
+            }
+        }
     }
 
     /**
@@ -772,6 +810,26 @@ abstract class Screen
             $this->postLoadUI();
         }
 
+        if ($this->isDeclarative()) {
+            // Re-render declarative UI according to latest state
+            $current_class = static::class;
+            $current_class_slug = strtolower(str_replace('\\', '_', $current_class));
+            $newContainer = UI::container($current_class_slug, $current_class)
+                ->parent($this->parent);
+
+            $widget = $this->build();
+            if ($widget !== null) {
+                $widget->mount($newContainer, static::class);
+            }
+            $this->container = $newContainer;
+
+            // Persist screen state in Redis/Cache
+            $state = $this->extractDeclarativeState();
+            if (!empty($state)) {
+                UIStateManager::storeScreenState(static::class, $state);
+            }
+        }
+
         // Get current user Interface state
         $this->newUI = $this->container->toJson();
 
@@ -842,6 +900,13 @@ abstract class Screen
 
         // Generate and cache new user Interface
         $this->buildBaseUI($container, ...$params);
+
+        if ($this->isDeclarative()) {
+            $state = $this->extractDeclarativeState();
+            if (!empty($state)) {
+                UIStateManager::storeScreenState(static::class, $state);
+            }
+        }
 
         $ui = $container
             ->root(true)
@@ -1387,5 +1452,52 @@ abstract class Screen
     public function getAgentContext(): array
     {
         return [];
+    }
+
+    /**
+     * Get serializable state properties for declarative screens.
+     *
+     * @return array<string, mixed>
+     */
+    protected function extractDeclarativeState(): array
+    {
+        $state = [];
+        $reflection = new ReflectionClass($this);
+        foreach ($reflection->getProperties(ReflectionProperty::IS_PROTECTED | ReflectionProperty::IS_PUBLIC) as $property) {
+            if ($property->isStatic() || $property->getDeclaringClass()->getName() === self::class) {
+                continue;
+            }
+            $name = $property->getName();
+            // Skip storage legacy properties, component instances and internal references
+            if (str_starts_with($name, 'store_') || str_starts_with($name, '_')) {
+                continue;
+            }
+            if ($property->isInitialized($this)) {
+                $value = $property->getValue($this);
+                // Only persist primitive or array state values
+                if (is_scalar($value) || is_array($value) || $value === null) {
+                    $state[$name] = $value;
+                }
+            }
+        }
+        return $state;
+    }
+
+    /**
+     * Restore serializable state properties for declarative screens.
+     *
+     * @param array<string, mixed> $state
+     */
+    protected function restoreDeclarativeState(array $state): void
+    {
+        $reflection = new ReflectionClass($this);
+        foreach ($state as $name => $value) {
+            if ($reflection->hasProperty($name)) {
+                $prop = $reflection->getProperty($name);
+                if (!$prop->isStatic() && $prop->getDeclaringClass()->getName() !== self::class) {
+                    $prop->setValue($this, $value);
+                }
+            }
+        }
     }
 }

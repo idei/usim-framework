@@ -37,6 +37,8 @@ docs/
 
 | Documento | Descripción | Tamaño |
 |-----------|-------------|--------|
+| **[ARQUITECTURA_DECLARATIVA_Y_REACTIVIDAD.md](framework/ARQUITECTURA_DECLARATIVA_Y_REACTIVIDAD.md)** 🚀 | **Nuevo estándar declarativo y reactivo (v2.0)**: UI = f(State), catálogo de Widgets estilo Flutter, eliminación de reflexión y solución a multi-pestaña | 16K |
+| **[PLAN_IMPLEMENTACION_REFACTORIZACION.md](framework/PLAN_IMPLEMENTACION_REFACTORIZACION.md)** 📋 | **Plan de implementación y transición**: Fases de migración, roadmap técnico y retrocompatibilidad | 8K |
 | **[USIM_EVENTS_SYSTEM.md](framework/USIM_EVENTS_SYSTEM.md)** ⚡ | Especificación completa y unificada del sistema de eventos USIM (UI y Dominio), ciclo de vida, diffing, contratos JSON y guía para desarrolladores y LLMs | 25K |
 | **[PROTOCOLO_UI.md](framework/PROTOCOLO_UI.md)** 📜 | Especificación formal del protocolo USIM (Server-Driven UI), gramática EBNF, endpoints, ciclo de vida de Screen y meta-acciones | 22K |
 | **[USIM_ACADEMIC_REPORT.md](framework/USIM_ACADEMIC_REPORT.md)** ⭐ | Documentación académica completa del framework. Arquitectura, características, ejemplos de servicios reales y comparativas con stack tradicional | 41K |

@@ -119,6 +119,19 @@ function getUsimStorageHeaderValue() {
     return encodeHeaderSafeValue(getUsimStorageValue());
 }
 
+function getUsimTabId() {
+    try {
+        let tabId = sessionStorage.getItem('usim_tab_id');
+        if (!tabId) {
+            tabId = typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : 'tab_' + Math.random().toString(36).substring(2, 15);
+            sessionStorage.setItem('usim_tab_id', tabId);
+        }
+        return tabId;
+    } catch (_e) {
+        return '';
+    }
+}
+
 /**
  * Get CSRF headers for HTTP requests.
  * Prefers dynamic XSRF-TOKEN cookie updated automatically by Laravel on each web response,
@@ -441,9 +454,6 @@ class UIComponent {
             : null;
 
         element.setAttribute('data-component-id', componentId);
-        if (this.config._order !== undefined && this.config._order !== null) {
-            element.setAttribute('data-order', String(this.config._order));
-        }
         if (this.config.name) {
             element.id = this.config.name;
         }
@@ -712,6 +722,7 @@ class UIComponent {
                     'Accept': 'application/json',
                     'X-Requested-With': 'XMLHttpRequest',
                     'X-USIM-Storage': usimStorage,
+                    'X-USIM-Tab-Id': getUsimTabId(),
                     ...csrfHeaders,
                 },
                 credentials: 'same-origin',
@@ -1427,14 +1438,7 @@ class UIRenderer {
                 }
             }
 
-            // 3) Sort creates by _order (JS Object.entries sorts integer keys by numeric hash ID, not _order)
-            //    and resolve in multiple passes so parents mount before children.
-            creates.sort(([, changesA], [, changesB]) => {
-                const orderA = Number.isFinite(Number(changesA?._order)) ? Number(changesA._order) : Number.MAX_SAFE_INTEGER;
-                const orderB = Number.isFinite(Number(changesB?._order)) ? Number(changesB._order) : Number.MAX_SAFE_INTEGER;
-                return orderA - orderB;
-            });
-
+            // 3) Resolve creates in multiple passes so parents mount before children.
             let pendingCreates = creates;
             const maxPasses = 4;
 
@@ -1694,6 +1698,7 @@ class UIRenderer {
                                     'Accept': 'application/json',
                                     'X-Requested-With': 'XMLHttpRequest',
                                     'X-USIM-Storage': usimStorage,
+                                    'X-USIM-Tab-Id': getUsimTabId(),
                                     ...csrfHeaders,
                                 },
                                 credentials: 'same-origin',
@@ -2317,22 +2322,7 @@ class UIRenderer {
 
             if (parentElement) {
                 if (!insertByTableOrder(parentElement, element, config)) {
-                    const orderIndex = Number(config._order);
-                    if (Number.isInteger(orderIndex) && orderIndex > 0) {
-                        element.setAttribute('data-order', String(orderIndex));
-                        const nextSibling = Array.from(parentElement.children).find((node) => {
-                            if (!(node instanceof HTMLElement)) return false;
-                            const siblingOrder = Number(node.getAttribute('data-order'));
-                            return Number.isInteger(siblingOrder) && siblingOrder > orderIndex;
-                        });
-                        if (nextSibling) {
-                            parentElement.insertBefore(element, nextSibling);
-                        } else {
-                            parentElement.appendChild(element);
-                        }
-                    } else {
-                        parentElement.appendChild(element);
-                    }
+                    parentElement.appendChild(element);
                 }
                 console.debug(`➕ Component ${jsonKey} added to parent ${config.parent}`);
                 return true;
@@ -2533,6 +2523,7 @@ async function loadScreenUI(screenName = null, forceReset = null) {
                 'Accept': 'application/json',
                 'X-Requested-With': 'XMLHttpRequest',
                 'X-USIM-Storage': usimStorage,
+                'X-USIM-Tab-Id': getUsimTabId(),
                 ...csrfHeaders,
             }
         });
@@ -2925,6 +2916,7 @@ async function executeTimeoutAction(action, callerServiceId) {
                     'Accept': 'application/json',
                     'X-Requested-With': 'XMLHttpRequest',
                     'X-USIM-Storage': usimStorage,
+                    'X-USIM-Tab-Id': getUsimTabId(),
                     ...csrfHeaders,
                 },
                 credentials: 'same-origin',
@@ -3002,6 +2994,7 @@ async function loadMenuUI(forceReset = null) {
                     'Accept': 'application/json',
                     'X-Requested-With': 'XMLHttpRequest',
                     'X-USIM-Storage': usimStorage,
+                    'X-USIM-Tab-Id': getUsimTabId(),
                 }
             }
         );

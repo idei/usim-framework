@@ -14,6 +14,15 @@
             ? getUsimStorageHeaderValue()
             : '';
 
+        let tabId = '';
+        try {
+            tabId = sessionStorage.getItem('usim_tab_id') || '';
+            if (!tabId) {
+                tabId = typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : 'tab_' + Math.random().toString(36).substring(2, 15);
+                sessionStorage.setItem('usim_tab_id', tabId);
+            }
+        } catch (_e) {}
+
         const response = await fetch('/api/ui-event', {
             method: 'POST',
             headers: {
@@ -21,6 +30,7 @@
                 'Accept': 'application/json',
                 'X-Requested-With': 'XMLHttpRequest',
                 'X-USIM-Storage': usimStorage,
+                'X-USIM-Tab-Id': tabId,
                 ...csrfHeaders,
             },
             credentials,
