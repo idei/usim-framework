@@ -91,4 +91,10 @@ return [
             'description' => 'Permite eliminar usuarios del sistema.',
         ],
     ],
+    'pepito' => [
+        'access' => [
+            'name' => 'Acceder a Pepito',
+            'description' => 'Permite acceder a la pantalla Pepito.',
+        ],
+    ],
 ];

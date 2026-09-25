@@ -4,6 +4,7 @@ namespace Idei\Usim;
 
 use Idei\Usim\Console\Commands\DiscoverScreensCommand;
 use Idei\Usim\Console\Commands\InstallCommand;
+use Idei\Usim\Console\Commands\UsimScaffold;
 use Idei\Usim\Console\Commands\UsimSyncCommand;
 use Idei\Usim\Events\UsimEvent;
 use Idei\Usim\Listeners\UsimEventDispatcher;
@@ -47,6 +48,7 @@ class UsimServiceProvider extends ServiceProvider
             DiscoverScreensCommand::class,
             InstallCommand::class,
             UsimSyncCommand::class,
+            UsimScaffold::class,
         ]);
     }
 

@@ -91,4 +91,10 @@ return [
             'description' => 'Allows removing users from the system.',
         ],
     ],
+    'pepito' => [
+        'access' => [
+            'name' => 'Access Pepito',
+            'description' => 'Permission to access Pepito.',
+        ],
+    ],
 ];
