@@ -16,23 +16,33 @@ class ButtonDemo extends Screen
 
     protected const string KEY_PREFIX = 'screen.demo.container_demo.';
 
-    protected Button $first;
-    protected Button $second;
-    protected Button $third;
+    protected array $options = [
+        CheckboxDemo::class,
+        FormDemo::class,
+        TabsDemo::class,
+        TableDemo::class,
+        SelectDemo::class,
+        TextareaDemo::class,
+        SplitDemo::class,
+        ModalDemo::class,
+    ];
+
+    protected Container $buttons_container;
+
     protected Container $message_container;
 
     protected function buildBaseUI(Container $container, ...$params): void
     {
         $this->message_container = UI::container('message_container')
             ->backgroundColor('#f0f0f0')->borderRadius(Spacing::px(10))
-            ->width(Size::pct(100))
+            ->width(Size::px(1100))
             ->padding(Spacing::px(5));
 
         $container
             ->alignContent('center')->alignItems('center')
             ->title(t(self::KEY_PREFIX . 'title'))
-            ->padding(Spacing::px(10))->maxWidth(Size::px(600))
-            ->centerHorizontal()->shadow(2)
+            ->padding(Spacing::px(10))->maxWidth(Size::px(1200))
+            ->centerHorizontal()->plain()
             ->gap(Spacing::px(20))
             ->add($this->buttonsContainer())
             ->add($this->message_container);
@@ -40,92 +50,66 @@ class ButtonDemo extends Screen
 
     private function buttonsContainer(): Container
     {
-        return UI::container('buttons_container')
+        $this->buttons_container = UI::container('buttons_container')
             ->layout(LayoutType::HORIZONTAL)
             ->alignContent('center')
             ->alignItems('center')
             ->gap(Spacing::px(10))
-            ->plain()
-            ->add(
-                UI::button('first')
-                    ->label(t(self::KEY_PREFIX . 'first'))
-                    ->status(true)
-                    ->action('first')
-            )->add(
-                UI::button('second')
-                    ->label(t(self::KEY_PREFIX . 'second'))
-                    ->status(false)
-                    ->action('second')
-            )->add(
-                UI::button('third')
-                    ->label(t(self::KEY_PREFIX . 'third'))
-                    ->status(false)
-                    ->action('third')
-            );
+            ->plain();
+
+        foreach ($this->options as $index => $demoClass) {
+            $button = UI::button("button_$index")
+                ->label($demoClass::getMenuLabel())
+                ->icon($demoClass::getMenuIcon() ?? '')
+                ->status($index === 0)
+                ->style($index === 0 ? 'primary' : 'secondary');
+            $id = $button->getId();
+            $button->action('demo_selected', [
+                'id' => $id,
+                'index' => $index,
+            ]);
+            $this->buttons_container->add($button);
+        }
+        return $this->buttons_container;
+    }
+
+    public function onDemoSelected(array $params): void
+    {
+        $id = $params['id'] ?? null;
+        $index = $params['index'] ?? null;
+        $this->updateButtonState($id);
+        $this->message_container->embed($this->options[$index]);
     }
 
     protected function postLoadUI(): void
     {
-        $this->updateButtonState();
-        $this->message_container->clear();
-        $this->build(CheckboxDemo::class, $this->message_container);
+        $this->message_container->embed(
+            $this->options[$this->selectedIndex()]
+        );
     }
 
-    /** @param array<string, mixed> $params */
-    public function onFirst(array $params): void
+    private function updateButtonState(?string $id = null): void
     {
-        if ($this->first->getStatus()) {
-            return;
+        foreach ($this->buttons_container->getChildren() as $button) {
+            if ($button instanceof Button) {
+                $button->status(false);
+                $button->style('secondary');
+            }
         }
-
-        $this->first->status(true);
-        $this->second->status(false);
-        $this->third->status(false);
-        $this->updateButtonState();
-        $this->message_container->clear();
-        $this->build(CheckboxDemo::class, $this->message_container);
-    }
-
-    /** @param array<string, mixed> $params */
-    public function onSecond(array $params): void
-    {
-        if ($this->second->getStatus()) {
-            return;
+        $button = $this->findRootComponentAs($id, Button::class);
+        if ($button) {
+            $button->status(true);
+            $button->style('primary');
         }
-
-        $this->first->status(false);
-        $this->second->status(true);
-        $this->third->status(false);
-        $this->updateButtonState();
-        $this->message_container->clear();
-        $this->build(FormDemo::class, $this->message_container);
     }
 
-    /** @param array<string, mixed> $params */
-    public function onThird(array $params): void
+    private function selectedIndex(): int
     {
-        if ($this->third->getStatus()) {
-            return;
+        foreach ($this->buttons_container->getChildren() as $index => $button) {
+            if ($button instanceof Button && $button->getStatus()) {
+                return $index;
+            }
         }
-
-        $this->first->status(false);
-        $this->second->status(false);
-        $this->third->status(true);
-        $this->updateButtonState();
-        $this->message_container->clear();
-        $this->build(TabsDemo::class, $this->message_container);
-    }
-
-    private function updateButtonState(): void
-    {
-        $this->setStatusStyle($this->first);
-        $this->setStatusStyle($this->second);
-        $this->setStatusStyle($this->third);
-    }
-
-    private function setStatusStyle(Button $button): void
-    {
-        $status = $button->getStatus() ? 'success' : 'secondary';
-        $button->style($status);
+        return -1;
     }
 }

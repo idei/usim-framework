@@ -90,6 +90,20 @@ abstract class Screen
     protected array $incomingStorage = [];
 
     /**
+     * Active incoming storage for nested screen embedding
+     *
+     * @var array<string, mixed>
+     */
+    protected static array $currentIncomingStorage = [];
+
+    /**
+     * Active query parameters for nested screen embedding
+     *
+     * @var array<string, mixed>
+     */
+    protected static array $currentQueryParams = [];
+
+    /**
      * Parent context for this screen (used for nested screens)
      *
      * @var int|string|null
@@ -604,6 +618,8 @@ abstract class Screen
 
         $this->incomingStorage = $incomingStorage;
         $this->queryParams = $queryParams;
+        self::$currentIncomingStorage = $incomingStorage;
+        self::$currentQueryParams = $queryParams;
 
         // Inject storage values into protected properties (store_* variables)
         $this->injectStorageValues($incomingStorage);
@@ -846,15 +862,15 @@ abstract class Screen
      * @param Container $parent
      * @return void
      */
-    public function build(string $class, Container $parent): void
+    public static function embedInto(string $class, Container $parent): void
     {
         $parentId = $parent->getId();
 
         $instance = new $class();
         $instance->parent = $parentId;
         $instance->initializeEventContext(
-            incomingStorage: $this->incomingStorage,
-            queryParams: $this->queryParams,
+            incomingStorage: self::$currentIncomingStorage,
+            queryParams: self::$currentQueryParams,
             parent: $parentId
         );
         $instance->postLoadUI();
@@ -869,7 +885,7 @@ abstract class Screen
         $instance->container->root(false);
         $parent->add($instance->container);
 
-        $this->uiChanges()->setStorage($instance->getStorageVariables());
+        $instance->uiChanges()->setStorage($instance->getStorageVariables());
     }
 
     /**
