@@ -84,8 +84,6 @@ class UIEventController extends Controller
             }
 
             $changes = $this->uiChanges->all();
-            $jsonChanges = json_encode($changes, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
-            // Log::debug('UI Event', [$jsonChanges]);
 
             return response()->json($changes);
         } catch (\Throwable $exception) {

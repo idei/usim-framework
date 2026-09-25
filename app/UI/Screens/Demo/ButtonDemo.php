@@ -86,6 +86,7 @@ class ButtonDemo extends Screen
         $this->build(CheckboxDemo::class, $this->message_container);
     }
 
+    /** @param array<string, mixed> $params */
     public function onSecond(array $params): void
     {
         if ($this->second->getStatus()) {
@@ -100,6 +101,7 @@ class ButtonDemo extends Screen
         $this->build(FormDemo::class, $this->message_container);
     }
 
+    /** @param array<string, mixed> $params */
     public function onThird(array $params): void
     {
         if ($this->third->getStatus()) {

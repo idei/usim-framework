@@ -21,7 +21,7 @@ class UIChangesCollector
      */
     public function add(array $change = []): void
     {
-        $this->changes += $change;
+        $this->changes = array_replace($this->changes, $change);
     }
 
     /**

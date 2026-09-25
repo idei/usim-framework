@@ -92,9 +92,9 @@ abstract class Screen
     /**
      * Parent context for this screen (used for nested screens)
      *
-     * @var string
+     * @var int|string|null
      */
-    protected(set) ?string $parent = 'main';
+    protected(set) int|string|null $parent = 'main';
 
     /**
      * Screen visibility level. Used by the framework to determine access and menu display.
@@ -590,13 +590,13 @@ abstract class Screen
      *
      * @param array<string, mixed> $incomingStorage Storage data from frontend (decrypted)
      * @param array<string, mixed> $queryParams Query parameters from frontend
-     * @param string $parent The parent screen ID (used for nested screens)
+     * @param int|string|null $parent The parent screen/container ID (used for nested screens)
      * @return void
      */
-    public function initializeEventContext(array $incomingStorage = [], array $queryParams = [], string $parent = ""): void
+    public function initializeEventContext(array $incomingStorage = [], array $queryParams = [], int|string|null $parent = null): void
     {
         $this->container = $this->reconstructScreenTreeFromCache();
-        if (!empty($parent)) {
+        if ($parent !== null && $parent !== '') {
             $this->container->setParent($parent);
         }
         Log::debug("Screen initialized: " . static::class . " with parent: " . $this->container->getParent());
@@ -840,23 +840,36 @@ abstract class Screen
     }
 
     /**
-     * Summary of build
+     * Build and attach a nested screen inside a parent container.
+     *
      * @param class-string<Screen> $class
      * @param Container $parent
      * @return void
      */
-    public function build(string $class, Container $parent)
+    public function build(string $class, Container $parent): void
     {
+        $parentId = $parent->getId();
+
         $instance = new $class();
-        $instance->parent = $parent->getName();
+        $instance->parent = $parentId;
         $instance->initializeEventContext(
             incomingStorage: $this->incomingStorage,
             queryParams: $this->queryParams,
-            parent: $parent->getName()
+            parent: $parentId
         );
-        $instance->finalizeEventContext(reload: true);
+        $instance->postLoadUI();
+
+        // Store the child screen's own snapshot with root=true and parent=$parentId
+        // so direct events on the child screen can reconstruct its tree.
+        $instance->container->root(true);
+        $instance->cacheScreenSnapshot($instance->container);
+
+        // Attach to the host screen's container with root=false so it does not
+        // collide with the host screen's root container.
         $instance->container->root(false);
         $parent->add($instance->container);
+
+        $this->uiChanges()->setStorage($instance->getStorageVariables());
     }
 
     /**
@@ -890,7 +903,8 @@ abstract class Screen
     {
         foreach ($ui as $componentId => $component) {
             $parent = $component['parent'] ?? null;
-            if (\is_int($parent) && !isset($ui[$parent]) && !isset($ui[(string) $parent])) {
+            $isRoot = (bool) ($component['root'] ?? false);
+            if (!$isRoot && \is_int($parent) && !isset($ui[$parent]) && !isset($ui[(string) $parent])) {
                 return false;
             }
 
