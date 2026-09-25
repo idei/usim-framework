@@ -49,7 +49,7 @@ class Textarea extends UIComponent
     /** Set the current value. */
     public function value(?string $value): self
     {
-        return $this->setConfig('value', $value);
+        return $this->setConfig('value', $value ?? '');
     }
 
     /**

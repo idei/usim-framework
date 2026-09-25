@@ -76,7 +76,7 @@ class UsimInputComponent extends UIComponent {
                 debounceTimer = setTimeout(() => {
                     this.triggerAction(
                         this.config.on_input.action,
-                        { ...this.config.on_input.parameters, value: e.target.value }
+                        this.buildActionParameters(this.config.on_input.parameters, e.target.value)
                     );
                 }, debounceTime);
             });
@@ -86,7 +86,7 @@ class UsimInputComponent extends UIComponent {
             input.addEventListener('change', (e) => {
                 this.triggerAction(
                     this.config.on_change.action,
-                    { ...this.config.on_change.parameters, value: e.target.value }
+                    this.buildActionParameters(this.config.on_change.parameters, e.target.value)
                 );
             });
         }
@@ -97,11 +97,25 @@ class UsimInputComponent extends UIComponent {
                     e.preventDefault();
                     this.triggerAction(
                         this.config.on_enter.action,
-                        { ...this.config.on_enter.parameters, value: e.target.value }
+                        this.buildActionParameters(this.config.on_enter.parameters, e.target.value)
                     );
                 }
             });
         }
+    }
+
+    buildActionParameters(baseParameters = {}, currentValue = '') {
+        const params = {
+            ...(baseParameters || {}),
+            value: currentValue,
+        };
+
+        if (this.config.name) {
+            params[this.config.name] = currentValue;
+            params.name = this.config.name;
+        }
+
+        return params;
     }
 
     async triggerAction(action, parameters) {

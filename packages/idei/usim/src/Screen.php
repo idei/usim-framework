@@ -17,6 +17,7 @@ use Idei\Usim\Components\TableCell;
 use Idei\Usim\Components\TableHeaderCell;
 use Idei\Usim\Components\TableHeaderRow;
 use Idei\Usim\Components\TableRow;
+use Idei\Usim\Components\UIComponent;
 use Idei\Usim\Components\Uploader;
 use Idei\Usim\Contracts\UIElement;
 use Idei\Usim\Enums\LayoutType;
@@ -603,15 +604,27 @@ abstract class Screen
      * @param array<string, mixed> $incomingStorage Storage data from frontend (decrypted)
      * @param array<string, mixed> $queryParams Query parameters from frontend
      * @param int|string|null $parent The parent screen/container ID (used for nested screens)
+     * @param array<string, mixed> $eventParameters Parameters sent with the UI event
+     * @param int|null $triggerComponentId ID of the component that triggered the event
      * @return void
      */
-    public function initializeEventContext(array $incomingStorage = [], array $queryParams = [], int|string|null $parent = null): void
-    {
+    public function initializeEventContext(
+        array $incomingStorage = [],
+        array $queryParams = [],
+        int|string|null $parent = null,
+        array $eventParameters = [],
+        ?int $triggerComponentId = null
+    ): void {
         $this->container = $this->reconstructScreenTreeFromCache();
         if ($parent !== null && $parent !== '') {
             $this->container->setParent($parent);
         }
-        Log::debug("Screen initialized: " . static::class . " with parent: " . $this->container->getParent());
+
+        if (!empty($eventParameters) || $triggerComponentId !== null) {
+            $this->hydrateClientComponentState($eventParameters, $triggerComponentId);
+        }
+
+        $this->clearContainerDirtyState($this->container);
         $this->oldUI = $this->container->toJson();
 
         $this->incomingStorage = $incomingStorage;
@@ -624,6 +637,71 @@ abstract class Screen
 
         // Inject component references into protected properties
         $this->injectComponentReferences();
+    }
+
+    /**
+     * Hydrate live component instances with the values currently held in the client DOM
+     * before capturing the $oldUI snapshot.
+     *
+     * @param array<string, mixed> $eventParameters
+     * @param int|null $triggerComponentId
+     */
+    protected function hydrateClientComponentState(array $eventParameters, ?int $triggerComponentId = null): void
+    {
+        if ($triggerComponentId !== null) {
+            $triggerElement = $this->container->findById($triggerComponentId);
+            if ($triggerElement instanceof UIComponent) {
+                $type = $triggerElement->getType();
+                if (in_array($type, ['input', 'textarea', 'select'], true) && array_key_exists('value', $eventParameters)) {
+                    $val = $eventParameters['value'];
+                    if (is_scalar($val) || $val === null) {
+                        $triggerElement->syncClientConfig('value', $val ?? '');
+                    }
+                } elseif ($type === 'checkbox' && array_key_exists('checked', $eventParameters)) {
+                    $triggerElement->syncClientConfig('checked', (bool) $eventParameters['checked']);
+                }
+            }
+        }
+
+        $reservedKeys = ['value', 'checked', 'name', '_caller_screen_id', '_caller_service_id'];
+
+        foreach ($eventParameters as $paramKey => $paramValue) {
+            if ($paramKey === '' || in_array($paramKey, $reservedKeys, true)) {
+                continue;
+            }
+
+            $element = $this->container->findByName($paramKey);
+            if (!($element instanceof UIComponent)) {
+                continue;
+            }
+
+            $type = $element->getType();
+            if (in_array($type, ['input', 'textarea', 'select'], true)) {
+                if (is_scalar($paramValue) || $paramValue === null) {
+                    $element->syncClientConfig('value', $paramValue ?? '');
+                }
+            } elseif ($type === 'checkbox') {
+                if (is_bool($paramValue)) {
+                    $element->syncClientConfig('checked', $paramValue);
+                } elseif (is_array($paramValue)) {
+                    $element->syncClientConfig('selected_values', $paramValue);
+                }
+            }
+        }
+    }
+
+    /**
+     * Reset dirty tracking across all leaf components in a container tree.
+     */
+    protected function clearContainerDirtyState(Container $container): void
+    {
+        foreach ($container->getChildren() as $child) {
+            if ($child instanceof UIComponent) {
+                $child->clearDirtyKeys();
+            } elseif ($child instanceof Container) {
+                $this->clearContainerDirtyState($child);
+            }
+        }
     }
 
     /**
@@ -799,6 +877,20 @@ abstract class Screen
             UIDiffer::compare([], $newUI) :
             UIDiffer::compare($oldUI, $newUI);
 
+        if (!$reload && isset($this->container)) {
+            foreach ($this->collectDirtyComponentChanges($this->container) as $componentId => $dirtyProps) {
+                if (!isset($this->newUI[$componentId])) {
+                    continue;
+                }
+                if (($this->newUI[$componentId]['parent'] ?? null) === null) {
+                    continue;
+                }
+                foreach ($dirtyProps as $propKey => $propValue) {
+                    $diff[$componentId][$propKey] = $propValue;
+                }
+            }
+        }
+
         $result = [];
         foreach ($diff as $componentId => $changes) {
             // Always include 'type' from newUI so frontend knows how to handle the change
@@ -810,6 +902,38 @@ abstract class Screen
         }
 
         return $result;
+    }
+
+    /**
+     * Collect properties explicitly mutated via setConfig() during the current event lifecycle.
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    protected function collectDirtyComponentChanges(Container $container): array
+    {
+        $dirtyChanges = [];
+        $ignoredKeys = ['type', 'parent', '_order'];
+
+        foreach ($container->getChildren() as $child) {
+            if ($child instanceof UIComponent) {
+                $dirtyKeys = $child->getDirtyKeys();
+                if (!empty($dirtyKeys)) {
+                    $id = $child->getId();
+                    foreach ($dirtyKeys as $key) {
+                        if (in_array($key, $ignoredKeys, true)) {
+                            continue;
+                        }
+                        $dirtyChanges[$id][$key] = $child->get($key);
+                    }
+                }
+            } elseif ($child instanceof Container) {
+                foreach ($this->collectDirtyComponentChanges($child) as $id => $props) {
+                    $dirtyChanges[$id] = array_merge($dirtyChanges[$id] ?? [], $props);
+                }
+            }
+        }
+
+        return $dirtyChanges;
     }
 
     /**
@@ -866,6 +990,12 @@ abstract class Screen
 
         $instance = new $class();
         $instance->parent = $parentId;
+
+        $shouldReset = (bool) (self::$currentQueryParams['reset'] ?? request()->query('reset', false));
+        if ($shouldReset) {
+            $instance->onResetScreen();
+        }
+
         $instance->initializeEventContext(
             incomingStorage: self::$currentIncomingStorage,
             queryParams: self::$currentQueryParams,

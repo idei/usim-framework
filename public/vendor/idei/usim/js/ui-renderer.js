@@ -1949,11 +1949,16 @@ class UIRenderer {
 
             // Value (inputs)
             if (changes.value !== undefined) {
+                const nextValue = changes.value ?? '';
                 if (element.tagName === 'INPUT' || element.tagName === 'TEXTAREA') {
-                    element.value = changes.value;
+                    element.value = nextValue;
                 } else {
                     const input = element.querySelector('input, textarea');
-                    if (input) input.value = changes.value;
+                    if (input) input.value = nextValue;
+                }
+                const runtimeComponent = componentId ? this.components?.get(String(componentId)) : null;
+                if (runtimeComponent && runtimeComponent.config) {
+                    runtimeComponent.config.value = nextValue;
                 }
             }
 

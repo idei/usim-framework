@@ -27,6 +27,8 @@ abstract class UIComponent implements UIElement, Sizeable, Marginable
     protected int|string|null $parent = null;
     /** @var array<string, mixed> */
     protected array $config = [];
+    /** @var array<string, true> Properties explicitly mutated during the current event lifecycle */
+    protected array $dirtyKeys = [];
 
     public function __construct(?string $name = null)
     {
@@ -78,6 +80,7 @@ abstract class UIComponent implements UIElement, Sizeable, Marginable
         $parent = $data['parent'] ?? null;
         $component->parent = is_int($parent) || is_string($parent) ? $parent : null;
         $component->config = array_merge($component->config, $data);
+        $component->dirtyKeys = [];
 
         return $component;
     }
@@ -352,7 +355,35 @@ abstract class UIComponent implements UIElement, Sizeable, Marginable
     protected function setConfig(string $key, mixed $value): static
     {
         $this->config[$key] = $value;
+        $this->dirtyKeys[$key] = true;
         return $this;
+    }
+
+    /**
+     * Synchronize a configuration value from the client DOM without marking it as dirty.
+     */
+    public function syncClientConfig(string $key, mixed $value): static
+    {
+        $this->config[$key] = $value;
+        return $this;
+    }
+
+    /**
+     * Get list of configuration keys explicitly mutated during the current lifecycle.
+     *
+     * @return list<string>
+     */
+    public function getDirtyKeys(): array
+    {
+        return array_keys($this->dirtyKeys);
+    }
+
+    /**
+     * Clear dirty keys tracking.
+     */
+    public function clearDirtyKeys(): void
+    {
+        $this->dirtyKeys = [];
     }
 
     /**

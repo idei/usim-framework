@@ -16,7 +16,7 @@ class Input extends UIComponent
             'input_type' => 'text',
             'label' => null,
             'placeholder' => null,
-            'value' => null,
+            'value' => '',
             'required' => false,
             'disabled' => false,
             'readonly' => false,
@@ -86,7 +86,7 @@ class Input extends UIComponent
      */
     public function value(mixed $value): self
     {
-        return $this->setConfig('value', $value);
+        return $this->setConfig('value', $value ?? '');
     }
 
     /**

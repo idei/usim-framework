@@ -9,6 +9,7 @@ use Idei\Usim\UIChangesCollector;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
+use Illuminate\Support\Facades\Log;
 
 /**
  * UI Event Controller
@@ -73,7 +74,11 @@ class UIEventController extends Controller
             UsimEventDispatcher::beginDeferredProcessing();
 
             try {
-                $screen->initializeEventContext($incomingStorage);
+                $screen->initializeEventContext(
+                    incomingStorage: $incomingStorage,
+                    eventParameters: $parameters,
+                    triggerComponentId: $componentId
+                );
                 $screen->$method($parameters);
                 $screen->finalizeEventContext(reload: false);
 
@@ -84,6 +89,8 @@ class UIEventController extends Controller
             }
 
             $changes = $this->uiChanges->all();
+
+            Log::info('UI Event handled', [json_encode($changes, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT)]);
 
             return response()->json($changes);
         } catch (\Throwable $exception) {
