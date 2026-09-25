@@ -83,6 +83,20 @@ abstract class Screen
     protected array $queryParams = [];
 
     /**
+     * Incoming storage from the request
+     *
+     * @var array<string, mixed>
+     */
+    protected array $incomingStorage = [];
+
+    /**
+     * Parent context for this screen (used for nested screens)
+     *
+     * @var string
+     */
+    protected(set) ?string $parent = 'main';
+
+    /**
      * Screen visibility level. Used by the framework to determine access and menu display.
      * @var Visibility
      */
@@ -250,7 +264,7 @@ abstract class Screen
      *
      * @param string|list<string> $roles
      * @param string|null $guard
-     * @param \Idei\Usim\Models\UsimUnit|int|string|null $unit Optional unit context
+     * @param UsimUnit|int|string|null $unit Optional unit context
      * @return bool
      */
     protected static function requireRole(string|array $roles, ?string $guard = null, mixed $unit = null): bool
@@ -300,7 +314,7 @@ abstract class Screen
      *
      * @param string|list<string> $permissions
      * @param string|null $guard
-     * @param \Idei\Usim\Models\UsimUnit|int|string|null $unit Optional unit context
+     * @param UsimUnit|int|string|null $unit Optional unit context
      * @return bool
      */
     protected static function requirePermission(string|array $permissions, ?string $guard = null, mixed $unit = null): bool
@@ -563,7 +577,9 @@ abstract class Screen
      */
     abstract protected function buildBaseUI(Container $container, ...$params): void;
 
-    protected function postLoadUI(): void {}
+    protected function postLoadUI(): void
+    {
+    }
 
     /**
      * Initialize event context
@@ -574,13 +590,19 @@ abstract class Screen
      *
      * @param array<string, mixed> $incomingStorage Storage data from frontend (decrypted)
      * @param array<string, mixed> $queryParams Query parameters from frontend
+     * @param string $parent The parent screen ID (used for nested screens)
      * @return void
      */
-    public function initializeEventContext(array $incomingStorage = [], array $queryParams = [], bool $debug = false): void
+    public function initializeEventContext(array $incomingStorage = [], array $queryParams = [], string $parent = ""): void
     {
-        $this->container = $this->reconstructScreenTreeFromCache($debug);
+        $this->container = $this->reconstructScreenTreeFromCache();
+        if (!empty($parent)) {
+            $this->container->setParent($parent);
+        }
+        Log::debug("Screen initialized: " . static::class . " with parent: " . $this->container->getParent());
         $this->oldUI = $this->container->toJson();
 
+        $this->incomingStorage = $incomingStorage;
         $this->queryParams = $queryParams;
 
         // Inject storage values into protected properties (store_* variables)
@@ -709,10 +731,11 @@ abstract class Screen
                     $property->setValue($this, $component);
                     $injected[$componentName] = $typeName;
                 } elseif (!$propertyType->allowsNull()) {
+                    $className = static::class;
                     // Component not found and property is not nullable
                     throw new RuntimeException(
-                        "Component '{$componentName}' not found in user Interface container. " .
-                            "Make sure the component exists or make the property nullable: protected ?{$typeName} \${$componentName};"
+                        "Component '{$componentName}' not found in {$className}. " .
+                        "Make sure the component exists or make the property nullable: protected ?{$typeName} \${$componentName};"
                     );
                 }
             }
@@ -728,7 +751,7 @@ abstract class Screen
      *
      * @return void
      */
-    public function finalizeEventContext(bool $reload = false, bool $debug = false): void
+    public function finalizeEventContext(bool $reload = false): void
     {
 
         if ($reload) {
@@ -781,7 +804,7 @@ abstract class Screen
      * @param mixed ...$params Optional parameters passed to buildBaseUI
      * @return array<int|string, array<string, mixed>> user Interface structure in JSON format
      */
-    protected function getCachedScreenSnapshot(string $parent = 'main', bool $debug = false, ...$params): array
+    protected function getCachedScreenSnapshot(...$params): array
     {
         // Check if user Interface exists in cache
         $cachedUI = UIStateManager::get(static::class);
@@ -797,7 +820,7 @@ abstract class Screen
         $current_class = static::class;
         $current_class_slug = strtolower(str_replace('\\', '_', $current_class));
         $container = UI::container($current_class_slug, $current_class)
-            ->parent($parent)
+            ->parent($this->parent)
             ->padding(Spacing::px(30))
             ->layout(LayoutType::VERTICAL)
             ->justifyContent('center')
@@ -814,6 +837,26 @@ abstract class Screen
         UIStateManager::store(static::class, $ui);
 
         return $ui;
+    }
+
+    /**
+     * Summary of build
+     * @param class-string<Screen> $class
+     * @param Container $parent
+     * @return void
+     */
+    public function build(string $class, Container $parent)
+    {
+        $instance = new $class();
+        $instance->parent = $parent->getName();
+        $instance->initializeEventContext(
+            incomingStorage: $this->incomingStorage,
+            queryParams: $this->queryParams,
+            parent: $parent->getName()
+        );
+        $instance->finalizeEventContext(reload: true);
+        $instance->container->root(false);
+        $parent->add($instance->container);
     }
 
     /**
@@ -883,12 +926,11 @@ abstract class Screen
      *
      * If no cached snapshot exists, the UI is generated first and then reconstructed.
      */
-    protected function reconstructScreenTreeFromCache(bool $debug = false): Container
+    protected function reconstructScreenTreeFromCache(): Container
     {
         // Always get JSON from cache and reconstruct container
         // This ensures we get the latest state after events modify it
-        $jsonUI = $this->getCachedScreenSnapshot(debug: $debug);
-        // Log::info(json_encode($jsonUI));
+        $jsonUI = $this->getCachedScreenSnapshot();
 
         // Reconstruct container from JSON
         return $this->reconstructContainerFromJson($jsonUI);
@@ -1055,18 +1097,6 @@ abstract class Screen
             static::class,
             'screen_root'
         );
-    }
-
-    /**
-     * @deprecated Use getCachedScreenSnapshot() instead.
-     */
-    /**
-     * @param mixed ...$params
-     * @return array<int|string, array<string, mixed>>
-     */
-    protected function getStoredUI(string $parent = 'main', bool $debug = false, mixed ...$params): array
-    {
-        return $this->getCachedScreenSnapshot($parent, $debug, ...$params);
     }
 
     /**

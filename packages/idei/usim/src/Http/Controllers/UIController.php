@@ -102,7 +102,7 @@ class UIController extends Controller
             ->join('\\');
 
         $namespaceValue = config('usim.screens_namespace', 'App\\UI\\Screens');
-        $namespace = is_string($namespaceValue) ? $namespaceValue : 'App\\UI\\Screens';
+        $namespace = \is_string($namespaceValue) ? $namespaceValue : 'App\\UI\\Screens';
 
         return "{$namespace}\\{$screenNameSegments}";
     }
@@ -178,7 +178,8 @@ class UIController extends Controller
 
         $screen->initializeEventContext(
             incomingStorage: $requestData['storage'],
-            queryParams: $requestData['queryParams']
+            queryParams: $requestData['queryParams'],
+            parent: request()->query('parent', 'main')
         );
 
         $screen->finalizeEventContext(reload: true);

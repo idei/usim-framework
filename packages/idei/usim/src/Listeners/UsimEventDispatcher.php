@@ -91,15 +91,15 @@ class UsimEventDispatcher
 
             if ($methodName === 'onResetScreen') {
                 $screen->onResetScreen();
-                $screen->initializeEventContext($incomingStorage, debug: true);
-                $screen->finalizeEventContext(debug: true);
+                $screen->initializeEventContext($incomingStorage);
+                $screen->finalizeEventContext();
                 continue;
             }
 
             if (method_exists($screen, $methodName)) {
-                $screen->initializeEventContext($incomingStorage, debug: true);
+                $screen->initializeEventContext($incomingStorage);
                 $screen->$methodName($event->params);
-                $screen->finalizeEventContext(debug: true);
+                $screen->finalizeEventContext();
             }
         }
     }
