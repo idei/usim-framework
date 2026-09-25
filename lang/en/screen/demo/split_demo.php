@@ -2,7 +2,8 @@
 
 return [
     'icon' => '↔️',
-    'menu_label' => 'Splits',
+    'menu_title' => 'Splits',
+
     'title' => 'Split Container Demo',
     'intro' => 'Configure orientation, initial size and collapse behavior. The split bar is draggable.',
     'orientation' => [

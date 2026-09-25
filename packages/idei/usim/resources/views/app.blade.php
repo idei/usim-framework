@@ -40,7 +40,7 @@
 @endif
     <main id="main" class="{{ !($hasMenu ?? true) ? 'usim-kiosk-mode' : '' }}"></main>
     <div id="modal-root"></div>
-    {{-- <button id="reset-btn" onclick="location.href='?reset=true'">Reset</button> --}}
+    <button id="reset-btn" onclick="location.href='?reset=true'">Reset</button>
 
     @php
         // Obtener todos los parámetros de ruta automáticamente

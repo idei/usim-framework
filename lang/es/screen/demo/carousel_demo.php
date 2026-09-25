@@ -1,8 +1,8 @@
 <?php
 
 return [
-    'menu_title' => 'Carousel Demo',
-    'icon' => '',
+    'menu_title' => 'Carrusel',
+    'icon' => '🎠',
     'actions' => [
         'reset' => 'Reiniciar Demo',
         'toggle_auto_fullscreen' => 'Alternar Pantalla Completa Auto',

@@ -25,6 +25,9 @@ class ButtonDemo extends Screen
         TextareaDemo::class,
         SplitDemo::class,
         ModalDemo::class,
+        CalendarDemo::class,
+        CarouselDemo::class,
+        InputDemo::class,
     ];
 
     protected Container $buttons_container;

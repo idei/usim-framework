@@ -1,6 +1,6 @@
 <?php
 
 return [
-    'menu_title' => 'Calendar Demo',
-    'icon' => '',
+    'menu_title' => 'Calendars',
+    'icon' => '📅',
 ];

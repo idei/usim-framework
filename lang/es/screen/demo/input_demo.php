@@ -1,8 +1,8 @@
 <?php
 
 return [
-    'menu_title' => 'Input Demo',
-    'icon' => '',
+    'menu_title' => 'Entradas',
+    'icon' => '⌨️',
     'actions' => [
         'validate' => 'Validar',
     ],
