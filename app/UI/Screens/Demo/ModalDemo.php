@@ -1,4 +1,5 @@
 <?php
+
 namespace App\UI\Screens\Demo;
 
 use Idei\Usim\Components\Container;
@@ -6,8 +7,8 @@ use Idei\Usim\Components\Label;
 use Idei\Usim\Enums\DialogType;
 use Idei\Usim\Enums\LayoutType;
 use Idei\Usim\Enums\TimeUnit;
-use Idei\Usim\Modals\ConfirmDialogService;
 use Idei\Usim\Enums\Visibility;
+use Idei\Usim\Modals\ConfirmDialog;
 use Idei\Usim\Screen;
 use Idei\Usim\UI;
 use Idei\Usim\ValueObjects\Size;
@@ -26,6 +27,7 @@ class ModalDemo extends Screen
     public static Visibility $visibility = Visibility::PUBLIC;
 
     protected Label $lbl_result;
+
     protected Label $lbl_instruction;
 
     protected function buildBaseUI(Container $container, ...$params): void
@@ -93,15 +95,14 @@ class ModalDemo extends Screen
      * Handle "Open Confirmation" button click
      * Opens a confirmation dialog modal
      *
-    * @param array<string, mixed> $params
-     * @return void
+     * @param  array<string, mixed>  $params
      */
     public function onOpenConfirmation(array $params): void
     {
         // Get this screen ID to receive the callback.
         $screenId = $this->getScreenComponentId();
 
-        ConfirmDialogService::open(
+        ConfirmDialog::open(
             type: DialogType::CONFIRM,
             title: t('screen.demo.modal_demo.confirm_dialog.title'),
             message: t('screen.demo.modal_demo.confirm_dialog.message'),
@@ -117,8 +118,7 @@ class ModalDemo extends Screen
     /**
      * Handle user confirmation from modal
      *
-    * @param array<string, mixed> $params
-     * @return void
+     * @param  array<string, mixed>  $params
      */
     public function onHandleConfirm(array $params): void
     {
@@ -134,8 +134,7 @@ class ModalDemo extends Screen
     /**
      * Handle user cancellation from modal
      *
-    * @param array<string, mixed> $params
-     * @return void
+     * @param  array<string, mixed>  $params
      */
     public function onHandleCancel(array $params): void
     {
@@ -150,14 +149,14 @@ class ModalDemo extends Screen
      * Handler for Error dialog demo
      */
     /**
-     * @param array<string, mixed> $params
+     * @param  array<string, mixed>  $params
      */
     public function onShowErrorDialog(array $params): void
     {
         // Get this screen ID to receive the callback.
         $screenId = $this->getScreenComponentId();
 
-        ConfirmDialogService::open(
+        ConfirmDialog::open(
             type: DialogType::ERROR,
             title: t('screen.demo.modal_demo.error_dialog.title'),
             message: t('screen.demo.modal_demo.error_dialog.message'),
@@ -170,7 +169,7 @@ class ModalDemo extends Screen
      * Handler to close error dialog
      */
     /**
-     * @param array<string, mixed> $params
+     * @param  array<string, mixed>  $params
      */
     public function onCloseErrorDialog(array $params): void
     {
@@ -178,14 +177,14 @@ class ModalDemo extends Screen
     }
 
     /**
-     * @param array<string, mixed> $params
+     * @param  array<string, mixed>  $params
      */
     public function onShowTimeoutDialog(array $params): void
     {
         $screenId = $this->getScreenComponentId();
-        $duration  = $params['duration'] ?? 10;
+        $duration = $params['duration'] ?? 10;
 
-        ConfirmDialogService::open(
+        ConfirmDialog::open(
             type: DialogType::TIMEOUT,
             title: t('screen.demo.modal_demo.timeout_dialog.title'),
             message: t('screen.demo.modal_demo.timeout_dialog.message'),
@@ -198,13 +197,13 @@ class ModalDemo extends Screen
     }
 
     /**
-     * @param array<string, mixed> $params
+     * @param  array<string, mixed>  $params
      */
     public function onShowTimeoutNoButton(array $params): void
     {
         $screenId = $this->getScreenComponentId();
 
-        ConfirmDialogService::open(
+        ConfirmDialog::open(
             type: DialogType::TIMEOUT,
             title: t('screen.demo.modal_demo.auto_close_dialog.title'),
             message: t('screen.demo.modal_demo.auto_close_dialog.message'),
@@ -220,7 +219,7 @@ class ModalDemo extends Screen
      * Handler to close timeout dialog
      */
     /**
-     * @param array<string, mixed> $params
+     * @param  array<string, mixed>  $params
      */
     public function onCloseTimeoutDialog(array $params): void
     {
@@ -228,14 +227,14 @@ class ModalDemo extends Screen
     }
 
     /**
-     * @param array<string, mixed> $params
+     * @param  array<string, mixed>  $params
      */
     public function onShowSettingsConfirm(array $params): void
     {
         // Get this screen ID to receive the callback.
         $screenId = $this->getScreenComponentId();
 
-        ConfirmDialogService::open(
+        ConfirmDialog::open(
             type: DialogType::WARNING,
             title: t('screen.demo.modal_demo.settings_dialog.title'),
             message: t('screen.demo.modal_demo.settings_dialog.message'),
@@ -250,7 +249,7 @@ class ModalDemo extends Screen
      * Handler for cancel button (closes modal)
      */
     /**
-     * @param array<string, mixed> $params
+     * @param  array<string, mixed>  $params
      */
     public function onCancelSettings(array $params): void
     {
@@ -261,14 +260,14 @@ class ModalDemo extends Screen
      * Handler for reset button - shows success dialog
      */
     /**
-     * @param array<string, mixed> $params
+     * @param  array<string, mixed>  $params
      */
     public function onResetSettings(array $params): void
     {
         // Get this screen ID to receive the callback.
         $screenId = $this->getScreenComponentId();
 
-        ConfirmDialogService::open(
+        ConfirmDialog::open(
             type: DialogType::SUCCESS,
             title: t('screen.demo.modal_demo.success_dialog.title'),
             message: t('screen.demo.modal_demo.success_dialog.message'),
@@ -281,7 +280,7 @@ class ModalDemo extends Screen
      * Handler to close success dialog
      */
     /**
-     * @param array<string, mixed> $params
+     * @param  array<string, mixed>  $params
      */
     public function onCloseSuccessDialog(array $params): void
     {
