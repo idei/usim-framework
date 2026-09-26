@@ -17,6 +17,7 @@ class ButtonDemo extends Screen
 
     protected const string KEY_PREFIX = 'screen.demo.container_demo.';
 
+    /** @var array<class-string<Screen>> $options */
     protected array $options = [
         CheckboxDemo::class,
         FormDemo::class,
@@ -78,12 +79,38 @@ class ButtonDemo extends Screen
         return $this->buttons_container;
     }
 
+    /**
+     * Handle the action when a demo button is selected.
+     *
+     * @param  array<string, mixed> $params Parameters containing the button ID
+     * and index of the selected demo
+     */
     public function onDemoSelected(array $params): void
     {
+        // TODO: Creo que los eventos deberían ser más específicos, por ejemplo:
+        // onDemoSelected($id, $index) en lugar de pasar un array de parámetros.
+        // Esto haría que el código sea más claro y fácil de mantener.
+
+        /** @var string|null $id */
         $id = $params['id'] ?? null;
+        if ($id === null) {
+            return;
+        }
+
+        /** @var int|null $index */
         $index = $params['index'] ?? null;
+        if ($index === null) {
+            return;
+        }
+
+        /** @var class-string<Screen> | null $screenClass */
+        $screenClass = $this->options[$index] ?? null;
+        if ($screenClass === null) {
+            return;
+        }
+
         $this->updateButtonState($id);
-        $this->message_container->embed($this->options[$index]);
+        $this->message_container->embed($screenClass);
     }
 
     protected function postLoadUI(): void

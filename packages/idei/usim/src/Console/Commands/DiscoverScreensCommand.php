@@ -48,7 +48,7 @@ class DiscoverScreensCommand extends Command
         $screensNamespace = $usimConfig->screensNamespace;
 
         foreach (array_keys($screens) as $screenClass) {
-            if (!\is_string($screenClass) || trim($screenClass) === '') {
+            if (trim($screenClass) === '') {
                 continue;
             }
 

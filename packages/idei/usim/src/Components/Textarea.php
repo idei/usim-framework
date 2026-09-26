@@ -12,21 +12,21 @@ class Textarea extends UIComponent
     protected function getDefaultConfig(): array
     {
         return [
-            'label'        => null,
-            'placeholder'  => null,
-            'value'        => null,
-            'width'        => null,
-            'height'       => null,
-            'max_length'   => null,
-            'mode'         => 'plain',   // 'plain' | 'markdown'
-            'required'     => false,
-            'disabled'     => false,
-            'readonly'     => false,
-            'error'        => null,
-            'help_text'    => null,
-            'on_change'    => null,
-            'on_input'     => null,
-            'debounce'     => null,
+            'label' => null,
+            'placeholder' => null,
+            'value' => null,
+            'width' => null,
+            'height' => null,
+            'max_length' => null,
+            'mode' => 'plain',   // 'plain' | 'markdown'
+            'required' => false,
+            'disabled' => false,
+            'readonly' => false,
+            'error' => null,
+            'help_text' => null,
+            'on_change' => null,
+            'on_input' => null,
+            'debounce' => null,
             'border_color' => null,     // CSS color, e.g. '#4f46e5'
             'border_width' => null,     // px width, e.g. 3
             'border_radius' => null,    // px radius, e.g. 10
@@ -50,6 +50,18 @@ class Textarea extends UIComponent
     public function value(?string $value): self
     {
         return $this->setConfig('value', $value ?? '');
+    }
+
+    /**
+     * Get the current value.
+     *
+     * @return string The current value of the textarea, or an empty string if not set.
+     */
+    public function getValue(): string
+    {
+        $value = $this->getConfig()['value'] ?? '';
+
+        return \is_string($value) ? $value : '';
     }
 
     /**
@@ -132,7 +144,7 @@ class Textarea extends UIComponent
     public function onChange(string $action, array $parameters = []): self
     {
         return $this->setConfig('on_change', [
-            'action'     => $action,
+            'action' => $action,
             'parameters' => $parameters,
         ]);
     }
@@ -146,7 +158,7 @@ class Textarea extends UIComponent
     public function onInput(string $action, array $parameters = []): self
     {
         return $this->setConfig('on_input', [
-            'action'     => $action,
+            'action' => $action,
             'parameters' => $parameters,
         ]);
     }

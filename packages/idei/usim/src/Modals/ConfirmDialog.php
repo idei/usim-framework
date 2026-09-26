@@ -10,6 +10,7 @@ use Idei\Usim\Modals\Dialog\ConfirmDialogConfig;
 use Idei\Usim\Screen;
 use Idei\Usim\UI;
 use Idei\Usim\ValueObjects\Spacing;
+use Idei\Usim\Contracts\ModalInterface;
 
 /**
  * Confirm Dialog Screen
@@ -17,7 +18,7 @@ use Idei\Usim\ValueObjects\Spacing;
  * Server-driven UI Screen for modal dialogs (info, confirm, warning, error, success, choice, timeout).
  * Implements the Screen lifecycle and adheres to SOLID and Clean Code principles.
  */
-class ConfirmDialog extends Screen
+class ConfirmDialog extends Screen implements ModalInterface
 {
     /**
      * Modal dialogs render inside the 'modal' layer.
@@ -54,11 +55,14 @@ class ConfirmDialog extends Screen
     /**
      * Open the modal dialog by building its UI structure and registering it with the UI collector.
      *
-     * @param  mixed  ...$params  Configuration parameters or ConfirmDialogConfig instance
+     * @param  Screen  $caller  The screen that is calling this method
+     * @param  mixed ...$params  Configuration parameters or ConfirmDialogConfig instance
      */
-    public static function open(mixed ...$params): void
+    public static function open(Screen $caller, mixed ...$params): void
     {
         $screen = app(self::class);
+        $callerServiceId = $caller->getScreenComponentId();
+        $params = array_merge(['callerServiceId' => $callerServiceId],$params);
         $payload = $screen->buildDialogPayload(...$params);
         $screen->uiChanges()->add($payload);
     }
@@ -203,6 +207,20 @@ class ConfirmDialog extends Screen
     }
 
     /**
+     * Summary of getString
+     *
+     * @param array<string, mixed> $array
+     * @param string $key
+     * @param string $default
+     *
+     * @return string
+     */
+    private function getString(array $array, string $key, string $default = ''): string
+    {
+        return isset($array[$key]) && \is_string($array[$key]) ? $array[$key] : $default;
+    }
+
+    /**
      * Build custom buttons for CHOICE dialog type.
      */
     protected function buildChoiceButtons(Container $buttonsContainer, ConfirmDialogConfig $config): void
@@ -210,12 +228,14 @@ class ConfirmDialog extends Screen
         $callerContext = ['_caller_service_id' => $config->callerServiceId];
 
         foreach ($config->buttons ?? [] as $button) {
-            $label = (string) ($button['label'] ?? '');
-            $style = (string) ($button['style'] ?? 'secondary');
-            $action = (string) ($button['action'] ?? '');
+            $label = $this->getString($button, 'label', 'Button');
+            $style = $this->getString($button, 'style', 'secondary');
+            $action = $this->getString($button, 'action', '');
             $params = is_array($button['params'] ?? null) ? $button['params'] : [];
 
-            $buttonName = 'btn_'.strtolower(preg_replace('/[^a-zA-Z0-9_]+/', '_', str_replace(' ', '_', $label)));
+            $snakeLabel = preg_replace('/[^a-zA-Z0-9_]+/', '_', str_replace(' ', '_', $label));
+            $snakeLabel = \is_string($snakeLabel) ? $snakeLabel : 'button';
+            $buttonName = 'btn_'.strtolower($snakeLabel);
 
             $buttonsContainer->add(
                 UI::button($buttonName)

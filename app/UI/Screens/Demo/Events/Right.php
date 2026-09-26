@@ -51,8 +51,8 @@ class Right extends Screen
             return;
         }
 
-        $current = (string) $this->textarea_output->get('value', '');
-        $newValue = $current === '' ? $text : $current . "\n" . $text;
+        $current = $this->textarea_output->getValue();
+        $newValue = $current === '' ? $text : "$current\n$text";
 
         $this->textarea_output->value($newValue);
     }

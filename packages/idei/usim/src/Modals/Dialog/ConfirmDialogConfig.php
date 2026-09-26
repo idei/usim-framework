@@ -72,8 +72,8 @@ final class ConfirmDialogConfig
             confirmLabel: self::toString($data['confirmLabel'] ?? $data['confirm_label'] ?? $type->getDefaultConfirmLabel()),
             cancelAction: self::toString($data['cancelAction'] ?? $data['cancel_action'] ?? 'close_modal'),
             cancelLabel: self::toString($data['cancelLabel'] ?? $data['cancel_label'] ?? $type->getDefaultCancelLabel()),
-            callerServiceId: $data['callerServiceId'] ?? $data['caller_service_id'] ?? null,
-            buttons: isset($data['buttons']) && is_array($data['buttons']) ? array_values($data['buttons']) : null,
+            callerServiceId: self::toString($data['callerServiceId'] ?? $data['caller_service_id'] ?? null),
+            buttons: self::toButtonsList($data['buttons'] ?? null),
             timeout: isset($data['timeout']) ? self::toInt($data['timeout']) : null,
             timeUnit: self::resolveTimeUnit($data['timeUnit'] ?? $data['time_unit'] ?? TimeUnit::SECONDS),
             showCountdown: (bool) ($data['showCountdown'] ?? $data['show_countdown'] ?? true),
@@ -214,5 +214,26 @@ final class ConfirmDialogConfig
     private static function toArray(mixed $value): array
     {
         return is_array($value) ? $value : [];
+    }
+
+    /**
+     * @return list<array<string, mixed>>|null
+     */
+    private static function toButtonsList(mixed $value): ?array
+    {
+        if (! is_array($value)) {
+            return null;
+        }
+
+        $buttons = [];
+
+        foreach (array_values($value) as $button) {
+            if (is_array($button)) {
+                /** @var array<string, mixed> $button */
+                $buttons[] = $button;
+            }
+        }
+
+        return $buttons;
     }
 }

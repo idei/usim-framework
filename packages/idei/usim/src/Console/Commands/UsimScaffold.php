@@ -20,7 +20,7 @@ class UsimScaffold extends Command
         parent::__construct();
     }
 
-    public function handle()
+    public function handle() : int
     {
         if ($this->option('help')) {
             $this->line($this->getHelp());
@@ -50,6 +50,10 @@ class UsimScaffold extends Command
         }
 
         $stubContent = file_get_contents($stubPath);
+        if ($stubContent === false) {
+            $this->error("Failed to read stub file: {$stubPath}");
+            return 1;
+        }
         $stubContent = str_replace('{{ name }}', $name, $stubContent);
         $stubContent = str_replace('{{ namespace }}', $namespace, $stubContent);
 
