@@ -128,12 +128,11 @@ class Checkbox extends UIComponent
      * Set the checked state
      *
      * @param bool $checked Whether the checkbox is checked
-     * @return $this
+     * @return static
      */
-    public function checked(bool $checked = true): self
+    public function checked(bool $checked = true): static
     {
-        $this->config['checked'] = $checked;
-        return $this;
+        return $this->setConfig('checked', $checked);
     }
 
     /**
@@ -154,12 +153,12 @@ class Checkbox extends UIComponent
      * @param mixed $value The value
      * @return $this
      */
-    public function value($value): self
+    public function value($value): static
     {
         if (is_array($value)) {
-            $this->config['selected_values'] = $value;
+            $this->setConfig('selected_values', $value);
         } else {
-            $this->config['value'] = $value;
+            $this->setConfig('value', $value);
         }
         return $this;
     }
@@ -168,24 +167,22 @@ class Checkbox extends UIComponent
      * Set the checkbox label
      *
      * @param string $label The label text
-     * @return $this
+     * @return static
      */
-    public function label(string $label): self
+    public function label(string $label): static
     {
-        $this->config['label'] = $label;
-        return $this;
+        return $this->setConfig('label', $label);
     }
 
     /**
      * Set a description text (appears below the label)
      *
      * @param string $description The description text
-     * @return $this
+     * @return static
      */
-    public function description(string $description): self
+    public function description(string $description): static
     {
-        $this->config['description'] = $description;
-        return $this;
+        return $this->setConfig('description', $description);
     }
 
     // ==================== Checkbox Group ====================
@@ -194,12 +191,11 @@ class Checkbox extends UIComponent
      * Set multiple checkbox options (creates a checkbox group)
      *
      * @param list<array<string, mixed>> $options Array of options with 'value' and 'label' keys
-     * @return $this
+     * @return static
      */
-    public function options(array $options): self
+    public function options(array $options): static
     {
-        $this->config['options'] = $options;
-        return $this;
+        return $this->setConfig('options', $options);
     }
 
     /**
@@ -208,9 +204,9 @@ class Checkbox extends UIComponent
      * @param string $value The option value
      * @param string $label The option label
      * @param array<string, mixed> $extra Extra properties (icon, description, disabled, etc.)
-     * @return $this
+     * @return static
      */
-    public function addOption(string $value, string $label, array $extra = []): self
+    public function addOption(string $value, string $label, array $extra = []): static
     {
         $options = $this->config['options'] ?? [];
         if (!is_array($options)) {
@@ -222,20 +218,18 @@ class Checkbox extends UIComponent
             'label' => $label,
         ], $extra);
 
-        $this->config['options'] = $options;
-        return $this;
+        return $this->setConfig('options', $options);
     }
 
     /**
      * Set the selected values for checkbox group
      *
      * @param list<string|int> $values Array of selected values
-     * @return $this
+     * @return static
      */
-    public function selectedValues(array $values): self
+    public function selectedValues(array $values): static
     {
-        $this->config['selected_values'] = $values;
-        return $this;
+        return $this->setConfig('selected_values', $values);
     }
 
     // ==================== Layout (for groups) ====================
@@ -245,13 +239,13 @@ class Checkbox extends UIComponent
      *
      * @param string $layout Layout type: vertical, horizontal, grid
      * @param int|null $columns Number of columns for grid layout
-     * @return $this
+     * @return static
      */
-    public function layout(string $layout, ?int $columns = null): self
+    public function layout(string $layout, ?int $columns = null): static
     {
-        $this->config['layout'] = $layout;
+        $this->setConfig('layout', $layout);
         if ($columns !== null) {
-            $this->config['columns'] = $columns;
+            $this->setConfig('columns', $columns);
         }
         return $this;
     }
@@ -259,9 +253,9 @@ class Checkbox extends UIComponent
     /**
      * Set vertical layout for checkbox group
      *
-     * @return $this
+     * @return static
      */
-    public function vertical(): self
+    public function vertical(): static
     {
         return $this->layout('vertical');
     }
@@ -269,9 +263,9 @@ class Checkbox extends UIComponent
     /**
      * Set horizontal layout for checkbox group
      *
-     * @return $this
+     * @return static
      */
-    public function horizontal(): self
+    public function horizontal(): static
     {
         return $this->layout('horizontal');
     }
@@ -280,9 +274,9 @@ class Checkbox extends UIComponent
      * Set grid layout for checkbox group
      *
      * @param int $columns Number of columns
-     * @return $this
+     * @return static
      */
-    public function grid(int $columns = 2): self
+    public function grid(int $columns = 2): static
     {
         return $this->layout('grid', $columns);
     }
@@ -291,12 +285,11 @@ class Checkbox extends UIComponent
      * Set the gap between checkboxes in a group
      *
      * @param string $gap Gap size: xs, small, medium, large
-     * @return $this
+     * @return static
      */
-    public function gap(string $gap): self
+    public function gap(string $gap): static
     {
-        $this->config['gap'] = $gap;
-        return $this;
+        return $this->setConfig('gap', $gap);
     }
 
     // ==================== Validation ====================
@@ -305,60 +298,55 @@ class Checkbox extends UIComponent
      * Mark the checkbox as required
      *
      * @param bool $required Whether the checkbox is required
-     * @return $this
+     * @return static
      */
-    public function required(bool $required = true): self
+    public function required(bool $required = true): static
     {
-        $this->config['required'] = $required;
-        return $this;
+        return $this->setConfig('required', $required);
     }
 
     /**
      * Set minimum selections required (for checkbox groups)
      *
      * @param int $min Minimum number of selections
-     * @return $this
+     * @return static
      */
-    public function minSelections(int $min): self
+    public function minSelections(int $min): static
     {
-        $this->config['min_selections'] = $min;
-        return $this;
+        return $this->setConfig('min_selections', $min);
     }
 
     /**
      * Set maximum selections allowed (for checkbox groups)
      *
      * @param int $max Maximum number of selections
-     * @return $this
+     * @return static
      */
-    public function maxSelections(int $max): self
+    public function maxSelections(int $max): static
     {
-        $this->config['max_selections'] = $max;
-        return $this;
+        return $this->setConfig('max_selections', $max);
     }
 
     /**
      * Set the error message
      *
      * @param string $message The error message
-     * @return $this
+     * @return static
      */
-    public function errorMessage(string $message): self
+    public function errorMessage(string $message): static
     {
-        $this->config['error_message'] = $message;
-        return $this;
+        return $this->setConfig('error_message', $message);
     }
 
     /**
      * Set help text
      *
      * @param string $text The help text
-     * @return $this
+     * @return static
      */
-    public function helpText(string $text): self
+    public function helpText(string $text): static
     {
-        $this->config['help_text'] = $text;
-        return $this;
+        return $this->setConfig('help_text', $text);
     }
 
     // ==================== State ====================
@@ -367,36 +355,33 @@ class Checkbox extends UIComponent
      * Set the disabled state
      *
      * @param bool $disabled Whether the checkbox is disabled
-     * @return $this
+     * @return static
      */
-    public function disabled(bool $disabled = true): self
+    public function disabled(bool $disabled = true): static
     {
-        $this->config['disabled'] = $disabled;
-        return $this;
+        return $this->setConfig('disabled', $disabled);
     }
 
     /**
      * Set the readonly state
      *
      * @param bool $readonly Whether the checkbox is readonly
-     * @return $this
+     * @return static
      */
-    public function readonly(bool $readonly = true): self
+    public function readonly(bool $readonly = true): static
     {
-        $this->config['readonly'] = $readonly;
-        return $this;
+        return $this->setConfig('readonly', $readonly);
     }
 
     /**
      * Set the indeterminate state (for parent checkboxes)
      *
      * @param bool $indeterminate Whether the checkbox is indeterminate
-     * @return $this
+     * @return static
      */
-    public function indeterminate(bool $indeterminate = true): self
+    public function indeterminate(bool $indeterminate = true): static
     {
-        $this->config['indeterminate'] = $indeterminate;
-        return $this;
+        return $this->setConfig('indeterminate', $indeterminate);
     }
 
     // ==================== Appearance ====================
@@ -405,71 +390,65 @@ class Checkbox extends UIComponent
      * Set the checkbox style
      *
      * @param string $style Style: default, primary, success, danger, warning, info
-     * @return $this
+     * @return static
      */
-    public function style(string $style): self
+    public function style(string $style): static
     {
-        $this->config['style'] = $style;
-        return $this;
+        return $this->setConfig('style', $style);
     }
 
     /**
      * Set the checkbox size
      *
      * @param string $size Size: small, medium, large
-     * @return $this
+     * @return static
      */
-    public function size(string $size): self
+    public function size(string $size): static
     {
-        $this->config['size'] = $size;
-        return $this;
+        return $this->setConfig('size', $size);
     }
 
     /**
      * Set the checkbox variant
      *
      * @param string $variant Variant: default, switch, button, card
-     * @return $this
+     * @return static
      */
-    public function variant(string $variant): self
+    public function variant(string $variant): static
     {
-        $this->config['variant'] = $variant;
-        return $this;
+        return $this->setConfig('variant', $variant);
     }
 
     /**
      * Use switch variant
      *
      * @param string $position Switch position: left, right
-     * @return $this
+     * @return static
      */
-    public function asSwitch(string $position = 'left'): self
+    public function asSwitch(string $position = 'left'): static
     {
-        $this->config['variant'] = 'switch';
-        $this->config['switch_position'] = $position;
-        return $this;
+        $this->setConfig('variant', 'switch');
+        return $this->setConfig('switch_position', $position);
     }
 
     /**
      * Use button variant (checkbox looks like a button)
      *
-     * @return $this
+     * @return static
      */
-    public function asButton(): self
+    public function asButton(): static
     {
-        $this->config['variant'] = 'button';
-        return $this;
+        return $this->setConfig('variant', 'button');
     }
 
     /**
      * Use card variant (checkbox as a card/tile)
      *
-     * @return $this
+     * @return static
      */
-    public function asCard(): self
+    public function asCard(): static
     {
-        $this->config['variant'] = 'card';
-        return $this;
+        return $this->setConfig('variant', 'card');
     }
 
     // ==================== Icons ====================
@@ -478,48 +457,44 @@ class Checkbox extends UIComponent
      * Set the checked icon
      *
      * @param string $icon The icon name
-     * @return $this
+     * @return static
      */
-    public function checkedIcon(string $icon): self
+    public function checkedIcon(string $icon): static
     {
-        $this->config['checked_icon'] = $icon;
-        return $this;
+        return $this->setConfig('checked_icon', $icon);
     }
 
     /**
      * Set the unchecked icon
      *
      * @param string $icon The icon name
-     * @return $this
+     * @return static
      */
-    public function uncheckedIcon(string $icon): self
+    public function uncheckedIcon(string $icon): static
     {
-        $this->config['unchecked_icon'] = $icon;
-        return $this;
+        return $this->setConfig('unchecked_icon', $icon);
     }
 
     /**
      * Set the indeterminate icon
      *
      * @param string $icon The icon name
-     * @return $this
+     * @return static
      */
-    public function indeterminateIcon(string $icon): self
+    public function indeterminateIcon(string $icon): static
     {
-        $this->config['indeterminate_icon'] = $icon;
-        return $this;
+        return $this->setConfig('indeterminate_icon', $icon);
     }
 
     /**
      * Set an icon for button/card variant
      *
      * @param string $icon The icon name
-     * @return $this
+     * @return static
      */
-    public function icon(string $icon): self
+    public function icon(string $icon): static
     {
-        $this->config['icon'] = $icon;
-        return $this;
+        return $this->setConfig('icon', $icon);
     }
 
     // ==================== Colors ====================
@@ -528,24 +503,22 @@ class Checkbox extends UIComponent
      * Set custom color
      *
      * @param string $color The color (hex, rgb, css variable)
-     * @return $this
+     * @return static
      */
-    public function color(string $color): self
+    public function color(string $color): static
     {
-        $this->config['color'] = $color;
-        return $this;
+        return $this->setConfig('color', $color);
     }
 
     /**
      * Set custom active color (when checked)
      *
      * @param string $color The color (hex, rgb, css variable)
-     * @return $this
+     * @return static
      */
-    public function activeColor(string $color): self
+    public function activeColor(string $color): static
     {
-        $this->config['active_color'] = $color;
-        return $this;
+        return $this->setConfig('active_color', $color);
     }
 
     // ==================== Behavior ====================
@@ -554,24 +527,22 @@ class Checkbox extends UIComponent
      * Enable toggle all behavior (checkbox controls all children)
      *
      * @param bool $toggle Whether to enable toggle all
-     * @return $this
+     * @return static
      */
-    public function toggleAll(bool $toggle = true): self
+    public function toggleAll(bool $toggle = true): static
     {
-        $this->config['toggle_all'] = $toggle;
-        return $this;
+        return $this->setConfig('toggle_all', $toggle);
     }
 
     /**
      * Enable auto check parent behavior
      *
      * @param bool $autoCheck Whether to auto check parent
-     * @return $this
+     * @return static
      */
-    public function autoCheckParent(bool $autoCheck = true): self
+    public function autoCheckParent(bool $autoCheck = true): static
     {
-        $this->config['auto_check_parent'] = $autoCheck;
-        return $this;
+        return $this->setConfig('auto_check_parent', $autoCheck);
     }
 
     // ==================== Events ====================
@@ -580,12 +551,11 @@ class Checkbox extends UIComponent
      * Set the onChange event handler
      *
      * @param string $handler The event handler name
-     * @return $this
+     * @return static
      */
-    public function onChange(string $handler): self
+    public function onChange(string $handler): static
     {
-        $this->config['on_change'] = $handler;
-        return $this;
+        return $this->setConfig('on_change', $handler);
     }
 
     // ==================== Accessibility ====================
@@ -594,23 +564,21 @@ class Checkbox extends UIComponent
      * Set ARIA label for accessibility
      *
      * @param string $label The ARIA label
-     * @return $this
+     * @return static
      */
-    public function ariaLabel(string $label): self
+    public function ariaLabel(string $label): static
     {
-        $this->config['aria_label'] = $label;
-        return $this;
+        return $this->setConfig('aria_label', $label);
     }
 
     /**
      * Set tooltip text
      *
      * @param string $text The tooltip text
-     * @return $this
+     * @return static
      */
-    public function tooltip(string $text): self
+    public function tooltip(string $text): static
     {
-        $this->config['tooltip'] = $text;
-        return $this;
+        return $this->setConfig('tooltip', $text);
     }
 }

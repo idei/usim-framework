@@ -73,7 +73,7 @@ class CheckboxDemo extends Screen
         );
     }
 
-    public function postLoadUI(): void
+    protected function postLoadUI(): void
     {
         $this->chk_javascript->checked(false);
         $this->chk_python->checked(false);
