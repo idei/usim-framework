@@ -24,7 +24,7 @@ class Right extends Screen
         $container
             ->padding(Spacing::px(20))
             ->width(Size::full())
-            ->border(Spacing::px(1))
+            ->card()
             ->add(
                 $textarea
                     ->label('Texto recibido')

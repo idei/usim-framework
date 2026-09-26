@@ -549,7 +549,7 @@ abstract class Screen
      */
     public static function getMenuLabel(): string
     {
-        return t('screen.' . self::getScreenSlug() . '.menu_title');
+        return t('screen.' . static::getScreenSlug() . '.menu_title');
     }
 
     /**
@@ -558,7 +558,7 @@ abstract class Screen
      */
     public static function getMenuIcon(): ?string
     {
-        return t('screen.' . self::getScreenSlug() . '.icon');
+        return t('screen.' . static::getScreenSlug() . '.icon');
     }
 
     /**

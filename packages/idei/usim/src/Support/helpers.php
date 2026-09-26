@@ -1,118 +1,22 @@
 <?php
 
-use Idei\Usim\Support\TranslationService;
+use Idei\Usim\Support\Translation\TranslationResolver;
 
 if (!function_exists('t')) {
     /**
      * Resolve translated text with the following priority:
      *  1. Laravel translator (__), honoring locale and placeholders.
      *     - Tries the key as-is.
-     *     - Tries the 3-level file-path variant: a.b.c.rest -> a/b/c.rest.
+     *     - Tries nested file-path variants (e.g. a/b.rest, a/b/c.rest, etc.).
      *     - For keys starting with "usim.", also tries the package namespace
      *       usim::b/c.rest so the package lang files act as default fallback.
      *  2. DB-backed TranslationService.
      *  3. The key itself as last-resort fallback.
+     *
      * @param array<string, mixed> $params
      */
     function t(string $key, array $params = [], ?string $language = null): string
     {
-        /** @var array<string, bool|float|int|string|null> $translatorParams */
-        $translatorParams = [];
-        foreach ($params as $replaceKey => $replaceValue) {
-            if (is_bool($replaceValue) || is_float($replaceValue) || is_int($replaceValue) || is_string($replaceValue) || $replaceValue === null) {
-                $translatorParams[$replaceKey] = $replaceValue;
-                continue;
-            }
-
-            if (is_array($replaceValue)) {
-                $encodedValue = json_encode($replaceValue);
-                $translatorParams[$replaceKey] = $encodedValue === false ? '' : $encodedValue;
-                continue;
-            }
-
-            if (is_object($replaceValue) && method_exists($replaceValue, '__toString')) {
-                $translatorParams[$replaceKey] = $replaceValue->__toString();
-                continue;
-            }
-
-            if (is_resource($replaceValue)) {
-                $translatorParams[$replaceKey] = get_resource_type($replaceValue);
-                continue;
-            }
-
-            $translatorParams[$replaceKey] = get_debug_type($replaceValue);
-        }
-
-        // 1. Laravel translator (__).
-        try {
-            /** @var \Illuminate\Translation\Translator $translator */
-            $translator = app('translator');
-
-            $candidates = [$key];
-            $segments = explode('.', $key);
-
-            // Support 2-level and 3-level namespace files like lang/{locale}/a/b.php or lang/{locale}/a/b/c.php
-            // while still allowing calls with dotted keys: a.b.c(.rest).
-            if (count($segments) >= 2) {
-                $fileKey2 = implode('/', array_slice($segments, 0, 2));
-                $remaining2 = array_slice($segments, 2);
-
-                if ($remaining2 === []) {
-                    $candidates[] = $fileKey2 . '.value';
-                } else {
-                    $candidates[] = $fileKey2 . '.' . implode('.', $remaining2);
-                }
-            }
-
-            if (count($segments) >= 3) {
-                $fileKey = implode('/', array_slice($segments, 0, 3));
-                $remaining = array_slice($segments, 3);
-
-                if ($remaining === []) {
-                    $candidates[] = $fileKey . '.value';
-                } else {
-                    $candidates[] = $fileKey . '.' . implode('.', $remaining);
-                }
-            }
-
-            // For usim.* keys: also probe the package namespace (usim::)
-            // so package lang files serve as default when the app has no override.
-            // usim.dialog.button.ok -> usim::dialog/button.ok
-            if ($segments[0] === 'usim' && count($segments) >= 4) {
-                $pkgFileKey = implode('/', array_slice($segments, 1, 2));
-                $pkgRemaining = array_slice($segments, 3);
-                $candidates[] = 'usim::' . $pkgFileKey . '.' . implode('.', $pkgRemaining);
-            }
-
-            foreach ($candidates as $candidate) {
-                $hasLaravelTranslation = $language !== null
-                    ? $translator->has($candidate, $language)
-                    : $translator->has($candidate);
-
-                if ($hasLaravelTranslation) {
-                    return __($candidate, $translatorParams, $language);
-                }
-            }
-        } catch (Throwable) {
-            // Translator unavailable — continue to DB fallback.
-        }
-
-        // 2. DB-backed TranslationService.
-        try {
-            /** @var TranslationService $translationService */
-            $translationService = app(TranslationService::class);
-            $value = $translationService->safeGetValue($key, $params, $language);
-
-            if ($value !== null && $value !== '' && $value !== $key) {
-                return $value;
-            }
-
-            $translationService->registerMissingKey($key);
-        } catch (Throwable) {
-            // DB unavailable — continue to key fallback.
-        }
-
-        // 3. Return the key itself.
-        return $key;
+        return TranslationResolver::resolve($key, $params, $language);
     }
 }

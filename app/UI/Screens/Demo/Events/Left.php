@@ -22,7 +22,6 @@ class Left extends Screen
     {
         $container
             ->padding(Spacing::px(10))
-            ->border(Spacing::px(1))
             ->width(Size::full())
             ->add(
                 UI::input('input_text')
