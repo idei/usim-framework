@@ -18,12 +18,13 @@ class {{ name }} extends Screen
         $container->padding(Spacing::px(20))
             ->centerHorizontal()
             ->maxWidth(Size::px(600))
+            ->minHeight(Size::px(400))
             ->shadow(2);
 
         $container->add(
             UI::label("label")
-                ->text("Welcome to {{ name }}")
-                ->style('h2')
+                ->text("Hello {{ name }}!")
+                ->style('h1')
         );
 	}
 }
