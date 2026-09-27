@@ -196,14 +196,20 @@ it('persists and restores active modal when refreshing screen (F5) and preserves
         $openResponse->assertOk();
         expect(hasModalComponents($openResponse->json()))->toBeTrue();
 
-        // 2. Simulate F5 browser refresh (GET request to screen endpoint)
-        $refreshResponse = $this->getJson('/api/ui/demo/modal-demo');
-        $refreshResponse->assertOk();
-        $refreshData = $refreshResponse->json();
+        // 2. Simulate multiple consecutive F5 browser refreshes (each reload requests screen + menu)
+        for ($i = 0; $i < 3; $i++) {
+            $refreshResponse = $this->getJson('/api/ui/demo/modal-demo');
+            $refreshResponse->assertOk();
+            $refreshData = $refreshResponse->json();
 
-        // Assert both caller screen and modal components are present
-        expect(hasModalComponents($refreshData))->toBeTrue();
-        expect(modalPayloadHasNamedComponent($refreshData, 'app_ui_screens_demo_userformmodal'))->toBeTrue();
+            // Assert both caller screen and modal components are present on each F5
+            expect(hasModalComponents($refreshData))->toBeTrue();
+            expect(modalPayloadHasNamedComponent($refreshData, 'app_ui_screens_demo_userformmodal'))->toBeTrue();
+
+            // Browser then requests menu fragment with parent=menu
+            $menuResponse = $this->getJson('/api/ui/menu?parent=menu');
+            $menuResponse->assertOk();
+        }
 
         // 3. User submits data on the restored modal
         $saveResponse = $ui->action('btn_save_modal', 'submit_modal_data', [

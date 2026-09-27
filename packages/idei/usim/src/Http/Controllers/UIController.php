@@ -41,29 +41,34 @@ class UIController extends Controller
         $requestData = $this->extractRequestData();
         $screen = Screen::make($screenClass);
 
+        $parentQuery = request()->query('parent', 'main');
+        $parent = is_string($parentQuery) && $parentQuery !== '' ? $parentQuery : 'main';
+
         $screen->render(
             incomingStorage: $requestData['storage'],
             queryParams: $requestData['queryParams'],
-            parent: request()->query('parent', 'main'),
+            parent: $parent,
             shouldReset: $requestData['shouldReset']
         );
 
-        $activeModal = UIStateManager::getClientActiveModal();
-        if ($activeModal !== null && class_exists($activeModal['modal_class'])) {
-            /** @var class-string<Screen> $modalClass */
-            $modalClass = $activeModal['modal_class'];
-            $isSameCaller = $activeModal['caller_screen_class'] === null
-                || $activeModal['caller_screen_class'] === $screenClass;
+        if ($parent === 'main') {
+            $activeModal = UIStateManager::getClientActiveModal();
+            if ($activeModal !== null && class_exists($activeModal['modal_class'])) {
+                /** @var class-string<Screen> $modalClass */
+                $modalClass = $activeModal['modal_class'];
+                $isSameCaller = $activeModal['caller_screen_class'] === null
+                    || $activeModal['caller_screen_class'] === $screenClass;
 
-            if ($isSameCaller && ! $requestData['shouldReset']) {
-                Screen::restoreActiveModal(
-                    activeModal: $activeModal,
-                    caller: $screen,
-                    incomingStorage: $requestData['storage'],
-                    queryParams: $requestData['queryParams'],
-                );
-            } else {
-                UIStateManager::clearClientActiveModal();
+                if ($isSameCaller && ! $requestData['shouldReset']) {
+                    Screen::restoreActiveModal(
+                        activeModal: $activeModal,
+                        caller: $screen,
+                        incomingStorage: $requestData['storage'],
+                        queryParams: $requestData['queryParams'],
+                    );
+                } else {
+                    UIStateManager::clearClientActiveModal();
+                }
             }
         }
 
