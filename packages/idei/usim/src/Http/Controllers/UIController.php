@@ -56,13 +56,11 @@ class UIController extends Controller
                 || $activeModal['caller_screen_class'] === $screenClass;
 
             if ($isSameCaller && ! $requestData['shouldReset']) {
-                $modalScreen = Screen::make($modalClass);
-                $modalScreen->render(
+                Screen::restoreActiveModal(
+                    activeModal: $activeModal,
+                    caller: $screen,
                     incomingStorage: $requestData['storage'],
                     queryParams: $requestData['queryParams'],
-                    parent: 'modal',
-                    shouldReset: false,
-                    buildParams: $activeModal['params']
                 );
             } else {
                 UIStateManager::clearClientActiveModal();

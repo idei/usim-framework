@@ -288,6 +288,49 @@ abstract class Screen
     }
 
     /**
+     * Restore and re-render an active modal for F5 / browser reload.
+     *
+     * @param  array{modal_class: class-string<Screen>|string, caller_screen_id: ?int, caller_screen_class: ?string, callback_action: ?string, params: array<int|string, mixed>}  $activeModal
+     * @param  array<string, mixed>  $incomingStorage
+     * @param  array<string, mixed>  $queryParams
+     */
+    public static function restoreActiveModal(
+        array $activeModal,
+        Screen $caller,
+        array $incomingStorage = [],
+        array $queryParams = [],
+    ): ?Screen {
+        $modalClass = $activeModal['modal_class'];
+        if (! class_exists($modalClass) || ! is_a($modalClass, self::class, true)) {
+            return null;
+        }
+
+        $instance = static::make($modalClass);
+        $instance->parent = 'modal';
+        $instance->callerScreenId = $caller->getScreenComponentId();
+        $instance->callerScreenClass = $caller::class;
+        $instance->callbackAction = $activeModal['callback_action'];
+
+        $instance->render(
+            incomingStorage: $incomingStorage,
+            queryParams: $queryParams,
+            parent: 'modal',
+            shouldReset: false,
+            buildParams: $activeModal['params'],
+        );
+
+        // Keep active modal in UIStateManager refreshed with any updated caller ID
+        UIStateManager::storeClientActiveModal(
+            modalClass: $instance::class,
+            callerScreenId: $instance->callerScreenId,
+            callbackAction: $instance->callbackAction,
+            params: $activeModal['params'],
+        );
+
+        return $instance;
+    }
+
+    /**
      * Check access permission and return result structure.
      * This method is static to allow checking permissions without instantiating the service.
      *
@@ -819,6 +862,7 @@ abstract class Screen
     ): void {
         $this->container = $this->reconstructScreenTreeFromCache(...$buildParams);
         if ($parent !== null && $parent !== '') {
+            $this->parent = $parent;
             $this->container->setParent($parent);
         }
 
@@ -1431,6 +1475,10 @@ abstract class Screen
      */
     protected function getScreenComponentId(): int
     {
+        if (isset($this->container)) {
+            return $this->container->getId();
+        }
+
         $ui = $this->getCachedScreenSnapshot();
 
         // Find the first container (main container that represents the screen)
@@ -1539,9 +1587,6 @@ abstract class Screen
             $activeModal = UIStateManager::getClientActiveModal();
             if ($activeModal !== null) {
                 UIStateManager::clear($activeModal['modal_class']);
-                if ($activeModal['caller_screen_id'] !== null) {
-                    UIStateManager::removeClientOpenedScreen($activeModal['caller_screen_id']);
-                }
                 UIStateManager::clearClientActiveModal();
             }
         }

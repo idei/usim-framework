@@ -182,3 +182,60 @@ it('opens screen as modal and closes when cancel is clicked', function () {
 
     app()->setLocale($originalLocale);
 });
+
+it('persists and restores active modal when refreshing screen (F5) and preserves caller return flow', function () {
+    $originalLocale = app()->getLocale();
+
+    foreach (['en', 'es'] as $locale) {
+        app()->setLocale($locale);
+
+        $ui = uiScenario($this, ModalDemo::class, ['reset' => true]);
+
+        // 1. Open the user form modal
+        $openResponse = $ui->click('btn_open_user_modal');
+        $openResponse->assertOk();
+        expect(hasModalComponents($openResponse->json()))->toBeTrue();
+
+        // 2. Simulate F5 browser refresh (GET request to screen endpoint)
+        $refreshResponse = $this->getJson('/api/ui/demo/modal-demo');
+        $refreshResponse->assertOk();
+        $refreshData = $refreshResponse->json();
+
+        // Assert both caller screen and modal components are present
+        expect(hasModalComponents($refreshData))->toBeTrue();
+        expect(modalPayloadHasNamedComponent($refreshData, 'app_ui_screens_demo_userformmodal'))->toBeTrue();
+
+        // 3. User submits data on the restored modal
+        $saveResponse = $ui->action('btn_save_modal', 'submit_modal_data', [
+            'input_user_name' => 'Carlos Gardel',
+            'input_user_email' => 'carlos@tango.com',
+            'select_user_role' => 'admin',
+        ]);
+        $saveResponse->assertOk();
+        expect($saveResponse->json('action'))->toBe('close_modal');
+
+        // Caller state is updated
+        $result = $ui->component('lbl_result');
+        $result->expect('text')->toBe(t('screen.demo.modal_demo.result.user_saved', [
+            'name' => 'Carlos Gardel',
+            'role' => 'admin',
+            'email' => 'carlos@tango.com',
+        ]));
+        $result->expect('style')->toBe('success');
+
+        // 4. Another F5 refresh after modal was closed: modal should NOT be reopened
+        $afterCloseRefresh = $this->getJson('/api/ui/demo/modal-demo');
+        $afterCloseRefresh->assertOk();
+        expect(hasModalComponents($afterCloseRefresh->json()))->toBeFalse();
+
+        // 5. Open modal again and verify that ?reset=1 clears the active modal
+        $ui->click('btn_open_user_modal');
+        $resetRefresh = $this->getJson('/api/ui/demo/modal-demo?reset=1');
+        $resetRefresh->assertOk();
+        expect(hasModalComponents($resetRefresh->json()))->toBeFalse();
+
+        $ui->assertNoIssues();
+    }
+
+    app()->setLocale($originalLocale);
+});
