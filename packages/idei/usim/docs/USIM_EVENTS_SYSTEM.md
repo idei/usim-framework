@@ -747,27 +747,26 @@ class Menu extends Screen
 
 ### 7.3 Modales y Enrutamiento con `_caller_screen_id`
 
-Al abrir un diálogo modal (como `ConfirmDialogService`), es indispensable que la acción de confirmación sepa a qué pantalla retornar:
+Al abrir un diálogo modal (como `ConfirmDialog`), la pantalla llamadora (`caller: $this`) registra automáticamente el contexto para que la acción de confirmación sepa a qué pantalla retornar:
 
 ```php
-use Idei\Usim\Modals\ConfirmDialogService;
+use Idei\Usim\Modals\ConfirmDialog;
 use Idei\Usim\Enums\DialogType;
 
 public function onDeleteItem(array $params): void
 {
     $itemId = $params['item_id'] ?? 0;
 
-    ConfirmDialogService::open([
-        'type' => DialogType::CONFIRM,
-        'title' => '¿Eliminar elemento?',
-        'message' => 'Esta acción no se puede deshacer.',
-        'confirmAction' => 'confirm_delete',
-        'confirmParams' => [
+    ConfirmDialog::open(
+        caller: $this,
+        type: DialogType::CONFIRM,
+        title: '¿Eliminar elemento?',
+        message: 'Esta acción no se puede deshacer.',
+        confirmAction: 'confirm_delete',
+        confirmParams: [
             'item_id' => $itemId,
-            // Permite que UIEventController devuelva el evento a esta misma Screen:
-            '_caller_screen_id' => $this->getScreenComponentId(),
         ],
-    ]);
+    );
 }
 
 public function onConfirmDelete(array $params): void

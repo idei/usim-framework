@@ -78,7 +78,7 @@ The format is based on Keep a Changelog, and this project follows Semantic Versi
 - Carousel and calendar components now consume CSS theme tokens for consistent light/dark styling.
 
 ### Changed
-- `ConfirmDialogService` and `RegisterDialog` scaffolding updated to use `plain()` container appearance.
+- `ConfirmDialog` and `RegisterDialog` scaffolding updated to use `plain()` container appearance.
 - Admin UsersManager stub significantly refined: improved user feedback handling, clearer table layout, and role management flow.
 - `UserService` stub enhanced with stronger field validation and role management logic.
 - All auth screen stubs (`Login`, `EmailVerified`, `ForgotPassword`, `ResetPassword`) updated to use `plain()` container appearance for a consistent look.

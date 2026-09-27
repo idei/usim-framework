@@ -15,7 +15,8 @@ use Idei\Usim\Components\Table;
 use Idei\Usim\Enums\DialogType;
 use Idei\Usim\Enums\LayoutType;
 use Idei\Usim\Enums\SelectionMode;
-use Idei\Usim\Modals\ConfirmDialogService;
+use Idei\Usim\Modals\ConfirmDialog;
+use Idei\Usim\Screen;
 use Idei\Usim\UI;
 use Idei\Usim\ValueObjects\Size;
 use Idei\Usim\ValueObjects\Spacing;
@@ -23,6 +24,7 @@ use Idei\Usim\ValueObjects\Spacing;
 /**
  * Trait to manage the users CRUD UI section, table events, and dialog workflows.
  *
+ * @mixin Screen
  * @property RegisterService $registerService
  * @property UserService $userService
  * @property ?UserEditDialogPresenter $userEditDialogPresenter
@@ -234,13 +236,13 @@ trait ManagesUsersSection
         $name = $user['name'] ?? null;
         $userName = is_string($name) ? $name : '';
 
-        ConfirmDialogService::open(
+        ConfirmDialog::open(
+            caller: $this,
             type: DialogType::WARNING,
             title: t("Delete User"),
             message: t("Are you sure you want to delete user '{$userName}'?"),
             confirmAction: 'confirm_delete_user',
             confirmParams: ['user_id' => $userId],
-            callerServiceId: $this->getScreenComponentId()
         );
     }
 

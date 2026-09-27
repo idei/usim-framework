@@ -14,7 +14,8 @@ use Idei\Usim\Components\Table;
 use Idei\Usim\Enums\DialogType;
 use Idei\Usim\Enums\LayoutType;
 use Idei\Usim\Enums\SelectionMode;
-use Idei\Usim\Modals\ConfirmDialogService;
+use Idei\Usim\Modals\ConfirmDialog;
+use Idei\Usim\Screen;
 use Idei\Usim\UI;
 use Idei\Usim\ValueObjects\Size;
 use Idei\Usim\ValueObjects\Spacing;
@@ -22,6 +23,7 @@ use Idei\Usim\ValueObjects\Spacing;
 /**
  * Trait to manage the devices CRUD UI section, table events, and PIN pairing workflows.
  *
+ * @mixin Screen
  * @property DeviceService $deviceService
  */
 trait ManagesDevicesSection
@@ -300,13 +302,13 @@ trait ManagesDevicesSection
             return;
         }
 
-        ConfirmDialogService::open(
+        ConfirmDialog::open(
+            caller: $this,
             type: DialogType::WARNING,
             title: t(self::DEVICES_I18N_PREFIX . 'device_delete_confirm_title'),
             message: t(self::DEVICES_I18N_PREFIX . 'device_delete_confirm_msg', ['name' => $device->name]),
             confirmAction: 'confirm_delete_device',
             confirmParams: ['device_id' => $deviceId],
-            callerServiceId: $this->getScreenComponentId()
         );
     }
 

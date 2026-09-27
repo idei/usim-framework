@@ -10,7 +10,7 @@ use Idei\Usim\Components\Select;
 use Idei\Usim\Components\Table;
 use Idei\Usim\Enums\DialogType;
 use Idei\Usim\Enums\LayoutType;
-use Idei\Usim\Modals\ConfirmDialogService;
+use Idei\Usim\Modals\ConfirmDialog;
 use Idei\Usim\Screen;
 use Idei\Usim\Support\TranslationService;
 use Idei\Usim\UI;
@@ -204,13 +204,13 @@ class TranslateManager extends Screen
             return;
         }
 
-        ConfirmDialogService::open(
+        ConfirmDialog::open(
+            caller: $this,
             type: DialogType::WARNING,
             title: t('screen.admin.translate_manager.delete.title'),
             message: t('screen.admin.translate_manager.delete.confirm', ['key' => $key]),
             confirmAction: 'confirm_delete_translation',
             confirmParams: ['key' => $key],
-            callerServiceId: $this->getScreenComponentId()
         );
     }
 

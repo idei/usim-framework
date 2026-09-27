@@ -20,7 +20,7 @@ use Idei\Usim\Enums\DialogType;
 use Idei\Usim\Enums\JustifyContent;
 use Idei\Usim\Enums\LayoutType;
 use Idei\Usim\Events\UsimEvent;
-use Idei\Usim\Modals\ConfirmDialogService;
+use Idei\Usim\Modals\ConfirmDialog;
 use Idei\Usim\Models\UsimLanguage;
 use Idei\Usim\Models\UsimUnit;
 use Idei\Usim\Enums\Visibility;
@@ -517,18 +517,17 @@ class MenuStub extends Screen
     public function onShowAboutInfo(array $params): void
     {
         // Get this screen ID to receive the callback.
-        $screenId = $this->getScreenComponentId();
         $version = "0.7.0";
         // This i18n message may include escaped "\\n" and markdown; the dialog renderer handles both.
         $aboutMessage = t('screen.menu.about.message', [
             'version' => $version,
         ]);
 
-        ConfirmDialogService::open(
+        ConfirmDialog::open(
+            caller: $this,
             type: DialogType::INFO,
             title: t('screen.menu.about.title'),
             message: $aboutMessage,
-            callerServiceId: $screenId
         );
     }
 
@@ -664,15 +663,13 @@ class MenuStub extends Screen
      */
     public function onLogoutUser(array $params): void
     {
-        $screenId = $this->getScreenComponentId();
-
-        ConfirmDialogService::open(
+        ConfirmDialog::open(
+            caller: $this,
             type: DialogType::CONFIRM,
             title: t('screen.menu.logout_confirm.title'),
             message: t('screen.menu.logout_confirm.message'),
             confirmAction: 'confirm_logout',
             cancelAction: 'cancel_logout',
-            callerServiceId: $screenId
         );
     }
 

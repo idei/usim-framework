@@ -71,7 +71,7 @@ Esto permite integrar frontends externos (web custom, mobile, bots/agents) sin r
 - **Diffing Algorithm optimizado** (solo transmite cambios)
 - **Sistema de IDs determinísticos** para componentes estables
 - **Inyección automática de componentes** como propiedades
-- **Sistema de modales** con `ConfirmDialogService` y múltiples tipos
+- **Sistema de modales** con `ConfirmDialog` y múltiples tipos
 - **Uploader avanzado** con crop, preview, validación y persistencia automática
 
 ### Sistema de Autenticación Completo

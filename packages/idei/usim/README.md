@@ -580,21 +580,21 @@ When adding or changing scaffold text, prefer `t('...')` with one of the namespa
 
 ### Quick Confirmation Dialogs
 
-Use `ConfirmDialogService` for standard dialogs:
+Use `ConfirmDialog` for standard dialogs:
 
 ```php
-use Idei\Usim\Modals\ConfirmDialogService;
+use Idei\Usim\Modals\ConfirmDialog;
 use Idei\Usim\Enums\DialogType;
 
 public function onDeleteItem(array $params): void
 {
-    ConfirmDialogService::open(
+    ConfirmDialog::open(
+        caller: $this,
         type: DialogType::CONFIRM,
         title: 'Delete Item',
         message: 'Are you sure you want to delete this item?',
         confirmAction: 'confirm_delete',
         cancelAction: 'cancel_delete',
-        callerServiceId: $this->getServiceComponentId()
     );
 }
 

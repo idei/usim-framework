@@ -4,6 +4,7 @@ namespace Idei\Usim\Modals;
 
 use Idei\Usim\Components\Container;
 use Idei\Usim\Components\Label;
+use Idei\Usim\Contracts\ModalInterface;
 use Idei\Usim\Enums\LayoutType;
 use Idei\Usim\Enums\Visibility;
 use Idei\Usim\Modals\Dialog\ConfirmDialogConfig;
@@ -17,7 +18,7 @@ use Idei\Usim\ValueObjects\Spacing;
  * Server-driven UI Screen for modal dialogs (info, confirm, warning, error, success, choice, timeout).
  * Implements the Screen lifecycle and adheres to SOLID and Clean Code principles.
  */
-class ConfirmDialog extends Screen
+class ConfirmDialog extends Screen implements ModalInterface
 {
     /**
      * Modal dialogs render inside the 'modal' layer.
@@ -77,24 +78,39 @@ class ConfirmDialog extends Screen
     /**
      * Open the modal dialog by building its UI structure and registering it with the UI collector.
      *
-     * @param  Screen|null  $caller  The screen that is calling this method
+     * @param  Screen|array<string, mixed>|null  $caller  The screen that is calling this method, or config parameters
      * @param  mixed  ...$params  Configuration parameters or ConfirmDialogConfig instance
      */
-    public static function open(?Screen $caller = null, mixed ...$params): void
+    public static function open(Screen|array|null $caller = null, mixed ...$params): void
     {
+        $callingScreen = null;
         $resolvedParams = $params;
-        if (isset($params[0]) && is_array($params[0])) {
-            $resolvedParams = $params[0];
+
+        if ($caller instanceof Screen) {
+            $callingScreen = $caller;
+        } elseif (is_array($caller)) {
+            $resolvedParams = array_merge($caller, $params);
+            if (isset($resolvedParams['caller']) && $resolvedParams['caller'] instanceof Screen) {
+                $callingScreen = $resolvedParams['caller'];
+                unset($resolvedParams['caller']);
+            }
+        } elseif (isset($params['caller']) && $params['caller'] instanceof Screen) {
+            $callingScreen = $params['caller'];
+            unset($params['caller']);
         }
 
-        if ($caller !== null) {
-            $callerServiceId = $caller->getScreenComponentId();
+        if (isset($resolvedParams[0]) && is_array($resolvedParams[0])) {
+            $resolvedParams = $resolvedParams[0];
+        }
+
+        if ($callingScreen !== null) {
+            $callerServiceId = $callingScreen->getScreenComponentId();
             $resolvedParams = array_merge(['callerServiceId' => $callerServiceId], $resolvedParams);
         }
 
         self::openAsModal(
             params: $resolvedParams,
-            caller: $caller,
+            caller: $callingScreen,
         );
     }
 

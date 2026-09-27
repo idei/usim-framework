@@ -250,16 +250,14 @@ if ($filename = $this->uploader_profile->confirm($params, 'images', $user->profi
 
 **Ventaja:** API de alto nivel que encapsula operaciones complejas (persistir, borrar, actualizar UI automáticamente).
 
-### 3.5 Modals con ConfirmDialogService
+### 3.5 Modals con ConfirmDialog
 
 ```php
-// Abrir modal de confirmación desde cualquier servicio
+// Abrir modal de confirmación desde cualquier Screen
 public function onOpenConfirmation(array $params): void
 {
-    // Obtener ID del servicio para recibir callbacks
-    $serviceId = $this->getServiceComponentId();
-
-    ConfirmDialogService::open(
+    ConfirmDialog::open(
+        caller: $this,
         type: DialogType::CONFIRM,
         title: "¿Eliminar usuario?",
         message: "Esta acción no se puede deshacer",
@@ -268,7 +266,6 @@ public function onOpenConfirmation(array $params): void
         confirmLabel: 'Sí, Eliminar',
         cancelAction: 'handle_cancel',
         cancelLabel: 'Cancelar',
-        callerServiceId: $serviceId
     );
 }
 
@@ -1175,7 +1172,7 @@ use App\Services\UI\Screen;
 use App\Services\UI\Components\Label;
 use App\Services\UI\Components\Container;
 use App\Services\UI\Enums\DialogType;
-use App\Services\UI\Modals\ConfirmDialogService;
+use App\Services\UI\Modals\ConfirmDialog;
 use App\Services\UI\UI;
 
 class ModalDemoService extends Screen
@@ -1205,9 +1202,8 @@ class ModalDemoService extends Screen
 
     public function onOpenConfirmation(array $params): void
     {
-        $serviceId = $this->getServiceComponentId();
-
-        ConfirmDialogService::open(
+        ConfirmDialog::open(
+            caller: $this,
             type: DialogType::CONFIRM,
             title: "¿Confirmar acción?",
             message: "¿Estás seguro de continuar?",
@@ -1216,7 +1212,6 @@ class ModalDemoService extends Screen
             confirmLabel: 'Sí, Continuar',
             cancelAction: 'handle_cancel',
             cancelLabel: 'Cancelar',
-            callerServiceId: $serviceId
         );
     }
 
@@ -1243,7 +1238,7 @@ class ModalDemoService extends Screen
 **Líneas de código:** ~65  
 **Funcionalidad:** Sistema de modales con callbacks  
 **Características:**
-- `ConfirmDialogService::open()` para modales
+- `ConfirmDialog::open()` para modales
 - `DialogType` enum (CONFIRM, ERROR, WARNING, SUCCESS, TIMEOUT)
 - Callbacks con `callerServiceId` para routing correcto
 - `closeModal()` para cerrar desde event handlers
