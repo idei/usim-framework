@@ -223,8 +223,7 @@ abstract class Screen
         ?string $callbackAction = null,
         array $queryParams = [],
         ?string $screenClass = null,
-    ): static {
-        /** @var static $instance */
+    ): Screen {
         $instance = static::make($screenClass);
         $instance->parent = 'modal';
 
@@ -1551,11 +1550,16 @@ abstract class Screen
     /**
      * Close the current modal and return data to the caller screen.
      *
-     * @param  string|null  $action  Specific caller action method to trigger (defaults to registered callbackAction)
+     * @param  string|array<string, mixed>|null  $action  Specific caller action method, or parameters array if action is omitted
      * @param  array<string, mixed>  $parameters  Parameters to pass to caller's handler
      */
-    protected function returnToCaller(?string $action = null, array $parameters = []): void
+    protected function returnToCaller(string|array|null $action = null, array $parameters = []): void
     {
+        if (is_array($action)) {
+            $parameters = $action;
+            $action = null;
+        }
+
         $targetAction = $action ?? $this->callbackAction;
         $callerScreenClass = $this->callerScreenClass;
 

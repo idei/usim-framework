@@ -87,6 +87,12 @@ class ModalDemo extends Screen
                     ->icon('settings')
                     ->action('show_settings_confirm')
                     ->width(Size::px(230))
+            )->add(
+                UI::button('btn_open_user_modal')
+                    ->label(t('screen.demo.modal_demo.actions.open_user_modal'))
+                    ->style('info')
+                    ->action('open_user_modal')
+                    ->width(Size::px(230))
             );
         $container->add($buttonContainer);
     }
@@ -270,5 +276,44 @@ class ModalDemo extends Screen
     public function onCloseSuccessDialog(array $params): void
     {
         $this->closeModal();
+    }
+
+    /**
+     * Handle "Open Screen as Modal" button click.
+     * Opens UserFormModal as an interactive screen modal with initial parameters.
+     *
+     * @param  array<string, mixed>  $params
+     */
+    public function onOpenUserModal(array $params): void
+    {
+        $this->openModal(
+            screenClass: UserFormModal::class,
+            params: [
+                'initial_name' => 'Demo User',
+                'initial_email' => 'demo@example.com',
+                'initial_role' => 'editor',
+            ],
+            callbackAction: 'handle_user_modal_return',
+        );
+    }
+
+    /**
+     * Handle data returned from UserFormModal screen.
+     *
+     * @param  array<string, mixed>  $params
+     */
+    public function onHandleUserModalReturn(array $params): void
+    {
+        $name = isset($params['name']) && is_string($params['name']) ? $params['name'] : 'Unknown';
+        $role = isset($params['role']) && is_string($params['role']) ? $params['role'] : '';
+        $email = isset($params['email']) && is_string($params['email']) ? $params['email'] : '';
+
+        $this->lbl_result
+            ->text(t('screen.demo.modal_demo.result.user_saved', [
+                'name' => $name,
+                'role' => $role,
+                'email' => $email,
+            ]))
+            ->style('success');
     }
 }

@@ -9,6 +9,7 @@ return [
         'open_timeout_with_button' => 'Open Timeout Dialog (10 sec)',
         'open_timeout_without_button' => 'Open Timeout Without Button',
         'settings' => 'Settings',
+        'open_user_modal' => 'Open Screen as Modal',
     ],
     'auto_close_dialog' => [
         'message' => 'This dialog will close automatically in:',
@@ -29,6 +30,19 @@ Please verify your internet connection and try again.',
     'result' => [
         'cancelled' => 'Action cancelled by user',
         'confirmed' => 'Action confirmed! Type: :type',
+        'user_saved' => 'User saved from modal: :name (:role, :email)',
+    ],
+    'user_modal' => [
+        'title' => 'User Form (Screen Modal)',
+        'description' => 'This screen was opened as a modal overlay via openModal().',
+        'name_label' => 'Full Name',
+        'name_placeholder' => 'e.g. John Doe',
+        'name_required' => 'The name field is required',
+        'email_label' => 'Email Address',
+        'email_placeholder' => 'e.g. john@example.com',
+        'role_label' => 'User Role',
+        'cancel' => 'Cancel',
+        'submit' => 'Save and Return',
     ],
     'settings_dialog' => [
         'message' => 'Do you want to reset settings?

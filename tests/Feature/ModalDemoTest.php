@@ -21,6 +21,8 @@ it('loads modal demo with expected base components', function () {
         $ui->component('btn_timeout_dialog')->expect('action')->toBe('show_timeout_dialog');
         $ui->component('btn_timeout_no_button')->expect('action')->toBe('show_timeout_no_button');
         $ui->component('btn_show_settings')->expect('action')->toBe('show_settings_confirm');
+        $ui->component('btn_open_user_modal')->expect('type')->toBe('button');
+        $ui->component('btn_open_user_modal')->expect('action')->toBe('open_user_modal');
 
         $ui->assertNoIssues();
     }
@@ -111,6 +113,69 @@ it('opens timeout modal without close button and exposes timeout metadata', func
         // Timeout dialog configured without close button should not include modal confirm/cancel buttons.
         expect(modalPayloadHasNamedComponent($payload, 'btn_confirm'))->toBeFalse();
         expect(modalPayloadHasNamedComponent($payload, 'btn_cancel'))->toBeFalse();
+
+        $ui->assertNoIssues();
+    }
+
+    app()->setLocale($originalLocale);
+});
+
+it('opens screen as modal and returns data to caller via returnToCaller', function () {
+    $originalLocale = app()->getLocale();
+
+    foreach (['en', 'es'] as $locale) {
+        app()->setLocale($locale);
+
+        $ui = uiScenario($this, ModalDemo::class, ['reset' => true]);
+
+        $openResponse = $ui->click('btn_open_user_modal');
+        $openResponse->assertOk();
+        expect(hasModalComponents($openResponse->json()))->toBeTrue();
+
+        $ui->component('input_user_name')->expect('type')->toBe('input');
+        $ui->component('input_user_email')->expect('type')->toBe('input');
+        $ui->component('select_user_role')->expect('type')->toBe('select');
+
+        $saveResponse = $ui->action('btn_save_modal', 'submit_modal_data', [
+            'input_user_name' => 'Carlos Gardel',
+            'input_user_email' => 'carlos@tango.com',
+            'select_user_role' => 'admin',
+        ]);
+        $saveResponse->assertOk();
+        expect($saveResponse->json('action'))->toBe('close_modal');
+
+        $result = $ui->component('lbl_result');
+        $result->expect('text')->toBe(t('screen.demo.modal_demo.result.user_saved', [
+            'name' => 'Carlos Gardel',
+            'role' => 'admin',
+            'email' => 'carlos@tango.com',
+        ]));
+        $result->expect('style')->toBe('success');
+
+        $ui->assertNoIssues();
+    }
+
+    app()->setLocale($originalLocale);
+});
+
+it('opens screen as modal and closes when cancel is clicked', function () {
+    $originalLocale = app()->getLocale();
+
+    foreach (['en', 'es'] as $locale) {
+        app()->setLocale($locale);
+
+        $ui = uiScenario($this, ModalDemo::class, ['reset' => true]);
+
+        $openResponse = $ui->click('btn_open_user_modal');
+        $openResponse->assertOk();
+        expect(hasModalComponents($openResponse->json()))->toBeTrue();
+
+        $cancelResponse = $ui->click('btn_cancel_modal');
+        $cancelResponse->assertOk();
+        expect($cancelResponse->json('action'))->toBe('close_modal');
+
+        $result = $ui->component('lbl_result');
+        $result->expect('text')->toBe('');
 
         $ui->assertNoIssues();
     }
