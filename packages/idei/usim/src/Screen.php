@@ -316,6 +316,29 @@ abstract class Screen
     }
 
     /**
+     * Determine whether this screen is currently opened as a modal overlay.
+     */
+    public function isOpenedAsModal(): bool
+    {
+        if ($this->parent === 'modal') {
+            return true;
+        }
+
+        if (isset($this->container) && $this->container->getParent() === 'modal') {
+            return true;
+        }
+
+        $activeStack = UIStateManager::getClientActiveModalStack();
+        foreach ($activeStack as $modalMeta) {
+            if ($modalMeta['modal_class'] === static::class) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
      * Restore and re-render an active modal for F5 / browser reload.
      *
      * @param  array{modal_class: class-string<Screen>|string, caller_screen_id: ?int, caller_screen_class: ?string, callback_action: ?string, params: array<int|string, mixed>}  $activeModal
@@ -983,6 +1006,8 @@ abstract class Screen
         if ($parent !== null && $parent !== '') {
             $this->parent = $parent;
             $this->container->setParent($parent);
+        } elseif ($this->container->getParent() !== null) {
+            $this->parent = $this->container->getParent();
         }
 
         if (! empty($eventParameters) || $triggerComponentId !== null) {

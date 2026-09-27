@@ -11,6 +11,9 @@ use Idei\Usim\UI;
 use Idei\Usim\Upload\UploadService;
 use Idei\Usim\ValueObjects\Size;
 use Idei\Usim\ValueObjects\Spacing;
+use Idei\Usim\Enums\AlignItems;
+use Idei\Usim\Enums\JustifyContent;
+use Idei\Usim\Enums\LayoutType;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Password;
 
@@ -45,20 +48,53 @@ class Profile extends Screen
         }
 
         $container
-            ->title(t('screen.auth.profile.title'))
             ->maxWidth(Size::px(600))
             ->centerHorizontal()
-            ->shadow(2)
-            ->padding(Spacing::px(30));
+            ->plain()
+            ->padding(Spacing::each(
+                Spacing::px(5),
+                Spacing::px(20),
+                Spacing::px(20),
+                Spacing::px(20)
+            ));
 
-        // Título
-        $container->add(
-            UI::label('lbl_title')
-                ->text("👤 Configuración de Perfil")
-                ->style('primary')
-                ->fontSize('20px')
-                ->fontWeight('bold')
-        );
+        // Encabezado
+        if ($this->isOpenedAsModal()) {
+            $header = UI::container('profile_modal_header')
+                ->layout(LayoutType::HORIZONTAL)
+                ->justifyContent(JustifyContent::SPACE_BETWEEN)
+                ->alignItems(AlignItems::CENTER)
+                ->plain()
+                ->shadow(false)
+                ->padding(Spacing::zero())
+                ->margin(Spacing::px(5));
+
+            $header->add(
+                UI::label('lbl_title')
+                    ->text("👤 Configuración de Perfil")
+                    ->style('h3')
+            );
+
+            $header->add(
+                UI::button('btn_close_modal')
+                    ->label('✕')
+                    ->action('close_modal')
+                    ->style('secondary')
+                    ->variant('ghost')
+                    ->plain()
+            );
+
+            $container->add($header);
+        } else {
+            // Título estándar
+            $container->add(
+                UI::label('lbl_title')
+                    ->text("👤 Configuración de Perfil")
+                    ->style('primary')
+                    ->fontSize('20px')
+                    ->fontWeight('bold')
+            );
+        }
 
         // Email (readonly)
         $this->input_email = UI::input('input_email')
@@ -133,7 +169,7 @@ class Profile extends Screen
         $imageUrl = null;
 
         // Actualizar uploader con imagen actual (si existe)
-        if (is_string($profileImage) && $profileImage !== '') {
+        if (\is_string($profileImage) && $profileImage !== '') {
             $imageUrl = UploadService::fileUrl("uploads/images/{$profileImage}") . '?t=' . time();
         }
 
@@ -178,6 +214,8 @@ class Profile extends Screen
             event(new UsimEvent('updated_profile', [
                 'user' => $user
             ]));
+
+            $this->closeModal(); // Cerrar modal después de guardar
 
             // Mostrar éxito
             $this->toast(t('screen.auth.profile.toast.updated'), 'success');
