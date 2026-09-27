@@ -15,6 +15,7 @@ use Idei\Usim\Contracts\UIElement;
 use Idei\Usim\Enums\AlignItems;
 use Idei\Usim\Enums\JustifyContent;
 use Idei\Usim\Enums\LayoutType;
+use Idei\Usim\Screen;
 use Idei\Usim\Support\UIIdGenerator;
 use Idei\Usim\ValueObjects\Size;
 
@@ -48,8 +49,8 @@ class Container implements UIElement, Sizeable, Paddable, Marginable, Gapable
         $this->name = $name;
 
         if ($context === null) {
-            // Detectar automáticamente el contexto desde la clase que invoca
-            $context = $this->detectCallingContext();
+            // Detectar automáticamente el contexto desde la clase que invoca o contexto activo
+            $context = UIIdGenerator::getCurrentContext() ?? $this->detectCallingContext();
         }
 
         // Generar ID según si tiene nombre o no
@@ -298,6 +299,15 @@ class Container implements UIElement, Sizeable, Paddable, Marginable, Gapable
     public function root(bool $root = true): self
     {
         $this->config['root'] = $root;
+        return $this;
+    }
+
+    /**
+     * Set the modal layer / stack index for this container
+     */
+    public function modalLayerIndex(int $index): self
+    {
+        $this->config['_layer_index'] = $index;
         return $this;
     }
 
@@ -1862,21 +1872,30 @@ class Container implements UIElement, Sizeable, Paddable, Marginable, Gapable
         // Buscar en el stack trace la primera clase que NO sea del namespace UI (Legacy o Package)
         foreach ($trace as $frame) {
             if (isset($frame['class'])) {
+                $class = (string) $frame['class'];
+
+                // Skip base Screen and base UI class
+                if ($class === Screen::class || $class === 'Idei\\Usim\\UI') {
+                    continue;
+                }
+
                 // Skip internal classes from Legacy Framework (App/UI/Components)
-                if (str_starts_with($frame['class'], 'App\\UI\\Components\\')) {
+                if (str_starts_with($class, 'App\\UI\\Components\\')) {
                     continue;
                 }
-                // Skip internal classes from the package framework.
-                if (str_starts_with($frame['class'], 'Idei\\Usim\\')) {
+
+                // Skip internal classes from the package framework
+                if (str_starts_with($class, 'Idei\\Usim\\Components\\') || str_starts_with($class, 'Idei\\Usim\\Support\\') || str_starts_with($class, 'Idei\\Usim\\Concerns\\')) {
                     continue;
                 }
+
                 // Skip Http Controllers
-                if (str_starts_with($frame['class'], 'Idei\\Usim\\Http\\')) {
+                if (str_starts_with($class, 'Idei\\Usim\\Http\\')) {
                     continue;
                 }
 
                 // Found the consumer service!
-                return $frame['class'];
+                return $class;
             }
         }
 

@@ -1,6 +1,8 @@
 <?php
 
 use App\UI\Screens\Demo\ModalDemo;
+use Idei\Usim\Modals\ConfirmDialog;
+use Idei\Usim\Support\UIStateManager;
 
 it('loads modal demo with expected base components', function () {
     $originalLocale = app()->getLocale();
@@ -239,6 +241,134 @@ it('persists and restores active modal when refreshing screen (F5) and preserves
         $resetRefresh = $this->getJson('/api/ui/demo/modal-demo?reset=1');
         $resetRefresh->assertOk();
         expect(hasModalComponents($resetRefresh->json()))->toBeFalse();
+
+        $ui->assertNoIssues();
+    }
+
+    app()->setLocale($originalLocale);
+});
+
+it('persists and unwinds stacked modals across F5 page refreshes', function () {
+    $originalLocale = app()->getLocale();
+
+    foreach (['en', 'es'] as $locale) {
+        app()->setLocale($locale);
+
+        $ui = uiScenario($this, ModalDemo::class, ['reset' => true]);
+
+        // 1. Click "Settings" button to open Modal 1 (Warning ConfirmDialog)
+        $openFirstModal = $ui->click('btn_show_settings');
+        $openFirstModal->assertOk();
+        expect(hasModalComponents($openFirstModal->json()))->toBeTrue();
+        expect(modalPayloadHasNamedComponent($openFirstModal->json(), 'idei_usim_modals_confirmdialog'))->toBeTrue();
+
+        // Modal stack on server has 1 modal
+        $stack1 = UIStateManager::getClientActiveModalStack();
+        expect($stack1)->toHaveCount(1);
+        expect($stack1[0]['modal_class'])->toBe(ConfirmDialog::class);
+
+        // 2. Click Confirm on Modal 1 -> triggers action 'reset_settings' on ModalDemo
+        // ModalDemo::onResetSettings opens Modal 2 (Success ConfirmDialog)
+        $confirm1Data = $ui->component('btn_confirm')->data();
+        $confirm1Params = $confirm1Data['parameters'] ?? [];
+        $openSecondModal = $ui->click('btn_confirm', $confirm1Params);
+        $openSecondModal->assertOk();
+
+        // Modal stack on server now has 2 modals
+        $stack2 = UIStateManager::getClientActiveModalStack();
+        expect($stack2)->toHaveCount(2);
+        expect($stack2[0]['layer_index'])->toBe(0);
+        expect($stack2[1]['layer_index'])->toBe(1);
+
+        // 3. Simulate F5 refresh while on Modal 2 (stacked on top of Modal 1)
+        $f5Response = $this->getJson('/api/ui/demo/modal-demo');
+        $f5Response->assertOk();
+        $f5Data = $f5Response->json();
+
+        // Both modals must be returned in the response with distinct roots and layer indexes
+        $modalRoots = [];
+        foreach ($f5Data as $key => $component) {
+            if (is_array($component) && ($component['parent'] ?? null) === 'modal') {
+                $modalRoots[] = $component;
+            }
+        }
+        expect($modalRoots)->toHaveCount(2);
+
+        // Root 0 has _layer_index = 0 and name 'idei_usim_modals_confirmdialog'
+        // Root 1 has _layer_index = 1 and name 'idei_usim_modals_confirmdialog_1'
+        $layerIndices = array_map(fn ($r) => $r['_layer_index'] ?? null, $modalRoots);
+        expect($layerIndices)->toContain(0);
+        expect($layerIndices)->toContain(1);
+
+        // 4. Confirm/close the top modal (Modal 2 - Success dialog)
+        // Its confirmAction is 'close_success_dialog' on ModalDemo
+        $topConfirmBtn = null;
+        $topConfirmId = null;
+        foreach ($f5Data as $key => $component) {
+            if (is_array($component) && ($component['name'] ?? null) === 'btn_confirm' && ($component['action'] ?? null) === 'close_success_dialog') {
+                $topConfirmBtn = $component;
+                $topConfirmId = (int) $key;
+                break;
+            }
+        }
+        expect($topConfirmBtn)->not->toBeNull();
+
+        $closeTopResponse = $this->postJson('/api/ui-event', [
+            'component_id' => $topConfirmId,
+            'event' => 'click',
+            'action' => 'close_success_dialog',
+            'parameters' => $topConfirmBtn['parameters'] ?? [],
+        ]);
+        $closeTopResponse->assertOk();
+        expect($closeTopResponse->json('action'))->toBe('close_modal');
+
+        // Modal stack on server now has only Modal 1 (Warning modal) remaining
+        $stackAfterPop = UIStateManager::getClientActiveModalStack();
+        expect($stackAfterPop)->toHaveCount(1);
+        expect($stackAfterPop[0]['layer_index'])->toBe(0);
+
+        // 5. Simulate another F5: Modal 1 is still restored
+        $f5SecondResponse = $this->getJson('/api/ui/demo/modal-demo');
+        $f5SecondResponse->assertOk();
+        $f5SecondData = $f5SecondResponse->json();
+
+        $secondModalRoots = [];
+        foreach ($f5SecondData as $key => $component) {
+            if (is_array($component) && ($component['parent'] ?? null) === 'modal') {
+                $secondModalRoots[] = $component;
+            }
+        }
+        expect($secondModalRoots)->toHaveCount(1);
+        expect($secondModalRoots[0]['_layer_index'])->toBe(0);
+
+        // 6. User cancels Modal 1 -> action 'cancel_settings' on ModalDemo
+        $firstCancelBtn = null;
+        $firstCancelId = null;
+        foreach ($f5SecondData as $key => $component) {
+            if (is_array($component) && ($component['name'] ?? null) === 'btn_cancel') {
+                $firstCancelBtn = $component;
+                $firstCancelId = (int) $key;
+                break;
+            }
+        }
+        expect($firstCancelBtn)->not->toBeNull();
+
+        $cancelFirstResponse = $this->postJson('/api/ui-event', [
+            'component_id' => $firstCancelId,
+            'event' => 'click',
+            'action' => 'cancel_settings',
+            'parameters' => $firstCancelBtn['parameters'] ?? [],
+        ]);
+        $cancelFirstResponse->assertOk();
+        expect($cancelFirstResponse->json('action'))->toBe('close_modal');
+
+        // Modal stack is now empty
+        expect(UIStateManager::getClientActiveModalStack())->toBeEmpty();
+
+        // 7. Another F5: NO modals are restored, user is back on ModalDemo
+        $f5FinalResponse = $this->getJson('/api/ui/demo/modal-demo');
+        $f5FinalResponse->assertOk();
+        expect(hasModalComponents($f5FinalResponse->json()))->toBeFalse();
 
         $ui->assertNoIssues();
     }

@@ -128,6 +128,23 @@ abstract class Screen
     protected ?string $callbackAction = null;
 
     /**
+     * Stack / layer index when screen is displayed as a stacked modal.
+     */
+    public int $modalLayerIndex = 0;
+
+    /**
+     * Get unique context identifier for this screen instance.
+     */
+    public function getContextIdentifier(): string
+    {
+        if ($this->modalLayerIndex > 0) {
+            return static::class.'@'.$this->modalLayerIndex;
+        }
+
+        return static::class;
+    }
+
+    /**
      * Screen visibility level. Used by the framework to determine access and menu display.
      */
     public static Visibility $visibility = Visibility::AUTHENTICATED;
@@ -243,6 +260,15 @@ abstract class Screen
             $instance->callbackAction = $callbackAction;
         }
 
+        $currentStack = UIStateManager::getClientActiveModalStack();
+        $sameClassCount = 0;
+        foreach ($currentStack as $entry) {
+            if ($entry['modal_class'] === $instance::class) {
+                $sameClassCount++;
+            }
+        }
+        $instance->modalLayerIndex = $sameClassCount;
+
         // Clear any previous cached snapshot so the modal renders fresh
         $instance->clearCachedScreenSnapshot();
 
@@ -260,6 +286,7 @@ abstract class Screen
             callerScreenId: $instance->callerScreenId,
             callbackAction: $instance->callbackAction,
             params: $params,
+            layerIndex: $instance->modalLayerIndex,
         );
 
         return $instance;
@@ -328,6 +355,78 @@ abstract class Screen
         );
 
         return $instance;
+    }
+
+    /**
+     * Restore and re-render an active modal stack for F5 / browser reload.
+     *
+     * @param  list<array{modal_class: string, caller_screen_id: ?int, caller_screen_class: ?string, callback_action: ?string, params: array<int|string, mixed>, layer_index?: int}>  $modalStack
+     * @param  array<string, mixed>  $incomingStorage
+     * @param  array<string, mixed>  $queryParams
+     * @return list<Screen>
+     */
+    public static function restoreActiveModalStack(
+        array $modalStack,
+        Screen $caller,
+        array $incomingStorage = [],
+        array $queryParams = [],
+    ): array {
+        $restoredScreens = [];
+        /** @var array<string, Screen> $screensByClass */
+        $screensByClass = [];
+        $screensByClass[$caller::class] = $caller;
+
+        $updatedStack = [];
+        $countsByClass = [];
+
+        foreach ($modalStack as $modalMeta) {
+            $modalClass = $modalMeta['modal_class'];
+            if (! class_exists($modalClass) || ! is_a($modalClass, self::class, true)) {
+                continue;
+            }
+
+            $instance = static::make($modalClass);
+            $instance->parent = 'modal';
+
+            $layerIndex = $modalMeta['layer_index'] ?? ($countsByClass[$modalClass] ?? 0);
+            $countsByClass[$modalClass] = $layerIndex + 1;
+            $instance->modalLayerIndex = $layerIndex;
+
+            // Resolve caller: check if caller was a previous modal in the stack, otherwise main screen
+            $callerScreenClass = $modalMeta['caller_screen_class'];
+            $effectiveCaller = ($callerScreenClass !== null && isset($screensByClass[$callerScreenClass]))
+                ? $screensByClass[$callerScreenClass]
+                : $caller;
+
+            $instance->callerScreenId = $effectiveCaller->getScreenComponentId();
+            $instance->callerScreenClass = $effectiveCaller::class;
+            $instance->callbackAction = $modalMeta['callback_action'];
+
+            $instance->render(
+                incomingStorage: $incomingStorage,
+                queryParams: $queryParams,
+                parent: 'modal',
+                shouldReset: false,
+                buildParams: $modalMeta['params'],
+            );
+
+            $screensByClass[$instance::class] = $instance;
+            $restoredScreens[] = $instance;
+
+            $updatedStack[] = [
+                'modal_class' => $instance::class,
+                'caller_screen_id' => $instance->callerScreenId,
+                'caller_screen_class' => $instance->callerScreenClass,
+                'callback_action' => $instance->callbackAction,
+                'params' => $modalMeta['params'],
+                'layer_index' => $instance->modalLayerIndex,
+            ];
+        }
+
+        // Refresh stack in UIStateManager
+        UIStateManager::setClientActiveModalStack($updatedStack);
+
+        return $restoredScreens;
     }
 
     /**
@@ -768,24 +867,29 @@ abstract class Screen
         bool $shouldReset = false,
         array $buildParams = []
     ): void {
-        $this->uiChanges()->setStorage($incomingStorage);
+        UIIdGenerator::pushCurrentContext($this->getContextIdentifier());
+        try {
+            $this->uiChanges()->setStorage($incomingStorage);
 
-        if ($shouldReset) {
-            $this->onResetScreen();
-        }
+            if ($shouldReset) {
+                $this->onResetScreen();
+            }
 
-        $this->initializeEventContext(
-            incomingStorage: $incomingStorage,
-            queryParams: $queryParams,
-            parent: $parent,
-            buildParams: $buildParams
-        );
+            $this->initializeEventContext(
+                incomingStorage: $incomingStorage,
+                queryParams: $queryParams,
+                parent: $parent,
+                buildParams: $buildParams
+            );
 
-        $this->finalizeEventContext(reload: true);
+            $this->finalizeEventContext(reload: true);
 
-        $agentContext = $this->getAgentContext();
-        if (! empty($agentContext)) {
-            $this->uiChanges()->add(['agent_context' => $agentContext]);
+            $agentContext = $this->getAgentContext();
+            if (! empty($agentContext)) {
+                $this->uiChanges()->add(['agent_context' => $agentContext]);
+            }
+        } finally {
+            UIIdGenerator::popCurrentContext();
         }
     }
 
@@ -807,10 +911,24 @@ abstract class Screen
         int|string|null $parent = null,
         ?int $triggerComponentId = null
     ): void {
-        $this->uiChanges()->setStorage($incomingStorage);
+        UIIdGenerator::pushCurrentContext($this->getContextIdentifier());
+        try {
+            $this->uiChanges()->setStorage($incomingStorage);
 
-        if ($method === 'onResetScreen') {
-            $this->onResetScreen();
+            if ($method === 'onResetScreen') {
+                $this->onResetScreen();
+                $this->initializeEventContext(
+                    incomingStorage: $incomingStorage,
+                    queryParams: $queryParams,
+                    parent: $parent,
+                    eventParameters: $parameters,
+                    triggerComponentId: $triggerComponentId
+                );
+                $this->finalizeEventContext(reload: false);
+
+                return;
+            }
+
             $this->initializeEventContext(
                 incomingStorage: $incomingStorage,
                 queryParams: $queryParams,
@@ -818,24 +936,15 @@ abstract class Screen
                 eventParameters: $parameters,
                 triggerComponentId: $triggerComponentId
             );
+
+            if (is_callable([$this, $method])) {
+                $this->$method($parameters);
+            }
+
             $this->finalizeEventContext(reload: false);
-
-            return;
+        } finally {
+            UIIdGenerator::popCurrentContext();
         }
-
-        $this->initializeEventContext(
-            incomingStorage: $incomingStorage,
-            queryParams: $queryParams,
-            parent: $parent,
-            eventParameters: $parameters,
-            triggerComponentId: $triggerComponentId
-        );
-
-        if (is_callable([$this, $method])) {
-            $this->$method($parameters);
-        }
-
-        $this->finalizeEventContext(reload: false);
     }
 
     /**
@@ -1184,21 +1293,25 @@ abstract class Screen
      */
     protected function getCachedScreenSnapshot(...$params): array
     {
+        $contextKey = $this->getContextIdentifier();
+
         // Check if user Interface exists in cache
-        $cachedUI = UIStateManager::get(static::class);
+        $cachedUI = UIStateManager::get($contextKey);
 
         if ($this->isTypedCachedScreenSnapshot($cachedUI) && $this->isValidCachedScreenSnapshot($cachedUI)) {
             return $cachedUI;
         }
 
         if ($cachedUI !== null) {
-            UIStateManager::clear(static::class);
+            UIStateManager::clear($contextKey);
         }
 
         $current_class = static::class;
-        $current_class_slug = strtolower(str_replace('\\', '_', $current_class));
-        $container = UI::container($current_class_slug, $current_class)
+        $current_class_slug = strtolower(str_replace('\\', '_', $current_class))
+            .($this->modalLayerIndex > 0 ? "_{$this->modalLayerIndex}" : '');
+        $container = UI::container($current_class_slug, $contextKey)
             ->parent($this->parent)
+            ->modalLayerIndex($this->modalLayerIndex)
             ->padding(Spacing::px(30))
             ->layout(LayoutType::VERTICAL)
             ->justifyContent('center')
@@ -1212,7 +1325,7 @@ abstract class Screen
             // ->parent($parent)   // TODO: Acá está el problema.
             ->toJson();
 
-        UIStateManager::store(static::class, $ui);
+        UIStateManager::store($contextKey, $ui);
 
         return $ui;
     }
@@ -1362,7 +1475,7 @@ abstract class Screen
             // Reserve IDs from cached snapshots so future auto-generated IDs
             // in this request do not collide with already deserialized components.
             if (is_numeric($id)) {
-                UIIdGenerator::reserveContextId(static::class, (int) $id);
+                UIIdGenerator::reserveContextId($this->getContextIdentifier(), (int) $id);
             }
 
             $components[$id] = $className::deserialize($id, $component);
@@ -1441,7 +1554,7 @@ abstract class Screen
      */
     protected function cacheScreenSnapshot(Container $container): void
     {
-        UIStateManager::store(static::class, $container->toJson());
+        UIStateManager::store($this->getContextIdentifier(), $container->toJson());
     }
 
     /**
@@ -1449,7 +1562,7 @@ abstract class Screen
      */
     public function clearCachedScreenSnapshot(): bool
     {
-        return UIStateManager::clear(static::class);
+        return UIStateManager::clear($this->getContextIdentifier());
     }
 
     /**
@@ -1490,7 +1603,7 @@ abstract class Screen
 
         // Fallback: generate deterministic ID from screen class name
         return UIIdGenerator::generateFromName(
-            static::class,
+            $this->getContextIdentifier(),
             'screen_root'
         );
     }
@@ -1582,13 +1695,13 @@ abstract class Screen
             } catch (\Throwable) {
                 // Ignore if container is not initialized
             }
-            UIStateManager::clearClientActiveModal();
-        } else {
-            $activeModal = UIStateManager::getClientActiveModal();
-            if ($activeModal !== null) {
-                UIStateManager::clear($activeModal['modal_class']);
-                UIStateManager::clearClientActiveModal();
-            }
+        }
+
+        $popped = UIStateManager::popClientActiveModal();
+        if ($popped !== null) {
+            $layerIndex = $popped['layer_index'];
+            $contextKey = $layerIndex > 0 ? $popped['modal_class'].'@'.$layerIndex : $popped['modal_class'];
+            UIStateManager::clear($contextKey);
         }
     }
 

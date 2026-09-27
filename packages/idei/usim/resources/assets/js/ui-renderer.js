@@ -872,6 +872,66 @@ function buildModalSubtreePayload(uiUpdate) {
     return payload;
 }
 
+function buildModalSubtrees(uiData) {
+    if (!uiData || typeof uiData !== 'object') {
+        return [];
+    }
+
+    const modalRoots = [];
+    for (const [key, component] of Object.entries(uiData)) {
+        if (isSpecialUIKey(key) || !component || typeof component !== 'object') {
+            continue;
+        }
+
+        if (component.parent === 'modal') {
+            modalRoots.push(String(key));
+        }
+    }
+
+    if (modalRoots.length === 0) {
+        return [];
+    }
+
+    // Sort modal roots by layer index ascending (layer 0 mounts first, then layer 1, etc.)
+    modalRoots.sort((a, b) => {
+        const layerA = Number(uiData[a]?._layer_index ?? 0);
+        const layerB = Number(uiData[b]?._layer_index ?? 0);
+        return layerA - layerB;
+    });
+
+    const subtrees = [];
+    for (const rootId of modalRoots) {
+        const payload = {};
+        const queue = [rootId];
+        const includedIds = new Set([rootId]);
+        payload[rootId] = uiData[rootId];
+
+        while (queue.length > 0) {
+            const parentId = queue.shift();
+
+            for (const [key, component] of Object.entries(uiData)) {
+                if (isSpecialUIKey(key) || !component || typeof component !== 'object') {
+                    continue;
+                }
+
+                if (includedIds.has(String(key))) {
+                    continue;
+                }
+
+                if (component.parent === Number(parentId) || String(component.parent) === parentId) {
+                    payload[key] = component;
+                    includedIds.add(String(key));
+                    queue.push(String(key));
+                }
+            }
+        }
+
+        subtrees.push(payload);
+    }
+
+    return subtrees;
+}
+
 function isSpecialUIKey(key) {
     return SPECIAL_UI_KEYS.has(key);
 }
@@ -2555,34 +2615,29 @@ async function loadScreenUI(screenName = null, forceReset = null) {
             globalRenderer.destroy();
         }
 
-        // Check if there are components with parent='modal' - if so, open modal (e.g. persisted modal on F5)
-        let hasModalComponents = false;
-        for (const [key, component] of Object.entries(uiData)) {
-            if (isSpecialUIKey(key) || !component || typeof component !== 'object') {
-                continue;
-            }
-
-            if (component.parent === 'modal') {
-                hasModalComponents = true;
-                break;
-            }
-        }
-
+        // Restore modal stack layers if any exist (persisted modals on F5)
+        const modalSubtrees = buildModalSubtrees(uiData);
         let mainPayload = uiData;
-        let modalPayload = null;
 
-        if (hasModalComponents) {
-            modalPayload = buildModalSubtreePayload(uiData);
+        if (modalSubtrees.length > 0) {
+            const allModalKeys = new Set();
+            for (const tree of modalSubtrees) {
+                for (const key of Object.keys(tree)) {
+                    allModalKeys.add(key);
+                }
+            }
+
             mainPayload = Object.fromEntries(
-                Object.entries(uiData).filter(([key]) => !(key in modalPayload))
+                Object.entries(uiData).filter(([key]) => !allModalKeys.has(key))
             );
         }
 
-        // Create and store global renderer
+        // Create and store global renderer for main UI
         globalRenderer = new UIRenderer(mainPayload);
         globalRenderer.render();
 
-        if (modalPayload) {
+        // Open each modal layer in order (bottom to top)
+        for (const modalPayload of modalSubtrees) {
             openModal(modalPayload);
         }
 

@@ -5,6 +5,7 @@ namespace Idei\Usim\Http\Controllers;
 use Idei\Usim\Listeners\UsimEventDispatcher;
 use Idei\Usim\Screen;
 use Idei\Usim\Support\UIIdGenerator;
+use Idei\Usim\Support\UIStateManager;
 use Idei\Usim\UIChangesCollector;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -61,6 +62,27 @@ class UIEventController extends Controller
             $screen = Screen::make($screenClass);
 
             $method = $this->resolveActionHandler($screen, $action);
+            if ($method === null) {
+                // If this screen is an active modal that does not implement the action,
+                // fall back to the caller screen if the caller implements the action.
+                $modalStack = UIStateManager::getClientActiveModalStack();
+                foreach (array_reverse($modalStack) as $modalMeta) {
+                    if ($modalMeta['modal_class'] === $screenClass && ! empty($modalMeta['caller_screen_class'])) {
+                        $callerClass = $modalMeta['caller_screen_class'];
+                        if (class_exists($callerClass) && is_a($callerClass, Screen::class, true)) {
+                            $callerScreen = Screen::make($callerClass);
+                            $callerMethod = $this->resolveActionHandler($callerScreen, $action);
+                            if ($callerMethod !== null) {
+                                $screen = $callerScreen;
+                                $screenClass = $callerClass;
+                                $method = $callerMethod;
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+
             if ($method === null) {
                 return $this->actionNotImplementedResponse($action);
             }

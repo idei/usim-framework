@@ -52,16 +52,15 @@ class UIController extends Controller
         );
 
         if ($parent === 'main') {
-            $activeModal = UIStateManager::getClientActiveModal();
-            if ($activeModal !== null && class_exists($activeModal['modal_class'])) {
-                /** @var class-string<Screen> $modalClass */
-                $modalClass = $activeModal['modal_class'];
-                $isSameCaller = $activeModal['caller_screen_class'] === null
-                    || $activeModal['caller_screen_class'] === $screenClass;
+            $modalStack = UIStateManager::getClientActiveModalStack();
+            if (! empty($modalStack)) {
+                $bottomModal = $modalStack[0];
+                $isSameCaller = $bottomModal['caller_screen_class'] === null
+                    || $bottomModal['caller_screen_class'] === $screenClass;
 
                 if ($isSameCaller && ! $requestData['shouldReset']) {
-                    Screen::restoreActiveModal(
-                        activeModal: $activeModal,
+                    Screen::restoreActiveModalStack(
+                        modalStack: $modalStack,
                         caller: $screen,
                         incomingStorage: $requestData['storage'],
                         queryParams: $requestData['queryParams'],

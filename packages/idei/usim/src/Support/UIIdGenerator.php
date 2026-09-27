@@ -28,6 +28,27 @@ class UIIdGenerator
     /** @var bool Flag to ensure services are loaded only once */
     private static bool $servicesLoaded = false;
 
+    /** @var list<string> Context execution stack */
+    private static array $contextStack = [];
+
+    public static function pushCurrentContext(string $context): void
+    {
+        self::$contextStack[] = $context;
+    }
+
+    public static function popCurrentContext(): ?string
+    {
+        return array_pop(self::$contextStack);
+    }
+
+    public static function getCurrentContext(): ?string
+    {
+        if (empty(self::$contextStack)) {
+            return null;
+        }
+
+        return end(self::$contextStack);
+    }
 
     /**
      * Generate a unique ID for a UI element
@@ -51,8 +72,9 @@ class UIIdGenerator
 
         $offset = self::getContextOffset($context);
 
-        // Register offset → context mapping for reverse lookup
-        self::$offsetToContext[$offset] = $context;
+        // Register offset → base context mapping for reverse lookup
+        $baseContext = explode('@', $context, 2)[0];
+        self::$offsetToContext[$offset] = $baseContext;
 
         return $offset + $localId;
     }
@@ -69,12 +91,14 @@ class UIIdGenerator
      */
     public static function generateFromName(string $context, string $name): int
     {
+        $baseContext = explode('@', $context, 2)[0];
+
         if (isset(self::$namedLocalIdsPerContext[$context][$name])) {
             $localId = self::$namedLocalIdsPerContext[$context][$name];
             $offset = self::getContextOffset($context);
 
-            // Register offset → context mapping for reverse lookup
-            self::$offsetToContext[$offset] = $context;
+            // Register offset → base context mapping for reverse lookup
+            self::$offsetToContext[$offset] = $baseContext;
 
             return $offset + $localId;
         }
@@ -98,8 +122,8 @@ class UIIdGenerator
         self::$namedLocalIdsPerContext[$context][$name] = $localId;
         self::$usedLocalIdsPerContext[$context][$localId] = true;
 
-        // Register offset → context mapping for reverse lookup
-        self::$offsetToContext[$offset] = $context;
+        // Register offset → base context mapping for reverse lookup
+        self::$offsetToContext[$offset] = $baseContext;
 
         return $offset + $localId;
     }
@@ -199,6 +223,7 @@ class UIIdGenerator
         self::$autoIncPerContext = [];
         self::$usedLocalIdsPerContext = [];
         self::$namedLocalIdsPerContext = [];
+        self::$contextStack = [];
     }
 
     /**
@@ -222,15 +247,20 @@ class UIIdGenerator
             return self::$contextOffsets[$context];
         }
 
+        $baseContext = explode('@', $context, 2)[0];
+
         // Fallback: Determine deterministic ID using CRC32
         // Must match ScreenDiscoveryService logic
         $val = abs((int) crc32($context));
         $bucket = $val % 100000;
         $offset = $bucket * 10000;
 
+        while (isset(self::$offsetToContext[$offset]) && self::$offsetToContext[$offset] !== $baseContext) {
+            $offset += 10000;
+        }
+
         self::$contextOffsets[$context] = $offset;
 
         return $offset;
-
     }
 }

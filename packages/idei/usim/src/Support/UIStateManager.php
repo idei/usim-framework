@@ -212,15 +212,16 @@ class UIStateManager
     }
 
     /**
-     * Store active modal metadata for the client.
+     * Push active modal metadata onto the client's modal stack.
      *
      * @param  array<int|string, mixed>  $params
      */
-    public static function storeClientActiveModal(
+    public static function pushClientActiveModal(
         string $modalClass,
         ?int $callerScreenId = null,
         ?string $callbackAction = null,
         array $params = [],
+        ?int $layerIndex = null,
         ?string $clientId = null
     ): bool {
         $clientId ??= self::getOrCreateClientId();
@@ -239,39 +240,152 @@ class UIStateManager
             }
         }
 
-        $data = [
+        $stack = self::getClientActiveModalStack($clientId);
+
+        if ($layerIndex === null) {
+            $count = 0;
+            foreach ($stack as $item) {
+                if ($item['modal_class'] === $modalClass) {
+                    $count++;
+                }
+            }
+            $layerIndex = $count;
+        }
+
+        $entry = [
             'modal_class' => $modalClass,
             'caller_screen_id' => $callerScreenId,
             'caller_screen_class' => $callerScreenClass,
             'callback_action' => $callbackAction,
             'params' => $params,
+            'layer_index' => $layerIndex,
         ];
 
-        return Cache::put($cacheKey, $data, $ttl);
+        $stack[] = $entry;
+
+        return Cache::put($cacheKey, $stack, $ttl);
     }
 
     /**
-     * Get active modal metadata for the client.
+     * Pop the top active modal from the client's modal stack.
      *
-     * @return array{modal_class: string, caller_screen_id: ?int, caller_screen_class: ?string, callback_action: ?string, params: array<int|string, mixed>}|null
+     * @return array{modal_class: string, caller_screen_id: ?int, caller_screen_class: ?string, callback_action: ?string, params: array<int|string, mixed>, layer_index: int}|null
      */
-    public static function getClientActiveModal(?string $clientId = null): ?array
+    public static function popClientActiveModal(?string $clientId = null): ?array
+    {
+        $clientId ??= self::getOrCreateClientId();
+        $cacheKey = "ui_active_modal:{$clientId}";
+        $stack = self::getClientActiveModalStack($clientId);
+
+        if (empty($stack)) {
+            return null;
+        }
+
+        $popped = array_pop($stack);
+
+        if (empty($stack)) {
+            Cache::forget($cacheKey);
+        } else {
+            $ttlConfig = config('usim.ui_cache_ttl', 60);
+            $ttl = \is_int($ttlConfig) ? $ttlConfig : 60;
+            if (\is_string($ttlConfig) && ctype_digit($ttlConfig)) {
+                $ttl = (int) $ttlConfig;
+            }
+            Cache::put($cacheKey, $stack, $ttl);
+        }
+
+        return $popped;
+    }
+
+    /**
+     * Get active modal stack for the client.
+     *
+     * @return list<array{modal_class: string, caller_screen_id: ?int, caller_screen_class: ?string, callback_action: ?string, params: array<int|string, mixed>, layer_index: int}>
+     */
+    public static function getClientActiveModalStack(?string $clientId = null): array
     {
         $clientId ??= self::getOrCreateClientId();
         $cacheKey = "ui_active_modal:{$clientId}";
         $data = Cache::get($cacheKey);
 
-        if (! \is_array($data) || empty($data['modal_class']) || ! \is_string($data['modal_class'])) {
+        if (! \is_array($data) || empty($data)) {
+            return [];
+        }
+
+        // Backward compatibility: if single modal associative array was stored
+        if (isset($data['modal_class']) && \is_string($data['modal_class'])) {
+            return [self::normalizeModalEntry($data)];
+        }
+
+        $stack = [];
+        foreach ($data as $item) {
+            if (\is_array($item) && ! empty($item['modal_class']) && \is_string($item['modal_class'])) {
+                $stack[] = self::normalizeModalEntry($item);
+            }
+        }
+
+        return $stack;
+    }
+
+    /**
+     * Set the entire active modal stack for the client.
+     *
+     * @param  list<array{modal_class: string, caller_screen_id: ?int, caller_screen_class: ?string, callback_action: ?string, params: array<int|string, mixed>, layer_index?: int}>  $stack
+     */
+    public static function setClientActiveModalStack(array $stack, ?string $clientId = null): bool
+    {
+        $clientId ??= self::getOrCreateClientId();
+        $cacheKey = "ui_active_modal:{$clientId}";
+
+        if (empty($stack)) {
+            return Cache::forget($cacheKey);
+        }
+
+        $ttlConfig = config('usim.ui_cache_ttl', 60);
+        $ttl = \is_int($ttlConfig) ? $ttlConfig : 60;
+        if (\is_string($ttlConfig) && ctype_digit($ttlConfig)) {
+            $ttl = (int) $ttlConfig;
+        }
+
+        return Cache::put($cacheKey, $stack, $ttl);
+    }
+
+    /**
+     * Store active modal metadata for the client (pushes to stack).
+     *
+     * @param  array<int|string, mixed>  $params
+     */
+    public static function storeClientActiveModal(
+        string $modalClass,
+        ?int $callerScreenId = null,
+        ?string $callbackAction = null,
+        array $params = [],
+        ?int $layerIndex = null,
+        ?string $clientId = null
+    ): bool {
+        return self::pushClientActiveModal(
+            modalClass: $modalClass,
+            callerScreenId: $callerScreenId,
+            callbackAction: $callbackAction,
+            params: $params,
+            layerIndex: $layerIndex,
+            clientId: $clientId
+        );
+    }
+
+    /**
+     * Get top active modal metadata for the client.
+     *
+     * @return array{modal_class: string, caller_screen_id: ?int, caller_screen_class: ?string, callback_action: ?string, params: array<int|string, mixed>, layer_index: int}|null
+     */
+    public static function getClientActiveModal(?string $clientId = null): ?array
+    {
+        $stack = self::getClientActiveModalStack($clientId);
+        if (empty($stack)) {
             return null;
         }
 
-        return [
-            'modal_class' => $data['modal_class'],
-            'caller_screen_id' => isset($data['caller_screen_id']) && is_numeric($data['caller_screen_id']) ? (int) $data['caller_screen_id'] : null,
-            'caller_screen_class' => isset($data['caller_screen_class']) && \is_string($data['caller_screen_class']) ? $data['caller_screen_class'] : null,
-            'callback_action' => isset($data['callback_action']) && \is_string($data['callback_action']) ? $data['callback_action'] : null,
-            'params' => isset($data['params']) && \is_array($data['params']) ? $data['params'] : [],
-        ];
+        return end($stack);
     }
 
     /**
@@ -283,6 +397,26 @@ class UIStateManager
         $cacheKey = "ui_active_modal:{$clientId}";
 
         return Cache::forget($cacheKey);
+    }
+
+    /**
+     * @param  array<array-key, mixed>  $data
+     * @return array{modal_class: string, caller_screen_id: ?int, caller_screen_class: ?string, callback_action: ?string, params: array<int|string, mixed>, layer_index: int}
+     */
+    private static function normalizeModalEntry(array $data): array
+    {
+        $modalClass = isset($data['modal_class']) && \is_string($data['modal_class'])
+            ? $data['modal_class']
+            : '';
+
+        return [
+            'modal_class' => $modalClass,
+            'caller_screen_id' => isset($data['caller_screen_id']) && is_numeric($data['caller_screen_id']) ? (int) $data['caller_screen_id'] : null,
+            'caller_screen_class' => isset($data['caller_screen_class']) && \is_string($data['caller_screen_class']) ? $data['caller_screen_class'] : null,
+            'callback_action' => isset($data['callback_action']) && \is_string($data['callback_action']) ? $data['callback_action'] : null,
+            'params' => isset($data['params']) && \is_array($data['params']) ? $data['params'] : [],
+            'layer_index' => isset($data['layer_index']) && is_numeric($data['layer_index']) ? (int) $data['layer_index'] : 0,
+        ];
     }
 
     /**
