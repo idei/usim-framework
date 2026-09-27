@@ -1342,29 +1342,34 @@ abstract class Screen
         $instance = self::make($class);
         $instance->parent = $parentId;
 
-        $shouldReset = (bool) (self::$currentQueryParams['reset'] ?? request()->query('reset', false));
-        if ($shouldReset) {
-            $instance->onResetScreen();
+        UIIdGenerator::pushCurrentContext($instance->getContextIdentifier());
+        try {
+            $shouldReset = (bool) (self::$currentQueryParams['reset'] ?? request()->query('reset', false));
+            if ($shouldReset) {
+                $instance->onResetScreen();
+            }
+
+            $instance->initializeEventContext(
+                incomingStorage: self::$currentIncomingStorage,
+                queryParams: self::$currentQueryParams,
+                parent: $parentId
+            );
+            $instance->postLoadUI();
+
+            // Store the child screen's own snapshot with root=true and parent=$parentId
+            // so direct events on the child screen can reconstruct its tree.
+            $instance->container->root(true);
+            $instance->cacheScreenSnapshot($instance->container);
+
+            // Attach to the host screen's container with root=false so it does not
+            // collide with the host screen's root container.
+            $instance->container->root(false);
+            $parent->add($instance->container);
+
+            $instance->uiChanges()->setStorage($instance->getStorageVariables());
+        } finally {
+            UIIdGenerator::popCurrentContext();
         }
-
-        $instance->initializeEventContext(
-            incomingStorage: self::$currentIncomingStorage,
-            queryParams: self::$currentQueryParams,
-            parent: $parentId
-        );
-        $instance->postLoadUI();
-
-        // Store the child screen's own snapshot with root=true and parent=$parentId
-        // so direct events on the child screen can reconstruct its tree.
-        $instance->container->root(true);
-        $instance->cacheScreenSnapshot($instance->container);
-
-        // Attach to the host screen's container with root=false so it does not
-        // collide with the host screen's root container.
-        $instance->container->root(false);
-        $parent->add($instance->container);
-
-        $instance->uiChanges()->setStorage($instance->getStorageVariables());
     }
 
     /**
