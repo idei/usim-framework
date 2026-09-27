@@ -211,7 +211,7 @@ abstract class Screen
     /**
      * Open this screen (or specified screenClass) as a modal overlay.
      *
-     * @param  array<string, mixed>  $params  Parameters passed to buildBaseUI
+     * @param  array<int|string, mixed>  $params  Parameters passed to buildBaseUI
      * @param  Screen|null  $caller  The parent/caller screen that invoked this modal
      * @param  string|null  $callbackAction  Action method on caller to invoke upon return
      * @param  array<string, mixed>  $queryParams  Additional query parameters
@@ -231,6 +231,16 @@ abstract class Screen
         if ($caller !== null) {
             $instance->callerScreenId = $caller->getScreenComponentId();
             $instance->callerScreenClass = $caller::class;
+            $instance->callbackAction = $callbackAction;
+        } elseif ((isset($params['callerServiceId']) && is_numeric($params['callerServiceId'])) || (isset($params['caller_service_id']) && is_numeric($params['caller_service_id']))) {
+            $rawCallerId = $params['callerServiceId'] ?? $params['caller_service_id'];
+            if (is_int($rawCallerId) || (is_string($rawCallerId) && ctype_digit($rawCallerId))) {
+                $instance->callerScreenId = (int) $rawCallerId;
+                $context = UIIdGenerator::getContextFromId($instance->callerScreenId);
+                if (is_string($context) && is_a($context, Screen::class, true)) {
+                    $instance->callerScreenClass = $context;
+                }
+            }
             $instance->callbackAction = $callbackAction;
         }
 
@@ -260,7 +270,7 @@ abstract class Screen
      * Helper to open any screen as a modal from within the current screen.
      *
      * @param  class-string<Screen>  $screenClass
-     * @param  array<string, mixed>  $params
+     * @param  array<int|string, mixed>  $params
      * @param  array<string, mixed>  $queryParams
      */
     protected function openModal(
@@ -707,7 +717,7 @@ abstract class Screen
      * @param  array<string, mixed>  $queryParams  Query parameters from frontend
      * @param  int|string|null  $parent  Target parent container (default: 'main')
      * @param  bool  $shouldReset  Whether to reset screen cache before rendering
-     * @param  array<string, mixed>  $buildParams  Parameters passed to buildBaseUI
+     * @param  array<int|string, mixed>  $buildParams  Parameters passed to buildBaseUI
      */
     public function render(
         array $incomingStorage = [],
@@ -798,7 +808,7 @@ abstract class Screen
      * @param  int|string|null  $parent  The parent screen/container ID (used for nested screens)
      * @param  array<string, mixed>  $eventParameters  Parameters sent with the UI event
      * @param  int|null  $triggerComponentId  ID of the component that triggered the event
-     * @param  array<string, mixed>  $buildParams  Parameters passed to buildBaseUI if regenerating cache
+     * @param  array<int|string, mixed>  $buildParams  Parameters passed to buildBaseUI if regenerating cache
      */
     public function initializeEventContext(
         array $incomingStorage = [],

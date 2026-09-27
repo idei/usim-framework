@@ -214,7 +214,7 @@ class UIStateManager
     /**
      * Store active modal metadata for the client.
      *
-     * @param  array<string, mixed>  $params
+     * @param  array<int|string, mixed>  $params
      */
     public static function storeClientActiveModal(
         string $modalClass,
@@ -253,7 +253,7 @@ class UIStateManager
     /**
      * Get active modal metadata for the client.
      *
-     * @return array{modal_class: string, caller_screen_id: ?int, caller_screen_class: ?string, callback_action: ?string, params: array<string, mixed>}|null
+     * @return array{modal_class: string, caller_screen_id: ?int, caller_screen_class: ?string, callback_action: ?string, params: array<int|string, mixed>}|null
      */
     public static function getClientActiveModal(?string $clientId = null): ?array
     {

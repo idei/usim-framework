@@ -4,7 +4,6 @@ namespace Idei\Usim\Modals;
 
 use Idei\Usim\Components\Container;
 use Idei\Usim\Components\Label;
-use Idei\Usim\Contracts\ModalInterface;
 use Idei\Usim\Enums\LayoutType;
 use Idei\Usim\Enums\Visibility;
 use Idei\Usim\Modals\Dialog\ConfirmDialogConfig;
@@ -18,7 +17,7 @@ use Idei\Usim\ValueObjects\Spacing;
  * Server-driven UI Screen for modal dialogs (info, confirm, warning, error, success, choice, timeout).
  * Implements the Screen lifecycle and adheres to SOLID and Clean Code principles.
  */
-class ConfirmDialog extends Screen implements ModalInterface
+class ConfirmDialog extends Screen
 {
     /**
      * Modal dialogs render inside the 'modal' layer.
@@ -35,6 +34,8 @@ class ConfirmDialog extends Screen implements ModalInterface
      */
     public static Visibility $visibility = Visibility::PUBLIC;
 
+    protected ?ConfirmDialogConfig $dialogConfig = null;
+
     /**
      * Build the screen UI structure into the given container.
      *
@@ -43,6 +44,27 @@ class ConfirmDialog extends Screen implements ModalInterface
     protected function buildBaseUI(Container $container, ...$params): void
     {
         $config = $this->resolveConfig($params);
+        if ($this->callerScreenId !== null && ($config->callerServiceId === null || $config->callerServiceId === '')) {
+            $config = new ConfirmDialogConfig(
+                type: $config->type,
+                title: $config->title,
+                message: $config->message,
+                icon: $config->icon,
+                confirmAction: $config->confirmAction,
+                confirmParams: $config->confirmParams,
+                confirmLabel: $config->confirmLabel,
+                cancelAction: $config->cancelAction,
+                cancelLabel: $config->cancelLabel,
+                callerServiceId: $this->callerScreenId,
+                buttons: $config->buttons,
+                timeout: $config->timeout,
+                timeUnit: $config->timeUnit,
+                showCountdown: $config->showCountdown,
+                showCloseButton: $config->showCloseButton,
+                timeoutAction: $config->timeoutAction,
+            );
+        }
+        $this->dialogConfig = $config;
 
         $this->configureContainer($container);
         $this->buildContent($container, $config);
@@ -55,16 +77,25 @@ class ConfirmDialog extends Screen implements ModalInterface
     /**
      * Open the modal dialog by building its UI structure and registering it with the UI collector.
      *
-     * @param  Screen  $caller  The screen that is calling this method
+     * @param  Screen|null  $caller  The screen that is calling this method
      * @param  mixed  ...$params  Configuration parameters or ConfirmDialogConfig instance
      */
-    public static function open(Screen $caller, mixed ...$params): void
+    public static function open(?Screen $caller = null, mixed ...$params): void
     {
-        $screen = app(self::class);
-        $callerServiceId = $caller->getScreenComponentId();
-        $params = array_merge(['callerServiceId' => $callerServiceId], $params);
-        $payload = $screen->buildDialogPayload(...$params);
-        $screen->uiChanges()->add($payload);
+        $resolvedParams = $params;
+        if (isset($params[0]) && is_array($params[0])) {
+            $resolvedParams = $params[0];
+        }
+
+        if ($caller !== null) {
+            $callerServiceId = $caller->getScreenComponentId();
+            $resolvedParams = array_merge(['callerServiceId' => $callerServiceId], $resolvedParams);
+        }
+
+        self::openAsModal(
+            params: $resolvedParams,
+            caller: $caller,
+        );
     }
 
     /**
@@ -101,7 +132,7 @@ class ConfirmDialog extends Screen implements ModalInterface
     protected function buildDiffResponse(bool $reload = false): array
     {
         $diff = parent::buildDiffResponse($reload);
-        $config = $this->resolveConfig([]);
+        $config = $this->dialogConfig ?? $this->resolveConfig([]);
 
         if ($config->isTimeout() && isset($this->container)) {
             $rootId = $this->container->getId();
@@ -221,7 +252,13 @@ class ConfirmDialog extends Screen implements ModalInterface
      */
     protected function buildChoiceButtons(Container $buttonsContainer, ConfirmDialogConfig $config): void
     {
-        $callerContext = ['_caller_service_id' => $config->callerServiceId];
+        $callerContext = [];
+        if ($config->callerServiceId !== null && $config->callerServiceId !== '') {
+            $callerContext = [
+                '_caller_screen_id' => $config->callerServiceId,
+                '_caller_service_id' => $config->callerServiceId,
+            ];
+        }
 
         foreach ($config->buttons ?? [] as $button) {
             $label = $this->getString($button, 'label', 'Button');
@@ -247,7 +284,13 @@ class ConfirmDialog extends Screen implements ModalInterface
      */
     protected function buildStandardButtons(Container $buttonsContainer, ConfirmDialogConfig $config): void
     {
-        $callerContext = ['_caller_service_id' => $config->callerServiceId];
+        $callerContext = [];
+        if ($config->callerServiceId !== null && $config->callerServiceId !== '') {
+            $callerContext = [
+                '_caller_screen_id' => $config->callerServiceId,
+                '_caller_service_id' => $config->callerServiceId,
+            ];
+        }
 
         if ($config->hasCancelButton()) {
             $buttonsContainer->add(

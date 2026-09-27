@@ -124,7 +124,7 @@ abstract class UIComponent implements UIElement, Sizeable, Marginable
      */
     private function detectCallingContext(): string
     {
-        $trace = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 10);
+        $trace = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 30);
 
         // Buscar en el stack trace la primera clase que NO sea del namespace UI (Legacy o Package)
         foreach ($trace as $frame) {

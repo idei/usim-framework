@@ -72,7 +72,9 @@ final class ConfirmDialogConfig
             confirmLabel: self::toString($data['confirmLabel'] ?? $data['confirm_label'] ?? $type->getDefaultConfirmLabel()),
             cancelAction: self::toString($data['cancelAction'] ?? $data['cancel_action'] ?? 'close_modal'),
             cancelLabel: self::toString($data['cancelLabel'] ?? $data['cancel_label'] ?? $type->getDefaultCancelLabel()),
-            callerServiceId: self::toString($data['callerServiceId'] ?? $data['caller_service_id'] ?? null),
+            callerServiceId: isset($data['callerServiceId']) || isset($data['caller_service_id'])
+                ? (is_numeric($val = $data['callerServiceId'] ?? $data['caller_service_id']) ? (int) $val : self::toString($val))
+                : null,
             buttons: self::toButtonsList($data['buttons'] ?? null),
             timeout: isset($data['timeout']) ? self::toInt($data['timeout']) : null,
             timeUnit: self::resolveTimeUnit($data['timeUnit'] ?? $data['time_unit'] ?? TimeUnit::SECONDS),
@@ -148,6 +150,7 @@ final class ConfirmDialogConfig
             '_show_countdown' => $this->showCountdown,
             '_timeout_action' => $this->timeoutAction,
             '_timeout_ms' => $this->getTimeoutMilliseconds(),
+            '_caller_screen_id' => $this->callerServiceId,
             '_caller_service_id' => $this->callerServiceId,
         ];
     }
