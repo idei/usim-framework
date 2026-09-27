@@ -1,4 +1,5 @@
 <?php
+
 namespace Idei\Usim\Listeners;
 
 use Idei\Usim\Events\UsimEvent;
@@ -11,7 +12,9 @@ class UsimEventDispatcher
     // Cola estática para mantener los eventos pendientes en esta petición
     /** @var list<UsimEvent> */
     protected static array $eventQueue = [];
+
     protected static bool $isProcessing = false;
+
     protected static bool $deferProcessing = false;
 
     public function handle(UsimEvent $event): void
@@ -70,7 +73,7 @@ class UsimEventDispatcher
 
     protected function processEvent(UsimEvent $event): void
     {
-        $methodName = 'on' . str_replace('_', '', ucwords($event->eventName, '_'));
+        $methodName = 'on'.str_replace('_', '', ucwords($event->eventName, '_'));
         $openedScreens = UIStateManager::getClientOpenedScreens();
         $incomingStorageRaw = request()->storage ?? [];
         $incomingStorage = [];
@@ -84,28 +87,25 @@ class UsimEventDispatcher
 
         foreach ($openedScreens as $rootComponentId) {
             $screenClass = UIIdGenerator::getContextFromId((int) $rootComponentId);
-            if (!is_string($screenClass) || $screenClass === '') {
-                continue;
-            }
-            $screen = $this->instantiateScreen($screenClass);
-
-            if ($methodName === 'onResetScreen') {
-                $screen->onResetScreen();
-                $screen->initializeEventContext($incomingStorage);
-                $screen->finalizeEventContext();
+            if (! is_string($screenClass) || $screenClass === '') {
                 continue;
             }
 
-            if (method_exists($screen, $methodName)) {
-                $screen->initializeEventContext($incomingStorage);
-                $screen->$methodName($event->params);
-                $screen->finalizeEventContext();
+            try {
+                $screen = Screen::make($screenClass);
+            } catch (\Throwable) {
+                continue;
             }
+
+            if ($methodName !== 'onResetScreen' && ! method_exists($screen, $methodName)) {
+                continue;
+            }
+
+            $screen->handleAction(
+                method: $methodName,
+                parameters: $event->params,
+                incomingStorage: $incomingStorage,
+            );
         }
-    }
-
-    private function instantiateScreen(string $screenClass): Screen
-    {
-        return app($screenClass);
     }
 }

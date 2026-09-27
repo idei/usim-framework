@@ -1,4 +1,5 @@
 <?php
+
 namespace Idei\Usim\Support;
 
 use Illuminate\Support\Facades\Cache;
@@ -44,6 +45,7 @@ class UIStateManager
         // for this request (important for test scenarios and multi-tab flows).
         if (\is_string($clientId) && $clientId !== '') {
             session()->put(self::CLIENT_ID_COOKIE, $clientId);
+
             return $clientId;
         }
 
@@ -75,7 +77,7 @@ class UIStateManager
     /**
      * Generate cache key for a service
      *
-     * @param string $serviceClass Full service class name
+     * @param  string  $serviceClass  Full service class name
      * @return string Cache key
      */
     public static function getCacheKey(?string $serviceClass = null, string $prefix = 'ui_state'): string
@@ -113,8 +115,8 @@ class UIStateManager
     /**
      * Store UI state in cache
      *
-     * @param string $serviceClass Service class name
-     * @param array<array-key, mixed> $uiState UI state array (indexed by component ID)
+     * @param  string  $serviceClass  Service class name
+     * @param  array<array-key, mixed>  $uiState  UI state array (indexed by component ID)
      * @return bool Success
      */
     public static function store(string $serviceClass, array $uiState): bool
@@ -161,8 +163,6 @@ class UIStateManager
 
     /**
      * Store each screen opened by the user
-     * @param string $screenId
-     * @return void
      */
     private static function storeClientOpenedScreens(string $screenId): void
     {
@@ -174,7 +174,7 @@ class UIStateManager
             $ttl = (int) $ttlConfig;
         }
         $openedScreens = Cache::get($cacheKey, []);
-        if (!\is_array($openedScreens)) {
+        if (! \is_array($openedScreens)) {
             $openedScreens = [];
         }
         $openedScreens[$screenId] = true;
@@ -187,13 +187,108 @@ class UIStateManager
         $clientId ??= self::getOrCreateClientId();
         $cacheKey = "ui_open_screens:{$clientId}";
         $openedScreens = Cache::get($cacheKey, []);
+
         return \is_array($openedScreens) ? array_keys($openedScreens) : [];
+    }
+
+    /**
+     * Remove a screen from client opened screens tracking.
+     */
+    public static function removeClientOpenedScreen(string|int $screenId, ?string $clientId = null): void
+    {
+        $clientId ??= self::getOrCreateClientId();
+        $cacheKey = "ui_open_screens:{$clientId}";
+        $ttlConfig = config('usim.ui_cache_ttl', 60);
+        $ttl = \is_int($ttlConfig) ? $ttlConfig : 60;
+        if (\is_string($ttlConfig) && ctype_digit($ttlConfig)) {
+            $ttl = (int) $ttlConfig;
+        }
+
+        $openedScreens = Cache::get($cacheKey, []);
+        if (\is_array($openedScreens) && isset($openedScreens[(string) $screenId])) {
+            unset($openedScreens[(string) $screenId]);
+            Cache::put($cacheKey, $openedScreens, $ttl);
+        }
+    }
+
+    /**
+     * Store active modal metadata for the client.
+     *
+     * @param  array<string, mixed>  $params
+     */
+    public static function storeClientActiveModal(
+        string $modalClass,
+        ?int $callerScreenId = null,
+        ?string $callbackAction = null,
+        array $params = [],
+        ?string $clientId = null
+    ): bool {
+        $clientId ??= self::getOrCreateClientId();
+        $cacheKey = "ui_active_modal:{$clientId}";
+        $ttlConfig = config('usim.ui_cache_ttl', 60);
+        $ttl = \is_int($ttlConfig) ? $ttlConfig : 60;
+        if (\is_string($ttlConfig) && ctype_digit($ttlConfig)) {
+            $ttl = (int) $ttlConfig;
+        }
+
+        $callerScreenClass = null;
+        if ($callerScreenId !== null) {
+            $context = UIIdGenerator::getContextFromId($callerScreenId);
+            if (\is_string($context) && $context !== '') {
+                $callerScreenClass = $context;
+            }
+        }
+
+        $data = [
+            'modal_class' => $modalClass,
+            'caller_screen_id' => $callerScreenId,
+            'caller_screen_class' => $callerScreenClass,
+            'callback_action' => $callbackAction,
+            'params' => $params,
+        ];
+
+        return Cache::put($cacheKey, $data, $ttl);
+    }
+
+    /**
+     * Get active modal metadata for the client.
+     *
+     * @return array{modal_class: string, caller_screen_id: ?int, caller_screen_class: ?string, callback_action: ?string, params: array<string, mixed>}|null
+     */
+    public static function getClientActiveModal(?string $clientId = null): ?array
+    {
+        $clientId ??= self::getOrCreateClientId();
+        $cacheKey = "ui_active_modal:{$clientId}";
+        $data = Cache::get($cacheKey);
+
+        if (! \is_array($data) || empty($data['modal_class']) || ! \is_string($data['modal_class'])) {
+            return null;
+        }
+
+        return [
+            'modal_class' => $data['modal_class'],
+            'caller_screen_id' => isset($data['caller_screen_id']) && is_numeric($data['caller_screen_id']) ? (int) $data['caller_screen_id'] : null,
+            'caller_screen_class' => isset($data['caller_screen_class']) && \is_string($data['caller_screen_class']) ? $data['caller_screen_class'] : null,
+            'callback_action' => isset($data['callback_action']) && \is_string($data['callback_action']) ? $data['callback_action'] : null,
+            'params' => isset($data['params']) && \is_array($data['params']) ? $data['params'] : [],
+        ];
+    }
+
+    /**
+     * Clear active modal metadata for the client.
+     */
+    public static function clearClientActiveModal(?string $clientId = null): bool
+    {
+        $clientId ??= self::getOrCreateClientId();
+        $cacheKey = "ui_active_modal:{$clientId}";
+
+        return Cache::forget($cacheKey);
     }
 
     /**
      * Get UI state from cache
      *
-     * @param string $serviceClass Service class name
+     * @param  string  $serviceClass  Service class name
      * @return array<string, mixed>|null UI state array or null if not found
      */
     public static function get(string $serviceClass): ?array
@@ -223,22 +318,23 @@ class UIStateManager
     /**
      * Clear UI state from cache
      *
-     * @param string $serviceClass Service class name
+     * @param  string  $serviceClass  Service class name
      * @return bool Success
      */
     public static function clear(string $serviceClass): bool
     {
         $cacheKey = self::getCacheKey($serviceClass);
+
         return Cache::forget($cacheKey);
     }
 
     /**
      * Set the authentication token in the cache
      *
-     * @param string|null $token The authentication token
+     * @param  string|null  $token  The authentication token
      * @return bool Success
      */
-    public static function setAuthToken(string|null $token): bool
+    public static function setAuthToken(?string $token): bool
     {
         $cacheKey = self::getCacheKey(prefix: 'ui_auth_token');
         $ttlConfig = config('usim.ui_cache_ttl', 60);
@@ -247,6 +343,7 @@ class UIStateManager
             $ttl = (int) $ttlConfig;
         }
         Cache::put($cacheKey, $token, $ttl);
+
         return true;
     }
 
@@ -254,6 +351,7 @@ class UIStateManager
     {
         $cacheKey = self::getCacheKey(prefix: 'ui_auth_token');
         $token = Cache::get($cacheKey);
+
         return \is_string($token) ? $token : null;
     }
 
@@ -266,18 +364,21 @@ class UIStateManager
             $ttl = (int) $ttlConfig;
         }
         Cache::put($cacheKey, $value, $ttl);
+
         return true;
     }
 
     public static function getKeyValue(string $key): mixed
     {
         $cacheKey = self::getCacheKey(prefix: "ui_key_{$key}");
+
         return Cache::get($cacheKey);
     }
 
     public static function clearKeyValue(string $key): bool
     {
         $cacheKey = self::getCacheKey(prefix: "ui_key_{$key}");
+
         return Cache::forget($cacheKey);
     }
 }

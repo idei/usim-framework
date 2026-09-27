@@ -1,7 +1,9 @@
 <?php
+
 namespace Idei\Usim\Http\Controllers;
 
 use Idei\Usim\Screen;
+use Idei\Usim\Support\UIStateManager;
 use Idei\Usim\UIChangesCollector;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Routing\Controller;
@@ -11,16 +13,14 @@ class UIController extends Controller
 {
     public function __construct(
         protected UIChangesCollector $uiChanges
-    ) {
-    }
+    ) {}
 
     /**
      * Show UI for the specified screen service.
      *
      * Supports optional 'reset' query parameter to clear cached data for the screen.
      *
-     * @param string $screenRoute The screen route from the URL (e.g., 'admin/dashboard')
-     * @return JsonResponse
+     * @param  string  $screenRoute  The screen route from the URL (e.g., 'admin/dashboard')
      */
     public function show(string $screenRoute): JsonResponse
     {
@@ -28,25 +28,46 @@ class UIController extends Controller
 
         $screenClass = $this->resolveScreenClass($screenRoute);
 
-        if (!class_exists($screenClass)) {
+        if (! class_exists($screenClass)) {
             return $this->screenNotFoundResponse($screenRoute);
         }
 
         $accessResult = $screenClass::checkAccess();
 
-        if (!$accessResult['allowed']) {
+        if (! $accessResult['allowed']) {
             return $this->accessDeniedResponse($accessResult);
         }
 
         $requestData = $this->extractRequestData();
-        $screen = $this->instantiateScreen($screenClass, $requestData);
+        $screen = Screen::make($screenClass);
 
-        if ($requestData['shouldReset']) {
-            $screen->onResetScreen();
+        $screen->render(
+            incomingStorage: $requestData['storage'],
+            queryParams: $requestData['queryParams'],
+            parent: request()->query('parent', 'main'),
+            shouldReset: $requestData['shouldReset']
+        );
+
+        $activeModal = UIStateManager::getClientActiveModal();
+        if ($activeModal !== null && class_exists($activeModal['modal_class'])) {
+            /** @var class-string<Screen> $modalClass */
+            $modalClass = $activeModal['modal_class'];
+            $isSameCaller = $activeModal['caller_screen_class'] === null
+                || $activeModal['caller_screen_class'] === $screenClass;
+
+            if ($isSameCaller && ! $requestData['shouldReset']) {
+                $modalScreen = Screen::make($modalClass);
+                $modalScreen->render(
+                    incomingStorage: $requestData['storage'],
+                    queryParams: $requestData['queryParams'],
+                    parent: 'modal',
+                    shouldReset: false,
+                    buildParams: $activeModal['params']
+                );
+            } else {
+                UIStateManager::clearClientActiveModal();
+            }
         }
-
-        $this->initializeScreenContext($screen, $requestData);
-        $this->injectAgentContext($screen);
 
         $allChanges = $this->uiChanges->all();
 
@@ -79,7 +100,6 @@ class UIController extends Controller
         //     ];
         // }, $filteredChanges);
 
-
         // Log::info("Changes: " . json_encode(
         //     $filteredChanges,
         //     JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES
@@ -98,7 +118,7 @@ class UIController extends Controller
     private function resolveScreenClass(string $screenRoute): string
     {
         $screenNameSegments = collect(explode('/', $screenRoute))
-            ->map(fn(string $segment) => Str::studly($segment))
+            ->map(fn (string $segment) => Str::studly($segment))
             ->join('\\');
 
         $namespaceValue = config('usim.screens_namespace', 'App\\UI\\Screens');
@@ -135,7 +155,7 @@ class UIController extends Controller
     }
 
     /**
-     * @param array{allowed: bool, action: string|null, params: array<string, mixed>} $accessResult
+     * @param  array{allowed: bool, action: string|null, params: array<string, mixed>}  $accessResult
      */
     private function accessDeniedResponse(array $accessResult): JsonResponse
     {
@@ -153,44 +173,5 @@ class UIController extends Controller
         }
 
         return response()->json($response);
-    }
-
-    /**
-     * @param array{shouldReset: bool, storage: array<string, mixed>, queryParams: array<string, mixed>} $requestData
-     */
-    private function instantiateScreen(string $screenClass, array $requestData): Screen
-    {
-        $this->uiChanges->setStorage($requestData['storage']);
-        $screen = app($screenClass);
-
-        if (!$screen instanceof Screen) {
-            abort(500, "Resolved screen [{$screenClass}] is not a valid Screen instance.");
-        }
-
-        return $screen;
-    }
-
-    /**
-     * @param array{shouldReset: bool, storage: array<string, mixed>, queryParams: array<string, mixed>} $requestData
-     */
-    private function initializeScreenContext(Screen $screen, array $requestData): void
-    {
-
-        $screen->initializeEventContext(
-            incomingStorage: $requestData['storage'],
-            queryParams: $requestData['queryParams'],
-            parent: request()->query('parent', 'main')
-        );
-
-        $screen->finalizeEventContext(reload: true);
-    }
-
-    private function injectAgentContext(Screen $screen): void
-    {
-        $agentContext = $screen->getAgentContext();
-
-        if (!empty($agentContext)) {
-            $this->uiChanges->add(['agent_context' => $agentContext]);
-        }
     }
 }

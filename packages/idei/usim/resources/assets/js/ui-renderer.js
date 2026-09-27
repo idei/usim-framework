@@ -2534,6 +2534,24 @@ async function loadScreenUI(screenName = null, forceReset = null) {
         globalRenderer = new UIRenderer(uiData);
         globalRenderer.render();
 
+        // Check if there are components with parent='modal' - if so, open modal (e.g. persisted modal on F5)
+        let hasModalComponents = false;
+        for (const [key, component] of Object.entries(uiData)) {
+            if (isSpecialUIKey(key) || !component || typeof component !== 'object') {
+                continue;
+            }
+
+            if (component.parent === 'modal') {
+                hasModalComponents = true;
+                break;
+            }
+        }
+
+        if (hasModalComponents) {
+            const modalPayload = buildModalSubtreePayload(uiData);
+            openModal(modalPayload);
+        }
+
         // Re-apply and broadcast persisted theme after render so embedded fragments
         // (like Home landing blocks) that subscribe to usim:theme-changed can sync.
         applyPersistedThemeFromStorage(true, 'framework-post-render-sync');

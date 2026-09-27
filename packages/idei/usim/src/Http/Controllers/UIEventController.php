@@ -27,17 +27,12 @@ use Illuminate\Support\Facades\Log;
  */
 class UIEventController extends Controller
 {
-
     public function __construct(
         protected UIChangesCollector $uiChanges
-    ) {
-    }
+    ) {}
 
     /**
      * Handle UI component event
-     *
-     * @param Request $request
-     * @return JsonResponse
      */
     public function handleEvent(Request $request): JsonResponse
     {
@@ -54,17 +49,16 @@ class UIEventController extends Controller
             /** @var class-string<Screen>|null $screenClass */
             $screenClass = $this->resolveScreenClass($componentId, $callerScreenId);
 
-            if (!$screenClass) {
+            if (! $screenClass) {
                 return $this->screenNotFoundResponse();
             }
 
             $access = $screenClass::checkAccess();
-            if (!$access['allowed']) {
+            if (! $access['allowed']) {
                 return $this->accessDeniedResponse($access);
             }
 
-            $screen = $this->instantiateScreen($screenClass);
-            $this->uiChanges->setStorage($incomingStorage);
+            $screen = Screen::make($screenClass);
 
             $method = $this->resolveActionHandler($screen, $action);
             if ($method === null) {
@@ -74,13 +68,12 @@ class UIEventController extends Controller
             UsimEventDispatcher::beginDeferredProcessing();
 
             try {
-                $screen->initializeEventContext(
+                $screen->handleAction(
+                    method: $method,
+                    parameters: $parameters,
                     incomingStorage: $incomingStorage,
-                    eventParameters: $parameters,
                     triggerComponentId: $componentId
                 );
-                $screen->$method($parameters);
-                $screen->finalizeEventContext(reload: false);
 
                 UsimEventDispatcher::endDeferredProcessing();
                 UsimEventDispatcher::flushQueuedEvents();
@@ -190,21 +183,6 @@ class UIEventController extends Controller
         return response()->json($response);
     }
 
-    /**
-     * @param class-string<Screen> $screenClass
-     */
-    private function instantiateScreen(string $screenClass): Screen
-    {
-        /** @var mixed $screen */
-        $screen = app($screenClass);
-
-        if (!$screen instanceof Screen) {
-            throw new \RuntimeException("Resolved screen [{$screenClass}] is not a valid Screen instance.");
-        }
-
-        return $screen;
-    }
-
     private function internalErrorResponse(\Throwable $exception): JsonResponse
     {
         return response()->json([
@@ -233,7 +211,7 @@ class UIEventController extends Controller
      * - cancel_form → onCancelForm
      * - open_settings → onOpenSettings
      *
-     * @param string $action Action name in snake_case
+     * @param  string  $action  Action name in snake_case
      * @return string Method name in onPascalCase format
      */
     private function actionToMethodName(string $action): string
@@ -241,7 +219,7 @@ class UIEventController extends Controller
         // Replace underscores with spaces, capitalize words, remove spaces
         $pascalCase = str_replace(' ', '', ucwords(str_replace('_', ' ', $action)));
 
-        return 'on' . $pascalCase;
+        return 'on'.$pascalCase;
     }
 
     /** @return array<string, mixed> */

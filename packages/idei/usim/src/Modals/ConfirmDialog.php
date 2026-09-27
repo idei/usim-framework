@@ -4,13 +4,13 @@ namespace Idei\Usim\Modals;
 
 use Idei\Usim\Components\Container;
 use Idei\Usim\Components\Label;
+use Idei\Usim\Contracts\ModalInterface;
 use Idei\Usim\Enums\LayoutType;
 use Idei\Usim\Enums\Visibility;
 use Idei\Usim\Modals\Dialog\ConfirmDialogConfig;
 use Idei\Usim\Screen;
 use Idei\Usim\UI;
 use Idei\Usim\ValueObjects\Spacing;
-use Idei\Usim\Contracts\ModalInterface;
 
 /**
  * Confirm Dialog Screen
@@ -56,13 +56,13 @@ class ConfirmDialog extends Screen implements ModalInterface
      * Open the modal dialog by building its UI structure and registering it with the UI collector.
      *
      * @param  Screen  $caller  The screen that is calling this method
-     * @param  mixed ...$params  Configuration parameters or ConfirmDialogConfig instance
+     * @param  mixed  ...$params  Configuration parameters or ConfirmDialogConfig instance
      */
     public static function open(Screen $caller, mixed ...$params): void
     {
         $screen = app(self::class);
         $callerServiceId = $caller->getScreenComponentId();
-        $params = array_merge(['callerServiceId' => $callerServiceId],$params);
+        $params = array_merge(['callerServiceId' => $callerServiceId], $params);
         $payload = $screen->buildDialogPayload(...$params);
         $screen->uiChanges()->add($payload);
     }
@@ -209,11 +209,7 @@ class ConfirmDialog extends Screen implements ModalInterface
     /**
      * Summary of getString
      *
-     * @param array<string, mixed> $array
-     * @param string $key
-     * @param string $default
-     *
-     * @return string
+     * @param  array<string, mixed>  $array
      */
     private function getString(array $array, string $key, string $default = ''): string
     {
@@ -270,4 +266,3 @@ class ConfirmDialog extends Screen implements ModalInterface
         );
     }
 }
-

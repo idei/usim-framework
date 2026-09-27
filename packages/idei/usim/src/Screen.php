@@ -3,7 +3,9 @@
 namespace Idei\Usim;
 
 use Idei\Usim\Components\Button;
+use Idei\Usim\Components\Calendar;
 use Idei\Usim\Components\Card;
+use Idei\Usim\Components\Carousel;
 use Idei\Usim\Components\Checkbox;
 use Idei\Usim\Components\Container;
 use Idei\Usim\Components\Form;
@@ -17,6 +19,7 @@ use Idei\Usim\Components\TableCell;
 use Idei\Usim\Components\TableHeaderCell;
 use Idei\Usim\Components\TableHeaderRow;
 use Idei\Usim\Components\TableRow;
+use Idei\Usim\Components\Timer;
 use Idei\Usim\Components\UIComponent;
 use Idei\Usim\Components\Uploader;
 use Idei\Usim\Contracts\UIElement;
@@ -26,8 +29,6 @@ use Idei\Usim\Models\UsimUnit;
 use Idei\Usim\Support\UIDiffer;
 use Idei\Usim\Support\UIIdGenerator;
 use Idei\Usim\Support\UIStateManager;
-use Idei\Usim\UI;
-use Idei\Usim\UIChangesCollector;
 use Idei\Usim\ValueObjects\Spacing;
 use Illuminate\Contracts\Encryption\DecryptException;
 use Illuminate\Support\Facades\Auth;
@@ -106,14 +107,28 @@ abstract class Screen
 
     /**
      * Parent context for this screen (used for nested screens)
-     *
-     * @var int|string|null
      */
-    protected(set) int|string|null $parent = 'main';
+    public protected(set) int|string|null $parent = 'main';
+
+    /**
+     * Component ID of the caller screen if this screen was opened as a modal or child.
+     */
+    protected ?int $callerScreenId = null;
+
+    /**
+     * Class of the caller screen if this screen was opened as a modal or child.
+     *
+     * @var class-string<Screen>|null
+     */
+    protected ?string $callerScreenClass = null;
+
+    /**
+     * Registered callback action method to trigger on caller screen when this modal finishes.
+     */
+    protected ?string $callbackAction = null;
 
     /**
      * Screen visibility level. Used by the framework to determine access and menu display.
-     * @var Visibility
      */
     public static Visibility $visibility = Visibility::AUTHENTICATED;
 
@@ -150,7 +165,7 @@ abstract class Screen
      */
     public static function hasMenu(): bool
     {
-        if (!static::$hasMenu) {
+        if (! static::$hasMenu) {
             return false;
         }
 
@@ -165,6 +180,102 @@ abstract class Screen
     protected function uiChanges(): UIChangesCollector
     {
         return app(UIChangesCollector::class);
+    }
+
+    /**
+     * Resolve and validate a Screen instance from the service container.
+     *
+     * @param  class-string<Screen>|string|null  $screenClass
+     *
+     * @throws RuntimeException If the class does not exist or is not an instantiable Screen.
+     */
+    public static function make(?string $screenClass = null): Screen
+    {
+        $targetClass = $screenClass ?? static::class;
+
+        if (! class_exists($targetClass) || ! is_subclass_of($targetClass, self::class)) {
+            throw new RuntimeException("Resolved screen [{$targetClass}] is not a valid Screen instance.");
+        }
+
+        $reflection = new ReflectionClass($targetClass);
+        if ($reflection->isAbstract()) {
+            throw new RuntimeException("Cannot instantiate abstract screen [{$targetClass}].");
+        }
+
+        /** @var static $screen */
+        $screen = app($targetClass);
+
+        return $screen;
+    }
+
+    /**
+     * Open this screen (or specified screenClass) as a modal overlay.
+     *
+     * @param  array<string, mixed>  $params  Parameters passed to buildBaseUI
+     * @param  Screen|null  $caller  The parent/caller screen that invoked this modal
+     * @param  string|null  $callbackAction  Action method on caller to invoke upon return
+     * @param  array<string, mixed>  $queryParams  Additional query parameters
+     * @param  class-string<Screen>|string|null  $screenClass  Target screen class if called statically from Screen base
+     */
+    public static function openAsModal(
+        array $params = [],
+        ?Screen $caller = null,
+        ?string $callbackAction = null,
+        array $queryParams = [],
+        ?string $screenClass = null,
+    ): static {
+        /** @var static $instance */
+        $instance = static::make($screenClass);
+        $instance->parent = 'modal';
+
+        if ($caller !== null) {
+            $instance->callerScreenId = $caller->getScreenComponentId();
+            $instance->callerScreenClass = $caller::class;
+            $instance->callbackAction = $callbackAction;
+        }
+
+        // Clear any previous cached snapshot so the modal renders fresh
+        $instance->clearCachedScreenSnapshot();
+
+        $instance->render(
+            incomingStorage: self::$currentIncomingStorage,
+            queryParams: $queryParams,
+            parent: 'modal',
+            shouldReset: false,
+            buildParams: $params,
+        );
+
+        // Store active modal state in UIStateManager for F5 / reconnection persistence
+        UIStateManager::storeClientActiveModal(
+            modalClass: $instance::class,
+            callerScreenId: $instance->callerScreenId,
+            callbackAction: $instance->callbackAction,
+            params: $params,
+        );
+
+        return $instance;
+    }
+
+    /**
+     * Helper to open any screen as a modal from within the current screen.
+     *
+     * @param  class-string<Screen>  $screenClass
+     * @param  array<string, mixed>  $params
+     * @param  array<string, mixed>  $queryParams
+     */
+    protected function openModal(
+        string $screenClass,
+        array $params = [],
+        ?string $callbackAction = null,
+        array $queryParams = [],
+    ): Screen {
+        return self::openAsModal(
+            params: $params,
+            caller: $this,
+            callbackAction: $callbackAction,
+            queryParams: $queryParams,
+            screenClass: $screenClass,
+        );
     }
 
     /**
@@ -183,7 +294,7 @@ abstract class Screen
         $guard = static::getAuthGuard();
 
         // 2. Handle failure based on authentication state
-        if (!Auth::guard($guard)->check()) {
+        if (! Auth::guard($guard)->check()) {
             $redirectUrl = ($guard === 'device')
                 ? url('/device/device-pairing-screen')
                 : url('/auth/login');
@@ -193,8 +304,8 @@ abstract class Screen
                 'action' => 'redirect',
                 'params' => [
                     'url' => $redirectUrl,
-                    'message' => 'Please authenticate to access this page.'
-                ]
+                    'message' => 'Please authenticate to access this page.',
+                ],
             ];
         }
 
@@ -204,15 +315,13 @@ abstract class Screen
             'action' => 'abort',
             'params' => [
                 'code' => 403,
-                'message' => 'Unauthorized: Insufficient permissions.'
-            ]
+                'message' => 'Unauthorized: Insufficient permissions.',
+            ],
         ];
     }
 
     /**
      * Determine if the user is authorized to access this service.
-     *
-     * @return bool
      */
     public static function authorize(): bool
     {
@@ -223,8 +332,7 @@ abstract class Screen
      * Helper to require authentication.
      * Use this inside your authorize() method.
      *
-     * @param string|null $guard Optional guard to check. Defaults to getAuthGuard().
-     * @return bool
+     * @param  string|null  $guard  Optional guard to check. Defaults to getAuthGuard().
      */
     protected static function requireAuth(?string $guard = null): bool
     {
@@ -235,17 +343,15 @@ abstract class Screen
 
     /**
      * Safely call a boolean-like method on a possibly unknown auth user object.
-     *
-     * @param mixed ...$args
      */
     private static function callUserBoolMethod(mixed $user, string $method, mixed ...$args): bool
     {
-        if (!\is_object($user)) {
+        if (! \is_object($user)) {
             return false;
         }
 
         $callback = [$user, $method];
-        if (!\is_callable($callback)) {
+        if (! \is_callable($callback)) {
             return false;
         }
 
@@ -267,6 +373,7 @@ abstract class Screen
 
         if (is_string($unit) && $unit !== '') {
             $id = UsimUnit::where('slug', $unit)->value('id');
+
             return is_numeric($id) ? (int) $id : null;
         }
 
@@ -277,17 +384,15 @@ abstract class Screen
      * Helper to require a role (implies authentication).
      * Use this inside your authorize() method.
      *
-     * @param string|list<string> $roles
-     * @param string|null $guard
-     * @param UsimUnit|int|string|null $unit Optional unit context
-     * @return bool
+     * @param  string|list<string>  $roles
+     * @param  UsimUnit|int|string|null  $unit  Optional unit context
      */
     protected static function requireRole(string|array $roles, ?string $guard = null, mixed $unit = null): bool
     {
         $effectiveGuard = $guard ?? static::getAuthGuard();
 
         // Implicitly require authentication first
-        if (!self::requireAuth($effectiveGuard)) {
+        if (! self::requireAuth($effectiveGuard)) {
             return false;
         }
 
@@ -306,13 +411,14 @@ abstract class Screen
             $previousTeamId = getPermissionsTeamId();
             try {
                 setPermissionsTeamId($targetUnitId);
+
                 return self::callUserBoolMethod($user, 'hasAnyRole', $roles);
             } finally {
                 setPermissionsTeamId($previousTeamId);
             }
         }
 
-        if (!self::callUserBoolMethod($user, 'hasAnyRole', $roles)) {
+        if (! self::callUserBoolMethod($user, 'hasAnyRole', $roles)) {
             // user is authenticated but lacks role
             // Instead of aborting, we return false.
             // The framework will catch this in authorize() and call failedAuthorization()
@@ -327,17 +433,15 @@ abstract class Screen
      * Helper to require a permission (implies authentication).
      * Use this inside your authorize() method.
      *
-     * @param string|list<string> $permissions
-     * @param string|null $guard
-     * @param UsimUnit|int|string|null $unit Optional unit context
-     * @return bool
+     * @param  string|list<string>  $permissions
+     * @param  UsimUnit|int|string|null  $unit  Optional unit context
      */
     protected static function requirePermission(string|array $permissions, ?string $guard = null, mixed $unit = null): bool
     {
         $effectiveGuard = $guard ?? static::getAuthGuard();
 
         // Implicitly require authentication first
-        if (!self::requireAuth($effectiveGuard)) {
+        if (! self::requireAuth($effectiveGuard)) {
             return false;
         }
 
@@ -356,13 +460,14 @@ abstract class Screen
             $previousTeamId = getPermissionsTeamId();
             try {
                 setPermissionsTeamId($targetUnitId);
+
                 return self::callUserBoolMethod($user, 'hasAnyPermission', $permissions);
             } finally {
                 setPermissionsTeamId($previousTeamId);
             }
         }
 
-        if (!self::callUserBoolMethod($user, 'hasAnyPermission', $permissions)) {
+        if (! self::callUserBoolMethod($user, 'hasAnyPermission', $permissions)) {
             return false;
         }
 
@@ -388,7 +493,7 @@ abstract class Screen
 
         // 4. We transform each segment to snake_case and join them with dots
         $dotted = collect($segments)
-            ->map(fn($segment) => Str::snake(Str::replaceLast('Screen', '', $segment))) // Opcional: remover el sufijo 'Screen' si lo usan
+            ->map(fn ($segment) => Str::snake(Str::replaceLast('Screen', '', $segment))) // Opcional: remover el sufijo 'Screen' si lo usan
             ->implode('.');
 
         return $dotted; // Returns "admin.user_manager"
@@ -448,11 +553,10 @@ abstract class Screen
     /**
      * Determinates if the currently authenticated user has a specific permission within the context of this screen.
      *
-     * @param string $permission The short permission name (e.g., "publish") that will be resolved to a full permission
-     * string based on the screen's slug (e.g., "blog.post_management.publish").
-     * @param UsimUnit|int|string|null $unit Optional unit context (instance, ID, or slug).
-     * Defaults to the screen's active unit ($this->store_unit) or the ambient permissions team.
-     * @return bool
+     * @param  string  $permission  The short permission name (e.g., "publish") that will be resolved to a full permission
+     *                              string based on the screen's slug (e.g., "blog.post_management.publish").
+     * @param  UsimUnit|int|string|null  $unit  Optional unit context (instance, ID, or slug).
+     *                                          Defaults to the screen's active unit ($this->store_unit) or the ambient permissions team.
      */
     public function userCan(string $permission, mixed $unit = null): bool
     {
@@ -460,7 +564,7 @@ abstract class Screen
             return true;
         }
 
-        if (!Auth::check()) {
+        if (! Auth::check()) {
             return false;
         }
 
@@ -475,12 +579,12 @@ abstract class Screen
 
         // If the permission doesn't contain a dot, we assume it's a local permission and resolve
         //  it using the screen's slug.
-        if (!str_contains($permission, '.')) {
-            $permission = static::getScreenSlug() . '.' . $permission;
+        if (! str_contains($permission, '.')) {
+            $permission = static::getScreenSlug().'.'.$permission;
         }
 
         $targetUnitId = self::resolveUnitId($unit);
-        if ($targetUnitId === null && property_exists($this, 'store_unit') && !empty($this->store_unit)) {
+        if ($targetUnitId === null && property_exists($this, 'store_unit') && ! empty($this->store_unit)) {
             $targetUnitId = self::resolveUnitId($this->store_unit);
         }
 
@@ -488,6 +592,7 @@ abstract class Screen
             $previousTeamId = getPermissionsTeamId();
             try {
                 setPermissionsTeamId($targetUnitId);
+
                 return self::callUserBoolMethod($user, 'hasPermissionTo', $permission);
             } finally {
                 setPermissionsTeamId($previousTeamId);
@@ -500,10 +605,9 @@ abstract class Screen
     /**
      * Determines if the currently authenticated user has any of the given roles within the context of this screen.
      *
-     * @param string|list<string> $roles
-     * @param UsimUnit|int|string|null $unit Optional unit context (instance, ID, or slug).
-     * Defaults to the screen's active unit ($this->store_unit) or the ambient permissions team.
-     * @return bool
+     * @param  string|list<string>  $roles
+     * @param  UsimUnit|int|string|null  $unit  Optional unit context (instance, ID, or slug).
+     *                                          Defaults to the screen's active unit ($this->store_unit) or the ambient permissions team.
      */
     public function userHasRole(string|array $roles, mixed $unit = null): bool
     {
@@ -511,7 +615,7 @@ abstract class Screen
             return true;
         }
 
-        if (!Auth::check()) {
+        if (! Auth::check()) {
             return false;
         }
 
@@ -525,7 +629,7 @@ abstract class Screen
         }
 
         $targetUnitId = self::resolveUnitId($unit);
-        if ($targetUnitId === null && property_exists($this, 'store_unit') && !empty($this->store_unit)) {
+        if ($targetUnitId === null && property_exists($this, 'store_unit') && ! empty($this->store_unit)) {
             $targetUnitId = self::resolveUnitId($this->store_unit);
         }
 
@@ -533,6 +637,7 @@ abstract class Screen
             $previousTeamId = getPermissionsTeamId();
             try {
                 setPermissionsTeamId($targetUnitId);
+
                 return self::callUserBoolMethod($user, 'hasAnyRole', $roles);
             } finally {
                 setPermissionsTeamId($previousTeamId);
@@ -549,7 +654,7 @@ abstract class Screen
      */
     public static function getMenuLabel(): string
     {
-        return t('screen.' . static::getScreenSlug() . '.menu_title');
+        return t('screen.'.static::getScreenSlug().'.menu_title');
     }
 
     /**
@@ -558,7 +663,7 @@ abstract class Screen
      */
     public static function getMenuIcon(): ?string
     {
-        return t('screen.' . static::getScreenSlug() . '.icon');
+        return t('screen.'.static::getScreenSlug().'.icon');
     }
 
     /**
@@ -575,8 +680,9 @@ abstract class Screen
         if (str_starts_with($class, $prefix)) {
             $relative = substr($class, strlen($prefix));
             $segments = explode('\\', trim($relative, '\\'));
-            $urlSegments = array_map(fn($s) => Str::kebab($s), $segments);
-            return '/' . implode('/', $urlSegments);
+            $urlSegments = array_map(fn ($s) => Str::kebab($s), $segments);
+
+            return '/'.implode('/', $urlSegments);
         }
 
         return '/';
@@ -588,11 +694,97 @@ abstract class Screen
      * Override this method in your service to define the base user Interface.
      * This will be called automatically if the cache expires.
      *
-     * @param mixed ...$params Optional parameters for user Interface construction
+     * @param  mixed  ...$params  Optional parameters for user Interface construction
      */
     abstract protected function buildBaseUI(Container $container, ...$params): void;
 
     protected function postLoadUI(): void {}
+
+    /**
+     * Render the screen for an initial page view or full reload.
+     *
+     * @param  array<string, mixed>  $incomingStorage  Storage data from frontend
+     * @param  array<string, mixed>  $queryParams  Query parameters from frontend
+     * @param  int|string|null  $parent  Target parent container (default: 'main')
+     * @param  bool  $shouldReset  Whether to reset screen cache before rendering
+     * @param  array<string, mixed>  $buildParams  Parameters passed to buildBaseUI
+     */
+    public function render(
+        array $incomingStorage = [],
+        array $queryParams = [],
+        int|string|null $parent = 'main',
+        bool $shouldReset = false,
+        array $buildParams = []
+    ): void {
+        $this->uiChanges()->setStorage($incomingStorage);
+
+        if ($shouldReset) {
+            $this->onResetScreen();
+        }
+
+        $this->initializeEventContext(
+            incomingStorage: $incomingStorage,
+            queryParams: $queryParams,
+            parent: $parent,
+            buildParams: $buildParams
+        );
+
+        $this->finalizeEventContext(reload: true);
+
+        $agentContext = $this->getAgentContext();
+        if (! empty($agentContext)) {
+            $this->uiChanges()->add(['agent_context' => $agentContext]);
+        }
+    }
+
+    /**
+     * Execute an action handler within the managed Screen event lifecycle.
+     *
+     * @param  string  $method  Name of the action handler method (e.g., 'onSave', 'onResetScreen')
+     * @param  array<string, mixed>  $parameters  Parameters passed to the action handler
+     * @param  array<string, mixed>  $incomingStorage  Storage data from frontend
+     * @param  array<string, mixed>  $queryParams  Query parameters from frontend
+     * @param  int|string|null  $parent  Target parent container
+     * @param  int|null  $triggerComponentId  ID of the component that triggered the event
+     */
+    public function handleAction(
+        string $method,
+        array $parameters = [],
+        array $incomingStorage = [],
+        array $queryParams = [],
+        int|string|null $parent = null,
+        ?int $triggerComponentId = null
+    ): void {
+        $this->uiChanges()->setStorage($incomingStorage);
+
+        if ($method === 'onResetScreen') {
+            $this->onResetScreen();
+            $this->initializeEventContext(
+                incomingStorage: $incomingStorage,
+                queryParams: $queryParams,
+                parent: $parent,
+                eventParameters: $parameters,
+                triggerComponentId: $triggerComponentId
+            );
+            $this->finalizeEventContext(reload: false);
+
+            return;
+        }
+
+        $this->initializeEventContext(
+            incomingStorage: $incomingStorage,
+            queryParams: $queryParams,
+            parent: $parent,
+            eventParameters: $parameters,
+            triggerComponentId: $triggerComponentId
+        );
+
+        if (is_callable([$this, $method])) {
+            $this->$method($parameters);
+        }
+
+        $this->finalizeEventContext(reload: false);
+    }
 
     /**
      * Initialize event context
@@ -601,26 +793,27 @@ abstract class Screen
      * Loads user Interface container and captures state for diff calculation.
      * Also injects storage values and component references into protected properties.
      *
-     * @param array<string, mixed> $incomingStorage Storage data from frontend (decrypted)
-     * @param array<string, mixed> $queryParams Query parameters from frontend
-     * @param int|string|null $parent The parent screen/container ID (used for nested screens)
-     * @param array<string, mixed> $eventParameters Parameters sent with the UI event
-     * @param int|null $triggerComponentId ID of the component that triggered the event
-     * @return void
+     * @param  array<string, mixed>  $incomingStorage  Storage data from frontend (decrypted)
+     * @param  array<string, mixed>  $queryParams  Query parameters from frontend
+     * @param  int|string|null  $parent  The parent screen/container ID (used for nested screens)
+     * @param  array<string, mixed>  $eventParameters  Parameters sent with the UI event
+     * @param  int|null  $triggerComponentId  ID of the component that triggered the event
+     * @param  array<string, mixed>  $buildParams  Parameters passed to buildBaseUI if regenerating cache
      */
     public function initializeEventContext(
         array $incomingStorage = [],
         array $queryParams = [],
         int|string|null $parent = null,
         array $eventParameters = [],
-        ?int $triggerComponentId = null
+        ?int $triggerComponentId = null,
+        array $buildParams = []
     ): void {
-        $this->container = $this->reconstructScreenTreeFromCache();
+        $this->container = $this->reconstructScreenTreeFromCache(...$buildParams);
         if ($parent !== null && $parent !== '') {
             $this->container->setParent($parent);
         }
 
-        if (!empty($eventParameters) || $triggerComponentId !== null) {
+        if (! empty($eventParameters) || $triggerComponentId !== null) {
             $this->hydrateClientComponentState($eventParameters, $triggerComponentId);
         }
 
@@ -643,8 +836,7 @@ abstract class Screen
      * Hydrate live component instances with the values currently held in the client DOM
      * before capturing the $oldUI snapshot.
      *
-     * @param array<string, mixed> $eventParameters
-     * @param int|null $triggerComponentId
+     * @param  array<string, mixed>  $eventParameters
      */
     protected function hydrateClientComponentState(array $eventParameters, ?int $triggerComponentId = null): void
     {
@@ -671,7 +863,7 @@ abstract class Screen
             }
 
             $element = $this->container->findByName($paramKey);
-            if (!($element instanceof UIComponent)) {
+            if (! ($element instanceof UIComponent)) {
                 continue;
             }
 
@@ -715,8 +907,7 @@ abstract class Screen
      * Example: protected int $store_user_id; matches storage['store_user_id']
      * Example: protected string $store_token_crypt; decrypts storage['store_token_crypt'] before injection
      *
-     * @param array<string, mixed> $incomingStorage Storage data from frontend
-     * @return void
+     * @param  array<string, mixed>  $incomingStorage  Storage data from frontend
      */
     public function injectStorageValues(array $incomingStorage): void
     {
@@ -737,12 +928,12 @@ abstract class Screen
             $propertyName = $property->getName();
 
             // Only process properties that start with 'store_'
-            if (!str_starts_with($propertyName, 'store_')) {
+            if (! str_starts_with($propertyName, 'store_')) {
                 continue;
             }
 
             // Check if this key exists in incoming storage
-            if (!array_key_exists($propertyName, $incomingStorage)) {
+            if (! array_key_exists($propertyName, $incomingStorage)) {
                 // \Illuminate\Support\Facades\Log::info("Skipping inject $propertyName - Not in storage");
                 continue;
             }
@@ -753,17 +944,17 @@ abstract class Screen
             // if the propertyName ends with '_crypt' we attempt to decrypt it before injecting
             if (str_ends_with($propertyName, '_crypt')) {
                 try {
-                    if (!\is_string($value)) {
+                    if (! \is_string($value)) {
                         continue;
                     }
 
                     $value = decrypt($value);
                 } catch (DecryptException $e) {
-                    Log::warning("Failed to decrypt storage variable '{$propertyName}': " . $e->getMessage());
+                    Log::warning("Failed to decrypt storage variable '{$propertyName}': ".$e->getMessage());
+
                     continue; // Skip injection if decryption fails
                 }
             }
-
 
             // Set the value
             $property->setValue($this, $value);
@@ -781,8 +972,6 @@ abstract class Screen
      *
      * Convention: Property name must match component name
      * Example: protected Label $lbl_result; matches component 'lbl_result'
-     *
-     * @return void
      */
     private function injectComponentReferences(): void
     {
@@ -798,7 +987,7 @@ abstract class Screen
             $propertyType = $property->getType();
 
             // Skip if no type hint or is a built-in type
-            if (!$propertyType) {
+            if (! $propertyType) {
                 continue;
             }
 
@@ -808,7 +997,7 @@ abstract class Screen
             }
 
             // Get the type name (only ReflectionNamedType has getName)
-            if (!($propertyType instanceof \ReflectionNamedType)) {
+            if (! ($propertyType instanceof \ReflectionNamedType)) {
                 continue;
             }
 
@@ -822,11 +1011,11 @@ abstract class Screen
                 if ($component) {
                     $property->setValue($this, $component);
                     $injected[$componentName] = $typeName;
-                } elseif (!$propertyType->allowsNull()) {
+                } elseif (! $propertyType->allowsNull()) {
                     $className = static::class;
                     // Component not found and property is not nullable
                     throw new RuntimeException(
-                        "Component '{$componentName}' not found in {$className}. " .
+                        "Component '{$componentName}' not found in {$className}. ".
                             "Make sure the component exists or make the property nullable: protected ?{$typeName} \${$componentName};"
                     );
                 }
@@ -840,8 +1029,6 @@ abstract class Screen
      * Called by UIEventController after event handler completes.
      * Automatically detects changes by comparing user Interface state, stores updated user Interface,
      * and returns formatted response.
-     *
-     * @return void
      */
     public function finalizeEventContext(bool $reload = false): void
     {
@@ -877,9 +1064,9 @@ abstract class Screen
             UIDiffer::compare([], $newUI) :
             UIDiffer::compare($oldUI, $newUI);
 
-        if (!$reload && isset($this->container)) {
+        if (! $reload && isset($this->container)) {
             foreach ($this->collectDirtyComponentChanges($this->container) as $componentId => $dirtyProps) {
-                if (!isset($this->newUI[$componentId])) {
+                if (! isset($this->newUI[$componentId])) {
                     continue;
                 }
                 if (($this->newUI[$componentId]['parent'] ?? null) === null) {
@@ -917,7 +1104,7 @@ abstract class Screen
         foreach ($container->getChildren() as $child) {
             if ($child instanceof UIComponent) {
                 $dirtyKeys = $child->getDirtyKeys();
-                if (!empty($dirtyKeys)) {
+                if (! empty($dirtyKeys)) {
                     $id = $child->getId();
                     foreach ($dirtyKeys as $key) {
                         if (in_array($key, $ignoredKeys, true)) {
@@ -939,7 +1126,7 @@ abstract class Screen
     /**
      * Get stored user Interface state, regenerate if missing
      *
-     * @param mixed ...$params Optional parameters passed to buildBaseUI
+     * @param  mixed  ...$params  Optional parameters passed to buildBaseUI
      * @return array<int|string, array<string, mixed>> user Interface structure in JSON format
      */
     protected function getCachedScreenSnapshot(...$params): array
@@ -980,15 +1167,13 @@ abstract class Screen
     /**
      * Build and attach a nested screen inside a parent container.
      *
-     * @param class-string<Screen> $class
-     * @param Container $parent
-     * @return void
+     * @param  class-string<Screen>  $class
      */
     public static function embedInto(string $class, Container $parent): void
     {
         $parentId = $parent->getId();
 
-        $instance = new $class();
+        $instance = self::make($class);
         $instance->parent = $parentId;
 
         $shouldReset = (bool) (self::$currentQueryParams['reset'] ?? request()->query('reset', false));
@@ -1017,17 +1202,16 @@ abstract class Screen
     }
 
     /**
-     * @param mixed $ui
      * @phpstan-assert-if-true array<int|string, array<string, mixed>> $ui
      */
     private function isTypedCachedScreenSnapshot(mixed $ui): bool
     {
-        if (!\is_array($ui)) {
+        if (! \is_array($ui)) {
             return false;
         }
 
         foreach ($ui as $component) {
-            if (!\is_array($component)) {
+            if (! \is_array($component)) {
                 return false;
             }
         }
@@ -1041,14 +1225,14 @@ abstract class Screen
      * or table internals that no longer form a consistent subtree.
      */
     /**
-     * @param array<int|string, array<string, mixed>> $ui
+     * @param  array<int|string, array<string, mixed>>  $ui
      */
     private function isValidCachedScreenSnapshot(array $ui): bool
     {
         foreach ($ui as $componentId => $component) {
             $parent = $component['parent'] ?? null;
             $isRoot = (bool) ($component['root'] ?? false);
-            if (!$isRoot && \is_int($parent) && !isset($ui[$parent]) && !isset($ui[(string) $parent])) {
+            if (! $isRoot && \is_int($parent) && ! isset($ui[$parent]) && ! isset($ui[(string) $parent])) {
                 return false;
             }
 
@@ -1059,7 +1243,7 @@ abstract class Screen
             $rowsContainerId = $component['rows_container'] ?? null;
             $headerRowId = $component['header_row'] ?? null;
 
-            if (!\is_int($rowsContainerId) || !isset($ui[$rowsContainerId])) {
+            if (! \is_int($rowsContainerId) || ! isset($ui[$rowsContainerId])) {
                 return false;
             }
 
@@ -1067,7 +1251,7 @@ abstract class Screen
                 return false;
             }
 
-            if (!\is_int($headerRowId) || !isset($ui[$headerRowId])) {
+            if (! \is_int($headerRowId) || ! isset($ui[$headerRowId])) {
                 return false;
             }
 
@@ -1083,12 +1267,14 @@ abstract class Screen
      * Reconstruct the current screen component tree from cache.
      *
      * If no cached snapshot exists, the UI is generated first and then reconstructed.
+     *
+     * @param  mixed  ...$params  Optional parameters passed to buildBaseUI if regenerating cache
      */
-    protected function reconstructScreenTreeFromCache(): Container
+    protected function reconstructScreenTreeFromCache(...$params): Container
     {
         // Always get JSON from cache and reconstruct container
         // This ensures we get the latest state after events modify it
-        $jsonUI = $this->getCachedScreenSnapshot();
+        $jsonUI = $this->getCachedScreenSnapshot(...$params);
 
         // Reconstruct container from JSON
         return $this->reconstructContainerFromJson($jsonUI);
@@ -1097,7 +1283,7 @@ abstract class Screen
     /**
      * Reconstruct UI container from JSON array
      *
-     * @param array<int|string, array<string, mixed>> $jsonUI JSON representation of UI
+     * @param  array<int|string, array<string, mixed>>  $jsonUI  JSON representation of UI
      * @return Container Reconstructed container
      */
     private function reconstructContainerFromJson(array $jsonUI): Container
@@ -1111,12 +1297,12 @@ abstract class Screen
         // First pass: instantiate all components
         foreach ($jsonUI as $id => $component) {
             $type = $component['type'] ?? null;
-            if (!\is_string($type) || $type === '') {
+            if (! \is_string($type) || $type === '') {
                 throw new RuntimeException('Unknown component type.');
             }
 
             $className = $this->mapTypeToClass($type);
-            if (!$className) {
+            if (! $className) {
                 throw new RuntimeException("Unknown component type '{$type}'.");
             }
 
@@ -1143,11 +1329,11 @@ abstract class Screen
                 continue;
             }
 
-            if (!\is_int($parentId) && !\is_string($parentId)) {
+            if (! \is_int($parentId) && ! \is_string($parentId)) {
                 continue;
             }
 
-            if (!$parentId || !isset($components[$parentId])) {
+            if (! $parentId || ! isset($components[$parentId])) {
                 continue;
             }
 
@@ -1159,8 +1345,8 @@ abstract class Screen
             $component->postConnect();
         }
 
-        if (!$rootContainer) {
-            throw new RuntimeException("No root container found in UI JSON.");
+        if (! $rootContainer) {
+            throw new RuntimeException('No root container found in UI JSON.');
         }
 
         // UIDebug::debug("Reconstructed UI Container:\n", $rootContainer);
@@ -1186,11 +1372,11 @@ abstract class Screen
             'tableheaderrow' => TableHeaderRow::class,
             'menudropdown' => MenuDropdown::class,
             'uploader' => Uploader::class,
-            'calendar' => \Idei\Usim\Components\Calendar::class,
-            'carousel' => \Idei\Usim\Components\Carousel::class,
+            'calendar' => Calendar::class,
+            'carousel' => Carousel::class,
             'textarea' => 'Idei\\Usim\\Components\\Textarea',
             'split' => Split::class,
-            'timer' => \Idei\Usim\Components\Timer::class,
+            'timer' => Timer::class,
             default => null,
         };
     }
@@ -1198,8 +1384,7 @@ abstract class Screen
     /**
      * Store UI state in cache
      *
-     * @param Container $container UI container to store
-     * @return void
+     * @param  Container  $container  UI container to store
      */
     protected function cacheScreenSnapshot(Container $container): void
     {
@@ -1208,8 +1393,6 @@ abstract class Screen
 
     /**
      * Clear the cached screen snapshot.
-     *
-     * @return bool
      */
     public function clearCachedScreenSnapshot(): bool
     {
@@ -1218,8 +1401,6 @@ abstract class Screen
 
     /**
      * Allow child classes to react when the screen is reset.
-     *
-     * @return void
      */
     public function onResetScreen(): void
     {
@@ -1297,9 +1478,9 @@ abstract class Screen
             $propertyName = $property->getName();
             if (str_starts_with($propertyName, 'store_')) {
                 $propertyType = $property->getType();
-                if ($propertyType && !$propertyType->allowsNull()) {
+                if ($propertyType && ! $propertyType->allowsNull()) {
                     // Get the type name (only ReflectionNamedType has getName)
-                    if (!($propertyType instanceof \ReflectionNamedType)) {
+                    if (! ($propertyType instanceof \ReflectionNamedType)) {
                         continue;
                     }
                     $typeName = $propertyType->getName();
@@ -1321,7 +1502,7 @@ abstract class Screen
     /**
      * Generic handler for 'close_modal' action
      *
-     * @param array<string, mixed> $params
+     * @param  array<string, mixed>  $params
      */
     public function onCloseModal(array $params): void
     {
@@ -1329,28 +1510,75 @@ abstract class Screen
     }
 
     /**
-     * Sends 'close_modal' action to front.
-     *
-     * @return void
+     * Sends 'close_modal' action to front and clears modal snapshot from cache.
      */
     protected function closeModal(): void
     {
         $this->uiChanges()->add([
             'action' => 'close_modal',
         ]);
+
+        if ($this->parent === 'modal') {
+            $this->clearCachedScreenSnapshot();
+            try {
+                UIStateManager::removeClientOpenedScreen($this->getScreenComponentId());
+            } catch (\Throwable) {
+                // Ignore if container is not initialized
+            }
+            UIStateManager::clearClientActiveModal();
+        } else {
+            $activeModal = UIStateManager::getClientActiveModal();
+            if ($activeModal !== null) {
+                UIStateManager::clear($activeModal['modal_class']);
+                if ($activeModal['caller_screen_id'] !== null) {
+                    UIStateManager::removeClientOpenedScreen($activeModal['caller_screen_id']);
+                }
+                UIStateManager::clearClientActiveModal();
+            }
+        }
+    }
+
+    /**
+     * Close the current modal and return data to the caller screen.
+     *
+     * @param  string|null  $action  Specific caller action method to trigger (defaults to registered callbackAction)
+     * @param  array<string, mixed>  $parameters  Parameters to pass to caller's handler
+     */
+    protected function returnToCaller(?string $action = null, array $parameters = []): void
+    {
+        $targetAction = $action ?? $this->callbackAction;
+        $callerScreenClass = $this->callerScreenClass;
+
+        if ($callerScreenClass === null || $targetAction === null) {
+            $activeModal = UIStateManager::getClientActiveModal();
+            if ($activeModal !== null) {
+                /** @var class-string<Screen>|null $resolvedCaller */
+                $resolvedCaller = $activeModal['caller_screen_class'];
+                $callerScreenClass ??= $resolvedCaller;
+                $targetAction ??= $activeModal['callback_action'];
+            }
+        }
+
+        // Close modal and purge modal cache
+        $this->closeModal();
+
+        // If caller and action are resolved, execute caller action
+        if ($callerScreenClass !== null && $targetAction !== null && class_exists($callerScreenClass)) {
+            if (! str_starts_with($targetAction, 'on')) {
+                $targetAction = 'on'.str_replace(' ', '', ucwords(str_replace('_', ' ', $targetAction)));
+            }
+
+            $caller = self::make($callerScreenClass);
+            $caller->handleAction(
+                method: $targetAction,
+                parameters: $parameters,
+                incomingStorage: $this->incomingStorage,
+            );
+        }
     }
 
     /**
      * Requests to front to renderize a toast type message.
-     *
-     * @param string $message
-     * @param string $type
-     * @param int $duration
-     * @param string $openEffect
-     * @param string $showEffect
-     * @param string $closeEffect
-     * @param string $position
-     * @return void
      */
     protected function toast(
         string $message,
@@ -1380,8 +1608,7 @@ abstract class Screen
      * If no URL is provided, it will use Laravel's intended redirect
      * (the previous URL or the default URL if none).
      *
-     * @param string|null $url The URL to redirect to, or null to use intended redirect
-     * @return void
+     * @param  string|null  $url  The URL to redirect to, or null to use intended redirect
      */
     protected function redirect(?string $url = null): void
     {
@@ -1398,9 +1625,8 @@ abstract class Screen
     /**
      * Requests to front to display an error message.
      *
-     * @param int  $statusCode The HTTP status code (e.g., 403 for forbidden, 404 for not found)
-     * @param string $message The error message to display
-     * @return void
+     * @param  int  $statusCode  The HTTP status code (e.g., 403 for forbidden, 404 for not found)
+     * @param  string  $message  The error message to display
      */
     protected function abort(int $statusCode, string $message = ''): void
     {
@@ -1414,9 +1640,6 @@ abstract class Screen
 
     /**
      * Requet to front to change the current theme (e.g., 'light' or 'dark').
-     *
-     * @param string $theme
-     * @return void
      */
     protected function changeTheme(string $theme): void
     {
@@ -1427,9 +1650,6 @@ abstract class Screen
 
     /**
      * Requests to front to change the current language (e.g., 'en' or 'es').
-     *
-     * @param string $language
-     * @return void
      */
     protected function changeLanguage(string $language): void
     {
@@ -1442,7 +1662,7 @@ abstract class Screen
     }
 
     /**
-     * @param array<string, mixed> $content
+     * @param  array<string, mixed>  $content
      */
     protected function updateModal(array $content): void
     {
@@ -1455,9 +1675,8 @@ abstract class Screen
      * Find a component by ID and return it only if it matches the expected class.
      *
      * @template T of UIElement
-     * @param Container $container
-     * @param int|string|null $id
-     * @param class-string<T> $expectedClass
+     *
+     * @param  class-string<T>  $expectedClass
      * @return T|null
      */
     protected function findComponentAs(Container $container, int|string|null $id, string $expectedClass): ?UIElement
@@ -1475,13 +1694,13 @@ abstract class Screen
      * Find a component in the root service container and return it as the expected class.
      *
      * @template T of UIElement
-     * @param int|string|null $id
-     * @param class-string<T> $expectedClass
+     *
+     * @param  class-string<T>  $expectedClass
      * @return T|null
      */
     protected function findRootComponentAs(int|string|null $id, string $expectedClass): ?UIElement
     {
-        if (!isset($this->container)) {
+        if (! isset($this->container)) {
             return null;
         }
 
