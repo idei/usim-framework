@@ -129,6 +129,14 @@ class ButtonDemo extends Screen
             }
         }
         $button = $this->findRootComponentAs($id, Button::class);
+        if (! $button && $id !== null) {
+            foreach ($this->buttons_container->getChildren() as $child) {
+                if ($child instanceof Button && $child->getName() === $id) {
+                    $button = $child;
+                    break;
+                }
+            }
+        }
         if ($button) {
             $button->status(true);
             $button->style('primary');
@@ -142,6 +150,6 @@ class ButtonDemo extends Screen
                 return $index;
             }
         }
-        return -1;
+        return 0;
     }
 }

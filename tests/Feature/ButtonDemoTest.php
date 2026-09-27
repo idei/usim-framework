@@ -98,3 +98,66 @@ it('dispatches cross-screen events via UsimEvent to update Right screen textarea
     // Right textarea should receive the sent text
     expect($response->json("{$textareaId}.value"))->toBe('Mensaje desde Left');
 });
+
+it('persists and unwinds modals across F5 page refreshes when opened from embedded screen', function () {
+    $ui = uiScenario($this, ButtonDemo::class, ['reset' => true]);
+
+    // 1. Select the "ModalDemo" tab (index 7)
+    $selectResponse = $ui->click('button_7', [
+        'id' => 'button_7',
+        'index' => 7,
+    ]);
+    $selectResponse->assertOk();
+
+    // 2. Open confirmation modal from the embedded ModalDemo
+    $openResponse = $ui->click('btn_open_modal');
+    $openResponse->assertOk();
+    expect(hasModalComponents($openResponse->json()))->toBeTrue();
+
+    // Modal stack has 1 modal
+    expect(Idei\Usim\Support\UIStateManager::getClientActiveModalStack())->toHaveCount(1);
+
+    // 3. Simulate consecutive F5 refreshes on ButtonDemo
+    for ($i = 0; $i < 3; $i++) {
+        $f5Response = $this->getJson('/api/ui/demo/button-demo');
+        $f5Response->assertOk();
+        $f5Data = $f5Response->json();
+
+        expect(hasModalComponents($f5Data))->toBeTrue();
+        expect(modalPayloadHasNamedComponent($f5Data, 'idei_usim_modals_confirmdialog'))->toBeTrue();
+
+        // Browser then requests menu fragment with parent=menu
+        $menuResponse = $this->getJson('/api/ui/menu?parent=menu');
+        $menuResponse->assertOk();
+    }
+
+    // 4. Click confirm button on the restored modal
+    $f5Data = $this->getJson('/api/ui/demo/button-demo')->json();
+    $confirmBtnId = null;
+    $confirmParams = [];
+    foreach ($f5Data as $id => $comp) {
+        if (is_array($comp) && ($comp['name'] ?? null) === 'btn_confirm') {
+            $confirmBtnId = (int) $id;
+            $confirmParams = $comp['parameters'] ?? [];
+            break;
+        }
+    }
+    expect($confirmBtnId)->not->toBeNull();
+
+    $confirmResponse = $this->postJson('/api/ui-event', [
+        'component_id' => $confirmBtnId,
+        'event' => 'click',
+        'action' => 'handle_confirm',
+        'parameters' => $confirmParams,
+    ]);
+    $confirmResponse->assertOk();
+    expect($confirmResponse->json('action'))->toBe('close_modal');
+
+    // Modal stack is now empty
+    expect(Idei\Usim\Support\UIStateManager::getClientActiveModalStack())->toBeEmpty();
+
+    // 5. Subsequent F5 refresh has no modals
+    $f5FinalResponse = $this->getJson('/api/ui/demo/button-demo');
+    $f5FinalResponse->assertOk();
+    expect(hasModalComponents($f5FinalResponse->json()))->toBeFalse();
+});

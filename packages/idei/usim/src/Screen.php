@@ -287,6 +287,7 @@ abstract class Screen
             callbackAction: $instance->callbackAction,
             params: $params,
             layerIndex: $instance->modalLayerIndex,
+            callerScreenClass: $instance->callerScreenClass,
         );
 
         return $instance;
@@ -360,7 +361,7 @@ abstract class Screen
     /**
      * Restore and re-render an active modal stack for F5 / browser reload.
      *
-     * @param  list<array{modal_class: string, caller_screen_id: ?int, caller_screen_class: ?string, callback_action: ?string, params: array<int|string, mixed>, layer_index?: int}>  $modalStack
+     * @param  list<array{modal_class: string, caller_screen_id: ?int, caller_screen_class: ?string, callback_action: ?string, params: array<int|string, mixed>, layer_index?: int, page_screen_route?: ?string}>  $modalStack
      * @param  array<string, mixed>  $incomingStorage
      * @param  array<string, mixed>  $queryParams
      * @return list<Screen>
@@ -392,13 +393,21 @@ abstract class Screen
             $countsByClass[$modalClass] = $layerIndex + 1;
             $instance->modalLayerIndex = $layerIndex;
 
-            // Resolve caller: check if caller was a previous modal in the stack, otherwise main screen
+            // Resolve caller: check if caller was a previous modal in the stack,
+            // or an explicit screen class (e.g. embedded screen or Menu), otherwise host caller.
             $callerScreenClass = $modalMeta['caller_screen_class'];
-            $effectiveCaller = ($callerScreenClass !== null && isset($screensByClass[$callerScreenClass]))
-                ? $screensByClass[$callerScreenClass]
-                : $caller;
+            $callerScreenId = $modalMeta['caller_screen_id'];
 
-            $instance->callerScreenId = $effectiveCaller->getScreenComponentId();
+            if ($callerScreenClass !== null && isset($screensByClass[$callerScreenClass])) {
+                $effectiveCaller = $screensByClass[$callerScreenClass];
+            } elseif ($callerScreenClass !== null && class_exists($callerScreenClass) && is_a($callerScreenClass, self::class, true)) {
+                $effectiveCaller = static::make($callerScreenClass);
+                $screensByClass[$callerScreenClass] = $effectiveCaller;
+            } else {
+                $effectiveCaller = $caller;
+            }
+
+            $instance->callerScreenId = $callerScreenId ?? $effectiveCaller->getScreenComponentId();
             $instance->callerScreenClass = $effectiveCaller::class;
             $instance->callbackAction = $modalMeta['callback_action'];
 
@@ -420,6 +429,7 @@ abstract class Screen
                 'callback_action' => $instance->callbackAction,
                 'params' => $modalMeta['params'],
                 'layer_index' => $instance->modalLayerIndex,
+                'page_screen_route' => $modalMeta['page_screen_route'] ?? null,
             ];
         }
 

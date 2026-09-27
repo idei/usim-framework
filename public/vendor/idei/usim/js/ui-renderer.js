@@ -892,6 +892,13 @@ function buildModalSubtrees(uiData) {
         return [];
     }
 
+    // Sort modal roots by layer index ascending (layer 0 mounts first, then layer 1, etc.)
+    modalRoots.sort((a, b) => {
+        const layerA = Number(uiData[a]?._layer_index ?? 0);
+        const layerB = Number(uiData[b]?._layer_index ?? 0);
+        return layerA - layerB;
+    });
+
     const subtrees = [];
     for (const rootId of modalRoots) {
         const payload = {};

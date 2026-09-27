@@ -222,7 +222,9 @@ class UIStateManager
         ?string $callbackAction = null,
         array $params = [],
         ?int $layerIndex = null,
-        ?string $clientId = null
+        ?string $clientId = null,
+        ?string $callerScreenClass = null,
+        ?string $pageScreenRoute = null,
     ): bool {
         $clientId ??= self::getOrCreateClientId();
         $cacheKey = "ui_active_modal:{$clientId}";
@@ -232,13 +234,14 @@ class UIStateManager
             $ttl = (int) $ttlConfig;
         }
 
-        $callerScreenClass = null;
-        if ($callerScreenId !== null) {
+        if ($callerScreenClass === null && $callerScreenId !== null) {
             $context = UIIdGenerator::getContextFromId($callerScreenId);
             if (\is_string($context) && $context !== '') {
                 $callerScreenClass = $context;
             }
         }
+
+        $pageScreenRoute ??= self::getClientCurrentScreenRoute($clientId);
 
         $stack = self::getClientActiveModalStack($clientId);
 
@@ -259,6 +262,7 @@ class UIStateManager
             'callback_action' => $callbackAction,
             'params' => $params,
             'layer_index' => $layerIndex,
+            'page_screen_route' => $pageScreenRoute,
         ];
 
         $stack[] = $entry;
@@ -269,7 +273,7 @@ class UIStateManager
     /**
      * Pop the top active modal from the client's modal stack.
      *
-     * @return array{modal_class: string, caller_screen_id: ?int, caller_screen_class: ?string, callback_action: ?string, params: array<int|string, mixed>, layer_index: int}|null
+     * @return array{modal_class: string, caller_screen_id: ?int, caller_screen_class: ?string, callback_action: ?string, params: array<int|string, mixed>, layer_index: int, page_screen_route: ?string}|null
      */
     public static function popClientActiveModal(?string $clientId = null): ?array
     {
@@ -300,7 +304,7 @@ class UIStateManager
     /**
      * Get active modal stack for the client.
      *
-     * @return list<array{modal_class: string, caller_screen_id: ?int, caller_screen_class: ?string, callback_action: ?string, params: array<int|string, mixed>, layer_index: int}>
+     * @return list<array{modal_class: string, caller_screen_id: ?int, caller_screen_class: ?string, callback_action: ?string, params: array<int|string, mixed>, layer_index: int, page_screen_route: ?string}>
      */
     public static function getClientActiveModalStack(?string $clientId = null): array
     {
@@ -330,7 +334,7 @@ class UIStateManager
     /**
      * Set the entire active modal stack for the client.
      *
-     * @param  list<array{modal_class: string, caller_screen_id: ?int, caller_screen_class: ?string, callback_action: ?string, params: array<int|string, mixed>, layer_index?: int}>  $stack
+     * @param  list<array{modal_class: string, caller_screen_id: ?int, caller_screen_class: ?string, callback_action: ?string, params: array<int|string, mixed>, layer_index?: int, page_screen_route?: ?string}>  $stack
      */
     public static function setClientActiveModalStack(array $stack, ?string $clientId = null): bool
     {
@@ -361,7 +365,9 @@ class UIStateManager
         ?string $callbackAction = null,
         array $params = [],
         ?int $layerIndex = null,
-        ?string $clientId = null
+        ?string $clientId = null,
+        ?string $callerScreenClass = null,
+        ?string $pageScreenRoute = null,
     ): bool {
         return self::pushClientActiveModal(
             modalClass: $modalClass,
@@ -369,14 +375,59 @@ class UIStateManager
             callbackAction: $callbackAction,
             params: $params,
             layerIndex: $layerIndex,
-            clientId: $clientId
+            clientId: $clientId,
+            callerScreenClass: $callerScreenClass,
+            pageScreenRoute: $pageScreenRoute,
         );
+    }
+
+    /**
+     * Set the current screen route and class for the client.
+     */
+    public static function setClientCurrentScreen(string $screenRoute, ?string $screenClass = null, ?string $clientId = null): bool
+    {
+        $clientId ??= self::getOrCreateClientId();
+        $cacheKey = "ui_current_screen:{$clientId}";
+        $ttlConfig = config('usim.ui_cache_ttl', 60);
+        $ttl = \is_int($ttlConfig) ? $ttlConfig : 60;
+        if (\is_string($ttlConfig) && ctype_digit($ttlConfig)) {
+            $ttl = (int) $ttlConfig;
+        }
+
+        return Cache::put($cacheKey, [
+            'route' => $screenRoute,
+            'screen_class' => $screenClass,
+        ], $ttl);
+    }
+
+    /**
+     * Get the current screen route for the client.
+     */
+    public static function getClientCurrentScreenRoute(?string $clientId = null): ?string
+    {
+        $clientId ??= self::getOrCreateClientId();
+        $cacheKey = "ui_current_screen:{$clientId}";
+        $data = Cache::get($cacheKey);
+
+        return \is_array($data) && isset($data['route']) && \is_string($data['route']) ? $data['route'] : null;
+    }
+
+    /**
+     * Get the current screen class for the client.
+     */
+    public static function getClientCurrentScreenClass(?string $clientId = null): ?string
+    {
+        $clientId ??= self::getOrCreateClientId();
+        $cacheKey = "ui_current_screen:{$clientId}";
+        $data = Cache::get($cacheKey);
+
+        return \is_array($data) && isset($data['screen_class']) && \is_string($data['screen_class']) ? $data['screen_class'] : null;
     }
 
     /**
      * Get top active modal metadata for the client.
      *
-     * @return array{modal_class: string, caller_screen_id: ?int, caller_screen_class: ?string, callback_action: ?string, params: array<int|string, mixed>, layer_index: int}|null
+     * @return array{modal_class: string, caller_screen_id: ?int, caller_screen_class: ?string, callback_action: ?string, params: array<int|string, mixed>, layer_index: int, page_screen_route: ?string}|null
      */
     public static function getClientActiveModal(?string $clientId = null): ?array
     {
@@ -401,7 +452,7 @@ class UIStateManager
 
     /**
      * @param  array<array-key, mixed>  $data
-     * @return array{modal_class: string, caller_screen_id: ?int, caller_screen_class: ?string, callback_action: ?string, params: array<int|string, mixed>, layer_index: int}
+     * @return array{modal_class: string, caller_screen_id: ?int, caller_screen_class: ?string, callback_action: ?string, params: array<int|string, mixed>, layer_index: int, page_screen_route: ?string}
      */
     private static function normalizeModalEntry(array $data): array
     {
@@ -416,6 +467,7 @@ class UIStateManager
             'callback_action' => isset($data['callback_action']) && \is_string($data['callback_action']) ? $data['callback_action'] : null,
             'params' => isset($data['params']) && \is_array($data['params']) ? $data['params'] : [],
             'layer_index' => isset($data['layer_index']) && is_numeric($data['layer_index']) ? (int) $data['layer_index'] : 0,
+            'page_screen_route' => isset($data['page_screen_route']) && \is_string($data['page_screen_route']) ? $data['page_screen_route'] : null,
         ];
     }
 

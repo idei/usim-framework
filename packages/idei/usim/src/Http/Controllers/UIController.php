@@ -52,11 +52,16 @@ class UIController extends Controller
         );
 
         if ($parent === 'main') {
+            UIStateManager::setClientCurrentScreen($screenRoute, $screenClass);
+
             $modalStack = UIStateManager::getClientActiveModalStack();
             if (! empty($modalStack)) {
                 $bottomModal = $modalStack[0];
-                $isSameCaller = $bottomModal['caller_screen_class'] === null
-                    || $bottomModal['caller_screen_class'] === $screenClass;
+                $isSameCaller = $this->isModalApplicableToScreen(
+                    modalMeta: $bottomModal,
+                    screenRoute: $screenRoute,
+                    screenClass: $screenClass
+                );
 
                 if ($isSameCaller && ! $requestData['shouldReset']) {
                     Screen::restoreActiveModalStack(
@@ -175,5 +180,48 @@ class UIController extends Controller
         }
 
         return response()->json($response);
+    }
+
+    /**
+     * Determine if an active modal should be restored on the given screen.
+     *
+     * @param  array{modal_class: string, caller_screen_id: ?int, caller_screen_class: ?string, callback_action: ?string, params: array<int|string, mixed>, layer_index: int, page_screen_route?: ?string}  $modalMeta
+     * @param  class-string  $screenClass
+     */
+    private function isModalApplicableToScreen(array $modalMeta, string $screenRoute, string $screenClass): bool
+    {
+        // 1. If page screen route was tracked and matches current route: same page refresh
+        $pageRoute = $modalMeta['page_screen_route'] ?? null;
+        if ($pageRoute !== null && $pageRoute === $screenRoute) {
+            return true;
+        }
+
+        $callerClass = $modalMeta['caller_screen_class'];
+
+        // 2. No caller class tracked: allow fallback to host screen
+        if ($callerClass === null) {
+            return true;
+        }
+
+        // 3. Direct match with current screen class
+        if ($callerClass === $screenClass) {
+            return true;
+        }
+
+        // 4. Caller is Menu (Menu is shared across all screen pages that display menu)
+        if (class_basename($callerClass) === 'Menu' || is_a($callerClass, \App\UI\Screens\Menu::class, true)) {
+            return true;
+        }
+
+        // 5. Caller was an embedded/opened screen for this client
+        $openedScreenIds = UIStateManager::getClientOpenedScreens();
+        foreach ($openedScreenIds as $openedId) {
+            $context = \Idei\Usim\Support\UIIdGenerator::getContextFromId((int) $openedId);
+            if ($context === $callerClass) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }

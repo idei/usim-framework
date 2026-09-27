@@ -375,3 +375,57 @@ it('persists and unwinds stacked modals across F5 page refreshes', function () {
 
     app()->setLocale($originalLocale);
 });
+
+it('persists modal opened from Menu across F5 screen refreshes', function () {
+    // 1. Initial screen load
+    $homeResponse = $this->getJson('/api/ui/home');
+    $homeResponse->assertOk();
+
+    // 2. Open Logout confirmation modal from Menu
+    $menu = App\UI\Screens\Menu::make();
+    $menu->onLogoutUser([]);
+
+    expect(UIStateManager::getClientActiveModalStack())->toHaveCount(1);
+
+    // 3. Consecutive F5 refreshes on home screen
+    for ($i = 0; $i < 3; $i++) {
+        $f5Response = $this->getJson('/api/ui/home');
+        $f5Response->assertOk();
+        $f5Data = $f5Response->json();
+
+        expect(hasModalComponents($f5Data))->toBeTrue();
+        expect(modalPayloadHasNamedComponent($f5Data, 'idei_usim_modals_confirmdialog'))->toBeTrue();
+
+        $menuResponse = $this->getJson('/api/ui/menu?parent=menu');
+        $menuResponse->assertOk();
+    }
+
+    // 4. Cancel the modal
+    $f5Data = $this->getJson('/api/ui/home')->json();
+    $cancelBtnId = null;
+    $cancelParams = [];
+    foreach ($f5Data as $id => $comp) {
+        if (is_array($comp) && ($comp['name'] ?? null) === 'btn_cancel') {
+            $cancelBtnId = (int) $id;
+            $cancelParams = $comp['parameters'] ?? [];
+            break;
+        }
+    }
+    expect($cancelBtnId)->not->toBeNull();
+
+    $cancelResponse = $this->postJson('/api/ui-event', [
+        'component_id' => $cancelBtnId,
+        'event' => 'click',
+        'action' => 'cancel_logout',
+        'parameters' => $cancelParams,
+    ]);
+    $cancelResponse->assertOk();
+    expect($cancelResponse->json('action'))->toBe('close_modal');
+
+    expect(UIStateManager::getClientActiveModalStack())->toBeEmpty();
+
+    // 5. Subsequent F5 refresh has no modals
+    $finalResponse = $this->getJson('/api/ui/home');
+    $finalResponse->assertOk();
+    expect(hasModalComponents($finalResponse->json()))->toBeFalse();
+});
