@@ -157,8 +157,25 @@ abstract class Screen
 
     /**
      * Determines whether this screen should render the top navigation menu.
+     * Maintained for backward compatibility. Use $layout instead.
      */
     public static bool $hasMenu = true;
+
+    /**
+     * Layout class to frame this screen.
+     * Can be class-string<\Idei\Usim\Layout\AbstractLayout>, 'default', or null for kiosk/standalone.
+     *
+     * @var class-string<\Idei\Usim\Layout\AbstractLayout>|string|null
+     */
+    public static ?string $layout = 'default';
+
+    /**
+     * Custom menu screen class to embed in the layout.
+     * If null, the layout's default menu is used.
+     *
+     * @var class-string<Screen>|string|null
+     */
+    public static ?string $menuScreen = null;
 
     /**
      * Resolve the authentication guard for this screen.
@@ -178,20 +195,113 @@ abstract class Screen
     }
 
     /**
-     * Determine if this screen should display the top navigation menu.
+     * Resolve the layout class for this screen.
+     *
+     * @return class-string<\Idei\Usim\Layout\AbstractLayout>|null
+     */
+    public static function getLayoutClass(): ?string
+    {
+        if (! static::$hasMenu || static::$layout === null) {
+            return null;
+        }
+
+        // Screens under the Device namespace default to no layout (clean kiosk display)
+        if (str_contains(static::class, 'Screens\\Device\\')) {
+            return null;
+        }
+
+        // Menu screens themselves do not have a layout wrapper
+        if (str_contains(static::class, 'Screens\\Menu') || str_ends_with(static::class, 'Menu')) {
+            return null;
+        }
+
+        $defaultLayoutConfig = config('usim.default_layout', 'App\\UI\\Layouts\\MainLayout');
+        $defaultLayout = is_string($defaultLayoutConfig) ? $defaultLayoutConfig : 'App\\UI\\Layouts\\MainLayout';
+        $layoutClass = static::$layout === 'default' ? $defaultLayout : static::$layout;
+
+        if (class_exists($layoutClass) && is_subclass_of($layoutClass, \Idei\Usim\Layout\AbstractLayout::class)) {
+            /** @var class-string<\Idei\Usim\Layout\AbstractLayout> $layoutClass */
+            return $layoutClass;
+        }
+
+        return null;
+    }
+
+    /**
+     * Resolve the menu screen class for this screen.
+     *
+     * @return class-string<Screen>|null
+     */
+    public static function getMenuScreen(): ?string
+    {
+        if (static::$menuScreen !== null) {
+            if (class_exists(static::$menuScreen) && is_subclass_of(static::$menuScreen, self::class)) {
+                return static::$menuScreen;
+            }
+
+            $resolved = static::resolveScreenClassFromSlug(static::$menuScreen);
+            if ($resolved !== null && class_exists($resolved) && is_subclass_of($resolved, self::class)) {
+                return $resolved;
+            }
+        }
+
+        $defaultMenuConfig = config('usim.default_menu_screen', 'App\\UI\\Screens\\Menu');
+        $defaultMenu = is_string($defaultMenuConfig) ? $defaultMenuConfig : 'App\\UI\\Screens\\Menu';
+
+        if (class_exists($defaultMenu) && is_subclass_of($defaultMenu, self::class)) {
+            return $defaultMenu;
+        }
+
+        return null;
+    }
+
+    /**
+     * Resolve a screen class from a route slug (e.g. 'admin/users-manager' -> 'App\UI\Screens\Admin\UsersManager').
+     *
+     * @return class-string<Screen>|null
+     */
+    public static function resolveScreenClassFromSlug(string $screenRoute): ?string
+    {
+        $screenNameSegments = collect(explode('/', trim($screenRoute, '/')))
+            ->map(fn (string $segment) => Str::studly($segment))
+            ->join('\\');
+
+        $namespaceValue = config('usim.screens_namespace', 'App\\UI\\Screens');
+        $namespace = \is_string($namespaceValue) ? $namespaceValue : 'App\\UI\\Screens';
+
+        $candidate = "{$namespace}\\{$screenNameSegments}";
+        return (class_exists($candidate) && is_subclass_of($candidate, self::class)) ? $candidate : null;
+    }
+
+    /**
+     * Resolve a screen slug from a class-string (e.g. 'App\UI\Screens\Admin\UsersManager' -> 'admin/users-manager').
+     */
+    public static function resolveScreenSlug(string $screenClass): string
+    {
+        if (class_exists($screenClass) && method_exists($screenClass, 'getRoutePath')) {
+            return ltrim($screenClass::getRoutePath(), '/');
+        }
+
+        $prefixConfig = config('usim.screens_namespace', 'App\\UI\\Screens');
+        $prefix = \is_string($prefixConfig) ? $prefixConfig : 'App\\UI\\Screens';
+
+        if (str_starts_with($screenClass, $prefix)) {
+            $relative = substr($screenClass, strlen($prefix));
+            $segments = explode('\\', trim($relative, '\\'));
+            $urlSegments = array_map(fn ($s) => Str::kebab($s), $segments);
+
+            return implode('/', $urlSegments);
+        }
+
+        return Str::kebab(class_basename($screenClass));
+    }
+
+    /**
+     * Determine if this screen should display a layout / menu.
      */
     public static function hasMenu(): bool
     {
-        if (! static::$hasMenu) {
-            return false;
-        }
-
-        // Screens under the Device namespace default to no menu (clean display)
-        if (str_contains(static::class, 'Screens\\Device\\')) {
-            return false;
-        }
-
-        return true;
+        return static::getLayoutClass() !== null;
     }
 
     protected function uiChanges(): UIChangesCollector
@@ -1352,8 +1462,22 @@ abstract class Screen
             ->justifyContent('center')
             ->alignItems('center');
 
-        // Generate and cache new user Interface
-        $this->buildBaseUI($container, ...$params);
+        // Apply Layout by composition if applicable
+        $layoutClass = ($this->modalLayerIndex > 0 || ($this->parent !== null && $this->parent !== 'main' && $this->parent !== ''))
+            ? null
+            : static::getLayoutClass();
+
+        if ($layoutClass !== null && class_exists($layoutClass) && is_subclass_of($layoutClass, \Idei\Usim\Layout\AbstractLayout::class)) {
+            /** @var \Idei\Usim\Layout\AbstractLayout $layoutInstance */
+            $layoutInstance = app($layoutClass);
+            $menuScreen = static::getMenuScreen();
+            $layoutInstance->build($container, function (Container $contentSlot) use ($params) {
+                $this->buildBaseUI($contentSlot, ...$params);
+            }, $menuScreen);
+        } else {
+            // Generate and cache new user Interface directly without layout
+            $this->buildBaseUI($container, ...$params);
+        }
 
         $ui = $container
             ->root(true)
@@ -1722,7 +1846,7 @@ abstract class Screen
     /**
      * Sends 'close_modal' action to front and clears modal snapshot from cache.
      */
-    protected function closeModal(): void
+    public function closeModal(): void
     {
         $this->uiChanges()->add([
             'action' => 'close_modal',
@@ -1792,7 +1916,7 @@ abstract class Screen
     /**
      * Requests to front to renderize a toast type message.
      */
-    protected function toast(
+    public function toast(
         string $message,
         string $type = 'info',
         int $duration = 5000,
@@ -1822,7 +1946,7 @@ abstract class Screen
      *
      * @param  string|null  $url  The URL to redirect to, or null to use intended redirect
      */
-    protected function redirect(?string $url = null): void
+    public function redirect(?string $url = null): void
     {
         // If no URL provided, use Laravel's intended redirect (previous URL or default)
         if ($url === null) {
@@ -1876,7 +2000,7 @@ abstract class Screen
     /**
      * @param  array<string, mixed>  $content
      */
-    protected function updateModal(array $content): void
+    public function updateModal(array $content): void
     {
         $this->uiChanges()->add([
             'update_modal' => $content,

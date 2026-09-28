@@ -1021,8 +1021,8 @@ body.modal-open #menu {
 /* ==================== Menu Dropdown Styles ==================== */
 
 /* ==================== TOP MENU BAR ==================== */
-#top-menu-bar {
-    position: fixed;
+#top-menu-bar, .main-menu-container, [data-name="main_menu_container"] {
+    position: sticky;
     top: 0;
     left: 0;
     width: 100%;
@@ -1035,12 +1035,17 @@ body.modal-open #menu {
     height: 60px;
     display: flex;
     align-items: center;
-    /* Removed justify-content to allow children to control their own spacing */
+    box-sizing: border-box;
 }
 
-#menu {
+#top-menu-bar {
+    position: fixed;
+}
+
+#menu, [data-name="main_menu_container"] > .ui-container {
     flex: 1; /* Grow to fill available space */
     display: flex; /* Make it a flex container so margin-left: auto works on children */
+    width: 100%;
 }
 
 /* Ensure the UI container inside #menu takes full width */
@@ -1053,11 +1058,17 @@ body.modal-open #menu {
     margin-left: 16px;
 }
 
-/* Adjust main content to account for fixed header */
+/* Adjust main content when legacy fixed header is present, or reset when in modern layout / kiosk mode */
 #main {
-    margin-top: 60px; /* 60px header + 20px spacing */
-    /* padding: 20px; */
-    /* min-height: calc(100vh - 100px); */
+    margin-top: 0;
+}
+
+#top-menu-bar ~ #main {
+    margin-top: 60px;
+}
+
+#main.usim-kiosk-mode {
+    margin-top: 0;
 }
 
 .menu-dropdown {

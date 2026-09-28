@@ -1,0 +1,20 @@
+<?php
+
+namespace App\UI\Navigation\Menus;
+
+use App\UI\Screens\Admin\TranslateManager;
+use App\UI\Screens\Admin\UsersManager;
+use Idei\Usim\Navigation\Contracts\MenuProviderInterface;
+use Idei\Usim\Navigation\MenuBuilder;
+
+class AdminMenuProvider implements MenuProviderInterface
+{
+    public function build(MenuBuilder $menu): void
+    {
+        $menu->link(t('screen.menu.items.home'), '/', '🏠');
+        $menu->screen(UsersManager::class, 'Gestión de Usuarios', '👥');
+        $menu->screen(TranslateManager::class, 'Traducciones', '🌐');
+        $menu->separator();
+        $menu->action(t('screen.menu.items.about'), 'show_about_info', [], 'ℹ️');
+    }
+}
