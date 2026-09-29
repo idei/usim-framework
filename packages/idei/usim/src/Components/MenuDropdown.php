@@ -1,6 +1,8 @@
 <?php
 namespace Idei\Usim\Components;
 
+use Idei\Usim\Navigation\TriggerConfig;
+
 /**
  * Menu Dropdown Builder
  *
@@ -220,11 +222,18 @@ class MenuDropdown extends UIComponent
      *
      * @param string $label Button text
      * @param string|null $icon Button icon
+     * @param TriggerConfig|string $label Button text or TriggerConfig DTO
+     * @param string|null $icon Button icon
      * @param string $style Button style (primary, secondary, etc.)
      * @return self
      */
-    public function trigger(string $label = '☰', ?string $icon = null, string $style = 'default'): self
+    public function trigger(TriggerConfig|string $label = '☰', ?string $icon = null, string $style = 'default'): self
     {
+        if ($label instanceof TriggerConfig) {
+            $label->applyTo($this);
+            return $this;
+        }
+
         $this->config['trigger'] = [
             'label' => $label,
             'icon'  => $icon,

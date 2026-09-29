@@ -19,6 +19,7 @@ La nueva arquitectura introduce:
 4. **Separación de responsabilidades (SRP)**: extracción de la lógica de registro de usuarios hacia `RegisterActionHandler` y reducción de `Menu.php` a la orquestación visual.
 5. **Soporte nativo para pantallas sin layout (modo Kiosk / Standalone)** y para layouts o menús alternativos configurables por pantalla o por ruta.
 6. **Robustez en el ciclo de vida de almacenamiento y normalización visual:** inyección temprana de estado (`store_theme`), anclaje vertical superior de layouts y normalización de márgenes y paddings globales.
+7. **Tipado estricto con DTO (`TriggerConfig`) y principio "Tell, Don't Ask":** sustitución de arrays asociativos abiertos por el DTO inmutable `TriggerConfig`, delegación de renderizado con `applyTo()` en items y triggers, y corrección de firmas PHPDoc en `Menu.php` para alcanzar 100% de cumplimiento en PHPStan nivel 9.
 
 ---
 
@@ -85,14 +86,27 @@ Value object fluido que representa un item de navegación:
   - `->can(string $ability, mixed $arguments = [])`: chequeo de autorización mediante Laravel `Gate::allows()`.
 - **Integración con pantallas y `checkAccess()`:**
   - `MenuItem::screen(string $screenClass, ?string $label = null, ?string $icon = null)`: enlaza automáticamente con la ruta de una pantalla.
-  - Al evaluar `isVisible()`, si el item está asociado a una subclase de `Screen`, invoca dinámicamente `Screen::checkAccess()` con el usuario actual.
+- **Método `applyTo(MenuDropdown $dropdown)`:** Aplica directamente el item al componente `MenuDropdown`, respetando el principio "Tell, Don't Ask" y garantizando tipos estrictos sin desestructurar arrays asociativos.
+
+#### `Idei\Usim\Navigation\TriggerConfig`
+DTO / Value Object inmutable (`readonly class`) para modelar la configuración del botón disparador del menú:
+- **Propiedades estrictamente tipadas:** `label`, `icon`, `image`, `alt`, `style`.
+- **Constructores nombrados semánticos:**
+  - `TriggerConfig::make(?string $label = '☰', ?string $icon = null, string $style = 'default')`: para disparadores de texto o ícono.
+  - `TriggerConfig::image(string $image, string $alt = 'User', ?string $label = null, string $style = 'default')`: para disparadores con avatar o logotipo.
+  - `TriggerConfig::fromArray(array $data)`: fábrica segura contra tipos `mixed`.
+- **Encapsulación con `applyTo(MenuDropdown $dropdown)`:** Delega la llamada a `$dropdown->triggerImage(...)` o `$dropdown->trigger(...)` eliminando 15 líneas de código repetitivo y desestructuración manual en el builder.
 
 #### `Idei\Usim\Navigation\MenuBuilder`
 Constructor declarativo fluido:
-- Permite definir el trigger del dropdown (`->trigger('☰')`), posición (`bottom-left`, `bottom-right`), ancho (`width`), items de menú y submenús.
+- Utiliza internamente `?TriggerConfig $triggerConfig` en lugar de un array abierto `mixed`.
+- Provee métodos fluidos:
+  - `->trigger(TriggerConfig|string|null $label = '☰', ...)`
+  - `->triggerImage(string $image, string $alt = 'User', ?string $label = null, string $style = 'default')`
+  - `->getTrigger(): ?TriggerConfig`
 - Soporta integración modular mediante `->provider(MenuProviderInterface|string $provider)`.
 - Provee los métodos:
-  - `populate(MenuDropdown $dropdown)`: puebla un componente `MenuDropdown` existente con los items configurados.
+  - `populate(MenuDropdown $dropdown)`: puebla un componente `MenuDropdown` delegando en `$this->triggerConfig?->applyTo($dropdown)` y `$item->applyTo($dropdown)`.
   - `render(): MenuDropdown`: construye y retorna una nueva instancia configurada de `MenuDropdown`.
 
 #### `Idei\Usim\Navigation\Contracts\MenuProviderInterface`
@@ -215,6 +229,7 @@ Siguiendo el principio de responsabilidad única (SRP), toda la lógica de valid
   - Selector de unidades operativas (para usuarios con múltiples unidades asignadas).
   - Preferencias de tema visual (claro / oscuro) e idioma.
 - Delega el procesamiento del formulario de registro a `RegisterActionHandler::handleRegistration()`.
+- **Alineación de firma en `onShowErrorInfo()`:** Se corrigió la anotación `@return never` por `@return void`. En USIM, `$this->abort()` registra una instrucción en `$this->uiChanges()` sin detener la ejecución del script ni lanzar excepciones, satisfaciendo el análisis estricto de PHPStan nivel 9.
 
 ### 4.5 Normalización de Espaciados, Márgenes y Comportamiento de Contenedores
 
@@ -309,6 +324,7 @@ $menu->provider(ReportsMenuProvider::class);
    - Evaluación diferida de `when()` y `can()`.
    - Chequeo dinámico de permisos mediante `Screen::checkAccess()`.
    - Composición modular con `MenuProviderInterface`.
+   - Configuración de disparadores mediante el DTO `TriggerConfig` y métodos fluidos (`trigger()`, `triggerImage()`).
 2. **`tests/Feature/LayoutCompositionTest.php`** (Nuevos):
    - Enmarcado automático con `MainLayout` y slots `$main_menu_container` y `$content_container`.
    - Modo Kiosk / Standalone sin layout cuando `$layout = null`.
@@ -320,8 +336,8 @@ $menu->provider(ReportsMenuProvider::class);
 4. **`tests/Feature/MenuRegisterDialogTest.php`** (Regresión):
    - 3 pruebas verificando apertura de diálogo modal de registro, validación, alta y verificación vía email.
 
-**Resultado:** 31 tests pasados, 249 aserciones exitosas.
+**Resultado:** 32 tests pasados, 266 aserciones exitosas.
 
 ### 6.2 Análisis Estático (PHPStan)
-- Ejecutado sobre el núcleo de composición: `packages/idei/usim/src/Screen.php`, `packages/idei/usim/src/Layout/AbstractLayout.php` y `app/UI/Layouts/MainLayout.php` bajo la configuración estricta de `phpstan.neon`.
+- Ejecutado sobre el núcleo de composición y navegación: `packages/idei/usim/src/Screen.php`, `packages/idei/usim/src/Layout/`, `packages/idei/usim/src/Navigation/`, `packages/idei/usim/src/Components/MenuDropdown.php`, `app/UI/Layouts/MainLayout.php` y `app/UI/Screens/Menu.php` bajo la configuración estricta de `phpstan.neon`.
 - **Resultado:** Nivel 9 de análisis estático estricto completado con 0 errores (`[OK] No errors`).

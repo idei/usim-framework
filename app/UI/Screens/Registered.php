@@ -3,7 +3,6 @@
 namespace App\UI\Screens;
 
 use App\Models\User;
-use App\UI\Screens\Auth\Profile;
 use Idei\Usim\Components\Container;
 use Idei\Usim\Enums\LayoutType;
 use Idei\Usim\Screen;
@@ -146,9 +145,8 @@ class Registered extends Screen
      */
     public function onGoToProfile(array $params): void
     {
-        //$this->redirect('/auth/profile');
-        $this->openModal(Profile::class);
-
+        $this->redirect('/auth/profile');
+        // $this->openModal(Profile::class);
     }
 }
 

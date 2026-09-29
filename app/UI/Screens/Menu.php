@@ -110,6 +110,12 @@ class Menu extends Screen
         $this->theme_toggle->tooltip(t('screen.menu.theme_switch_to', ['theme' => $this->store_theme === 'light' ? 'dark' : 'light']));
     }
 
+    /**
+     * Toggles the application theme between light and dark modes.
+     *
+     * @param array<string, mixed> $params
+     * @return void
+     */
     public function onToggleTheme(array $params): void
     {
         $this->store_theme = $this->store_theme === 'light' ? 'dark' : 'light';
@@ -118,6 +124,12 @@ class Menu extends Screen
         $this->changeTheme($this->store_theme);
     }
 
+    /**
+     * Changes the application language.
+     *
+     * @param array<string, mixed> $params
+     * @return void
+     */
     public function onChangeLang(array $params): void
     {
         $lang = $this->stringParamOrDefault($params, 'lang', '');
@@ -186,6 +198,12 @@ class Menu extends Screen
         $this->populateLangMenu($this->lang_menu);
     }
 
+    /**
+     * Changes the application unit.
+     *
+     * @param array<string, mixed> $params
+     * @return void
+     */
     public function onChangeUnit(array $params): void
     {
         $unitSlug = $this->stringParamOrDefault($params, 'unit', '');
@@ -429,6 +447,12 @@ class Menu extends Screen
         return $builder;
     }
 
+    /**
+     * Handles the event when a user logs in, updating the menu accordingly.
+     *
+     * @param array<string, mixed> $params
+     * @return void
+     */
     public function onLoggedUser(array $params): void
     {
         /** @var User|null $user */
@@ -445,6 +469,12 @@ class Menu extends Screen
         $this->updateUnitMenu();
     }
 
+    /**
+     * Handles the event when a user updates their profile, refreshing the menu to reflect any changes.
+     *
+     * @param array<string, mixed> $params
+     * @return void
+     */
     public function onUpdatedProfile(array $params): void
     {
         $user = $params['user'] ?? null;
@@ -453,6 +483,12 @@ class Menu extends Screen
         }
     }
 
+    /**
+     * Handles the event when a user logs out, resetting the menu to its default state.
+     *
+     * @param array<string, mixed> $params
+     * @return void
+     */
     public function onConfirmLogout(array $params): void
     {
         Auth::logout();
@@ -475,6 +511,12 @@ class Menu extends Screen
         $this->redirect();
     }
 
+    /**
+     * Handles the event when a user cancels the logout process, closing any open modals.
+     *
+     * @param array<string, mixed> $params
+     * @return void
+     */
     public function onShowAboutInfo(array $params): void
     {
         $version = "0.7.0";
@@ -490,11 +532,23 @@ class Menu extends Screen
         );
     }
 
+    /**
+     * Handles the event when an error occurs, aborting the process and displaying an error message.
+     *
+     * @param array<string, mixed> $params
+     * @return void
+     */
     public function onShowErrorInfo(array $params): void
     {
         $this->abort(500, t('screen.menu.abort_demo_error'));
     }
 
+    /**
+     * Handles the event when a user cancels the logout process, closing any open modals.
+     *
+     * @param array<string, mixed> $params
+     * @return void
+     */
     public function onShowRegisterForm(array $params): void
     {
         RegisterDialog::open(
@@ -504,6 +558,12 @@ class Menu extends Screen
         );
     }
 
+    /**
+     * Handles the event when a user requests to view the terms and conditions, opening the relevant dialog.
+     *
+     * @param array<string, mixed> $params
+     * @return void
+     */
     public function onOpenTermsAndConditions(array $params): void
     {
         TermsDialog::open(
@@ -511,16 +571,34 @@ class Menu extends Screen
         );
     }
 
+    /**
+     * Handles the event when a user submits the registration form, processing the registration action.
+     *
+     * @param array<string, mixed> $params
+     * @return void
+     */
     public function onSubmitRegister(array $params): void
     {
         $this->registerActionHandler->handle($this, $params);
     }
 
+    /**
+     * Handles the event when a user closes the profile dialog, closing any open modals.
+     *
+     * @param array<string, mixed> $params
+     * @return void
+     */
     public function onCloseProfileDialog(array $params): void
     {
         $this->closeModal();
     }
 
+    /**
+     * Handles the event when a user requests to log out, showing a confirmation dialog.
+     *
+     * @param array<string, mixed> $params
+     * @return void
+     */
     public function onLogoutUser(array $params): void
     {
         ConfirmDialog::open(
@@ -533,17 +611,37 @@ class Menu extends Screen
         );
     }
 
+    /**
+     * Handles the event when a user cancels the logout process, closing any open modals.
+     *
+     * @param array<string, mixed> $params
+     * @return void
+     */
     public function onCancelLogout(array $params): void
     {
         $this->closeModal();
     }
 
+    /**
+     * Retrieves a string parameter from the provided array, returning a default value if the parameter is not set or is not a string.
+     *
+     * @param array<string, mixed> $params
+     * @param string $key
+     * @param string $default
+     * @return string
+     */
     private function stringParamOrDefault(array $params, string $key, string $default): string
     {
         $value = $params[$key] ?? null;
         return is_string($value) ? $value : $default;
     }
 
+    /**
+     * Normalizes the locale by ensuring it is a non-empty string.
+     *
+     * @param mixed $locale
+     * @return string
+     */
     private function normalizeLocale(mixed $locale): string
     {
         if (is_string($locale) && $locale !== '') {

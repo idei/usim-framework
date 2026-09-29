@@ -43,7 +43,7 @@ class RegisterActionHandler
             sendVerificationEmail: $sendEmail
         );
 
-        if (($response['status'] ?? '') !== 'success') {
+        if ($response['status'] !== 'success') {
             $this->handleError($caller, $response);
             return;
         }

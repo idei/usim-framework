@@ -3,6 +3,7 @@
 namespace Idei\Usim\Navigation;
 
 use Closure;
+use Idei\Usim\Components\MenuDropdown;
 use Idei\Usim\Screen;
 use Illuminate\Support\Facades\Gate;
 
@@ -231,5 +232,48 @@ class MenuItem
         }
 
         return $data;
+    }
+
+    /**
+     * Applies this item to a MenuDropdown component.
+     */
+    public function applyTo(MenuDropdown $dropdown): void
+    {
+        if (!$this->isVisible()) {
+            return;
+        }
+
+        if ($this->isSeparator) {
+            $dropdown->separator();
+            return;
+        }
+
+        $label = $this->label;
+        $icon = $this->icon;
+        $url = $this->url;
+
+        if ($this->screenClass !== null) {
+            $label = $label ?? $this->screenClass::getMenuLabel();
+            $icon = $icon ?? $this->screenClass::getMenuIcon();
+            $url = $url ?? $this->screenClass::getRoutePath();
+        }
+
+        $visibleChildren = [];
+        foreach ($this->children as $child) {
+            $childArray = $child->toArray();
+            if ($childArray !== null) {
+                $visibleChildren[] = $childArray;
+            }
+        }
+
+        $resolvedLabel = $label ?? '';
+
+        if ($url !== null) {
+            $dropdown->link($resolvedLabel, $url, $icon);
+        } elseif (!empty($visibleChildren)) {
+            $dropdown->item($resolvedLabel, $this->action, $this->params, $icon, $visibleChildren);
+        } else {
+            $dropdown->item($resolvedLabel, $this->action, $this->params, $icon);
+        }
     }
 }

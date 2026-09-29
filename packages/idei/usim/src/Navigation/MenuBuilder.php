@@ -13,8 +13,7 @@ class MenuBuilder
     protected ?string $id;
     /** @var list<MenuItem> */
     protected array $items = [];
-    /** @var array<string, mixed> */
-    protected array $triggerConfig = [];
+    protected ?TriggerConfig $triggerConfig = null;
     protected string $position = 'bottom-left';
     protected ?string $width = null;
     protected bool $visible = true;
@@ -30,20 +29,54 @@ class MenuBuilder
     }
 
     public function trigger(
-        ?string $label = null,
+        TriggerConfig|string|null $label = '☰',
         ?string $icon = null,
         ?string $image = null,
         ?string $alt = null,
         string $style = 'default'
     ): self {
-        $this->triggerConfig = [
-            'label' => $label,
-            'icon' => $icon,
-            'image' => $image,
-            'alt' => $alt,
-            'style' => $style,
-        ];
+        if ($label instanceof TriggerConfig) {
+            $this->triggerConfig = $label;
+            return $this;
+        }
+
+        if ($image !== null) {
+            $this->triggerConfig = TriggerConfig::image(
+                image: $image,
+                alt: $alt ?? 'User',
+                label: $label,
+                style: $style
+            );
+            return $this;
+        }
+
+        $this->triggerConfig = TriggerConfig::make(
+            label: $label,
+            icon: $icon,
+            style: $style
+        );
+
         return $this;
+    }
+
+    public function triggerImage(
+        string $image,
+        string $alt = 'User',
+        ?string $label = null,
+        string $style = 'default'
+    ): self {
+        $this->triggerConfig = TriggerConfig::image(
+            image: $image,
+            alt: $alt,
+            label: $label,
+            style: $style
+        );
+        return $this;
+    }
+
+    public function getTrigger(): ?TriggerConfig
+    {
+        return $this->triggerConfig;
     }
 
     public function position(string $position): self
@@ -196,46 +229,10 @@ class MenuBuilder
         if ($this->width !== null) {
             $dropdown->width(Size::from($this->width));
         }
-
-        if (!empty($this->triggerConfig)) {
-            $label = $this->triggerConfig['label'] ?? '☰';
-            $icon = $this->triggerConfig['icon'] ?? null;
-            $image = $this->triggerConfig['image'] ?? null;
-            $alt = $this->triggerConfig['alt'] ?? null;
-            $style = $this->triggerConfig['style'] ?? 'default';
-
-            if ($image !== null) {
-                $dropdown->triggerImage($image, $alt ?? ($label ?? 'Menu'), $label, $style);
-            } else {
-                $dropdown->trigger($label ?? '☰', $icon, $style);
-            }
-        }
+        $this->triggerConfig?->applyTo($dropdown);
 
         foreach ($this->items as $item) {
-            $itemData = $item->toArray();
-            if ($itemData === null) {
-                continue;
-            }
-
-            if (($itemData['type'] ?? '') === 'separator') {
-                $dropdown->separator();
-                continue;
-            }
-
-            $label = $itemData['label'] ?? '';
-            $icon = $itemData['icon'] ?? null;
-            $url = $itemData['url'] ?? null;
-            $action = $itemData['action'] ?? null;
-            $params = $itemData['params'] ?? [];
-            $submenu = $itemData['submenu'] ?? [];
-
-            if ($url !== null) {
-                $dropdown->link($label, $url, $icon);
-            } elseif (!empty($submenu)) {
-                $dropdown->item($label, $action, $params, $icon, $submenu);
-            } else {
-                $dropdown->item($label, $action, $params, $icon);
-            }
+            $item->applyTo($dropdown);
         }
 
         return $dropdown;
