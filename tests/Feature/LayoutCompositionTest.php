@@ -25,6 +25,20 @@ it('frames standard screens with MainLayout and main_menu_container slot', funct
     // Contains home screen components inside content slot
     $welcome = $ui->component('welcome_usim');
     expect($welcome)->not->toBeNull();
+
+    // Root container must align items to start and stretch so the top menu stays anchored at top
+    $homeScreen = Home::make();
+    $homeScreen->render(shouldReset: true);
+    $root = null;
+    foreach (app(\Idei\Usim\UIChangesCollector::class)->all() as $comp) {
+        if (is_array($comp) && ($comp['root'] ?? false)) {
+            $root = $comp;
+            break;
+        }
+    }
+    expect($root)->not->toBeNull();
+    expect($root['justify_content'] ?? null)->toBe('flex-start');
+    expect($root['align_items'] ?? null)->toBe('stretch');
 });
 
 it('renders screens without layout when layout is null (kiosk / standalone mode)', function () {

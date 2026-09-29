@@ -4,6 +4,8 @@ namespace App\UI\Layouts;
 
 use Closure;
 use Idei\Usim\Components\Container;
+use Idei\Usim\Enums\AlignItems;
+use Idei\Usim\Enums\JustifyContent;
 use Idei\Usim\Enums\LayoutType;
 use Idei\Usim\Layout\AbstractLayout;
 use Idei\Usim\Screen;
@@ -25,6 +27,8 @@ class MainLayout extends AbstractLayout
         $root
             ->plain()
             ->layout(LayoutType::VERTICAL)
+            ->justifyContent(JustifyContent::START)
+            ->alignItems(AlignItems::STRETCH)
             ->padding(Spacing::px(0))
             ->margin(Spacing::px(0))
             ->width(Size::full())
