@@ -18,9 +18,9 @@ class DevicePairingScreen extends Screen
     public static Visibility $visibility = Visibility::PUBLIC;
 
     /**
-     * La pantalla de emparejamiento no debe mostrar menú de navegación.
+     * La pantalla de emparejamiento no debe mostrar layout ni menú de navegación.
      */
-    public static bool $hasMenu = false;
+    public static ?string $layout = null;
 
     protected string $store_session_token = '';
     protected string $store_pin = '';

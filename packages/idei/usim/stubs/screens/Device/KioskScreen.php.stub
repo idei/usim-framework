@@ -18,7 +18,7 @@ class KioskScreen extends Screen
     /**
      * El modo kiosco se despliega a pantalla completa sin barra de navegación superior.
      */
-    public static bool $hasMenu = false;
+    public static ?string $layout = null;
 
     protected Carousel $device_carousel;
 

@@ -17,7 +17,6 @@ use Idei\Usim\ValueObjects\Spacing;
 class AdminMenu extends Screen
 {
     public static Visibility $visibility = Visibility::PUBLIC;
-    public static bool $hasMenu = false;
     public static ?string $layout = null;
 
     protected MenuDropdown $admin_menu;

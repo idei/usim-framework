@@ -131,8 +131,7 @@ Se incorporaron propiedades y métodos estáticos para soportar la composición 
   - `Screen::getLayoutClass(): ?string`: Resuelve la clase concreta del layout. Excluye automáticamente pantallas de tipo menú o pantallas de dispositivo.
   - `Screen::getMenuScreen(): ?string`: Resuelve la clase de menú asociada a la pantalla, con fallback a `config('usim.default_menu_screen')` (`App\UI\Screens\Menu`).
   - `Screen::resolveScreenClassFromSlug(string $slug): ?string`: Traduce slugs (`"admin/dashboard"`, `"home"`) a su FQCN.
-  - `Screen::resolveScreenSlug(string $class): string`: Genera el slug correspondiente a partir de un FQCN.
-  - `Screen::hasMenu(): bool`: Mantiene compatibilidad hacia atrás indicando si la pantalla tiene un layout con menú activo.
+  - `Screen::hasLayout(): bool`: Indica si la pantalla tiene un layout activo (`getLayoutClass() !== null`).
 
 - **Visibilidad de métodos auxiliares:**
   - Se modificaron a `public`: `toast()`, `closeModal()`, `redirect()` y `updateModal()`, permitiendo que Action Handlers externos (`RegisterActionHandler`) operen sobre la instancia de `$caller` sin violar el encapsulamiento.

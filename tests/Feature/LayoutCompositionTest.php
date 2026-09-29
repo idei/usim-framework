@@ -28,7 +28,7 @@ it('frames standard screens with MainLayout and main_menu_container slot', funct
 });
 
 it('renders screens without layout when layout is null (kiosk / standalone mode)', function () {
-    expect(CustomKioskScreen::hasMenu())->toBeFalse();
+    expect(CustomKioskScreen::hasLayout())->toBeFalse();
     expect(CustomKioskScreen::getLayoutClass())->toBeNull();
 
     $ui = uiScenario($this, CustomKioskScreen::class, ['reset' => true]);
@@ -76,3 +76,48 @@ it('resolves screen slug bidirectionally', function () {
     expect(Screen::resolveScreenClassFromSlug('admin/admin-menu'))->toBe(AdminMenu::class);
     expect(Screen::resolveScreenSlug(Home::class))->toBe('home');
 });
+
+it('preserves store_theme and initializes embedded menu with dark theme when incoming storage is dark', function () {
+    $response = $this->getJson(
+        screenApiUrl(Home::class, ['reset' => true]),
+        ['X-USIM-Storage' => (string) json_encode(['store_theme' => 'dark'])]
+    );
+
+    $response->assertOk();
+    $data = $response->json();
+
+    $storageKey = config('usim.front_store_key', 'my-app');
+    $storage = json_decode($data['storage'][$storageKey] ?? '{}', true);
+
+    expect($storage['store_theme'] ?? null)->toBe('dark');
+
+    $themeToggle = findComponentByName($data, 'theme_toggle');
+    expect($themeToggle)->not->toBeNull();
+    expect($themeToggle['icon'] ?? '')->toContain('theme-icon-dark.svg');
+});
+
+it('preserves store_theme when navigating between screens with layout', function () {
+    $storageKey = config('usim.front_store_key', 'my-app');
+
+    // 1. Initial screen (Home) requested with dark theme
+    $homeResponse = $this->getJson(
+        screenApiUrl(Home::class, ['reset' => true]),
+        ['X-USIM-Storage' => (string) json_encode(['store_theme' => 'dark'])]
+    );
+    $homeResponse->assertOk();
+    $homeData = $homeResponse->json();
+    $homeStorage = json_decode($homeData['storage'][$storageKey] ?? '{}', true);
+    expect($homeStorage['store_theme'] ?? null)->toBe('dark');
+
+    // 2. Next screen (CustomSlugFramedScreen) requested with the storage from previous response
+    $nextResponse = $this->getJson(
+        screenApiUrl(CustomSlugFramedScreen::class),
+        ['X-USIM-Storage' => (string) json_encode(['store_theme' => $homeStorage['store_theme']])]
+    );
+    $nextResponse->assertOk();
+    $nextData = $nextResponse->json();
+    $nextStorage = json_decode($nextData['storage'][$storageKey] ?? '{}', true);
+    expect($nextStorage['store_theme'] ?? null)->toBe('dark');
+});
+
+

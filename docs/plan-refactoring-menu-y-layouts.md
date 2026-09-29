@@ -57,7 +57,7 @@
   - `Screen::getLayoutClass()`: Resuelve la clase de layout configurada (omite layout en pantallas de Device, Kiosk o menús).
   - `Screen::getMenuScreen()`: Resuelve la clase de menú personalizada o default.
   - `Screen::resolveScreenClassFromSlug(string $slug)` y `Screen::resolveScreenSlug(string $class)`: Resolución bidireccional entre slugs y FQCN.
-  - `Screen::hasMenu()`: Retorna `true` si la pantalla cuenta con un layout activo.
+  - `Screen::hasLayout()`: Retorna `true` si la pantalla cuenta con un layout activo (`getLayoutClass() !== null`).
   - `Screen::toast()`, `Screen::closeModal()`, `Screen::redirect()`, `Screen::updateModal()` convertidos a `public` para permitir su uso por Action Handlers externos.
 
 ---

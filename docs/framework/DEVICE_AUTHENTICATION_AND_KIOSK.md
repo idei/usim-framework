@@ -87,29 +87,24 @@ Si el televisor o dispositivo se reinicia o se pierde la cookie de sesión, el m
 
 ---
 
-## 3. Modo Kiosk y Control de Menú (`$hasMenu`)
+## 3. Modo Kiosk y Control de Layout (`$layout`)
 
-Por defecto, la vista catch-all `usim::app` incluye la barra de menú superior (`#top-menu-bar`) para usuarios regulares. Sin embargo, en pantallas de terminal o kiosco la interfaz debe ser limpia e inmersiva a pantalla completa.
+Por defecto, las pantallas regulares se enmarcan en el layout principal (`MainLayout`), el cual incluye la barra de menú superior embebida. Sin embargo, en pantallas de terminal o kiosco la interfaz debe ser limpia e inmersiva a pantalla completa sin layout.
 
-### 3.1. Propiedad `$hasMenu` en `Screen`
+### 3.1. Propiedad `$layout` en `Screen`
 En `packages/idei/usim/src/Screen.php`:
-- `public static bool $hasMenu = true;`
-- `public static function hasMenu(): bool`: retorna `false` si `$hasMenu === false` o si la pantalla se ubica en el namespace `Screens\Device\`.
+- `public static ?string $layout = 'default';`
+- `public static function hasLayout(): bool`: retorna `false` si `$layout === null` o si la pantalla se ubica en el namespace `Screens\Device\`.
 
 En `KioskScreen.php` y `DevicePairingScreen.php`:
 ```php
 public static ?string $guard = 'device';
-public static bool $hasMenu = false;
+public static ?string $layout = null;
 ```
 
 ### 3.2. Renderizado Condicional en `routes/web.php` y `app.blade.php`
-- `routes/web.php` resuelve la clase de la pantalla mediante `UsimConfig->screensNamespace`, consulta `$screenClass::hasMenu()` y pasa `'hasMenu' => $hasMenu` a la vista.
-- `app.blade.php` envuelve el `<header id="top-menu-bar">` en `@if($hasMenu ?? true)` y configura:
-  ```javascript
-  window.MENU_SERVICE = {{ ($hasMenu ?? true) ? "'menu'" : 'null' }};
-  ```
-  Al ser `null`, `ui-renderer.js` omite por completo la petición de red a `/api/ui/menu`.
-- La etiqueta `<main id="main">` recibe la clase CSS `usim-kiosk-mode` para ocupar el 100% de la pantalla sin márgenes.
+- `routes/web.php` resuelve la clase de la pantalla mediante `UsimConfig->screensNamespace`, consulta `$screenClass::hasLayout()` y pasa `'hasLayout' => $hasLayout` a la vista.
+- La etiqueta `<main id="main">` recibe la clase CSS `usim-kiosk-mode` cuando `$hasLayout === false` para ocupar el 100% de la pantalla sin márgenes.
 
 ---
 

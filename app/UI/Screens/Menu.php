@@ -41,7 +41,6 @@ use InvalidArgumentException;
 class Menu extends Screen
 {
     public static Visibility $visibility = Visibility::PUBLIC;
-    public static bool $hasMenu = false;
     public static ?string $layout = null;
 
     public function __construct(

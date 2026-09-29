@@ -23,7 +23,7 @@ class UserFormModal extends Screen
 {
     public static Visibility $visibility = Visibility::PUBLIC;
 
-    public static bool $hasMenu = false;
+    public static ?string $layout = null;
 
     public protected(set) int|string|null $parent = 'modal';
 

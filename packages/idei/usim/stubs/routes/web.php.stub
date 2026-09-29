@@ -21,19 +21,9 @@ Route::get('/{screen?}', function (?string $screen = 'home') {
     }
 
     $screenRoute = $screen ?? 'home';
-    $screenNameSegments = collect(explode('/', $screenRoute))
-        ->map(fn(string $segment) => \Illuminate\Support\Str::studly($segment))
-        ->join('\\');
-    $screenClass = "{$usimConfig->screensNamespace}\\{$screenNameSegments}";
-
-    $hasMenu = class_exists($screenClass) && method_exists($screenClass, 'hasMenu')
-        ? (bool) $screenClass::hasMenu()
-        : true;
-
-    $reset = request()->query('reset', false);
+    $reset = (bool) request()->query('reset', false);
     return view('usim::app', [
         'screen' => $screenRoute,
         'reset' => $reset,
-        'hasMenu' => $hasMenu,
     ]);
 })->where('screen', '^(?!api|docs|terms|vendor|storage|css|js|images|telescope|_debugbar).*$')->name('ui.catchall');

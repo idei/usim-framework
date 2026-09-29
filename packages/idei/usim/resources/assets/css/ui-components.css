@@ -1058,16 +1058,7 @@ body.modal-open #menu {
     margin-left: 16px;
 }
 
-/* Adjust main content when legacy fixed header is present, or reset when in modern layout / kiosk mode */
 #main {
-    margin-top: 0;
-}
-
-#top-menu-bar ~ #main {
-    margin-top: 60px;
-}
-
-#main.usim-kiosk-mode {
     margin-top: 0;
 }
 

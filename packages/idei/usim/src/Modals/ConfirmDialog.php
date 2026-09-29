@@ -26,9 +26,9 @@ class ConfirmDialog extends Screen implements ModalInterface
     public protected(set) int|string|null $parent = 'modal';
 
     /**
-     * Dialog modals do not display the top navigation menu.
+     * Dialog modals do not display a layout.
      */
-    public static bool $hasMenu = false;
+    public static ?string $layout = null;
 
     /**
      * Dialogs can be triggered in both public and authenticated contexts.

@@ -40,6 +40,24 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Default Layout
+    |--------------------------------------------------------------------------
+    |
+    | Clase de layout predeterminada para enmarcar las pantallas que declaran $layout = 'default'.
+    */
+    'default_layout' => 'App\\UI\\Layouts\\MainLayout',
+
+    /*
+    |--------------------------------------------------------------------------
+    | Default Menu Screen
+    |--------------------------------------------------------------------------
+    |
+    | Pantalla de menú predeterminada que se embebe en el layout principal.
+    */
+    'default_menu_screen' => 'App\\UI\\Screens\\Menu',
+
+    /*
+    |--------------------------------------------------------------------------
     | Application Name
     |--------------------------------------------------------------------------
     | Nombre de la aplicación que se mostrará en la interfaz de usuario.

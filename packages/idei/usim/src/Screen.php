@@ -155,11 +155,6 @@ abstract class Screen
      */
     public static ?string $guard = null;
 
-    /**
-     * Determines whether this screen should render the top navigation menu.
-     * Maintained for backward compatibility. Use $layout instead.
-     */
-    public static bool $hasMenu = true;
 
     /**
      * Layout class to frame this screen.
@@ -201,23 +196,13 @@ abstract class Screen
      */
     public static function getLayoutClass(): ?string
     {
-        if (! static::$hasMenu || static::$layout === null) {
+        if (static::$layout === null) {
             return null;
         }
 
-        // Screens under the Device namespace default to no layout (clean kiosk display)
-        if (str_contains(static::class, 'Screens\\Device\\')) {
-            return null;
-        }
-
-        // Menu screens themselves do not have a layout wrapper
-        if (str_contains(static::class, 'Screens\\Menu') || str_ends_with(static::class, 'Menu')) {
-            return null;
-        }
-
-        $defaultLayoutConfig = config('usim.default_layout', 'App\\UI\\Layouts\\MainLayout');
-        $defaultLayout = is_string($defaultLayoutConfig) ? $defaultLayoutConfig : 'App\\UI\\Layouts\\MainLayout';
-        $layoutClass = static::$layout === 'default' ? $defaultLayout : static::$layout;
+        /** @var \Idei\Usim\Support\UsimConfig $usimConfig */
+        $usimConfig = app(\Idei\Usim\Support\UsimConfig::class);
+        $layoutClass = static::$layout === 'default' ? $usimConfig->defaultLayout : static::$layout;
 
         if (class_exists($layoutClass) && is_subclass_of($layoutClass, \Idei\Usim\Layout\AbstractLayout::class)) {
             /** @var class-string<\Idei\Usim\Layout\AbstractLayout> $layoutClass */
@@ -245,8 +230,9 @@ abstract class Screen
             }
         }
 
-        $defaultMenuConfig = config('usim.default_menu_screen', 'App\\UI\\Screens\\Menu');
-        $defaultMenu = is_string($defaultMenuConfig) ? $defaultMenuConfig : 'App\\UI\\Screens\\Menu';
+        /** @var \Idei\Usim\Support\UsimConfig $usimConfig */
+        $usimConfig = app(\Idei\Usim\Support\UsimConfig::class);
+        $defaultMenu = $usimConfig->defaultMenuScreen;
 
         if (class_exists($defaultMenu) && is_subclass_of($defaultMenu, self::class)) {
             return $defaultMenu;
@@ -262,15 +248,10 @@ abstract class Screen
      */
     public static function resolveScreenClassFromSlug(string $screenRoute): ?string
     {
-        $screenNameSegments = collect(explode('/', trim($screenRoute, '/')))
-            ->map(fn (string $segment) => Str::studly($segment))
-            ->join('\\');
+        /** @var \Idei\Usim\Support\UsimConfig $usimConfig */
+        $usimConfig = app(\Idei\Usim\Support\UsimConfig::class);
 
-        $namespaceValue = config('usim.screens_namespace', 'App\\UI\\Screens');
-        $namespace = \is_string($namespaceValue) ? $namespaceValue : 'App\\UI\\Screens';
-
-        $candidate = "{$namespace}\\{$screenNameSegments}";
-        return (class_exists($candidate) && is_subclass_of($candidate, self::class)) ? $candidate : null;
+        return $usimConfig->resolveScreenClass($screenRoute);
     }
 
     /**
@@ -278,28 +259,16 @@ abstract class Screen
      */
     public static function resolveScreenSlug(string $screenClass): string
     {
-        if (class_exists($screenClass) && method_exists($screenClass, 'getRoutePath')) {
-            return ltrim($screenClass::getRoutePath(), '/');
-        }
+        /** @var \Idei\Usim\Support\UsimConfig $usimConfig */
+        $usimConfig = app(\Idei\Usim\Support\UsimConfig::class);
 
-        $prefixConfig = config('usim.screens_namespace', 'App\\UI\\Screens');
-        $prefix = \is_string($prefixConfig) ? $prefixConfig : 'App\\UI\\Screens';
-
-        if (str_starts_with($screenClass, $prefix)) {
-            $relative = substr($screenClass, strlen($prefix));
-            $segments = explode('\\', trim($relative, '\\'));
-            $urlSegments = array_map(fn ($s) => Str::kebab($s), $segments);
-
-            return implode('/', $urlSegments);
-        }
-
-        return Str::kebab(class_basename($screenClass));
+        return $usimConfig->resolveScreenSlug($screenClass);
     }
 
     /**
-     * Determine if this screen should display a layout / menu.
+     * Determine if this screen should display a layout.
      */
-    public static function hasMenu(): bool
+    public static function hasLayout(): bool
     {
         return static::getLayoutClass() !== null;
     }
@@ -1112,6 +1081,14 @@ abstract class Screen
         ?int $triggerComponentId = null,
         array $buildParams = []
     ): void {
+        $this->incomingStorage = $incomingStorage;
+        $this->queryParams = $queryParams;
+        self::$currentIncomingStorage = $incomingStorage;
+        self::$currentQueryParams = $queryParams;
+
+        // Inject storage values into protected properties (store_* variables)
+        $this->injectStorageValues($incomingStorage);
+
         $this->container = $this->reconstructScreenTreeFromCache(...$buildParams);
         if ($parent !== null && $parent !== '') {
             $this->parent = $parent;
@@ -1126,14 +1103,6 @@ abstract class Screen
 
         $this->clearContainerDirtyState($this->container);
         $this->oldUI = $this->container->toJson();
-
-        $this->incomingStorage = $incomingStorage;
-        $this->queryParams = $queryParams;
-        self::$currentIncomingStorage = $incomingStorage;
-        self::$currentQueryParams = $queryParams;
-
-        // Inject storage values into protected properties (store_* variables)
-        $this->injectStorageValues($incomingStorage);
 
         // Inject component references into protected properties
         $this->injectComponentReferences();
@@ -1501,6 +1470,9 @@ abstract class Screen
         $instance = self::make($class);
         $instance->parent = $parentId;
 
+        $prevIncomingStorage = self::$currentIncomingStorage;
+        $prevQueryParams = self::$currentQueryParams;
+
         UIIdGenerator::pushCurrentContext($instance->getContextIdentifier());
         try {
             $shouldReset = (bool) (self::$currentQueryParams['reset'] ?? request()->query('reset', false));
@@ -1527,6 +1499,8 @@ abstract class Screen
 
             $instance->uiChanges()->setStorage($instance->getStorageVariables());
         } finally {
+            self::$currentIncomingStorage = $prevIncomingStorage;
+            self::$currentQueryParams = $prevQueryParams;
             UIIdGenerator::popCurrentContext();
         }
     }

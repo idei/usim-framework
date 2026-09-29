@@ -2,6 +2,7 @@
 
 namespace Idei\Usim\Support;
 
+use Idei\Usim\Screen;
 use Idei\Usim\Support\Config\DeviceConfig;
 use Idei\Usim\Support\Config\I18nConfig;
 use Idei\Usim\Support\Config\LanguageConfig;
@@ -9,6 +10,7 @@ use Idei\Usim\Support\Config\PermissionConfig;
 use Idei\Usim\Support\Config\RoleConfig;
 use Idei\Usim\Support\Config\UnitConfig;
 use Idei\Usim\Support\Config\UserConfig;
+use Illuminate\Support\Str;
 
 final class UsimConfig
 {
@@ -21,6 +23,8 @@ final class UsimConfig
     public private(set) string $uploadDisk;
     public private(set) bool $headlessMode;
     public private(set) string $defaultRegisteringRole;
+    public private(set) string $defaultLayout;
+    public private(set) string $defaultMenuScreen;
 
     /** @var array<string, string> */
     public private(set) array $models = [];
@@ -69,6 +73,8 @@ final class UsimConfig
         $this->uploadDisk = \is_string($raw['upload_disk'] ?? null) ? $raw['upload_disk'] : 'local';
         $this->headlessMode = \is_bool($raw['headless_mode'] ?? null) ? $raw['headless_mode'] : false;
         $this->defaultRegisteringRole = \is_string($raw['default_registering_role'] ?? null) ? $raw['default_registering_role'] : 'registered';
+        $this->defaultLayout = \is_string($raw['default_layout'] ?? null) ? $raw['default_layout'] : 'App\\UI\\Layouts\\MainLayout';
+        $this->defaultMenuScreen = \is_string($raw['default_menu_screen'] ?? null) ? $raw['default_menu_screen'] : 'App\\UI\\Screens\\Menu';
 
         // 2. Modelos
         $rawModels = \is_array($raw['models'] ?? null) ? $raw['models'] : [];
@@ -237,5 +243,45 @@ final class UsimConfig
             )));
             return $cached;
         }
+    }
+    /**
+     * Resolve a screen class from a route slug (e.g. 'admin/users-manager' -> 'App\UI\Screens\Admin\UsersManager').
+     *
+     * @return class-string<Screen>|null
+     */
+    public function resolveScreenClass(string $screenRoute): ?string
+    {
+        $screenNameSegments = collect(explode('/', trim($screenRoute, '/')))
+            ->map(fn (string $segment) => Str::studly($segment))
+            ->join('\\');
+
+        $screenClass = "{$this->screensNamespace}\\{$screenNameSegments}";
+
+        if (class_exists($screenClass) && is_subclass_of($screenClass, Screen::class)) {
+            /** @var class-string<Screen> $screenClass */
+            return $screenClass;
+        }
+
+        return null;
+    }
+
+    /**
+     * Resolve a route slug from a screen class.
+     */
+    public function resolveScreenSlug(string $screenClass): string
+    {
+        if (class_exists($screenClass) && method_exists($screenClass, 'getRoutePath')) {
+            return ltrim($screenClass::getRoutePath(), '/');
+        }
+
+        if (str_starts_with($screenClass, $this->screensNamespace)) {
+            $relative = substr($screenClass, strlen($this->screensNamespace));
+            $segments = explode('\\', trim($relative, '\\'));
+            $urlSegments = array_map(fn ($s) => Str::kebab($s), $segments);
+
+            return implode('/', $urlSegments);
+        }
+
+        return Str::kebab(class_basename($screenClass));
     }
 }

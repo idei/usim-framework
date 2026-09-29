@@ -8,7 +8,6 @@ use Illuminate\Support\Facades\Gate;
 
 class MenuItem
 {
-    protected ?string $label = null;
     protected ?string $icon = null;
     protected ?string $url = null;
     protected ?string $action = null;
@@ -24,9 +23,9 @@ class MenuItem
     /** @var list<string> */
     protected array $permissions = [];
 
-    public function __construct(?string $label = null)
-    {
-        $this->label = $label;
+    public function __construct(
+        protected ?string $label = null
+    ) {
     }
 
     public static function make(?string $label = null): self
@@ -179,11 +178,7 @@ class MenuItem
                 return false;
             }
 
-            /** @var array{allowed: bool} $access */
-            $access = $this->screenClass::checkAccess();
-            if (!($access['allowed'] ?? false)) {
-                return false;
-            }
+            return $this->screenClass::checkAccess()['allowed'];
         }
 
         return true;
