@@ -383,7 +383,7 @@
             min-height: auto;
             display: flex;
             align-items: flex-start;
-            padding: 2.5rem 2rem 2rem;
+            padding: 1rem 2rem 2rem;
             overflow: hidden;
         }
 
@@ -1457,7 +1457,7 @@
             }
 
             .hero {
-                padding: 5rem 1.25rem 3.5rem;
+                padding: 1.5rem 1.25rem 2.5rem;
             }
 
             .code-header {

@@ -37,7 +37,6 @@ class ResetPassword extends Screen
             ->alignItems('center')
             ->plain()
             ->padding(Spacing::px(40))
-            ->paddingTop(Spacing::px(80))
             ->minHeight(Size::vh(100));
 
         // Icono superior

@@ -32,7 +32,6 @@ class ForgotPassword extends Screen
             ->plain()
             ->alignItems('center')
             ->padding(Spacing::px(40))
-            ->paddingTop(Spacing::px(80))
             ->minHeight(Size::vh(100));
 
         // Icono superior

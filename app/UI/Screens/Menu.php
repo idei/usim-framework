@@ -70,7 +70,7 @@ class Menu extends Screen
             ->layout(LayoutType::HORIZONTAL)
             ->justifyContent(JustifyContent::SPACE_BETWEEN)
             ->alignItems(AlignItems::CENTER)
-            ->padding(Spacing::px(0))
+            ->padding(Spacing::px(8))
             ->marginBottom(Spacing::px(0));
 
         $this->main_menu = $this->buildLeftMenu();

@@ -31,7 +31,6 @@ class EmailVerified extends Screen
             ->justifyContent('start')
             ->alignItems('center')
             ->padding(Spacing::px(40))
-            ->paddingTop(Spacing::px(80))
             ->minHeight(Size::vh(100));
 
         // Determinar qué mostrar según el estado

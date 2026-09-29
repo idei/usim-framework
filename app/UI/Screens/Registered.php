@@ -49,7 +49,6 @@ class Registered extends Screen
             ->justifyContent('start')
             ->alignItems('center')
             ->padding(Spacing::px(30))
-            ->paddingTop(Spacing::px(60))
             ->minHeight(Size::vh(80));
 
         // State Icon
