@@ -37,6 +37,7 @@ docs/
 
 | Documento | Descripción | Tamaño |
 |-----------|-------------|--------|
+| **[GUIA_CREACION_SCREEN_DECLARATIVA.md](framework/GUIA_CREACION_SCREEN_DECLARATIVA.md)** 🛠️ | **Guía paso a paso**: Cómo crear una Screen declarativa con formulario, validación en servidor y modal reactivo | 10K |
 | **[ARQUITECTURA_DECLARATIVA_Y_REACTIVIDAD.md](framework/ARQUITECTURA_DECLARATIVA_Y_REACTIVIDAD.md)** 🚀 | **Nuevo estándar declarativo y reactivo (v2.0)**: UI = f(State), catálogo de Widgets estilo Flutter, eliminación de reflexión y solución a multi-pestaña | 16K |
 | **[PLAN_IMPLEMENTACION_REFACTORIZACION.md](framework/PLAN_IMPLEMENTACION_REFACTORIZACION.md)** 📋 | **Plan de implementación y transición**: Fases de migración, roadmap técnico y retrocompatibilidad | 8K |
 | **[USIM_EVENTS_SYSTEM.md](framework/USIM_EVENTS_SYSTEM.md)** ⚡ | Especificación completa y unificada del sistema de eventos USIM (UI y Dominio), ciclo de vida, diffing, contratos JSON y guía para desarrolladores y LLMs | 25K |

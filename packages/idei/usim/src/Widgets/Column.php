@@ -30,7 +30,7 @@ class Column extends Widget
 
     public function mount(Container $parent, string $contextClass): UIElement
     {
-        $name = $this->key ?? 'col_' . substr(md5(uniqid((string)mt_rand(), true)), 0, 8);
+        $name = $this->key ?? Widget::nextAutoKey('col');
         $container = UI::container($name, $contextClass)
             ->layout(LayoutType::VERTICAL);
 

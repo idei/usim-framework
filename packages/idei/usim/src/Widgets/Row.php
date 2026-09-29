@@ -30,7 +30,7 @@ class Row extends Widget
 
     public function mount(Container $parent, string $contextClass): UIElement
     {
-        $name = $this->key ?? 'row_' . substr(md5(uniqid((string)mt_rand(), true)), 0, 8);
+        $name = $this->key ?? Widget::nextAutoKey('row');
         $container = UI::container($name, $contextClass)
             ->layout(LayoutType::HORIZONTAL);
 

@@ -26,7 +26,7 @@ class Card extends Widget
 
     public function mount(Container $parent, string $contextClass): UIElement
     {
-        $name = $this->key ?? 'card_' . substr(md5(uniqid((string)mt_rand(), true)), 0, 8);
+        $name = $this->key ?? Widget::nextAutoKey('card');
         $card = UI::container($name, $contextClass)
             ->shadow(1)
             ->rounded(8)
@@ -39,7 +39,7 @@ class Card extends Widget
 
         if ($this->subtitle !== null) {
             $card->add(
-                UI::label($name . '_subtitle')
+                UI::label($name . '_subtitle', $contextClass)
                     ->text($this->subtitle)
                     ->style('info')
             );

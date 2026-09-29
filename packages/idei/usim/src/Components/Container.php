@@ -275,6 +275,12 @@ class Container implements UIElement, Sizeable, Paddable, Marginable, Gapable
     /**
      * {@inheritDoc}
      */
+    public function config(string $key, mixed $value): static
+    {
+        $this->config[$key] = $value;
+        return $this;
+    }
+
     protected function setConfig(string $key, mixed $value): static
     {
         $this->config[$key] = $value;

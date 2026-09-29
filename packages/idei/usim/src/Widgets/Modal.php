@@ -26,6 +26,9 @@ class Modal extends Widget
         protected ?string $onClose = 'close_modal',
         protected ?string $icon = null,
         protected int|Spacing $padding = 24,
+        protected ?int $timeout = null,
+        protected bool $showCountdown = false,
+        protected bool $showCloseCross = true,
         ?string $key = 'modal_dialog'
     ) {
         parent::__construct($key);
@@ -33,27 +36,93 @@ class Modal extends Widget
 
     public function mount(Container $parent, string $contextClass): UIElement
     {
-        $container = UI::container($this->key ?? 'modal_dialog', $contextClass)
+        $modalKey = $this->key ?? 'modal_dialog';
+        $container = UI::container($modalKey, $contextClass)
             ->parent('modal')
             ->layout(LayoutType::VERTICAL)
             ->plain()
             ->padding(is_int($this->padding) ? Spacing::px($this->padding) : $this->padding)
-            ->gap(Spacing::px(14))
+            ->gap(Spacing::px(16))
             ->centerContent();
 
-        if ($this->icon !== null) {
-            $container->add(
-                UI::label('modal_icon')
-                    ->text($this->icon)
-                    ->fontSize('48')
-            );
+        // Configuración de auto-cierre con timer si se especifica timeout (en segundos)
+        if ($this->timeout !== null && $this->timeout > 0) {
+            $container->config('_timeout', $this->timeout);
+            $container->config('_timeout_ms', $this->timeout * 1000);
+            $container->config('_timeout_action', $this->onClose ?? 'close_modal');
+            $container->config('_show_countdown', $this->showCountdown);
         }
 
-        $container->add(
-            UI::label('modal_title')
-                ->text($this->title)
-                ->style('h3')
-        );
+        // Header con título, icono y botón de cruz para cerrar
+        if ($this->showCloseCross) {
+            $headerRow = UI::container($modalKey . '_header', $contextClass)
+                ->layout(LayoutType::HORIZONTAL)
+                ->justifyContent(\Idei\Usim\Enums\JustifyContent::SPACE_BETWEEN)
+                ->alignItems(\Idei\Usim\Enums\AlignItems::CENTER)
+                ->width(\Idei\Usim\ValueObjects\Size::full())
+                ->plain();
+
+            $titleBox = UI::container($modalKey . '_title_box', $contextClass)
+                ->layout(LayoutType::HORIZONTAL)
+                ->alignItems(\Idei\Usim\Enums\AlignItems::CENTER)
+                ->gap(Spacing::px(8))
+                ->plain();
+
+            if ($this->icon !== null) {
+                $titleBox->add(
+                    UI::label($modalKey . '_header_icon', $contextClass)
+                        ->text($this->icon)
+                        ->fontSize('24')
+                );
+            }
+
+            $titleBox->add(
+                UI::label($modalKey . '_header_title', $contextClass)
+                    ->text($this->title)
+                    ->style('h3')
+            );
+
+            $headerRow->add($titleBox);
+
+            $headerRight = UI::container($modalKey . '_header_right', $contextClass)
+                ->layout(LayoutType::HORIZONTAL)
+                ->alignItems(\Idei\Usim\Enums\AlignItems::CENTER)
+                ->gap(Spacing::px(8))
+                ->plain();
+
+            if ($this->timeout !== null && $this->showCountdown) {
+                $headerRight->add(
+                    UI::label('countdown', $contextClass)
+                        ->text("{$this->timeout} s")
+                        ->style('secondary')
+                );
+            }
+
+            $closeCross = UI::button($modalKey . '_cross', $contextClass)
+                ->label('✕')
+                ->action($this->onClose ?? 'close_modal')
+                ->plain()
+                ->style('secondary')
+                ->tooltip('Cerrar');
+
+            $headerRight->add($closeCross);
+            $headerRow->add($headerRight);
+            $container->add($headerRow);
+        } else {
+            if ($this->icon !== null) {
+                $container->add(
+                    UI::label('modal_icon', $contextClass)
+                        ->text($this->icon)
+                        ->fontSize('48')
+                );
+            }
+
+            $container->add(
+                UI::label('modal_title', $contextClass)
+                    ->text($this->title)
+                    ->style('h3')
+            );
+        }
 
         if ($this->child !== null) {
             $this->child->mount($container, $contextClass);
@@ -76,6 +145,7 @@ class Modal extends Widget
         }
 
         $parent->add($container);
+        $container->parent('modal');
         return $container;
     }
 }

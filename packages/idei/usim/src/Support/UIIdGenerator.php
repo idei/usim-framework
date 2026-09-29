@@ -125,19 +125,24 @@ class UIIdGenerator
      * This is required when rebuilding component trees from cached snapshots,
      * so subsequent auto-generated IDs do not collide with deserialized IDs.
      */
-    public static function reserveContextId(string $context, int $id): void
+    public static function reserveContextId(string $context, int $id, ?string $name = null): void
     {
-        $offset = self::getContextOffset($context);
+        $actualContext = self::getContextFromId($id) ?? $context;
+        $offset = self::getContextOffset($actualContext);
         $localId = $id - $offset;
 
         if ($localId < 1) {
             return;
         }
 
-        self::$usedLocalIdsPerContext[$context][$localId] = true;
+        self::$usedLocalIdsPerContext[$actualContext][$localId] = true;
 
-        if (!isset(self::$autoIncPerContext[$context]) || self::$autoIncPerContext[$context] < $localId) {
-            self::$autoIncPerContext[$context] = $localId;
+        if ($name !== null && $name !== '') {
+            self::$namedLocalIdsPerContext[$actualContext][$name] = $localId;
+        }
+
+        if (!isset(self::$autoIncPerContext[$actualContext]) || self::$autoIncPerContext[$actualContext] < $localId) {
+            self::$autoIncPerContext[$actualContext] = $localId;
         }
     }
 

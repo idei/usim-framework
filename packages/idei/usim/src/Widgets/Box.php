@@ -33,7 +33,7 @@ class Box extends Widget
 
     public function mount(Container $parent, string $contextClass): UIElement
     {
-        $name = $this->key ?? 'box_' . substr(md5(uniqid((string)mt_rand(), true)), 0, 8);
+        $name = $this->key ?? Widget::nextAutoKey('box');
         $container = UI::container($name, $contextClass);
 
         if ($this->plain) {

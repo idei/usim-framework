@@ -601,7 +601,8 @@ abstract class Screen
      */
     public function isDeclarative(): bool
     {
-        return $this->build() !== null;
+        $reflection = new \ReflectionMethod($this, 'build');
+        return $reflection->getDeclaringClass()->getName() !== self::class;
     }
 
     /**
@@ -615,6 +616,7 @@ abstract class Screen
      */
     protected function buildBaseUI(Container $container, ...$params): void
     {
+        \Idei\Usim\Widgets\Widget::resetCounters();
         $widget = $this->build();
         if ($widget !== null) {
             $widget->mount($container, static::class);
@@ -818,6 +820,7 @@ abstract class Screen
                 ->parent($this->parent)
                 ->root(true);
 
+            \Idei\Usim\Widgets\Widget::resetCounters();
             $widget = $this->build();
             if ($widget !== null) {
                 $widget->mount($newContainer, static::class);
@@ -1059,7 +1062,8 @@ abstract class Screen
             // Reserve IDs from cached snapshots so future auto-generated IDs
             // in this request do not collide with already deserialized components.
             if (is_numeric($id)) {
-                UIIdGenerator::reserveContextId(static::class, (int) $id);
+                $compName = $component['name'] ?? null;
+                UIIdGenerator::reserveContextId(static::class, (int) $id, is_string($compName) && $compName !== '' ? $compName : null);
             }
 
             $components[$id] = $className::deserialize($id, $component);

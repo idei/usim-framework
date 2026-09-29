@@ -31,22 +31,24 @@ class UI
      * Create a new button component
      *
      * @param string|null $name an optional semantic name for the button
+     * @param string|null $context an optional context class
      * @return Button
      */
-    public static function button(?string $name = null): Button
+    public static function button(?string $name = null, ?string $context = null): Button
     {
-        return new Button($name);
+        return new Button($name, $context);
     }
 
     /**
      * Create a new label component
      *
      * @param string|null $name an optional semantic name for the label
+     * @param string|null $context an optional context class
      * @return Label
      */
-    public static function label(?string $name = null): Label
+    public static function label(?string $name = null, ?string $context = null): Label
     {
-        return new Label($name);
+        return new Label($name, $context);
     }
 
     /**

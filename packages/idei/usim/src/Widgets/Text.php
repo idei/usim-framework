@@ -24,7 +24,7 @@ class Text extends Widget
 
     public function mount(Container $parent, string $contextClass): UIElement
     {
-        $name = $this->key ?? 'txt_' . substr(md5(uniqid((string)mt_rand(), true)), 0, 8);
+        $name = $this->key ?? Widget::nextAutoKey('txt');
         $label = new \Idei\Usim\Components\Label($name, $contextClass);
         $label->text($this->text)
             ->style($this->style)

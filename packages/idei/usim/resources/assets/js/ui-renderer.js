@@ -1529,7 +1529,13 @@ class UIRenderer {
             // Open modal only with modal subtree components, excluding unrelated updates.
             const modalPayload = buildModalSubtreePayload(uiUpdate);
             openModal(modalPayload);
-            return; // Don't process as regular updates
+
+            // Also process non-modal components so screen updates are not lost
+            const nonModalEntries = Object.entries(uiUpdate).filter(([key]) => !(key in modalPayload));
+            if (nonModalEntries.length > 0) {
+                processComponentUpdates(nonModalEntries);
+            }
+            return;
         }
 
         // Check for update_modal (modal component updates)
@@ -1552,6 +1558,18 @@ class UIRenderer {
                     closeModal();
                     processComponentUpdates(Object.entries(uiUpdate));
                     return; // Don't continue processing
+            }
+        }
+
+        // Si hay un modal abierto y su componente raíz fue eliminado por diff reactivo, cerrar el layer
+        if (modalOverlayStack.length > 0) {
+            const topLayer = getTopModalLayer();
+            if (topLayer && topLayer.container) {
+                const modalRoot = topLayer.container.firstElementChild;
+                const modalRootId = modalRoot ? modalRoot.getAttribute('data-component-id') : null;
+                if (modalRootId && shouldRemoveByParent(uiUpdate[modalRootId]?.parent)) {
+                    closeModal();
+                }
             }
         }
 
@@ -2716,10 +2734,12 @@ function openModal(uiData) {
     setBodyModalState();
 
     let timeoutConfig = null;
+    let timeoutComponentId = null;
 
-    for (const [, component] of Object.entries(uiData)) {
+    for (const [key, component] of Object.entries(uiData)) {
         if (component.parent === 'modal' && component._timeout && component._timeout_ms) {
             timeoutConfig = component;
+            timeoutComponentId = key;
             break;
         }
     }
@@ -2728,7 +2748,7 @@ function openModal(uiData) {
         const timeoutMs = timeoutConfig._timeout_ms;
         const showCountdown = timeoutConfig._show_countdown ?? true;
         const timeoutAction = timeoutConfig._timeout_action || 'close_modal';
-        const callerServiceId = timeoutConfig._caller_service_id;
+        const callerServiceId = timeoutConfig._caller_service_id || timeoutComponentId;
         const timeUnitLabel = timeoutConfig._time_unit_label || 'segundos';
 
         if (showCountdown) {
@@ -2822,37 +2842,22 @@ function updateModalComponents(updates) {
 function startModalCountdown(layer, totalMs, initialValue, timeUnit, timeUnitLabel, timeoutAction, callerServiceId) {
 
     const delayedStartHandle = setTimeout(() => {
-        // Try to find countdown label by ID (name property creates id attribute)
-        let countdownLabel = layer.container.querySelector('#countdown');
-
-        if (!countdownLabel) {
-            // Fallback: Try by querySelector
-            countdownLabel = layer.container.querySelector('.ui-label.h2');
-            console.log('⚠️ Countdown not found by ID, using fallback selector');
-        }
-
-        if (!countdownLabel) {
-            console.error('❌ Countdown label not found!');
-            console.log('📋 Modal HTML:', layer.container?.innerHTML || 'Modal not found');
-            return;
-        }
+        // Try to find countdown label by ID, name or class
+        let countdownLabel = layer.container.querySelector('#countdown')
+            || layer.container.querySelector('[id*="countdown"]')
+            || layer.container.querySelector('.ui-label.h2');
 
         const startTime = Date.now();
         const endTime = startTime + totalMs;
 
-        let updateCount = 0;
-
         // Update countdown every 100ms for smooth updates
         const intervalHandle = setInterval(() => {
             const remaining = endTime - Date.now();
-            updateCount++;
 
             if (remaining <= 0) {
                 clearLayerTimer(layer);
-                // console.log(`⏱️ Timeout completed after ${updateCount} updates`);
-                // console.log('🎬 Executing action:', timeoutAction);
                 executeTimeoutAction(timeoutAction, callerServiceId);
-            } else {
+            } else if (countdownLabel) {
                 // Calculate remaining time in the original unit
                 const remainingValue = Math.ceil(getRemainingValue(remaining, timeUnit));
                 const label = remainingValue === 1 ? getSingularLabel(timeUnit) : timeUnitLabel;
@@ -2901,42 +2906,42 @@ function getSingularLabel(timeUnit) {
  * Execute action when timeout completes
  */
 async function executeTimeoutAction(action, callerServiceId) {
-    if (action === 'close_modal') {
-        closeModal();
-    } else {
-        // Execute custom action via backend
-        try {
-            const csrfHeaders = getCsrfHeaders();
-            const usimStorage = getUsimStorageHeaderValue();
+    closeModal();
 
-            const response = await fetch('/api/ui-event', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json',
-                    'X-Requested-With': 'XMLHttpRequest',
-                    'X-USIM-Storage': usimStorage,
-                    'X-USIM-Tab-Id': getUsimTabId(),
-                    ...csrfHeaders,
-                },
-                credentials: 'same-origin',
-                body: JSON.stringify({
-                    component_id: callerServiceId,
-                    event: 'timeout',
-                    action: action,
-                    parameters: {},
-                }),
-            });
+    if (!action) {
+        return;
+    }
 
-            const result = await response.json();
+    try {
+        const csrfHeaders = getCsrfHeaders();
+        const usimStorage = getUsimStorageHeaderValue();
 
-            if (response.ok && globalRenderer) {
-                globalRenderer.handleUIUpdate(result);
-            }
-        } catch (error) {
-            console.error('❌ Error executing timeout action:', error);
-            closeModal();
+        const response = await fetch('/api/ui-event', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest',
+                'X-USIM-Storage': usimStorage,
+                'X-USIM-Tab-Id': getUsimTabId(),
+                ...csrfHeaders,
+            },
+            credentials: 'same-origin',
+            body: JSON.stringify({
+                component_id: parseInt(callerServiceId) || 0,
+                event: 'timeout',
+                action: action,
+                parameters: {},
+            }),
+        });
+
+        const result = await response.json();
+
+        if (response.ok && result && globalRenderer) {
+            globalRenderer.handleUIUpdate(result);
         }
+    } catch (error) {
+        console.error('❌ Error executing timeout action:', error);
     }
 }
 
