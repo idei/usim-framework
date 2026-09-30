@@ -4,6 +4,7 @@ namespace App\Services\Auth;
 
 use App\Models\User;
 use App\Services\Units\UnitContextResolver;
+use App\UI\Screens\Home;
 use Idei\Usim\Events\UsimEvent;
 use Idei\Usim\Models\UsimUnit;
 use Idei\Usim\Screen;
@@ -24,7 +25,7 @@ class AuthSessionService
     public function start(User $user, ?string $unit = null, ?string $token = null): string
     {
         // Support legacy callers passing ($user, $token) where $unit contains the auth token
-        if ($token === null && is_string($unit)) {
+        if ($token === null && \is_string($unit)) {
             if (str_contains($unit, '|') || str_contains($unit, '.') || strlen($unit) > 30) {
                 $token = $unit;
                 $unit = null;
@@ -43,7 +44,7 @@ class AuthSessionService
             $resolvedUnit = UnitContextResolver::resolveAndApply($user, $unit);
             if ($resolvedUnit) {
                 $activeUnitSlug = $resolvedUnit->slug;
-            } elseif (is_string($unit) && $unit !== '') {
+            } elseif (\is_string($unit) && $unit !== '') {
                 $fallbackUnit = UsimUnit::where('slug', $unit)->first();
                 if ($fallbackUnit) {
                     setPermissionsTeamId($fallbackUnit->id);
@@ -64,12 +65,20 @@ class AuthSessionService
             'user' => $user,
             'timestamp' => now(),
             'unit' => $activeUnitSlug ?? 'main',
+            'home_screen' => $this->resolveHomeScreen($user, $activeUnitSlug),
         ]));
 
         return $this->resolvePostLoginRedirect($user, $activeUnitSlug);
     }
 
-    public function resolvePostLoginRedirect(User $user, ?string $unit = null): string
+    /**
+     * Resolve the home screen for a user based on their roles and unit context.
+     *
+     * @param User $user
+     * @param string|null $unit
+     * @return class-string<Screen>
+     */
+    public function resolveHomeScreen(User $user, ?string $unit = null): string
     {
         if (config('permission.teams', false)) {
             if ($unit !== null || getPermissionsTeamId() === null) {
@@ -110,15 +119,20 @@ class AuthSessionService
         foreach ($sortedRoles as $role) {
             $screenClass = $role->usimSetting ? $role->usimSetting->home_screen : null;
 
-            if (
-                is_string($screenClass)
+            if ($screenClass != null
+                && \is_string($screenClass)
                 && class_exists($screenClass)
                 && is_subclass_of($screenClass, Screen::class)
             ) {
-                return $screenClass::getRoutePath();
+                return $screenClass;
             }
         }
 
-        return redirect()->intended('/')->getTargetUrl();
+        return Home::class;
+    }
+
+    public function resolvePostLoginRedirect(User $user, ?string $unit = null): string
+    {
+        return $this->resolveHomeScreen($user, $unit)::getRoutePath();
     }
 }

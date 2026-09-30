@@ -1893,11 +1893,11 @@ abstract class Screen
     public function toast(
         string $message,
         string $type = 'info',
-        int $duration = 5000,
+        int $duration = 4000,
         string $openEffect = 'fade',
         string $showEffect = 'bounce',
         string $closeEffect = 'fade',
-        string $position = 'top-right'
+        string $position = 'top-middle'
     ): void {
         $this->uiChanges()->add([
             'toast' => [

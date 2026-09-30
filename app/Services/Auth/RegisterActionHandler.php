@@ -58,11 +58,10 @@ class RegisterActionHandler
     protected function handleSuccess(Screen $caller, array $response): void
     {
         $messageValue = $response['message'] ?? t('screen.menu.register_success_default');
-        $message = is_string($messageValue) ? $messageValue : t('screen.menu.register_success_default');
+        $message = \is_string($messageValue) ? $messageValue : t('screen.menu.register_success_default');
         $caller->toast(
             message: $message,
-            type: 'success',
-            position: 'top-middle'
+            type: 'success'
         );
 
         $user = $response['user'] ?? null;

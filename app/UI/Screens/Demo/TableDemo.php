@@ -43,6 +43,12 @@ class TableDemo extends Screen
         $table->bodyOverflowY('auto');
         $table->selectionMode(SelectionMode::SINGLE);
         $table->align('center');
+        $table->fitContainer(
+            availableHeight: 550,
+            rowHeight: 45,
+            hasToolbar: true,
+            paginated: true
+        );
 
         $container
             ->maxWidth($table->getWidth())

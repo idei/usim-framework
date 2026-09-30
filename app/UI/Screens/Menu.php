@@ -66,7 +66,6 @@ class Menu extends Screen
         }
 
         $container
-            ->plain()
             ->layout(LayoutType::HORIZONTAL)
             ->justifyContent(JustifyContent::SPACE_BETWEEN)
             ->alignItems(AlignItems::CENTER)
