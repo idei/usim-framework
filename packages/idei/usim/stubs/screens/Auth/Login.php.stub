@@ -181,10 +181,8 @@ class Login extends Screen
         }
 
         $this->store_token = $response['token'];
-        $this->store_email = $credentials['email'];
-        $this->store_unit = $response['active_unit'] ?? '';
-
-        $this->navigate($response['home_screen']);
+        $redirectTo = $response['redirect_to'];
+        $this->redirect($redirectTo);
     }
 
     public function onCloseLoginDialog(): void

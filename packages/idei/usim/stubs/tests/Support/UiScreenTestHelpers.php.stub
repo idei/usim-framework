@@ -62,8 +62,39 @@ if (!function_exists('firstUiComponentFromPayload')) {
 }
 
 if (!function_exists('serviceRootComponentId')) {
-    function serviceRootComponentId(array $payload): int
+    function serviceRootComponentId(array $payload, ?string $screenClass = null): int
     {
+        if ($screenClass !== null) {
+            foreach ($payload as $id => $component) {
+                if (!is_array($component) || !is_numeric($id)) {
+                    continue;
+                }
+                $context = \Idei\Usim\Support\UIIdGenerator::getContextFromId((int) $id);
+                if ($context === $screenClass && ($component['type'] ?? null) === 'container') {
+                    return (int) $id;
+                }
+            }
+        }
+
+        // Prefer container belonging to the host screen, skipping layout screens and Menu
+        foreach ($payload as $id => $component) {
+            if (!is_array($component) || !is_numeric($id)) {
+                continue;
+            }
+
+            if (($component['type'] ?? null) === 'container') {
+                $context = \Idei\Usim\Support\UIIdGenerator::getContextFromId((int) $id);
+                if (
+                    $context !== null
+                    && !is_subclass_of($context, \Idei\Usim\Layout\AbstractLayout::class)
+                    && $context !== 'App\\UI\\Screens\\Menu'
+                    && !is_subclass_of($context, 'App\\UI\\Screens\\Menu')
+                ) {
+                    return (int) $id;
+                }
+            }
+        }
+
         foreach ($payload as $id => $component) {
             if (!is_array($component)) {
                 continue;

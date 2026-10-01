@@ -1048,6 +1048,39 @@ abstract class Screen
                 $this->onResetScreen();
             }
 
+            // Check if this screen should be wrapped by a Layout Screen
+            if ($parent === 'main' && $this->modalLayerIndex === 0 && !($this instanceof \Idei\Usim\Layout\LayoutInterface)) {
+                $layoutClass = static::getLayoutClass();
+                if ($layoutClass !== null && class_exists($layoutClass)) {
+                    \Idei\Usim\Layout\AbstractLayout::setActiveHostScreen(static::class);
+                    try {
+                        /** @var static&\Idei\Usim\Layout\LayoutInterface $layout */
+                        $layout = static::make($layoutClass);
+                        if ($layout instanceof \Idei\Usim\Layout\AbstractLayout) {
+                            \Idei\Usim\Layout\AbstractLayout::setCurrent($layout);
+                            $this->layoutInstance = $layout;
+                            $layout->setActiveScreen('main', static::class);
+                        }
+
+                        $layout->render(
+                            incomingStorage: $incomingStorage,
+                            queryParams: $queryParams,
+                            parent: 'main',
+                            shouldReset: $shouldReset
+                        );
+
+                        $slot = $layout->getSlot('content') ?? $layout->getSlot('main');
+                        if ($slot instanceof Container) {
+                            $slot->clear();
+                            self::embedInto(static::class, $slot);
+                        }
+                        return;
+                    } finally {
+                        \Idei\Usim\Layout\AbstractLayout::setActiveHostScreen(null);
+                    }
+                }
+            }
+
             $this->initializeEventContext(
                 incomingStorage: $incomingStorage,
                 queryParams: $queryParams,
@@ -1492,33 +1525,11 @@ abstract class Screen
             ->justifyContent('center')
             ->alignItems('center');
 
-        // Apply Layout by composition if applicable
-        $layoutClass = ($this->modalLayerIndex > 0 || ($this->parent !== null && $this->parent !== 'main' && $this->parent !== ''))
-            ? null
-            : static::getLayoutClass();
-
-        if ($layoutClass !== null && class_exists($layoutClass) && is_subclass_of($layoutClass, \Idei\Usim\Layout\AbstractLayout::class)) {
-            /** @var \Idei\Usim\Layout\AbstractLayout $layoutInstance */
-            $layoutInstance = app($layoutClass);
-            \Idei\Usim\Layout\AbstractLayout::setCurrent($layoutInstance);
-            $this->layoutInstance = $layoutInstance;
-            $layoutInstance->setActiveScreen('main', static::class);
-            $menuScreen = static::getMenuScreen();
-            $layoutInstance->build(
-                $container,
-                function (Container $contentSlot) use ($params) {
-                    $this->buildBaseUI($contentSlot, ...$params);
-                },
-                $menuScreen
-            );
-        } else {
-            // Generate and cache new user Interface directly without layout
-            $this->buildBaseUI($container, ...$params);
-        }
+        // Generate and cache user Interface directly
+        $this->buildBaseUI($container, ...$params);
 
         $ui = $container
             ->root(true)
-            // ->parent($parent)   // TODO: Acá está el problema.
             ->toJson();
 
         UIStateManager::store($contextKey, $ui);
@@ -1565,6 +1576,7 @@ abstract class Screen
             $instance->container->root(false);
             $parent->add($instance->container);
 
+            $instance->uiChanges()->add($instance->container->toJson());
             $instance->uiChanges()->setStorage($instance->getStorageVariables());
         } finally {
             self::$currentIncomingStorage = $prevIncomingStorage;

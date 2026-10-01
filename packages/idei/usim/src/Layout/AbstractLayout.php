@@ -10,12 +10,17 @@ use Idei\Usim\UIChangesCollector;
 use Illuminate\Support\Facades\Log;
 use RuntimeException;
 
-abstract class AbstractLayout
+abstract class AbstractLayout extends Screen implements LayoutInterface
 {
-    /** @var self|null */
+    public static ?string $layout = null;
+
     protected static ?AbstractLayout $currentLayout = null;
 
+    /** @var class-string<Screen>|null */
+    protected static ?string $activeHostScreen = null;
+
     protected ?Container $mainMenuContainer = null;
+
     protected ?Container $contentContainer = null;
 
     /** @var array<string, Container> */
@@ -36,6 +41,7 @@ abstract class AbstractLayout
         if (app()->bound(self::class)) {
             /** @var self $layout */
             $layout = app(self::class);
+
             return $layout;
         }
 
@@ -55,13 +61,20 @@ abstract class AbstractLayout
     }
 
     /**
-     * Build the layout structure wrapping the screen content slot.
-     *
-     * @param Container $root Root container of the host screen
-     * @param Closure(Container): void $contentBuilder Callback that builds the screen content inside the slot
-     * @param class-string<Screen>|null $menuScreen Custom menu screen class if declared by the host screen
+     * @return class-string<Screen>|null
      */
-    abstract public function build(Container $root, Closure $contentBuilder, ?string $menuScreen = null): void;
+    public static function getActiveHostScreen(): ?string
+    {
+        return self::$activeHostScreen;
+    }
+
+    /**
+     * @param  class-string<Screen>|null  $screenClass
+     */
+    public static function setActiveHostScreen(?string $screenClass): void
+    {
+        self::$activeHostScreen = $screenClass;
+    }
 
     /**
      * Register a container as a named slot.
@@ -74,13 +87,46 @@ abstract class AbstractLayout
     /**
      * Get a registered slot container by name.
      */
-    public function getSlot(string $name): ?Container
+    public function getSlot(string $name = 'content'): ?Container
     {
-        return $this->slots[$name] ?? match ($name) {
+        if (isset($this->slots[$name])) {
+            return $this->slots[$name];
+        }
+
+        $fallback = match ($name) {
             'menu', 'main_menu', 'top_menu' => $this->mainMenuContainer,
             'main', 'center', 'content' => $this->contentContainer,
             default => null,
         };
+
+        if ($fallback instanceof Container) {
+            return $fallback;
+        }
+
+        // When the layout was reconstructed from snapshot cache, resolve by container name
+        if (isset($this->container)) {
+            $candidateNames = match ($name) {
+                'menu', 'main_menu', 'top_menu' => ['main_menu_container', 'menu_container', 'top_menu'],
+                'main', 'center', 'content' => ['content_container', 'main_container', 'main', 'content'],
+                default => [$name, "{$name}_container", "{$name}_slot"],
+            };
+
+            foreach ($candidateNames as $candidate) {
+                $found = $this->container->findByName($candidate);
+                if ($found instanceof Container) {
+                    $this->slots[$name] = $found;
+                    if (in_array($name, ['main', 'center', 'content'], true)) {
+                        $this->contentContainer = $found;
+                    } elseif (in_array($name, ['menu', 'main_menu', 'top_menu'], true)) {
+                        $this->mainMenuContainer = $found;
+                    }
+
+                    return $found;
+                }
+            }
+        }
+
+        return null;
     }
 
     /**
@@ -93,10 +139,53 @@ abstract class AbstractLayout
         return $this->slots;
     }
 
+    protected function postLoadUI(): void
+    {
+        parent::postLoadUI();
+
+        // Restore slot references when loaded from cached snapshot
+        if (isset($this->container)) {
+            if ($this->contentContainer === null) {
+                $content = $this->container->findByName('content_container');
+                if ($content instanceof Container) {
+                    $this->contentContainer = $content;
+                    $this->registerSlot('main', $content);
+                    $this->registerSlot('content', $content);
+                }
+            }
+            if ($this->mainMenuContainer === null) {
+                $menu = $this->container->findByName('main_menu_container');
+                if ($menu instanceof Container) {
+                    $this->mainMenuContainer = $menu;
+                    $this->registerSlot('top_menu', $menu);
+                    $this->registerSlot('menu', $menu);
+                }
+            }
+        }
+    }
+
+    /**
+     * Default base UI implementation for Layout Screens.
+     * Subclasses can override this to configure layout containers and slots.
+     */
+    protected function buildBaseUI(Container $container, ...$params): void {}
+
+    /**
+     * Backward-compatible bridge to build layout structure with a content builder callback.
+     *
+     * @param  Closure(Container): void  $contentBuilder
+     * @param  class-string<Screen>|null  $menuScreen
+     */
+    public function build(Container $root, Closure $contentBuilder, ?string $menuScreen = null): void
+    {
+        $this->buildBaseUI($root);
+        $slot = $this->getSlot('main') ?? $this->getSlot('content') ?? $root;
+        $contentBuilder($slot);
+    }
+
     /**
      * Get the active screen class or slug currently occupying a slot.
      *
-     * @param string $slot
      * @return class-string<Screen>|string|null
      */
     public function getActiveScreen(string $slot = 'main'): ?string
@@ -115,12 +204,12 @@ abstract class AbstractLayout
     /**
      * Set the active screen class or slug occupying a slot.
      *
-     * @param string $slot
-     * @param class-string<Screen>|string $screenClass
+     * @param  class-string<Screen>|string  $screenClass
      */
     public function setActiveScreen(string $slot, string $screenClass): self
     {
         $this->activeScreens[$slot] = $screenClass;
+
         return $this;
     }
 
@@ -143,20 +232,28 @@ abstract class AbstractLayout
     /**
      * Mount and display a target screen inside a layout slot.
      *
-     * @param string $slot Target slot name (e.g. 'main', 'top_menu', 'sidebar')
-     * @param class-string<Screen>|string $screenClass Target screen class or slug
-     * @param array<int|string, mixed> $params Parameters passed to the screen
-     * @param bool $updateBrowserUrl Whether to push HTML5 browser history state
+     * @param  class-string<Screen>|string  $screenClass  Target screen class or slug
+     * @param  string|null  $slot  Target slot name (e.g. 'main', 'top_menu', 'sidebar')
+     * @param  array<int|string, mixed>  $params  Parameters passed to the screen
+     * @param  bool  $updateBrowserUrl  Whether to push HTML5 browser history state
      */
-    public function showInto(string $slot, string $screenClass, array $params = [], bool $updateBrowserUrl = true): bool
+    public function showInto(string $screenClass, ?string $slot = null, array $params = [], bool $updateBrowserUrl = true): bool
     {
+        // Support polymorphic argument order: showInto($slot, $screenClass) or showInto($screenClass, $slot)
+        if ($slot !== null && (class_exists($slot) || Screen::resolveScreenClassFromSlug($slot) !== null)) {
+            $temp = $screenClass;
+            $screenClass = $slot;
+            $slot = $temp;
+        }
+
+        $effectiveSlot = $slot ?? 'main';
         $targetClass = class_exists($screenClass) ? $screenClass : Screen::resolveScreenClassFromSlug($screenClass);
-        if ($targetClass === null || !class_exists($targetClass) || !is_subclass_of($targetClass, Screen::class)) {
+        if ($targetClass === null || ! class_exists($targetClass) || ! is_subclass_of($targetClass, Screen::class)) {
             throw new RuntimeException("Target screen [{$screenClass}] is not a valid Screen instance.");
         }
 
         $access = $targetClass::checkAccess();
-        if (!$access['allowed']) {
+        if (! $access['allowed']) {
             $redirectUrl = $access['params']['url'] ?? null;
             if (($access['action'] ?? null) === 'redirect' && is_string($redirectUrl) && $redirectUrl !== '') {
                 app(UIChangesCollector::class)->add(['redirect' => $redirectUrl]);
@@ -170,12 +267,14 @@ abstract class AbstractLayout
                     ],
                 ]);
             }
+
             return false;
         }
 
-        $targetContainer = $this->getSlot($slot);
-        if (!$targetContainer instanceof Container) {
-            Log::warning("Slot [{$slot}] not found on layout [" . static::class . "].");
+        $targetContainer = $this->getSlot($effectiveSlot);
+        if (! $targetContainer instanceof Container) {
+            Log::warning("Slot [{$effectiveSlot}] not found on layout [".static::class.'].');
+
             return false;
         }
 
@@ -184,7 +283,7 @@ abstract class AbstractLayout
         Screen::embedInto($targetClass, $targetContainer);
 
         $routeSlug = Screen::resolveScreenSlug($targetClass);
-        if ($updateBrowserUrl && in_array($slot, ['main', 'content', 'center'], true)) {
+        if ($updateBrowserUrl && in_array($effectiveSlot, ['main', 'content', 'center'], true)) {
             $routePath = $targetClass::getRoutePath();
             UIStateManager::setClientCurrentScreen($routePath, $targetClass);
             app(UIChangesCollector::class)->add([
@@ -192,7 +291,7 @@ abstract class AbstractLayout
                     'url' => $routePath,
                     'route' => $routeSlug,
                     'title' => $targetClass::getMenuLabel(),
-                    'slot' => $targetContainer->getName() ?? $slot,
+                    'slot' => $targetContainer->getName() ?? $effectiveSlot,
                 ],
             ]);
         }
@@ -203,9 +302,8 @@ abstract class AbstractLayout
     /**
      * Show a target screen inside its default slot (or specified slot).
      *
-     * @param class-string<Screen>|string $screenClass
-     * @param string|null $slot
-     * @param array<int|string, mixed> $params
+     * @param  class-string<Screen>|string  $screenClass
+     * @param  array<int|string, mixed>  $params
      */
     public function show(string $screenClass, ?string $slot = null, array $params = []): bool
     {
@@ -216,7 +314,6 @@ abstract class AbstractLayout
             $effectiveSlot = $slot ?? 'main';
         }
 
-        return $this->showInto($effectiveSlot, $screenClass, $params);
+        return $this->showInto($screenClass, $effectiveSlot, $params);
     }
 }
-

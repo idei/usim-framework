@@ -2,13 +2,13 @@
 
 namespace App\UI\Layouts;
 
-use Closure;
 use Idei\Usim\Components\Container;
 use Idei\Usim\Enums\AlignItems;
 use Idei\Usim\Enums\JustifyContent;
 use Idei\Usim\Enums\LayoutType;
 use Idei\Usim\Layout\AbstractLayout;
 use Idei\Usim\Screen;
+use Idei\Usim\Support\UsimConfig;
 use Idei\Usim\UI;
 use Idei\Usim\ValueObjects\Size;
 use Idei\Usim\ValueObjects\Spacing;
@@ -17,14 +17,10 @@ class MainLayout extends AbstractLayout
 {
     /**
      * Build the layout structure wrapping the screen content.
-     *
-     * @param Container $root
-     * @param Closure(Container): void $contentBuilder
-     * @param class-string<Screen>|null $menuScreen
      */
-    public function build(Container $root, Closure $contentBuilder, ?string $menuScreen = null): void
+    protected function buildBaseUI(Container $container, ...$params): void
     {
-        $root
+        $container
             ->plain()
             ->layout(LayoutType::VERTICAL)
             ->justifyContent(JustifyContent::START)
@@ -35,36 +31,45 @@ class MainLayout extends AbstractLayout
             ->minHeight(Size::vh(100));
 
         // 1. Top menu slot container
-        $this->mainMenuContainer = UI::container('main_menu_container')
+        $mainMenuContainer = UI::container('main_menu_container')
             ->plain()
             ->width(Size::full())
             ->padding(Spacing::px(0))
             ->margin(Spacing::px(0));
 
-        $this->registerSlot('top_menu', $this->mainMenuContainer);
-        $this->registerSlot('menu', $this->mainMenuContainer);
+        $this->mainMenuContainer = $mainMenuContainer;
+        $this->registerSlot('top_menu', $mainMenuContainer);
+        $this->registerSlot('menu', $mainMenuContainer);
 
-        $root->add($this->mainMenuContainer);
+        $container->add($mainMenuContainer);
 
-        /** @var \Idei\Usim\Support\UsimConfig $usimConfig */
-        $usimConfig = app(\Idei\Usim\Support\UsimConfig::class);
-        $effectiveMenu = $menuScreen ?? $usimConfig->defaultMenuScreen;
-        if (is_subclass_of($effectiveMenu, Screen::class)) {
-            $this->setActiveScreen('top_menu', $effectiveMenu);
-            Screen::embedInto($effectiveMenu, $this->mainMenuContainer);
+        /** @var UsimConfig $usimConfig */
+        $usimConfig = app(UsimConfig::class);
+        $hostScreen = self::getActiveHostScreen();
+        $menuScreen = ($hostScreen !== null ? $hostScreen::getMenuScreen() : null)
+            ?? static::getMenuScreen()
+            ?? $usimConfig->defaultMenuScreen;
+
+        /** @var class-string<Screen>|null $menuClass */
+        $menuClass = is_subclass_of($menuScreen, Screen::class)
+            ? $menuScreen
+            : Screen::resolveScreenClassFromSlug($menuScreen);
+
+        if ($menuClass !== null) {
+            $this->setActiveScreen('top_menu', $menuClass);
+            Screen::embedInto($menuClass, $mainMenuContainer);
         }
 
         // 2. Main content slot container
-        $this->contentContainer = UI::container('content_container')
+        $contentContainer = UI::container('content_container')
             ->plain()
             ->width(Size::full())
             ->flexGrow(1);
 
-        $this->registerSlot('main', $this->contentContainer);
-        $this->registerSlot('content', $this->contentContainer);
+        $this->contentContainer = $contentContainer;
+        $this->registerSlot('main', $contentContainer);
+        $this->registerSlot('content', $contentContainer);
 
-        $root->add($this->contentContainer);
-
-        $contentBuilder($this->contentContainer);
+        $container->add($contentContainer);
     }
 }
