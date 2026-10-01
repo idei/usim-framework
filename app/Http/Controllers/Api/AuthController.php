@@ -2,6 +2,7 @@
 // @usim: feature="admin", type="controller"
 namespace App\Http\Controllers\Api;
 
+use App\Http\Requests\Auth\LoginRequest;
 use App\Models\User;
 use App\Services\Auth\LoginService;
 use App\Services\Auth\RegisterService;
@@ -37,14 +38,8 @@ class AuthController extends Controller
         return response()->json($response, $httpStatus);
     }
 
-    public function login(Request $request, LoginService $loginService): JsonResponse
+    public function login(LoginRequest $request, LoginService $loginService): JsonResponse
     {
-        $request->validate([
-            'email' => 'required|email',
-            'password' => 'required',
-            'remember' => 'boolean',
-        ]);
-
         $response = $loginService->login(
             $request->string('email')->toString(),
             $request->string('password')->toString(),

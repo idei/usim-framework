@@ -4,13 +4,15 @@ namespace App\Services\Auth;
 
 use App\Models\User;
 use App\Services\Auth\AuthSessionService;
+use App\Services\Units\UnitContextResolver;
+use App\Services\Units\UsimUnitsService;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Validator;
 
 class LoginService
 {
     public function __construct(
-        protected AuthSessionService $authSessionService
+        protected AuthSessionService $authSessionService,
+        protected UsimUnitsService $usimUnitsService
     ) {
     }
 
@@ -31,31 +33,27 @@ class LoginService
      *             permissions: list<string>
      *         },
      *         token: string,
-     *         remember: bool
+     *         remember: bool,
+     *         units: array<string, array<mixed>>,
+     *         active_unit: string|null,
+     *         home_screen: class-string<\Idei\Usim\Screen>,
+     *         redirect_to: string
      *     },
-     *     user: User
+     *     user: User,
+     *     token: string,
+     *     units: array<string, array<mixed>>,
+     *     active_unit: string|null,
+     *     home_screen: class-string<\Idei\Usim\Screen>,
+     *     redirect_to: string
      * }
      */
-    public function login(string $email, string $password, bool $remember = false): array
-    {
-        $validator = Validator::make([
-            'email' => $email,
-            'password' => $password,
-            'remember' => $remember,
-        ], [
-            'email' => 'required|email',
-            'password' => 'required',
-            'remember' => 'boolean',
-        ]);
-
-        if ($validator->fails()) {
-            return [
-                'status' => 'error',
-                'message' => t('service.auth.login.validation_errors'),
-                'errors' => $validator->errors()->toArray(),
-            ];
-        }
-
+    public function login(
+        string $email,
+        string $password,
+        bool $remember = false,
+        ?string $unit = null,
+        bool $startSession = false
+    ): array {
         $user = User::where('email', $email)->first();
 
         if (!$user || !Hash::check($password, $user->password)) {
@@ -73,6 +71,24 @@ class LoginService
         /** @var list<string> $roles */
         $roles = $user->getRoleNames()->toArray();
 
+        // Resolve units with roles
+        $unitsWithRoles = $this->usimUnitsService->getUserUnitsWithRoles($user);
+
+        // Resolve active unit context (fallback to first user unit if not specified)
+        $activeUnit = $unit;
+        if (config('permission.teams', false)) {
+            $resolvedUnit = UnitContextResolver::resolve($user, $unit);
+            $activeUnit = $resolvedUnit?->slug;
+        }
+
+        // Resolve home screen and redirect path
+        $homeScreen = $this->authSessionService->resolveHomeScreen($user, $activeUnit);
+        $redirectTo = $homeScreen::getRoutePath();
+
+        if ($startSession) {
+            $this->authSessionService->establishSession($user, $activeUnit, $token, $homeScreen);
+        }
+
         return [
             'status' => 'success',
             'message' => t('service.auth.login.success'),
@@ -86,8 +102,17 @@ class LoginService
                 ],
                 'token' => $token,
                 'remember' => $remember,
+                'units' => $unitsWithRoles,
+                'active_unit' => $activeUnit,
+                'home_screen' => $homeScreen,
+                'redirect_to' => $redirectTo,
             ],
             'user' => $user,
+            'token' => $token,
+            'units' => $unitsWithRoles,
+            'active_unit' => $activeUnit,
+            'home_screen' => $homeScreen,
+            'redirect_to' => $redirectTo,
         ];
     }
 }

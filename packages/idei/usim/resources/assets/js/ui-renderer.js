@@ -1684,10 +1684,14 @@ class UIRenderer {
         const parentId = slotElement.getAttribute('data-component-id') || slotElement.id || slotTarget;
 
         try {
-            const response = await fetch(`/ui/screen/${cleanRoute}?parent=${encodeURIComponent(parentId)}`, {
+            const usimStorage = getUsimStorageHeaderValue();
+            const csrfHeaders = getCsrfHeaders();
+            const response = await fetch(`/api/ui/${cleanRoute}?parent=${encodeURIComponent(parentId)}`, {
                 headers: {
                     'Accept': 'application/json',
                     'X-Requested-With': 'XMLHttpRequest',
+                    'X-USIM-Storage': usimStorage,
+                    ...csrfHeaders,
                 },
                 credentials: 'same-origin',
             });
@@ -2412,6 +2416,13 @@ class UIRenderer {
                 if (resolvedTarget instanceof HTMLElement) {
                     parentElement = resolvedTarget;
                 }
+            }
+
+            // Special case: if child is a container inside a table, it's the transparent rows container
+            if (parentComponent?.tableElement && config.type === 'container') {
+                component.element = parentElement; // Point to table's tbodyElement
+                this.components.set(String(jsonKey), component);
+                return true;
             }
 
             if (!(parentElement instanceof HTMLElement)) {

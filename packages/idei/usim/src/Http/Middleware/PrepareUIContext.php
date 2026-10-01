@@ -101,6 +101,12 @@ class PrepareUIContext
 
         $storeUsimUnit = $storage['store_unit'] ?? null;
         $unitSlug = \is_scalar($storeUsimUnit) && $storeUsimUnit !== '' ? (string) $storeUsimUnit : null;
+        if ($unitSlug === null && $request->hasSession()) {
+            $sessionUnitSlug = $request->session()->get('current_unit_slug');
+            if (\is_string($sessionUnitSlug) && $sessionUnitSlug !== '') {
+                $unitSlug = $sessionUnitSlug;
+            }
+        }
         UnitContextResolver::resolveAndApply($effectiveUser, $unitSlug);
     }
 

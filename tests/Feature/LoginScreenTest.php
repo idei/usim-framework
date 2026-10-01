@@ -38,7 +38,7 @@ it('authenticates configured root user and returns redirect contract', function 
     $response = $result['response'];
 
     $response->assertOk();
-    expect($response->json('redirect'))->toBe(UsersManager::getRoutePath());
+    expect($response->json('navigate.url') ?? $response->json('redirect'))->toBe(UsersManager::getRoutePath());
     expect($response->json('toast.type'))->toBe('success');
     $this->assertAuthenticatedAs($adminUser);
 });
@@ -52,7 +52,7 @@ it('authenticates configured default registering user role and returns redirect 
     $response = $result['response'];
 
     $response->assertOk();
-    expect($response->json('redirect'))->not->toBeNull();
+    expect($response->json('navigate.url') ?? $response->json('redirect'))->not->toBeNull();
     expect($response->json('toast.type'))->toBe('success');
     $this->assertAuthenticatedAs($regularUser);
 });
@@ -95,7 +95,7 @@ it('authenticates configured test user with multiple units and returns redirect 
 
     $response->assertOk();
     expect($response->json('toast.type'))->toBe('success');
-    expect($response->json('redirect'))->not->toBeNull();
+    expect($response->json('navigate.url') ?? $response->json('redirect'))->not->toBeNull();
     $this->assertAuthenticatedAs($user);
 });
 
@@ -133,7 +133,7 @@ it('authenticates registered user and redirects directly to Registered screen co
 
     $response->assertOk();
     expect($response->json('toast.type'))->toBe('success');
-    expect($response->json('redirect'))->toBe(Registered::getRoutePath());
+    expect($response->json('navigate.url') ?? $response->json('redirect'))->toBe(Registered::getRoutePath());
     $this->assertAuthenticatedAs($user);
 });
 
@@ -174,7 +174,7 @@ it('redirects to the role screen with highest priority when user has multiple ro
     $response->assertOk();
     expect($response->json('toast.type'))->toBe('success');
     // Admin (priority 2) has higher precedence than Registered (priority 5)
-    expect($response->json('redirect'))->toBe(UsersManager::getRoutePath());
+    expect($response->json('navigate.url') ?? $response->json('redirect'))->toBe(UsersManager::getRoutePath());
     $this->assertAuthenticatedAs($user);
 });
 

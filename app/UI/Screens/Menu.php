@@ -467,10 +467,6 @@ class Menu extends Screen
         $this->populateUserMenu($this->user_menu);
         $this->populateMainMenu($this->main_menu);
         $this->updateUnitMenu();
-
-        if (\is_string($homeScreen) && $homeScreen !== '') {
-            $this->navigate($homeScreen);
-        }
     }
 
     /**

@@ -21,8 +21,12 @@ class AuthSessionService
             : $user->createToken($tokenName, ['*'], now()->addDay())->plainTextToken;
     }
 
-    public function start(User $user, ?string $unit = null, ?string $token = null): string
-    {
+    public function establishSession(
+        User $user,
+        ?string $unit = null,
+        ?string $token = null,
+        ?string $homeScreen = null
+    ): string {
         // Support legacy callers passing ($user, $token) where $unit contains the auth token
         if ($token === null && is_string($unit)) {
             if (str_contains($unit, '|') || str_contains($unit, '.') || strlen($unit) > 30) {
@@ -60,13 +64,33 @@ class AuthSessionService
             }
         }
 
+        /** @var class-string<Screen> $resolvedHomeScreen */
+        $resolvedHomeScreen = $homeScreen && class_exists($homeScreen) && is_subclass_of($homeScreen, Screen::class)
+            ? $homeScreen
+            : $this->resolveHomeScreen($user, $activeUnitSlug);
+
         event(new UsimEvent('logged_user', [
             'user' => $user,
             'timestamp' => now(),
             'unit' => $activeUnitSlug ?? 'main',
+            'home_screen' => $resolvedHomeScreen,
         ]));
 
-        return $this->resolvePostLoginRedirect($user, $activeUnitSlug);
+        return $resolvedHomeScreen::getRoutePath();
+    }
+
+    /**
+     * Alias for establishSession to maintain backwards compatibility.
+     *
+     * @deprecated Use establishSession instead.
+     */
+    public function start(
+        User $user,
+        ?string $unit = null,
+        ?string $token = null,
+        ?string $homeScreen = null
+    ): string {
+        return $this->establishSession($user, $unit, $token, $homeScreen);
     }
 
     public function resolvePostLoginRedirect(User $user, ?string $unit = null): string

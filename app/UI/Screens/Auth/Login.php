@@ -2,11 +2,11 @@
 // @usim: feature="admin", type="screen"
 namespace App\UI\Screens\Auth;
 
-use App\Services\Auth\AuthSessionService;
+use App\Http\Requests\Auth\LoginRequest;
 use App\Services\Auth\LoginService;
-use App\Services\Units\UsimUnitsService;
 use Idei\Usim\Components\Container;
 use Idei\Usim\Components\Label;
+use Idei\Usim\Enums\AlignItems;
 use Idei\Usim\Enums\JustifyContent;
 use Idei\Usim\Enums\LayoutType;
 use Idei\Usim\Enums\Visibility;
@@ -18,10 +18,9 @@ use Idei\Usim\ValueObjects\Spacing;
 class Login extends Screen
 {
     public function __construct(
-        protected LoginService $loginService,
-        protected AuthSessionService $authSessionService,
-        protected UsimUnitsService $usimUnitsService
-    ) {}
+        protected LoginService $loginService
+    ) {
+    }
 
     public static Visibility $visibility = Visibility::GUEST;
 
@@ -50,10 +49,20 @@ class Login extends Screen
             $password = config('usim.users.root.password');
         }
 
-        $container
-            ->maxWidth(Size::px(450));
+        $wrapper = UI::container('login_wrapper')
+            ->plain()
+            ->width(Size::full())
+            ->layout(LayoutType::VERTICAL)
+            ->justifyContent(JustifyContent::CENTER)
+            ->alignItems(AlignItems::CENTER)
+            ->padding(Spacing::px(20));
 
-        $container->add(
+        $card = UI::container('login_card')
+            ->card()
+            ->maxWidth(Size::px(450))
+            ->width(Size::full());
+
+        $card->add(
             UI::input('login_email')
                 ->label(t('screen.auth.login.email.label'))
                 ->placeholder(t('screen.auth.login.email.placeholder'))
@@ -63,7 +72,7 @@ class Login extends Screen
                 ->width(Size::full())
         );
 
-        $container->add(
+        $card->add(
             UI::input('login_password')
                 ->label(t('screen.auth.login.password.label'))
                 ->type('password')
@@ -73,7 +82,7 @@ class Login extends Screen
                 ->width(Size::full())
         );
 
-        $container->add(
+        $card->add(
             UI::label('lbl_login_result')->text('')
         );
 
@@ -99,16 +108,19 @@ class Login extends Screen
                 ->action('submit_login')
         );
 
-        $container->add($buttonsContainer);
+        $card->add($buttonsContainer);
 
         // Forgot Password Link left-aligned below the buttons and filled with the full width of the container
-        $container->add(
+        $card->add(
             UI::button('btn_forgot_password')
                 ->label(t('screen.auth.login.actions.forgot_password'))
                 ->style('link')
                 ->action('navigate_forgot_password')
                 ->width(Size::full())
         );
+
+        $wrapper->add($card);
+        $container->add($wrapper);
     }
 
     protected function postLoadUI(): void
@@ -125,13 +137,25 @@ class Login extends Screen
     /** @param array<string, mixed> $params */
     public function onSubmitLogin(array $params): void
     {
-        $emailValue = $params['login_email'] ?? '';
-        $passwordValue = $params['login_password'] ?? '';
-        $email = \is_string($emailValue) ? $emailValue : '';
-        $password = \is_string($passwordValue) ? $passwordValue : '';
-        $remember = $params['remember'] ?? false;
+        try {
+            $credentials = LoginRequest::validateData($params);
+        } catch (\Illuminate\Validation\ValidationException) {
+            $message = t('service.auth.login.validation_errors');
+            $this->toast(
+                message: $message,
+                type: 'error'
+            );
+            $this->lbl_login_result->text($message)->style('error');
+            return;
+        }
 
-        $response = $this->loginService->login($email, $password, (bool) $remember);
+        $response = $this->loginService->login(
+            $credentials['email'],
+            $credentials['password'],
+            $credentials['remember'],
+            $this->store_unit !== '' ? $this->store_unit : null,
+            startSession: true
+        );
 
         $message = $response['message'];
         $status = $response['status'];
@@ -145,29 +169,11 @@ class Login extends Screen
             return;
         }
 
-        $this->store_token = $response['data']['token'];
-        $this->store_email = $email;
+        $this->store_token = $response['token'];
+        $this->store_email = $credentials['email'];
+        $this->store_unit = $response['active_unit'] ?? '';
 
-        /** @var \App\Models\User $user */
-        $user = $response['user'];
-
-        $unitsWithRoles = $this->usimUnitsService->getUserUnitsWithRoles($user);
-
-        if (
-            empty($this->store_unit) ||
-            !\array_key_exists($this->store_unit, $unitsWithRoles)
-        ) {
-            $firstUnit = array_key_first($unitsWithRoles);
-            $this->store_unit = is_string($firstUnit) ? $firstUnit : '';
-        }
-
-        $redirectTo = $this->authSessionService->start(
-            $user,
-            $this->store_unit !== '' ? $this->store_unit : null,
-            $this->store_token !== '' ? $this->store_token : null
-        );
-
-        $this->redirect($redirectTo);
+       $this->navigate($response['home_screen']);
     }
 
     public function onCloseLoginDialog(): void

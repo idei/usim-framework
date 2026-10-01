@@ -13,7 +13,7 @@ it('returns redirect contract on successful login event', function () {
     $response = $data['response'];
 
     $response->assertOk();
-    expect($response->json('redirect'))->not->toBeNull();
+    expect($response->json('navigate.url') ?? $response->json('redirect'))->not->toBeNull();
 });
 
 it('returns non-redirect UI feedback contract for invalid login event', function () {
