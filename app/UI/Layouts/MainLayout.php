@@ -50,6 +50,7 @@ class MainLayout extends AbstractLayout
         $usimConfig = app(\Idei\Usim\Support\UsimConfig::class);
         $effectiveMenu = $menuScreen ?? $usimConfig->defaultMenuScreen;
         if (is_subclass_of($effectiveMenu, Screen::class)) {
+            $this->setActiveScreen('top_menu', $effectiveMenu);
             Screen::embedInto($effectiveMenu, $this->mainMenuContainer);
         }
 

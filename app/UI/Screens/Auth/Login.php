@@ -167,7 +167,7 @@ class Login extends Screen
             $this->store_token !== '' ? $this->store_token : null
         );
 
-        // $this->redirect($redirectTo);
+        $this->redirect($redirectTo);
     }
 
     public function onCloseLoginDialog(): void

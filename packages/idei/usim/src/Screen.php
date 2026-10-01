@@ -223,6 +223,39 @@ abstract class Screen
     }
 
     /**
+     * Get the active layout instance associated with this screen or request context.
+     */
+    public function getLayout(): ?\Idei\Usim\Layout\AbstractLayout
+    {
+        if ($this->layoutInstance !== null) {
+            return $this->layoutInstance;
+        }
+
+        if (\Idei\Usim\Layout\AbstractLayout::current() !== null) {
+            return \Idei\Usim\Layout\AbstractLayout::current();
+        }
+
+        if (app()->bound(\Idei\Usim\Layout\AbstractLayout::class)) {
+            /** @var \Idei\Usim\Layout\AbstractLayout $layout */
+            $layout = app(\Idei\Usim\Layout\AbstractLayout::class);
+            return $layout;
+        }
+
+        $currentScreenClass = UIStateManager::getClientCurrentScreenClass();
+        if ($currentScreenClass !== null && class_exists($currentScreenClass) && is_subclass_of($currentScreenClass, self::class)) {
+            $layoutClass = $currentScreenClass::getLayoutClass();
+            if ($layoutClass !== null && class_exists($layoutClass) && is_subclass_of($layoutClass, \Idei\Usim\Layout\AbstractLayout::class)) {
+                /** @var \Idei\Usim\Layout\AbstractLayout $layout */
+                $layout = app($layoutClass);
+                \Idei\Usim\Layout\AbstractLayout::setCurrent($layout);
+                return $layout;
+            }
+        }
+
+        return null;
+    }
+
+    /**
      * Resolve the menu screen class for this screen.
      *
      * @return class-string<Screen>|null
@@ -1467,7 +1500,9 @@ abstract class Screen
         if ($layoutClass !== null && class_exists($layoutClass) && is_subclass_of($layoutClass, \Idei\Usim\Layout\AbstractLayout::class)) {
             /** @var \Idei\Usim\Layout\AbstractLayout $layoutInstance */
             $layoutInstance = app($layoutClass);
+            \Idei\Usim\Layout\AbstractLayout::setCurrent($layoutInstance);
             $this->layoutInstance = $layoutInstance;
+            $layoutInstance->setActiveScreen('main', static::class);
             $menuScreen = static::getMenuScreen();
             $layoutInstance->build(
                 $container,
@@ -1542,7 +1577,7 @@ abstract class Screen
      * Show a target screen inside a specific layout slot or named container.
      *
      * @param  class-string<Screen>|string  $screenClass  Target screen class or slug
-     * @param  string|null  $slot  Name of the slot in the layout (e.g. 'main', 'top_menu', 'right_panel'). If null, uses target's $defaultSlot.
+     * @param  string|null  $slot Name of the slot in the layout (e.g. 'main', 'top_menu', 'right_panel'). If null, uses target's $defaultSlot.
      * @param  array<int|string, mixed>  $params  Parameters passed to buildBaseUI
      * @param  bool  $updateBrowserUrl  Whether to update browser location history for main content navigation
      */
@@ -1567,40 +1602,47 @@ abstract class Screen
         }
 
         $effectiveSlot = $slot ?? $targetClass::getDefaultSlot();
+        $routePath = $targetClass::getRoutePath();
+        $routeSlug = static::resolveScreenSlug($targetClass);
 
         // 1. Locate slot container from layout instance if available
-        $targetContainer = $this->layoutInstance?->getSlot($effectiveSlot);
+        $layout = $this->getLayout();
+        if ($layout !== null) {
+            $layout->setActiveScreen($effectiveSlot, $targetClass);
+            if ($layout->getSlot($effectiveSlot) !== null) {
+                return $layout->showInto($effectiveSlot, $targetClass, $params, $updateBrowserUrl);
+            }
+        }
 
         // 2. Fallback: Search in the current screen's component tree
-        if ($targetContainer === null && isset($this->container)) {
+        $targetContainer = null;
+        if (isset($this->container)) {
             $found = $this->container->findByName($effectiveSlot);
             if ($found instanceof Container) {
                 $targetContainer = $found;
             } elseif ($effectiveSlot === 'main' || $effectiveSlot === 'content') {
-                $targetContainer = $this->container->findByName('content_container');
-                if (!$targetContainer instanceof Container) {
-                    $targetContainer = $this->container;
+                $foundContent = $this->container->findByName('content_container');
+                if ($foundContent instanceof Container) {
+                    $targetContainer = $foundContent;
                 }
             }
         }
 
-        if (!$targetContainer instanceof Container) {
-            Log::warning("Slot [{$effectiveSlot}] not found on screen [" . static::class . "]. Falling back to redirect.");
-            $this->redirect($targetClass::getRoutePath());
-            return false;
+        // Only clear and embed locally if target container is physically present in this screen's tree
+        if ($targetContainer instanceof Container) {
+            $targetContainer->clear();
+            self::embedInto($targetClass, $targetContainer);
         }
 
-        // Clear existing content in the slot and embed the new screen
-        $targetContainer->clear();
-        self::embedInto($targetClass, $targetContainer);
-
-        // Update browser URL if navigating in the main slot
+        // Update browser URL and instruct frontend to load screen into slot
         if ($updateBrowserUrl && in_array($effectiveSlot, ['main', 'content', 'center'], true)) {
-            $routePath = $targetClass::getRoutePath();
+            UIStateManager::setClientCurrentScreen($routePath, $targetClass);
             $this->uiChanges()->add([
                 'navigate' => [
                     'url' => $routePath,
+                    'route' => $routeSlug,
                     'title' => $targetClass::getMenuLabel(),
+                    'slot' => $targetContainer?->getName() ?? ($effectiveSlot === 'main' ? 'content_container' : $effectiveSlot),
                 ],
             ]);
         }
@@ -1618,6 +1660,18 @@ abstract class Screen
     public function show(string $screenClass, ?string $slot = null, array $params = []): bool
     {
         return $this->showInto($screenClass, $slot, $params);
+    }
+
+    /**
+     * Navigate to a target screen inside the active layout shell.
+     *
+     * @param  class-string<Screen>|string  $screenClass  Target screen class or slug
+     * @param  array<int|string, mixed>  $params  Parameters passed to buildBaseUI
+     * @param  string|null  $slot  Optional slot override (defaults to target's $defaultSlot)
+     */
+    public function navigate(string $screenClass, array $params = [], ?string $slot = null): bool
+    {
+        return $this->show($screenClass, $slot, $params);
     }
 
     /**

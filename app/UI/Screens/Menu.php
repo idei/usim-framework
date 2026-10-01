@@ -458,7 +458,7 @@ class Menu extends Screen
         $user = $params['user'] ?? null;
         $unitValue = $params['unit'] ?? '';
         $homeScreen = $params['home_screen'] ?? null;
-        $this->store_unit = is_string($unitValue) ? $unitValue : '';
+        $this->store_unit = \is_string($unitValue) ? $unitValue : '';
 
         if ($user instanceof User) {
             $this->updateUserMenuTrigger($user);
@@ -467,6 +467,10 @@ class Menu extends Screen
         $this->populateUserMenu($this->user_menu);
         $this->populateMainMenu($this->main_menu);
         $this->updateUnitMenu();
+
+        if (\is_string($homeScreen) && $homeScreen !== '') {
+            $this->navigate($homeScreen);
+        }
     }
 
     /**

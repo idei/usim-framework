@@ -14,6 +14,7 @@ final class UiMemoryRenderer
         'update_modal',
         'clear_uploaders',
         'set_uploader_existing_file',
+        'navigate',
     ];
 
     /** @var array<string, array<string, mixed>> */
@@ -35,6 +36,7 @@ final class UiMemoryRenderer
         'update_modal' => null,
         'clear_uploaders' => [],
         'set_uploader_existing_file' => null,
+        'navigate' => null,
     ];
 
     private ?string $rawUsim = null;
@@ -210,6 +212,10 @@ final class UiMemoryRenderer
 
         if (array_key_exists('set_uploader_existing_file', $payload)) {
             $this->meta['set_uploader_existing_file'] = $payload['set_uploader_existing_file'];
+        }
+
+        if (array_key_exists('navigate', $payload)) {
+            $this->meta['navigate'] = $payload['navigate'];
         }
     }
 

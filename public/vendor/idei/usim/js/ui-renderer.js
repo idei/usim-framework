@@ -1569,15 +1569,22 @@ class UIRenderer {
             return; // Stop processing after redirect
         }
 
-        // Handle in-app SPA navigation (HTML5 history update)
+        // Handle in-app SPA navigation (HTML5 history update & slot loading)
         if (uiUpdate.navigate && typeof uiUpdate.navigate === 'object') {
             const navUrl = uiUpdate.navigate.url;
+            const navRoute = uiUpdate.navigate.route;
             const navTitle = uiUpdate.navigate.title || document.title;
+            const slotTarget = uiUpdate.navigate.slot || 'content_container';
             if (navUrl && window.history && typeof window.history.pushState === 'function') {
-                window.history.pushState({ path: navUrl }, navTitle, navUrl);
+                window.history.pushState({ path: navUrl, route: navRoute, slot: slotTarget }, navTitle, navUrl);
                 if (navTitle) {
                     document.title = navTitle;
                 }
+            }
+            if (navRoute) {
+                this.loadScreenIntoSlot(navRoute, slotTarget);
+            } else if (slotTarget) {
+                this.clearSlot(slotTarget);
             }
         }
 
@@ -1626,6 +1633,82 @@ class UIRenderer {
 
         // Handle UI updates (for non-modal actions)
         processComponentUpdates(Object.entries(uiUpdate));
+    }
+
+    /**
+     * Clear all child components inside a slot container
+     *
+     * @param {string|number} slotTarget - Target slot name, ID or component ID
+     */
+    clearSlot(slotTarget) {
+        if (!slotTarget) return;
+        const slotElement = document.querySelector(`[data-component-id="${slotTarget}"]`)
+            || document.getElementById(String(slotTarget))
+            || document.querySelector(`[data-name="${slotTarget}"]`);
+
+        if (!slotElement) {
+            return;
+        }
+
+        const childComponentElements = slotElement.querySelectorAll('[data-component-id]');
+        childComponentElements.forEach((childEl) => {
+            const childId = childEl.getAttribute('data-component-id');
+            if (childId && childId !== String(slotTarget)) {
+                this.components.delete(String(childId));
+            }
+        });
+
+        slotElement.innerHTML = '';
+    }
+
+    /**
+     * Fetch and render a screen dynamically inside a designated slot without full page reload.
+     *
+     * @param {string} screenRoute - Screen route slug (e.g. 'admin/users-manager')
+     * @param {string|number} slotTarget - Target slot container name or ID
+     */
+    async loadScreenIntoSlot(screenRoute, slotTarget = 'content_container') {
+        const cleanRoute = String(screenRoute).replace(/^\//, '');
+        const slotElement = document.querySelector(`[data-component-id="${slotTarget}"]`)
+            || document.getElementById(String(slotTarget))
+            || document.querySelector(`[data-name="${slotTarget}"]`);
+
+        if (!slotElement) {
+            console.error(`❌ Slot target [${slotTarget}] not found in DOM.`);
+            return;
+        }
+
+        // Clean previous children in slot
+        this.clearSlot(slotTarget);
+
+        const parentId = slotElement.getAttribute('data-component-id') || slotElement.id || slotTarget;
+
+        try {
+            const response = await fetch(`/ui/screen/${cleanRoute}?parent=${encodeURIComponent(parentId)}`, {
+                headers: {
+                    'Accept': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest',
+                },
+                credentials: 'same-origin',
+            });
+
+            if (!response.ok) {
+                console.error(`❌ Failed to load screen [${cleanRoute}] into slot.`);
+                return;
+            }
+
+            const screenData = await response.json();
+            if (screenData && typeof screenData === 'object') {
+                if (screenData.redirect) {
+                    window.location.href = screenData.redirect;
+                    return;
+                }
+
+                this.handleUIUpdate(screenData);
+            }
+        } catch (error) {
+            console.error(`❌ Error loading screen [${cleanRoute}] into slot:`, error);
+        }
     }
 
     /**

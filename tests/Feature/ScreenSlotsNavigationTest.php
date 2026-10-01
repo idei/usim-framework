@@ -75,3 +75,46 @@ it('supports show method using defaultSlot', function () {
     expect($allChanges)->toHaveKey('navigate');
     expect($allChanges['navigate']['url'])->toBe(TableDemo::getRoutePath());
 });
+
+it('supports navigate method delegating to layout and tracks active screen', function () {
+    $user = \App\Models\User::factory()->create();
+    /** @var \Tests\TestCase $this */
+    $this->actingAs($user);
+
+    $layout = new class extends \Idei\Usim\Layout\AbstractLayout {
+        public function build(Container $root, \Closure $contentBuilder, ?string $menuScreen = null): void
+        {
+            $topMenu = UI::container('top_menu');
+            $this->registerSlot('top_menu', $topMenu);
+
+            $main = UI::container('content_container');
+            $this->registerSlot('main', $main);
+
+            $root->add($topMenu)->add($main);
+            $contentBuilder($main);
+        }
+    };
+
+    \Idei\Usim\Layout\AbstractLayout::setCurrent($layout);
+
+    $root = UI::container('root');
+    $layout->build($root, fn($c) => null);
+
+    $host = app(Menu::class);
+    $host->initializeEventContext();
+
+    expect($host->getLayout())->not->toBeNull();
+
+    $navigated = $host->navigate(TableDemo::class);
+    expect($navigated)->toBeTrue();
+
+    expect($layout->getActiveScreen('main'))->toBe(TableDemo::class);
+
+    $collector = app(\Idei\Usim\UIChangesCollector::class);
+    $allChanges = $collector->all();
+
+    expect($allChanges)->toHaveKey('navigate');
+    expect($allChanges['navigate']['url'])->toBe(TableDemo::getRoutePath());
+    expect($allChanges['navigate']['slot'])->toBe('content_container');
+});
+
