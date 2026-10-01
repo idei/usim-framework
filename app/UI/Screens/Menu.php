@@ -457,6 +457,7 @@ class Menu extends Screen
         /** @var User|null $user */
         $user = $params['user'] ?? null;
         $unitValue = $params['unit'] ?? '';
+        $homeScreen = $params['home_screen'] ?? null;
         $this->store_unit = is_string($unitValue) ? $unitValue : '';
 
         if ($user instanceof User) {

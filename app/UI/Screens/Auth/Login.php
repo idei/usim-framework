@@ -37,16 +37,6 @@ class Login extends Screen
         return !self::requireAuth();
     }
 
-    public static function getMenuLabel(): string
-    {
-        return 'Login';
-    }
-
-    public static function getMenuIcon(): ?string
-    {
-        return '🔑';
-    }
-
     protected function buildBaseUI(Container $container, ...$params): void
     {
         $email = '';
@@ -61,11 +51,7 @@ class Login extends Screen
         }
 
         $container
-            ->title(t('screen.auth.login.title'))
-            ->maxWidth(Size::px(450))
-            ->centerHorizontal()
-            ->shadow(3)
-            ->padding(Spacing::px(30));
+            ->maxWidth(Size::px(450));
 
         $container->add(
             UI::input('login_email')
@@ -151,8 +137,7 @@ class Login extends Screen
         $status = $response['status'];
         $this->toast(
             message: $message,
-            type: $status,
-            position: 'top-middle',
+            type: $status
         );
         $this->lbl_login_result->text($message)->style($status);
 
@@ -181,7 +166,8 @@ class Login extends Screen
             $this->store_unit !== '' ? $this->store_unit : null,
             $this->store_token !== '' ? $this->store_token : null
         );
-        $this->redirect($redirectTo);
+
+        // $this->redirect($redirectTo);
     }
 
     public function onCloseLoginDialog(): void

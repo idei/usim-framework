@@ -41,6 +41,9 @@ class MainLayout extends AbstractLayout
             ->padding(Spacing::px(0))
             ->margin(Spacing::px(0));
 
+        $this->registerSlot('top_menu', $this->mainMenuContainer);
+        $this->registerSlot('menu', $this->mainMenuContainer);
+
         $root->add($this->mainMenuContainer);
 
         /** @var \Idei\Usim\Support\UsimConfig $usimConfig */
@@ -55,6 +58,9 @@ class MainLayout extends AbstractLayout
             ->plain()
             ->width(Size::full())
             ->flexGrow(1);
+
+        $this->registerSlot('main', $this->contentContainer);
+        $this->registerSlot('content', $this->contentContainer);
 
         $root->add($this->contentContainer);
 

@@ -119,8 +119,9 @@ class AuthSessionService
         foreach ($sortedRoles as $role) {
             $screenClass = $role->usimSetting ? $role->usimSetting->home_screen : null;
 
-            if ($screenClass != null
-                && \is_string($screenClass)
+            if (
+                \is_string($screenClass)
+                && $screenClass !== ''
                 && class_exists($screenClass)
                 && is_subclass_of($screenClass, Screen::class)
             ) {

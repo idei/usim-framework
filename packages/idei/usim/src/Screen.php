@@ -138,7 +138,7 @@ abstract class Screen
     public function getContextIdentifier(): string
     {
         if ($this->modalLayerIndex > 0) {
-            return static::class.'@'.$this->modalLayerIndex;
+            return static::class . '@' . $this->modalLayerIndex;
         }
 
         return static::class;
@@ -165,12 +165,22 @@ abstract class Screen
     public static ?string $layout = 'default';
 
     /**
+     * Default layout slot where this screen is mounted (e.g. 'main', 'center', 'right_panel').
+     */
+    public static string $defaultSlot = 'main';
+
+    /**
      * Custom menu screen class to embed in the layout.
      * If null, the layout's default menu is used.
      *
      * @var class-string<Screen>|string|null
      */
     public static ?string $menuScreen = null;
+
+    /**
+     * Layout instance currently applied to this screen, if any.
+     */
+    protected ?\Idei\Usim\Layout\AbstractLayout $layoutInstance = null;
 
     /**
      * Resolve the authentication guard for this screen.
@@ -273,6 +283,22 @@ abstract class Screen
         return static::getLayoutClass() !== null;
     }
 
+    /**
+     * Get the default layout slot for this screen.
+     */
+    public static function getDefaultSlot(): string
+    {
+        return static::$defaultSlot;
+    }
+
+    /**
+     * Get the layout instance applied to this screen, if any.
+     */
+    public function getLayoutInstance(): ?\Idei\Usim\Layout\AbstractLayout
+    {
+        return $this->layoutInstance;
+    }
+
     protected function uiChanges(): UIChangesCollector
     {
         return app(UIChangesCollector::class);
@@ -289,7 +315,7 @@ abstract class Screen
     {
         $targetClass = $screenClass ?? static::class;
 
-        if (! class_exists($targetClass) || ! is_subclass_of($targetClass, self::class)) {
+        if (!class_exists($targetClass) || !is_subclass_of($targetClass, self::class)) {
             throw new RuntimeException("Resolved screen [{$targetClass}] is not a valid Screen instance.");
         }
 
@@ -431,7 +457,7 @@ abstract class Screen
         array $queryParams = [],
     ): ?Screen {
         $modalClass = $activeModal['modal_class'];
-        if (! class_exists($modalClass) || ! is_a($modalClass, self::class, true)) {
+        if (!class_exists($modalClass) || !is_a($modalClass, self::class, true)) {
             return null;
         }
 
@@ -484,7 +510,7 @@ abstract class Screen
 
         foreach ($modalStack as $modalMeta) {
             $modalClass = $modalMeta['modal_class'];
-            if (! class_exists($modalClass) || ! is_a($modalClass, self::class, true)) {
+            if (!class_exists($modalClass) || !is_a($modalClass, self::class, true)) {
                 continue;
             }
 
@@ -557,7 +583,7 @@ abstract class Screen
         $guard = static::getAuthGuard();
 
         // 2. Handle failure based on authentication state
-        if (! Auth::guard($guard)->check()) {
+        if (!Auth::guard($guard)->check()) {
             $redirectUrl = ($guard === 'device')
                 ? url('/device/device-pairing-screen')
                 : url('/auth/login');
@@ -609,12 +635,12 @@ abstract class Screen
      */
     private static function callUserBoolMethod(mixed $user, string $method, mixed ...$args): bool
     {
-        if (! \is_object($user)) {
+        if (!\is_object($user)) {
             return false;
         }
 
         $callback = [$user, $method];
-        if (! \is_callable($callback)) {
+        if (!\is_callable($callback)) {
             return false;
         }
 
@@ -655,7 +681,7 @@ abstract class Screen
         $effectiveGuard = $guard ?? static::getAuthGuard();
 
         // Implicitly require authentication first
-        if (! self::requireAuth($effectiveGuard)) {
+        if (!self::requireAuth($effectiveGuard)) {
             return false;
         }
 
@@ -681,7 +707,7 @@ abstract class Screen
             }
         }
 
-        if (! self::callUserBoolMethod($user, 'hasAnyRole', $roles)) {
+        if (!self::callUserBoolMethod($user, 'hasAnyRole', $roles)) {
             // user is authenticated but lacks role
             // Instead of aborting, we return false.
             // The framework will catch this in authorize() and call failedAuthorization()
@@ -704,7 +730,7 @@ abstract class Screen
         $effectiveGuard = $guard ?? static::getAuthGuard();
 
         // Implicitly require authentication first
-        if (! self::requireAuth($effectiveGuard)) {
+        if (!self::requireAuth($effectiveGuard)) {
             return false;
         }
 
@@ -730,7 +756,7 @@ abstract class Screen
             }
         }
 
-        if (! self::callUserBoolMethod($user, 'hasAnyPermission', $permissions)) {
+        if (!self::callUserBoolMethod($user, 'hasAnyPermission', $permissions)) {
             return false;
         }
 
@@ -756,7 +782,7 @@ abstract class Screen
 
         // 4. We transform each segment to snake_case and join them with dots
         $dotted = collect($segments)
-            ->map(fn ($segment) => Str::snake(Str::replaceLast('Screen', '', $segment))) // Opcional: remover el sufijo 'Screen' si lo usan
+            ->map(fn($segment) => Str::snake(Str::replaceLast('Screen', '', $segment))) // Opcional: remover el sufijo 'Screen' si lo usan
             ->implode('.');
 
         return $dotted; // Returns "admin.user_manager"
@@ -827,7 +853,7 @@ abstract class Screen
             return true;
         }
 
-        if (! Auth::check()) {
+        if (!Auth::check()) {
             return false;
         }
 
@@ -842,12 +868,12 @@ abstract class Screen
 
         // If the permission doesn't contain a dot, we assume it's a local permission and resolve
         //  it using the screen's slug.
-        if (! str_contains($permission, '.')) {
-            $permission = static::getScreenSlug().'.'.$permission;
+        if (!str_contains($permission, '.')) {
+            $permission = static::getScreenSlug() . '.' . $permission;
         }
 
         $targetUnitId = self::resolveUnitId($unit);
-        if ($targetUnitId === null && property_exists($this, 'store_unit') && ! empty($this->store_unit)) {
+        if ($targetUnitId === null && property_exists($this, 'store_unit') && !empty($this->store_unit)) {
             $targetUnitId = self::resolveUnitId($this->store_unit);
         }
 
@@ -878,7 +904,7 @@ abstract class Screen
             return true;
         }
 
-        if (! Auth::check()) {
+        if (!Auth::check()) {
             return false;
         }
 
@@ -892,7 +918,7 @@ abstract class Screen
         }
 
         $targetUnitId = self::resolveUnitId($unit);
-        if ($targetUnitId === null && property_exists($this, 'store_unit') && ! empty($this->store_unit)) {
+        if ($targetUnitId === null && property_exists($this, 'store_unit') && !empty($this->store_unit)) {
             $targetUnitId = self::resolveUnitId($this->store_unit);
         }
 
@@ -917,7 +943,7 @@ abstract class Screen
      */
     public static function getMenuLabel(): string
     {
-        return t('screen.'.static::getScreenSlug().'.menu_title');
+        return t('screen.' . static::getScreenSlug() . '.menu_title');
     }
 
     /**
@@ -926,7 +952,7 @@ abstract class Screen
      */
     public static function getMenuIcon(): ?string
     {
-        return t('screen.'.static::getScreenSlug().'.icon');
+        return t('screen.' . static::getScreenSlug() . '.icon');
     }
 
     /**
@@ -943,9 +969,9 @@ abstract class Screen
         if (str_starts_with($class, $prefix)) {
             $relative = substr($class, strlen($prefix));
             $segments = explode('\\', trim($relative, '\\'));
-            $urlSegments = array_map(fn ($s) => Str::kebab($s), $segments);
+            $urlSegments = array_map(fn($s) => Str::kebab($s), $segments);
 
-            return '/'.implode('/', $urlSegments);
+            return '/' . implode('/', $urlSegments);
         }
 
         return '/';
@@ -961,7 +987,9 @@ abstract class Screen
      */
     abstract protected function buildBaseUI(Container $container, ...$params): void;
 
-    protected function postLoadUI(): void {}
+    protected function postLoadUI(): void
+    {
+    }
 
     /**
      * Render the screen for an initial page view or full reload.
@@ -997,7 +1025,7 @@ abstract class Screen
             $this->finalizeEventContext(reload: true);
 
             $agentContext = $this->getAgentContext();
-            if (! empty($agentContext)) {
+            if (!empty($agentContext)) {
                 $this->uiChanges()->add(['agent_context' => $agentContext]);
             }
         } finally {
@@ -1097,7 +1125,7 @@ abstract class Screen
             $this->parent = $this->container->getParent();
         }
 
-        if (! empty($eventParameters) || $triggerComponentId !== null) {
+        if (!empty($eventParameters) || $triggerComponentId !== null) {
             $this->hydrateClientComponentState($eventParameters, $triggerComponentId);
         }
 
@@ -1139,7 +1167,7 @@ abstract class Screen
             }
 
             $element = $this->container->findByName($paramKey);
-            if (! ($element instanceof UIComponent)) {
+            if (!($element instanceof UIComponent)) {
                 continue;
             }
 
@@ -1204,12 +1232,12 @@ abstract class Screen
             $propertyName = $property->getName();
 
             // Only process properties that start with 'store_'
-            if (! str_starts_with($propertyName, 'store_')) {
+            if (!str_starts_with($propertyName, 'store_')) {
                 continue;
             }
 
             // Check if this key exists in incoming storage
-            if (! array_key_exists($propertyName, $incomingStorage)) {
+            if (!array_key_exists($propertyName, $incomingStorage)) {
                 // \Illuminate\Support\Facades\Log::info("Skipping inject $propertyName - Not in storage");
                 continue;
             }
@@ -1220,13 +1248,13 @@ abstract class Screen
             // if the propertyName ends with '_crypt' we attempt to decrypt it before injecting
             if (str_ends_with($propertyName, '_crypt')) {
                 try {
-                    if (! \is_string($value)) {
+                    if (!\is_string($value)) {
                         continue;
                     }
 
                     $value = decrypt($value);
                 } catch (DecryptException $e) {
-                    Log::warning("Failed to decrypt storage variable '{$propertyName}': ".$e->getMessage());
+                    Log::warning("Failed to decrypt storage variable '{$propertyName}': " . $e->getMessage());
 
                     continue; // Skip injection if decryption fails
                 }
@@ -1263,7 +1291,7 @@ abstract class Screen
             $propertyType = $property->getType();
 
             // Skip if no type hint or is a built-in type
-            if (! $propertyType) {
+            if (!$propertyType) {
                 continue;
             }
 
@@ -1273,7 +1301,7 @@ abstract class Screen
             }
 
             // Get the type name (only ReflectionNamedType has getName)
-            if (! ($propertyType instanceof \ReflectionNamedType)) {
+            if (!($propertyType instanceof \ReflectionNamedType)) {
                 continue;
             }
 
@@ -1287,12 +1315,12 @@ abstract class Screen
                 if ($component) {
                     $property->setValue($this, $component);
                     $injected[$componentName] = $typeName;
-                } elseif (! $propertyType->allowsNull()) {
+                } elseif (!$propertyType->allowsNull()) {
                     $className = static::class;
                     // Component not found and property is not nullable
                     throw new RuntimeException(
-                        "Component '{$componentName}' not found in {$className}. ".
-                            "Make sure the component exists or make the property nullable: protected ?{$typeName} \${$componentName};"
+                        "Component '{$componentName}' not found in {$className}. " .
+                        "Make sure the component exists or make the property nullable: protected ?{$typeName} \${$componentName};"
                     );
                 }
             }
@@ -1340,9 +1368,9 @@ abstract class Screen
             UIDiffer::compare([], $newUI) :
             UIDiffer::compare($oldUI, $newUI);
 
-        if (! $reload && isset($this->container)) {
+        if (!$reload && isset($this->container)) {
             foreach ($this->collectDirtyComponentChanges($this->container) as $componentId => $dirtyProps) {
-                if (! isset($this->newUI[$componentId])) {
+                if (!isset($this->newUI[$componentId])) {
                     continue;
                 }
                 if (($this->newUI[$componentId]['parent'] ?? null) === null) {
@@ -1380,7 +1408,7 @@ abstract class Screen
         foreach ($container->getChildren() as $child) {
             if ($child instanceof UIComponent) {
                 $dirtyKeys = $child->getDirtyKeys();
-                if (! empty($dirtyKeys)) {
+                if (!empty($dirtyKeys)) {
                     $id = $child->getId();
                     foreach ($dirtyKeys as $key) {
                         if (in_array($key, $ignoredKeys, true)) {
@@ -1422,7 +1450,7 @@ abstract class Screen
 
         $current_class = static::class;
         $current_class_slug = strtolower(str_replace('\\', '_', $current_class))
-            .($this->modalLayerIndex > 0 ? "_{$this->modalLayerIndex}" : '');
+            . ($this->modalLayerIndex > 0 ? "_{$this->modalLayerIndex}" : '');
         $container = UI::container($current_class_slug, $contextKey)
             ->parent($this->parent)
             ->modalLayerIndex($this->modalLayerIndex)
@@ -1439,10 +1467,15 @@ abstract class Screen
         if ($layoutClass !== null && class_exists($layoutClass) && is_subclass_of($layoutClass, \Idei\Usim\Layout\AbstractLayout::class)) {
             /** @var \Idei\Usim\Layout\AbstractLayout $layoutInstance */
             $layoutInstance = app($layoutClass);
+            $this->layoutInstance = $layoutInstance;
             $menuScreen = static::getMenuScreen();
-            $layoutInstance->build($container, function (Container $contentSlot) use ($params) {
-                $this->buildBaseUI($contentSlot, ...$params);
-            }, $menuScreen);
+            $layoutInstance->build(
+                $container,
+                function (Container $contentSlot) use ($params) {
+                    $this->buildBaseUI($contentSlot, ...$params);
+                },
+                $menuScreen
+            );
         } else {
             // Generate and cache new user Interface directly without layout
             $this->buildBaseUI($container, ...$params);
@@ -1506,16 +1539,98 @@ abstract class Screen
     }
 
     /**
+     * Show a target screen inside a specific layout slot or named container.
+     *
+     * @param  class-string<Screen>|string  $screenClass  Target screen class or slug
+     * @param  string|null  $slot  Name of the slot in the layout (e.g. 'main', 'top_menu', 'right_panel'). If null, uses target's $defaultSlot.
+     * @param  array<int|string, mixed>  $params  Parameters passed to buildBaseUI
+     * @param  bool  $updateBrowserUrl  Whether to update browser location history for main content navigation
+     */
+    public function showInto(string $screenClass, ?string $slot = null, array $params = [], bool $updateBrowserUrl = true): bool
+    {
+        $targetClass = class_exists($screenClass) ? $screenClass : static::resolveScreenClassFromSlug($screenClass);
+        if ($targetClass === null || !class_exists($targetClass) || !is_subclass_of($targetClass, self::class)) {
+            throw new RuntimeException("Target screen [{$screenClass}] is not a valid Screen instance.");
+        }
+
+        $access = $targetClass::checkAccess();
+        if (!$access['allowed']) {
+            $redirectUrl = $access['params']['url'] ?? null;
+            if (($access['action'] ?? null) === 'redirect' && is_string($redirectUrl) && $redirectUrl !== '') {
+                $this->redirect($redirectUrl);
+            } else {
+                $code = $access['params']['code'] ?? 403;
+                $message = $access['params']['message'] ?? 'Unauthorized';
+                $this->abort(is_int($code) ? $code : 403, is_string($message) ? $message : 'Unauthorized');
+            }
+            return false;
+        }
+
+        $effectiveSlot = $slot ?? $targetClass::getDefaultSlot();
+
+        // 1. Locate slot container from layout instance if available
+        $targetContainer = $this->layoutInstance?->getSlot($effectiveSlot);
+
+        // 2. Fallback: Search in the current screen's component tree
+        if ($targetContainer === null && isset($this->container)) {
+            $found = $this->container->findByName($effectiveSlot);
+            if ($found instanceof Container) {
+                $targetContainer = $found;
+            } elseif ($effectiveSlot === 'main' || $effectiveSlot === 'content') {
+                $targetContainer = $this->container->findByName('content_container');
+                if (!$targetContainer instanceof Container) {
+                    $targetContainer = $this->container;
+                }
+            }
+        }
+
+        if (!$targetContainer instanceof Container) {
+            Log::warning("Slot [{$effectiveSlot}] not found on screen [" . static::class . "]. Falling back to redirect.");
+            $this->redirect($targetClass::getRoutePath());
+            return false;
+        }
+
+        // Clear existing content in the slot and embed the new screen
+        $targetContainer->clear();
+        self::embedInto($targetClass, $targetContainer);
+
+        // Update browser URL if navigating in the main slot
+        if ($updateBrowserUrl && in_array($effectiveSlot, ['main', 'content', 'center'], true)) {
+            $routePath = $targetClass::getRoutePath();
+            $this->uiChanges()->add([
+                'navigate' => [
+                    'url' => $routePath,
+                    'title' => $targetClass::getMenuLabel(),
+                ],
+            ]);
+        }
+
+        return true;
+    }
+
+    /**
+     * Show a target screen inside its default slot (or specified slot).
+     *
+     * @param  class-string<Screen>|string  $screenClass  Target screen class or slug
+     * @param  string|null  $slot  Optional slot override
+     * @param  array<int|string, mixed>  $params  Parameters passed to buildBaseUI
+     */
+    public function show(string $screenClass, ?string $slot = null, array $params = []): bool
+    {
+        return $this->showInto($screenClass, $slot, $params);
+    }
+
+    /**
      * @phpstan-assert-if-true array<int|string, array<string, mixed>> $ui
      */
     private function isTypedCachedScreenSnapshot(mixed $ui): bool
     {
-        if (! \is_array($ui)) {
+        if (!\is_array($ui)) {
             return false;
         }
 
         foreach ($ui as $component) {
-            if (! \is_array($component)) {
+            if (!\is_array($component)) {
                 return false;
             }
         }
@@ -1536,7 +1651,7 @@ abstract class Screen
         foreach ($ui as $componentId => $component) {
             $parent = $component['parent'] ?? null;
             $isRoot = (bool) ($component['root'] ?? false);
-            if (! $isRoot && \is_int($parent) && ! isset($ui[$parent]) && ! isset($ui[(string) $parent])) {
+            if (!$isRoot && \is_int($parent) && !isset($ui[$parent]) && !isset($ui[(string) $parent])) {
                 return false;
             }
 
@@ -1547,7 +1662,7 @@ abstract class Screen
             $rowsContainerId = $component['rows_container'] ?? null;
             $headerRowId = $component['header_row'] ?? null;
 
-            if (! \is_int($rowsContainerId) || ! isset($ui[$rowsContainerId])) {
+            if (!\is_int($rowsContainerId) || !isset($ui[$rowsContainerId])) {
                 return false;
             }
 
@@ -1555,7 +1670,7 @@ abstract class Screen
                 return false;
             }
 
-            if (! \is_int($headerRowId) || ! isset($ui[$headerRowId])) {
+            if (!\is_int($headerRowId) || !isset($ui[$headerRowId])) {
                 return false;
             }
 
@@ -1601,12 +1716,12 @@ abstract class Screen
         // First pass: instantiate all components
         foreach ($jsonUI as $id => $component) {
             $type = $component['type'] ?? null;
-            if (! \is_string($type) || $type === '') {
+            if (!\is_string($type) || $type === '') {
                 throw new RuntimeException('Unknown component type.');
             }
 
             $className = $this->mapTypeToClass($type);
-            if (! $className) {
+            if (!$className) {
                 throw new RuntimeException("Unknown component type '{$type}'.");
             }
 
@@ -1633,11 +1748,11 @@ abstract class Screen
                 continue;
             }
 
-            if (! \is_int($parentId) && ! \is_string($parentId)) {
+            if (!\is_int($parentId) && !\is_string($parentId)) {
                 continue;
             }
 
-            if (! $parentId || ! isset($components[$parentId])) {
+            if (!$parentId || !isset($components[$parentId])) {
                 continue;
             }
 
@@ -1649,7 +1764,7 @@ abstract class Screen
             $component->postConnect();
         }
 
-        if (! $rootContainer) {
+        if (!$rootContainer) {
             throw new RuntimeException('No root container found in UI JSON.');
         }
 
@@ -1786,9 +1901,9 @@ abstract class Screen
             $propertyName = $property->getName();
             if (str_starts_with($propertyName, 'store_')) {
                 $propertyType = $property->getType();
-                if ($propertyType && ! $propertyType->allowsNull()) {
+                if ($propertyType && !$propertyType->allowsNull()) {
                     // Get the type name (only ReflectionNamedType has getName)
-                    if (! ($propertyType instanceof \ReflectionNamedType)) {
+                    if (!($propertyType instanceof \ReflectionNamedType)) {
                         continue;
                     }
                     $typeName = $propertyType->getName();
@@ -1838,7 +1953,7 @@ abstract class Screen
         $popped = UIStateManager::popClientActiveModal();
         if ($popped !== null) {
             $layerIndex = $popped['layer_index'];
-            $contextKey = $layerIndex > 0 ? $popped['modal_class'].'@'.$layerIndex : $popped['modal_class'];
+            $contextKey = $layerIndex > 0 ? $popped['modal_class'] . '@' . $layerIndex : $popped['modal_class'];
             UIStateManager::clear($contextKey);
         }
     }
@@ -1874,8 +1989,8 @@ abstract class Screen
 
         // If caller and action are resolved, execute caller action
         if ($callerScreenClass !== null && $targetAction !== null && class_exists($callerScreenClass)) {
-            if (! str_starts_with($targetAction, 'on')) {
-                $targetAction = 'on'.str_replace(' ', '', ucwords(str_replace('_', ' ', $targetAction)));
+            if (!str_starts_with($targetAction, 'on')) {
+                $targetAction = 'on' . str_replace(' ', '', ucwords(str_replace('_', ' ', $targetAction)));
             }
 
             $caller = self::make($callerScreenClass);
@@ -2010,7 +2125,7 @@ abstract class Screen
      */
     protected function findRootComponentAs(int|string|null $id, string $expectedClass): ?UIElement
     {
-        if (! isset($this->container)) {
+        if (!isset($this->container)) {
             return null;
         }
 

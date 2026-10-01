@@ -6,7 +6,7 @@ use Database\Seeders\GenreSeeder;
 use Database\Seeders\MovieSeeder;
 
 const MOVIES_TOTAL = 17;
-const MOVIES_PER_PAGE = 7;
+const MOVIES_PER_PAGE = 8;
 const MOVIES_TOTAL_PAGES = 3;
 
 function firstTableRowComponent(array $payload, int $rowIndex = 0): array

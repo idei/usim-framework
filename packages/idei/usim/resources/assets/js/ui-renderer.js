@@ -819,7 +819,8 @@ const SPECIAL_UI_KEYS = new Set([
     'clear_uploaders',
     'set_uploader_existing_file',
     'change_theme',
-    'change_language'
+    'change_language',
+    'navigate'
 ]);
 
 function buildModalSubtreePayload(uiUpdate) {
@@ -1566,6 +1567,18 @@ class UIRenderer {
             }
             window.location.href = uiUpdate.redirect;
             return; // Stop processing after redirect
+        }
+
+        // Handle in-app SPA navigation (HTML5 history update)
+        if (uiUpdate.navigate && typeof uiUpdate.navigate === 'object') {
+            const navUrl = uiUpdate.navigate.url;
+            const navTitle = uiUpdate.navigate.title || document.title;
+            if (navUrl && window.history && typeof window.history.pushState === 'function') {
+                window.history.pushState({ path: navUrl }, navTitle, navUrl);
+                if (navTitle) {
+                    document.title = navTitle;
+                }
+            }
         }
 
         // Check if there are components with parent='modal' - if so, open modal
