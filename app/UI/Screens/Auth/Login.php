@@ -3,6 +3,7 @@
 namespace App\UI\Screens\Auth;
 
 use App\Http\Requests\Auth\LoginRequest;
+use App\Models\User;
 use App\Services\Auth\LoginService;
 use Idei\Usim\Components\Container;
 use Idei\Usim\Components\Label;
@@ -172,7 +173,18 @@ class Login extends Screen
         $this->store_token = $response['token'];
         $this->store_email = $credentials['email'];
         $redirectTo = $response['redirect_to'];
-        $this->redirect($redirectTo);
+        // $this->redirect($redirectTo);
+    }
+
+    /**
+     * @param array<string, mixed> $params
+     */
+    public function onLoggedUser(array $params): void
+    {
+        /** @var User|null $user */
+        $user = $params['user'] ?? null;
+        $unitValue = $params['unit'] ?? '';
+        $homeScreen = $params['home_screen'] ?? null;
     }
 
     public function onCloseLoginDialog(): void

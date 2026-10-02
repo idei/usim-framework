@@ -1861,10 +1861,35 @@ class UIRenderer {
                 }
             }
 
-            // Items (menudropdown) - DEPRECATED: items are immutable in frontend
-            // Only permissions array should be updated from backend
+            // Items (menudropdown)
             if (changes.items !== undefined) {
-                console.warn('⚠️ Updating items[] is deprecated. Use permissions[] instead.');
+                const component = componentId ? (
+                    this.components?.get(String(componentId)) ||
+                    this.components?.get(Number(componentId)) ||
+                    globalRenderer?.components?.get(String(componentId)) ||
+                    globalRenderer?.components?.get(Number(componentId))
+                ) : null;
+
+                if (component && component.config) {
+                    component.config.items = changes.items;
+                }
+
+                const menuContent = element.querySelector('.menu-dropdown-content');
+                if (menuContent) {
+                    menuContent.innerHTML = '';
+                    const items = Array.isArray(changes.items) ? changes.items : [];
+                    items.forEach(item => {
+                        if (component && typeof component.renderMenuItem === 'function') {
+                            menuContent.appendChild(component.renderMenuItem(item));
+                        }
+                    });
+
+                    if (items.length > 0 && changes.visible !== false && element.style.display === 'none') {
+                        element.style.display = '';
+                    } else if (items.length === 0 && changes.visible === undefined) {
+                        element.style.display = 'none';
+                    }
+                }
             }
 
             // Permissions (menudropdown) - Re-render menu items with new permissions
@@ -2006,7 +2031,7 @@ class UIRenderer {
 
             // Visibility
             if (changes.visible !== undefined) {
-                element.style.display = changes.visible ? '' : 'none';
+                element.style.display = (changes.visible === false) ? 'none' : '';
             }
 
             // Enabled/disabled state

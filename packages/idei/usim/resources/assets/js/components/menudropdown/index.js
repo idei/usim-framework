@@ -205,6 +205,34 @@ class UsimMenuDropdownComponent extends UIComponent {
         return menuItem;
     }
 
+    update(changes) {
+        this.config = {
+            ...this.config,
+            ...changes,
+        };
+
+        const element = document.querySelector(`[data-component-id="${this.id}"]`);
+        if (!element) return;
+
+        if (changes.items !== undefined) {
+            this.config.items = changes.items;
+            const content = element.querySelector('.menu-dropdown-content');
+            if (content) {
+                content.innerHTML = '';
+                const items = Array.isArray(changes.items) ? changes.items : [];
+                items.forEach(item => {
+                    content.appendChild(this.renderMenuItem(item));
+                });
+
+                if (items.length > 0 && element.style.display === 'none' && changes.visible !== false) {
+                    element.style.display = '';
+                } else if (items.length === 0 && changes.visible === undefined) {
+                    element.style.display = 'none';
+                }
+            }
+        }
+    }
+
     closeAllMenus() {
         document.querySelectorAll('.menu-dropdown-content.show').forEach(content => {
             content.classList.remove('show');
