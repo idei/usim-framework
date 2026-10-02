@@ -426,7 +426,14 @@ class Menu extends Screen
             ->position('bottom-right')
             ->width(Size::px(180));
 
-        $builder->screen(Login::class);
+        // $builder->screen(Login::class);
+        $builder->action(
+            t('screen.menu.items.login'),
+            'show_login_form',
+            [],
+            '🔑',
+            when: !Auth::check()
+        );
         $builder->action(
             t('screen.menu.items.register'),
             'show_register_form',
@@ -444,6 +451,11 @@ class Menu extends Screen
         );
 
         return $builder;
+    }
+
+    public function onShowLoginForm(array $params): void
+    {
+        $this->openModal(Login::class);
     }
 
     /**
@@ -508,7 +520,7 @@ class Menu extends Screen
         $this->populateMainMenu($this->main_menu);
 
         $this->toast(t('screen.menu.logout_success'));
-        $this->redirect();
+        // $this->redirect();
     }
 
     /**

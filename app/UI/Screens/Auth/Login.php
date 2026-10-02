@@ -56,10 +56,10 @@ class Login extends Screen
             ->layout(LayoutType::VERTICAL)
             ->justifyContent(JustifyContent::CENTER)
             ->alignItems(AlignItems::CENTER)
-            ->padding(Spacing::px(20));
+            ->padding(Spacing::px(5));
 
         $card = UI::container('login_card')
-            ->card()
+            ->plain()
             ->maxWidth(Size::px(450))
             ->width(Size::full());
 
@@ -174,6 +174,7 @@ class Login extends Screen
         $this->store_email = $credentials['email'];
         $redirectTo = $response['redirect_to'];
         // $this->redirect($redirectTo);
+        $this->onCloseLoginDialog();
     }
 
     /**
@@ -189,6 +190,11 @@ class Login extends Screen
 
     public function onCloseLoginDialog(): void
     {
+        if ($this->isOpenedAsModal()) {
+            $this->closeModal();
+            return;
+        }
+
         $this->redirect('/');
     }
 }
