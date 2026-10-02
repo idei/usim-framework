@@ -292,7 +292,13 @@ abstract class AbstractLayout extends Screen implements LayoutInterface
                     'route' => $routeSlug,
                     'title' => $targetClass::getMenuLabel(),
                     'slot' => $targetContainer->getName() ?? $effectiveSlot,
+                    'slot_container_id' => $targetContainer->getId(),
                 ],
+                'clear_container' => $targetContainer->getId(),
+            ]);
+        } else {
+            app(UIChangesCollector::class)->add([
+                'clear_container' => $targetContainer->getId(),
             ]);
         }
 

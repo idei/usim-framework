@@ -92,7 +92,6 @@ class Login extends Screen
             ->justifyContent(JustifyContent::SPACE_BETWEEN)
             ->plain()
             ->gap(Spacing::px(10))
-            ->shadow(false)
             ->padding(Spacing::each(Spacing::px(20)));
 
         $buttonsContainer->add(
@@ -173,8 +172,7 @@ class Login extends Screen
         $this->store_token = $response['token'];
         $this->store_email = $credentials['email'];
         $redirectTo = $response['redirect_to'];
-        // $this->redirect($redirectTo);
-        $this->onCloseLoginDialog();
+        $this->redirect($redirectTo);
     }
 
     /**

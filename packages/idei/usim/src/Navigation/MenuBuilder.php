@@ -148,6 +148,21 @@ class MenuBuilder
         return $item;
     }
 
+    public function screenShow(
+        string $screenClass,
+        Closure|bool|null $when = null
+    ): MenuItem {
+        $label = $screenClass::getMenuLabel();
+        $icon = $screenClass::getMenuIcon();
+        $item = MenuItem::make($label)
+            ->action('showScreen', ['screen' => $screenClass])
+            ->icon($icon)
+            ->when($when);
+
+        $this->items[] = $item;
+        return $item;
+    }
+
     public function submenu(
         string $label,
         Closure $callback,

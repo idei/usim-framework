@@ -817,6 +817,7 @@ const SPECIAL_UI_KEYS = new Set([
     'abort',
     'update_modal',
     'clear_uploaders',
+    'clear_container',
     'set_uploader_existing_file',
     'change_theme',
     'change_language',
@@ -1554,6 +1555,11 @@ class UIRenderer {
             this.clearUploaders(uiUpdate.clear_uploaders);
         }
 
+        // Handle clear container if present
+        if (uiUpdate.clear_container) {
+            this.clearContainer(uiUpdate.clear_container);
+        }
+
         // Handle set existing file on uploaders
         if (uiUpdate.set_uploader_existing_file) {
             this.setUploaderExistingFile(uiUpdate.set_uploader_existing_file);
@@ -1575,11 +1581,15 @@ class UIRenderer {
             const navRoute = uiUpdate.navigate.route;
             const navTitle = uiUpdate.navigate.title || document.title;
             const slotTarget = uiUpdate.navigate.slot || 'content_container';
+            const slotContainerId = uiUpdate.navigate.slot_container_id || slotTarget;
             if (navUrl && window.history && typeof window.history.pushState === 'function') {
                 window.history.pushState({ path: navUrl, route: navRoute, slot: slotTarget }, navTitle, navUrl);
                 if (navTitle) {
                     document.title = navTitle;
                 }
+            }
+            if (slotContainerId) {
+                this.clearContainer(slotContainerId);
             }
         }
 
@@ -1628,6 +1638,40 @@ class UIRenderer {
 
         // Handle UI updates (for non-modal actions)
         processComponentUpdates(Object.entries(uiUpdate));
+    }
+
+    /**
+     * Clear all children and descendants of a container by ID or name
+     *
+     * @param {number|string} containerId - Container ID or name
+     */
+    clearContainer(containerId) {
+        const containerElement = document.querySelector(`[data-component-id="${containerId}"]`)
+            || document.getElementById(containerId);
+        if (!containerElement) {
+            return;
+        }
+
+        const directChildren = Array.from(containerElement.querySelectorAll('[data-component-id]'))
+            .filter((node) => node !== containerElement && node.closest('[data-component-id]') === containerElement);
+
+        for (const child of directChildren) {
+            const childId = child.getAttribute('data-component-id');
+            if (childId) {
+                this.removeComponentAndChildren(childId);
+            } else {
+                child.remove();
+            }
+        }
+
+        const resolvedId = containerElement.getAttribute('data-component-id') || containerId;
+        const runtimeComponent = this.components ? this.components.get(String(resolvedId)) : null;
+        if (typeof runtimeComponent?._buildShell === 'function') {
+            runtimeComponent._buildShell();
+        } else {
+            const targetElement = runtimeComponent?.contentElement || containerElement;
+            targetElement.innerHTML = '';
+        }
     }
 
     /**
@@ -3118,7 +3162,6 @@ window.closeModal = closeModal;
  */
 async function loadMenuUI(forceReset = null) {
     if (!window.MENU_SERVICE) {
-        console.log('ℹ️ No MENU_SERVICE defined, skipping menu load');
         return;
     }
 

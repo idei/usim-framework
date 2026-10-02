@@ -241,15 +241,28 @@ abstract class Screen
             return $layout;
         }
 
+        $layoutClass = null;
         $currentScreenClass = UIStateManager::getClientCurrentScreenClass();
         if ($currentScreenClass !== null && class_exists($currentScreenClass) && is_subclass_of($currentScreenClass, self::class)) {
             $layoutClass = $currentScreenClass::getLayoutClass();
-            if ($layoutClass !== null && class_exists($layoutClass) && is_subclass_of($layoutClass, \Idei\Usim\Layout\AbstractLayout::class)) {
-                /** @var \Idei\Usim\Layout\AbstractLayout $layout */
-                $layout = app($layoutClass);
-                \Idei\Usim\Layout\AbstractLayout::setCurrent($layout);
-                return $layout;
+        }
+
+        if ($layoutClass === null) {
+            /** @var \Idei\Usim\Support\UsimConfig $usimConfig */
+            $usimConfig = app(\Idei\Usim\Support\UsimConfig::class);
+            $defaultLayout = $usimConfig->defaultLayout;
+            if (class_exists($defaultLayout) && is_subclass_of($defaultLayout, \Idei\Usim\Layout\AbstractLayout::class)) {
+                /** @var class-string<\Idei\Usim\Layout\AbstractLayout> $defaultLayout */
+                $layoutClass = $defaultLayout;
             }
+        }
+
+        if ($layoutClass !== null && class_exists($layoutClass) && is_subclass_of($layoutClass, \Idei\Usim\Layout\AbstractLayout::class)) {
+            /** @var \Idei\Usim\Layout\AbstractLayout $layout */
+            $layout = app($layoutClass);
+            $layout->initializeEventContext();
+            \Idei\Usim\Layout\AbstractLayout::setCurrent($layout);
+            return $layout;
         }
 
         return null;
@@ -1622,7 +1635,7 @@ abstract class Screen
         if ($layout !== null) {
             $layout->setActiveScreen($effectiveSlot, $targetClass);
             if ($layout->getSlot($effectiveSlot) !== null) {
-                return $layout->showInto($effectiveSlot, $targetClass, $params, $updateBrowserUrl);
+                return $layout->showInto($targetClass, $effectiveSlot, $params, $updateBrowserUrl);
             }
         }
 

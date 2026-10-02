@@ -33,9 +33,9 @@
     <link rel="stylesheet" href="{{ asset('vendor/idei/usim/css/components/container/index.css') }}?v={{ $usimAssetVersion('vendor/idei/usim/css/components/container/index.css') }}">
 </head>
 <body>
+    <button id="reset-btn" style="position: fixed; left: 16px; bottom: 16px; z-index: 9999; width: 32px; height: 32px; border: 1px solid rgba(255, 255, 255, 0.0); border-radius: 50%; display: flex; align-items: center; justify-content: center; background: rgba(239, 68, 68, 0.55); color: #fff; font-weight: 700; box-shadow: 0 4px 10px rgba(127, 29, 29, 0.35); cursor: pointer;" onclick="location.href='?reset=true'">R</button>
     <main id="main"></main>
     <div id="modal-root"></div>
-    <button id="reset-btn" onclick="location.href='?reset=true'">Reset</button>
 
     @php
         // Obtener todos los parámetros de ruta automáticamente

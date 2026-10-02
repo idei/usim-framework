@@ -47,8 +47,7 @@ class Menu extends Screen
         protected AuthSessionService $authSessionService,
         protected UsimUnitsService $usimUnitsService,
         protected RegisterActionHandler $registerActionHandler
-    ) {
-    }
+    ) {}
 
     protected MenuDropdown $main_menu;
     protected MenuDropdown $user_menu;
@@ -426,14 +425,14 @@ class Menu extends Screen
             ->position('bottom-right')
             ->width(Size::px(180));
 
-        // $builder->screen(Login::class);
-        $builder->action(
-            t('screen.menu.items.login'),
-            'show_login_form',
-            [],
-            '🔑',
-            when: !Auth::check()
-        );
+        $builder->screenShow(Login::class, when: !Auth::check());
+        // $builder->action(
+        //     t('screen.menu.items.login'),
+        //     'show_login_form',
+        //     [],
+        //     '🔑',
+        //     when: !Auth::check()
+        // );
         $builder->action(
             t('screen.menu.items.register'),
             'show_register_form',
@@ -453,6 +452,24 @@ class Menu extends Screen
         return $builder;
     }
 
+    /**
+     * @param array<string, mixed> $params
+     */
+    public function onShowScreen(array $params): void
+    {
+        /** @var class-string<Screen>|string|null $screen */
+        $screen = $params['screen'] ?? null;
+        if ($screen !== null && is_subclass_of($screen, Screen::class)) {
+            /** @var string|null $slot */
+            $slot = isset($params['slot']) && \is_string($params['slot']) ? $params['slot'] : null;
+
+            $this->showInto($screen, slot: $slot);
+        }
+    }
+
+    /**
+     * @param array<string, mixed> $params
+     */
     public function onShowLoginForm(array $params): void
     {
         $this->openModal(Login::class);
@@ -520,7 +537,7 @@ class Menu extends Screen
         $this->populateMainMenu($this->main_menu);
 
         $this->toast(t('screen.menu.logout_success'));
-        // $this->redirect();
+        $this->redirect();
     }
 
     /**

@@ -1740,38 +1740,38 @@ body.modal-open #menu {
 }
 
 /* Toast Container Positions */
-.toast-position-top-right {
+.toast-container.toast-position-top-right {
     top: 20px;
     right: 20px;
     align-items: flex-end;
 }
 
-.toast-position-top-left {
+.toast-container.toast-position-top-left {
     top: 20px;
     left: 20px;
     align-items: flex-start;
 }
 
-.toast-position-top-middle {
+.toast-container.toast-position-top-middle {
     top: 20px;
     left: 50%;
     transform: translateX(-50%);
     align-items: center;
 }
 
-.toast-position-bottom-right {
+.toast-container.toast-position-bottom-right {
     bottom: 20px;
     right: 20px;
     align-items: flex-end;
 }
 
-.toast-position-bottom-left {
+.toast-container.toast-position-bottom-left {
     bottom: 20px;
     left: 20px;
     align-items: flex-start;
 }
 
-.toast-position-bottom-middle {
+.toast-container.toast-position-bottom-middle {
     bottom: 20px;
     left: 50%;
     transform: translateX(-50%);
@@ -2141,6 +2141,15 @@ body.modal-open #menu {
     .toast {
         min-width: auto;
     }
+
+    .toast-container.toast-position-top-middle,
+    .toast-container.toast-position-bottom-middle {
+        right: auto;
+        left: 50%;
+        width: max-content;
+        max-width: calc(100vw - 20px);
+        transform: translateX(-50%);
+    }
 }
 
 
@@ -2192,4 +2201,3 @@ body.modal-open #menu {
 .ui-error-button:hover {
     background-color: var(--usim-error-button-bg-hover, #bb2d3b);
 }
-

@@ -14,6 +14,7 @@ The format is based on Keep a Changelog, and this project follows Semantic Versi
 - Runtime config resolution now uses `usim.*` keys only; legacy `ui-services.*` fallbacks were removed.
 
 ### Fixed
+- Toast position styles now apply to the toast container rather than each toast, keeping `top-middle` centered; centered positions also remain centered on mobile.
 - `stubs/services/Auth/RegisterService.php.stub`: users registering with only the default pending role (`usim.default_registering_role`, e.g. `registered`) are now placed in the `lobby` unit instead of `main` when no explicit `$unit` is given. Previously they landed in `main`, so the lobby-cleanup logic (removing the `registered` role and detaching `lobby`) never triggered once an admin later assigned them a role in an operational unit, leaving `registered` stuck on the user.
 
 ## [v0.12.0] - 2026-04-30
@@ -202,4 +203,3 @@ The format is based on Keep a Changelog, and this project follows Semantic Versi
 - Request-scoped `UIChangesCollector` reset to stabilize UI scenario event flow.
 - Dynamic internal URL/port handling for notifications and verification flows.
 - Installer test coverage and generated screen validation for `Menu.php` and related scaffolding outputs.
-
