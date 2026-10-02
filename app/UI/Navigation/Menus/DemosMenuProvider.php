@@ -26,13 +26,13 @@ class DemosMenuProvider implements MenuProviderInterface
             $submenu->screenShow(ModalDemo::class);
             $submenu->action(t('screen.menu.demos.abort_error'), 'show_error_info', [], '❌');
             $submenu->screenShow(FormDemo::class);
-            $submenu->screen(InputDemo::class, t('screen.menu.demos.input_demo'), '⌨️');
-            $submenu->screen(SelectDemo::class, t('screen.menu.demos.select_demo'), '📋');
-            $submenu->screen(CheckboxDemo::class, t('screen.menu.demos.checkbox_demo'), '☑️');
-            $submenu->screen(CarouselDemo::class, t('screen.menu.demos.carousel_demo'), '🎞️');
-            $submenu->screen(TextareaDemo::class);
-            $submenu->screen(SplitDemo::class);
-            $submenu->screen(TabsDemo::class);
+            $submenu->screenShow(InputDemo::class);
+            $submenu->screenShow(SelectDemo::class);
+            $submenu->screenShow(CheckboxDemo::class);
+            $submenu->screenShow(CarouselDemo::class);
+            $submenu->screenShow(TextareaDemo::class);
+            $submenu->screenShow(SplitDemo::class);
+            $submenu->screenShow(TabsDemo::class);
         }, '🎮');
     }
 }
