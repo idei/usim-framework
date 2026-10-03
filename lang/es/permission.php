@@ -54,6 +54,12 @@ return [
                 'description' => 'Permite acceder a la pantalla Admin Admin Device Pairing.',
             ],
         ],
+        'edit_user' => [
+            'access' => [
+                'name' => 'Acceder a Admin Edit User',
+                'description' => 'Permite acceder a la pantalla Admin Edit User.',
+            ],
+        ],
     ],
     'home' => [
         'access' => [

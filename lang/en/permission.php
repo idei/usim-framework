@@ -54,6 +54,12 @@ return [
                 'description' => 'Permission to access Admin Admin Device Pairing.',
             ],
         ],
+        'edit_user' => [
+            'access' => [
+                'name' => 'Access Admin Edit User',
+                'description' => 'Permission to access Admin Edit User.',
+            ],
+        ],
     ],
     'home' => [
         'access' => [

@@ -1,6 +1,6 @@
 <?php
 // @usim: feature="admin", type="screen"
-namespace App\UI\Screens\Auth;
+namespace App\UI\Screens\Admin;
 
 use App\Models\User;
 use App\Services\Role\RoleService;
@@ -13,6 +13,7 @@ use Idei\Usim\Enums\DialogType;
 use Idei\Usim\Enums\JustifyContent;
 use Idei\Usim\Enums\LayoutType;
 use Idei\Usim\Enums\Visibility;
+use Idei\Usim\Events\UsimEvent;
 use Idei\Usim\Modals\ConfirmDialog;
 use Idei\Usim\Models\UsimRole;
 use Idei\Usim\Models\UsimUnit;
@@ -62,21 +63,6 @@ class EditUser extends Screen
         protected ?UserEditDialogPresenter $userEditDialogPresenter = null,
     ) {
         $this->userEditDialogPresenter = $userEditDialogPresenter ?? new UserEditDialogPresenter();
-    }
-
-    public static function authorize(): bool
-    {
-        return self::requireAuth();
-    }
-
-    public static function getMenuLabel(): string
-    {
-        return self::trans('menu_title');
-    }
-
-    public static function getMenuIcon(): ?string
-    {
-        return '✏️';
     }
 
     protected function buildBaseUI(Container $container, ...$params): void
@@ -223,13 +209,20 @@ class EditUser extends Screen
         $message = $response['message'];
 
         if ($status === 'success') {
+            // fire an event or perform additional actions if needed
+            event(new UsimEvent(
+                'user_updated',
+                [
+                    'user_id' => $userId,
+                    'data' => $updateData
+                ]
+            ));
+
             $this->toast($message, 'success');
             $this->lbl_edit_user_result->text($message)->style('success');
 
             if ($this->isOpenedAsModal()) {
                 $this->closeModal();
-            } else {
-                $this->redirect('/');
             }
             return;
         }
@@ -296,13 +289,14 @@ class EditUser extends Screen
 
         $this->toast($message, $status);
 
-        if ($status === 'success') {
-            if ($this->isOpenedAsModal()) {
-                $this->closeModal();
-            } else {
-                $this->redirect('/');
-            }
-        }
+        event(new UsimEvent(
+            'user_deleted',
+            [
+                'user_id' => $userId,
+            ]
+        ));
+
+        $this->closeModal();
     }
 
     /**
@@ -310,12 +304,7 @@ class EditUser extends Screen
      */
     public function onCloseEditUser(array $params = []): void
     {
-        if ($this->isOpenedAsModal()) {
-            $this->closeModal();
-            return;
-        }
-
-        $this->redirect('/');
+        $this->closeModal();
     }
 
     /**

@@ -4,18 +4,16 @@ namespace App\UI\Screens\Admin\Concerns;
 
 use App\Services\Auth\RegisterService;
 use App\Services\User\UserService;
+use App\UI\Screens\Admin\EditUser;
 use App\UI\Screens\Admin\Presenters\UserEditDialogPresenter;
 use App\UI\Screens\Admin\TableModels\UserTableModel;
-use App\UI\Screens\Auth\EditUser;
 use App\UI\Screens\Auth\Register;
 use Idei\Usim\Components\Button;
 use Idei\Usim\Components\Container;
 use Idei\Usim\Components\Input;
 use Idei\Usim\Components\Table;
-use Idei\Usim\Enums\DialogType;
 use Idei\Usim\Enums\LayoutType;
 use Idei\Usim\Enums\SelectionMode;
-use Idei\Usim\Modals\ConfirmDialog;
 use Idei\Usim\Screen;
 use Idei\Usim\UI;
 use Idei\Usim\ValueObjects\Size;
@@ -52,8 +50,8 @@ trait ManagesUsersSection
         $toolbar = UI::container('users_toolbar')
             ->layout(LayoutType::HORIZONTAL)
             ->fullWidth()
-            ->padding(Spacing::px(10))
-            ->gap(Spacing::px(10));
+            ->padding(Spacing::px(8))
+            ->gap(Spacing::px(8));
 
         $search = UI::input('search_users')
             ->placeholder(t(self::USERS_I18N_PREFIX . 'search_placeholder'))
@@ -184,101 +182,25 @@ trait ManagesUsersSection
     }
 
     /**
-     * @param array<string, mixed> $params
+     * Handles the 'user_updated' event, fired by: EditUser:class.
+     *
+     * @param array $params
+     * @return void
      */
-    public function onSubmitUpdateUser(array $params): void
+    public function onUserUpdated(array $params): void
     {
-        $userId = $this->optionalIntParam($params, 'user_id');
-        if ($userId === null) {
-            $this->toast(t('User ID is required for update'), 'error');
-            return;
-        }
-
-        $user = $this->userService->findUser($userId);
-        if (!$user) {
-            $this->toast(t('User not found'), 'error');
-            return;
-        }
-
-        $updateData = $params;
-        if (isset($updateData['roles'])) {
-            $updateData['roles'] = (array) $updateData['roles'];
-        }
-
-        $activeUnit = $this->resolveActiveUnit();
-        if ($activeUnit) {
-            $updateData['target_unit'] = $activeUnit->id;
-        }
-
-        $response = $this->userService->updateUser($user, $updateData);
-        $status = $response['status'];
-        $message = $response['message'];
-
-        if ($status === 'success') {
-            $this->toast($message, 'success');
-            $this->users_table->refresh();
-            $this->closeModal();
-        } else {
-            $this->toast($message, 'error');
-            $this->updateModalWithErrors($response['errors'] ?? []);
-        }
-    }
-
-    /**
-     * @param array<string, mixed> $params
-     */
-    public function onDeleteUser(array $params): void
-    {
-        $userId = $this->optionalIntParam($params, 'user_id');
-        if ($userId === null) {
-            $this->toast(t('User ID is required'), 'error');
-            return;
-        }
-
-        $response = $this->userService->getUser($userId);
-        if ($response['status'] !== 'success' || empty($response['data'])) {
-            $this->toast(t('User not found'), 'error');
-            return;
-        }
-
-        $user = $response['data'];
-        $name = $user['name'] ?? null;
-        $userName = is_string($name) ? $name : '';
-
-        ConfirmDialog::open(
-            caller: $this,
-            type: DialogType::WARNING,
-            title: t("Delete User"),
-            message: t("Are you sure you want to delete user '{$userName}'?"),
-            confirmAction: 'confirm_delete_user',
-            confirmParams: ['user_id' => $userId],
-        );
-    }
-
-    /**
-     * @param array<string, mixed> $params
-     */
-    public function onConfirmDeleteUser(array $params): void
-    {
-        $userId = $this->optionalIntParam($params, 'user_id');
-        if ($userId === null) {
-            $this->toast(t('User ID is required for deletion'), 'error');
-            return;
-        }
-
-        $user = $this->userService->findUser($userId);
-        if (!$user) {
-            $this->toast(t('User not found'), 'error');
-            return;
-        }
-
-        $response = $this->userService->deleteUser($user);
-        $status = $response['status'];
-        $message = $response['message'];
-
-        $this->toast($message, $status);
         $this->users_table->refresh();
-        $this->closeModal();
+    }
+
+    /**
+     * Handles the 'user_deleted' event, fired by: EditUser:class.
+     *
+     * @param array $params
+     * @return void
+     */
+    public function onUserDeleted(array $params): void
+    {
+        $this->users_table->refresh();
     }
 
     /**
@@ -318,4 +240,3 @@ trait ManagesUsersSection
         return $presenter->present($user);
     }
 }
-
