@@ -34,7 +34,6 @@ Se coloca en las primeras líneas del archivo (debajo de `<?php`):
 namespace App\UI\Screens\Auth;
 
 use App\UI\Screens\Home;
-use App\UI\Components\Modals\LoginDialog;
 use App\Models\User;
 ```
 
@@ -130,7 +129,6 @@ El script aplica transformaciones inversas de forma automática según el `type`
 | Tipo Lógico (`type`) | Origen en Playground | Destino por Defecto en `stubs/` | Reemplazos Aplicados |
 | :--- | :--- | :--- | :--- |
 | `screen` | `app/UI/Screens/Auth/Login.php` | `screens/Auth/Login.php.stub` | `namespace` $\rightarrow$ `{{ namespace }}`<br>`App\UI\Screens\` $\rightarrow$ `{{ screensNamespace }}\`<br>`App\UI\Components\` $\rightarrow$ `{{ componentsNamespace }}\`<br>`App\Models\User` $\rightarrow$ `{{ userModel }}` |
-| `component` | `app/UI/Components/Modals/LoginDialog.php` | `components/Modals/LoginDialog.php.stub` | `namespace` $\rightarrow$ `{{ componentsNamespace }}`<br>`App\UI\Components\` $\rightarrow$ `{{ componentsNamespace }}\`<br>`App\UI\Screens\` $\rightarrow$ `{{ screensNamespace }}\` |
 | `contract` | `app/Contracts/ExampleServiceContract.php` | `contracts/ExampleServiceContract.php.stub` | `namespace App\Contracts` $\rightarrow$ `namespace {{ namespace }}`<br>`App\Models\User` $\rightarrow$ `{{ userModel }}` |
 | `service` | `app/Services/Auth/LoginService.php` | `services/Auth/LoginService.php.stub` | `namespace` $\rightarrow$ `{{ namespace }}`<br>`App\Models\User` $\rightarrow$ `{{ userModel }}` |
 | `controller` | `app/Http/Controllers/Api/AuthController.php` | `controllers/AuthController.php.stub` | `namespace` $\rightarrow$ `{{ namespace }}`<br>`App\Models\User` $\rightarrow$ `{{ userModel }}` |

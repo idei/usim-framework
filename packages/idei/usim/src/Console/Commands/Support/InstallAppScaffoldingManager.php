@@ -65,7 +65,6 @@ class InstallAppScaffoldingManager
 
         $newLine();
         $info('Installing Modal components...');
-        $this->installComponent('Modals/LoginDialog.php.stub', 'LoginDialog.php', 'Modals', $context, $publishStub, $line);
         $this->installComponent('Modals/RegisterDialog.php.stub', 'RegisterDialog.php', 'Modals', $context, $publishStub, $line);
         $this->installComponent('Modals/EditUserDialog.php.stub', 'EditUserDialog.php', 'Modals', $context, $publishStub, $line);
         $this->installComponent('Modals/EditTranslationDialog.php.stub', 'EditTranslationDialog.php', 'Modals', $context, $publishStub, $line);

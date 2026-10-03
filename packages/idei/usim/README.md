@@ -935,7 +935,6 @@ app/
     │   │   └── UserTableModel.php  # Paginated user table
     │   └── Modals/
     │       ├── EditUserDialog.php
-    │       ├── LoginDialog.php
     │       └── RegisterDialog.php
     └── Screens/
         ├── Home.php              # Landing page
