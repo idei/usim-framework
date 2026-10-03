@@ -10,6 +10,14 @@ use Idei\Usim\ValueObjects\Size;
 use Idei\Usim\ValueObjects\Spacing;
 use Illuminate\Support\Str;
 
+/**
+ * Terms Dialog Component
+ *
+ * Provides a modal dialog with terms and conditions content. This component is deprecated and
+ * should be replaced with the LegalTerms screen.
+ *
+ * @deprecated Use LegalTerms.php instead
+ */
 class TermsDialog
 {
     /**

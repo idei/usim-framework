@@ -15,6 +15,7 @@ use Idei\Usim\ValueObjects\Spacing;
  * Register Dialog Service
  *
  * Provides a modal dialog with registration form
+ * @deprecated Use Register.class instead.
  */
 class RegisterDialog
 {

@@ -6,7 +6,6 @@ use App\Models\User;
 use App\Services\Auth\AuthSessionService;
 use App\Services\Auth\RegisterActionHandler;
 use App\Services\Units\UsimUnitsService;
-use App\UI\Components\Modals\TermsDialog;
 use App\UI\Navigation\Menus\MainMenu;
 use App\UI\Screens\Auth\Login;
 use App\UI\Screens\Auth\Profile;
@@ -571,45 +570,6 @@ class Menu extends Screen
     public function onShowErrorInfo(array $params): void
     {
         $this->abort(500, t('screen.menu.abort_demo_error'));
-    }
-
-    // /**
-    //  * Handles the event when a user cancels the logout process, closing any open modals.
-    //  *
-    //  * @param array<string, mixed> $params
-    //  * @return void
-    //  */
-    // public function onShowRegisterForm(array $params): void
-    // {
-    //     RegisterDialog::open(
-    //         submitAction: 'submit_register',
-    //         fakeData: config('app.env') === 'local',
-    //         callerServiceId: $this->getScreenComponentId()
-    //     );
-    // }
-
-    /**
-     * Handles the event when a user requests to view the terms and conditions, opening the relevant dialog.
-     *
-     * @param array<string, mixed> $params
-     * @return void
-     */
-    public function onOpenTermsAndConditions(array $params): void
-    {
-        TermsDialog::open(
-            callerServiceId: $this->getScreenComponentId()
-        );
-    }
-
-    /**
-     * Handles the event when a user submits the registration form, processing the registration action.
-     *
-     * @param array<string, mixed> $params
-     * @return void
-     */
-    public function onSubmitRegister(array $params): void
-    {
-        $this->registerActionHandler->handle($this, $params);
     }
 
     /**

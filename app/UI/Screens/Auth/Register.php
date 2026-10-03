@@ -6,7 +6,6 @@ use App\Models\User;
 use App\Services\Auth\AuthSessionService;
 use App\Services\Auth\RegisterService;
 use App\Services\Role\RoleService;
-use App\UI\Components\Modals\TermsDialog;
 use Idei\Usim\Components\Container;
 use Idei\Usim\Components\Label;
 use Idei\Usim\Enums\AlignItems;
@@ -254,10 +253,11 @@ class Register extends Screen
 
         if (!$askForRole) {
             $acceptTerms = $params['accept_terms'] ?? false;
-            if ($acceptTerms === false || $acceptTerms === 'false' || $acceptTerms === 0) {
+
+            if (!$acceptTerms) {
                 $message = t('screen.auth.register.terms_required');
                 $this->toast($message, type: 'error');
-                $this->lbl_register_result->text($message)->style('error');
+                // $this->lbl_register_result->text($message)->style('error');
                 return;
             }
         }
@@ -316,7 +316,8 @@ class Register extends Screen
 
         $user = $response['user'] ?? null;
         if ($user instanceof User) {
-            $token = data_get($response, 'data.token') ?? null;
+            $rawToken = data_get($response, 'data.token');
+            $token = is_string($rawToken) ? $rawToken : null;
             $this->authSessionService->establishSession($user, null, $token);
 
             if ($this->isOpenedAsModal()) {
@@ -328,15 +329,16 @@ class Register extends Screen
     /**
      * @param array<string, mixed> $params
      */
-    public function onOpenTermsAndConditions(array $params): void
+    public function onOpenTermsAndConditions(array $params = []): void
     {
-        TermsDialog::open(
-            callerServiceId: $this->getScreenComponentId()
-        );
+        $this->openModal(LegalTerms::class);
     }
 
     public function onCloseRegisterDialog(): void
     {
-        $this->closeModal();
+        if ($this->isOpenedAsModal()) {
+            $this->closeModal();
+            return;
+        }
     }
 }
