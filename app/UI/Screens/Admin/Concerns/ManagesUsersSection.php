@@ -4,9 +4,9 @@ namespace App\UI\Screens\Admin\Concerns;
 
 use App\Services\Auth\RegisterService;
 use App\Services\User\UserService;
-use App\UI\Components\Modals\EditUserDialog;
 use App\UI\Screens\Admin\Presenters\UserEditDialogPresenter;
 use App\UI\Screens\Admin\TableModels\UserTableModel;
+use App\UI\Screens\Auth\EditUser;
 use App\UI\Screens\Auth\Register;
 use Idei\Usim\Components\Button;
 use Idei\Usim\Components\Container;
@@ -174,9 +174,12 @@ trait ManagesUsersSection
             return;
         }
 
-        EditUserDialog::open(
-            user: $modalUser,
-            callerServiceId: $this->getScreenComponentId()
+        Screen::openAsModal(
+            params: [
+                'user' => $modalUser,
+            ],
+            caller: $this->screen,
+            screenClass: EditUser::class
         );
     }
 

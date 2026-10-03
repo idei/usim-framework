@@ -28,6 +28,12 @@ return [
                 'description' => 'Permission to access Auth Profile.',
             ],
         ],
+        'edit_user' => [
+            'access' => [
+                'name' => 'Access Auth Edit User',
+                'description' => 'Permission to access Auth Edit User.',
+            ],
+        ],
     ],
     'admin' => [
         'translate_manager' => [

@@ -7,7 +7,6 @@ use App\UI\Screens\Menu;
 use Idei\Usim\Notifications\CustomVerifyEmailNotification;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\URL;
-use Spatie\Permission\Models\Role;
 
 it('opens register modal from guest menu', function () {
     $originalLocale = app()->getLocale();

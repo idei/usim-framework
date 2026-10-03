@@ -238,10 +238,15 @@ class Menu extends Screen
 
         $this->updateUnitMenu();
 
-        $this->toast(t('screen.menu.unit_changed', ['unit' => $this->getUnitDisplayName($unit)]), 'success');
+        $this->toast(t(
+            'screen.menu.unit_changed',
+            ['unit' => $this->getUnitDisplayName($unit)]
+        ), 'success');
 
-        $redirectTo = $this->authSessionService->resolvePostLoginRedirect($user, $unit->slug);
-        $this->redirect($redirectTo);
+        $homeScreen = $this->authSessionService->resolveHomeScreen($user, $unit->slug);
+        if ($homeScreen) {
+            $this->showInto($homeScreen);
+        }
     }
 
     /**

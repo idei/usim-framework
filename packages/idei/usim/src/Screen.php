@@ -1533,7 +1533,7 @@ abstract class Screen
         $container = UI::container($current_class_slug, $contextKey)
             ->parent($this->parent)
             ->modalLayerIndex($this->modalLayerIndex)
-            ->padding(Spacing::px(30))
+            ->padding(Spacing::px(5))
             ->layout(LayoutType::VERTICAL)
             ->justifyContent('center')
             ->alignItems('center');

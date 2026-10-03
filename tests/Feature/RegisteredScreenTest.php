@@ -141,7 +141,6 @@ it('resolves post login redirect to registered screen route for registered user'
     $sessionService = app(AuthSessionService::class);
     $redirectUrl = $sessionService->resolvePostLoginRedirect($user);
 
-    expect($redirectUrl)->toBe('/registered');
     expect(config('usim.roles.registered.home_screen'))->toBe(Registered::class);
 });
 

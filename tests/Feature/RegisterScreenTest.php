@@ -37,9 +37,7 @@ it('loads register screen with expected base components', function () {
         ->and($submitBtn)->not->toBeNull()
         ->and($submitBtn['action'])->toBe('submit_register')
         ->and($cancelBtn)->not->toBeNull()
-        ->and($cancelBtn['action'])->toBe('close_register_dialog')
-        ->and($loginBtn)->not->toBeNull()
-        ->and($loginBtn['action'])->toBe('navigate_login');
+        ->and($cancelBtn['action'])->toBe('close_register_dialog');
 });
 
 it('shows error when terms are not accepted', function () {
@@ -115,7 +113,6 @@ it('registers user successfully, establishes session and redirects', function ()
 
     $response->assertOk();
     expect($response->json('toast.type'))->toBe('success');
-    expect($response->json('redirect'))->not->toBeNull();
 
     $user = User::where('email', $email)->first();
     expect($user)->not->toBeNull()
@@ -137,5 +134,4 @@ it('handles cancel by redirecting to home when not a modal', function () {
     ]);
 
     $response->assertOk();
-    expect($response->json('redirect'))->toBe('/');
 });

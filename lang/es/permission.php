@@ -28,6 +28,12 @@ return [
                 'description' => 'Permite acceder a la pantalla Auth Profile.',
             ],
         ],
+        'edit_user' => [
+            'access' => [
+                'name' => 'Acceder a Auth Edit User',
+                'description' => 'Permite acceder a la pantalla Auth Edit User.',
+            ],
+        ],
     ],
     'admin' => [
         'translate_manager' => [

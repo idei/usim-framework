@@ -1452,7 +1452,7 @@ body.modal-open #menu {
 }
 
 .ui-card-elevated {
-    box-shadow: var(--usim-card-shadow-elevated, 0 4px 20px rgba(15, 23, 36, 0.15));
+    box-shadow: var(--usim-card-shadow-elevated, 0 4px 10px rgba(15, 23, 36, 0.15));
 }
 
 .ui-card-flat {
@@ -1495,7 +1495,7 @@ body.modal-open #menu {
 }
 
 .ui-card-elevation-high {
-    box-shadow: var(--usim-card-shadow-high, 0 8px 30px rgba(15, 23, 36, 0.2));
+    box-shadow: var(--usim-card-shadow-high, 0 8px 8px rgba(15, 23, 36, 0.2));
 }
 
 /* Card Themes */
@@ -1545,7 +1545,7 @@ body.modal-open #menu {
     flex: 1;
     display: flex;
     flex-direction: column;
-    padding: 20px;
+    padding: 10px;
 }
 
 .ui-card-image {
@@ -1624,7 +1624,7 @@ body.modal-open #menu {
     font-weight: 600;
     padding: 4px 8px;
     border-radius: 12px;
-    min-width: 20px;
+    min-width: 10px;
     text-align: center;
     line-height: 1;
 }
@@ -1663,7 +1663,7 @@ body.modal-open #menu {
 }
 
 .ui-card-expanded .ui-card-content {
-    padding: 30px;
+    padding: 8px;
 }
 
 .ui-card-expanded .ui-card-title {
@@ -1678,7 +1678,7 @@ body.modal-open #menu {
 @media (max-width: 768px) {
     .ui-card {
         max-width: 100%;
-        margin: 0 auto 20px;
+        margin: 0 auto 10px;
     }
 
     .ui-card-horizontal {

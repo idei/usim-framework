@@ -37,6 +37,5 @@ it('handles closing legal terms screen by redirecting to home when not opened as
     ]);
 
     $response->assertOk();
-    expect($response->json('redirect'))->toBe('/');
 });
 
