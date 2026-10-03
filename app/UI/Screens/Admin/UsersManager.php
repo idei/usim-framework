@@ -89,7 +89,7 @@ class UsersManager extends Screen
                 'users_tab'
             );
 
-        $this->tabs_container->add($this->buildUsersCrudContainer(), tab: 'users_tab');
+        $this->tabs_container->add($this->buildUsersCrudContainer($this), tab: 'users_tab');
         $this->tabs_container->add($this->buildDevicesCrudContainer(), tab: 'devices_tab');
         $this->tabs_container->add($this->buildRolesContainer(), tab: 'roles_tab');
         $container->add($this->tabs_container);

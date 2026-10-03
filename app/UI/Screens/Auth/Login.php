@@ -172,10 +172,7 @@ class Login extends Screen
         $this->store_token = $response['token'];
         $this->store_email = $credentials['email'];
 
-        if ($this->isOpenedAsModal()) {
-            $this->closeModal();
-            return;
-        }
+        $this->closeModal();
     }
 
     /**

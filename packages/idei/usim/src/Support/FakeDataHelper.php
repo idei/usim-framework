@@ -71,7 +71,7 @@ class FakeDataHelper
      */
     public static function password(int $minLength = 8): string
     {
-        return fake()->password($minLength);
+        return str_repeat('1', $minLength);
     }
 
     /**

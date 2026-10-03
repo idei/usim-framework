@@ -6,11 +6,11 @@ use App\Models\User;
 use App\Services\Auth\AuthSessionService;
 use App\Services\Auth\RegisterActionHandler;
 use App\Services\Units\UsimUnitsService;
-use App\UI\Components\Modals\RegisterDialog;
 use App\UI\Components\Modals\TermsDialog;
 use App\UI\Navigation\Menus\MainMenu;
 use App\UI\Screens\Auth\Login;
 use App\UI\Screens\Auth\Profile;
+use App\UI\Screens\Auth\Register;
 use Idei\Usim\Components\Button;
 use Idei\Usim\Components\Container;
 use Idei\Usim\Components\MenuDropdown;
@@ -426,23 +426,18 @@ class Menu extends Screen
             ->position('bottom-right')
             ->width(Size::px(180));
 
-        $builder->screenShow(
-            Login::class,
-            modal: true,
-            when: !Auth::check()
-        );
+        $builder->screenShow(Login::class, modal: true, when: !Auth::check());
 
-        $builder->action(
-            t('screen.menu.items.register'),
-            'show_register_form',
-            [],
-            '📝',
-            when: !Auth::check()
-        );
-        $builder->screenShow(Profile::class,
-            modal: true,
-            when: Auth::check()
-        );
+        // $builder->action(
+        //     t('screen.menu.items.register'),
+        //     'show_register_form',
+        //     [],
+        //     '📝',
+        //     when: !Auth::check()
+        // );
+        $builder->screenShow(Register::class, modal: true, when: !Auth::check());
+        $builder->screenShow(Profile::class, modal: true, when: Auth::check());
+
         $builder->action(
             t('screen.menu.items.logout'),
             'confirm_logout',
@@ -578,20 +573,20 @@ class Menu extends Screen
         $this->abort(500, t('screen.menu.abort_demo_error'));
     }
 
-    /**
-     * Handles the event when a user cancels the logout process, closing any open modals.
-     *
-     * @param array<string, mixed> $params
-     * @return void
-     */
-    public function onShowRegisterForm(array $params): void
-    {
-        RegisterDialog::open(
-            submitAction: 'submit_register',
-            fakeData: config('app.env') === 'local',
-            callerServiceId: $this->getScreenComponentId()
-        );
-    }
+    // /**
+    //  * Handles the event when a user cancels the logout process, closing any open modals.
+    //  *
+    //  * @param array<string, mixed> $params
+    //  * @return void
+    //  */
+    // public function onShowRegisterForm(array $params): void
+    // {
+    //     RegisterDialog::open(
+    //         submitAction: 'submit_register',
+    //         fakeData: config('app.env') === 'local',
+    //         callerServiceId: $this->getScreenComponentId()
+    //     );
+    // }
 
     /**
      * Handles the event when a user requests to view the terms and conditions, opening the relevant dialog.

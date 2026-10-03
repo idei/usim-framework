@@ -5,9 +5,9 @@ namespace App\UI\Screens\Admin\Concerns;
 use App\Services\Auth\RegisterService;
 use App\Services\User\UserService;
 use App\UI\Components\Modals\EditUserDialog;
-use App\UI\Components\Modals\RegisterDialog;
 use App\UI\Screens\Admin\Presenters\UserEditDialogPresenter;
 use App\UI\Screens\Admin\TableModels\UserTableModel;
+use App\UI\Screens\Auth\Register;
 use Idei\Usim\Components\Button;
 use Idei\Usim\Components\Container;
 use Idei\Usim\Components\Input;
@@ -36,9 +36,12 @@ trait ManagesUsersSection
     protected Table $users_table;
     protected Input $search_users;
     protected Button $add_user_btn;
+    protected Screen|null $screen = null;
 
-    protected function buildUsersCrudContainer(): Container
+    protected function buildUsersCrudContainer(Screen $screen): Container
     {
+        $this->screen = $screen;
+
         $usersCrudContainer = UI::container('users_crud_container')
             ->layout(LayoutType::VERTICAL)
             ->gap(Spacing::px(4))
@@ -90,10 +93,13 @@ trait ManagesUsersSection
      */
     public function onAddUserClicked(array $params): void
     {
-        RegisterDialog::open(
-            fakeData: config('app.env') === 'local',
-            askForRole: true,
-            callerServiceId: $this->getScreenComponentId()
+        Screen::openAsModal(
+            params: [
+                'fakeData' => config('app.env') === 'local',
+                'askForRole' => true
+            ],
+            caller: $this->screen,
+            screenClass: Register::class
         );
     }
 
