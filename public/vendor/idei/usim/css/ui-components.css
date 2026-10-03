@@ -46,10 +46,10 @@ body {
 .ui-container {
     background: var(--usim-container-bg, var(--ui-surface));
     border: 1px solid var(--usim-container-border, var(--ui-border));
-    border-radius: 12px;
-    padding: 18px;
+    border-radius: 5%;
+    padding: 5px;
     box-shadow: var(--usim-container-shadow, 0 2px 6px rgba(15, 23, 36, 0.1));
-    margin-bottom: 12px;
+    margin-bottom: 5px;
     overflow: visible; /* Allow dropdowns and tooltips to overflow */
     position: relative; /* Establish positioning context */
     transition: box-shadow 0.24s ease, transform 0.24s ease;
@@ -58,17 +58,15 @@ body {
 .ui-container.ui-container-card {
     background: var(--usim-container-bg, var(--ui-surface));
     border: 1px solid var(--usim-container-border, var(--ui-border));
-    border-radius: 12px;
+    border-radius: 8px;
     box-shadow: var(--usim-container-shadow, 0 2px 6px rgba(15, 23, 36, 0.1));
 }
 
 .ui-container.ui-container-plain {
-    background: transparent;
     border: none;
     border-radius: 0;
     box-shadow: none;
-    margin-bottom: 0;
-    padding: 0;
+    margin-bottom: 5px;
 }
 
 .ui-container:hover {

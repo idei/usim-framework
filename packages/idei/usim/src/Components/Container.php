@@ -69,7 +69,7 @@ class Container implements UIElement, Sizeable, Paddable, Marginable, Gapable
             'layout' => LayoutType::VERTICAL->value,
             'parent' => null,
             'root' => false,
-            'appearance' => 'card',
+            'appearance' => 'plain',
             'tabs' => [],
             'tabs_active' => null,
             'tabs_on_change' => null,
