@@ -23,7 +23,6 @@ class AdminDevicePairingScreen extends Screen
     protected function buildBaseUI(Container $container, ...$params): void
     {
         $container
-            ->title('Autorizar Nuevo Dispositivo')
             ->maxWidth(Size::px(500))
             ->centerHorizontal()
             ->shadow(2)

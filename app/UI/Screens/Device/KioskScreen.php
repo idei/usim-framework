@@ -40,7 +40,6 @@ class KioskScreen extends Screen
         $this->store_timeout_ms = max(1000, $currentItem['duration_ms']);
 
         $container
-            ->title(t('screen.device.kiosk.title'))
             ->plain()
             ->padding(Spacing::px(0));
 

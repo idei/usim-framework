@@ -10,8 +10,7 @@ use App\Services\UI\Enums\LayoutType;
 
 // Crear un contenedor
 $screen = UI::container('my_screen')
-    ->slot('canvas')
-    ->title('My Application');
+    ->slot('canvas');
 
 // Agregar elementos
 $screen->add(
@@ -38,7 +37,6 @@ $json = $screen->build();
 UI::container('id')
     ->slot('canvas')
     ->layout(LayoutType::VERTICAL) // or HORIZONTAL
-    ->title('Title')
     ->add($element)
     ->build();
 ```
@@ -158,8 +156,7 @@ UIElement (interface)
 ### Ejemplo 1: UI Simple
 ```php
 $ui = UI::container('simple')
-    ->slot('canvas')
-    ->title('Simple UI');
+    ->slot('canvas');
 
 $ui->add(
     UI::button('submit')

@@ -38,7 +38,6 @@ class UploaderDemo extends Screen
     protected function buildBaseUI(Container $container, ...$params): void
     {
         $container
-            ->title(t('screen.demo.uploader_demo.title'))
             ->maxWidth(Size::px(800))
             ->centerHorizontal()
             ->plain()

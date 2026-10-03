@@ -50,7 +50,6 @@ class AddressForm extends Screen
             : [];
 
         $container
-            ->title('Solicitud de direccion')
             ->maxWidth(Size::px(640))
             ->centerHorizontal()
             ->shadow(2)

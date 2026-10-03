@@ -4,7 +4,6 @@
 class UsimContainerComponent extends UIComponent {
     constructor(id, config) {
         super(id, config);
-        this.titleElement = null;
         this.contentElement = null;
         this.tabListElement = null;
         this.tabBodyElement = null;
@@ -52,13 +51,6 @@ class UsimContainerComponent extends UIComponent {
         }
 
         this.element.innerHTML = '';
-
-        this.titleElement = document.createElement('div');
-        this.titleElement.className = 'title';
-        if (!this.config?.title) {
-            this.titleElement.style.display = 'none';
-        }
-        this.element.appendChild(this.titleElement);
 
         if (this._hasTabs()) {
             this.tabListElement = document.createElement('div');
@@ -113,16 +105,6 @@ class UsimContainerComponent extends UIComponent {
         this.element.classList.add('ui-container', layout, `ui-container-${appearance}`);
         if (this._hasTabs()) {
             this.element.classList.add('ui-container--tabs');
-        }
-
-        if (this.titleElement) {
-            if (this.config.title) {
-                this.titleElement.textContent = this.config.title;
-                this.titleElement.style.display = '';
-            } else {
-                this.titleElement.textContent = '';
-                this.titleElement.style.display = 'none';
-            }
         }
 
         if (this._hasTabs()) {

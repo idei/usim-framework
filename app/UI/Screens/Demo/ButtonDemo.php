@@ -46,7 +46,6 @@ class ButtonDemo extends Screen
 
         $container
             ->alignContent('center')->alignItems('center')
-            ->title(t(self::KEY_PREFIX . 'title'))
             ->padding(Spacing::px(10))->maxWidth(Size::px(1200))
             ->centerHorizontal()->plain()
             ->gap(Spacing::px(20))

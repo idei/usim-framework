@@ -118,7 +118,6 @@ class SelectDemo extends Screen
     protected function buildBaseUI(Container $container, ...$params): void
     {
         $container
-            ->title(t('screen.demo.select_demo.title'))
             ->maxWidth(Size::px(600))
             ->centerHorizontal()
             ->shadow(2)

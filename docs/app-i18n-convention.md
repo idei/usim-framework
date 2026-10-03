@@ -73,13 +73,11 @@ database/
 
 ```php
 // ❌ Antes (hardcoded)
-$container->title('Mi Perfil');
 $input->label('Email');
 $input->placeholder('Tu nombre completo');
 $this->toast('Perfil actualizado', 'success');
 
 // ✅ Después (i18n)
-$container->title(t('screen.auth.profile.title'));
 $input->label(t('screen.auth.profile.email_label'));
 $input->placeholder(t('screen.auth.profile.name_placeholder'));
 $this->toast(t('screen.auth.profile.save_success'), 'success');

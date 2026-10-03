@@ -68,7 +68,6 @@ class Container implements UIElement, Sizeable, Paddable, Marginable, Gapable
             'visible' => true,
             'layout' => LayoutType::VERTICAL->value,
             'parent' => null,
-            'title' => null,
             'root' => false,
             'appearance' => 'card',
             'tabs' => [],
@@ -400,18 +399,6 @@ class Container implements UIElement, Sizeable, Paddable, Marginable, Gapable
     public function layout(LayoutType $layout): self
     {
         $this->config['layout'] = $layout->value;
-        return $this;
-    }
-
-    /**
-     * Set the title for this container
-     *
-     * @param string $title The container title
-     * @return self For method chaining
-     */
-    public function title(string $title): self
-    {
-        $this->config['title'] = $title;
         return $this;
     }
 

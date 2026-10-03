@@ -24,7 +24,6 @@ class FormDemo extends Screen
     protected function buildBaseUI(Container $container, ...$params): void
     {
         $container
-            ->title(t('screen.demo.form_demo.title'))
             ->maxWidth(Size::px(500))
             ->centerHorizontal()
             ->shadow(2)

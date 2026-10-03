@@ -101,17 +101,6 @@ body {
     min-width: 200px;
 }
 
-.ui-container > .title {
-    font-size: 1.24rem;
-    font-weight: 650;
-    letter-spacing: 0.01em;
-    color: var(--usim-container-title-text, var(--ui-text-strong));
-    margin-bottom: 14px;
-    border-bottom: 2px solid var(--usim-container-title-border, var(--ui-border-strong));
-    padding-bottom: 12px;
-    text-shadow: var(--usim-container-title-shadow, none);
-}
-
 /* Button Styles */
 .ui-button {
     display: inline-flex;

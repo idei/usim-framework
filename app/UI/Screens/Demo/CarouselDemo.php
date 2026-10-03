@@ -32,7 +32,6 @@ class CarouselDemo extends Screen
         $this->store_auto_index = $this->normalizeIndex($this->store_auto_index, count($autoItems));
 
         $container
-            ->title(t('screen.demo.carousel_demo.title'))
             ->maxWidth(Size::px(980))
             ->centerHorizontal()
             ->plain()

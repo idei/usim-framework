@@ -15,7 +15,6 @@ class HolaContexto extends Screen
     protected function buildBaseUI(Container $container, ...$params): void
     {
         $container
-            ->title('Hola Contexto')
             ->padding(Spacing::px(24))
             ->add(
                 UI::label('hola_contexto_label')

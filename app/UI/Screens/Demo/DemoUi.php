@@ -25,7 +25,6 @@ class DemoUi extends Screen
     protected function buildBaseUI(Container $container, ...$params): void
     {
         $container
-            ->title(t('screen.demo.demo_ui.title'))
             ->maxWidth(Size::px(600))
             ->centerHorizontal()
             ->rounded(false)

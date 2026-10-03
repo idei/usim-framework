@@ -45,7 +45,6 @@ class Profile extends Screen
         }
 
         $container
-            ->title(t('screen.auth.profile.title'))
             ->maxWidth(Size::px(600))
             ->centerHorizontal()
             ->shadow(2)

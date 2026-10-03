@@ -242,7 +242,6 @@
                 <pre class="code">class Home extends Screen {
     protected function buildBaseUI(Container $c): void {
         $c->add(UI::card('welcome')
-            ->title('Hello USIM')
             ->body('Your first screen is ready.'));
     }
 }</pre>

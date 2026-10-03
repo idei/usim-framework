@@ -131,7 +131,6 @@ protected function buildBaseUI(Container $container, ...$params): void
     
     // Container principal
     $container
-        ->title('Mi Perfil')
         ->maxWidth('600px')
         ->centerHorizontal()
         ->shadow(2)
@@ -950,7 +949,6 @@ class ButtonDemoService extends Screen
     {
         $container
             ->alignContent('center')->alignItems('center')
-            ->title('Button Demo - Click Me!')
             ->padding('30px')->maxWidth('400px')
             ->centerHorizontal()->shadow(2)
             ->add(
@@ -1017,7 +1015,6 @@ class ProfileService extends Screen
         $user = Auth::user();
 
         $container
-            ->title('Mi Perfil')
             ->maxWidth('600px')
             ->centerHorizontal()
             ->shadow(2)
@@ -1182,7 +1179,6 @@ class ModalDemoService extends Screen
     protected function buildBaseUI(Container $container, ...$params): void
     {
         $container
-            ->title('Modal Demo')
             ->maxWidth('600px')
             ->centerHorizontal();
 

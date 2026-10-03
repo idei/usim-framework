@@ -57,7 +57,6 @@ class UserFormModal extends Screen
         }
 
         $container
-            ->title(t('screen.demo.modal_demo.user_modal.title'))
             ->maxWidth(Size::px(520))
             ->centerHorizontal()
             ->plain()

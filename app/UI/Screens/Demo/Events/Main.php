@@ -40,7 +40,6 @@ class Main extends Screen
             ->addSecond($this->right_pane);
 
         $container
-            ->title('Comunicación entre Screens con Eventos')
             ->maxWidth(Size::px(500))
             ->centerHorizontal()
             ->padding(Spacing::px(20))

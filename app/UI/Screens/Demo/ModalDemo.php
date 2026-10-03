@@ -33,7 +33,6 @@ class ModalDemo extends Screen
     protected function buildBaseUI(Container $container, ...$params): void
     {
         $container
-            ->title(t('screen.demo.modal_demo.title'))
             ->maxWidth(Size::px(600))
             ->centerHorizontal()
             ->shadow(2)

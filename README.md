@@ -341,7 +341,6 @@ class HelloWorldService extends Screen
     protected function buildBaseUI(Container $container, ...$params): void
     {
         $container
-            ->title('Hello USIM')
             ->maxWidth('400px')
             ->centerHorizontal();
         

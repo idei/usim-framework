@@ -28,7 +28,6 @@ class CheckboxDemo extends Screen
     protected function buildBaseUI(Container $container, ...$params): void
     {
         $container
-            ->title(t('screen.demo.checkbox_demo.title'))
             ->maxWidth(Size::px(500))
             ->centerHorizontal()
             ->padding(Spacing::px(20))

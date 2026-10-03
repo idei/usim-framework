@@ -1714,8 +1714,7 @@ class UIRenderer {
 
         // Ensure no stale non-shell elements remain in containerElement
         Array.from(containerElement.children).forEach((child) => {
-            if (child !== runtimeComponent?.titleElement &&
-                child !== runtimeComponent?.tabListElement &&
+            if (child !== runtimeComponent?.tabListElement &&
                 child !== runtimeComponent?.tabBodyElement) {
                 child.remove();
             }
