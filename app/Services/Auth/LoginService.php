@@ -31,13 +31,7 @@ class LoginService
      *             email: string,
      *             roles: list<string>,
      *             permissions: list<string>
-     *         },
-     *         token: string,
-     *         remember: bool,
-     *         units: array<string, array<mixed>>,
-     *         active_unit: string|null,
-     *         home_screen: class-string<\Idei\Usim\Screen>,
-     *         redirect_to: string
+     *         }
      *     },
      *     user: User,
      *     token: string,

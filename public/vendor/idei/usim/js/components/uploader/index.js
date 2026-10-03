@@ -12,10 +12,36 @@ class UploaderComponent extends UIComponent {
     constructor(id, config) {
         super(id, config);
         this.uploadedFiles = []; // Array de archivos subidos {temp_id, filename, size, type, ...}
-        this.csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || '';
 
         // Calcular dimensiones del dropzone según aspect_ratio y size_level
         this.dropzoneDimensions = this.calculateDropzoneDimensions();
+    }
+
+    get csrfToken() {
+        const headers = this.getCsrfHeaders();
+        return headers['X-CSRF-TOKEN'] || headers['X-XSRF-TOKEN'] || document.querySelector('meta[name="csrf-token"]')?.content || '';
+    }
+
+    getCsrfHeaders() {
+        if (typeof window.getCsrfHeaders === 'function') {
+            return window.getCsrfHeaders();
+        }
+
+        const match = document.cookie.match(new RegExp('(^|;\\s*)(XSRF-TOKEN)=([^;]*)'));
+        if (match && match[3]) {
+            return {
+                'X-XSRF-TOKEN': decodeURIComponent(match[3]),
+            };
+        }
+
+        const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
+        if (csrfToken) {
+            return {
+                'X-CSRF-TOKEN': csrfToken,
+            };
+        }
+
+        return {};
     }
 
     render() {
@@ -262,10 +288,18 @@ class UploaderComponent extends UIComponent {
     }
 
     async uploadFile(file) {
+        const csrfHeaders = this.getCsrfHeaders();
+        const usimStorage = typeof window.getUsimStorageHeaderValue === 'function'
+            ? window.getUsimStorageHeaderValue()
+            : (typeof getUsimStorageHeaderValue === 'function' ? getUsimStorageHeaderValue() : '');
+
         const formData = new FormData();
         formData.append('file', file);
         formData.append('component_id', this.id);
-        formData.append('_token', this.csrfToken);
+        // Only append _token if XSRF cookie is not available and we fallback to meta tag
+        if (!csrfHeaders['X-XSRF-TOKEN'] && csrfHeaders['X-CSRF-TOKEN']) {
+            formData.append('_token', csrfHeaders['X-CSRF-TOKEN']);
+        }
 
         // Crear item en la lista (con estado "uploading")
         const fileItem = this.createFileItem(file, 'uploading');
@@ -281,14 +315,27 @@ class UploaderComponent extends UIComponent {
         }
 
         try {
+            const headers = {
+                'Accept': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest',
+                ...csrfHeaders,
+            };
+            if (usimStorage) {
+                headers['X-USIM-Storage'] = usimStorage;
+            }
+
             const response = await fetch('/api/upload/temporary', {
                 method: 'POST',
-                headers: {
-                    'Accept': 'application/json',
-                    'X-CSRF-TOKEN': this.csrfToken,
-                },
+                headers: headers,
+                credentials: 'same-origin',
                 body: formData,
             });
+
+            if (response.status === 419) {
+                this.updateFileItem(fileItem, { original_filename: file.name }, 'error');
+                this.showError('Sesión expirada o token inválido (419). Por favor recargue la página.');
+                return;
+            }
 
             const result = await response.json();
 
@@ -469,13 +516,30 @@ class UploaderComponent extends UIComponent {
 
     async removeFile(tempId, itemElement) {
         try {
+            const csrfHeaders = this.getCsrfHeaders();
+            const usimStorage = typeof window.getUsimStorageHeaderValue === 'function'
+                ? window.getUsimStorageHeaderValue()
+                : (typeof getUsimStorageHeaderValue === 'function' ? getUsimStorageHeaderValue() : '');
+
+            const headers = {
+                'Accept': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest',
+                ...csrfHeaders,
+            };
+            if (usimStorage) {
+                headers['X-USIM-Storage'] = usimStorage;
+            }
+
             const response = await fetch(`/api/upload/temporary/${tempId}`, {
                 method: 'DELETE',
-                headers: {
-                    'Accept': 'application/json',
-                    'X-CSRF-TOKEN': this.csrfToken,
-                },
+                headers: headers,
+                credentials: 'same-origin',
             });
+
+            if (response.status === 419) {
+                this.showError('Sesión expirada o token inválido (419). Por favor recargue la página.');
+                return;
+            }
 
             const result = await response.json();
 

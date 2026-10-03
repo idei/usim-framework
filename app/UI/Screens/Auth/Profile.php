@@ -47,7 +47,7 @@ class Profile extends Screen
             return;
         }
 
-        $container
+        $wrapper = UI::container('profile_wrapper')
             ->maxWidth(Size::px(600))
             ->centerHorizontal()
             ->plain()
@@ -84,10 +84,10 @@ class Profile extends Screen
                     ->plain()
             );
 
-            $container->add($header);
+            $wrapper->add($header);
         } else {
             // Título estándar
-            $container->add(
+            $wrapper->add(
                 UI::label('lbl_title')
                     ->text("👤 Configuración de Perfil")
                     ->style('primary')
@@ -104,7 +104,7 @@ class Profile extends Screen
             ->disabled(true)
             ->width(Size::full());
 
-        $container->add($this->input_email);
+        $wrapper->add($this->input_email);
 
         // Nombre
         $this->input_name = UI::input('input_name')
@@ -115,7 +115,7 @@ class Profile extends Screen
             ->required(true)
             ->width(Size::full());
 
-        $container->add($this->input_name);
+        $wrapper->add($this->input_name);
 
         // Foto de perfil
         $this->uploader_profile = UI::uploader('uploader_profile')
@@ -126,10 +126,10 @@ class Profile extends Screen
             ->aspect('1:1')
             ->size(1);
 
-        $container->add($this->uploader_profile);
+        $wrapper->add($this->uploader_profile);
 
         // Botones de acción
-        $container->add(
+        $wrapper->add(
             UI::button('btn_save_profile')
                 ->label(t('screen.auth.profile.actions.save'))
                 ->action('save_profile')
@@ -137,13 +137,15 @@ class Profile extends Screen
                 ->width(Size::full())
         );
 
-        $container->add(
+        $wrapper->add(
             UI::button('btn_change_password')
                 ->label(t('screen.auth.profile.actions.change_password'))
                 ->action('change_password')
                 ->style('secondary')
                 ->width(Size::full())
         );
+
+        $container->add($wrapper);
     }
 
     protected function postLoadUI(): void

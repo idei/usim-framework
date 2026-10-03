@@ -144,6 +144,7 @@ function getCsrfHeaders() {
 
 // Make available globally for other modular components
 window.getCsrfHeaders = getCsrfHeaders;
+window.getUsimStorageHeaderValue = getUsimStorageHeaderValue;
 
 function getUsimStorageObject() {
     const storageRaw = getUsimStorageValue();

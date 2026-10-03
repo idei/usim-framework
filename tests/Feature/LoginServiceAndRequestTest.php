@@ -62,11 +62,7 @@ it('returns units, active_unit, home_screen, and redirect_to from LoginService::
         ->and($response['units']['main'])->toContain('admin')
         ->and($response['active_unit'])->toBe('main')
         ->and($response['home_screen'])->toBe(UsersManager::class)
-        ->and($response['redirect_to'])->toBe(UsersManager::getRoutePath())
-        ->and($response['data']['units'])->toHaveKey('main')
-        ->and($response['data']['active_unit'])->toBe('main')
-        ->and($response['data']['home_screen'])->toBe(UsersManager::class)
-        ->and($response['data']['redirect_to'])->toBe(UsersManager::getRoutePath());
+        ->and($response['redirect_to'])->toBe(UsersManager::getRoutePath());
 
     // By default (startSession: false), user is not logged in session
     expect(auth()->check())->toBeFalse();
@@ -125,13 +121,12 @@ it('returns enriched payload with units and home_screen on successful API login'
         'message',
         'data' => [
             'user',
-            'token',
-            'remember',
-            'units',
-            'active_unit',
-            'home_screen',
-            'redirect_to',
         ],
+        'token',
+        'units',
+        'active_unit',
+        'home_screen',
+        'redirect_to',
     ]);
 });
 

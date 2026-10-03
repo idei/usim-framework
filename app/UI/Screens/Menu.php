@@ -439,7 +439,10 @@ class Menu extends Screen
             '📝',
             when: !Auth::check()
         );
-        $builder->screen(Profile::class);
+        $builder->screenShow(Profile::class,
+            modal: true,
+            when: Auth::check()
+        );
         $builder->action(
             t('screen.menu.items.logout'),
             'confirm_logout',
@@ -496,7 +499,9 @@ class Menu extends Screen
         $this->populateMainMenu($this->main_menu);
         $this->updateUnitMenu();
 
-        $this->showInto($homeScreen);
+        if (\is_string($homeScreen) && $homeScreen !== '') {
+            $this->showInto($homeScreen);
+        }
     }
 
     /**
