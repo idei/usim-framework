@@ -426,13 +426,12 @@ class Menu extends Screen
             ->position('bottom-right')
             ->width(Size::px(180));
 
-        $builder->action(
-            t('screen.menu.items.login'),
-            'show_login_form',
-            [],
-            '🔑',
+        $builder->screenShow(
+            Login::class,
+            modal: true,
             when: !Auth::check()
         );
+
         $builder->action(
             t('screen.menu.items.register'),
             'show_register_form',
@@ -459,20 +458,19 @@ class Menu extends Screen
     {
         /** @var class-string<Screen>|string|null $screen */
         $screen = $params['screen'] ?? null;
+        $modal = $params['modal'] ?? false;
+
         if ($screen !== null && is_subclass_of($screen, Screen::class)) {
             /** @var string|null $slot */
             $slot = isset($params['slot']) && \is_string($params['slot']) ? $params['slot'] : null;
 
+            if ($modal) {
+                $this->openModal($screen);
+                return;
+            }
+
             $this->showInto($screen, slot: $slot, updateBrowserUrl: true);
         }
-    }
-
-    /**
-     * @param array<string, mixed> $params
-     */
-    public function onShowLoginForm(array $params): void
-    {
-        $this->openModal(Login::class);
     }
 
     /**

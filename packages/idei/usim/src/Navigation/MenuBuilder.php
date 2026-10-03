@@ -148,14 +148,25 @@ class MenuBuilder
         return $item;
     }
 
+    /**
+     * Create a new menu item that shows a screen.
+     *
+     * @param class-string<\Idei\Usim\Screen> $screenClass
+     * @param bool $modal Whether to show the screen in a modal dialog (true) or not (false).
+     * @param Closure|bool|null $when A condition to determine whether the menu item should be displayed.
+     * Can be a Closure that returns a boolean, a boolean value, or null (always displayed).
+     *
+     * @return MenuItem The created menu item.
+     */
     public function screenShow(
         string $screenClass,
+        bool $modal = false,
         Closure|bool|null $when = null
     ): MenuItem {
         $label = $screenClass::getMenuLabel();
         $icon = $screenClass::getMenuIcon();
         $item = MenuItem::make($label)
-            ->action('showScreen', ['screen' => $screenClass])
+            ->action('showScreen', ['screen' => $screenClass, 'modal' => $modal])
             ->icon($icon)
             ->when($when);
 
