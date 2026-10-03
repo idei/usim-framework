@@ -426,14 +426,13 @@ class Menu extends Screen
             ->position('bottom-right')
             ->width(Size::px(180));
 
-        $builder->screenShow(Login::class, when: !Auth::check());
-        // $builder->action(
-        //     t('screen.menu.items.login'),
-        //     'show_login_form',
-        //     [],
-        //     '🔑',
-        //     when: !Auth::check()
-        // );
+        $builder->action(
+            t('screen.menu.items.login'),
+            'show_login_form',
+            [],
+            '🔑',
+            when: !Auth::check()
+        );
         $builder->action(
             t('screen.menu.items.register'),
             'show_register_form',
@@ -488,6 +487,7 @@ class Menu extends Screen
         $user = $params['user'] ?? null;
         $unitValue = $params['unit'] ?? '';
         $homeScreen = $params['home_screen'] ?? null;
+
         $this->store_unit = \is_string($unitValue) ? $unitValue : '';
 
         if ($user instanceof User) {
@@ -497,6 +497,8 @@ class Menu extends Screen
         $this->populateUserMenu($this->user_menu);
         $this->populateMainMenu($this->main_menu);
         $this->updateUnitMenu();
+
+        $this->showInto($homeScreen);
     }
 
     /**
