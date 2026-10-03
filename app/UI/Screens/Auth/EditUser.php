@@ -570,7 +570,7 @@ class EditUser extends Screen
      */
     private function resolveRoleOptions(): array
     {
-        $roles = $this->roleService->getRolesForActor(\App\Models\User::class);
+        $roles = $this->roleService->getRolesForActor(User::class);
 
         /** @var list<array{value: string, label: string}> $roleOptions */
         $roleOptions = array_map(static fn(UsimRole $role): array => [
