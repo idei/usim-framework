@@ -6,7 +6,8 @@ class UsimTableHeaderRowComponent extends UIComponent {
         const headerRow = document.createElement('tr');
         headerRow.className = 'ui-table-header-row';
 
-        return this.applyCommonAttributes(headerRow);
+        this.element = this.applyCommonAttributes(headerRow);
+        return this.element;
     }
 }
 

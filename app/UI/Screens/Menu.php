@@ -47,7 +47,8 @@ class Menu extends Screen
         protected AuthSessionService $authSessionService,
         protected UsimUnitsService $usimUnitsService,
         protected RegisterActionHandler $registerActionHandler
-    ) {}
+    ) {
+    }
 
     protected MenuDropdown $main_menu;
     protected MenuDropdown $user_menu;
@@ -463,7 +464,7 @@ class Menu extends Screen
             /** @var string|null $slot */
             $slot = isset($params['slot']) && \is_string($params['slot']) ? $params['slot'] : null;
 
-            $this->showInto($screen, slot: $slot);
+            $this->showInto($screen, slot: $slot, updateBrowserUrl: true);
         }
     }
 

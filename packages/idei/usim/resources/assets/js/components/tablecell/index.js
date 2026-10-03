@@ -81,7 +81,8 @@ class UsimTableCellComponent extends UIComponent {
             }
         }
 
-        return this.applyCommonAttributes(cell);
+        this.element = this.applyCommonAttributes(cell);
+        return this.element;
     }
 
     applyTableButtonContent(button, buttonConfig) {

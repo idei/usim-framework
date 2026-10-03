@@ -29,7 +29,8 @@ class UsimTableRowComponent extends UIComponent {
             row.setAttribute('data-min-height', minHeight);
         }
 
-        return this.applyCommonAttributes(row);
+        this.element = this.applyCommonAttributes(row);
+        return this.element;
     }
 
     update(newConfig) {

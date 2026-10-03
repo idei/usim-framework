@@ -25,14 +25,6 @@ class TableDemo extends Screen
 
     protected function buildBaseUI(Container $container, ...$params): void
     {
-        $container->plain()
-            ->centerHorizontal()
-            ->gap(Spacing::px(5));
-
-        $label = UI::label()
-            ->text(t('screen.demo.table_demo.title'))
-            ->style('h2');
-
         $table = UI::table('movies_table')
             ->title(t('screen.demo.table_demo.table_title'))
             ->sortedBy('title')
@@ -50,11 +42,18 @@ class TableDemo extends Screen
             paginated: true
         );
 
-        $container
-            ->maxWidth($table->getWidth())
-            ->add($label)
+        $wrapper = UI::container('table_demo_wrapper')
+            ->plain()
+            ->width(Size::full())
+            ->padding(Spacing::px(0))
+            ->margin(Spacing::px(0))
+            ->layout(LayoutType::VERTICAL);
+
+        $wrapper->maxWidth($table->getWidth())
             ->add($this->buildToolbar())
             ->add($table);
+
+        $container->padding(Spacing::px(5))->add($wrapper);
     }
 
     #[Override]
@@ -69,7 +68,7 @@ class TableDemo extends Screen
             ->layout(LayoutType::HORIZONTAL)
             ->fullWidth()
             ->shadow(0)
-            ->gap(Spacing::px(16));
+            ->gap(Spacing::px(5));
 
         $search = UI::input('search_movies')
             ->placeholder(t('screen.demo.table_demo.search_placeholder'))

@@ -169,7 +169,8 @@ class UsimTableComponent extends UIComponent {
         this.applyBodyViewportStyles();
         this.upsertPaginationControls(this.shouldRenderPaginationControls());
 
-        return this.applyCommonAttributes(tableWrapper);
+        this.element = this.applyCommonAttributes(tableWrapper);
+        return this.element;
     }
 
     getChildMountTarget(childConfig, childComponent) {

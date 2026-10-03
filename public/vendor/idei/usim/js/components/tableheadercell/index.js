@@ -59,7 +59,8 @@ class UsimTableHeaderCellComponent extends UIComponent {
             }
         }
 
-        return this.applyCommonAttributes(cell);
+        this.element = this.applyCommonAttributes(cell);
+        return this.element;
     }
 
     async handleHeaderClick(action, parameters) {

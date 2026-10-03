@@ -1135,6 +1135,9 @@ class UIRenderer {
                                 if (component.config.type === 'container') {
                                     // Make this container "transparent" - its children will mount directly to the table
                                     component.element = mountTarget; // Point to the table
+                                    if (typeof component.contentElement !== 'undefined') {
+                                        component.contentElement = mountTarget;
+                                    }
                                     mounted.add(id);
                                     console.log(`    ✅ Transparent container mounted (children will use parent table)`);
                                     continue;
@@ -1489,11 +1492,32 @@ class UIRenderer {
                 }
             }
 
-            // 3) Sort creates by _order (JS Object.entries sorts integer keys by numeric hash ID, not _order)
-            //    and resolve in multiple passes so parents mount before children.
+            // 3) Sort creates topologically by parent-child depth within this batch,
+            //    then by _order. This guarantees that parent containers mount before their children.
+            const createsMap = new Map(creates.map(([k, c]) => [String(k), c]));
+            const getDepth = (config) => {
+                let depth = 0;
+                let curParent = config?.parent !== undefined && config?.parent !== null ? String(config.parent) : null;
+                const visited = new Set();
+                while (curParent && createsMap.has(curParent) && !visited.has(curParent)) {
+                    visited.add(curParent);
+                    depth++;
+                    const parentConfig = createsMap.get(curParent);
+                    curParent = parentConfig?.parent !== undefined && parentConfig?.parent !== null
+                        ? String(parentConfig.parent)
+                        : null;
+                }
+                return depth;
+            };
+
             creates.sort(([, changesA], [, changesB]) => {
-                const orderA = Number.isFinite(Number(changesA?._order)) ? Number(changesA._order) : Number.MAX_SAFE_INTEGER;
-                const orderB = Number.isFinite(Number(changesB?._order)) ? Number(changesB._order) : Number.MAX_SAFE_INTEGER;
+                const depthA = getDepth(changesA);
+                const depthB = getDepth(changesB);
+                if (depthA !== depthB) {
+                    return depthA - depthB;
+                }
+                const orderA = Number.isFinite(Number(changesA?._order)) ? Number(changesA._order) : 0;
+                const orderB = Number.isFinite(Number(changesB?._order)) ? Number(changesB._order) : 0;
                 return orderA - orderB;
             });
 
@@ -1588,7 +1612,7 @@ class UIRenderer {
                     document.title = navTitle;
                 }
             }
-            if (slotContainerId) {
+            if (slotContainerId && String(slotContainerId) !== String(uiUpdate.clear_container)) {
                 this.clearContainer(slotContainerId);
             }
         }
@@ -1646,14 +1670,26 @@ class UIRenderer {
      * @param {number|string} containerId - Container ID or name
      */
     clearContainer(containerId) {
-        const containerElement = document.querySelector(`[data-component-id="${containerId}"]`)
-            || document.getElementById(containerId);
+        if (containerId === undefined || containerId === null || containerId === '') {
+            return;
+        }
+
+        let containerElement = document.querySelector(`[data-component-id="${containerId}"]`)
+            || document.getElementById(String(containerId));
+
+        if (!containerElement && (containerId === 104921240 || String(containerId) === '104921240' || containerId === 'content_container' || containerId === 'main')) {
+            containerElement = document.getElementById('content_container')
+                || document.querySelector('[data-component-id="104921240"]')
+                || document.getElementById('main');
+        }
+
         if (!containerElement) {
             return;
         }
 
+        // Clean up registered components inside this container
         const directChildren = Array.from(containerElement.querySelectorAll('[data-component-id]'))
-            .filter((node) => node !== containerElement && node.closest('[data-component-id]') === containerElement);
+            .filter((node) => node !== containerElement && node.parentElement?.closest('[data-component-id]') === containerElement);
 
         for (const child of directChildren) {
             const childId = child.getAttribute('data-component-id');
@@ -1668,10 +1704,22 @@ class UIRenderer {
         const runtimeComponent = this.components ? this.components.get(String(resolvedId)) : null;
         if (typeof runtimeComponent?._buildShell === 'function') {
             runtimeComponent._buildShell();
+            if (typeof runtimeComponent?._applyConfig === 'function') {
+                runtimeComponent._applyConfig();
+            }
         } else {
             const targetElement = runtimeComponent?.contentElement || containerElement;
             targetElement.innerHTML = '';
         }
+
+        // Ensure no stale non-shell elements remain in containerElement
+        Array.from(containerElement.children).forEach((child) => {
+            if (child !== runtimeComponent?.titleElement &&
+                child !== runtimeComponent?.tabListElement &&
+                child !== runtimeComponent?.tabBodyElement) {
+                child.remove();
+            }
+        });
     }
 
     /**
@@ -2405,13 +2453,20 @@ class UIRenderer {
             // Special case: if child is a container inside a table, it's the transparent rows container
             if (parentComponent?.tableElement && config.type === 'container') {
                 component.element = parentElement; // Point to table's tbodyElement
+                if (typeof component.contentElement !== 'undefined') {
+                    component.contentElement = parentElement;
+                }
                 this.components.set(String(jsonKey), component);
                 return true;
             }
 
             if (!(parentElement instanceof HTMLElement)) {
                 parentElement = document.querySelector(`[data-component-id="${config.parent}"]`)
-                    || document.getElementById(config.parent);
+                    || document.getElementById(String(config.parent))
+                    || (config.parent === 104921240 || String(config.parent) === '104921240' || config.parent === 'content_container'
+                        ? document.getElementById('content_container') || document.querySelector('[data-component-id="104921240"]')
+                        : null)
+                    || (config.parent === 'main' ? document.getElementById('main') : null);
             }
 
             const insertByTableOrder = (parent, child, childConfig) => {

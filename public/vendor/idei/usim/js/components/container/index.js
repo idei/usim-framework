@@ -55,6 +55,9 @@ class UsimContainerComponent extends UIComponent {
 
         this.titleElement = document.createElement('div');
         this.titleElement.className = 'title';
+        if (!this.config?.title) {
+            this.titleElement.style.display = 'none';
+        }
         this.element.appendChild(this.titleElement);
 
         if (this._hasTabs()) {
@@ -85,7 +88,7 @@ class UsimContainerComponent extends UIComponent {
         }
 
         const preservedChildren = Array.from(this.element.querySelectorAll('[data-component-id]'))
-            .filter((node) => node !== this.element && node.closest('[data-component-id]') === this.element);
+            .filter((node) => node !== this.element && node.parentElement?.closest('[data-component-id]') === this.element);
 
         this._buildShell();
 

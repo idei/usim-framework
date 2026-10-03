@@ -1816,7 +1816,7 @@ class Table extends UIComponent
     public function toJson(?int $order = null): array
     {
         // Get the table's JSON
-        $tableJson = parent::toJson();
+        $tableJson = parent::toJson($order);
 
         // Get the rows container's JSON
         $rowsContainerJson = $this->rowsContainer->toJson();
