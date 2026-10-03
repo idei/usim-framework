@@ -121,8 +121,9 @@ class TableHeaderRow extends UIComponent
         $result = [$this->id => $config];
 
         // Add all header cell components
+        $order = 0;
         foreach ($this->cellComponents as $cell) {
-            $cellJson = $cell->toJson();
+            $cellJson = $cell->toJson($order++);
             $result = $result + $cellJson;
         }
 

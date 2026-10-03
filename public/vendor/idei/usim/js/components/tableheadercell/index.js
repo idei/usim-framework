@@ -6,6 +6,11 @@ class UsimTableHeaderCellComponent extends UIComponent {
         const cell = document.createElement('th');
         cell.className = 'ui-table-header-cell';
 
+        const columnIndex = Number(this.config?.column);
+        if (Number.isInteger(columnIndex) && columnIndex >= 0) {
+            cell.setAttribute('data-column', String(columnIndex));
+        }
+
         if (this.config.text !== undefined) {
             cell.textContent = this.config.text;
         }

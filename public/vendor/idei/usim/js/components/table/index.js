@@ -25,6 +25,35 @@ class UsimTableComponent extends UIComponent {
             return;
         }
 
+        const headerHost = this.theadElement || this.tableElement;
+        if (headerHost) {
+            const headerRows = Array.from(headerHost.querySelectorAll('.ui-table-header-row'));
+            for (const headerRow of headerRows) {
+                const headerCells = Array.from(headerRow.querySelectorAll(':scope > .ui-table-header-cell'));
+                const anyMissingColumn = headerCells.some((c) => c.getAttribute('data-column') === null);
+                if (anyMissingColumn) {
+                    headerCells.forEach((cell, idx) => cell.setAttribute('data-column', String(idx)));
+                }
+
+                const byColumn = new Map();
+                for (const cell of headerCells) {
+                    const columnAttr = cell.getAttribute('data-column');
+                    const column = Number(columnAttr);
+
+                    if (Number.isInteger(column) && column >= 0 && column < expectedCols && !byColumn.has(column)) {
+                        byColumn.set(column, cell);
+                    }
+                }
+
+                for (let col = 0; col < expectedCols; col++) {
+                    const cell = byColumn.get(col);
+                    if (cell) {
+                        headerRow.appendChild(cell);
+                    }
+                }
+            }
+        }
+
         const rows = Array.from(rowHost.querySelectorAll('.ui-table-row'));
         for (const row of rows) {
             const cells = Array.from(row.querySelectorAll(':scope > .ui-table-cell'));

@@ -2497,7 +2497,8 @@ class UIRenderer {
                     return true;
                 }
 
-                if (childConfig.type === 'tablecell' && parent.matches('tr.ui-table-row')) {
+                if ((childConfig.type === 'tablecell' || childConfig.type === 'tableheadercell') &&
+                    parent.matches('tr.ui-table-row, tr.ui-table-header-row, tr')) {
                     const columnIndex = Number(childConfig.column);
                     if (!Number.isInteger(columnIndex) || columnIndex < 0) {
                         return false;
@@ -2506,7 +2507,7 @@ class UIRenderer {
                     child.setAttribute('data-column', String(columnIndex));
 
                     const siblings = Array.from(parent.children)
-                        .filter((node) => node instanceof HTMLElement && node.matches('td.ui-table-cell'));
+                        .filter((node) => node instanceof HTMLElement && node.matches('td.ui-table-cell, th.ui-table-header-cell, td, th'));
 
                     const nextSibling = siblings.find((cellNode) => {
                         const siblingCol = Number(cellNode.getAttribute('data-column'));
