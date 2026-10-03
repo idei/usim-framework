@@ -685,13 +685,13 @@ class Container implements UIElement, Sizeable, Paddable, Marginable, Gapable
     /**
      * Clear this container and embed a Screen inside it.
      *
-     * @param class-string<\Idei\Usim\Screen> $screenClass
+     * @param class-string<Screen> $screenClass
      * @return static For method chaining
      */
     public function embed(string $screenClass): static
     {
         $this->clear();
-        \Idei\Usim\Screen::embedInto($screenClass, $this);
+        Screen::embedInto($screenClass, $this);
 
         return $this;
     }
