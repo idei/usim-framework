@@ -536,7 +536,7 @@ class Menu extends Screen
         $this->populateMainMenu($this->main_menu);
 
         $this->toast(t('screen.menu.logout_success'));
-        $this->showInto(Home::class, force: true, updateBrowserUrl: true);
+        $this->redirect();
     }
 
     /**
