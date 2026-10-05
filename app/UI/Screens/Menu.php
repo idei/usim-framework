@@ -4,7 +4,6 @@ namespace App\UI\Screens;
 
 use App\Models\User;
 use App\Services\Auth\AuthSessionService;
-use App\Services\Auth\RegisterActionHandler;
 use App\Services\Units\UsimUnitsService;
 use App\UI\Navigation\Menus\MainMenu;
 use App\UI\Screens\Auth\Login;
@@ -45,8 +44,7 @@ class Menu extends Screen
 
     public function __construct(
         protected AuthSessionService $authSessionService,
-        protected UsimUnitsService $usimUnitsService,
-        protected RegisterActionHandler $registerActionHandler
+        protected UsimUnitsService $usimUnitsService
     ) {
     }
 

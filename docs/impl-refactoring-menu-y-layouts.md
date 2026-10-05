@@ -16,10 +16,9 @@ La nueva arquitectura introduce:
 1. **Un motor nativo y declarativo de navegación en el Core (`Idei\Usim\Navigation\...`)** con soporte para evaluación dinámica de `checkAccess()`, permisos (Gates) y proveedores modulares (`MenuProviderInterface`).
 2. **Un sistema de layouts por composición (`Idei\Usim\Layout\AbstractLayout`)** con slots dedicados (`$mainMenuContainer` y `$contentContainer`), eliminando la necesidad de variables globales en Blade o doble ciclo de vida HTTP.
 3. **Eliminación definitiva de `$hasMenu`:** reemplazada totalmente por el contrato declarativo de layouts (`$layout` y `Screen::hasLayout()`).
-4. **Separación de responsabilidades (SRP)**: extracción de la lógica de registro de usuarios hacia `RegisterActionHandler` y reducción de `Menu.php` a la orquestación visual.
-5. **Soporte nativo para pantallas sin layout (modo Kiosk / Standalone)** y para layouts o menús alternativos configurables por pantalla o por ruta.
-6. **Robustez en el ciclo de vida de almacenamiento y normalización visual:** inyección temprana de estado (`store_theme`), anclaje vertical superior de layouts y normalización de márgenes y paddings globales.
-7. **Tipado estricto con DTO (`TriggerConfig`) y principio "Tell, Don't Ask":** sustitución de arrays asociativos abiertos por el DTO inmutable `TriggerConfig`, delegación de renderizado con `applyTo()` en items y triggers, y corrección de firmas PHPDoc en `Menu.php` para alcanzar 100% de cumplimiento en PHPStan nivel 9.
+4. **Soporte nativo para pantallas sin layout (modo Kiosk / Standalone)** y para layouts o menús alternativos configurables por pantalla o por ruta.
+5. **Robustez en el ciclo de vida de almacenamiento y normalización visual:** inyección temprana de estado (`store_theme`), anclaje vertical superior de layouts y normalización de márgenes y paddings globales.
+6. **Tipado estricto con DTO (`TriggerConfig`) y principio "Tell, Don't Ask":** sustitución de arrays asociativos abiertos por el DTO inmutable `TriggerConfig`, delegación de renderizado con `applyTo()` en items y triggers, y corrección de firmas PHPDoc en `Menu.php` para alcanzar 100% de cumplimiento en PHPStan nivel 9.
 
 ---
 
@@ -35,7 +34,6 @@ La nueva arquitectura introduce:
 - **Eliminación de `$hasMenu`**: Se eliminó `$hasMenu` de toda la base de código. Si una pantalla requiere layout con menú, basta con que `$layout` sea no-nulo (`Screen::hasLayout()`).
 - **Ciclo de vida unificado**: Una única petición `/api/ui/{screen}` resuelve el layout, embebe el menú en `$main_menu_container` y el contenido en `$content_container`.
 - **Desacoplamiento Blade**: `app.blade.php` solo renderiza el contenedor raíz `#main`. No existe header hardcodeado ni `window.MENU_SERVICE`.
-- **SRP y Extensibilidad**: El menú se construye con `MenuBuilder` consumiendo clases proveedoras modulares (`MainMenu`, `DemosMenuProvider`, etc.), y el registro de usuarios es gestionado por `RegisterActionHandler`.
 
 ```mermaid
 flowchart TD
@@ -155,9 +153,6 @@ Se incorporaron propiedades y métodos estáticos para soportar la composición 
 - **Aislamiento de contexto en `Screen::embedInto()`:**
   - Se respaldan y restauran `self::$currentIncomingStorage` y `self::$currentQueryParams` dentro de un bloque `finally` junto a `UIIdGenerator::popCurrentContext()`, protegiendo el estado estático ante llamadas recursivas o anidadas.
 
-- **Visibilidad de métodos auxiliares:**
-  - Se modificaron a `public`: `toast()`, `closeModal()`, `redirect()` y `updateModal()`, permitiendo que Action Handlers externos (`RegisterActionHandler`) operen sobre la instancia de `$caller` sin violar el encapsulamiento.
-
 ---
 
 ### 3.4 Desacoplamiento de Vista Blade y CSS
@@ -207,11 +202,7 @@ Hereda de `AbstractLayout` e implementa la barra de navegación estructurada en 
 - **`App\UI\Navigation\Menus\DemosMenuProvider`:** Encapsula los 12 enlaces a pantallas de demostración (Forms, Grid, Modals, Tabs, etc.), evitando saturar el menú principal.
 - **`App\UI\Navigation\Menus\AdminMenuProvider` y `App\UI\Screens\Admin\AdminMenu`:** Ejemplo modular de menú especializado para áreas administrativas.
 
-### 4.3 Extracción de Lógica de Registro (`app/Services/Auth/RegisterActionHandler.php`)
-
-Siguiendo el principio de responsabilidad única (SRP), toda la lógica de validación, creación de usuarios, asignación de roles iniciales, persistencia y despacho de notificaciones de verificación de email se extrajo de `Menu.php` hacia este servicio dedicado.
-
-### 4.4 Refactorización de `App\UI\Screens\Menu.php`
+### 4.3 Refactorización de `App\UI\Screens\Menu.php`
 
 - Ahora utiliza `MenuBuilder` y `MainMenu` para construir el dropdown de navegación general.
 - **Contenedor Plano sin Márgenes:**
@@ -228,10 +219,9 @@ Siguiendo el principio de responsabilidad única (SRP), toda la lógica de valid
   - Dropdown de usuario y sesión (login, logout, perfil).
   - Selector de unidades operativas (para usuarios con múltiples unidades asignadas).
   - Preferencias de tema visual (claro / oscuro) e idioma.
-- Delega el procesamiento del formulario de registro a `RegisterActionHandler::handleRegistration()`.
 - **Alineación de firma en `onShowErrorInfo()`:** Se corrigió la anotación `@return never` por `@return void`. En USIM, `$this->abort()` registra una instrucción en `$this->uiChanges()` sin detener la ejecución del script ni lanzar excepciones, satisfaciendo el análisis estricto de PHPStan nivel 9.
 
-### 4.5 Normalización de Espaciados, Márgenes y Comportamiento de Contenedores
+### 4.4 Normalización de Espaciados, Márgenes y Comportamiento de Contenedores
 
 - **Normalización de `body` en CSS global:**
   - En versiones previas, `packages/idei/usim/resources/assets/css/ui-components.css` imponía `body { padding: 20px; }`, mientras que la vista `welcome-usim.blade.php` utilizaba un reset interno `body { padding: 0; }`.
