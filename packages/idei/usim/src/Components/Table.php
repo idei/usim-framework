@@ -521,56 +521,6 @@ class Table extends UIComponent
     }
 
     /**
-     * Ensure the table has enough row builders and cells for the required size.
-     *
-     * @param int $requiredRows
-     * @return void
-     */
-    private function ensureRowCapacity(int $requiredRows): void
-    {
-        if ($requiredRows <= 0) {
-            return;
-        }
-
-        $existingRows = count($this->rowBuilders);
-
-        if ($existingRows < $requiredRows) {
-            for ($row = $existingRows; $row < $requiredRows; $row++) {
-                // Keep table internals unnamed to avoid deterministic ID hash collisions.
-                $rowBuilder = $this->createRow();
-                $rowBuilder->row($row);
-
-                $rowMinHeight = $this->config['row_height'] ?? ($this->config['row_min_height'] ?? null);
-
-                $rowMinHeightValue = $this->normalizeSizeInput($rowMinHeight);
-                if ($rowMinHeightValue !== null) {
-                    $rowSize = Size::from($rowMinHeightValue);
-                    $rowBuilder->minHeight($rowSize);
-                    $rowBuilder->height($rowSize);
-                }
-
-                $this->rowBuilders[$row] = $rowBuilder;
-                $this->cells[$row] = [];
-
-                for ($col = 0; $col < $this->cols; $col++) {
-                    $cell = $rowBuilder->createCell();
-                    $cell->text('')->column($col);
-
-                    if (isset($this->columnWidths[$col])) {
-                        $width = $this->columnWidths[$col];
-                        $cell->widthConstraints($width, $width);
-                    }
-
-                    $this->cells[$row][$col] = $cell;
-                }
-            }
-        }
-
-        $this->rows = $requiredRows;
-        $this->setConfig('rows', $this->rows);
-    }
-
-    /**
      * Get the data model instance
      *
      * @return AbstractTableModel|null

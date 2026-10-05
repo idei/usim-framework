@@ -332,6 +332,9 @@ trait ManagesDevicesSection
         $this->closeModal();
     }
 
+    /**
+     * @param array<string, mixed> $params
+     */
     public function onUnitChanged(array $params): void
     {
         $this->devices_table->refresh();

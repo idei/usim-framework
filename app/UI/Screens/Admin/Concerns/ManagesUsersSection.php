@@ -181,7 +181,7 @@ trait ManagesUsersSection
     /**
      * Handles the 'user_updated' event, fired by: EditUser:class.
      *
-     * @param array $params
+     * @param array<string, mixed> $params
      * @return void
      */
     public function onUserUpdated(array $params): void
@@ -192,7 +192,7 @@ trait ManagesUsersSection
     /**
      * Handles the 'user_deleted' event, fired by: EditUser:class.
      *
-     * @param array $params
+     * @param array<string, mixed> $params
      * @return void
      */
     public function onUserDeleted(array $params): void

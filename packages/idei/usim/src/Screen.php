@@ -1225,11 +1225,9 @@ abstract class Screen
         $this->injectStorageValues($incomingStorage);
 
         // Restore internal screen state from UIStateManager snapshot cache (state_* variables)
-        if (method_exists(UIStateManager::class, 'getScreenState')) {
-            $cachedState = UIStateManager::getScreenState($this->getContextIdentifier());
-            if (!empty($cachedState)) {
-                $this->injectStateVariables($cachedState);
-            }
+        $cachedState = UIStateManager::getScreenState($this->getContextIdentifier());
+        if (!empty($cachedState)) {
+            $this->injectStateVariables($cachedState);
         }
 
         $this->container = $this->reconstructScreenTreeFromCache(...$buildParams);
@@ -1556,11 +1554,9 @@ abstract class Screen
         $cachedUI = UIStateManager::get($contextKey);
 
         if ($this->isTypedCachedScreenSnapshot($cachedUI) && $this->isValidCachedScreenSnapshot($cachedUI)) {
-            if (method_exists(UIStateManager::class, 'getScreenState')) {
-                $cachedState = UIStateManager::getScreenState($contextKey);
-                if (!empty($cachedState)) {
-                    $this->injectStateVariables($cachedState);
-                }
+            $cachedState = UIStateManager::getScreenState($contextKey);
+            if (!empty($cachedState)) {
+                $this->injectStateVariables($cachedState);
             }
 
             return $cachedUI;
@@ -1947,13 +1943,11 @@ abstract class Screen
         $contextKey = $this->getContextIdentifier();
         UIStateManager::store($contextKey, $container->toJson());
 
-        if (method_exists(UIStateManager::class, 'storeScreenState')) {
-            $state = $this->getStateVariables();
-            if (!empty($state)) {
-                UIStateManager::storeScreenState($contextKey, $state);
-            } else {
-                UIStateManager::clearScreenState($contextKey);
-            }
+        $state = $this->getStateVariables();
+        if (!empty($state)) {
+            UIStateManager::storeScreenState($contextKey, $state);
+        } else {
+            UIStateManager::clearScreenState($contextKey);
         }
     }
 
@@ -1963,9 +1957,7 @@ abstract class Screen
     public function clearCachedScreenSnapshot(): bool
     {
         $contextKey = $this->getContextIdentifier();
-        if (method_exists(UIStateManager::class, 'clearScreenState')) {
-            UIStateManager::clearScreenState($contextKey);
-        }
+        UIStateManager::clearScreenState($contextKey);
 
         return UIStateManager::clear($contextKey);
     }
