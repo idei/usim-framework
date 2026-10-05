@@ -198,7 +198,7 @@ it('renders EditUserDialog appropriately for lobby user in Multi-Unit Mode', fun
 
     expect($userData['is_in_lobby'])->toBeTrue();
     expect($userData['has_operational_units'])->toBeTrue();
-    // Active unit context set (e.g. from active_unit / state_unit)
+    // Active unit context set (from active_unit)
     $userData['active_unit'] = [
         'id' => $ideiUnit->id,
         'slug' => $ideiUnit->slug,

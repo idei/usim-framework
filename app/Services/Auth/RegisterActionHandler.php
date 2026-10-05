@@ -71,8 +71,8 @@ class RegisterActionHandler
         }
 
         $token = data_get($response, 'data.token');
-        $redirectTo = $this->authSessionService->start($user, null, is_string($token) ? $token : null);
-        $caller->redirect($redirectTo);
+        $redirectTo = $this->authSessionService->establishSession($user, null, is_string($token) ? $token : null);
+        //$caller->redirect($redirectTo);
     }
 
     /**

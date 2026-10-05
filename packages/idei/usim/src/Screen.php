@@ -721,8 +721,7 @@ abstract class Screen
     public function getActiveUnit(): ?UsimUnit
     {
         $user = Auth::user();
-        $slug = UIStateManager::getActiveUnit()
-            ?? (property_exists($this, 'state_unit') && !empty($this->state_unit) ? $this->state_unit : null);
+        $slug = UIStateManager::getActiveUnit();
 
         if (class_exists(\App\Services\Units\UnitContextResolver::class)) {
             return \App\Services\Units\UnitContextResolver::resolve($user, $slug);
@@ -911,7 +910,7 @@ abstract class Screen
      * @param  string  $permission  The short permission name (e.g., "publish") that will be resolved to a full permission
      *                              string based on the screen's slug (e.g., "blog.post_management.publish").
      * @param  UsimUnit|int|string|null  $unit  Optional unit context (instance, ID, or slug).
-     *                                          Defaults to the screen's active unit ($this->state_unit) or the ambient permissions team.
+     *                                          Defaults to the screen's active unit (UIStateManager::getActiveUnit()) or the ambient permissions team.
      */
     public function userCan(string $permission, mixed $unit = null): bool
     {
@@ -940,8 +939,7 @@ abstract class Screen
 
         $targetUnitId = self::resolveUnitId($unit);
         if ($targetUnitId === null) {
-            $activeUnitSlug = UIStateManager::getActiveUnit()
-                ?? (property_exists($this, 'state_unit') && !empty($this->state_unit) ? $this->state_unit : null);
+            $activeUnitSlug = UIStateManager::getActiveUnit();
             if ($activeUnitSlug !== null) {
                 $targetUnitId = self::resolveUnitId($activeUnitSlug);
             }
@@ -989,8 +987,7 @@ abstract class Screen
 
         $targetUnitId = self::resolveUnitId($unit);
         if ($targetUnitId === null) {
-            $activeUnitSlug = UIStateManager::getActiveUnit()
-                ?? (property_exists($this, 'state_unit') && !empty($this->state_unit) ? $this->state_unit : null);
+            $activeUnitSlug = UIStateManager::getActiveUnit();
             if ($activeUnitSlug !== null) {
                 $targetUnitId = self::resolveUnitId($activeUnitSlug);
             }

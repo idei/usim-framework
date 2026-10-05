@@ -57,7 +57,6 @@ class MenuStub extends Screen
     protected Button $theme_toggle;
     protected string $store_theme = 'light';
     protected string $store_lang = '';
-    protected string $state_unit = '';
     protected ?string $store_token = null;
 
     protected function buildBaseUI(Container $container, ...$params): void
@@ -222,11 +221,11 @@ class MenuStub extends Screen
             return;
         }
 
-        if ($unit->slug === $this->state_unit) {
+        $currentSlug = UIStateManager::getActiveUnit();
+        if ($unit->slug === $currentSlug) {
             return;
         }
 
-        $this->state_unit = $unit->slug;
         UIStateManager::setActiveUnit($unit->slug);
 
         setPermissionsTeamId($unit->id);
@@ -280,14 +279,15 @@ class MenuStub extends Screen
 
         $menu->visible(true);
 
-        $activeUnit = $units->firstWhere('slug', $this->state_unit) ?? $units->first();
+        $activeSlug = UIStateManager::getActiveUnit();
+        $activeUnit = ($activeSlug !== null ? $units->firstWhere('slug', $activeSlug) : null) ?? $units->first();
         if ($activeUnit instanceof UsimUnit) {
             $menu->trigger('🏢 ' . $this->getUnitDisplayName($activeUnit));
         }
 
         foreach ($units as $unit) {
             $label = $this->getUnitDisplayName($unit);
-            if ($unit->slug === $this->state_unit) {
+            if ($activeSlug !== null && $unit->slug === $activeSlug) {
                 $label = "✓ $label";
             }
             $menu->item($label, 'changeUnit', ['unit' => $unit->slug, 'unit_id' => $unit->id]);
@@ -300,17 +300,16 @@ class MenuStub extends Screen
     private function initStateUnit(Collection $units): void
     {
         if ($units->isEmpty()) {
-            $this->state_unit = '';
-            return;
-        }
-
-        if (!empty($this->state_unit) && $units->contains('slug', $this->state_unit)) {
+            UIStateManager::setActiveUnit(null);
             return;
         }
 
         $cachedUnit = UIStateManager::getActiveUnit();
         if ($cachedUnit !== null && $units->contains('slug', $cachedUnit)) {
-            $this->state_unit = $cachedUnit;
+            $unit = $units->firstWhere('slug', $cachedUnit);
+            if ($unit instanceof UsimUnit) {
+                setPermissionsTeamId($unit->id);
+            }
             return;
         }
 
@@ -319,14 +318,15 @@ class MenuStub extends Screen
             if ($teamId && $units->contains('id', (int) $teamId)) {
                 $unit = $units->firstWhere('id', (int) $teamId);
                 if ($unit instanceof UsimUnit) {
-                    $this->state_unit = $unit->slug;
+                    UIStateManager::setActiveUnit($unit->slug);
                     return;
                 }
             }
         }
 
         $first = $units->first();
-        $this->state_unit = $first->slug;
+        UIStateManager::setActiveUnit($first->slug);
+        setPermissionsTeamId($first->id);
     }
 
     private function updateUnitMenu(): void
@@ -440,7 +440,9 @@ class MenuStub extends Screen
         /** @var User $user */
         $user = $params['user'] ?? null;
         $unitValue = $params['unit'] ?? '';
-        $this->state_unit = is_string($unitValue) ? $unitValue : '';
+        if (is_string($unitValue) && $unitValue !== '') {
+            UIStateManager::setActiveUnit($unitValue);
+        }
 
         $this->updateUserMenuTrigger($user);
 
@@ -488,7 +490,6 @@ class MenuStub extends Screen
             setPermissionsTeamId(null);
         }
 
-        $this->state_unit = '';
         $this->store_token = '';
         if ($this->unit_menu !== null) {
             $this->unit_menu->trigger('🏢');

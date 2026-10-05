@@ -344,7 +344,7 @@ sequenceDiagram
   2. Decodifica el JSON e inyecta el array resultante en `$request->storage`.
   3. Si existe `store_lang` en el storage, sincroniza el idioma con `app()->setLocale($store_lang)`.
   4. Si existe `store_token`, configura el header `Authorization: Bearer <token>`, hidrata `UIStateManager::setAuthToken()`, y si el token pertenece a un dispositivo (`App\Models\Device`), hidrata automáticamente el guard `Auth::guard('device')`.
-  5. Resuelve el contexto de unidad organizativa (`UnitContextResolver`) a partir de la caché de `UIStateManager` o `state_unit`.
+  5. Resuelve el contexto de unidad organizativa (`UnitContextResolver`) a partir de la caché de `UIStateManager::getActiveUnit()`.
   6. Inyecta query parameters con prefijo `route_` como parámetros de ruta formales.
 
 #### 2. Recepción y Validación (`UIEventController@handleEvent`)

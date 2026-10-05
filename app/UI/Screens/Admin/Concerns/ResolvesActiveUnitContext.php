@@ -21,14 +21,6 @@ trait ResolvesActiveUnitContext
         /** @var Authenticatable|null $user */
         $user = Auth::user();
 
-        // 0. Explicitly injected unit slug on the screen instance (if present)
-        if (property_exists($this, 'state_unit') && !empty($this->state_unit)) {
-            $unit = UnitContextResolver::resolve($user, $this->state_unit);
-            if ($unit) {
-                return $unit;
-            }
-        }
-
         // 1. Single source of truth from UIStateManager cache
         $activeSlug = UIStateManager::getActiveUnit();
         if ($activeSlug !== null) {

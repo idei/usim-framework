@@ -271,8 +271,7 @@ it('allows root to switch to operational unit comunicacion and does not retain s
     expect(\Idei\Usim\Support\UIStateManager::getKeyValue('active_unit'))->toBe('comunicación');
     expect(getPermissionsTeamId())->toBe($comUnit->id);
 
-    $screenState = \Idei\Usim\Support\UIStateManager::getScreenState(Menu::class);
-    expect($screenState['state_unit'] ?? null)->toBe('comunicación');
+    expect(\Idei\Usim\Support\UIStateManager::getActiveUnit())->toBe('comunicación');
 
     $storagePayload = $response->json('storage.usim-framework');
     if ($storagePayload !== null) {
