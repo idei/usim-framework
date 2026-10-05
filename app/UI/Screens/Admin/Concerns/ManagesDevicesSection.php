@@ -40,9 +40,7 @@ trait ManagesDevicesSection
         $devicesCrudContainer = UI::container('devices_crud_container')
             ->layout(LayoutType::VERTICAL)
             ->gap(Spacing::px(4))
-            ->rounded(0)
-            ->minHeight(Size::px(550))
-            ->plain();
+            ->minHeight(Size::px(550));
 
         $toolbar = UI::container('devices_toolbar')
             ->layout(LayoutType::HORIZONTAL)
@@ -351,6 +349,8 @@ trait ManagesDevicesSection
      */
     public function onDeviceCreated(array $params): void
     {
+        $message = $params['message'] ?? '';
+        $this->toast($message, 'success');
         $this->devices_table->refresh();
     }
 
@@ -361,7 +361,8 @@ trait ManagesDevicesSection
      */
     public function onDeviceUpdated(array $params): void
     {
-        $this->toast(t(self::DEVICES_I18N_PREFIX . 'device_updated'), 'success');
+        $message = $params['message'] ?? '';
+        $this->toast($message, 'success');
         $this->devices_table->refresh();
     }
 
@@ -372,6 +373,8 @@ trait ManagesDevicesSection
      */
     public function onDeviceDeleted(array $params): void
     {
+        $message = $params['message'] ?? '';
+        $this->toast($message, 'success');
         $this->devices_table->refresh();
     }
 

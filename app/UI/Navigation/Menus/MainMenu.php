@@ -12,8 +12,14 @@ class MainMenu implements MenuProviderInterface
     public function build(MenuBuilder $menu): void
     {
         $menu->link(t('screen.menu.items.home'), '/', '🏠');
-        $menu->screen(UsersManager::class);
-        $menu->screen(TranslateManager::class);
+        $menu->screenShow(
+            UsersManager::class,
+            when: UsersManager::checkAccess()['allowed'] == true
+        );
+        $menu->screenShow(
+            TranslateManager::class,
+            when: TranslateManager::checkAccess()['allowed'] == true
+        );
 
         $menu->separator();
         $menu->provider(DemosMenuProvider::class);

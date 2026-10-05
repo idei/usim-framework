@@ -377,17 +377,12 @@ class EditDevice extends Screen
         if ($deviceId) {
             $this->deviceService->updateDevice($deviceId, $devicePayload);
             $message = t(self::DEVICES_I18N_PREFIX . 'device_updated');
-            event(new UsimEvent('device_updated', ['device_id' => $deviceId, 'data' => $devicePayload]));
+            event(new UsimEvent('device_updated', ['device_id' => $deviceId, 'data' => $devicePayload, 'message' => $message]));
         } else {
             $createdDevice = $this->deviceService->createDevice($devicePayload);
             $message = t(self::DEVICES_I18N_PREFIX . 'device_created');
-            event(new UsimEvent('device_created', ['device_id' => $createdDevice->id, 'data' => $devicePayload]));
+            event(new UsimEvent('device_created', ['device_id' => $createdDevice->id, 'data' => $devicePayload, 'message' => $message]));
         }
-
-        // $this->toast($message, 'success');
-        // if (isset($this->lbl_edit_device_result)) {
-        //     $this->lbl_edit_device_result->text($message)->style('success');
-        // }
 
         $this->closeModal();
     }
@@ -436,14 +431,12 @@ class EditDevice extends Screen
 
         $deleted = $this->deviceService->deleteDevice($deviceId);
         if ($deleted) {
-            $this->toast(t(self::DEVICES_I18N_PREFIX . 'device_deleted'), 'success');
-            event(new UsimEvent('device_deleted', ['device_id' => $deviceId]));
+            $message = t(self::DEVICES_I18N_PREFIX . 'device_deleted');
+            event(new UsimEvent('device_deleted', ['device_id' => $deviceId, 'message' => $message]));
         }
 
         if ($this->isOpenedAsModal()) {
             $this->closeModal();
-        } else {
-            $this->redirect('/admin/users-manager');
         }
     }
 
