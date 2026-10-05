@@ -34,12 +34,9 @@ trait ManagesUsersSection
     protected Table $users_table;
     protected Input $search_users;
     protected Button $add_user_btn;
-    protected Screen|null $screen = null;
 
-    protected function buildUsersCrudContainer(Screen $screen): Container
+    protected function buildUsersCrudContainer(): Container
     {
-        $this->screen = $screen;
-
         $usersCrudContainer = UI::container('users_crud_container')
             ->layout(LayoutType::VERTICAL)
             ->gap(Spacing::px(4))

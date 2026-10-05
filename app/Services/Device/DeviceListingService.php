@@ -43,23 +43,16 @@ class DeviceListingService extends EloquentListingService
             return $this->unitContextId;
         }
 
-        if (function_exists('getPermissionsTeamId') && getPermissionsTeamId()) {
-            return (int) getPermissionsTeamId();
-        }
-
-        $sessionUnitId = session('current_unit_id');
-        if (is_numeric($sessionUnitId)) {
-            return (int) $sessionUnitId;
-        }
-
-        $requestStorage = request()->storage;
-        $storageUnit = request()->input('storage.store_unit')
-            ?? (is_array($requestStorage) ? $requestStorage['store_unit'] ?? null : null);
-        if (is_string($storageUnit) && $storageUnit !== '') {
-            $rawId = UsimUnit::where('slug', $storageUnit)->value('id');
+        $cachedUnit = \Idei\Usim\Support\UIStateManager::getActiveUnit();
+        if ($cachedUnit !== null) {
+            $rawId = UsimUnit::where('slug', $cachedUnit)->value('id');
             if (is_numeric($rawId)) {
                 return (int) $rawId;
             }
+        }
+
+        if (function_exists('getPermissionsTeamId') && getPermissionsTeamId()) {
+            return (int) getPermissionsTeamId();
         }
 
         $rawMainId = UsimUnit::where('slug', 'main')->value('id');

@@ -41,6 +41,10 @@ final class UiScenario
 
     public static function boot(TestCase $test, string $screenClass, array $query = []): self
     {
+        if (class_exists(\Idei\Usim\Layout\AbstractLayout::class)) {
+            \Idei\Usim\Layout\AbstractLayout::setCurrent(null);
+        }
+
         $scenario = new self($test);
         $scenario->configurePersistentCacheForUiState();
         $scenario->screenClass = $screenClass;
@@ -49,6 +53,20 @@ final class UiScenario
             static fn ($key): bool => (string) $key !== 'reset',
             ARRAY_FILTER_USE_KEY
         );
+
+        $existingActiveUnit = UIStateManager::getActiveUnit();
+        if ($existingActiveUnit !== null) {
+            UIStateManager::setActiveUnit($existingActiveUnit, $scenario->clientId);
+        }
+
+        $existingAuthToken = UIStateManager::getAuthToken();
+        if ($existingAuthToken !== null) {
+            UIStateManager::setAuthToken($existingAuthToken, $scenario->clientId);
+        }
+
+        session()->put(UIStateManager::CLIENT_ID_COOKIE, $scenario->clientId);
+        UIStateManager::clearClientActiveModal($scenario->clientId);
+        UIStateManager::clearClientCurrentScreen($scenario->clientId);
 
         $response = $scenario
             ->testWithClientCookie()
@@ -254,7 +272,9 @@ final class UiScenario
 
     private function testWithClientCookie(): TestCase
     {
-        return $this->test->withCookie(UIStateManager::CLIENT_ID_COOKIE, $this->clientId);
+        session()->put(UIStateManager::CLIENT_ID_COOKIE, $this->clientId);
+
+        return $this->test->withUnencryptedCookie(UIStateManager::CLIENT_ID_COOKIE, $this->clientId);
     }
 
     private function syncFromServer(): void

@@ -24,6 +24,7 @@ use Idei\Usim\Models\UsimLanguage;
 use Idei\Usim\Models\UsimUnit;
 use Idei\Usim\Navigation\MenuBuilder;
 use Idei\Usim\Screen;
+use Idei\Usim\Support\UIStateManager;
 use Idei\Usim\UI;
 use Idei\Usim\Upload\UploadService;
 use Idei\Usim\ValueObjects\Size;
@@ -56,7 +57,8 @@ class Menu extends Screen
     protected Button $theme_toggle;
     protected string $store_theme = 'light';
     protected string $store_lang = '';
-    protected string $store_unit = '';
+    protected string $state_unit = '';
+    protected ?string $store_token = null;
 
     protected function buildBaseUI(Container $container, ...$params): void
     {
@@ -75,7 +77,7 @@ class Menu extends Screen
         $this->user_menu = $this->buildUserMenu();
 
         if (empty($this->store_lang)) {
-            $this->store_lang = $this->normalizeLocale(config('usim.i18n.fallback_locale', 'en'));
+            $this->store_lang = $this->normalizeLocale(app()->getLocale() ?: config('usim.i18n.fallback_locale', 'en'));
         }
         $this->lang_menu = $this->buildLangMenu();
         $this->lang_menu->marginLeft(Spacing::px(12));
@@ -189,7 +191,7 @@ class Menu extends Screen
     private function updateLangMenu(): void
     {
         if (empty($this->store_lang)) {
-            $this->store_lang = $this->normalizeLocale(config('usim.i18n.fallback_locale', 'en'));
+            $this->store_lang = $this->normalizeLocale(app()->getLocale() ?: config('usim.i18n.fallback_locale', 'en'));
         }
 
         $this->lang_menu->trigger(strtoupper($this->store_lang));
@@ -220,13 +222,12 @@ class Menu extends Screen
             ? $units->firstWhere('id', $unitId)
             : $units->firstWhere('slug', $unitSlug);
 
-        if ($unit === null || $unit->slug === $this->store_unit) {
+        if ($unit === null || $unit->slug === $this->state_unit) {
             return;
         }
 
-        $this->store_unit = $unit->slug;
-        session()->put('current_unit_id', $unit->id);
-        session()->put('current_unit_slug', $unit->slug);
+        $this->state_unit = $unit->slug;
+        UIStateManager::setActiveUnit($unit->slug);
 
         setPermissionsTeamId($unit->id);
 
@@ -277,14 +278,14 @@ class Menu extends Screen
         $this->initStoreUnit($units);
         $menu->visible(true);
 
-        $activeUnit = $units->firstWhere('slug', $this->store_unit) ?? $units->first();
+        $activeUnit = $units->firstWhere('slug', $this->state_unit) ?? $units->first();
         if ($activeUnit instanceof UsimUnit) {
             $menu->trigger('🏢 ' . $this->getUnitDisplayName($activeUnit));
         }
 
         foreach ($units as $unit) {
             $label = $this->getUnitDisplayName($unit);
-            if ($unit->slug === $this->store_unit) {
+            if ($unit->slug === $this->state_unit) {
                 $label = "✓ $label";
             }
             $menu->item($label, 'changeUnit', ['unit' => $unit->slug, 'unit_id' => $unit->id]);
@@ -297,27 +298,23 @@ class Menu extends Screen
     private function initStoreUnit(Collection $units): void
     {
         if ($units->isEmpty()) {
-            $this->store_unit = '';
+            $this->state_unit = '';
             return;
         }
 
-        if (!empty($this->store_unit) && $units->contains('slug', $this->store_unit)) {
-            return;
-        }
-
-        $sessionUnitSlug = session()->get('current_unit_slug');
-        if (is_string($sessionUnitSlug) && $sessionUnitSlug !== '' && $units->contains('slug', $sessionUnitSlug)) {
-            $this->store_unit = $sessionUnitSlug;
-            return;
-        }
-
-        $sessionUnitId = session()->get('current_unit_id');
-        if (is_numeric($sessionUnitId) && $units->contains('id', (int) $sessionUnitId)) {
-            $unit = $units->firstWhere('id', (int) $sessionUnitId);
+        $cachedUnit = UIStateManager::getActiveUnit();
+        if ($cachedUnit !== null && $units->contains('slug', $cachedUnit)) {
+            $this->state_unit = $cachedUnit;
+            $unit = $units->firstWhere('slug', $cachedUnit);
             if ($unit instanceof UsimUnit) {
-                $this->store_unit = $unit->slug;
-                return;
+                setPermissionsTeamId($unit->id);
             }
+            return;
+        }
+
+        if (!empty($this->state_unit) && $units->contains('slug', $this->state_unit)) {
+            UIStateManager::setActiveUnit($this->state_unit);
+            return;
         }
 
         if (function_exists('getPermissionsTeamId')) {
@@ -325,14 +322,17 @@ class Menu extends Screen
             if ($teamId && $units->contains('id', (int) $teamId)) {
                 $unit = $units->firstWhere('id', (int) $teamId);
                 if ($unit instanceof UsimUnit) {
-                    $this->store_unit = $unit->slug;
+                    $this->state_unit = $unit->slug;
+                    UIStateManager::setActiveUnit($unit->slug);
                     return;
                 }
             }
         }
 
         $first = $units->first();
-        $this->store_unit = $first->slug;
+        $this->state_unit = $first->slug;
+        UIStateManager::setActiveUnit($first->slug);
+        setPermissionsTeamId($first->id);
     }
 
     private function updateUnitMenu(): void
@@ -488,7 +488,10 @@ class Menu extends Screen
         $unitValue = $params['unit'] ?? '';
         $homeScreen = $params['home_screen'] ?? null;
 
-        $this->store_unit = \is_string($unitValue) ? $unitValue : '';
+        $this->state_unit = \is_string($unitValue) ? $unitValue : '';
+        if ($this->state_unit !== '') {
+            UIStateManager::setActiveUnit($this->state_unit);
+        }
 
         if ($user instanceof User) {
             $this->updateUserMenuTrigger($user);
@@ -499,7 +502,7 @@ class Menu extends Screen
         $this->updateUnitMenu();
 
         if (\is_string($homeScreen) && $homeScreen !== '') {
-            $this->showInto($homeScreen);
+            $this->showInto($homeScreen, force: true);
         }
     }
 
@@ -525,13 +528,22 @@ class Menu extends Screen
      */
     public function onConfirmLogout(array $params): void
     {
+        /** @var User|null $user */
+        $user = Auth::user();
+        if ($user) {
+            $user->tokens()->where('name', 'like', 'auth_token%')->delete();
+        }
+
         Auth::logout();
-        session()->forget(['current_unit_id', 'current_unit_slug']);
+        UIStateManager::setAuthToken(null);
+        UIStateManager::setActiveUnit(null);
+
         if (function_exists('setPermissionsTeamId') && config('permission.teams')) {
             setPermissionsTeamId(null);
         }
 
-        $this->store_unit = '';
+        $this->state_unit = '';
+        $this->store_token = '';
         if ($this->unit_menu !== null) {
             $this->unit_menu->trigger('🏢');
             $this->unit_menu->clearItems();

@@ -5,6 +5,7 @@ use App\UI\Screens\Auth\EmailVerified;
 use App\UI\Screens\Home;
 use App\UI\Screens\Menu;
 use Idei\Usim\Notifications\CustomVerifyEmailNotification;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\URL;
 
@@ -15,13 +16,13 @@ it('opens register modal from guest menu', function () {
         app()->setLocale($locale);
         $ui = uiScenario($this, Menu::class, ['parent' => 'menu']);
 
-        $response = $ui->action('user_menu', 'show_register_form');
+        $response = $ui->action('user_menu', 'showScreen', ['screen' => \App\UI\Screens\Auth\Register::class, 'modal' => true]);
         $response->assertOk();
 
         $payload = $response->json();
 
         expect(hasModalComponents($payload))->toBeTrue();
-        expect(modalPayloadHasNamedComponent($payload, 'register_dialog'))->toBeTrue();
+        expect(modalPayloadHasNamedComponent($payload, 'app_ui_screens_auth_register'))->toBeTrue();
 
         $ui->component('name')->expect('type')->toBe('input');
         $ui->component('email')->expect('type')->toBe('input');
@@ -41,11 +42,14 @@ it('submits register modal and sends verification notification', function () {
     app(\Idei\Usim\Support\RoleAndPermissionSyncService::class)->sync();
 
     foreach (['en', 'es'] as $locale) {
+        Auth::logout();
+        \Idei\Usim\Support\UIStateManager::clearClientCurrentScreen();
+        \Idei\Usim\Support\UIStateManager::clearClientActiveModal();
         app()->setLocale($locale);
         Notification::fake();
 
         $ui = uiScenario($this, Menu::class, ['parent' => 'menu']);
-        $openResponse = $ui->action('user_menu', 'show_register_form');
+        $openResponse = $ui->action('user_menu', 'showScreen', ['screen' => \App\UI\Screens\Auth\Register::class, 'modal' => true]);
         $openResponse->assertOk();
 
         $email = "register.modal.{$locale}@example.com";
@@ -64,7 +68,8 @@ it('submits register modal and sends verification notification', function () {
 
         $submitResponse->assertOk();
         $expectedRedirect = config('usim.roles.registered.home_screen', Home::class)::getRoutePath();
-        expect($submitResponse->json('redirect'))->toBe($expectedRedirect);
+        $targetRedirect = $submitResponse->json('navigate.url') ?? $submitResponse->json('redirect');
+        expect($targetRedirect)->toBe($expectedRedirect);
         expect($submitResponse->json('toast.type'))->toBe('success');
 
         $user = User::where('email', $email)->firstOrFail();
@@ -87,11 +92,14 @@ it('verifies the registered user after opening the email verification link', fun
     app(\Idei\Usim\Support\RoleAndPermissionSyncService::class)->sync();
 
     foreach (['en', 'es'] as $locale) {
+        Auth::logout();
+        \Idei\Usim\Support\UIStateManager::clearClientCurrentScreen();
+        \Idei\Usim\Support\UIStateManager::clearClientActiveModal();
         app()->setLocale($locale);
         Notification::fake();
 
         $ui = uiScenario($this, Menu::class, ['parent' => 'menu']);
-        $ui->action('user_menu', 'show_register_form')->assertOk();
+        $ui->action('user_menu', 'showScreen', ['screen' => \App\UI\Screens\Auth\Register::class, 'modal' => true])->assertOk();
 
         $email = "register.verify.{$locale}@example.com";
         $submitButton = $ui->component('btn_submit_register')->data();
@@ -99,13 +107,14 @@ it('verifies the registered user after opening the email verification link', fun
             ? $submitButton['parameters']
             : [];
 
-        $ui->click('btn_submit_register', array_merge($baseParameters, [
+        $clickResponse = $ui->click('btn_submit_register', array_merge($baseParameters, [
             'name' => 'Register Verify User',
             'email' => $email,
             'password' => 'password123',
             'password_confirmation' => 'password123',
             'accept_terms' => true
-        ]))->assertOk();
+        ]));
+        $clickResponse->assertOk();
 
         $user = User::where('email', $email)->firstOrFail();
         expect($user?->email_verified_at)->toBeNull();

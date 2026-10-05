@@ -21,7 +21,7 @@ use Idei\Usim\ValueObjects\Spacing;
  */
 trait ManagesRolesSection
 {
-    protected const ROLES_I18N_PREFIX = 'screen.admin.users_manager.';
+    protected const string ROLES_I18N_PREFIX = 'screen.admin.users_manager.';
 
     protected Table $roles_table;
     protected Table $permissions_table;

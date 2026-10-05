@@ -85,6 +85,12 @@ class UsimEventDispatcher
             }
         }
 
+        if (app()->bound(\Idei\Usim\UIChangesCollector::class)) {
+            /** @var \Idei\Usim\UIChangesCollector $collector */
+            $collector = app(\Idei\Usim\UIChangesCollector::class);
+            $incomingStorage = array_merge($incomingStorage, $collector->getStorage());
+        }
+
         foreach ($openedScreens as $rootComponentId) {
             $screenClass = UIIdGenerator::getContextFromId((int) $rootComponentId);
             if (! is_string($screenClass) || $screenClass === '') {

@@ -37,6 +37,12 @@ class UsersManager extends Screen
     protected Container $tabs_container;
     protected DeviceService $deviceService;
 
+    /**
+     * @var Screen|null The current screen instance, used for context in building UI components.
+     */
+    protected Screen|null $screen = null;
+
+
     public function __construct(
         protected RegisterService $registerService,
         protected UserService $userService,
@@ -46,6 +52,7 @@ class UsersManager extends Screen
     ) {
         $this->deviceService = $deviceService ?? app(DeviceService::class);
         $this->userEditDialogPresenter = $userEditDialogPresenter ?? new UserEditDialogPresenter();
+        $this->screen = $this;
     }
 
     public static function authorize(): bool
@@ -89,7 +96,7 @@ class UsersManager extends Screen
                 'users_tab'
             );
 
-        $this->tabs_container->add($this->buildUsersCrudContainer($this), tab: 'users_tab');
+        $this->tabs_container->add($this->buildUsersCrudContainer(), tab: 'users_tab');
         $this->tabs_container->add($this->buildDevicesCrudContainer(), tab: 'devices_tab');
         $this->tabs_container->add($this->buildRolesContainer(), tab: 'roles_tab');
         $container->add($this->tabs_container);

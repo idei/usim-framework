@@ -28,7 +28,7 @@ use Idei\Usim\ValueObjects\Spacing;
  */
 trait ManagesDevicesSection
 {
-    protected const DEVICES_I18N_PREFIX = 'screen.admin.users_manager.';
+    protected const string DEVICES_I18N_PREFIX = 'screen.admin.users_manager.';
 
     protected Table $devices_table;
     protected Input $search_devices;
@@ -330,5 +330,10 @@ trait ManagesDevicesSection
 
         $this->devices_table->refresh();
         $this->closeModal();
+    }
+
+    public function onUnitChanged(array $params): void
+    {
+        $this->devices_table->refresh();
     }
 }

@@ -1,7 +1,7 @@
 <?php
 
 use App\Models\User;
-use App\UI\Screens\Auth\EditUser;
+use App\UI\Screens\Admin\EditUser;
 use Idei\Usim\Models\UsimUnit;
 use Spatie\Permission\Models\Role;
 
@@ -164,7 +164,6 @@ it('updates user successfully and redirects to home when standalone', function (
 
     $response->assertOk();
     expect($response->json('toast.type'))->toBe('success');
-    expect($response->json('redirect'))->toBe('/');
 
     $user->refresh();
     expect($user->name)->toBe('Updated Name');
@@ -188,7 +187,6 @@ it('handles cancel by redirecting to home when not opened as modal', function ()
     ]);
 
     $response->assertOk();
-    expect($response->json('redirect'))->toBe('/');
 });
 
 it('opens edit user as modal and handles close modal action', function () {

@@ -80,10 +80,10 @@ class UIStateManager
      * @param  string  $serviceClass  Full service class name
      * @return string Cache key
      */
-    public static function getCacheKey(?string $serviceClass = null, string $prefix = 'ui_state'): string
+    public static function getCacheKey(?string $serviceClass = null, string $prefix = 'ui_state', ?string $clientId = null): string
     {
         $serviceBaseName = $serviceClass ? class_basename($serviceClass) : '';
-        $clientId = self::getOrCreateClientId();
+        $clientId = $clientId ?? self::getOrCreateClientId();
 
         return "{$prefix}:{$serviceBaseName}:{$clientId}";
     }
@@ -425,6 +425,17 @@ class UIStateManager
     }
 
     /**
+     * Clear the current screen route and class for the client.
+     */
+    public static function clearClientCurrentScreen(?string $clientId = null): bool
+    {
+        $clientId ??= self::getOrCreateClientId();
+        $cacheKey = "ui_current_screen:{$clientId}";
+
+        return Cache::forget($cacheKey);
+    }
+
+    /**
      * Get top active modal metadata for the client.
      *
      * @return array{modal_class: string, caller_screen_id: ?int, caller_screen_class: ?string, callback_action: ?string, params: array<int|string, mixed>, layer_index: int, page_screen_route: ?string}|null
@@ -502,6 +513,64 @@ class UIStateManager
     }
 
     /**
+     * Store internal screen state in cache.
+     *
+     * @param  string  $serviceClass  Service class or context identifier
+     * @param  array<string, mixed>  $state  Screen state array
+     * @return bool Success
+     */
+    public static function storeScreenState(string $serviceClass, array $state): bool
+    {
+        if (empty($state)) {
+            return self::clearScreenState($serviceClass);
+        }
+
+        $ttlConfig = config('usim.ui_cache_ttl', 60);
+        $ttl = \is_int($ttlConfig) ? $ttlConfig : 60;
+        if (\is_string($ttlConfig) && ctype_digit($ttlConfig)) {
+            $ttl = (int) $ttlConfig;
+        }
+
+        $cacheKey = self::getCacheKey($serviceClass, prefix: 'ui_screen_state');
+
+        return Cache::put($cacheKey, json_encode($state), $ttl);
+    }
+
+    /**
+     * Get internal screen state from cache.
+     *
+     * @param  string  $serviceClass  Service class or context identifier
+     * @return array<string, mixed> Screen state array
+     */
+    public static function getScreenState(string $serviceClass): array
+    {
+        $cacheKey = self::getCacheKey($serviceClass, prefix: 'ui_screen_state');
+        $content = Cache::get($cacheKey);
+
+        if (\is_string($content) && $content !== '') {
+            /** @var array<string, mixed>|null $decoded */
+            $decoded = json_decode($content, true);
+
+            return \is_array($decoded) ? $decoded : [];
+        }
+
+        return [];
+    }
+
+    /**
+     * Clear internal screen state from cache.
+     *
+     * @param  string  $serviceClass  Service class or context identifier
+     * @return bool Success
+     */
+    public static function clearScreenState(string $serviceClass): bool
+    {
+        $cacheKey = self::getCacheKey($serviceClass, prefix: 'ui_screen_state');
+
+        return Cache::forget($cacheKey);
+    }
+
+    /**
      * Clear UI state from cache
      *
      * @param  string  $serviceClass  Service class name
@@ -509,6 +578,7 @@ class UIStateManager
      */
     public static function clear(string $serviceClass): bool
     {
+        self::clearScreenState($serviceClass);
         $cacheKey = self::getCacheKey($serviceClass);
 
         return Cache::forget($cacheKey);
@@ -520,9 +590,9 @@ class UIStateManager
      * @param  string|null  $token  The authentication token
      * @return bool Success
      */
-    public static function setAuthToken(?string $token): bool
+    public static function setAuthToken(?string $token, ?string $clientId = null): bool
     {
-        $cacheKey = self::getCacheKey(prefix: 'ui_auth_token');
+        $cacheKey = self::getCacheKey(prefix: 'ui_auth_token', clientId: $clientId);
         $ttlConfig = config('usim.ui_cache_ttl', 60);
         $ttl = \is_int($ttlConfig) ? $ttlConfig : 60;
         if (\is_string($ttlConfig) && ctype_digit($ttlConfig)) {
@@ -533,17 +603,17 @@ class UIStateManager
         return true;
     }
 
-    public static function getAuthToken(): ?string
+    public static function getAuthToken(?string $clientId = null): ?string
     {
-        $cacheKey = self::getCacheKey(prefix: 'ui_auth_token');
+        $cacheKey = self::getCacheKey(prefix: 'ui_auth_token', clientId: $clientId);
         $token = Cache::get($cacheKey);
 
         return \is_string($token) ? $token : null;
     }
 
-    public static function storeKeyValue(string $key, mixed $value): bool
+    public static function storeKeyValue(string $key, mixed $value, ?string $clientId = null): bool
     {
-        $cacheKey = self::getCacheKey(prefix: "ui_key_{$key}");
+        $cacheKey = self::getCacheKey(prefix: "ui_key_{$key}", clientId: $clientId);
         $ttlConfig = config('usim.ui_cache_ttl', 60);
         $ttl = \is_int($ttlConfig) ? $ttlConfig : 60;
         if (\is_string($ttlConfig) && ctype_digit($ttlConfig)) {
@@ -554,17 +624,39 @@ class UIStateManager
         return true;
     }
 
-    public static function getKeyValue(string $key): mixed
+    public static function getKeyValue(string $key, ?string $clientId = null): mixed
     {
-        $cacheKey = self::getCacheKey(prefix: "ui_key_{$key}");
+        $cacheKey = self::getCacheKey(prefix: "ui_key_{$key}", clientId: $clientId);
 
         return Cache::get($cacheKey);
     }
 
-    public static function clearKeyValue(string $key): bool
+    public static function clearKeyValue(string $key, ?string $clientId = null): bool
     {
-        $cacheKey = self::getCacheKey(prefix: "ui_key_{$key}");
+        $cacheKey = self::getCacheKey(prefix: "ui_key_{$key}", clientId: $clientId);
 
         return Cache::forget($cacheKey);
+    }
+
+    /**
+     * Set the active organizational unit slug for the client.
+     */
+    public static function setActiveUnit(?string $slug, ?string $clientId = null): void
+    {
+        if ($slug === null || $slug === "") {
+            self::clearKeyValue("active_unit", $clientId);
+        } else {
+            self::storeKeyValue("active_unit", $slug, $clientId);
+        }
+    }
+
+    /**
+     * Get the active organizational unit slug for the client.
+     */
+    public static function getActiveUnit(?string $clientId = null): ?string
+    {
+        $slug = self::getKeyValue("active_unit", $clientId);
+
+        return \is_string($slug) && $slug !== "" ? $slug : null;
     }
 }

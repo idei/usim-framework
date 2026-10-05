@@ -251,8 +251,34 @@ it('allows switching units when user has multiple units', function () {
     expect($ui->component('unit_menu'))->not->toBeNull();
 
     $ui->action('unit_menu', 'changeUnit', ['unit' => 'finance', 'unit_id' => $unit2->id]);
-    expect(session('current_unit_id'))->toBe($unit2->id);
-    expect(session('current_unit_slug'))->toBe('finance');
+    expect(\Idei\Usim\Support\UIStateManager::getKeyValue('active_unit'))->toBe('finance');
+    expect(getPermissionsTeamId())->toBe($unit2->id);
+});
+
+it('allows root to switch to operational unit comunicacion and does not retain store_unit in storage payload', function () {
+    /** @var \Tests\TestCase $this */
+    $userService = app(UsimUserService::class);
+    $rootUser = $userService->provisionFromConfig('root');
+    $this->actingAs($rootUser);
+
+    $unit1 = UsimUnit::firstOrCreate(['slug' => 'idei'], ['type' => 'department']);
+    $comUnit = UsimUnit::firstOrCreate(['slug' => 'comunicación'], ['type' => 'department']);
+
+    $ui = uiScenario($this, Menu::class, ['parent' => 'menu']);
+    $response = $ui->action('unit_menu', 'changeUnit', ['unit' => 'comunicación', 'unit_id' => $comUnit->id]);
+    $response->assertOk();
+
+    expect(\Idei\Usim\Support\UIStateManager::getKeyValue('active_unit'))->toBe('comunicación');
+    expect(getPermissionsTeamId())->toBe($comUnit->id);
+
+    $screenState = \Idei\Usim\Support\UIStateManager::getScreenState(Menu::class);
+    expect($screenState['state_unit'] ?? null)->toBe('comunicación');
+
+    $storagePayload = $response->json('storage.usim-framework');
+    if ($storagePayload !== null) {
+        $decoded = json_decode($storagePayload, true);
+        expect($decoded['store_unit'] ?? null)->toBeNull();
+    }
 });
 
 it('redirects to role default home screen on unit change based on unit roles', function () {
@@ -266,25 +292,26 @@ it('redirects to role default home screen on unit change based on unit roles', f
 
     // Start in OAFA
     setPermissionsTeamId($oafaUnit->id);
-    session()->put('current_unit_id', $oafaUnit->id);
-    session()->put('current_unit_slug', 'oafa');
+    \Idei\Usim\Support\UIStateManager::storeKeyValue('active_unit', 'oafa');
 
     $ui = uiScenario($this, Menu::class, ['parent' => 'menu']);
 
-    // Switch to IDEI: role in IDEI is translator, so it should redirect to TranslateManager
+    // Switch to IDEI: role in IDEI is translator, so it should navigate to TranslateManager
     $response = $ui->action('unit_menu', 'changeUnit', ['unit' => 'idei', 'unit_id' => $ideiUnit->id]);
     $response->assertOk();
-    expect($response->json('redirect'))->toBe(TranslateManager::getRoutePath());
-    expect(session('current_unit_id'))->toBe($ideiUnit->id);
-    expect(session('current_unit_slug'))->toBe('idei');
+    $targetPath = $response->json('navigate.url') ?? $response->json('redirect');
+    expect($targetPath)->toBe(TranslateManager::getRoutePath());
+    expect(\Idei\Usim\Support\UIStateManager::getKeyValue('active_unit'))->toBe('idei');
+    expect(getPermissionsTeamId())->toBe($ideiUnit->id);
 
-    // Switch back to OAFA: role in OAFA is admin, so it should redirect to UsersManager
+    // Switch back to OAFA: role in OAFA is admin, so it should navigate to UsersManager
     $uiOafa = uiScenario($this, Menu::class, ['parent' => 'menu']);
     $responseOafa = $uiOafa->action('unit_menu', 'changeUnit', ['unit' => 'oafa', 'unit_id' => $oafaUnit->id]);
     $responseOafa->assertOk();
-    expect($responseOafa->json('redirect'))->toBe(UsersManager::getRoutePath());
-    expect(session('current_unit_id'))->toBe($oafaUnit->id);
-    expect(session('current_unit_slug'))->toBe('oafa');
+    $targetPathOafa = $responseOafa->json('navigate.url') ?? $responseOafa->json('redirect');
+    expect($targetPathOafa)->toBe(UsersManager::getRoutePath());
+    expect(\Idei\Usim\Support\UIStateManager::getKeyValue('active_unit'))->toBe('oafa');
+    expect(getPermissionsTeamId())->toBe($oafaUnit->id);
 });
 
 it('redirects to highest priority role home screen when unit has multiple roles', function () {
@@ -299,14 +326,14 @@ it('redirects to highest priority role home screen when unit has multiple roles'
 
     // Start in other_dept
     setPermissionsTeamId($otherUnit->id);
-    session()->put('current_unit_id', $otherUnit->id);
-    session()->put('current_unit_slug', 'other_dept');
+    \Idei\Usim\Support\UIStateManager::storeKeyValue('active_unit', 'other_dept');
 
     $ui = uiScenario($this, Menu::class, ['parent' => 'menu']);
 
     // Switch to IDEI: user has ['admin', 'translator'] in idei. Admin priority (1) > Translator priority (2)
     $response = $ui->action('unit_menu', 'changeUnit', ['unit' => 'idei', 'unit_id' => $ideiUnit->id]);
     $response->assertOk();
-    expect($response->json('redirect'))->toBe(UsersManager::getRoutePath());
+    $targetPath = $response->json('navigate.url') ?? $response->json('redirect');
+    expect($targetPath)->toBe(UsersManager::getRoutePath());
 });
 

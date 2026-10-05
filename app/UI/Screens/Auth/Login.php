@@ -27,7 +27,6 @@ class Login extends Screen
 
     protected string $store_email = '';
     protected string $store_token = '';
-    protected string $store_unit = '';
     protected Label $lbl_login_result;
 
     public static function authorize(): bool
@@ -153,7 +152,7 @@ class Login extends Screen
             $credentials['email'],
             $credentials['password'],
             $credentials['remember'],
-            $this->store_unit !== '' ? $this->store_unit : null,
+            null,
             startSession: true
         );
 

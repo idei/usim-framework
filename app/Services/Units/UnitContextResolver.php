@@ -60,9 +60,59 @@ class UnitContextResolver
             }
         }
 
+        // Check if an active unit is already chosen for the current client in UIStateManager
+        $clientActiveUnit = \Idei\Usim\Support\UIStateManager::getActiveUnit();
+        if (\is_string($clientActiveUnit) && $clientActiveUnit !== '') {
+            if ($isRoot) {
+                $unit = UsimUnit::where('slug', $clientActiveUnit)->first();
+                if ($unit) {
+                    return $unit;
+                }
+            }
+            if (method_exists($user, 'usimUnits')) {
+                $unit = $user->usimUnits()->where('slug', $clientActiveUnit)->first();
+                if ($unit) {
+                    return $unit;
+                }
+            }
+        }
+
+        // Check if an existing permissions team ID is set and belongs to the user
+        if (function_exists('getPermissionsTeamId') && getPermissionsTeamId()) {
+            $teamId = (int) getPermissionsTeamId();
+            if ($isRoot) {
+                $unit = UsimUnit::find($teamId);
+                if ($unit) {
+                    return $unit;
+                }
+            }
+            if (method_exists($user, 'usimUnits')) {
+                $unit = $user->usimUnits()->where('usim_units.id', $teamId)->first();
+                if ($unit) {
+                    return $unit;
+                }
+            }
+        }
+
         // Requested slug is missing or doesn't belong to the user: fall back to the
-        // first unit the user is registered in, deterministically ordered by id.
+        // first operational unit available, deterministically ordered by id.
+        if ($isRoot) {
+            $firstOperational = UsimUnit::where(function ($q) {
+                $q->where('type', '!=', 'system')->orWhereNull('type');
+            })->orderBy('id')->first();
+            if ($firstOperational) {
+                return $firstOperational;
+            }
+        }
+
         if (method_exists($user, 'usimUnits')) {
+            $firstOperational = $user->usimUnits()->where(function ($q) {
+                $q->where('type', '!=', 'system')->orWhereNull('type');
+            })->orderBy('usim_units.id')->first();
+            if ($firstOperational) {
+                return $firstOperational;
+            }
+
             $firstUnit = $user->usimUnits()->orderBy('usim_units.id')->first();
             if ($firstUnit) {
                 return $firstUnit;

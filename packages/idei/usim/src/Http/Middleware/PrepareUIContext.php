@@ -22,6 +22,11 @@ class PrepareUIContext
 {
     public function handle(Request $request, Closure $next): Response
     {
+        // 0. Resetear estado de layout para evitar fugas entre requests
+        if (class_exists(\Idei\Usim\Layout\AbstractLayout::class)) {
+            \Idei\Usim\Layout\AbstractLayout::setCurrent(null);
+        }
+
         // 1. Desencriptar USIM Storage
         $this->decryptUsimStorage($request);
 
@@ -99,14 +104,7 @@ class PrepareUIContext
 
         $effectiveUser = $request->user() ?? Auth::guard('device')->user();
 
-        $storeUsimUnit = $storage['store_unit'] ?? null;
-        $unitSlug = \is_scalar($storeUsimUnit) && $storeUsimUnit !== '' ? (string) $storeUsimUnit : null;
-        if ($unitSlug === null && $request->hasSession()) {
-            $sessionUnitSlug = $request->session()->get('current_unit_slug');
-            if (\is_string($sessionUnitSlug) && $sessionUnitSlug !== '') {
-                $unitSlug = $sessionUnitSlug;
-            }
-        }
+        $unitSlug = UIStateManager::getActiveUnit();
         UnitContextResolver::resolveAndApply($effectiveUser, $unitSlug);
     }
 

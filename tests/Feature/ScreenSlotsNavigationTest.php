@@ -10,6 +10,8 @@ use Idei\Usim\UI;
 beforeEach(function () {
     /** @var \Tests\TestCase $this */
     $this->seed([GenreSeeder::class, MovieSeeder::class]);
+    \Idei\Usim\Layout\AbstractLayout::setCurrent(null);
+    \Idei\Usim\Support\UIStateManager::setClientCurrentScreen('', null);
 });
 
 it('supports slot registration and retrieval on abstract layout', function () {
@@ -116,5 +118,34 @@ it('supports navigate method delegating to layout and tracks active screen', fun
     expect($allChanges)->toHaveKey('navigate');
     expect($allChanges['navigate']['url'])->toBe(TableDemo::getRoutePath());
     expect($allChanges['navigate']['slot'])->toBe('content_container');
+});
+
+it('returns early when target screen is already active in the slot', function () {
+    $user = \App\Models\User::factory()->create();
+    /** @var \Tests\TestCase $this */
+    $this->actingAs($user);
+
+    $host = app(Menu::class);
+    $host->initializeEventContext();
+
+    $shownFirst = $host->showInto(TableDemo::class);
+    expect($shownFirst)->toBeTrue();
+
+    $collector = app(\Idei\Usim\UIChangesCollector::class);
+    expect($collector->all())->toHaveKey('navigate');
+
+    // Reset collector to test subsequent call
+    $collector->reset();
+
+    // Calling showInto again with the same screen already active in the slot
+    $shownSecond = $host->showInto(TableDemo::class);
+    expect($shownSecond)->toBeTrue();
+    expect($collector->all())->not->toHaveKey('navigate');
+
+    // Calling showInto with force: true reloads despite active screen
+    $collector->reset();
+    $shownThird = $host->showInto(TableDemo::class, force: true);
+    expect($shownThird)->toBeTrue();
+    expect($collector->all())->toHaveKey('navigate');
 });
 

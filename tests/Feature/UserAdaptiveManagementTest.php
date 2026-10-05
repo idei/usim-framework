@@ -198,7 +198,7 @@ it('renders EditUserDialog appropriately for lobby user in Multi-Unit Mode', fun
 
     expect($userData['is_in_lobby'])->toBeTrue();
     expect($userData['has_operational_units'])->toBeTrue();
-    // Active unit context set (e.g. from local storage store_unit)
+    // Active unit context set (e.g. from active_unit / state_unit)
     $userData['active_unit'] = [
         'id' => $ideiUnit->id,
         'slug' => $ideiUnit->slug,
@@ -304,7 +304,7 @@ it('successfully approves a lobby user into chosen operational unit in Multi-Uni
     setPermissionsTeamId(null);
 });
 
-it('resolves the operational unit selected in store_unit for root user in UsersManager', function () {
+it('resolves the operational unit selected in UIStateManager for root user in UsersManager', function () {
     $mainUnit = UsimUnit::firstOrCreate(['slug' => 'main'], ['type' => 'system']);
     $lobbyUnit = UsimUnit::firstOrCreate(['slug' => 'lobby'], ['type' => 'system']);
     $ideiUnit = UsimUnit::firstOrCreate(['slug' => 'idei'], ['type' => 'institute']);
@@ -327,12 +327,11 @@ it('resolves the operational unit selected in store_unit for root user in UsersM
     expect($resolved)->not->toBeNull();
     expect($resolved->slug)->toBe('idei');
 
-    // Inside UsersManager screen context with injected store_unit
+    // Inside UsersManager screen context with active unit in UIStateManager
+    \Idei\Usim\Support\UIStateManager::setActiveUnit('idei');
+
     $manager = app(UsersManager::class);
     $reflection = new ReflectionClass($manager);
-    $prop = $reflection->getProperty('store_unit');
-    $prop->setAccessible(true);
-    $prop->setValue($manager, 'idei');
 
     $resolveMethod = $reflection->getMethod('resolveActiveUnit');
     $resolveMethod->setAccessible(true);

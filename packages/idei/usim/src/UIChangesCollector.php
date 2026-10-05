@@ -35,6 +35,14 @@ class UIChangesCollector
     /**
      * @return array<string, mixed>
      */
+    public function getStorage(): array
+    {
+        return $this->storage_changes;
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
     public function all(): array
     {
         $storage_key_config = config('usim.front_store_key', 'my-app');

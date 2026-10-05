@@ -716,6 +716,26 @@ abstract class Screen
     }
 
     /**
+     * Get the active organizational unit for the current user and context.
+     */
+    public function getActiveUnit(): ?UsimUnit
+    {
+        $user = Auth::user();
+        $slug = UIStateManager::getActiveUnit()
+            ?? (property_exists($this, 'state_unit') && !empty($this->state_unit) ? $this->state_unit : null);
+
+        if (class_exists(\App\Services\Units\UnitContextResolver::class)) {
+            return \App\Services\Units\UnitContextResolver::resolve($user, $slug);
+        }
+
+        if ($slug !== null) {
+            return UsimUnit::where('slug', $slug)->first();
+        }
+
+        return null;
+    }
+
+    /**
      * Helper to require a role (implies authentication).
      * Use this inside your authorize() method.
      *
@@ -891,7 +911,7 @@ abstract class Screen
      * @param  string  $permission  The short permission name (e.g., "publish") that will be resolved to a full permission
      *                              string based on the screen's slug (e.g., "blog.post_management.publish").
      * @param  UsimUnit|int|string|null  $unit  Optional unit context (instance, ID, or slug).
-     *                                          Defaults to the screen's active unit ($this->store_unit) or the ambient permissions team.
+     *                                          Defaults to the screen's active unit ($this->state_unit) or the ambient permissions team.
      */
     public function userCan(string $permission, mixed $unit = null): bool
     {
@@ -919,8 +939,12 @@ abstract class Screen
         }
 
         $targetUnitId = self::resolveUnitId($unit);
-        if ($targetUnitId === null && property_exists($this, 'store_unit') && !empty($this->store_unit)) {
-            $targetUnitId = self::resolveUnitId($this->store_unit);
+        if ($targetUnitId === null) {
+            $activeUnitSlug = UIStateManager::getActiveUnit()
+                ?? (property_exists($this, 'state_unit') && !empty($this->state_unit) ? $this->state_unit : null);
+            if ($activeUnitSlug !== null) {
+                $targetUnitId = self::resolveUnitId($activeUnitSlug);
+            }
         }
 
         if ($targetUnitId !== null && function_exists('getPermissionsTeamId') && function_exists('setPermissionsTeamId')) {
@@ -942,7 +966,7 @@ abstract class Screen
      *
      * @param  string|list<string>  $roles
      * @param  UsimUnit|int|string|null  $unit  Optional unit context (instance, ID, or slug).
-     *                                          Defaults to the screen's active unit ($this->store_unit) or the ambient permissions team.
+     *                                          Defaults to the active unit (UIStateManager::getActiveUnit()) or the ambient permissions team.
      */
     public function userHasRole(string|array $roles, mixed $unit = null): bool
     {
@@ -964,8 +988,12 @@ abstract class Screen
         }
 
         $targetUnitId = self::resolveUnitId($unit);
-        if ($targetUnitId === null && property_exists($this, 'store_unit') && !empty($this->store_unit)) {
-            $targetUnitId = self::resolveUnitId($this->store_unit);
+        if ($targetUnitId === null) {
+            $activeUnitSlug = UIStateManager::getActiveUnit()
+                ?? (property_exists($this, 'state_unit') && !empty($this->state_unit) ? $this->state_unit : null);
+            if ($activeUnitSlug !== null) {
+                $targetUnitId = self::resolveUnitId($activeUnitSlug);
+            }
         }
 
         if ($targetUnitId !== null && function_exists('getPermissionsTeamId') && function_exists('setPermissionsTeamId')) {
@@ -1195,6 +1223,14 @@ abstract class Screen
 
         // Inject storage values into protected properties (store_* variables)
         $this->injectStorageValues($incomingStorage);
+
+        // Restore internal screen state from UIStateManager snapshot cache (state_* variables)
+        if (method_exists(UIStateManager::class, 'getScreenState')) {
+            $cachedState = UIStateManager::getScreenState($this->getContextIdentifier());
+            if (!empty($cachedState)) {
+                $this->injectStateVariables($cachedState);
+            }
+        }
 
         $this->container = $this->reconstructScreenTreeFromCache(...$buildParams);
         if ($parent !== null && $parent !== '') {
@@ -1520,6 +1556,13 @@ abstract class Screen
         $cachedUI = UIStateManager::get($contextKey);
 
         if ($this->isTypedCachedScreenSnapshot($cachedUI) && $this->isValidCachedScreenSnapshot($cachedUI)) {
+            if (method_exists(UIStateManager::class, 'getScreenState')) {
+                $cachedState = UIStateManager::getScreenState($contextKey);
+                if (!empty($cachedState)) {
+                    $this->injectStateVariables($cachedState);
+                }
+            }
+
             return $cachedUI;
         }
 
@@ -1545,7 +1588,7 @@ abstract class Screen
             ->root(true)
             ->toJson();
 
-        UIStateManager::store($contextKey, $ui);
+        $this->cacheScreenSnapshot($container);
 
         return $ui;
     }
@@ -1605,8 +1648,9 @@ abstract class Screen
      * @param  string|null  $slot Name of the slot in the layout (e.g. 'main', 'top_menu', 'right_panel'). If null, uses target's $defaultSlot.
      * @param  array<int|string, mixed>  $params  Parameters passed to buildBaseUI
      * @param  bool  $updateBrowserUrl  Whether to update browser location history for main content navigation
+     * @param  bool  $force Whether to force reload the slot even if the target screen class matches current screen
      */
-    public function showInto(string $screenClass, ?string $slot = null, array $params = [], bool $updateBrowserUrl = true): bool
+    public function showInto(string $screenClass, ?string $slot = null, array $params = [], bool $updateBrowserUrl = true, bool $force = false): bool
     {
         $targetClass = class_exists($screenClass) ? $screenClass : static::resolveScreenClassFromSlug($screenClass);
         if ($targetClass === null || !class_exists($targetClass) || !is_subclass_of($targetClass, self::class)) {
@@ -1627,15 +1671,29 @@ abstract class Screen
         }
 
         $effectiveSlot = $slot ?? $targetClass::getDefaultSlot();
+
+        $layout = $this->getLayout();
+        $currentScreen = $layout?->getActiveScreen($effectiveSlot);
+        if ($currentScreen === null && in_array($effectiveSlot, ['main', 'content', 'center'], true)) {
+            $currentScreen = UIStateManager::getClientCurrentScreenClass();
+        }
+
+        // If the target screen is already active in the slot, no need to reload unless forced
+        if (!$force && $currentScreen !== null) {
+            $currentClass = class_exists($currentScreen) ? $currentScreen : static::resolveScreenClassFromSlug($currentScreen);
+            if ($currentClass === $targetClass) {
+                return true;
+            }
+        }
+
         $routePath = $targetClass::getRoutePath();
         $routeSlug = static::resolveScreenSlug($targetClass);
 
         // 1. Locate slot container from layout instance if available
-        $layout = $this->getLayout();
         if ($layout !== null) {
             $layout->setActiveScreen($effectiveSlot, $targetClass);
             if ($layout->getSlot($effectiveSlot) !== null) {
-                return $layout->showInto($targetClass, $effectiveSlot, $params, $updateBrowserUrl);
+                return $layout->showInto($targetClass, $effectiveSlot, $params, $updateBrowserUrl, $force);
             }
         }
 
@@ -1886,7 +1944,17 @@ abstract class Screen
      */
     protected function cacheScreenSnapshot(Container $container): void
     {
-        UIStateManager::store($this->getContextIdentifier(), $container->toJson());
+        $contextKey = $this->getContextIdentifier();
+        UIStateManager::store($contextKey, $container->toJson());
+
+        if (method_exists(UIStateManager::class, 'storeScreenState')) {
+            $state = $this->getStateVariables();
+            if (!empty($state)) {
+                UIStateManager::storeScreenState($contextKey, $state);
+            } else {
+                UIStateManager::clearScreenState($contextKey);
+            }
+        }
     }
 
     /**
@@ -1894,7 +1962,12 @@ abstract class Screen
      */
     public function clearCachedScreenSnapshot(): bool
     {
-        return UIStateManager::clear($this->getContextIdentifier());
+        $contextKey = $this->getContextIdentifier();
+        if (method_exists(UIStateManager::class, 'clearScreenState')) {
+            UIStateManager::clearScreenState($contextKey);
+        }
+
+        return UIStateManager::clear($contextKey);
     }
 
     /**
@@ -1999,6 +2072,89 @@ abstract class Screen
         }
 
         return $storage;
+    }
+
+    /**
+     * Get internal screen state variables to be persisted in UIStateManager snapshot cache.
+     *
+     * By convention, any protected or public property starting with 'state_' is automatically collected.
+     * Unlike 'store_' variables, 'state_' variables are server-side only and never sent to the client payload.
+     *
+     * @return array<string, mixed> Associative array of state variables
+     */
+    public function getStateVariables(): array
+    {
+        $state = [];
+        $reflection = new ReflectionClass($this);
+        $properties = $reflection->getProperties(ReflectionProperty::IS_PROTECTED | ReflectionProperty::IS_PUBLIC);
+
+        foreach ($properties as $property) {
+            // Skip properties declared in Screen base class
+            if ($property->getDeclaringClass()->getName() === self::class) {
+                continue;
+            }
+
+            $propertyName = $property->getName();
+            if (str_starts_with($propertyName, 'state_')) {
+                if (!$property->isInitialized($this)) {
+                    continue;
+                }
+                $state[$propertyName] = $property->getValue($this);
+            }
+        }
+
+        return $state;
+    }
+
+    /**
+     * Inject cached internal screen state variables into screen properties.
+     *
+     * @param  array<string, mixed>  $state
+     */
+    public function injectStateVariables(array $state): void
+    {
+        if (empty($state)) {
+            return;
+        }
+
+        $reflection = new ReflectionClass($this);
+
+        foreach ($reflection->getProperties(ReflectionProperty::IS_PROTECTED | ReflectionProperty::IS_PUBLIC) as $property) {
+            if ($property->getDeclaringClass()->getName() === self::class) {
+                continue;
+            }
+
+            $propertyName = $property->getName();
+            if (!str_starts_with($propertyName, 'state_')) {
+                continue;
+            }
+
+            if (!array_key_exists($propertyName, $state)) {
+                continue;
+            }
+
+            $value = $state[$propertyName];
+            $type = $property->getType();
+
+            if ($type instanceof \ReflectionNamedType) {
+                $typeName = $type->getName();
+                if ($value === null && $type->allowsNull()) {
+                    $property->setValue($this, null);
+                    continue;
+                }
+                if ($typeName === 'int' && is_numeric($value)) {
+                    $value = (int) $value;
+                } elseif ($typeName === 'float' && is_numeric($value)) {
+                    $value = (float) $value;
+                } elseif ($typeName === 'bool') {
+                    $value = filter_var($value, FILTER_VALIDATE_BOOLEAN);
+                } elseif ($typeName === 'string' && (is_scalar($value) || is_null($value))) {
+                    $value = (string) ($value ?? '');
+                }
+            }
+
+            $property->setValue($this, $value);
+        }
     }
 
     /**

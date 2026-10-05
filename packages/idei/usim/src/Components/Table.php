@@ -403,9 +403,6 @@ class Table extends UIComponent
         $currentPage = $pagination['current_page'];
         $perPage = $pagination['per_page'];
 
-        // Ensure row capacity matches current page size (important after search/filters).
-        $this->ensureRowCapacity($perPage);
-
         // Clear current rows
         $this->clearRows();
 
