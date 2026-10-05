@@ -58,7 +58,7 @@ it('redirects unauthenticated guest accessing registered screen', function () {
     expect($response->json('redirect'))->toBe(url('/auth/login'));
 });
 
-it('handles onGoToProfile action and redirects to profile', function () {
+it('handles onGoToProfile action and opens profile modal', function () {
     Role::findOrCreate('registered');
     Permission::findOrCreate('home.access');
     $unit = UsimUnit::firstOrCreate(['slug' => 'lobby']);
@@ -77,7 +77,11 @@ it('handles onGoToProfile action and redirects to profile', function () {
 
     $response = $ui->action('registered_card', 'go_to_profile');
     $response->assertOk();
-    expect($response->json('redirect'))->toBe('/auth/profile');
+
+    $payload = $response->json();
+    expect(hasModalComponents($payload))->toBeTrue();
+    expect(modalPayloadHasNamedComponent($payload, 'app_ui_screens_auth_profile'))->toBeTrue();
+    expect(findComponentByName($payload, 'profile_wrapper'))->not->toBeNull();
 });
 
 it('renders registered screen message in Spanish', function () {

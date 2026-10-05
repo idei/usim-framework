@@ -1,7 +1,7 @@
 <?php
 
 return [
-    'menu_title' => 'Registered',
+    'menu_title' => 'Registrado',
     'icon' => '',
     'title' => '¡Registro Exitoso!',
     'greeting' => 'Hola, :name',

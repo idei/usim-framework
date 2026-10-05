@@ -431,14 +431,6 @@ class Menu extends Screen
             ->width(Size::px(180));
 
         $builder->screenShow(Login::class, modal: true, when: !Auth::check());
-
-        // $builder->action(
-        //     t('screen.menu.items.register'),
-        //     'show_register_form',
-        //     [],
-        //     '📝',
-        //     when: !Auth::check()
-        // );
         $builder->screenShow(Register::class, modal: true, when: !Auth::check());
         $builder->screenShow(Profile::class, modal: true, when: Auth::check());
 

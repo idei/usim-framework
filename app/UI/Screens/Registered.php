@@ -3,6 +3,7 @@
 namespace App\UI\Screens;
 
 use App\Models\User;
+use App\UI\Screens\Auth\Profile;
 use Idei\Usim\Components\Container;
 use Idei\Usim\Enums\LayoutType;
 use Idei\Usim\Screen;
@@ -34,13 +35,7 @@ class Registered extends Screen
         $appNameConfig = config('usim.app_name') ?? config('app.name') ?? 'USIM Framework';
         $appName = is_string($appNameConfig) ? $appNameConfig : 'USIM Framework';
 
-        $message = t('registered.message', ['app_name' => $appName]);
-        if ($message === 'registered.message') {
-            $message = __('screen/registered.message', ['app_name' => $appName]);
-        }
-        if ($message === 'screen/registered.message') {
-            $message = "Ha sido satisfactoriamente registrado en el sistema {$appName} y pronto será asignado a una unidad con un rol.";
-        }
+        $message = t('screen.registered.message', ['app_name' => $appName]);
 
         $container
             ->layout(LayoutType::VERTICAL)
@@ -59,13 +54,7 @@ class Registered extends Screen
                 ->fontSize('64px')
         );
 
-        $title = t('registered.title');
-        if ($title === 'registered.title') {
-            $title = __('screen/registered.title');
-        }
-        if ($title === 'screen/registered.title') {
-            $title = '¡Registro Exitoso!';
-        }
+        $title = t('screen.registered.title');
 
         // Title
         $container->add(
@@ -79,13 +68,7 @@ class Registered extends Screen
                 ->marginTop(Spacing::px(12))
         );
 
-        $greeting = t('registered.greeting', ['name' => $userName]);
-        if ($greeting === 'registered.greeting') {
-            $greeting = __('screen/registered.greeting', ['name' => $userName]);
-        }
-        if ($greeting === 'screen/registered.greeting') {
-            $greeting = "Hola, {$userName}";
-        }
+        $greeting = t('screen.registered.greeting', ['name' => $userName]);
 
         // Greeting
         $container->add(
@@ -98,21 +81,8 @@ class Registered extends Screen
                 ->marginTop(Spacing::px(6))
         );
 
-        $cardTitle = t('registered.card_title');
-        if ($cardTitle === 'registered.card_title') {
-            $cardTitle = __('screen/registered.card_title');
-        }
-        if ($cardTitle === 'screen/registered.card_title') {
-            $cardTitle = 'Asignación pendiente';
-        }
-
-        $btnProfileLabel = t('registered.btn_profile');
-        if ($btnProfileLabel === 'registered.btn_profile') {
-            $btnProfileLabel = __('screen/registered.btn_profile');
-        }
-        if ($btnProfileLabel === 'screen/registered.btn_profile') {
-            $btnProfileLabel = 'Ver Mi Perfil';
-        }
+        $cardTitle = t('screen.registered.card_title');
+        $btnProfileLabel = t('screen.registered.btn_profile');
 
         // Main informative Card with the required message
         $container->add(
@@ -145,8 +115,7 @@ class Registered extends Screen
      */
     public function onGoToProfile(array $params): void
     {
-        $this->redirect('/auth/profile');
-        // $this->openModal(Profile::class);
+        $this->openModal(Profile::class);
     }
 }
 
