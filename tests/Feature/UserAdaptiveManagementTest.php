@@ -3,7 +3,7 @@
 use App\Models\User;
 use App\Services\Units\UnitContextResolver;
 use App\Services\User\UserService;
-use App\UI\Components\Modals\EditUserDialog;
+use App\UI\Screens\Admin\EditUser;
 use App\UI\Screens\Admin\TableModels\UserTableModel;
 use App\UI\Screens\Admin\UsersManager;
 use Idei\Usim\Models\UsimUnit;
@@ -134,7 +134,8 @@ it('adapts table columns and units formatting in Multi-Unit Mode', function () {
     expect($lobbyRowEs['roles'])->toBe('Usuario Registrado');
 });
 
-it('renders EditUserDialog appropriately for lobby user in Simple Mode', function () {
+it('renders EditUser appropriately for lobby user in Simple Mode', function () {
+    /** @var TestCase $this */
     UsimUnit::whereNotIn('slug', ['main', 'lobby'])->delete();
     $lobbyUnit = UsimUnit::firstOrCreate(['slug' => 'lobby'], ['type' => 'system']);
     Role::findOrCreate('registered', 'web');
@@ -149,6 +150,8 @@ it('renders EditUserDialog appropriately for lobby user in Simple Mode', functio
     $lobbyUser->syncRoles(['registered']);
     setPermissionsTeamId(null);
 
+    $this->actingAs($lobbyUser);
+
     $userService = app(UserService::class);
     $response = $userService->getUser($lobbyUser->id);
     expect($response['status'])->toBe('success');
@@ -158,8 +161,9 @@ it('renders EditUserDialog appropriately for lobby user in Simple Mode', functio
     expect($userData['has_operational_units'])->toBeFalse();
 
     app()->setLocale('es');
-    $dialog = new EditUserDialog();
-    $ui = $dialog->getUI(user: $userData);
+    $uiResponse = getScreenJson($this, EditUser::class, ['user' => $userData]);
+    $uiResponse->assertOk();
+    $ui = $uiResponse->json();
 
     // Banner is present
     expect(findComponentByName($ui, 'lobby_banner'))->not->toBeNull();
@@ -171,12 +175,15 @@ it('renders EditUserDialog appropriately for lobby user in Simple Mode', functio
 
     // Test English button label
     app()->setLocale('en');
-    $uiEn = $dialog->getUI(user: $userData);
+    $uiEnResponse = getScreenJson($this, EditUser::class, ['user' => $userData, 'reset' => 1]);
+    $uiEnResponse->assertOk();
+    $uiEn = $uiEnResponse->json();
     $btnEn = findComponentByName($uiEn, 'btn_submit_register');
     expect($btnEn['label'])->toBe('Approve & Activate User');
 });
 
-it('renders EditUserDialog appropriately for lobby user in Multi-Unit Mode', function () {
+it('renders EditUser appropriately for lobby user in Multi-Unit Mode', function () {
+    /** @var TestCase $this */
     $lobbyUnit = UsimUnit::firstOrCreate(['slug' => 'lobby'], ['type' => 'system']);
     $ideiUnit = UsimUnit::firstOrCreate(['slug' => 'idei'], ['type' => 'institute']);
     Role::findOrCreate('registered', 'web');
@@ -190,6 +197,8 @@ it('renders EditUserDialog appropriately for lobby user in Multi-Unit Mode', fun
     setPermissionsTeamId($lobbyUnit->id);
     $lobbyUser->syncRoles(['registered']);
     setPermissionsTeamId(null);
+
+    $this->actingAs($lobbyUser);
 
     $userService = app(UserService::class);
     $response = $userService->getUser($lobbyUser->id);
@@ -206,8 +215,9 @@ it('renders EditUserDialog appropriately for lobby user in Multi-Unit Mode', fun
     ];
 
     app()->setLocale('es');
-    $dialog = new EditUserDialog();
-    $ui = $dialog->getUI(user: $userData);
+    $uiResponse = getScreenJson($this, EditUser::class, ['user' => $userData]);
+    $uiResponse->assertOk();
+    $ui = $uiResponse->json();
 
     // Banner is present
     expect(findComponentByName($ui, 'lobby_banner'))->not->toBeNull();
@@ -225,7 +235,9 @@ it('renders EditUserDialog appropriately for lobby user in Multi-Unit Mode', fun
     // Test English button label
     app()->setLocale('en');
     $userData['active_unit']['name'] = 'Institute of Informatics';
-    $uiEn = $dialog->getUI(user: $userData);
+    $uiEnResponse = getScreenJson($this, EditUser::class, ['user' => $userData, 'reset' => 1]);
+    $uiEnResponse->assertOk();
+    $uiEn = $uiEnResponse->json();
     $btnEn = findComponentByName($uiEn, 'btn_submit_register');
     expect($btnEn['label'])->toBe('Approve in Institute of Informatics');
 });
