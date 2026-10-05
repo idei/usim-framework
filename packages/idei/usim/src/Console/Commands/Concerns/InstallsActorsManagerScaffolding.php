@@ -13,8 +13,8 @@ trait InstallsActorsManagerScaffolding
         $base = 'Device';
         $this->installScreen("$base/DevicePairingScreen.php.stub", 'DevicePairingScreen.php', $base);
         $this->installScreen("$base/KioskScreen.php.stub", 'KioskScreen.php', $base);
+        $this->installScreen("$base/EditDevice.php.stub", 'EditDevice.php', $base);
         $this->installComponent("Modals/DevicePairingDialog.php.stub", 'DevicePairingDialog.php', 'Modals');
-        $this->installComponent("Modals/EditDeviceDialog.php.stub", 'EditDeviceDialog.php', 'Modals');
 
         $base = 'Admin';
         $tableModelsBase = "$base/TableModels";

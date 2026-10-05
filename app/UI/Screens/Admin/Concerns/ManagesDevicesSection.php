@@ -5,8 +5,8 @@ namespace App\UI\Screens\Admin\Concerns;
 use App\Services\Device\DeviceListingService;
 use App\Services\Device\DeviceService;
 use App\UI\Components\Modals\DevicePairingDialog;
-use App\UI\Components\Modals\EditDeviceDialog;
 use App\UI\Screens\Admin\TableModels\DeviceTableModel;
+use App\UI\Screens\Device\EditDevice;
 use Idei\Usim\Components\Button;
 use Idei\Usim\Components\Container;
 use Idei\Usim\Components\Input;
@@ -115,8 +115,9 @@ trait ManagesDevicesSection
      */
     public function onAddDeviceClicked(array $params): void
     {
-        EditDeviceDialog::open(
-            callerServiceId: $this->getScreenComponentId()
+        Screen::openAsModal(
+            caller: $this->screen,
+            screenClass: EditDevice::class
         );
     }
 
@@ -171,9 +172,12 @@ trait ManagesDevicesSection
 
         $this->devices_table->select($deviceId);
 
-        EditDeviceDialog::open(
-            device: $device,
-            callerServiceId: $this->getScreenComponentId()
+        Screen::openAsModal(
+            params: [
+                'device' => $device,
+            ],
+            caller: $this->screen,
+            screenClass: EditDevice::class
         );
     }
 
@@ -336,6 +340,47 @@ trait ManagesDevicesSection
      * @param array<string, mixed> $params
      */
     public function onUnitChanged(array $params): void
+    {
+        $this->devices_table->refresh();
+    }
+
+    /**
+     * Handles the 'device_created' event, fired by: EditDevice::class.
+     *
+     * @param array<string, mixed> $params
+     */
+    public function onDeviceCreated(array $params): void
+    {
+        $this->devices_table->refresh();
+    }
+
+    /**
+     * Handles the 'device_updated' event, fired by: EditDevice::class.
+     *
+     * @param array<string, mixed> $params
+     */
+    public function onDeviceUpdated(array $params): void
+    {
+        $this->toast(t(self::DEVICES_I18N_PREFIX . 'device_updated'), 'success');
+        $this->devices_table->refresh();
+    }
+
+    /**
+     * Handles the 'device_deleted' event, fired by: EditDevice::class.
+     *
+     * @param array<string, mixed> $params
+     */
+    public function onDeviceDeleted(array $params): void
+    {
+        $this->devices_table->refresh();
+    }
+
+    /**
+     * Handles the 'device_unpaired' event, fired by: EditDevice::class.
+     *
+     * @param array<string, mixed> $params
+     */
+    public function onDeviceUnpaired(array $params): void
     {
         $this->devices_table->refresh();
     }

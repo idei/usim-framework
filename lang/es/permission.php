@@ -90,6 +90,12 @@ return [
                 'description' => 'Permite acceder a la pantalla Device Kiosk.',
             ],
         ],
+        'edit_device' => [
+            'access' => [
+                'name' => 'Acceder a Device Edit Device',
+                'description' => 'Permite acceder a la pantalla Device Edit Device.',
+            ],
+        ],
     ],
     'create' => [
         'users' => [

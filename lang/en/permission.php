@@ -90,6 +90,12 @@ return [
                 'description' => 'Permission to access Device Kiosk.',
             ],
         ],
+        'edit_device' => [
+            'access' => [
+                'name' => 'Access Device Edit Device',
+                'description' => 'Permission to access Device Edit Device.',
+            ],
+        ],
     ],
     'create' => [
         'users' => [
