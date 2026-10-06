@@ -473,10 +473,15 @@ class EditDevice extends Screen
         $deviceId = is_numeric($rawId) ? (int) $rawId : null;
         $device = $deviceId !== null ? $this->deviceService->getDevice($deviceId) : null;
 
-        DevicePairingDialog::open(
-            device: $device,
-            callerServiceId: $this->getScreenComponentId()
-        );
+        $this->openModal(Link::class, [
+            'device' => $device,
+            'device_id' => $deviceId,
+        ]);
+
+        // DevicePairingDialog::open(
+        //     device: $device,
+        //     callerServiceId: $this->getScreenComponentId()
+        // );
     }
 
     /**
