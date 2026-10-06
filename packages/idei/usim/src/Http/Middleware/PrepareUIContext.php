@@ -5,6 +5,7 @@ namespace Idei\Usim\Http\Middleware;
 use App\Services\Units\UnitContextResolver;
 use Closure;
 use Idei\Usim\Support\UIStateManager;
+use Illuminate\Auth\SessionGuard;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Laravel\Sanctum\PersonalAccessToken;
@@ -84,28 +85,97 @@ class PrepareUIContext
         $storeTokenValue = $storage['store_token'] ?? null;
         $storeToken = \is_scalar($storeTokenValue) ? (string) $storeTokenValue : null;
 
+        if (empty($storeToken)) {
+            $cachedToken = UIStateManager::getAuthToken();
+            if (\is_string($cachedToken) && $cachedToken !== '') {
+                $storeToken = $cachedToken;
+            }
+        }
+
         $request->headers->set('Authorization', 'Bearer ' . ($storeToken ?? ''));
         UIStateManager::setAuthToken($storeToken);
 
-        // Si el request no tiene sesión activa en 'device' pero trae un token válido,
-        // resolvemos la entidad tokenable (ej. Device) y la hidratamos en Auth::guard('device')
-        if (!empty($storeToken) && !Auth::guard('device')->check()) {
+        $hasTabClientId = $request->hasHeader(UIStateManager::CLIENT_ID_HEADER);
+
+        if (!empty($storeToken)) {
             if (class_exists(PersonalAccessToken::class)) {
                 $tokenModel = PersonalAccessToken::findToken($storeToken);
                 if ($tokenModel && $tokenModel->tokenable instanceof \Illuminate\Contracts\Auth\Authenticatable) {
                     $actor = $tokenModel->tokenable;
                     if ($actor instanceof \App\Models\Device) {
                         Auth::guard('device')->setUser($actor);
-                        $request->setUserResolver(fn () => $actor);
+                    } else {
+                        $this->setWebGuardUser($actor);
+                    }
+                    $request->setUserResolver(fn () => $actor);
+                } else {
+                    if ($hasTabClientId) {
+                        $this->clearWebGuardUser();
+                        $request->setUserResolver(fn () => null);
                     }
                 }
             }
+        } elseif ($hasTabClientId) {
+            // Per-tab isolation: when request explicitly sends tab client ID,
+            // but no store_token is present for this tab, treat this tab as GUEST
+            // and prevent leaking user session from the shared browser cookie!
+            $this->clearWebGuardUser();
+            $request->setUserResolver(fn () => null);
         }
 
         $effectiveUser = $request->user() ?? Auth::guard('device')->user();
 
         $unitSlug = UIStateManager::getActiveUnit();
         UnitContextResolver::resolveAndApply($effectiveUser, $unitSlug);
+    }
+
+    /**
+     * Set the authenticated user for the web guard in the current request.
+     */
+    private function setWebGuardUser(\Illuminate\Contracts\Auth\Authenticatable $user): void
+    {
+        $guard = Auth::guard('web');
+        $guard->setUser($user);
+
+        if ($guard instanceof \Illuminate\Auth\SessionGuard) {
+            try {
+                $loggedOutProp = new \ReflectionProperty($guard, 'loggedOut');
+                $loggedOutProp->setAccessible(true);
+                $loggedOutProp->setValue($guard, false);
+            } catch (\ReflectionException) {
+                // Ignore reflection errors
+            }
+        }
+    }
+
+    /**
+     * Clear authenticated user for web guard for the current request without destroying disk session.
+     */
+    private function clearWebGuardUser(): void
+    {
+        $guard = Auth::guard('web');
+
+        if ($guard instanceof SessionGuard) {
+            $guard->forgetUser();
+            try {
+                $loggedOutProp = new \ReflectionProperty($guard, 'loggedOut');
+                $loggedOutProp->setAccessible(true);
+                $loggedOutProp->setValue($guard, true);
+            } catch (\ReflectionException) {
+                // Ignore reflection errors
+            }
+        } elseif (method_exists($guard, 'forgetUser')) {
+            $guard->forgetUser();
+        }
+
+        $deviceGuard = Auth::guard('device');
+        if ($deviceGuard->check()) {
+            if ($deviceGuard instanceof SessionGuard) {
+                $deviceGuard->forgetUser();
+            } elseif (method_exists($deviceGuard, 'forgetUser')) {
+                $deviceGuard->forgetUser();
+            }
+        }
     }
 
     /**

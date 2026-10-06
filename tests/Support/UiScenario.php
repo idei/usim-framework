@@ -60,8 +60,14 @@ final class UiScenario
         }
 
         $existingAuthToken = UIStateManager::getAuthToken();
+        if ($existingAuthToken === null && \Illuminate\Support\Facades\Auth::check() && \Illuminate\Support\Facades\Auth::user() instanceof \App\Models\User) {
+            $existingAuthToken = \Illuminate\Support\Facades\Auth::user()->createToken('scenario-' . $scenario->clientId)->plainTextToken;
+        }
+
         if ($existingAuthToken !== null) {
             UIStateManager::setAuthToken($existingAuthToken, $scenario->clientId);
+            $storageKey = config('usim.front_store_key', 'usim-framework');
+            $scenario->memory->ingest(['storage' => [$storageKey => json_encode(['store_token' => $existingAuthToken])]], 'auto');
         }
 
         session()->put(UIStateManager::CLIENT_ID_COOKIE, $scenario->clientId);
@@ -274,7 +280,9 @@ final class UiScenario
     {
         session()->put(UIStateManager::CLIENT_ID_COOKIE, $this->clientId);
 
-        return $this->test->withUnencryptedCookie(UIStateManager::CLIENT_ID_COOKIE, $this->clientId);
+        return $this->test
+            ->withHeader(UIStateManager::CLIENT_ID_HEADER, $this->clientId)
+            ->withUnencryptedCookie(UIStateManager::CLIENT_ID_COOKIE, $this->clientId);
     }
 
     private function syncFromServer(): void

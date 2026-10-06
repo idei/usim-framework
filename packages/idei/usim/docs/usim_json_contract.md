@@ -82,10 +82,11 @@ Response esperada:
 
 USIM depende de estado entre requests. Un cliente debe mantener y reenviar dos cosas:
 
-## 3.1 Client ID cookie
+## 3.1 Client ID (Cookie y Header X-UI-Client-Id)
 
-- El backend usa cookie de client id (`UIStateManager::CLIENT_ID_COOKIE`).
-- Debe persistirse y enviarse en todas las requests subsecuentes de la misma sesion UI.
+- El backend usa el header `X-UI-Client-Id` o la cookie de client id (`UIStateManager::CLIENT_ID_COOKIE`).
+- **Aislamiento por pestaña (Web):** En clientes web, cada pestaña genera un UUID único almacenado en `sessionStorage` y lo envía en el header `X-UI-Client-Id`. El backend prioriza este header sobre la cookie para aislar el árbol de componentes y la sesión por pestaña.
+- Debe persistirse y enviarse en todas las requests subsecuentes de la misma sesión UI.
 - Si no se conserva, el backend puede perder continuidad de estado/diffs.
 
 ## 3.2 Storage serializado (`usim`)
@@ -103,6 +104,7 @@ En respuestas, puede venir:
 Reglas:
 
 - `storage.usim` es un `JSON string` serializado por backend.
+- En navegadores web se almacena en `sessionStorage` para mantener aislamiento estricto por pestaña.
 - El cliente puede parsearlo para leer estado no sensible (`store_*` sin sufijo `_crypt`).
 - Los keys con sufijo `_crypt` contienen datos protegidos por backend y deben tratarse como valores opacos (el cliente no debe intentar desencriptarlos).
 - Reenviar siempre el string actualizado en eventos siguientes.
@@ -115,7 +117,7 @@ Reglas:
 
 Recomendacion para clientes nuevos:
 
-- Implementar primero `X-USIM-Storage`.
+- Implementar primero `X-USIM-Storage` y enviar `X-UI-Client-Id`.
 - Mantener fallback por body si el backend/proxy lo requiere.
 
 ## 4. Formato de respuesta JSON

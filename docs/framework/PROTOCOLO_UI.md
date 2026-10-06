@@ -376,9 +376,14 @@ En la respuesta JSON, el backend entrega el almacenamiento en el siguiente forma
 Donde `"my-app"` corresponde a la clave configurada en `config('usim.front_store_key')` (por defecto `'my-app'` o `'usim'`).
 
 #### 6.5.2 Obligaciones del Cliente
-1. Almacenar el valor string de `storage[front_store_key]` (en `localStorage` o memoria del cliente).
+1. Almacenar el valor string de `storage[front_store_key]` en `sessionStorage` (en navegadores web para garantizar aislamiento entre pestañas) o en memoria de sesión en clientes nativos/headless.
 2. Reenviarlo en cada solicitud posterior mediante el header HTTP `X-USIM-Storage: <string>` (o como fallback en el cuerpo JSON en la clave `storage` o `usim`).
-3. Tratar las variables con sufijo `_crypt` como cadenas **completamente opacas**. El cliente no debe intentar desencriptarlas ni modificarlas.
+3. Enviar el header `X-UI-Client-Id: <uuid>` con el identificador único de la pestaña (persistido en `sessionStorage`) en todas las solicitudes (`POST /api/ui-event`, `GET /api/ui/*`, subidas temporales, etc.).
+4. Tratar las variables con sufijo `_crypt` como cadenas **completamente opacas**. El cliente no debe intentar desencriptarlas ni modificarlas.
+
+#### 6.5.3 Aislamiento por Pestaña (`X-UI-Client-Id` y `store_token`)
+- **Caché de componentes aislada:** El backend (`UIStateManager`) prioriza `X-UI-Client-Id` sobre la cookie compartida `ui_client_id`. Esto evita que dos pestañas que navegan la misma pantalla colisionen en el snapshot del árbol en caché.
+- **Sesión de usuario por pestaña:** En modo web con `X-UI-Client-Id`, la autenticación se valida a partir de `store_token` enviado en el storage de la pestaña. Si la pestaña no cuenta con `store_token`, el backend aísla el contexto web (`clearWebGuardUser()`) tratándola estrictamente como Invitado (*Guest*), evitando filtraciones de sesión a través de la cookie `laravel_session`.
 
 ---
 

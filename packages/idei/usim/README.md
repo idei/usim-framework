@@ -251,6 +251,7 @@ Persistence is now plain by default:
 
 - `store_*` values are serialized as regular JSON values so the client can inspect and use them directly.
 - Add the `_crypt` suffix only for sensitive values that must be protected before being sent to client storage.
+- Browser clients persist storage in `sessionStorage` (scoped per browser tab) and send `X-UI-Client-Id` alongside `X-USIM-Storage`, guaranteeing state and authentication isolation across tabs.
 - This makes client-side decisions possible for non-sensitive state such as `store_theme`, and also enables finer-grained storage synchronization because the client can apply only the changed keys instead of replacing one fully encrypted blob each time.
 
 ```php
@@ -264,7 +265,7 @@ class MyScreen extends Screen
 }
 ```
 
-Use `_crypt` only when the value should not be readable from the client's local storage.
+Use `_crypt` only when the value should not be readable from client storage.
 
 ---
 

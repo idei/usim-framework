@@ -8,14 +8,19 @@ The format is based on Keep a Changelog, and this project follows Semantic Versi
 
 ### Added
 - `usim:install` now recursively publishes all files under `stubs/resources` into the consuming application's `resources` directory while preserving their relative paths and existing files.
+- Support for `X-UI-Client-Id` request header in `UIStateManager::getOrCreateClientId()`, prioritizing per-tab UUIDs over the shared `ui_client_id` cookie to isolate UI state trees in the backend cache.
+- Per-tab authentication isolation in `PrepareUIContext`: when requests provide `X-UI-Client-Id` without a valid `store_token`, the web guard user is cleared (`clearWebGuardUser()`) and resolved as guest, preventing cross-tab session leakage from shared browser session cookies (`laravel_session`).
 
 ### Changed
 - Unified published package configuration into `config/usim.php` (includes `users.roles`), replacing the previous split publish target (`config/ui-services.php` + `config/users.php`) for new installs.
 - Runtime config resolution now uses `usim.*` keys only; legacy `ui-services.*` fallbacks were removed.
+- Migrated web client storage from `localStorage` to `sessionStorage` (`ui-renderer.js`, `components/storage`, `components/shared/ui-event`, `components/uploader`), isolating `X-USIM-Storage` and `store_*` variables per browser tab.
+- `Screen::getStorageVariables()` now safely collects nullable typed primitive properties (`?string`, `?int`, etc.) without throwing uninitialized property errors.
 
 ### Fixed
 - Toast position styles now apply to the toast container rather than each toast, keeping `top-middle` centered; centered positions also remain centered on mobile.
 - `stubs/services/Auth/RegisterService.php.stub`: users registering with only the default pending role (`usim.default_registering_role`, e.g. `registered`) are now placed in the `lobby` unit instead of `main` when no explicit `$unit` is given. Previously they landed in `main`, so the lobby-cleanup logic (removing the `registered` role and detaching `lobby`) never triggered once an admin later assigned them a role in an operational unit, leaving `registered` stuck on the user.
+- Fixed static analysis warning in `PrepareUIContext::clearWebGuardUser()` by validating `Illuminate\Auth\SessionGuard` before calling `forgetUser()`.
 
 ## [v0.12.0] - 2026-04-30
 

@@ -1140,7 +1140,7 @@ abstract class Screen
     /**
      * Execute an action handler within the managed Screen event lifecycle.
      *
-     * @param  string  $method  Name of the action handler method (e.g., 'onSave', 'onResetScreen')
+     * @param  string  $method name of the action handler method (e.g., 'onSave', 'onResetScreen')
      * @param  array<string, mixed>  $parameters  Parameters passed to the action handler
      * @param  array<string, mixed>  $incomingStorage  Storage data from frontend
      * @param  array<string, mixed>  $queryParams  Query parameters from frontend
@@ -1638,7 +1638,7 @@ abstract class Screen
      * Show a target screen inside a specific layout slot or named container.
      *
      * @param  class-string<Screen>|string  $screenClass  Target screen class or slug
-     * @param  string|null  $slot Name of the slot in the layout (e.g. 'main', 'top_menu', 'right_panel'). If null, uses target's $defaultSlot.
+     * @param  string|null  $slot name of the slot in the layout (e.g. 'main', 'top_menu', 'right_panel'). If null, uses target's $defaultSlot.
      * @param  array<int|string, mixed>  $params  Parameters passed to buildBaseUI
      * @param  bool  $updateBrowserUrl  Whether to update browser location history for main content navigation
      * @param  bool  $force Whether to force reload the slot even if the target screen class matches current screen
@@ -2042,16 +2042,16 @@ abstract class Screen
             $propertyName = $property->getName();
             if (str_starts_with($propertyName, 'store_')) {
                 $propertyType = $property->getType();
-                if ($propertyType && !$propertyType->allowsNull()) {
+                if ($propertyType) {
                     // Get the type name (only ReflectionNamedType has getName)
                     if (!($propertyType instanceof \ReflectionNamedType)) {
                         continue;
                     }
                     $typeName = $propertyType->getName();
-                    $isPrimitive = in_array($typeName, ['int', 'float', 'string', 'bool', 'array']);
+                    $isPrimitive = in_array($typeName, ['int', 'float', 'string', 'bool', 'array', 'mixed']);
                     if ($isPrimitive) {
                         $value = $property->getValue($this);
-                        if (str_ends_with($propertyName, '_crypt')) {
+                        if ($value !== null && str_ends_with($propertyName, '_crypt')) {
                             $value = encrypt($value);
                         }
                         $storage[$propertyName] = $value;

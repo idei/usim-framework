@@ -13,6 +13,9 @@
         const usimStorage = typeof getUsimStorageHeaderValue === 'function'
             ? getUsimStorageHeaderValue()
             : '';
+        const usimClientId = typeof global.getUsimClientId === 'function'
+            ? global.getUsimClientId()
+            : (typeof getUsimClientId === 'function' ? getUsimClientId() : '');
 
         const response = await fetch('/api/ui-event', {
             method: 'POST',
@@ -21,6 +24,7 @@
                 'Accept': 'application/json',
                 'X-Requested-With': 'XMLHttpRequest',
                 'X-USIM-Storage': usimStorage,
+                ...(usimClientId ? { 'X-UI-Client-Id': usimClientId } : {}),
                 ...csrfHeaders,
             },
             credentials,
