@@ -22,22 +22,26 @@ class KioskScreen extends Screen
 
     protected Carousel $device_carousel;
 
-    protected int $store_current_index = 0;
+    protected int $state_current_index = 0;
 
-    protected int $store_timeout_ms = 5000;
+    protected int $state_timeout_ms = 5000;
 
     public static function authorize(): bool
     {
         return self::requirePermission('device.kiosk_screen.access', 'device');
     }
 
+    /**
+     * @param Container $container
+     * @param mixed ...$params
+     */
     protected function buildBaseUI(Container $container, ...$params): void
     {
         $items = $this->mediaItems();
-        $this->store_current_index = $this->normalizeIndex($this->store_current_index, \count($items));
+        $this->state_current_index = $this->normalizeIndex($this->state_current_index, \count($items));
 
-        $currentItem = $items[$this->store_current_index];
-        $this->store_timeout_ms = max(1000, $currentItem['duration_ms']);
+        $currentItem = $items[$this->state_current_index];
+        $this->state_timeout_ms = max(1000, $currentItem['duration_ms']);
 
         $container
             ->plain()
@@ -48,13 +52,13 @@ class KioskScreen extends Screen
                 ->modeAuto()
                 ->autoplay(true)
                 ->autoAction('carousel_tick')
-                ->autoTimeoutMs($this->store_timeout_ms)
+                ->autoTimeoutMs($this->state_timeout_ms)
                 ->loop(true)
                 ->fullscreen(false)
                 ->showPrev(false)
                 ->showNext(false)
                 ->knownCount(null)
-                ->currentIndex($this->store_current_index)
+                ->currentIndex($this->state_current_index)
                 ->currentMedia($currentItem)
                 ->hideIndicators()
         );
@@ -73,15 +77,15 @@ class KioskScreen extends Screen
 
         $items = $this->mediaItems();
         $count = \count($items);
-        $this->store_current_index = $this->normalizeIndex($this->store_current_index + 1, $count);
+        $this->state_current_index = $this->normalizeIndex($this->state_current_index + 1, $count);
 
-        $next = $items[$this->store_current_index];
-        $this->store_timeout_ms = max(1000, $next['duration_ms']);
+        $next = $items[$this->state_current_index];
+        $this->state_timeout_ms = max(1000, $next['duration_ms']);
 
         $this->device_carousel
-            ->currentIndex($this->store_current_index)
+            ->currentIndex($this->state_current_index)
             ->currentMedia($next)
-            ->autoTimeoutMs($this->store_timeout_ms)
+            ->autoTimeoutMs($this->state_timeout_ms)
             ->knownCount(null);
     }
 

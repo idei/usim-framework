@@ -22,7 +22,7 @@ class DevicePairingScreen extends Screen
     public static ?string $layout = null;
 
     protected string $store_session_token = '';
-    protected string $store_pin = '';
+    protected string $state_pin = '';
     protected string $store_token = '';
     protected Label $lbl_pin_display;
     protected Label $lbl_status;
@@ -53,7 +53,7 @@ class DevicePairingScreen extends Screen
 
         $container->add(
             UI::label('lbl_pin_display')
-                ->text($this->store_pin)
+                ->text($this->state_pin)
                 ->style('h1')
         );
 
@@ -73,7 +73,7 @@ class DevicePairingScreen extends Screen
     protected function postLoadUI(): void
     {
         $this->updatePIN();
-        $this->lbl_pin_display->text($this->store_pin);
+        $this->lbl_pin_display->text($this->state_pin);
     }
 
     protected function updatePIN(): void
@@ -86,10 +86,10 @@ class DevicePairingScreen extends Screen
             $hasActiveSession = $manager->pollStatus($this->store_session_token) !== null;
         }
 
-        if (!$hasActiveSession || empty($this->store_pin)) {
+        if (!$hasActiveSession || empty($this->state_pin)) {
             $pairingData = $manager->initiate();
             $this->store_session_token = $pairingData['session_token'];
-            $this->store_pin = $pairingData['pin'];
+            $this->state_pin = $pairingData['pin'];
         }
     }
 
@@ -107,7 +107,7 @@ class DevicePairingScreen extends Screen
         if ($status === null) {
             // Expiró
             $this->store_session_token = '';
-            $this->store_pin = '';
+            $this->state_pin = '';
             $this->tmr_pairing_poll?->stop();
             $this->toast('El PIN expiró. Generando uno nuevo...', 'warning');
             $this->redirect(self::getRoutePath());
@@ -117,7 +117,7 @@ class DevicePairingScreen extends Screen
         if ($status !== 'pending') {
             // ¡Aprobado! $status contiene el token de Sanctum
             $this->store_session_token = '';
-            $this->store_pin = '';
+            $this->state_pin = '';
             $this->tmr_pairing_poll?->stop();
 
             // Persistimos el token en el storage del dispositivo

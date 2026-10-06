@@ -179,22 +179,13 @@ class Link extends Screen
         }
 
         $result = $this->deviceService->pairDevice($deviceId, $pin);
-        if ($result['success']) {
-            $this->toast($result['message'], 'success');
-            event(new UsimEvent('device_paired', [
-                'device_id' => $deviceId,
-                'message' => $result['message'],
-            ]));
 
-            if ($this->isOpenedAsModal()) {
-                $this->closeModal();
-                return;
-            }
+        event(new UsimEvent('device_paired', [
+            'device_id' => $deviceId,
+            'message' => $result['message'],
+        ]));
 
-            $this->redirect('/admin/users-manager');
-        } else {
-            $this->toast($result['message'], 'error');
-        }
+        $this->closeModal();
     }
 
     /**
@@ -214,12 +205,7 @@ class Link extends Screen
      */
     public function onCloseLinkDevice(array $params = []): void
     {
-        if ($this->isOpenedAsModal()) {
-            $this->closeModal();
-            return;
-        }
-
-        $this->redirect('/admin/users-manager');
+        $this->closeModal();
     }
 
     /**

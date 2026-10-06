@@ -919,7 +919,6 @@ body {
     overflow: auto;
     padding: 5px;
     animation: slideIn 0.3s ease-out;
-    min-width: 500px;
 }
 
 /* Prevent background page scroll while modal is open */

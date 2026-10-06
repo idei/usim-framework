@@ -25,7 +25,7 @@ class Login extends Screen
 
     public static Visibility $visibility = Visibility::GUEST;
 
-    protected string $store_email = '';
+    protected string $state_email = '';
     protected string $store_token = '';
     protected Label $lbl_login_result;
 
@@ -43,23 +43,22 @@ class Login extends Screen
 
         if (config('app.env') === 'local') {
             // Pre-fill credentials in local environment for easier testing
-            $email = empty($this->store_email)
+            $email = empty($this->state_email)
                 ? config('usim.users.root.email')
-                : $this->store_email;
+                : $this->state_email;
             $password = config('usim.users.root.password');
         }
 
         $wrapper = UI::container('login_wrapper')
             ->plain()
             ->width(Size::full())
+            ->maxWidth(Size::px(600))
             ->layout(LayoutType::VERTICAL)
             ->justifyContent(JustifyContent::CENTER)
             ->alignItems(AlignItems::CENTER)
             ->padding(Spacing::px(5));
 
         $card = UI::container('login_card')
-            ->plain()
-            ->maxWidth(Size::px(450))
             ->width(Size::full());
 
         $card->add(
@@ -169,7 +168,7 @@ class Login extends Screen
         }
 
         $this->store_token = $response['token'];
-        $this->store_email = $credentials['email'];
+        $this->state_email = $credentials['email'];
 
         $this->closeModal();
     }
