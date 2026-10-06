@@ -74,6 +74,7 @@ class UsersManager extends Screen
     {
         $container
             ->plain()
+            ->fullWidth()
             ->maxWidth(Size::px(1280))
             ->padding(Spacing::px(0))
             ->centerHorizontal();

@@ -39,6 +39,7 @@ trait ManagesUsersSection
     {
         $usersCrudContainer = UI::container('users_crud_container')
             ->layout(LayoutType::VERTICAL)
+            ->fullWidth()
             ->gap(Spacing::px(4))
             ->rounded(0)
             ->minHeight(Size::px(550))

@@ -30,11 +30,11 @@ trait ManagesRolesSection
     protected function buildRolesContainer(): Container
     {
         $rolesContainer = UI::container('roles_container')
+            ->card()
             ->layout(LayoutType::VERTICAL)
+            ->fullWidth()
             ->gap(Spacing::px(2))
-            ->rounded(0)
-            ->minHeight(Size::px(550))
-            ->plain();
+            ->minHeight(Size::px(550));
 
         $rolesTable = UI::table('roles_table')
             ->dataModel(RoleTableModel::class)

@@ -39,6 +39,7 @@ trait ManagesDevicesSection
     {
         $devicesCrudContainer = UI::container('devices_crud_container')
             ->layout(LayoutType::VERTICAL)
+            ->fullWidth()
             ->gap(Spacing::px(4))
             ->minHeight(Size::px(550));
 
