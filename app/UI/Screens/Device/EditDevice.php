@@ -39,9 +39,9 @@ class EditDevice extends Screen
     public static Visibility $visibility = Visibility::AUTHENTICATED;
 
     protected Label $lbl_edit_device_result;
-    protected Label $device_status_banner;
-    protected Button $btn_pair_unpair_device;
-    protected Button $btn_delete_device;
+    protected ?Label $device_status_banner = null;
+    protected ?Button $btn_pair_unpair_device = null;
+    protected ?Button $btn_delete_device = null;
 
     protected DeviceService $deviceService;
     protected RoleService $roleService;
@@ -527,7 +527,7 @@ class EditDevice extends Screen
     {
         $message = $params['message'] ?? '';
         $device = $this->resolveDevice($params['device'] ?? null, $params['device_id'] ?? null);
-        $isPaired = $device->tokens->isNotEmpty() || !empty($device->device_token);
+        $isPaired = $device !== null && ($device->tokens->isNotEmpty() || !empty($device->device_token));
         $statusText = $isPaired
             ? '✅ ' . t(self::DEVICES_I18N_PREFIX . 'devices_status_paired')
             : '⚠️ ' . t(self::DEVICES_I18N_PREFIX . 'devices_status_unpaired');
@@ -539,15 +539,15 @@ class EditDevice extends Screen
         $style = $isPaired ? "success" : "warning";
 
         $this->device_status_banner
-            ->text($statusText)
-            ->style($style);
+            ?->text($statusText)
+            ?->style($style);
 
         $this->btn_pair_unpair_device
-            ->label($label)
-            ->style($style);
+            ?->label($label)
+            ?->style($style);
 
         $this->btn_delete_device
-            ->enabled(!$isPaired);
+            ?->enabled(!$isPaired);
 
         if (\is_string($message)) {
             $this->toast($message, $style);
@@ -558,7 +558,7 @@ class EditDevice extends Screen
     {
         $message = $params['message'] ?? '';
         $device = $this->resolveDevice($params['device'] ?? null, $params['device_id'] ?? null);
-        $isPaired = $device->tokens->isNotEmpty() || !empty($device->device_token);
+        $isPaired = $device !== null && ($device->tokens->isNotEmpty() || !empty($device->device_token));
         $statusText = $isPaired
             ? '✅ ' . t(self::DEVICES_I18N_PREFIX . 'devices_status_paired')
             : '⚠️ ' . t(self::DEVICES_I18N_PREFIX . 'devices_status_unpaired');
@@ -569,15 +569,15 @@ class EditDevice extends Screen
         $style = $isPaired ? "success" : "warning";
 
         $this->device_status_banner
-            ->text($statusText)
-            ->style($style);
+            ?->text($statusText)
+            ?->style($style);
 
         $this->btn_pair_unpair_device
-            ->label($label)
-            ->style($style);
+            ?->label($label)
+            ?->style($style);
 
         $this->btn_delete_device
-            ->enabled(!$isPaired);
+            ?->enabled(!$isPaired);
 
         if (\is_string($message)) {
             $this->toast($message, $style);

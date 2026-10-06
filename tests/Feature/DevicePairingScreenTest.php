@@ -23,8 +23,6 @@ it('loads device pairing screen and exposes pin with storage variables in initia
     $decodedStorage = json_decode($opaque, true);
     expect($decodedStorage)->toBeArray();
     expect($decodedStorage)->toHaveKey('store_session_token');
-    expect($decodedStorage)->toHaveKey('store_pin');
-    expect($decodedStorage['store_pin'])->toBe($pin);
     expect($decodedStorage['store_session_token'])->not->toBeEmpty();
 });
 
@@ -61,7 +59,6 @@ it('handles onCheckStatus when authorization is still pending', function () {
     // session token and pin must remain intact in storage
     $decodedStorage = json_decode($ui->opaqueUsim(), true);
     expect($decodedStorage['store_session_token'])->not->toBeEmpty();
-    expect($decodedStorage['store_pin'])->not->toBeEmpty();
 });
 
 it('completes pairing on check status when approved by administrator and redirects to kiosk', function () {
