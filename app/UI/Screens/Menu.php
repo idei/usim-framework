@@ -53,8 +53,8 @@ class Menu extends Screen
     protected MenuDropdown $lang_menu;
     protected ?MenuDropdown $unit_menu = null;
     protected Button $theme_toggle;
-    protected string $store_theme = 'light';
-    protected string $store_lang = '';
+    protected string $store_theme = 'dark';
+    protected string $store_lang = 'en';
     protected string $store_token = '';
 
     protected function buildBaseUI(Container $container, ...$params): void
