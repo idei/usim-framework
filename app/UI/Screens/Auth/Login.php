@@ -50,15 +50,16 @@ class Login extends Screen
         }
 
         $wrapper = UI::container('login_wrapper')
-            ->plain()
+            ->card()
             ->width(Size::full())
-            ->maxWidth(Size::px(600))
+            ->minWidth(Size::px(400))
             ->layout(LayoutType::VERTICAL)
             ->justifyContent(JustifyContent::CENTER)
             ->alignItems(AlignItems::CENTER)
             ->padding(Spacing::px(5));
 
         $card = UI::container('login_card')
+            ->plain()
             ->width(Size::full());
 
         $card->add(

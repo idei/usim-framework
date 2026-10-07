@@ -387,8 +387,8 @@ class UsimContainerComponent extends UIComponent {
     }
 
     _normalizeAppearance(appearance) {
-        const normalized = typeof appearance === 'string' ? appearance.trim().toLowerCase() : 'card';
-        return normalized === 'plain' ? 'plain' : 'card';
+        const normalized = typeof appearance === 'string' ? appearance.trim().toLowerCase() : 'plain';
+        return normalized === 'card' ? 'card' : 'plain';
     }
 }
 

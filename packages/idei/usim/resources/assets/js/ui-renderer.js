@@ -3233,26 +3233,26 @@ document.addEventListener('DOMContentLoaded', () => {
     // Ensure modal root is available even if template did not include it.
     ensureModalRoot();
 
-    document.addEventListener('click', (e) => {
-        const overlay = e.target;
-        if (!(overlay instanceof HTMLElement)) {
-            return;
-        }
+    // document.addEventListener('click', (e) => {
+    //     const overlay = e.target;
+    //     if (!(overlay instanceof HTMLElement)) {
+    //         return;
+    //     }
 
-        if (!overlay.classList.contains('modal-overlay')) {
-            return;
-        }
+    //     if (!overlay.classList.contains('modal-overlay')) {
+    //         return;
+    //     }
 
-        const topLayer = getTopModalLayer();
-        if (!topLayer) {
-            return;
-        }
+    //     const topLayer = getTopModalLayer();
+    //     if (!topLayer) {
+    //         return;
+    //     }
 
-        // Only close if clicking directly on the top overlay background.
-        if (overlay === topLayer.overlay) {
-            closeModal();
-        }
-    });
+    //     // Only close if clicking directly on the top overlay background.
+    //     if (overlay === topLayer.overlay) {
+    //         closeModal();
+    //     }
+    // });
 });
 
 // Make modal functions globally available
