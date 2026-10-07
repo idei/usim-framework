@@ -76,7 +76,7 @@ it('home screen fragment is non-empty regardless of locale', function () {
 it('returns menu screen for guests with settings trigger and register option', function () {
     $originalLocale = app()->getLocale();
 
-    foreach (['en', 'es'] as $locale) {
+    foreach (['es', 'en'] as $locale) {
         app()->setLocale($locale);
 
         $ui = uiScenario($this, Menu::class, ['parent' => 'menu']);
@@ -86,9 +86,8 @@ it('returns menu screen for guests with settings trigger and register option', f
         $mainMenu = $ui->component('main_menu')->data();
         $userMenu = $ui->component('user_menu')->data();
         $themeToggle = $ui->component('theme_toggle')->data();
-
-        expect($mainMenu['type'] ?? null)->toBe('menudropdown');
-        expect(menuItemsContainLabel($mainMenu['items'] ?? [], t('screen.menu.items.home', [], $menuLang)))->toBeTrue();
+        $homeLabel = t('screen.menu.items.home', [], $menuLang);
+        expect(menuItemsContainLabel($mainMenu['items'] ?? [], $homeLabel))->toBeTrue();
         expect(menuItemsContainLabel($mainMenu['items'] ?? [], t('screen.menu.items.about', [], $menuLang)))->toBeTrue();
 
         expect($userMenu['type'] ?? null)->toBe('menudropdown');

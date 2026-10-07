@@ -250,6 +250,23 @@ final class UiScenario
         return $this->mustGetComponent($name);
     }
 
+    /** @return array<string, array<string, mixed>> */
+    public function components(): array
+    {
+        return $this->memory->components();
+    }
+
+    public function dumpJson(?string $componentName = null): self
+    {
+        if ($componentName !== null) {
+            dumpJson($this->componentData($componentName));
+        } else {
+            dumpJson($this->components());
+        }
+
+        return $this;
+    }
+
     public function assertNoIssues(): self
     {
         expect($this->memory->issues())->toBe([]);
