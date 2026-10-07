@@ -323,6 +323,12 @@ class UploaderComponent extends UIComponent {
             if (usimStorage) {
                 headers['X-USIM-Storage'] = usimStorage;
             }
+            const usimClientId = typeof window.getUsimClientId === 'function'
+                ? window.getUsimClientId()
+                : (typeof getUsimClientId === 'function' ? getUsimClientId() : '');
+            if (usimClientId) {
+                headers['X-UI-Client-Id'] = usimClientId;
+            }
 
             const response = await fetch('/api/upload/temporary', {
                 method: 'POST',
@@ -528,6 +534,12 @@ class UploaderComponent extends UIComponent {
             };
             if (usimStorage) {
                 headers['X-USIM-Storage'] = usimStorage;
+            }
+            const usimClientId = typeof window.getUsimClientId === 'function'
+                ? window.getUsimClientId()
+                : (typeof getUsimClientId === 'function' ? getUsimClientId() : '');
+            if (usimClientId) {
+                headers['X-UI-Client-Id'] = usimClientId;
             }
 
             const response = await fetch(`/api/upload/temporary/${tempId}`, {

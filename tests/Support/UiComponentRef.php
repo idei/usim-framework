@@ -32,6 +32,12 @@ final class UiComponentRef
         return $this->scenario->componentData($this->name);
     }
 
+    public function dumpJson(): self
+    {
+        dumpJson($this->data());
+        return $this;
+    }
+
     public function id(): int
     {
         $component = $this->data();

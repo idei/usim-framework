@@ -55,7 +55,7 @@ class MenuStub extends Screen
     protected Button $theme_toggle;
     protected string $store_theme = 'light';
     protected string $store_lang = '';
-    protected ?string $store_token = null;
+    protected string $store_token = '';
 
     protected function buildBaseUI(Container $container, ...$params): void
     {

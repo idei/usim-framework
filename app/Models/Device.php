@@ -93,4 +93,18 @@ class Device extends Authenticatable
         $units = $this->relationLoaded('usimUnits') ? $this->usimUnits : $this->usimUnits()->get();
         return $units->filter(static fn(UsimUnit $u): bool => $u->type !== 'system' && !in_array($u->slug, ['main', 'lobby'], true))->count() > 1;
     }
+
+    /**
+     * Determine if this device is currently paired with active credentials.
+     */
+    public function isPaired(): bool
+    {
+        if (!empty($this->device_token)) {
+            return true;
+        }
+
+        return $this->relationLoaded('tokens')
+            ? $this->tokens->isNotEmpty()
+            : $this->tokens()->exists();
+    }
 }

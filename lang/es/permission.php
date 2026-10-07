@@ -96,6 +96,12 @@ return [
                 'description' => 'Permite acceder a la pantalla Device Edit Device.',
             ],
         ],
+        'link' => [
+            'access' => [
+                'name' => 'Acceder a Device Link',
+                'description' => 'Permite acceder a la pantalla Device Link.',
+            ],
+        ],
     ],
     'create' => [
         'users' => [

@@ -4,6 +4,7 @@ use App\Models\Device;
 use App\Services\Device\DeviceListingService;
 use App\Services\Device\DeviceService;
 use App\UI\Screens\Admin\UsersManager;
+use App\UI\Screens\Device\EditDevice;
 use Idei\Usim\Models\UsimRole;
 use Idei\Usim\Models\UsimUnit;
 use Idei\Usim\Support\DevicePairingManager;
@@ -236,8 +237,9 @@ it('unpairs and deletes a device', function () {
     ]);
 
     // Unpair
-    $unpairResponse = $ui->action('btn_unpair_device', 'unpair_device', [
+    $unpairResponse = $ui->action('btn_pair_unpair_device', EditDevice::PAIR_UNPAIR_ACTION, [
         'device_id' => $device->id,
+        'is_paired' => true,
     ]);
     $unpairResponse->assertOk();
 

@@ -31,7 +31,7 @@ if (!function_exists('uiPayloadContainsAction')) {
     {
         return uiFind(
             $value,
-            static fn (mixed $node): bool => is_array($node) && (($node['action'] ?? null) === $action)
+            static fn(mixed $node): bool => is_array($node) && (($node['action'] ?? null) === $action)
         ) !== null;
     }
 }
@@ -41,7 +41,7 @@ if (!function_exists('uiPayloadContainsText')) {
     {
         return uiFind(
             $value,
-            static fn (mixed $node): bool => is_string($node) && str_contains($node, $needle)
+            static fn(mixed $node): bool => is_string($node) && str_contains($node, $needle)
         ) !== null;
     }
 }
@@ -51,7 +51,7 @@ if (!function_exists('uiPayloadContainsStyle')) {
     {
         return uiFind(
             $value,
-            static fn (mixed $node): bool => is_array($node) && (($node['style'] ?? null) === $style)
+            static fn(mixed $node): bool => is_array($node) && (($node['style'] ?? null) === $style)
         ) !== null;
     }
 }
@@ -89,7 +89,7 @@ if (!function_exists('calendarEventsContainDate')) {
     {
         return uiFind(
             $events,
-            static fn (mixed $node): bool =>
+            static fn(mixed $node): bool =>
                 is_array($node) && (
                     ($node['date'] ?? null) === $date ||
                     ($node['start'] ?? null) === $date ||
@@ -104,7 +104,7 @@ if (!function_exists('calendarEventsContainTitle')) {
     {
         return uiFind(
             $events,
-            static fn (mixed $node): bool =>
+            static fn(mixed $node): bool =>
                 is_array($node)
                 && is_string($node['title'] ?? null)
                 && str_contains($node['title'], $fragment)
@@ -117,7 +117,7 @@ if (!function_exists('hasModalComponents')) {
     {
         return uiFind(
             $payload,
-            static fn (mixed $node): bool => is_array($node) && (($node['parent'] ?? null) === 'modal')
+            static fn(mixed $node): bool => is_array($node) && (($node['parent'] ?? null) === 'modal')
         ) !== null;
     }
 }
@@ -128,7 +128,7 @@ if (!function_exists('firstTimeoutModalComponent')) {
     {
         $match = uiFind(
             $payload,
-            static fn (mixed $node): bool =>
+            static fn(mixed $node): bool =>
                 is_array($node)
                 && (($node['parent'] ?? null) === 'modal')
                 && isset($node['_timeout'])
@@ -143,7 +143,7 @@ if (!function_exists('modalPayloadHasNamedComponent')) {
     {
         return uiFind(
             $payload,
-            static fn (mixed $node): bool =>
+            static fn(mixed $node): bool =>
                 is_array($node)
                 && (($node['parent'] ?? null) === 'modal')
                 && (($node['name'] ?? null) === $name)
@@ -157,7 +157,7 @@ if (!function_exists('cardHasAction')) {
         $actions = $cardComponent['actions'] ?? [];
         return uiFind(
             $actions,
-            static fn (mixed $node): bool => is_array($node) && (($node['action'] ?? null) === $action)
+            static fn(mixed $node): bool => is_array($node) && (($node['action'] ?? null) === $action)
         ) !== null;
     }
 }
@@ -167,7 +167,105 @@ if (!function_exists('menuItemsContainLabel')) {
     {
         return uiFind(
             $items,
-            static fn (mixed $node): bool => is_array($node) && (($node['label'] ?? null) === $label)
+            static fn(mixed $node): bool => is_array($node) && (($node['label'] ?? null) === $label)
         ) !== null;
     }
 }
+
+if (!function_exists('ddPrint')) {
+    function ddPrint(mixed $data): void
+    {
+        if (defined('STDERR') && is_resource(STDERR)) {
+            fwrite(STDERR, (string) $data . PHP_EOL);
+        } else {
+            echo (string) $data . PHP_EOL;
+        }
+        exit(1);
+    }
+}
+
+if (!function_exists('dumpJson')) {
+    /**
+     * Dumps formatted JSON to the console.
+     * Accepts arrays, objects, JSON strings, TestResponse, UiScenario, UiComponentRef, etc.
+     *
+     * @param mixed $value
+     * @param bool $exit
+     * @return mixed Returns the original input value.
+     */
+    function dumpJson(mixed $value = null, bool $exit = false): mixed
+    {
+        $data = $value;
+
+        if ($data instanceof \Illuminate\Testing\TestResponse) {
+            $data = $data->json();
+        } elseif ($data instanceof \Tests\Support\UiComponentRef) {
+            $data = $data->data();
+        } elseif ($data instanceof \Tests\Support\UiScenario) {
+            $data = $data->components();
+        } elseif (is_object($data) && method_exists($data, 'toArray')) {
+            $data = $data->toArray();
+        } elseif (is_string($data)) {
+            $decoded = json_decode($data, true);
+            if (json_last_error() === JSON_ERROR_NONE) {
+                $data = $decoded;
+            }
+        }
+
+        $json = json_encode(
+            $data,
+            JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_INVALID_UTF8_SUBSTITUTE
+        );
+
+        if ($json === false) {
+            $json = json_encode([
+                'error' => 'Unable to encode to JSON: ' . json_last_error_msg(),
+                'raw' => is_scalar($value) ? (string) $value : get_debug_type($value),
+            ], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+        }
+
+        if (defined('STDERR') && is_resource(STDERR)) {
+            fwrite(STDERR, $json . PHP_EOL);
+        } else {
+            echo $json . PHP_EOL;
+        }
+
+        if ($exit) {
+            exit(1);
+        }
+
+        return $value;
+    }
+}
+
+if (!function_exists('printJson')) {
+    /**
+     * Prints formatted JSON to the console (alias of dumpJson).
+     */
+    function printJson(mixed $value = null, bool $exit = false): mixed
+    {
+        return dumpJson($value, $exit);
+    }
+}
+
+if (!function_exists('ddJson')) {
+    /**
+     * Dumps formatted JSON to the console and halts execution.
+     */
+    function ddJson(mixed $value = null): never
+    {
+        dumpJson($value, true);
+        exit(1);
+    }
+}
+
+if (!function_exists('uiDumpJson')) {
+    /**
+     * Dumps formatted JSON to the console (alias of dumpJson).
+     */
+    function uiDumpJson(mixed $value = null, bool $exit = false): mixed
+    {
+        return dumpJson($value, $exit);
+    }
+}
+

@@ -23,8 +23,6 @@ it('loads device pairing screen and exposes pin with storage variables in initia
     $decodedStorage = json_decode($opaque, true);
     expect($decodedStorage)->toBeArray();
     expect($decodedStorage)->toHaveKey('store_session_token');
-    expect($decodedStorage)->toHaveKey('store_pin');
-    expect($decodedStorage['store_pin'])->toBe($pin);
     expect($decodedStorage['store_session_token'])->not->toBeEmpty();
 });
 
@@ -51,7 +49,7 @@ it('handles onCheckStatus when authorization is still pending', function () {
     /** @var Tests\TestCase $this */
     $ui = uiScenario($this, DevicePairingScreen::class, ['reset' => true]);
 
-    $response = $ui->click('btn_check_status');
+    $response = $ui->action('tmr_pairing_poll', 'check_status');
     $response->assertOk();
 
     $statusLabel = $ui->component('lbl_status')->data();
@@ -61,7 +59,6 @@ it('handles onCheckStatus when authorization is still pending', function () {
     // session token and pin must remain intact in storage
     $decodedStorage = json_decode($ui->opaqueUsim(), true);
     expect($decodedStorage['store_session_token'])->not->toBeEmpty();
-    expect($decodedStorage['store_pin'])->not->toBeEmpty();
 });
 
 it('completes pairing on check status when approved by administrator and redirects to kiosk', function () {
@@ -77,7 +74,7 @@ it('completes pairing on check status when approved by administrator and redirec
     $approved = $manager->approve($pin, $device);
     expect($approved)->toBeTrue();
 
-    $response = $ui->click('btn_check_status');
+    $response = $ui->action('tmr_pairing_poll', 'check_status');
     $response->assertOk();
 
     // Verify redirect to KioskScreen
@@ -103,7 +100,7 @@ it('handles expired session during check status by redirecting to refresh', func
     // Invalidate session cache
     Cache::forget("usim_pairing_session:{$sessionToken}");
 
-    $response = $ui->click('btn_check_status');
+    $response = $ui->action('tmr_pairing_poll', 'check_status');
     $response->assertOk();
 
     expect($response->json('redirect'))->toBe(DevicePairingScreen::getRoutePath());

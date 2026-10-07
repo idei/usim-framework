@@ -67,6 +67,12 @@ final class UiMemoryRenderer
         return null;
     }
 
+    /** @return array<string, array<string, mixed>> */
+    public function components(): array
+    {
+        return $this->componentsByKey;
+    }
+
     /** @return array<int, array<string, mixed>> */
     public function issues(): array
     {

@@ -4,9 +4,9 @@ namespace App\UI\Screens\Admin\Concerns;
 
 use App\Services\Device\DeviceListingService;
 use App\Services\Device\DeviceService;
-use App\UI\Components\Modals\DevicePairingDialog;
 use App\UI\Screens\Admin\TableModels\DeviceTableModel;
 use App\UI\Screens\Device\EditDevice;
+use App\UI\Screens\Device\Link;
 use Idei\Usim\Components\Button;
 use Idei\Usim\Components\Container;
 use Idei\Usim\Components\Input;
@@ -145,11 +145,11 @@ trait ManagesDevicesSection
             }
         }
 
-        DevicePairingDialog::open(
-            device: $device,
-            devicesOptions: $devicesOptions,
-            callerServiceId: $this->getScreenComponentId()
-        );
+        $caller = $this->screen ?? ($this instanceof \Idei\Usim\Screen ? $this : null);
+        $caller?->openModal(Link::class, [
+            'device' => $device,
+            'devicesOptions' => $devicesOptions,
+        ]);
     }
 
     /**
@@ -350,7 +350,8 @@ trait ManagesDevicesSection
      */
     public function onDeviceCreated(array $params): void
     {
-        $message = $params['message'] ?? '';
+        $rawMessage = $params['message'] ?? '';
+        $message = is_string($rawMessage) ? $rawMessage : '';
         $this->toast($message, 'success');
         $this->devices_table->refresh();
     }
@@ -362,7 +363,8 @@ trait ManagesDevicesSection
      */
     public function onDeviceUpdated(array $params): void
     {
-        $message = $params['message'] ?? '';
+        $rawMessage = $params['message'] ?? '';
+        $message = is_string($rawMessage) ? $rawMessage : '';
         $this->toast($message, 'success');
         $this->devices_table->refresh();
     }
@@ -374,8 +376,19 @@ trait ManagesDevicesSection
      */
     public function onDeviceDeleted(array $params): void
     {
-        $message = $params['message'] ?? '';
+        $rawMessage = $params['message'] ?? '';
+        $message = is_string($rawMessage) ? $rawMessage : '';
         $this->toast($message, 'success');
+        $this->devices_table->refresh();
+    }
+
+    /**
+     * Handles the 'device_paired' event, fired by: Link::class.
+     *
+     * @param array<string, mixed> $params
+     */
+    public function onDevicePaired(array $params): void
+    {
         $this->devices_table->refresh();
     }
 

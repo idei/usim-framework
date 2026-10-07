@@ -25,6 +25,11 @@ class UIStateManager
     public const CLIENT_ID_COOKIE = 'ui_client_id';
 
     /**
+     * Header name for client identification (supports per-tab isolation)
+     */
+    public const CLIENT_ID_HEADER = 'X-UI-Client-Id';
+
+    /**
      * Cookie lifetime (1 year in minutes)
      */
     public const COOKIE_LIFETIME = 525600;
@@ -34,11 +39,17 @@ class UIStateManager
      *
      * This identifier persists across sessions and survives logout,
      * allowing UI preferences to be maintained per device/browser.
+     * When X-UI-Client-Id header is present, it takes precedence for per-tab isolation.
      *
      * @return string Client UUID
      */
     public static function getOrCreateClientId(): string
     {
+        $headerClientId = request()->header(self::CLIENT_ID_HEADER);
+        if (\is_string($headerClientId) && trim($headerClientId) !== '') {
+            return trim($headerClientId);
+        }
+
         $clientId = request()->cookie(self::CLIENT_ID_COOKIE);
 
         // If a client cookie is present, it must be the source of truth

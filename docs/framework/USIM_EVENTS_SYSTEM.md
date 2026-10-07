@@ -344,7 +344,7 @@ sequenceDiagram
   2. Decodifica el JSON e inyecta el array resultante en `$request->storage`.
   3. Si existe `store_lang` en el storage, sincroniza el idioma con `app()->setLocale($store_lang)`.
   4. Si existe `store_token`, configura el header `Authorization: Bearer <token>`, hidrata `UIStateManager::setAuthToken()`, y si el token pertenece a un dispositivo (`App\Models\Device`), hidrata automáticamente el guard `Auth::guard('device')`.
-  5. Resuelve el contexto de unidad organizativa (`UnitContextResolver`) a partir de `store_unit`.
+  5. Resuelve el contexto de unidad organizativa (`UnitContextResolver`) a partir de la caché de `UIStateManager::getActiveUnit()`.
   6. Inyecta query parameters con prefijo `route_` como parámetros de ruta formales.
 
 #### 2. Recepción y Validación (`UIEventController@handleEvent`)
@@ -421,7 +421,8 @@ sequenceDiagram
 | `X-CSRF-TOKEN` | String | Sí (Web) | Token CSRF de Laravel. En modo API/Headless puro puede gestionarse mediante Sanctum. |
 | `X-Requested-With` | String | Recomendado | `XMLHttpRequest` |
 | `X-USIM-Storage` | String | **Crítico** | JSON string codificado con las variables de estado persistente devueltas en la petición anterior. |
-| `Cookie` | String | **Crítico** | Debe contener la cookie `ui_client_id` para mantener la correlación de sesión y caché entre requests. |
+| `X-UI-Client-Id` | String | Opcional | Identificador UUID único por pestaña o cliente. Si se envía, tiene precedencia sobre la cookie `ui_client_id` para aislar el árbol de caché por pestaña del navegador. |
+| `Cookie` | String | **Crítico** | Debe contener la cookie `ui_client_id` (salvo que se provea `X-UI-Client-Id`) para mantener la correlación de sesión y caché entre requests. |
 | `Authorization` | String | Condicional | `Bearer {token}` si se interactúa con APIs autenticadas fuera del flujo de cookies web. |
 
 ### 4.2 Contrato del Request (JSON Body)
@@ -582,18 +583,20 @@ protected string $store_card_reference_crypt;
 ### 5.3 Transporte de Storage en el Cliente
 
 1. **Recepción:** El cliente extrae el string contenido en `response.storage[front_store_key]` (donde `front_store_key` se configura en `config('usim.front_store_key')`, por defecto `'my-app'` o `'usim'`).
-2. **Persistencia:** Se guarda en memoria de sesión o `localStorage`.
+2. **Persistencia:** Se guarda en `sessionStorage` para mantener el aislamiento estricto de variables por pestaña del navegador.
 3. **Reenvío:** En **todos** los requests subsecuentes a `POST /api/ui-event`, el cliente **debe** incluir el header:
    ```http
    X-USIM-Storage: {"store_step":2,"store_token_crypt":"..."}
    ```
    *(Nota: si el header contiene caracteres complejos, también se admite `b64:` seguido del string en base64).*
 
-### 5.4 Identificador de Cliente (`ui_client_id`)
+### 5.4 Identificador de Cliente (`ui_client_id` y `X-UI-Client-Id`)
 
-- El framework genera una cookie `ui_client_id` con duración de 1 año.
-- Esta cookie asocia la sesión del navegador o dispositivo con la caché de componentes en el servidor (`UIStateManager`).
-- Los clientes API/Headless deben almacenar y reenviar esta cookie para asegurar que el backend recupere el árbol correcto para calcular los diffs.
+- El framework genera una cookie `ui_client_id` con duración de 1 año para asociar el dispositivo/navegador con la caché de componentes en el servidor (`UIStateManager`).
+- **Aislamiento por Pestaña (`X-UI-Client-Id` y `store_token`):** En clientes web, el renderer genera un UUID efímero por pestaña (`sessionStorage`) y lo despacha en el header `X-UI-Client-Id`. Cuando este header está presente:
+  1. `UIStateManager` lo prioriza sobre la cookie, evitando que dos pestañas que operan sobre la misma pantalla colisionen en el snapshot de caché del servidor.
+  2. La autenticación del usuario se resuelve de manera aislada por pestaña a partir de `store_token` en `sessionStorage`. Si una pestaña no envía `store_token`, se trata estrictamente como Invitado (Guest), impidiendo que la cookie de sesión del navegador (`laravel_session`) filtre la sesión a otras pestañas.
+- Los clientes API/Headless deben almacenar y reenviar esta cookie o el header `X-UI-Client-Id` para asegurar que el backend recupere el árbol correcto para calcular los diffs.
 
 ---
 

@@ -4,14 +4,20 @@ Este documento describe la arquitectura, el flujo de autenticación por empareja
 
 ---
 
-## 1. Arquitectura de Actores y Guards
+## 1. Arquitectura de Actores y Guards: Equivalencia Usuario-Dispositivo
 
 USIM soporta múltiples tipos de actores polimórficos vinculados a unidades organizacionales (`UsimUnit`):
 - **Usuarios (`App\Models\User`):** Actores interactivos humanos. Utilizan el guard `web` (basado en sesión) y la ruta de autenticación `/auth/login`.
 - **Dispositivos (`App\Models\Device`):** Actores de hardware (Smart TVs, Kiosks, tablets, sensores). Utilizan el guard `device` y se autentican mediante tokens de Sanctum o emparejamiento con PIN.
 - **Agentes (Futuro):** Actores sintéticos de software o automatización.
 
-### 1.1. Inyección Dinámica de Guards (`UsimServiceProvider`)
+### 1.1. Simetría Conceptual: Pairing es Login, Unpairing es Logout
+En la arquitectura de USIM, la única diferencia estructural entre un usuario humano y un dispositivo es su guard de autenticación (`web` vs `device`):
+- **Pairing $\equiv$ Login:** Cuando un dispositivo es emparejado mediante PIN en la administración o vía Just-In-Time (JIT), el sistema genera un `PersonalAccessToken` de Sanctum y autentica el guard `device`.
+- **Unpairing $\equiv$ Logout:** Cuando un administrador desvincula un dispositivo (`DeviceService::unpairDevice()`), se revocan sus tokens de acceso en la base de datos, invalidando la sesión de forma inmediata.
+- **Contrato `Device::isPaired(): bool`:** El modelo `Device` implementa el método `isPaired()`, el cual verifica si el dispositivo posee un `device_token` o tokens válidos en la tabla `personal_access_tokens`.
+
+### 1.2. Inyección Dinámica de Guards (`UsimServiceProvider`)
 Para evitar modificar el archivo físico `config/auth.php` del usuario, `packages/idei/usim/src/UsimServiceProvider.php` inyecta en tiempo de ejecución en el método `boot()`:
 
 ```php
@@ -27,7 +33,7 @@ config([
 ]);
 ```
 
-### 1.2. Configuración Tipada con `UsimConfig` (PHPStan Level 9)
+### 1.3. Configuración Tipada con `UsimConfig` (PHPStan Level 9)
 Para satisfacer el análisis estático en nivel 9 de PHPStan y evitar comprobaciones manuales de tipos sobre `config('usim')`, el framework provee el servicio `Idei\Usim\Support\UsimConfig`:
 
 ```php
@@ -42,7 +48,7 @@ $usimConfig->deviceRoles; // Filtra RoleConfig con guardName === 'device'
 
 ---
 
-## 2. Flujo de Emparejamiento (Device PIN Pairing)
+## 2. Flujo de Emparejamiento (Device PIN Pairing) y Desemparejamiento
 
 Los dispositivos que disponen de pantalla (Smart TV, tótem, kiosco) se autentican mediante el flujo de emparejamiento:
 
@@ -72,18 +78,32 @@ sequenceDiagram
     TV->>Mid: GET /api/ui/device/kiosk-screen (con X-USIM-Storage)
     Mid->>Mid: Valida store_token con Sanctum e hidrata Auth::guard('device')
     TV->>Kiosk: checkAccess() -> Autorizado
-    Kiosk-->>TV: Renderiza carrusel Kiosk
+    Kiosk-->>TV: Renderiza carrusel Kiosk (preservando store_token en sessionStorage)
 ```
 
-### 2.1. Persistencia del Token en el Frontend
-En `DevicePairingScreen::onCheckStatus()`, al detectarse la aprobación:
-1. Se limpia el estado transitorio del PIN (`store_session_token = ''`, `store_pin = ''`).
-2. Se asigna `$this->store_token = $status;`, lo que persiste el token en el `localStorage` del cliente USIM.
-3. Se inicia sesión en el guard de sesión del dispositivo: `Auth::guard('device')->login($device);`.
-4. Se redirige al destino definitivo: `\App\UI\Screens\Device\KioskScreen::getRoutePath()`.
+### 2.1. Persistencia de `store_token` en `KioskScreen`
+Para que el frontend conserve el token de sesión en `sessionStorage` (en la clave configurada en `usim.front_store_key`) y lo envíe en cada petición mediante `X-USIM-Storage`, las pantallas de dispositivo (como `KioskScreen`) deben declarar explícitamente:
+```php
+protected string $store_token = '';
+```
+Si una pantalla no declara esta propiedad de almacenamiento (`store_*`), `Screen::getStorageVariables()` devuelve un objeto de almacenamiento vacío, sobrescribiendo el `sessionStorage` del navegador y provocando la pérdida del token en recargas o llamadas posteriores.
 
-### 2.2. Hidratación Automática en `PrepareUIContext`
-Si el televisor o dispositivo se reinicia o se pierde la cookie de sesión, el middleware `PrepareUIContext` recupera `store_token` desde la cabecera `X-USIM-Storage`, busca el token en `PersonalAccessToken`, y si el modelo corresponde a `Device`, lo hidrata automáticamente en `Auth::guard('device')->setUser($device);`.
+### 2.2. Hidratación y Validación en `PrepareUIContext`
+El middleware `PrepareUIContext` recupera `store_token` desde la cabecera `X-USIM-Storage`:
+1. Busca el token mediante `PersonalAccessToken::findToken($storeToken)`.
+2. Si el token es de un `Device`:
+   - Verifica si el dispositivo sigue emparejado mediante `$device->isPaired()`.
+   - Si no está emparejado o el token fue revocado, limpia el guard `web` y `device` (marcando `loggedOut = true` en `SessionGuard`) y anula el resolvedor de usuario del request.
+   - Si es válido y está emparejado, hidrata `Auth::guard('device')->setUser($actor)`.
+
+### 2.3. Desemparejamiento Inmediato (Unpairing en Tiempo Real)
+Cuando un administrador desvincula un dispositivo en el panel de control:
+1. `DeviceService::unpairDevice($deviceId)` elimina todos sus `personal_access_tokens` y limpia `device_token` y `pairing_pin`.
+2. En el siguiente pulso o polling del dispositivo en `KioskScreen` (por ejemplo, el evento periódico `carousel_tick` del carrusel multimedia):
+   - El middleware `PrepareUIContext` no encuentra el token revocado en la base de datos y desautentica el guard `device`.
+   - `KioskScreen::authorize()` evalúa `$device->isPaired()` y retorna `false`.
+   - `Screen::checkAccess()` detecta que el guard `device` no está autenticado y emite inmediatamente una respuesta de redirección (`'action' => 'redirect'`) hacia `/device/device-pairing-screen`.
+   - El cliente web del televisor/kiosco navega automáticamente a la pantalla de emparejamiento con PIN sin requerir recarga manual ni intervención física en el dispositivo.
 
 ---
 

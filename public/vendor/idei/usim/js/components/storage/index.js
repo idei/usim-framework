@@ -18,10 +18,14 @@ class UsimStorageComponent extends UIComponent {
 
         storageKeys.forEach(key => {
             const value = this.config[key];
-            if (typeof value === 'object' && value !== null) {
-                localStorage.setItem(key, JSON.stringify(value));
-            } else {
-                localStorage.setItem(key, String(value));
+            try {
+                if (typeof value === 'object' && value !== null) {
+                    sessionStorage.setItem(key, JSON.stringify(value));
+                } else {
+                    sessionStorage.setItem(key, String(value));
+                }
+            } catch (error) {
+                // Ignore storage errors (private mode / blocked storage)
             }
         });
     }

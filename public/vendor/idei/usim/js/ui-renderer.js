@@ -1,5 +1,6 @@
 const DEFAULT_USIM_STORAGE_KEY = 'usim';
 const USIM_STORAGE_KEY_SESSION = '__usim_storage_key__';
+const USIM_CLIENT_ID_SESSION = '__usim_client_id__';
 const DEFAULT_USIM_THEME = 'dark';
 const SUPPORTED_USIM_THEMES = new Set(['light', 'dark']);
 
@@ -16,13 +17,41 @@ function safeParseJsonObject(rawValue) {
     }
 }
 
-function detectUsimStorageKeyFromLocalStorage() {
+function getUsimClientId() {
     try {
-        const keys = Object.keys(localStorage);
+        let clientId = sessionStorage.getItem(USIM_CLIENT_ID_SESSION);
+        if (typeof clientId === 'string' && clientId.trim()) {
+            return clientId.trim();
+        }
+
+        if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+            clientId = crypto.randomUUID();
+        } else {
+            clientId = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+                const r = Math.random() * 16 | 0;
+                const v = c === 'x' ? r : (r & 0x3 | 0x8);
+                return v.toString(16);
+            });
+        }
+        sessionStorage.setItem(USIM_CLIENT_ID_SESSION, clientId);
+        return clientId;
+    } catch (error) {
+        return '';
+    }
+}
+window.getUsimClientId = getUsimClientId;
+
+function detectUsimStorageKeyFromSessionStorage() {
+    try {
+        const keys = Object.keys(sessionStorage);
         let fallbackCandidate = '';
 
         for (const key of keys) {
-            const parsedObject = safeParseJsonObject(localStorage.getItem(key));
+            if (key === USIM_STORAGE_KEY_SESSION || key === USIM_CLIENT_ID_SESSION || key === 'pendingToast') {
+                continue;
+            }
+
+            const parsedObject = safeParseJsonObject(sessionStorage.getItem(key));
             if (!parsedObject) {
                 continue;
             }
@@ -83,7 +112,7 @@ function getActiveUsimStorageKey() {
         // Ignore storage access errors (private mode / blocked storage)
     }
 
-    const detectedStorageKey = detectUsimStorageKeyFromLocalStorage();
+    const detectedStorageKey = detectUsimStorageKeyFromSessionStorage();
     if (detectedStorageKey) {
         setActiveUsimStorageKey(detectedStorageKey);
         return detectedStorageKey;
@@ -94,7 +123,11 @@ function getActiveUsimStorageKey() {
 
 function getUsimStorageValue() {
     const storageKey = getActiveUsimStorageKey();
-    return localStorage.getItem(storageKey) || '';
+    try {
+        return sessionStorage.getItem(storageKey) || '';
+    } catch (error) {
+        return '';
+    }
 }
 
 function encodeHeaderSafeValue(rawValue) {
@@ -160,9 +193,13 @@ function getPersistedStoreValue(storeKey) {
         return storageObject[storeKey];
     }
 
-    // Backward compatibility for legacy flat keys in localStorage.
-    const legacyValue = localStorage.getItem(storeKey);
-    return legacyValue !== null ? legacyValue : null;
+    // Backward compatibility for legacy flat keys in sessionStorage.
+    try {
+        const legacyValue = sessionStorage.getItem(storeKey);
+        return legacyValue !== null ? legacyValue : null;
+    } catch (error) {
+        return null;
+    }
 }
 
 function persistStoreValue(storeKey, value) {
@@ -174,7 +211,7 @@ function persistStoreValue(storeKey, value) {
         const storageKey = getActiveUsimStorageKey();
         const storageObject = getUsimStorageObject();
         storageObject[storeKey] = value;
-        localStorage.setItem(storageKey, JSON.stringify(storageObject));
+        sessionStorage.setItem(storageKey, JSON.stringify(storageObject));
         return true;
     } catch (error) {
         // Ignore storage write errors (private mode / blocked storage)
@@ -695,13 +732,12 @@ class UIComponent {
      */
     async sendEventToBackend(event, action, parameters = {}) {
         try {
-            // Get dynamic CSRF headers (prefers XSRF-TOKEN cookie over static meta tag)
             const csrfHeaders = getCsrfHeaders();
-
             const componentId = this.getComponentId();
 
-            // Get USIM storage from localStorage
+            // Get USIM storage and client ID from sessionStorage
             const usimStorage = getUsimStorageHeaderValue();
+            const usimClientId = getUsimClientId();
 
             // console.log('Sending event:', { component_id: componentId, action, csrfHeaders });
 
@@ -712,6 +748,7 @@ class UIComponent {
                     'Accept': 'application/json',
                     'X-Requested-With': 'XMLHttpRequest',
                     'X-USIM-Storage': usimStorage,
+                    ...(usimClientId ? { 'X-UI-Client-Id': usimClientId } : {}),
                     ...csrfHeaders,
                 },
                 credentials: 'same-origin',
@@ -1258,7 +1295,7 @@ class UIRenderer {
     }
 
     /**
-     * Handle storage updates - store variables in localStorage
+     * Handle storage updates - store variables in sessionStorage
      *
      * @param {object} storageData - Storage variables object
      */
@@ -1274,12 +1311,16 @@ class UIRenderer {
 
             const value = storageData[key];
 
-            // Store the value in localStorage
+            // Store the value in sessionStorage
             // If it's an object/array, stringify it
-            if (typeof value === 'object' && value !== null) {
-                localStorage.setItem(key, JSON.stringify(value));
-            } else {
-                localStorage.setItem(key, String(value));
+            try {
+                if (typeof value === 'object' && value !== null) {
+                    sessionStorage.setItem(key, JSON.stringify(value));
+                } else {
+                    sessionStorage.setItem(key, String(value));
+                }
+            } catch (error) {
+                // Ignore storage errors
             }
         });
 
@@ -1851,6 +1892,7 @@ class UIRenderer {
                         const csrfHeaders = getCsrfHeaders();
                         const componentId = element.getAttribute('data-component-id');
                         const usimStorage = getUsimStorageHeaderValue();
+                        const usimClientId = getUsimClientId();
 
                         try {
                             const response = await fetch('/api/ui-event', {
@@ -1860,6 +1902,7 @@ class UIRenderer {
                                     'Accept': 'application/json',
                                     'X-Requested-With': 'XMLHttpRequest',
                                     'X-USIM-Storage': usimStorage,
+                                    ...(usimClientId ? { 'X-UI-Client-Id': usimClientId } : {}),
                                     ...csrfHeaders,
                                 },
                                 credentials: 'same-origin',
@@ -2736,6 +2779,7 @@ async function loadScreenUI(screenName = null, forceReset = null) {
         const queryString = urlParams.toString() ? `?${urlParams.toString()}` : '';
 
         const usimStorage = getUsimStorageHeaderValue();
+        const usimClientId = getUsimClientId();
         const csrfHeaders = getCsrfHeaders();
         // Use /api/ui/ prefix to separate UI definitions from Data API
         const response = await fetch(`/api/ui/${screen}${queryString}`, {
@@ -2744,6 +2788,7 @@ async function loadScreenUI(screenName = null, forceReset = null) {
                 'Accept': 'application/json',
                 'X-Requested-With': 'XMLHttpRequest',
                 'X-USIM-Storage': usimStorage,
+                ...(usimClientId ? { 'X-UI-Client-Id': usimClientId } : {}),
                 ...csrfHeaders,
             }
         });
@@ -3150,6 +3195,7 @@ async function executeTimeoutAction(action, callerServiceId) {
         try {
             const csrfHeaders = getCsrfHeaders();
             const usimStorage = getUsimStorageHeaderValue();
+            const usimClientId = getUsimClientId();
 
             const response = await fetch('/api/ui-event', {
                 method: 'POST',
@@ -3158,6 +3204,7 @@ async function executeTimeoutAction(action, callerServiceId) {
                     'Accept': 'application/json',
                     'X-Requested-With': 'XMLHttpRequest',
                     'X-USIM-Storage': usimStorage,
+                    ...(usimClientId ? { 'X-UI-Client-Id': usimClientId } : {}),
                     ...csrfHeaders,
                 },
                 credentials: 'same-origin',
@@ -3186,26 +3233,26 @@ document.addEventListener('DOMContentLoaded', () => {
     // Ensure modal root is available even if template did not include it.
     ensureModalRoot();
 
-    document.addEventListener('click', (e) => {
-        const overlay = e.target;
-        if (!(overlay instanceof HTMLElement)) {
-            return;
-        }
+    // document.addEventListener('click', (e) => {
+    //     const overlay = e.target;
+    //     if (!(overlay instanceof HTMLElement)) {
+    //         return;
+    //     }
 
-        if (!overlay.classList.contains('modal-overlay')) {
-            return;
-        }
+    //     if (!overlay.classList.contains('modal-overlay')) {
+    //         return;
+    //     }
 
-        const topLayer = getTopModalLayer();
-        if (!topLayer) {
-            return;
-        }
+    //     const topLayer = getTopModalLayer();
+    //     if (!topLayer) {
+    //         return;
+    //     }
 
-        // Only close if clicking directly on the top overlay background.
-        if (overlay === topLayer.overlay) {
-            closeModal();
-        }
-    });
+    //     // Only close if clicking directly on the top overlay background.
+    //     if (overlay === topLayer.overlay) {
+    //         closeModal();
+    //     }
+    // });
 });
 
 // Make modal functions globally available
@@ -3224,6 +3271,7 @@ async function loadMenuUI(forceReset = null) {
         const shouldReset = forceReset === null ? Boolean(window.RESET_STATE) : Boolean(forceReset);
         const resetQuery = shouldReset ? 'reset=true' : '';
         const usimStorage = getUsimStorageHeaderValue();
+        const usimClientId = getUsimClientId();
         const parentElement = 'parent=menu';
 
         // Use /api/ui/ prefix for menu as well
@@ -3234,6 +3282,7 @@ async function loadMenuUI(forceReset = null) {
                     'Accept': 'application/json',
                     'X-Requested-With': 'XMLHttpRequest',
                     'X-USIM-Storage': usimStorage,
+                    ...(usimClientId ? { 'X-UI-Client-Id': usimClientId } : {}),
                 }
             }
         );

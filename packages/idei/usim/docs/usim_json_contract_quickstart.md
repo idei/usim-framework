@@ -29,6 +29,7 @@ Carga inicial:
 ```http
 GET /api/ui/auth/login?reset=true
 Cookie: <client-id-cookie>
+X-UI-Client-Id: <tab-client-id>
 ```
 
 Evento:
@@ -37,6 +38,7 @@ Evento:
 POST /api/ui-event
 Content-Type: application/json
 Cookie: <client-id-cookie>
+X-UI-Client-Id: <tab-client-id>
 X-USIM-Storage: <serialized-storage-json-string>
 ```
 

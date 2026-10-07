@@ -2,7 +2,6 @@
 // @usim: feature="admin", type="screen"
 namespace App\UI\Screens\Device;
 
-use Idei\Usim\Components\Button;
 use Idei\Usim\Components\Container;
 use Idei\Usim\Components\Label;
 use Idei\Usim\Components\Timer;
@@ -23,11 +22,10 @@ class DevicePairingScreen extends Screen
     public static ?string $layout = null;
 
     protected string $store_session_token = '';
-    protected string $store_pin = '';
+    protected string $state_pin = '';
     protected string $store_token = '';
     protected Label $lbl_pin_display;
     protected Label $lbl_status;
-    protected Button $btn_check_status;
     protected ?Timer $tmr_pairing_poll = null;
 
     protected function buildBaseUI(Container $container, ...$params): void
@@ -42,19 +40,21 @@ class DevicePairingScreen extends Screen
         $container->add(
             UI::label('lbl_title')
                 ->text('Vincular este Dispositivo')
-                ->style('primary')
+                ->style('h1')
         );
 
         $container->add(
             UI::label('lbl_instructions')
                 ->text('Ingresa al panel de administración de USIM en tu computadora e introduce el siguiente PIN para autorizar este equipo.')
-                ->style('secondary')
+                ->center()
+                ->animation('fadeIn')
+                ->style('h3')
         );
 
         $container->add(
             UI::label('lbl_pin_display')
-                ->text($this->store_pin)
-                ->style('primary')
+                ->text($this->state_pin)
+                ->style('h1')
         );
 
         $container->add(
@@ -68,19 +68,12 @@ class DevicePairingScreen extends Screen
                 ->action('check_status')
                 ->every(4000)
         );
-
-        $container->add(
-            UI::button('btn_check_status')
-                ->label('Verificar Estado')
-                ->action('check_status')
-                ->style('outline-primary')
-        );
     }
 
     protected function postLoadUI(): void
     {
         $this->updatePIN();
-        $this->lbl_pin_display->text($this->store_pin);
+        $this->lbl_pin_display->text($this->state_pin);
     }
 
     protected function updatePIN(): void
@@ -93,10 +86,10 @@ class DevicePairingScreen extends Screen
             $hasActiveSession = $manager->pollStatus($this->store_session_token) !== null;
         }
 
-        if (!$hasActiveSession || empty($this->store_pin)) {
+        if (!$hasActiveSession || empty($this->state_pin)) {
             $pairingData = $manager->initiate();
             $this->store_session_token = $pairingData['session_token'];
-            $this->store_pin = $pairingData['pin'];
+            $this->state_pin = $pairingData['pin'];
         }
     }
 
@@ -114,7 +107,7 @@ class DevicePairingScreen extends Screen
         if ($status === null) {
             // Expiró
             $this->store_session_token = '';
-            $this->store_pin = '';
+            $this->state_pin = '';
             $this->tmr_pairing_poll?->stop();
             $this->toast('El PIN expiró. Generando uno nuevo...', 'warning');
             $this->redirect(self::getRoutePath());
@@ -124,7 +117,7 @@ class DevicePairingScreen extends Screen
         if ($status !== 'pending') {
             // ¡Aprobado! $status contiene el token de Sanctum
             $this->store_session_token = '';
-            $this->store_pin = '';
+            $this->state_pin = '';
             $this->tmr_pairing_poll?->stop();
 
             // Persistimos el token en el storage del dispositivo

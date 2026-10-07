@@ -96,6 +96,12 @@ return [
                 'description' => 'Permission to access Device Edit Device.',
             ],
         ],
+        'link' => [
+            'access' => [
+                'name' => 'Access Device Link',
+                'description' => 'Permission to access Device Link.',
+            ],
+        ],
     ],
     'create' => [
         'users' => [

@@ -49,7 +49,8 @@ uiScenario(TestCase $test, string $screenClass, array $query = []): UiScenario
 What it provides:
 
 - screen bootstrapping via `/api/ui/{screen}`
-- in-memory UI snapshot updates after events
+- automatic `X-UI-Client-Id` header per scenario instance (simulating isolated browser tabs)
+- in-memory UI snapshot updates and `X-USIM-Storage` forwarding after events
 - convenience methods to interact with components by `name`
 
 Common methods on `UiScenario`:

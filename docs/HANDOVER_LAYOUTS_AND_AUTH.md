@@ -171,17 +171,29 @@ Cuando una pantalla decide cambiar el contenido principal, invoca `$this->naviga
 | `app/UI/Screens/Auth/Login.php` | **Modificado** | Encapsula login en `login_wrapper` + `login_card`. Ejecuta `$this->navigate()`. |
 | `app/UI/Screens/Menu.php` | **Modificado** | `onLoggedUser` solo refresca el menú visual (sin navegar). |
 | `app/Http/Controllers/Api/AuthController.php` | **Modificado** | Usa `LoginRequest`, retorna payload enriquecido. |
-| `packages/idei/usim/resources/assets/js/ui-renderer.js` | **Modificado** | Corrige URL `/api/ui/` y contenedor transparente en `addComponent`. |
-| `public/vendor/idei/usim/js/ui-renderer.js` | **Modificado** | Versión publicada de assets sincronizada. |
-| `packages/idei/usim/src/Http/Middleware/PrepareUIContext.php` | **Modificado** | Fallback a sesión para `current_unit_slug`. |
-| `packages/idei/usim/stubs/...` | **Modificado** | Todos los stubs de paquetes sincronizados 1:1 con `app/`. |
-| `tests/Feature/LoginServiceAndRequestTest.php` | **Nuevo** | Tests unitarios y funcionales de `LoginRequest` y `LoginService`. |
-| `tests/Feature/LoginScreenTest.php` | **Modificado** | Aserciones adaptadas al contrato `navigate.url ?? redirect`. |
+| `packages/idei/usim/src/Support/UIStateManager.php` | **Modificado** | Prioriza header `X-UI-Client-Id` sobre cookie para aislar caché por pestaña. |
+| `packages/idei/usim/src/Http/Middleware/PrepareUIContext.php` | **Modificado** | Aislamiento por pestaña (Opción B): autenticación vía `store_token` y `clearWebGuardUser()` si no hay token. |
+| `packages/idei/usim/src/Screen.php` | **Modificado** | `getStorageVariables()` maneja tipos primitivos nullables sin error de no inicializado. |
+| `packages/idei/usim/resources/assets/js/` | **Modificado** | Migración completa a `sessionStorage` y envío de `X-UI-Client-Id`. |
+| `public/vendor/idei/usim/js/` | **Modificado** | Assets públicos sincronizados con `resources/assets/js/`. |
+| `tests/Feature/TabIsolationTest.php` | **Nuevo** | 4 tests de aislamiento estricto de caché y autenticación entre pestañas. |
 
 ---
 
-## 5. Próximos Pasos para el Siguiente LLM / Sesión
+## 5. Aislamiento Estricto de Sesión y Pestañas (Tab Isolation)
 
-1. **Revisar si el usuario desea hacer commit** de los cambios actuales en la rama `menu-refactoring-0`.
+Se resolvió el punto de concurrencia entre pestañas del mismo navegador (Opción B):
+1. **Frontend (`sessionStorage`):** Todo el almacenamiento (`store_*` y `X-USIM-Storage`) reside ahora en `sessionStorage`. Cada pestaña genera un UUID único (`USIM_CLIENT_ID_SESSION`) que envía mediante el header `X-UI-Client-Id`.
+2. **Backend (`UIStateManager`):** El backend prioriza `X-UI-Client-Id` sobre la cookie HTTP `ui_client_id`, asegurando árboles de estado independientes en la caché de servidor por pestaña.
+3. **Autenticación desacoplada de la cookie web:** Si un request incluye `X-UI-Client-Id`:
+   - Con `store_token`: Autentica al usuario asociado al token en el request.
+   - Sin `store_token`: Ejecuta `clearWebGuardUser()`, limpiando el usuario del guard web en memoria para el request y tratándolo como invitado, impidiendo que la cookie de sesión del navegador (`laravel_session`) filtre la sesión a pestañas no autenticadas.
+
+---
+
+## 6. Próximos Pasos para el Siguiente LLM / Sesión
+
+1. **Revisar si el usuario desea hacer commit** de los cambios actuales en la rama `menu-refactoring-0-1-0`.
 2. **Registro de Usuarios y Modales de Autenticación:** Verificar si pantallas/modales como `RegisterDialog` o `ResetPassword` se benefician de la misma convención de navegación SPA (`navigate` en el iniciador).
-3. **Persistencia de sesión en clientes concurrentes:** Si se continúa trabajando en multi-tenancy o multi-unidad, monitorear la coherencia entre `session('current_unit_id')` y `store_unit` en localStorage para evitar desincronizaciones entre pestañas de un mismo navegador.
+3. **Monitorear en Kiosk/Device:** Comprobar que en dispositivos kiosk con guard `device`, el guard se comporte como esperado con `store_token`.
+

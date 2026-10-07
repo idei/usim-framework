@@ -6,7 +6,7 @@ use App\Models\Device;
 use App\Services\Device\DeviceService;
 use App\Services\Role\RoleService;
 use App\Services\Units\UsimUnitsService;
-use App\UI\Components\Modals\DevicePairingDialog;
+use Idei\Usim\Components\Button;
 use Idei\Usim\Components\Container;
 use Idei\Usim\Components\Label;
 use Idei\Usim\Enums\AlignItems;
@@ -31,16 +31,18 @@ class EditDevice extends Screen
     public const DEFAULT_SUBMIT_ACTION = 'submit_save_device';
     public const DEFAULT_CANCEL_ACTION = 'close_edit_device';
     public const DELETE_ACTION = 'delete_device';
-    public const UNPAIR_ACTION = 'unpair_device';
-    public const PAIR_ACTION = 'pair_device_clicked';
-
+    public const PAIR_UNPAIR_ACTION = 'pair_unpair_device';
     private const DEVICES_I18N_PREFIX = 'screen.admin.users_manager.';
-    private const CONTAINER_PADDING = 8;
+    private const CONTAINER_PADDING = 5;
     private const BUTTONS_GAP = 5;
 
     public static Visibility $visibility = Visibility::AUTHENTICATED;
 
     protected Label $lbl_edit_device_result;
+    protected ?Label $device_status_banner = null;
+    protected ?Button $btn_pair_unpair_device = null;
+    protected ?Button $btn_delete_device = null;
+
     protected DeviceService $deviceService;
     protected RoleService $roleService;
     protected UsimUnitsService $unitsService;
@@ -256,30 +258,26 @@ class EditDevice extends Screen
 
         if ($isEditing) {
             $isPaired = $device->tokens->isNotEmpty() || !empty($device->device_token);
-            if ($isPaired) {
-                $leftButtons->add(
-                    UI::button('btn_unpair_device')
-                        ->label(t(self::DEVICES_I18N_PREFIX . 'device_unpair_button'))
-                        ->style('warning')
-                        ->action(self::UNPAIR_ACTION, [
-                            'device_id' => $device->id,
-                        ])
-                );
-            } else {
-                $leftButtons->add(
-                    UI::button('btn_pair_this_device')
-                        ->label(t(self::DEVICES_I18N_PREFIX . 'pair_device'))
-                        ->style('secondary')
-                        ->action(self::PAIR_ACTION, [
-                            'device_id' => $device->id,
-                        ])
-                );
-            }
+            $label = $isPaired ?
+                t(self::DEVICES_I18N_PREFIX . 'device_unpair_button') :
+                t(self::DEVICES_I18N_PREFIX . 'pair_device');
+            $style = $isPaired ? "success" : "warning";
+
+            $leftButtons->add(
+                UI::button('btn_pair_unpair_device')
+                    ->label($label)
+                    ->style($style)
+                    ->action(self::PAIR_UNPAIR_ACTION, [
+                        'is_paired' => $isPaired,
+                        'device_id' => $device->id,
+                    ])
+            );
 
             $leftButtons->add(
                 UI::button('btn_delete_device')
                     ->label(t(self::DEVICES_I18N_PREFIX . 'device_delete_button'))
                     ->style('danger')
+                    ->enabled(!$isPaired)
                     ->action(self::DELETE_ACTION, [
                         'device_id' => $device->id,
                     ])
@@ -443,6 +441,20 @@ class EditDevice extends Screen
     /**
      * @param array<string, mixed> $params
      */
+    public function onPairUnpairDevice(array $params): void
+    {
+        $isPaired = $params['is_paired'] ?? false;
+
+        if ($isPaired) {
+            $this->onUnpairDevice($params);
+        } else {
+            $this->onPairDeviceClicked($params);
+        }
+    }
+
+    /**
+     * @param array<string, mixed> $params
+     */
     public function onUnpairDevice(array $params): void
     {
         $rawId = $params['device_id'] ?? null;
@@ -454,14 +466,10 @@ class EditDevice extends Screen
         }
 
         $this->deviceService->unpairDevice($deviceId);
-        $this->toast(t(self::DEVICES_I18N_PREFIX . 'device_unpaired'), 'success');
+
         event(new UsimEvent('device_unpaired', ['device_id' => $deviceId]));
 
-        if ($this->isOpenedAsModal()) {
-            $this->closeModal();
-        } else {
-            $this->redirect('/admin/users-manager');
-        }
+        $this->closeModal();
     }
 
     /**
@@ -473,10 +481,10 @@ class EditDevice extends Screen
         $deviceId = is_numeric($rawId) ? (int) $rawId : null;
         $device = $deviceId !== null ? $this->deviceService->getDevice($deviceId) : null;
 
-        DevicePairingDialog::open(
-            device: $device,
-            callerServiceId: $this->getScreenComponentId()
-        );
+        $this->openModal(Link::class, [
+            'device' => $device,
+            'device_id' => $deviceId,
+        ]);
     }
 
     /**
@@ -484,12 +492,7 @@ class EditDevice extends Screen
      */
     public function onCloseEditDevice(array $params = []): void
     {
-        if ($this->isOpenedAsModal()) {
-            $this->closeModal();
-            return;
-        }
-
-        $this->redirect('/admin/users-manager');
+        $this->closeModal();
     }
 
     /**
@@ -518,5 +521,72 @@ class EditDevice extends Screen
         }
 
         return null;
+    }
+
+    /**
+     * @param array<string, mixed> $params
+     */
+    public function onDevicePaired(array $params): void
+    {
+        $message = $params['message'] ?? '';
+        $device = $this->resolveDevice($params['device'] ?? null, $params['device_id'] ?? null);
+        $isPaired = $device !== null && $device->isPaired();
+        $statusText = $isPaired
+            ? '✅ ' . t(self::DEVICES_I18N_PREFIX . 'devices_status_paired')
+            : '⚠️ ' . t(self::DEVICES_I18N_PREFIX . 'devices_status_unpaired');
+
+
+        $label = $isPaired ?
+            t(self::DEVICES_I18N_PREFIX . 'device_unpair_button') :
+            t(self::DEVICES_I18N_PREFIX . 'pair_device');
+        $style = $isPaired ? "success" : "warning";
+
+        $this->device_status_banner
+            ?->text($statusText)
+            ?->style($style);
+
+        $this->btn_pair_unpair_device
+            ?->label($label)
+            ?->style($style);
+
+        $this->btn_delete_device
+            ?->enabled(!$isPaired);
+
+        if (\is_string($message)) {
+            $this->toast($message, $style);
+        }
+    }
+
+    /**
+     * @param array<string, mixed> $params
+     */
+    public function onDeviceUnpaired(array $params): void
+    {
+        $message = $params['message'] ?? '';
+        $device = $this->resolveDevice($params['device'] ?? null, $params['device_id'] ?? null);
+        $isPaired = $device !== null && $device->isPaired();
+        $statusText = $isPaired
+            ? '✅ ' . t(self::DEVICES_I18N_PREFIX . 'devices_status_paired')
+            : '⚠️ ' . t(self::DEVICES_I18N_PREFIX . 'devices_status_unpaired');
+
+        $label = $isPaired ?
+            t(self::DEVICES_I18N_PREFIX . 'device_unpair_button') :
+            t(self::DEVICES_I18N_PREFIX . 'pair_device');
+        $style = $isPaired ? "success" : "warning";
+
+        $this->device_status_banner
+            ?->text($statusText)
+            ?->style($style);
+
+        $this->btn_pair_unpair_device
+            ?->label($label)
+            ?->style($style);
+
+        $this->btn_delete_device
+            ?->enabled(!$isPaired);
+
+        if (\is_string($message)) {
+            $this->toast($message, $style);
+        }
     }
 }
