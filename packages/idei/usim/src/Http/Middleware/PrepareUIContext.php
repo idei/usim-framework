@@ -85,13 +85,6 @@ class PrepareUIContext
         $storeTokenValue = $storage['store_token'] ?? null;
         $storeToken = \is_scalar($storeTokenValue) ? (string) $storeTokenValue : null;
 
-        if (empty($storeToken)) {
-            $cachedToken = UIStateManager::getAuthToken();
-            if (\is_string($cachedToken) && $cachedToken !== '') {
-                $storeToken = $cachedToken;
-            }
-        }
-
         $request->headers->set('Authorization', 'Bearer ' . ($storeToken ?? ''));
         UIStateManager::setAuthToken($storeToken);
 
@@ -103,16 +96,20 @@ class PrepareUIContext
                 if ($tokenModel && $tokenModel->tokenable instanceof \Illuminate\Contracts\Auth\Authenticatable) {
                     $actor = $tokenModel->tokenable;
                     if ($actor instanceof \App\Models\Device) {
-                        Auth::guard('device')->setUser($actor);
+                        if (!$actor->isPaired()) {
+                            $this->clearWebGuardUser();
+                            $request->setUserResolver(fn () => null);
+                        } else {
+                            Auth::guard('device')->setUser($actor);
+                            $request->setUserResolver(fn () => $actor);
+                        }
                     } else {
                         $this->setWebGuardUser($actor);
+                        $request->setUserResolver(fn () => $actor);
                     }
-                    $request->setUserResolver(fn () => $actor);
                 } else {
-                    if ($hasTabClientId) {
-                        $this->clearWebGuardUser();
-                        $request->setUserResolver(fn () => null);
-                    }
+                    $this->clearWebGuardUser();
+                    $request->setUserResolver(fn () => null);
                 }
             }
         } elseif ($hasTabClientId) {
@@ -124,6 +121,11 @@ class PrepareUIContext
         }
 
         $effectiveUser = $request->user() ?? Auth::guard('device')->user();
+        if ($effectiveUser instanceof \App\Models\Device && !$effectiveUser->isPaired()) {
+            $this->clearWebGuardUser();
+            $request->setUserResolver(fn () => null);
+            $effectiveUser = null;
+        }
 
         $unitSlug = UIStateManager::getActiveUnit();
         UnitContextResolver::resolveAndApply($effectiveUser, $unitSlug);
@@ -172,6 +174,13 @@ class PrepareUIContext
         if ($deviceGuard->check()) {
             if ($deviceGuard instanceof SessionGuard) {
                 $deviceGuard->forgetUser();
+                try {
+                    $loggedOutProp = new \ReflectionProperty($deviceGuard, 'loggedOut');
+                    $loggedOutProp->setAccessible(true);
+                    $loggedOutProp->setValue($deviceGuard, true);
+                } catch (\ReflectionException) {
+                    // Ignore reflection errors
+                }
             } elseif (method_exists($deviceGuard, 'forgetUser')) {
                 $deviceGuard->forgetUser();
             }

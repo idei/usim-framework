@@ -441,7 +441,7 @@ class EditDevice extends Screen
     /**
      * @param array<string, mixed> $params
      */
-    public function onPairUnpairDevice(array $params)
+    public function onPairUnpairDevice(array $params): void
     {
         $isPaired = $params['is_paired'] ?? false;
 
@@ -523,11 +523,14 @@ class EditDevice extends Screen
         return null;
     }
 
+    /**
+     * @param array<string, mixed> $params
+     */
     public function onDevicePaired(array $params): void
     {
         $message = $params['message'] ?? '';
         $device = $this->resolveDevice($params['device'] ?? null, $params['device_id'] ?? null);
-        $isPaired = $device !== null && ($device->tokens->isNotEmpty() || !empty($device->device_token));
+        $isPaired = $device !== null && $device->isPaired();
         $statusText = $isPaired
             ? '✅ ' . t(self::DEVICES_I18N_PREFIX . 'devices_status_paired')
             : '⚠️ ' . t(self::DEVICES_I18N_PREFIX . 'devices_status_unpaired');
@@ -554,11 +557,14 @@ class EditDevice extends Screen
         }
     }
 
+    /**
+     * @param array<string, mixed> $params
+     */
     public function onDeviceUnpaired(array $params): void
     {
         $message = $params['message'] ?? '';
         $device = $this->resolveDevice($params['device'] ?? null, $params['device_id'] ?? null);
-        $isPaired = $device !== null && ($device->tokens->isNotEmpty() || !empty($device->device_token));
+        $isPaired = $device !== null && $device->isPaired();
         $statusText = $isPaired
             ? '✅ ' . t(self::DEVICES_I18N_PREFIX . 'devices_status_paired')
             : '⚠️ ' . t(self::DEVICES_I18N_PREFIX . 'devices_status_unpaired');

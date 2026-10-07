@@ -145,7 +145,8 @@ trait ManagesDevicesSection
             }
         }
 
-        $this->screen->openModal(Link::class, [
+        $caller = $this->screen ?? ($this instanceof \Idei\Usim\Screen ? $this : null);
+        $caller?->openModal(Link::class, [
             'device' => $device,
             'devicesOptions' => $devicesOptions,
         ]);
@@ -349,7 +350,8 @@ trait ManagesDevicesSection
      */
     public function onDeviceCreated(array $params): void
     {
-        $message = $params['message'] ?? '';
+        $rawMessage = $params['message'] ?? '';
+        $message = is_string($rawMessage) ? $rawMessage : '';
         $this->toast($message, 'success');
         $this->devices_table->refresh();
     }
@@ -361,7 +363,8 @@ trait ManagesDevicesSection
      */
     public function onDeviceUpdated(array $params): void
     {
-        $message = $params['message'] ?? '';
+        $rawMessage = $params['message'] ?? '';
+        $message = is_string($rawMessage) ? $rawMessage : '';
         $this->toast($message, 'success');
         $this->devices_table->refresh();
     }
@@ -373,7 +376,8 @@ trait ManagesDevicesSection
      */
     public function onDeviceDeleted(array $params): void
     {
-        $message = $params['message'] ?? '';
+        $rawMessage = $params['message'] ?? '';
+        $message = is_string($rawMessage) ? $rawMessage : '';
         $this->toast($message, 'success');
         $this->devices_table->refresh();
     }

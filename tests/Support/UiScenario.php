@@ -2,7 +2,9 @@
 // @usim: feature="core", type="test"
 namespace Tests\Support;
 
+use App\Models\User;
 use Idei\Usim\Support\UIStateManager;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Str;
 use Illuminate\Testing\TestResponse;
@@ -59,14 +61,15 @@ final class UiScenario
             UIStateManager::setActiveUnit($existingActiveUnit, $scenario->clientId);
         }
 
-        $existingAuthToken = UIStateManager::getAuthToken();
-        if ($existingAuthToken === null && \Illuminate\Support\Facades\Auth::check() && \Illuminate\Support\Facades\Auth::user() instanceof \App\Models\User) {
-            $existingAuthToken = \Illuminate\Support\Facades\Auth::user()->createToken('scenario-' . $scenario->clientId)->plainTextToken;
+        $existingAuthToken = null;
+        $actor = Auth::guard('web')->user() ?? Auth::guard('device')->user();
+        if ($actor !== null && method_exists($actor, 'createToken')) {
+            $existingAuthToken = $actor->createToken('scenario-' . $scenario->clientId)->plainTextToken;
         }
 
         if ($existingAuthToken !== null) {
             UIStateManager::setAuthToken($existingAuthToken, $scenario->clientId);
-            $storageKey = config('usim.front_store_key', 'usim-framework');
+            $storageKey = (string) config('usim.front_store_key', 'usim-framework');
             $scenario->memory->ingest(['storage' => [$storageKey => json_encode(['store_token' => $existingAuthToken])]], 'auto');
         }
 
@@ -74,9 +77,15 @@ final class UiScenario
         UIStateManager::clearClientActiveModal($scenario->clientId);
         UIStateManager::clearClientCurrentScreen($scenario->clientId);
 
+        $headers = [];
+        $usimStorage = $scenario->memory->usimStorage();
+        if ($usimStorage !== '') {
+            $headers['X-USIM-Storage'] = $usimStorage;
+        }
+
         $response = $scenario
             ->testWithClientCookie()
-            ->getJson(screenApiUrl($screenClass, $query));
+            ->getJson(screenApiUrl($screenClass, $query), $headers);
         $response->assertOk();
 
         $scenario->ingest($response->json(), 'initial');

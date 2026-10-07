@@ -114,3 +114,40 @@ it('automatically advances slides on timer tick in continuous loop', function ()
 
     $ui->assertNoIssues();
 });
+
+it('declares store_token in screen storage variables', function () {
+    $screen = new KioskScreen();
+    $storage = $screen->getStorageVariables();
+
+    expect(array_key_exists('store_token', $storage))->toBeTrue();
+});
+
+it('redirects to device pairing screen when device is unpaired during carousel polling', function () {
+    /** @var Tests\TestCase $this */
+    $device = createAuthenticatedKioskDevice($this);
+
+    $ui = uiScenario($this, KioskScreen::class, ['reset' => true]);
+
+    $carousel = $ui->component('device_carousel')->data();
+    $carouselId = isset($carousel['_json_key']) ? (int) $carousel['_json_key'] : 0;
+
+    // Carousel tick works when paired
+    $ui->timeout($carouselId, 'carousel_tick', [
+        'carousel_name' => 'device_carousel',
+        'current_index' => 0,
+    ])->assertOk();
+
+    // Now unpair the device via DeviceService
+    $unpaired = app(\App\Services\Device\DeviceService::class)->unpairDevice($device->id);
+    expect($unpaired)->toBeTrue();
+    expect($device->fresh()->isPaired())->toBeFalse();
+
+    // The subsequent carousel_tick must detect that the device is unpaired and redirect
+    $response = $ui->timeout($carouselId, 'carousel_tick', [
+        'carousel_name' => 'device_carousel',
+        'current_index' => 1,
+    ]);
+
+    $response->assertOk();
+    expect($response->json('redirect'))->toBe(url('/device/device-pairing-screen'));
+});

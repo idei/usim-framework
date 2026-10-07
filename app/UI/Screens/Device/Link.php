@@ -113,13 +113,16 @@ class Link extends Screen
                     ->value((string) $device->id)
             );
         } else {
-            $selectOptions = $this->buildDevicesOptions($params['devicesOptions'] ?? null);
+            $rawOptions = $params['devicesOptions'] ?? null;
+            /** @var list<array{value: int|string, label: string}>|null $customOptions */
+            $customOptions = is_array($rawOptions) ? $rawOptions : null;
+            $selectOptions = $this->buildDevicesOptions($customOptions);
 
             $card->add(
                 UI::select('pairing_device_id')
                     ->label(t(self::DEVICES_I18N_PREFIX . 'device_select_label'))
                     ->options($selectOptions)
-                    ->value(!empty($selectOptions) && isset($selectOptions[0]['value']) ? (string) $selectOptions[0]['value'] : '')
+                    ->value(!empty($selectOptions) ? (string) $selectOptions[0]['value'] : '')
                     ->required(true)
                     ->width(Size::full())
             );
@@ -266,6 +269,9 @@ class Link extends Screen
         return null;
     }
 
+    /**
+     * @param array<string, mixed> $params
+     */
     protected function stringParamOrDefault(array $params, string $key, string $default): string
     {
         $value = $params[$key] ?? null;

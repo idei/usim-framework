@@ -628,6 +628,25 @@ abstract class Screen
 
         $guard = static::getAuthGuard();
 
+        if ($guard === 'device' && Auth::guard('device')->check()) {
+            $deviceUser = Auth::guard('device')->user();
+            if ($deviceUser instanceof \App\Models\Device && !$deviceUser->isPaired()) {
+                $deviceGuard = Auth::guard('device');
+                if ($deviceGuard instanceof \Illuminate\Auth\SessionGuard) {
+                    $deviceGuard->forgetUser();
+                    try {
+                        $loggedOutProp = new \ReflectionProperty($deviceGuard, 'loggedOut');
+                        $loggedOutProp->setAccessible(true);
+                        $loggedOutProp->setValue($deviceGuard, true);
+                    } catch (\ReflectionException) {
+                        // Ignore reflection errors
+                    }
+                } elseif (method_exists($deviceGuard, 'forgetUser')) {
+                    $deviceGuard->forgetUser();
+                }
+            }
+        }
+
         // 2. Handle failure based on authentication state
         if (!Auth::guard($guard)->check()) {
             $redirectUrl = ($guard === 'device')

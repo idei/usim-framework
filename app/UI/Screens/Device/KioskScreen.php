@@ -26,8 +26,19 @@ class KioskScreen extends Screen
 
     protected int $state_timeout_ms = 5000;
 
+    protected string $store_token = '';
+
     public static function authorize(): bool
     {
+        if (!self::requireAuth('device')) {
+            return false;
+        }
+
+        $device = \Illuminate\Support\Facades\Auth::guard('device')->user();
+        if ($device instanceof \App\Models\Device && !$device->isPaired()) {
+            return false;
+        }
+
         return self::requirePermission('device.kiosk_screen.access', 'device');
     }
 
