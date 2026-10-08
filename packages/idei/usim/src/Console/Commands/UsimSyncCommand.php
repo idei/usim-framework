@@ -2,11 +2,11 @@
 
 namespace Idei\Usim\Console\Commands;
 
-use App\Services\Units\UnitsService;
+use Idei\Usim\Contracts\UnitsServiceInterface;
 use Idei\Usim\Support\DeviceSyncService;
+use Idei\Usim\Support\LangSyncService;
 use Idei\Usim\Support\RoleAndPermissionSyncService;
 use Idei\Usim\Support\UsersSyncService;
-use Idei\Usim\Support\LangSyncService;
 use Illuminate\Console\Command;
 
 class UsimSyncCommand extends Command
@@ -21,7 +21,7 @@ class UsimSyncCommand extends Command
         $shouldDiscover = (bool) $this->option('discover') || \in_array($target, ['screens', 'all'], true);
 
         if ($shouldDiscover) {
-            if (!app()->environment('production')) {
+            if (! app()->environment('production')) {
                 $this->call('usim:discover');
             } else {
                 $this->line('<comment>Skipping screen discovery in production environment.</comment>');
@@ -83,10 +83,20 @@ class UsimSyncCommand extends Command
 
     protected function syncUnits(): void
     {
-        $unitsService = app(UnitsService::class);
+        /** @var UnitsServiceInterface|null $unitsService */
+        $unitsService = app()->bound(UnitsServiceInterface::class)
+            ? app(UnitsServiceInterface::class)
+            : (class_exists('App\\Services\\Units\\UnitsService') ? app('App\\Services\\Units\\UnitsService') : null);
 
-        if (!$unitsService->isTeamsEnabled()) {
+        if (! $unitsService) {
+            $this->warn('UnitsService is not available. Skipping unit synchronization.');
+
+            return;
+        }
+
+        if (! $unitsService->isTeamsEnabled()) {
             $this->warn('Units are disabled in the Spatie (permission.php) configuration. Skipping unit synchronization.');
+
             return;
         }
 
@@ -113,7 +123,7 @@ class UsimSyncCommand extends Command
             $this->warn("Removed {$result->deletedCount} obsolete units.");
         }
 
-        if (!empty($result->generatedTranslationFiles)) {
+        if (! empty($result->generatedTranslationFiles)) {
             $this->line('<comment>Language files generated:</comment> lang/{locale}/unit.php');
         }
 
@@ -133,6 +143,7 @@ class UsimSyncCommand extends Command
 
         if (empty($devicesConfig)) {
             $this->line('No devices configured in usim.php to sync. Skipping.');
+
             return;
         }
 

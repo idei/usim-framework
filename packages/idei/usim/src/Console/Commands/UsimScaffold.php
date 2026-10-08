@@ -20,10 +20,11 @@ class UsimScaffold extends Command
         parent::__construct();
     }
 
-    public function handle() : int
+    public function handle(): int
     {
         if ($this->option('help')) {
             $this->line($this->getHelp());
+
             return 0;
         }
 
@@ -35,41 +36,45 @@ class UsimScaffold extends Command
 
         $stubPath = $this->stubsPath("scaffolding/{$type}.php.stub");
         $this->info("Using stub: {$stubPath}");
-        if (!file_exists($stubPath)) {
+        if (! file_exists($stubPath)) {
             $this->error("Stub for type '{$type}' does not exist.");
+
             return 1;
         }
 
         $name = $this->pascalize($name);
         $className = $name;
-        $filePath = app_path('UI/Screens/' . str_replace('\\', '/', $className) . '.php');
+        $filePath = app_path('UI/Screens/'.str_replace('\\', '/', $className).'.php');
 
-        if (file_exists($filePath) && !$force) {
+        if (file_exists($filePath) && ! $force) {
             $this->error("File '{$filePath}' already exists.");
+
             return 1;
         }
 
         $stubContent = file_get_contents($stubPath);
         if ($stubContent === false) {
             $this->error("Failed to read stub file: {$stubPath}");
+
             return 1;
         }
         $stubContent = str_replace('{{ name }}', $name, $stubContent);
         $stubContent = str_replace('{{ namespace }}', $namespace, $stubContent);
 
-        if (!is_dir(dirname($filePath))) {
+        if (! is_dir(dirname($filePath))) {
             mkdir(dirname($filePath), 0755, true);
         }
 
         file_put_contents($filePath, $stubContent);
         $this->info("Screen '{$className}' has been scaffolded at '{$filePath}'.");
         $this->info("Don't forget to make php artisan usim:discover to register the new screen.");
+
         return 0;
     }
 
     public function stubsPath(string $path = ''): string
     {
-        return dirname(__DIR__, 3) . '/stubs/' . ltrim($path, '/\\');
+        return dirname(__DIR__, 3).'/stubs/'.ltrim($path, '/\\');
     }
 
     private function pascalize(string $string): string

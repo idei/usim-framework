@@ -2,8 +2,6 @@
 
 namespace Idei\Usim\Components;
 
-use Idei\Usim\Components\Container;
-use Idei\Usim\Components\TableRow;
 use Idei\Usim\Contracts\UIElement;
 use Idei\Usim\DataTable\AbstractTableModel;
 use Idei\Usim\Enums\SelectionMode;
@@ -21,13 +19,21 @@ use Idei\Usim\ValueObjects\Size;
 class Table extends UIComponent
 {
     public const DEFAULT_COLUMN_WIDTH = 160;
+
     public const DEFAULT_PAGINATION_PER_PAGE = 7;
+
     public const DEFAULT_ROW_MIN_HEIGHT = 48;
+
     public const DEFAULT_HEADER_HEIGHT = 48;
+
     public const DEFAULT_PAGINATION_HEIGHT = 56;
+
     public const DEFAULT_TOOLBAR_OVERHEAD = 60;
+
     public const DEFAULT_BODY_HEIGHT = 520;
+
     public const DEFAULT_BODY_OVERFLOW_X = 'visible';
+
     public const DEFAULT_BODY_OVERFLOW_Y = 'visible';
 
     /** @var Container The rows container */
@@ -57,9 +63,9 @@ class Table extends UIComponent
     /**
      * Create a new table
      *
-     * @param string|null $name Table name
-     * @param int $rows Number of data rows (0 for dynamic)
-     * @param int $cols Number of columns (0 for dynamic)
+     * @param  string|null  $name  Table name
+     * @param  int  $rows  Number of data rows (0 for dynamic)
+     * @param  int  $cols  Number of columns (0 for dynamic)
      */
     public function __construct(?string $name = null, int $rows = 0, int $cols = 0)
     {
@@ -162,6 +168,7 @@ class Table extends UIComponent
             $this->updatePaginationData();
             $this->updateTableData();
         }
+
         return $this;
     }
 
@@ -182,6 +189,7 @@ class Table extends UIComponent
         }
         $this->setConfig('sort_column', $column);
         $this->setConfig('sort_direction', $direction);
+
         return $this;
     }
 
@@ -200,7 +208,6 @@ class Table extends UIComponent
      *
      * If $mode is null, returns current mode.
      *
-     * @param SelectionMode|null $mode
      * @return ($mode is null ? string : static)
      */
     public function selectionMode(?SelectionMode $mode = null): static|string
@@ -224,7 +231,7 @@ class Table extends UIComponent
      * - a single row identifier in single selection mode
      * - an array of row identifiers in multiple selection mode
      *
-     * @param list<int|string>|string|int|null $rows Row identifier or identifiers to select.
+     * @param  list<int|string>|string|int|null  $rows  Row identifier or identifiers to select.
      * @return static|list<int|string>|string|int|null
      */
     public function select(array|string|int|null $rows = null): static|array|string|int|null
@@ -236,12 +243,14 @@ class Table extends UIComponent
             }
             if ($this->config['selection_mode'] === SelectionMode::SINGLE->value) {
                 $singleSelected = $selected[0] ?? null;
+
                 return $singleSelected;
             }
+
             return $selected;
         }
 
-        if (!\is_array($rows)) {
+        if (! \is_array($rows)) {
             $rows = [$rows];
         }
 
@@ -259,13 +268,11 @@ class Table extends UIComponent
      * Call this after any state change that affects column metadata — for example,
      * when a language filter changes and the selected-language column needs a new
      * label and/or width without reloading the whole table.
-     *
-     * @return self
      */
     public function refreshColumns(): self
     {
         $model = $this->getModel();
-        if (!$model) {
+        if (! $model) {
             return $this;
         }
 
@@ -306,7 +313,7 @@ class Table extends UIComponent
      * - __row_parameters: custom backend parameters for row click
      * - _model_id: model identifier exposed as parameter model_id
      *
-     * @param array<string, mixed> $rowData
+     * @param  array<string, mixed>  $rowData
      * @return array{0: array<string, mixed>, 1: array{style: string, selected: bool, action: ?string, parameters: array<string, mixed>}}
      */
     private function splitFormattedRowData(array $rowData): array
@@ -316,12 +323,12 @@ class Table extends UIComponent
         $action = $rowData['__row_action'] ?? null;
 
         $parameters = $rowData['__row_parameters'] ?? [];
-        if (!is_array($parameters)) {
+        if (! is_array($parameters)) {
             $parameters = [];
         }
 
         $modelId = $rowData['_model_id'] ?? null;
-        if ($modelId !== null && !array_key_exists('model_id', $parameters)) {
+        if ($modelId !== null && ! array_key_exists('model_id', $parameters)) {
             $parameters['model_id'] = $modelId;
         }
 
@@ -342,20 +349,18 @@ class Table extends UIComponent
                 'selected' => $selected,
                 'action' => is_string($action) && $action !== '' ? $action : null,
                 'parameters' => $parameters,
-            ]
+            ],
         ];
     }
 
     /**
      * Apply row-level metadata after the row has been prepared.
      *
-     * @param int $row
-     * @param array{style: string, selected: bool, action: ?string, parameters: array<string, mixed>} $meta
-     * @return void
+     * @param  array{style: string, selected: bool, action: ?string, parameters: array<string, mixed>}  $meta
      */
     private function applyRowMetadata(int $row, array $meta): void
     {
-        if (!isset($this->rowBuilders[$row])) {
+        if (! isset($this->rowBuilders[$row])) {
             return;
         }
 
@@ -369,9 +374,7 @@ class Table extends UIComponent
     /**
      * Apply inline style metadata declared in a formatted cell array.
      *
-     * @param TableCell $cell
-     * @param array<string, mixed> $value
-     * @return void
+     * @param  array<string, mixed>  $value
      */
     private function applyCellMetadata(TableCell $cell, array $value): void
     {
@@ -395,7 +398,7 @@ class Table extends UIComponent
     private function updateTableData(): void
     {
         $model = $this->getModel();
-        if (!$model) {
+        if (! $model) {
             return;
         }
 
@@ -443,9 +446,6 @@ class Table extends UIComponent
      * USIM protocol rules:
      * - Removed rows must be sent with parent=null.
      * - Added rows must include correct parent (rows container), and cells with row parent.
-     *
-     * @param int $targetRows
-     * @return void
      */
     private function syncRowStructure(int $targetRows): void
     {
@@ -487,7 +487,7 @@ class Table extends UIComponent
 
         // Active rows: ensure parent points to rows container and cells to row.
         for ($row = 0; $row < $targetRows; $row++) {
-            if (!isset($this->rowBuilders[$row])) {
+            if (! isset($this->rowBuilders[$row])) {
                 continue;
             }
 
@@ -496,7 +496,7 @@ class Table extends UIComponent
             $rowBuilder->row($row);
 
             $cells = $rowBuilder->getCells();
-            if (!isset($this->cells[$row])) {
+            if (! isset($this->cells[$row])) {
                 $this->cells[$row] = $cells;
             }
 
@@ -522,8 +522,6 @@ class Table extends UIComponent
 
     /**
      * Get the data model instance
-     *
-     * @return AbstractTableModel|null
      */
     public function getModel(): ?AbstractTableModel
     {
@@ -534,6 +532,7 @@ class Table extends UIComponent
                 $this->model = new $modelClass($this);
             }
         }
+
         return $this->model;
     }
 
@@ -564,7 +563,7 @@ class Table extends UIComponent
 
         // If pagination is disabled (per_page = 0), render all rows in a single logical page.
         // Use total item count as effective page size to keep existing flows intact.
-        if (!$pagination['enabled'] || $perPage <= 0) {
+        if (! $pagination['enabled'] || $perPage <= 0) {
             $perPage = max(1, $totalItems);
             $pagination['per_page'] = $perPage;
         }
@@ -592,17 +591,20 @@ class Table extends UIComponent
                 $this->rowsContainer = $element;
                 $this->config['rows_container'] = $element->getId();
             }
+
             return;
         }
 
         if ($element instanceof TableHeaderRow) {
             $this->headerRow = $element;
             $this->config['header_row'] = $element->getId();
+
             return;
         }
 
         if ($element instanceof TableRow) {
             $this->addRow($element);
+
             return;
         }
     }
@@ -644,8 +646,6 @@ class Table extends UIComponent
      *
      * After deserialization, $rowBuilders is empty so we need to rebuild it
      * by iterating through the rowsContainer's children.
-     *
-     * @return void
      */
     private function reconstructRowBuilders(): void
     {
@@ -674,8 +674,6 @@ class Table extends UIComponent
      *
      * This is called after deserialization when the component tree is fully
      * reconnected, ensuring we have access to all cell components.
-     *
-     * @return void
      */
     private function reconstructCellsMatrix(): void
     {
@@ -686,7 +684,7 @@ class Table extends UIComponent
             $cellsInRow = $rowBuilder->getCells();
 
             // Log::debug("Reconstructing cells for row $rowIndex: " . $cellsInRow[1]->toString());
-            if (!empty($cellsInRow)) {
+            if (! empty($cellsInRow)) {
                 $this->cells[$rowIndex] = $cellsInRow;
             }
         }
@@ -704,13 +702,13 @@ class Table extends UIComponent
      * Create and return a header row for this table
      * Only one header row is allowed per table
      *
-     * @param string|null $name Optional name for the header row
+     * @param  string|null  $name  Optional name for the header row
      * @return TableHeaderRow The header row builder
      */
     public function createHeaderRow(?string $name = null): TableHeaderRow
     {
         if ($this->headerRow !== null) {
-            throw new \LogicException("Table already has a header row. Only one header row is allowed per table.");
+            throw new \LogicException('Table already has a header row. Only one header row is allowed per table.');
         }
 
         $this->headerRow = new TableHeaderRow($this, $name ?? 'header');
@@ -722,8 +720,6 @@ class Table extends UIComponent
 
     /**
      * Get the header row if it exists
-     *
-     * @return TableHeaderRow|null
      */
     public function getHeaderRow(): ?TableHeaderRow
     {
@@ -734,33 +730,33 @@ class Table extends UIComponent
      * Create a new table row associated with this table
      * Automatically adds the row to the table
      *
-     * @param string|null $name Optional name for the row
+     * @param  string|null  $name  Optional name for the row
      * @return TableRow The new row builder
      */
     public function createRow(?string $name = null): TableRow
     {
         $row = new TableRow($this, $name);
         $this->addRow($row);
+
         return $row;
     }
 
     /**
      * Add a row component to this table
      *
-     * @param TableRow $row The row to add
+     * @param  TableRow  $row  The row to add
      * @return self For method chaining
      */
     public function addRow(TableRow $row): self
     {
         // Add the row to the rows container
         $this->rowsContainer->add($row);
+
         return $this;
     }
 
     /**
      * Get the rows container
-     *
-     * @return Container
      */
     public function getRowsContainer(): Container
     {
@@ -810,14 +806,14 @@ class Table extends UIComponent
     {
         $base = $this->name ?: (string) $this->id;
 
-        return $base . '__' . $suffix;
+        return $base.'__'.$suffix;
     }
 
     private function getRowClickActionName(): string
     {
         $tableName = $this->name ?? 'table';
 
-        return $tableName . '_row_clicked';
+        return $tableName.'_row_clicked';
     }
 
     private function isRowsContainer(Container $element): bool
@@ -832,24 +828,23 @@ class Table extends UIComponent
     /**
      * Fill the header row with data
      *
-     * @param list<array{label: string, sort_by: string|null}> $data Array of header cell data with keys:
-     *                   - 'label': string, the header text
-     *                   - 'sort_by': string|null, the column to sort by when clicked
-     * @return self
+     * @param  list<array{label: string, sort_by: string|null}>  $data  Array of header cell data with keys:
+     *                                                                  - 'label': string, the header text
+     *                                                                  - 'sort_by': string|null, the column to sort by when clicked
      */
     public function fillHeaderRow(array $data): self
     {
         $headerRow = $this->getHeaderRow();
 
-        if (!$headerRow) {
-            throw new \LogicException("Table dimensions must be set before filling header row");
+        if (! $headerRow) {
+            throw new \LogicException('Table dimensions must be set before filling header row');
         }
 
         $cells = $headerRow->getCells();
 
         // Generate action name from table name
         $tableName = $this->name ?? 'table';
-        $actionName = $tableName . '_column_clicked';
+        $actionName = $tableName.'_column_clicked';
 
         for ($col = 0; $col < min(count($data), $this->cols); $col++) {
             if (isset($cells[$col])) {
@@ -868,8 +863,6 @@ class Table extends UIComponent
     /**
      * Clear all data rows (set all cells to empty strings)
      * This is useful for pagination or when reloading data
-     *
-     * @return self
      */
     public function clearRows(): self
     {
@@ -885,18 +878,17 @@ class Table extends UIComponent
     /**
      * Fill a data row with values
      *
-     * @param int $row Row index (0-based)
-     * @param list<mixed> $data Array of cell data
-     *                    - string: text content
-     *                    - array with 'text': text content
-     *                    - array with 'button': button config
-     *                    - array with 'url_image': image config
-     * @return self
+     * @param  int  $row  Row index (0-based)
+     * @param  list<mixed>  $data  Array of cell data
+     *                             - string: text content
+     *                             - array with 'text': text content
+     *                             - array with 'button': button config
+     *                             - array with 'url_image': image config
      */
     public function fillRow(int $row, array $data): self
     {
         if ($row < 0 || $row >= $this->rows) {
-            throw new \OutOfBoundsException("Row index $row is out of bounds (0-" . ($this->rows - 1) . ")");
+            throw new \OutOfBoundsException("Row index $row is out of bounds (0-".($this->rows - 1).')');
         }
 
         $this->rowBuilders[$row]
@@ -952,17 +944,17 @@ class Table extends UIComponent
     }
 
     /**
-    * @return array{enabled: bool, per_page: int, current_page: int, total_items: int, can_next: bool, can_prev: bool, total_pages: int, show_controls: bool, labels: array{previous: string, next: string, showing: string}}
+     * @return array{enabled: bool, per_page: int, current_page: int, total_items: int, can_next: bool, can_prev: bool, total_pages: int, show_controls: bool, labels: array{previous: string, next: string, showing: string}}
      */
     private function paginationConfig(): array
     {
         $pagination = $this->config['pagination'] ?? [];
-        if (!is_array($pagination)) {
+        if (! is_array($pagination)) {
             $pagination = [];
         }
 
         $labels = $pagination['labels'] ?? [];
-        if (!is_array($labels)) {
+        if (! is_array($labels)) {
             $labels = [];
         }
 
@@ -983,10 +975,6 @@ class Table extends UIComponent
         ];
     }
 
-    /**
-     * @param mixed $value
-     * @return Size|int|string|null
-     */
     private function normalizeSizeInput(mixed $value): Size|int|string|null
     {
         if ($value instanceof Size || is_int($value) || is_string($value)) {
@@ -997,7 +985,7 @@ class Table extends UIComponent
     }
 
     /**
-     * @param array<mixed> $value
+     * @param  array<mixed>  $value
      * @return array<string, mixed>
      */
     private function normalizeAssocArray(array $value): array
@@ -1018,8 +1006,8 @@ class Table extends UIComponent
      * Format: tableId_row_col
      * Example: 88001_0_1 (table 88001, row 0, col 1)
      *
-     * @param int $row Row index (0-based)
-     * @param int $col Column index (0-based)
+     * @param  int  $row  Row index (0-based)
+     * @param  int  $col  Column index (0-based)
      * @return int Cell ID
      */
     public function getCellId(int $row, int $col): int
@@ -1038,9 +1026,8 @@ class Table extends UIComponent
     /**
      * Get a specific cell builder
      *
-     * @param int $row Row index (0-based)
-     * @param int $col Column index (0-based)
-     * @return TableCell
+     * @param  int  $row  Row index (0-based)
+     * @param  int  $col  Column index (0-based)
      */
     public function getCell(int $row, int $col): TableCell
     {
@@ -1063,23 +1050,23 @@ class Table extends UIComponent
      * For more complex cell modifications (buttons, images, etc.), use getCell()
      * and modify the cell builder directly.
      *
-     * @param int $row Row index (0-based)
-     * @param int $col Column index (0-based)
-     * @param string $text New text content for the cell
+     * @param  int  $row  Row index (0-based)
+     * @param  int  $col  Column index (0-based)
+     * @param  string  $text  New text content for the cell
      * @return self For method chaining
      */
     public function editCell(int $row, int $col, string $text): self
     {
         $cell = $this->getCell($row, $col);
         $cell->text($text);
+
         return $this;
     }
 
     /**
      * Set the table title
      *
-     * @param string $title The table title
-     * @return self
+     * @param  string  $title  The table title
      */
     public function title(string $title): self
     {
@@ -1089,12 +1076,11 @@ class Table extends UIComponent
     /**
      * Set the table alignment within its parent container
      *
-     * @param string $align Alignment: 'left', 'center', or 'right'
-     * @return self
+     * @param  string  $align  Alignment: 'left', 'center', or 'right'
      */
     public function align(string $align): self
     {
-        if (!in_array($align, ['left', 'center', 'right'])) {
+        if (! in_array($align, ['left', 'center', 'right'])) {
             throw new \InvalidArgumentException("Invalid alignment: $align. Use 'left', 'center', or 'right'.");
         }
 
@@ -1104,8 +1090,7 @@ class Table extends UIComponent
     /**
      * Set border radius for the table wrapper.
      *
-     * @param string|int $radius CSS radius value or pixels as integer
-     * @return self
+     * @param  string|int  $radius  CSS radius value or pixels as integer
      */
     public function borderRadius(string|int $radius): self
     {
@@ -1119,8 +1104,7 @@ class Table extends UIComponent
     /**
      * Convenience alias to set rounded corners.
      *
-     * @param string|int|bool $radius Radius value (e.g. 8, '12px', true, false)
-     * @return self
+     * @param  string|int|bool  $radius  Radius value (e.g. 8, '12px', true, false)
      */
     public function rounded(string|int|bool $radius = 8): self
     {
@@ -1134,7 +1118,7 @@ class Table extends UIComponent
     /**
      * Set table shadow
      *
-     * @param string|int $intensity Shadow intensity (0=none, 1-3=levels, 'light', 'medium', 'heavy', or custom CSS)
+     * @param  string|int  $intensity  Shadow intensity (0=none, 1-3=levels, 'light', 'medium', 'heavy', or custom CSS)
      * @return self For method chaining
      */
     public function shadow(string|int $intensity = 1): self
@@ -1151,18 +1135,18 @@ class Table extends UIComponent
             $shadows = [
                 'light' => '0 1px 3px rgba(0,0,0,0.1)',
                 'medium' => '0 4px 6px rgba(0,0,0,0.1)',
-                'heavy' => '0 10px 15px rgba(0,0,0,0.2)'
+                'heavy' => '0 10px 15px rgba(0,0,0,0.2)',
             ];
             $shadow = $shadows[$intensity] ?? $intensity;
         }
+
         return $this->setConfig('box_shadow', $shadow);
     }
 
     /**
      * Set row height for all rows in the table.
      *
-     * @param int|string $height Height in pixels or CSS size string
-     * @return self
+     * @param  int|string  $height  Height in pixels or CSS size string
      */
     public function rowHeight(int|string $height): self
     {
@@ -1180,8 +1164,6 @@ class Table extends UIComponent
 
     /**
      * Get configured row height.
-     *
-     * @return Size|null
      */
     public function getRowHeight(): ?Size
     {
@@ -1196,14 +1178,13 @@ class Table extends UIComponent
     /**
      * Set minimum height for all rows
      *
-     * @param int|string $height Minimum height in pixels or CSS size string
-     * @return self
+     * @param  int|string  $height  Minimum height in pixels or CSS size string
      */
     public function rowMinHeight(int|string $height): self
     {
         $rowMinHeight = Size::from($height);
         $this->setConfig('row_min_height', (string) $rowMinHeight);
-        if (!isset($this->config['row_height'])) {
+        if (! isset($this->config['row_height'])) {
             $this->setConfig('row_height', (string) $rowMinHeight);
         }
 
@@ -1219,8 +1200,7 @@ class Table extends UIComponent
     /**
      * Set or get minimum height for table body area.
      *
-     * @param int|string|null $height Height in px (int) or any CSS size string
-     * @return static|string|null
+     * @param  int|string|null  $height  Height in px (int) or any CSS size string
      */
     public function bodyMinHeight(int|string|null $height = null): static|string|null
     {
@@ -1234,8 +1214,7 @@ class Table extends UIComponent
     /**
      * Set or get maximum height for table body area.
      *
-     * @param int|string|null $height Height in px (int) or any CSS size string
-     * @return static|string|null
+     * @param  int|string|null  $height  Height in px (int) or any CSS size string
      */
     public function bodyMaxHeight(int|string|null $height = null): static|string|null
     {
@@ -1249,8 +1228,7 @@ class Table extends UIComponent
     /**
      * Set the maximum and minimum height for the table body area en pixels.
      *
-     * @param int|null $height
-     * @return static|string|null
+     * @param  int|null  $height
      */
     public function bodyHeight(int|string|null $height): static|string|null
     {
@@ -1270,9 +1248,6 @@ class Table extends UIComponent
      * Set or get horizontal overflow mode for table body area.
      *
      * Allowed values: visible, hidden, auto, scroll.
-     *
-     * @param string|null $overflow
-     * @return static|string|null
      */
     public function bodyOverflowX(?string $overflow = null): static|string|null
     {
@@ -1287,9 +1262,6 @@ class Table extends UIComponent
      * Set or get vertical overflow mode for table body area.
      *
      * Allowed values: visible, hidden, auto, scroll.
-     *
-     * @param string|null $overflow
-     * @return static|string|null
      */
     public function bodyOverflowY(?string $overflow = null): static|string|null
     {
@@ -1303,9 +1275,7 @@ class Table extends UIComponent
     /**
      * Set overflow mode for table body area.
      *
-     * @param string $overflowX
-     * @param string|null $overflowY If null, same value as $overflowX is used
-     * @return self
+     * @param  string|null  $overflowY  If null, same value as $overflowX is used
      */
     public function bodyOverflow(string $overflowX, ?string $overflowY = null): self
     {
@@ -1321,14 +1291,13 @@ class Table extends UIComponent
     /**
      * Set fixed width for a specific column.
      *
-     * @param int $col Column index (0-based)
-     * @param int $width Width in pixels
-     * @return self
+     * @param  int  $col  Column index (0-based)
+     * @param  int  $width  Width in pixels
      */
     public function columnWidth(int $col, int $width): self
     {
         if ($col < 0 || $col >= $this->cols) {
-            throw new \OutOfBoundsException("Column index $col is out of bounds (0-" . ($this->cols - 1) . ")");
+            throw new \OutOfBoundsException("Column index $col is out of bounds (0-".($this->cols - 1).')');
         }
 
         $this->columnWidths[$col] = $width;
@@ -1355,8 +1324,7 @@ class Table extends UIComponent
     /**
      * Set fixed widths for all columns at once.
      *
-     * @param array<int, int|string|array<string|int, mixed>> $widths Array of widths in pixels
-     * @return self
+     * @param  array<int, int|string|array<string|int, mixed>>  $widths  Array of widths in pixels
      */
     public function columnWidths(array $widths): self
     {
@@ -1370,8 +1338,7 @@ class Table extends UIComponent
     /**
      * Set pagination page size. If perPage is 0, pagination is disabled.
      *
-     * @param int $perPage Number of items per page
-     * @return self
+     * @param  int  $perPage  Number of items per page
      */
     public function pagination(int $perPage = self::DEFAULT_PAGINATION_PER_PAGE): self
     {
@@ -1393,12 +1360,11 @@ class Table extends UIComponent
      * based on the container's available height, avoiding scroll overflows and keeping
      * the pagination bar visible and pinned at the bottom.
      *
-     * @param int $availableHeight Total available height in pixels of the parent container/viewport (default: 550)
-     * @param bool $hasToolbar Whether a search/action toolbar exists above the table in the same container (default: true)
-     * @param bool $paginated Whether the table should be paginated (default: true)
-     * @param int|null $rowHeight Estimated or configured row min height in px (null for DEFAULT_ROW_MIN_HEIGHT)
-     * @param int $paddingVertical Total vertical padding/margins of the container or section in px (default: 0)
-     * @return self
+     * @param  int  $availableHeight  Total available height in pixels of the parent container/viewport (default: 550)
+     * @param  bool  $hasToolbar  Whether a search/action toolbar exists above the table in the same container (default: true)
+     * @param  bool  $paginated  Whether the table should be paginated (default: true)
+     * @param  int|null  $rowHeight  Estimated or configured row min height in px (null for DEFAULT_ROW_MIN_HEIGHT)
+     * @param  int  $paddingVertical  Total vertical padding/margins of the container or section in px (default: 0)
      */
     public function fitContainer(
         int $availableHeight = 550,
@@ -1454,8 +1420,8 @@ class Table extends UIComponent
      * - getPaginationInfo(): pagination information
      * - getFormattedPageData(): formatted data for current page
      *
-     * @param string $dataModel The data model class name
-     * @return self
+     * @param  string  $dataModel  The data model class name
+     *
      * @throws \InvalidArgumentException
      */
     public function dataModel(string $dataModel): self
@@ -1483,12 +1449,11 @@ class Table extends UIComponent
     /**
      * Validate that the data model is a subclass of AbstractTableModel
      *
-     * @param string $dataModel
      * @throws \InvalidArgumentException
      */
     private function validateDataModel(string $dataModel): void
     {
-        if (!is_subclass_of($dataModel, AbstractTableModel::class)) {
+        if (! is_subclass_of($dataModel, AbstractTableModel::class)) {
             throw new \InvalidArgumentException(
                 "Data model must be a subclass of AbstractTableModel, got: $dataModel"
             );
@@ -1498,7 +1463,7 @@ class Table extends UIComponent
     /**
      * Initialize table dimensions from the data model
      *
-     * @param array<string, array<string, mixed>> $columns
+     * @param  array<string, array<string, mixed>>  $columns
      */
     private function initializeTableDimensions(array $columns): void
     {
@@ -1513,8 +1478,6 @@ class Table extends UIComponent
 
     /**
      * Check if table has valid dimensions for rendering
-     *
-     * @return bool
      */
     private function hasValidDimensions(): bool
     {
@@ -1524,7 +1487,7 @@ class Table extends UIComponent
     /**
      * Configure column widths from the data model
      *
-     * @param array<string, array<string, mixed>> $columns
+     * @param  array<string, array<string, mixed>>  $columns
      */
     private function configureTableColumns(array $columns): void
     {
@@ -1539,12 +1502,12 @@ class Table extends UIComponent
     /**
      * Configure and fill the table header row
      *
-     * @param array<string, array<string, mixed>> $columns
+     * @param  array<string, array<string, mixed>>  $columns
      */
     private function configureTableHeaders(array $columns): void
     {
         $headerData = array_values(array_map(
-            fn($column) => [
+            fn ($column) => [
                 'label' => $this->extractColumnLabel($column),
                 'sort_by' => $this->extractSortByKey($column),
             ],
@@ -1556,33 +1519,29 @@ class Table extends UIComponent
 
     /**
      * Extract label from column definition
-     *
-     * @param mixed $column
-     * @return string
      */
     private function extractColumnLabel(mixed $column): string
     {
-        if (!\is_array($column)) {
+        if (! \is_array($column)) {
             return is_scalar($column) ? (string) $column : '';
         }
 
         $label = $column['label'] ?? '';
+
         return is_scalar($label) ? (string) $label : '';
     }
 
     /**
      * Extract sort_by key from column definition
-     *
-     * @param mixed $column
-     * @return string|null
      */
     private function extractSortByKey(mixed $column): ?string
     {
-        if (!\is_array($column)) {
+        if (! \is_array($column)) {
             return null;
         }
 
         $sortBy = $column['sort_by'] ?? null;
+
         return is_string($sortBy) ? $sortBy : null;
     }
 
@@ -1630,14 +1589,12 @@ class Table extends UIComponent
         }
 
         $this->setConfig('width', $totalWidth);
+
         return $totalWidth;
     }
 
     /**
      * Normalize CSS size values to consistent string format.
-     *
-     * @param int|string $value
-     * @return string
      */
     private function normalizeCssSize(int|string $value): string
     {
@@ -1646,18 +1603,15 @@ class Table extends UIComponent
 
     /**
      * Validate and normalize overflow values.
-     *
-     * @param string $value
-     * @return string
      */
     private function normalizeOverflowValue(string $value): string
     {
         $normalized = strtolower(trim($value));
         $allowed = ['visible', 'hidden', 'auto', 'scroll'];
 
-        if (!in_array($normalized, $allowed, true)) {
+        if (! in_array($normalized, $allowed, true)) {
             throw new \InvalidArgumentException(
-                "Invalid overflow value: {$value}. Use one of: " . implode(', ', $allowed) . '.'
+                "Invalid overflow value: {$value}. Use one of: ".implode(', ', $allowed).'.'
             );
         }
 
@@ -1669,9 +1623,6 @@ class Table extends UIComponent
      *
      * Accepts only integer width in getColumns() definitions.
      * Falls back to DEFAULT_COLUMN_WIDTH when not present.
-     *
-     * @param mixed $column
-     * @return int
      */
     private function resolveColumnWidth(mixed $column): int
     {
@@ -1684,9 +1635,6 @@ class Table extends UIComponent
 
     /**
      * Normalize width values to a safe integer in pixels.
-     *
-     * @param mixed $width
-     * @return int
      */
     private function normalizeColumnWidthValue(mixed $width): int
     {
@@ -1700,6 +1648,7 @@ class Table extends UIComponent
 
         if (is_array($width)) {
             $legacyWidth = $width['min'] ?? $width[0] ?? $width['max'] ?? $width[1] ?? self::DEFAULT_COLUMN_WIDTH;
+
             return $this->normalizeColumnWidthValue($legacyWidth);
         }
 
@@ -1724,12 +1673,11 @@ class Table extends UIComponent
     }
 
     /**
-     * @param mixed $selected
      * @return list<int|string>
      */
     private function normalizeSelectedRows(mixed $selected): array
     {
-        if (!is_array($selected)) {
+        if (! is_array($selected)) {
             return [];
         }
 
@@ -1742,7 +1690,6 @@ class Table extends UIComponent
 
         return $normalized;
     }
-
 
     /**
      * Get table dimensions

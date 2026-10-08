@@ -32,7 +32,7 @@ class LangSyncService
     }
 
     /**
-     * @param array{languages_created: int, languages_updated: int} $stats
+     * @param  array{languages_created: int, languages_updated: int}  $stats
      */
     private function upsertLanguages(array &$stats): void
     {
@@ -66,7 +66,7 @@ class LangSyncService
             $created = false;
 
             if ($language === null) {
-                $language = new UsimLanguage();
+                $language = new UsimLanguage;
                 $language->code = $code;
                 $created = true;
             }
@@ -88,9 +88,9 @@ class LangSyncService
             }
         }
 
-        if (!$touchedFallback) {
+        if (! $touchedFallback) {
             $fallbackLanguage = UsimLanguage::query()->firstOrNew(['code' => $fallbackCode]);
-            $created = !$fallbackLanguage->exists;
+            $created = ! $fallbackLanguage->exists;
             $fallbackLanguage->name = $fallbackLanguage->name ?: strtoupper($fallbackCode);
             $fallbackLanguage->native_name = $fallbackLanguage->native_name ?: strtoupper($fallbackCode);
             $fallbackLanguage->is_active = true;
@@ -130,12 +130,12 @@ class LangSyncService
 
                 $this->upsertLangValueByKey(
                     $locale,
-                    $rolePrefix . $roleName . '.name',
+                    $rolePrefix.$roleName.'.name',
                     $meta['display_name'] !== '' ? $meta['display_name'] : $roleName
                 );
                 $this->upsertLangValueByKey(
                     $locale,
-                    $rolePrefix . $roleName . '.description',
+                    $rolePrefix.$roleName.'.description',
                     $meta['description']
                 );
             }
@@ -155,12 +155,12 @@ class LangSyncService
 
                 $this->upsertLangValueByKey(
                     $locale,
-                    $permissionPrefix . $permissionName . '.name',
+                    $permissionPrefix.$permissionName.'.name',
                     $meta['display_name'] !== '' ? $meta['display_name'] : $permissionName
                 );
                 $this->upsertLangValueByKey(
                     $locale,
-                    $permissionPrefix . $permissionName . '.description',
+                    $permissionPrefix.$permissionName.'.description',
                     $meta['description']
                 );
             }
@@ -174,7 +174,7 @@ class LangSyncService
             return '';
         }
 
-        return str_ends_with($prefix, '.') ? $prefix : $prefix . '.';
+        return str_ends_with($prefix, '.') ? $prefix : $prefix.'.';
     }
 
     private function upsertLangValueByKey(string $locale, string $translationKey, string $value): void
@@ -186,30 +186,30 @@ class LangSyncService
             return;
         }
 
-        $segments = array_values(array_filter(explode('.', $translationKey), static fn(string $segment): bool => $segment !== ''));
+        $segments = array_values(array_filter(explode('.', $translationKey), static fn (string $segment): bool => $segment !== ''));
         if (count($segments) < 2) {
             return;
         }
 
         $file = array_shift($segments);
         $langDir = $this->baseLangPath !== null
-            ? rtrim($this->baseLangPath, '/\\') . DIRECTORY_SEPARATOR . $locale
+            ? rtrim($this->baseLangPath, '/\\').DIRECTORY_SEPARATOR.$locale
             : lang_path($locale);
-        $langFile = $langDir . DIRECTORY_SEPARATOR . $file . '.php';
+        $langFile = $langDir.DIRECTORY_SEPARATOR.$file.'.php';
 
         $payload = $this->loadLangArrayFile($langFile);
         Arr::set($payload, implode('.', $segments), $value);
 
-        if (!File::exists($langDir)) {
+        if (! File::exists($langDir)) {
             File::makeDirectory($langDir, 0755, true);
         }
 
-        $content = "<?php\n\nreturn " . $this->exportPhpArrayShort($payload) . ";\n";
+        $content = "<?php\n\nreturn ".$this->exportPhpArrayShort($payload).";\n";
         File::put($langFile, $content);
     }
 
     /**
-     * @param array<mixed> $payload
+     * @param  array<mixed>  $payload
      */
     private function exportPhpArrayShort(array $payload, int $indentLevel = 0): string
     {
@@ -228,10 +228,10 @@ class LangSyncService
                 ? $this->exportPhpArrayShort($value, $indentLevel + 1)
                 : var_export($value, true);
 
-            $lines[] = $itemIndent . $serializedKey . ' => ' . $serializedValue . ',';
+            $lines[] = $itemIndent.$serializedKey.' => '.$serializedValue.',';
         }
 
-        $lines[] = $indent . ']';
+        $lines[] = $indent.']';
 
         return implode("\n", $lines);
     }
@@ -241,13 +241,13 @@ class LangSyncService
      */
     private function loadLangArrayFile(string $path): array
     {
-        if (!is_file($path)) {
+        if (! is_file($path)) {
             return [];
         }
 
         $loaded = require $path;
 
-        if (!is_array($loaded)) {
+        if (! is_array($loaded)) {
             return [];
         }
 

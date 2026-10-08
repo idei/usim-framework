@@ -5,8 +5,8 @@ namespace Idei\Usim\Support\Config;
 final class I18nConfig
 {
     /**
-     * @param array<int, LanguageConfig> $languages
-     * @param array<string, string> $keyPrefixes
+     * @param  array<int, LanguageConfig>  $languages
+     * @param  array<string, string>  $keyPrefixes
      */
     public function __construct(
         public private(set) string $defaultLocale,

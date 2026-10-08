@@ -3,13 +3,13 @@
 namespace Idei\Usim\Support;
 
 use Idei\Usim\Models\UsimUnit;
-use Spatie\Permission\Models\Role;
 use Illuminate\Support\Facades\DB;
+use Spatie\Permission\Models\Role;
 
 class DeviceSyncService
 {
     /**
-     * @param array<string, array<string, mixed>> $devicesConfig
+     * @param  array<string, array<string, mixed>>  $devicesConfig
      * @return array{synced: list<string>, errors: list<string>}
      */
     public function sync(array $devicesConfig): array
@@ -26,8 +26,9 @@ class DeviceSyncService
         $deviceClass = is_string($deviceClass) ? $deviceClass : '\\App\\Models\\Device';
 
         // 2. Verificamos la existencia para evitar un Fatal Error
-        if (!class_exists($deviceClass)) {
+        if (! class_exists($deviceClass)) {
             $results['errors'][] = "El modelo [{$deviceClass}] no existe. Asegúrate de ejecutar 'php artisan usim:install' primero.";
+
             return $results;
         }
 
@@ -45,14 +46,15 @@ class DeviceSyncService
 
                 if (isset($data['unit_roles']) && is_array($data['unit_roles'])) {
                     foreach ($data['unit_roles'] as $unitSlug => $roles) {
-                        if (!is_string($unitSlug)) {
+                        if (! is_string($unitSlug)) {
                             continue;
                         }
 
                         $unit = UsimUnit::where('slug', $unitSlug)->first();
 
-                        if (!$unit) {
+                        if (! $unit) {
                             $results['errors'][] = "Unidad '{$unitSlug}' no encontrada para '{$deviceName}'.";
+
                             continue;
                         }
 
@@ -60,7 +62,7 @@ class DeviceSyncService
 
                         setPermissionsTeamId($unit->id);
 
-                        if (!is_array($roles)) {
+                        if (! is_array($roles)) {
                             continue;
                         }
 
@@ -89,7 +91,7 @@ class DeviceSyncService
             DB::commit();
         } catch (\Exception $e) {
             DB::rollBack();
-            $results['errors'][] = "Error crítico: " . $e->getMessage();
+            $results['errors'][] = 'Error crítico: '.$e->getMessage();
         }
 
         return $results;

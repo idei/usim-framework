@@ -14,11 +14,10 @@ class InstallAppScaffoldingManager
         private readonly Filesystem $files,
         private readonly StubClassAnalyzer $stubClassAnalyzer,
         private readonly StubClassMerger $stubClassMerger,
-    ) {
-    }
+    ) {}
 
     /**
-     * @param array<string, string|bool> $context
+     * @param  array<string, string|bool>  $context
      */
     public function installCoreScreens(
         array $context,
@@ -36,7 +35,7 @@ class InstallAppScaffoldingManager
     }
 
     /**
-     * @param array<string, string|bool> $context
+     * @param  array<string, string|bool>  $context
      */
     public function installAuthScaffolding(
         array $context,
@@ -69,7 +68,6 @@ class InstallAppScaffoldingManager
         $this->installComponent('Modals/EditUserDialog.php.stub', 'EditUserDialog.php', 'Modals', $context, $publishStub, $line);
         $this->installComponent('Modals/EditTranslationDialog.php.stub', 'EditTranslationDialog.php', 'Modals', $context, $publishStub, $line);
         $this->installComponent('Modals/TermsDialog.php.stub', 'TermsDialog.php', 'Modals', $context, $publishStub, $line);
-
 
         // $newLine();
         // $info('Installing DataTable components...');
@@ -106,7 +104,7 @@ class InstallAppScaffoldingManager
     }
 
     /**
-     * @param array<string, string|bool> $context
+     * @param  array<string, string|bool>  $context
      */
     private function installScreen(
         string $stubName,
@@ -123,11 +121,11 @@ class InstallAppScaffoldingManager
         $userModelImport = (string) $context['userModelImport'];
         $userModelClass = (string) $context['userModelClass'];
 
-        $stubPath = $stubsBasePath . '/screens/' . $stubName;
-        $targetDir = $subdirectory ? $screensPath . '/' . $subdirectory : $screensPath;
-        $targetFile = $targetDir . '/' . $targetName;
+        $stubPath = $stubsBasePath.'/screens/'.$stubName;
+        $targetDir = $subdirectory ? $screensPath.'/'.$subdirectory : $screensPath;
+        $targetFile = $targetDir.'/'.$targetName;
         $namespace = $subdirectory
-            ? $screensNamespace . '\\' . str_replace('/', '\\', $subdirectory)
+            ? $screensNamespace.'\\'.str_replace('/', '\\', $subdirectory)
             : $screensNamespace;
 
         $publishStub($stubPath, $targetFile, false, [
@@ -143,7 +141,7 @@ class InstallAppScaffoldingManager
     }
 
     /**
-     * @param array<string, string|bool> $context
+     * @param  array<string, string|bool>  $context
      */
     private function installComponent(
         string $stubName,
@@ -157,11 +155,11 @@ class InstallAppScaffoldingManager
         $componentsPath = (string) $context['componentsPath'];
         $componentsNamespace = (string) $context['componentsNamespace'];
 
-        $stubPath = $stubsBasePath . '/components/' . $stubName;
-        $targetDir = $subdirectory ? $componentsPath . '/' . $subdirectory : $componentsPath;
-        $targetFile = $targetDir . '/' . $targetName;
+        $stubPath = $stubsBasePath.'/components/'.$stubName;
+        $targetDir = $subdirectory ? $componentsPath.'/'.$subdirectory : $componentsPath;
+        $targetFile = $targetDir.'/'.$targetName;
         $namespace = $subdirectory
-            ? $componentsNamespace . '\\' . str_replace('/', '\\', $subdirectory)
+            ? $componentsNamespace.'\\'.str_replace('/', '\\', $subdirectory)
             : $componentsNamespace;
 
         $publishStub($stubPath, $targetFile, false, [
@@ -173,7 +171,7 @@ class InstallAppScaffoldingManager
     }
 
     /**
-     * @param array<string, string|bool> $context
+     * @param  array<string, string|bool>  $context
      */
     private function installAuthServices(array $context, callable $publishStub, callable $line): void
     {
@@ -189,7 +187,7 @@ class InstallAppScaffoldingManager
         $this->installService('Units/UsimUnitsService.php.stub', 'UsimUnitsService.php', 'Units', $context, $publishStub, $line);
         $this->installService('Units/UnitsService.php.stub', 'UnitsService.php', 'Units', $context, $publishStub, $line);
         $this->installService('Units/UnitSyncResult.php.stub', 'UnitSyncResult.php', 'Units', $context, $publishStub, $line);
-        $this->installService('Units/UnitTranslationGenerator.php.stub', 'UnitTranslationGenerator.php', 'Units',$context, $publishStub, $line);
+        $this->installService('Units/UnitTranslationGenerator.php.stub', 'UnitTranslationGenerator.php', 'Units', $context, $publishStub, $line);
         $this->installService('Device/DeviceListingService.php.stub', 'DeviceListingService.php', 'Device', $context, $publishStub, $line);
         $this->installService('Device/DeviceService.php.stub', 'DeviceService.php', 'Device', $context, $publishStub, $line);
 
@@ -197,14 +195,14 @@ class InstallAppScaffoldingManager
     }
 
     /**
-     * @param array<string, string|bool> $context
+     * @param  array<string, string|bool>  $context
      */
     private function installContracts(array $context, callable $publishStub, callable $line): void
     {
         $stubsBasePath = (string) $context['stubsBasePath'];
-        $contractsPath = $stubsBasePath . '/contracts';
+        $contractsPath = $stubsBasePath.'/contracts';
 
-        if (!$this->files->isDirectory($contractsPath)) {
+        if (! $this->files->isDirectory($contractsPath)) {
             return;
         }
 
@@ -216,7 +214,7 @@ class InstallAppScaffoldingManager
             $stubName = ltrim(str_replace($contractsPath, '', $stubFile->getPathname()), DIRECTORY_SEPARATOR);
             $targetName = preg_replace('/\.stub$/', '', $stubName);
 
-            if (!is_string($targetName) || $targetName === '') {
+            if (! is_string($targetName) || $targetName === '') {
                 continue;
             }
 
@@ -225,7 +223,7 @@ class InstallAppScaffoldingManager
     }
 
     /**
-     * @param array<string, string|bool> $context
+     * @param  array<string, string|bool>  $context
      */
     private function installContract(
         string $stubName,
@@ -238,12 +236,12 @@ class InstallAppScaffoldingManager
         $userModelImport = (string) $context['userModelImport'];
         $userModelClass = (string) $context['userModelClass'];
 
-        $stubPath = $stubsBasePath . '/contracts/' . $stubName;
-        $targetFile = app_path('Contracts/' . $targetName);
+        $stubPath = $stubsBasePath.'/contracts/'.$stubName;
+        $targetFile = app_path('Contracts/'.$targetName);
         $subdirectory = dirname($targetName);
         $namespace = $subdirectory === '.'
             ? 'App\\Contracts'
-            : 'App\\Contracts\\' . str_replace('/', '\\', $subdirectory);
+            : 'App\\Contracts\\'.str_replace('/', '\\', $subdirectory);
 
         $publishStub($stubPath, $targetFile, false, [
             '{{ namespace }}' => $namespace,
@@ -256,7 +254,7 @@ class InstallAppScaffoldingManager
     }
 
     /**
-     * @param array<string, string|bool> $context
+     * @param  array<string, string|bool>  $context
      */
     private function installService(
         string $stubName,
@@ -270,11 +268,11 @@ class InstallAppScaffoldingManager
         $userModelImport = (string) $context['userModelImport'];
         $userModelClass = (string) $context['userModelClass'];
 
-        $stubPath = $stubsBasePath . '/services/' . $stubName;
-        $targetDir = $subdirectory ? app_path('Services/' . $subdirectory) : app_path('Services');
-        $targetFile = $targetDir . '/' . $targetName;
+        $stubPath = $stubsBasePath.'/services/'.$stubName;
+        $targetDir = $subdirectory ? app_path('Services/'.$subdirectory) : app_path('Services');
+        $targetFile = $targetDir.'/'.$targetName;
         $namespace = $subdirectory
-            ? 'App\\Services\\' . str_replace('/', '\\', $subdirectory)
+            ? 'App\\Services\\'.str_replace('/', '\\', $subdirectory)
             : 'App\\Services';
 
         $publishStub($stubPath, $targetFile, false, [
@@ -288,7 +286,7 @@ class InstallAppScaffoldingManager
     }
 
     /**
-     * @param array<string, string|bool> $context
+     * @param  array<string, string|bool>  $context
      */
     private function installTestStubs(array $context, callable $publishStub, callable $line): void
     {
@@ -330,7 +328,7 @@ class InstallAppScaffoldingManager
     }
 
     /**
-     * @param array<string, string|bool> $context
+     * @param  array<string, string|bool>  $context
      */
     private function installTestFile(
         string $stubName,
@@ -346,9 +344,9 @@ class InstallAppScaffoldingManager
         $userModelClass = (string) $context['userModelClass'];
         $screensNamespace = (string) $context['screensNamespace'];
 
-        $stubPath = $stubsBasePath . '/tests/' . $stubName;
-        $targetDir = $subdirectory ? base_path('tests/' . $subdirectory) : base_path('tests');
-        $targetFile = $targetDir . '/' . $targetName;
+        $stubPath = $stubsBasePath.'/tests/'.$stubName;
+        $targetDir = $subdirectory ? base_path('tests/'.$subdirectory) : base_path('tests');
+        $targetFile = $targetDir.'/'.$targetName;
 
         $publishStub($stubPath, $targetFile, false, [
             '{{ userModel }}' => $userModelImport,
@@ -369,12 +367,12 @@ class InstallAppScaffoldingManager
 
     private function addRequireToPest(string $path): void
     {
-        if (!file_exists($path)) {
+        if (! file_exists($path)) {
             return;
         }
 
         $content = file_get_contents($path);
-        if (!is_string($content)) {
+        if (! is_string($content)) {
             return;
         }
 
@@ -390,7 +388,7 @@ class InstallAppScaffoldingManager
             1
         );
 
-        if (!is_string($updatedContent)) {
+        if (! is_string($updatedContent)) {
             return;
         }
 
@@ -398,7 +396,7 @@ class InstallAppScaffoldingManager
     }
 
     /**
-     * @param array<string, string|bool> $context
+     * @param  array<string, string|bool>  $context
      */
     private function installAuthController(array $context, callable $publishStub, callable $line): void
     {
@@ -407,7 +405,7 @@ class InstallAppScaffoldingManager
         $userModelClass = (string) $context['userModelClass'];
 
         $controllerPath = app_path('Http/Controllers/Api/AuthController.php');
-        $stubPath = $stubsBasePath . '/controllers/Api/AuthController.php.stub';
+        $stubPath = $stubsBasePath.'/controllers/Api/AuthController.php.stub';
 
         $publishStub($stubPath, $controllerPath, false, [
             '{{ namespace }}' => 'App\\Http\\Controllers\\Api',
@@ -427,22 +425,21 @@ class InstallAppScaffoldingManager
      * casts, imports and methods directly from the stub and merges only what's missing, so the
      * stub remains the single source of truth for what a USIM-ready User model needs.
      *
-     * @param array<string, string|bool> $context
-     * @param callable $publishStub
-     * @param callable $line
+     * @param  array<string, string|bool>  $context
      */
     private function configureUserModel(array $context, callable $publishStub, callable $line): void
     {
         $stubsBasePath = (string) $context['stubsBasePath'];
-        $stubPath = $stubsBasePath . '/models/User.php.stub';
+        $stubPath = $stubsBasePath.'/models/User.php.stub';
         $userModelPath = app_path('Models/User.php');
 
-        if (!$this->files->exists($userModelPath)) {
+        if (! $this->files->exists($userModelPath)) {
             $publishStub($stubPath, $userModelPath, false, [
                 '{{ namespace }}' => 'App\\Models',
             ]);
 
             $line('  <fg=green>✓</> User model created with USIM auth defaults');
+
             return;
         }
 
@@ -453,14 +450,14 @@ class InstallAppScaffoldingManager
     }
 
     /**
-     * @param array<string, string|bool> $context
+     * @param  array<string, string|bool>  $context
      */
     private function installEventServiceProvider(array $context, callable $publishStub, callable $line): void
     {
         $stubsBasePath = (string) $context['stubsBasePath'];
 
         $targetPath = app_path('Providers/EventServiceProvider.php');
-        $stubPath = $stubsBasePath . '/providers/EventServiceProvider.php.stub';
+        $stubPath = $stubsBasePath.'/providers/EventServiceProvider.php.stub';
 
         $publishStub($stubPath, $targetPath, false, [
             '{{ namespace }}' => 'App\\Providers',
@@ -474,8 +471,9 @@ class InstallAppScaffoldingManager
     {
         $providersPath = base_path('bootstrap/providers.php');
 
-        if (!$this->files->exists($providersPath)) {
+        if (! $this->files->exists($providersPath)) {
             $line('  <fg=yellow>!</> bootstrap/providers.php not found, skipping');
+
             return;
         }
 
@@ -483,14 +481,15 @@ class InstallAppScaffoldingManager
 
         if (str_contains($contents, 'EventServiceProvider')) {
             $line('  <fg=blue>→</> EventServiceProvider already in bootstrap/providers.php');
+
             return;
         }
 
         $pos = strrpos($contents, '];');
         if ($pos !== false) {
             $contents = substr($contents, 0, $pos)
-                . "    App\\Providers\\EventServiceProvider::class,\n];"
-                . substr($contents, $pos + 2);
+                ."    App\\Providers\\EventServiceProvider::class,\n];"
+                .substr($contents, $pos + 2);
 
             $this->files->put($providersPath, $contents);
             $line('  <fg=green>✓</> EventServiceProvider registered in bootstrap/providers.php');
@@ -499,7 +498,7 @@ class InstallAppScaffoldingManager
 
     private function toRelativePath(string $path): string
     {
-        $base = rtrim(str_replace('\\', '/', base_path()), '/') . '/';
+        $base = rtrim(str_replace('\\', '/', base_path()), '/').'/';
         $normalized = str_replace('\\', '/', $path);
 
         return str_starts_with($normalized, $base)
@@ -507,4 +506,3 @@ class InstallAppScaffoldingManager
             : $path;
     }
 }
-

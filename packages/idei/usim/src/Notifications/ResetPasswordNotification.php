@@ -3,7 +3,9 @@
 namespace Idei\Usim\Notifications;
 
 use Illuminate\Bus\Queueable;
+use Illuminate\Contracts\Auth\CanResetPassword;
 use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 use Illuminate\Support\Facades\URL;
@@ -42,7 +44,7 @@ class ResetPasswordNotification extends Notification implements ShouldQueue
      * Get the mail representation of the notification.
      * Usando vista Blade completamente personalizada
      *
-     * @param \Illuminate\Database\Eloquent\Model&\Illuminate\Contracts\Auth\CanResetPassword $notifiable
+     * @param  Model&CanResetPassword  $notifiable
      */
     public function toMail(object $notifiable): MailMessage
     {
@@ -58,11 +60,11 @@ class ResetPasswordNotification extends Notification implements ShouldQueue
         $appName = is_string($appName) ? $appName : 'Laravel';
 
         return (new MailMessage)
-            ->subject('🔐 Restablecer Contraseña - ' . $appName)
+            ->subject('🔐 Restablecer Contraseña - '.$appName)
             ->view('emails.reset-password', [
                 'user' => $notifiable,
                 'resetUrl' => $resetUrl,
-                'token' => $this->token
+                'token' => $this->token,
             ]);
     }
 

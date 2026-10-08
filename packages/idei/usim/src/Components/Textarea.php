@@ -82,7 +82,7 @@ class Textarea extends UIComponent
     /**
      * Set the editing mode.
      *
-     * @param string $mode 'plain' | 'markdown'
+     * @param  string  $mode  'plain' | 'markdown'
      */
     public function mode(string $mode): self
     {
@@ -122,7 +122,7 @@ class Textarea extends UIComponent
     /**
      * Set or clear an error state.
      *
-     * @param string|null $error Error message, or null to clear.
+     * @param  string|null  $error  Error message, or null to clear.
      */
     public function error(?string $error): self
     {
@@ -138,8 +138,8 @@ class Textarea extends UIComponent
     /**
      * Trigger a backend action when the value changes (on blur).
      *
-     * @param string $action   Action name (snake_case).
-     * @param array<string, mixed> $parameters Extra parameters merged with the event payload.
+     * @param  string  $action  Action name (snake_case).
+     * @param  array<string, mixed>  $parameters  Extra parameters merged with the event payload.
      */
     public function onChange(string $action, array $parameters = []): self
     {
@@ -152,8 +152,8 @@ class Textarea extends UIComponent
     /**
      * Trigger a backend action while the user types.
      *
-     * @param string $action   Action name (snake_case).
-     * @param array<string, mixed> $parameters Extra parameters merged with the event payload.
+     * @param  string  $action  Action name (snake_case).
+     * @param  array<string, mixed>  $parameters  Extra parameters merged with the event payload.
      */
     public function onInput(string $action, array $parameters = []): self
     {
@@ -174,7 +174,7 @@ class Textarea extends UIComponent
     /**
      * Set the border color (CSS value, e.g. '#4f46e5', 'rgb(79, 70, 229)').
      *
-     * @param string|null $color CSS color or null for default
+     * @param  string|null  $color  CSS color or null for default
      */
     public function borderColor(?string $color): self
     {
@@ -184,7 +184,7 @@ class Textarea extends UIComponent
     /**
      * Set the border width in pixels.
      *
-     * @param int|null $width Border width or null for default (2px)
+     * @param  int|null  $width  Border width or null for default (2px)
      */
     public function borderWidth(?int $width): self
     {
@@ -194,7 +194,7 @@ class Textarea extends UIComponent
     /**
      * Set the border radius in pixels.
      *
-     * @param int|null $radius Border radius or null for default (10px)
+     * @param  int|null  $radius  Border radius or null for default (10px)
      */
     public function borderRadius(?int $radius): self
     {
@@ -204,7 +204,7 @@ class Textarea extends UIComponent
     /**
      * Set the textarea background color.
      *
-     * @param string|null $color CSS color or null to use theme default
+     * @param  string|null  $color  CSS color or null to use theme default
      */
     public function backgroundColor(?string $color): self
     {

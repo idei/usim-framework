@@ -236,7 +236,7 @@ abstract class AbstractLayout extends Screen implements LayoutInterface
      * @param  string|null  $slot  Target slot name (e.g. 'main', 'top_menu', 'sidebar')
      * @param  array<int|string, mixed>  $params  Parameters passed to the screen
      * @param  bool  $updateBrowserUrl  Whether to push HTML5 browser history state
-     * @param  bool  $force Whether to force reload the slot even if the target screen class matches current screen
+     * @param  bool  $force  Whether to force reload the slot even if the target screen class matches current screen
      */
     public function showInto(string $screenClass, ?string $slot = null, array $params = [], bool $updateBrowserUrl = true, bool $force = false): bool
     {

@@ -3,14 +3,15 @@
 namespace Idei\Usim\Support;
 
 use Idei\Usim\Screen;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Arr;
-use Illuminate\Support\Str;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
-use Symfony\Component\Finder\Finder;
+use Illuminate\Support\Str;
 use Spatie\Permission\Models\Permission;
-use Symfony\Component\Finder\SplFileInfo;
 use Spatie\Permission\PermissionRegistrar;
+use Symfony\Component\Finder\Finder;
+use Symfony\Component\Finder\SplFileInfo;
 
 class ScreenDiscoveryService
 {
@@ -20,6 +21,7 @@ class ScreenDiscoveryService
     {
         return $this->lastPrunedCount;
     }
+
     /**
      * Scan the application for UI Screens and generate a manifest.
      *
@@ -30,12 +32,12 @@ class ScreenDiscoveryService
         $rawScreensPath = config('usim.screens_path', app_path('UI/Screens'));
         $screensPath = \is_string($rawScreensPath) ? $rawScreensPath : app_path('UI/Screens');
 
-        if (!\is_dir($screensPath)) {
+        if (! \is_dir($screensPath)) {
             return [];
         }
 
         $manifest = [];
-        $finder = new Finder();
+        $finder = new Finder;
         $finder->files()->in($screensPath)->name('*.php');
 
         $permissions = [];
@@ -51,7 +53,7 @@ class ScreenDiscoveryService
                 $resolvedPermissions = $className::resolvedPermissions();
 
                 foreach ($resolvedPermissions as $permissionName => $translationKey) {
-                    if (!\is_string($permissionName) || \trim($permissionName) === '') {
+                    if (! \is_string($permissionName) || \trim($permissionName) === '') {
                         continue;
                     }
 
@@ -78,19 +80,19 @@ class ScreenDiscoveryService
     }
 
     /**
-     * @param array<int, string> $permissions
+     * @param  array<int, string>  $permissions
      */
     private function createOrUpdateSpatiePermissions(array $permissions): void
     {
-        if (!class_exists(Permission::class)) {
+        if (! class_exists(Permission::class)) {
             return;
         }
 
         app()[PermissionRegistrar::class]->forgetCachedPermissions();
 
         $allPermissions = collect($permissions)
-            ->filter(static fn($permission): bool => \trim($permission) !== '')
-            ->map(static fn($permission): string => \trim((string) $permission))
+            ->filter(static fn ($permission): bool => \trim($permission) !== '')
+            ->map(static fn ($permission): string => \trim((string) $permission))
             ->unique();
 
         foreach ($allPermissions as $permission) {
@@ -99,7 +101,7 @@ class ScreenDiscoveryService
     }
 
     /**
-     * @param array<string, string> $permissionTranslationKeys
+     * @param  array<string, string>  $permissionTranslationKeys
      */
     private function upsertScreenPermissionTranslations(array $permissionTranslationKeys): void
     {
@@ -138,20 +140,20 @@ class ScreenDiscoveryService
 
                 $translation = $this->buildPermissionTranslation($permission, $locale);
 
-                if (!Arr::has($payload, "{$targetKey}.name")) {
+                if (! Arr::has($payload, "{$targetKey}.name")) {
                     Arr::set($payload, "{$targetKey}.name", $translation['name']);
                 }
 
-                if (!Arr::has($payload, "{$targetKey}.description")) {
+                if (! Arr::has($payload, "{$targetKey}.description")) {
                     Arr::set($payload, "{$targetKey}.description", $translation['description']);
                 }
             }
 
-            if (!File::exists($langDir)) {
+            if (! File::exists($langDir)) {
                 File::makeDirectory($langDir, 0755, true);
             }
 
-            File::put($langFile, "<?php\n\nreturn " . $this->exportPhpArrayShort($payload) . ";\n");
+            File::put($langFile, "<?php\n\nreturn ".$this->exportPhpArrayShort($payload).";\n");
         }
     }
 
@@ -165,7 +167,7 @@ class ScreenDiscoveryService
 
         $locales = [];
         foreach ($languages as $language) {
-            if (!\is_array($language)) {
+            if (! \is_array($language)) {
                 continue;
             }
 
@@ -192,13 +194,13 @@ class ScreenDiscoveryService
 
     private function normalizeTranslationPrefix(mixed $prefix): string
     {
-        if (!\is_string($prefix) || trim($prefix) === '') {
+        if (! \is_string($prefix) || trim($prefix) === '') {
             return '';
         }
 
         $prefix = trim($prefix);
 
-        return \str_ends_with($prefix, '.') ? $prefix : $prefix . '.';
+        return \str_ends_with($prefix, '.') ? $prefix : $prefix.'.';
     }
 
     /**
@@ -206,7 +208,7 @@ class ScreenDiscoveryService
      */
     private function buildPermissionTranslation(string $permission, string $locale = 'en'): array
     {
-        $parts = array_values(array_filter(explode('.', $permission), static fn($part): bool => $part !== ''));
+        $parts = array_values(array_filter(explode('.', $permission), static fn ($part): bool => $part !== ''));
         if ($parts === []) {
             $title = Str::title(str_replace(['_', '.'], ' ', $permission));
 
@@ -254,7 +256,7 @@ class ScreenDiscoveryService
      */
     private function loadLangArrayFile(string $path): array
     {
-        if (!\is_file($path)) {
+        if (! \is_file($path)) {
             return [];
         }
 
@@ -264,7 +266,7 @@ class ScreenDiscoveryService
     }
 
     /**
-     * @param array<mixed> $payload
+     * @param  array<mixed>  $payload
      */
     private function exportPhpArrayShort(array $payload, int $indentLevel = 0): string
     {
@@ -302,7 +304,7 @@ class ScreenDiscoveryService
         $hash = crc32($className);
 
         // Ensure positive integer (32-bit PHP compatibility)
-        $hash = \sprintf("%u", $hash);
+        $hash = \sprintf('%u', $hash);
 
         // Take last 6 digits to keep numbers manageable but dispersed
         // This is a trade-off. Full CRC32 * 10000 might overflow max int on some systems.
@@ -334,6 +336,7 @@ class ScreenDiscoveryService
         // Hash collision likelyhood is low for small app.
 
         $bucket = $val % 100000;
+
         return $bucket * 10000;
     }
 
@@ -347,29 +350,30 @@ class ScreenDiscoveryService
         $namespace = \is_string($namespace) ? $namespace : 'App\\UI\\Screens';
         $namespace = rtrim($namespace, '\\');
 
-        $class = $namespace . '\\' . str_replace(['/', '.php'], ['\\', ''], $relativePath);
+        $class = $namespace.'\\'.str_replace(['/', '.php'], ['\\', ''], $relativePath);
 
         return $class;
     }
 
     private function isValidScreenClass(string $className): bool
     {
-        if (!class_exists($className)) {
+        if (! class_exists($className)) {
             return false;
         }
 
         $reflection = new \ReflectionClass($className);
-        return $reflection->isSubclassOf(Screen::class) && !$reflection->isAbstract();
+
+        return $reflection->isSubclassOf(Screen::class) && ! $reflection->isAbstract();
     }
 
     /**
      * Remove screen permissions from Spatie and translation files that are no longer declared by active screens.
      *
-     * @param array<int, string> $activePermissions
+     * @param  array<int, string>  $activePermissions
      */
     public function pruneOrphanedPermissions(array $activePermissions): int
     {
-        if (!class_exists(Permission::class)) {
+        if (! class_exists(Permission::class)) {
             return 0;
         }
 
@@ -397,11 +401,11 @@ class ScreenDiscoveryService
             }
         }
 
-        /** @var \Illuminate\Database\Eloquent\Collection<int, Permission> $orphaned */
+        /** @var Collection<int, Permission> $orphaned */
         $orphaned = Permission::query()
             ->where('name', 'like', '%.access')
             ->get()
-            ->filter(static fn(Permission $p): bool => !isset($activeMap[$p->name]));
+            ->filter(static fn (Permission $p): bool => ! isset($activeMap[$p->name]));
 
         $prunedCount = 0;
         $prunedNames = [];
@@ -424,7 +428,7 @@ class ScreenDiscoveryService
     }
 
     /**
-     * @param array<int, string> $prunedPermissions
+     * @param  array<int, string>  $prunedPermissions
      */
     private function prunePermissionTranslations(array $prunedPermissions): void
     {
@@ -438,7 +442,7 @@ class ScreenDiscoveryService
             $langDir = lang_path($locale);
             $langFile = "$langDir/permission.php";
 
-            if (!File::exists($langFile)) {
+            if (! File::exists($langFile)) {
                 continue;
             }
 
@@ -459,7 +463,7 @@ class ScreenDiscoveryService
 
             if ($modified) {
                 $payload = $this->removeEmptyArrayBranches($payload);
-                File::put($langFile, "<?php\n\nreturn " . $this->exportPhpArrayShort($payload) . ";\n");
+                File::put($langFile, "<?php\n\nreturn ".$this->exportPhpArrayShort($payload).";\n");
             }
         }
     }
@@ -467,7 +471,7 @@ class ScreenDiscoveryService
     /**
      * Recursively remove empty array branches.
      *
-     * @param array<array-key, mixed> $array
+     * @param  array<array-key, mixed>  $array
      * @return array<array-key, mixed>
      */
     private function removeEmptyArrayBranches(array $array): array

@@ -2,7 +2,6 @@
 
 namespace Idei\Usim\Components;
 
-use Idei\Usim\Components\UIComponent;
 use Idei\Usim\Concerns\HasGap;
 use Idei\Usim\Concerns\HasMargin;
 use Idei\Usim\Concerns\HasPadding;
@@ -26,15 +25,20 @@ use Idei\Usim\ValueObjects\Size;
  * organized in a tree structure. It provides methods to add, remove, update,
  * and find child elements, as well as recursive JSON serialization.
  */
-class Container implements UIElement, Sizeable, Paddable, Marginable, Gapable
+class Container implements Gapable, Marginable, Paddable, Sizeable, UIElement
 {
-    use HasSizing, HasPadding, HasMargin, HasGap;
+    use HasGap, HasMargin, HasPadding, HasSizing;
 
     protected int $id;
+
     protected string $type = 'container';
+
     protected ?string $name = null;
+
     public ?string $debugInfo = null;
+
     protected int|string|null $parent = null;
+
     /** @var array<string, mixed> */
     protected array $config = [];
 
@@ -188,11 +192,11 @@ class Container implements UIElement, Sizeable, Paddable, Marginable, Gapable
      * {@inheritDoc}
      */
     /**
-     * @param array<string, mixed> $data
+     * @param  array<string, mixed>  $data
      */
     public static function deserialize(int $id, array $data): Container
     {
-        $container = new self();
+        $container = new self;
         $container->id = $id;
 
         $type = $data['type'] ?? 'container';
@@ -205,6 +209,7 @@ class Container implements UIElement, Sizeable, Paddable, Marginable, Gapable
         $container->parent = is_int($parent) || is_string($parent) || $parent === null ? $parent : null;
 
         $container->config = array_merge($container->config, $data);
+
         return $container;
     }
 
@@ -269,6 +274,7 @@ class Container implements UIElement, Sizeable, Paddable, Marginable, Gapable
     public function setVisible(bool $visible): self
     {
         $this->config['visible'] = $visible;
+
         return $this;
     }
 
@@ -278,6 +284,7 @@ class Container implements UIElement, Sizeable, Paddable, Marginable, Gapable
     protected function setConfig(string $key, mixed $value): static
     {
         $this->config[$key] = $value;
+
         return $this;
     }
 
@@ -292,12 +299,13 @@ class Container implements UIElement, Sizeable, Paddable, Marginable, Gapable
     /**
      * Set the root flag for this container
      *
-     * @param bool $root True if this is the root container, false otherwise
+     * @param  bool  $root  True if this is the root container, false otherwise
      * @return self For method chaining
      */
     public function root(bool $root = true): self
     {
         $this->config['root'] = $root;
+
         return $this;
     }
 
@@ -307,6 +315,7 @@ class Container implements UIElement, Sizeable, Paddable, Marginable, Gapable
     public function modalLayerIndex(int $index): self
     {
         $this->config['_layer_index'] = $index;
+
         return $this;
     }
 
@@ -323,24 +332,26 @@ class Container implements UIElement, Sizeable, Paddable, Marginable, Gapable
     /**
      * Set the name for this container
      *
-     * @param string|null $name The container name
+     * @param  string|null  $name  The container name
      * @return self For method chaining
      */
     public function name(?string $name): self
     {
         $this->name = $name;
+
         return $this;
     }
 
     /**
      * Set the name for this container
      *
-     * @param string|null $name The container name
+     * @param  string|null  $name  The container name
      * @return self For method chaining
      */
-    public function setName(string|null $name): self
+    public function setName(?string $name): self
     {
         $this->name = $name;
+
         return $this;
     }
 
@@ -359,13 +370,14 @@ class Container implements UIElement, Sizeable, Paddable, Marginable, Gapable
     {
         $this->parent = $parent;
         $this->config['parent'] = $parent;
+
         return $this;
     }
 
     /**
      * Set the parent reference for this container
      *
-     * @param int|string|null $parent The parent (int = parent ID, string = parent name, null = delete)
+     * @param  int|string|null  $parent  The parent (int = parent ID, string = parent name, null = delete)
      * @return self For method chaining
      */
     public function parent(int|string|null $parent): self
@@ -376,29 +388,31 @@ class Container implements UIElement, Sizeable, Paddable, Marginable, Gapable
     /**
      * Assign this container to a named or identified tab within another tabbed container.
      *
-     * @param int|string|null $tab The target tab id/name, or null to clear it
-     * @return self
+     * @param  int|string|null  $tab  The target tab id/name, or null to clear it
      */
     public function tab(int|string|null $tab): self
     {
         if ($tab === null) {
             unset($this->config['tab']);
+
             return $this;
         }
 
         $this->config['tab'] = is_string($tab) ? trim($tab) : $tab;
+
         return $this;
     }
 
     /**
      * Set the layout type for this container
      *
-     * @param LayoutType $layout The layout type (VERTICAL or HORIZONTAL)
+     * @param  LayoutType  $layout  The layout type (VERTICAL or HORIZONTAL)
      * @return self For method chaining
      */
     public function layout(LayoutType $layout): self
     {
         $this->config['layout'] = $layout->value;
+
         return $this;
     }
 
@@ -483,9 +497,10 @@ class Container implements UIElement, Sizeable, Paddable, Marginable, Gapable
     /**
      * Add a child element to this container
      *
-     * @param UIElement $element The element to add
-     * @param bool $result Reference parameter to indicate if the element was added (true) or ignored due to duplicate ID (false)
+     * @param  UIElement  $element  The element to add
+     * @param  bool  $result  Reference parameter to indicate if the element was added (true) or ignored due to duplicate ID (false)
      * @return static For method chaining
+     *
      * @throws \InvalidArgumentException If element with same ID already exists
      */
     public function add(UIElement $element, ?bool &$result = null, int|string|null $tab = null): static
@@ -494,6 +509,7 @@ class Container implements UIElement, Sizeable, Paddable, Marginable, Gapable
 
         if (array_key_exists($elementId, $this->children)) {
             $result = false;
+
             return $this;
         }
 
@@ -506,16 +522,16 @@ class Container implements UIElement, Sizeable, Paddable, Marginable, Gapable
 
         $this->children[$elementId] = $element;
         $result = true;
+
         return $this;
     }
 
     /**
      * Add a child element directly to a target tab.
      *
-     * @param UIElement $element The element to add
-     * @param int|string $tab The target tab id or name
-     * @param bool|null $result Set to true when added, false when ignored due to duplicate ID
-     * @return self
+     * @param  UIElement  $element  The element to add
+     * @param  int|string  $tab  The target tab id or name
+     * @param  bool|null  $result  Set to true when added, false when ignored due to duplicate ID
      */
     public function addToTab(UIElement $element, int|string $tab, ?bool &$result = null): self
     {
@@ -525,7 +541,7 @@ class Container implements UIElement, Sizeable, Paddable, Marginable, Gapable
     /**
      * Add multiple child elements to this container
      *
-     * @param array<UIElement> $elements Array of elements to add
+     * @param  array<UIElement>  $elements  Array of elements to add
      * @return self For method chaining
      */
     public function addMany(array $elements): self
@@ -533,20 +549,22 @@ class Container implements UIElement, Sizeable, Paddable, Marginable, Gapable
         foreach ($elements as $element) {
             $this->add($element);
         }
+
         return $this;
     }
 
     /**
      * Remove a child element from this container by ID
      *
-     * @param int|string $elementId The ID of the element to remove
+     * @param  int|string  $elementId  The ID of the element to remove
      * @return self For method chaining
+     *
      * @throws \InvalidArgumentException If element not found
      */
     public function remove(int|string $elementId): self
     {
         $elementId = (string) $elementId;
-        if (!isset($this->children[$elementId])) {
+        if (! isset($this->children[$elementId])) {
             throw new \InvalidArgumentException(
                 "Element with ID '{$elementId}' not found in container '{$this->id}'"
             );
@@ -556,6 +574,7 @@ class Container implements UIElement, Sizeable, Paddable, Marginable, Gapable
         $this->children[$elementId]->setParent(null);
 
         unset($this->children[$elementId]);
+
         return $this;
     }
 
@@ -563,7 +582,7 @@ class Container implements UIElement, Sizeable, Paddable, Marginable, Gapable
      * Remove a child element from this container by ID (silent version)
      * Returns true if element was removed, false if not found
      *
-     * @param int|string $elementId The ID of the element to remove
+     * @param  int|string  $elementId  The ID of the element to remove
      * @return bool True if removed, false if not found
      */
     public function tryRemove(int|string $elementId): bool
@@ -574,23 +593,26 @@ class Container implements UIElement, Sizeable, Paddable, Marginable, Gapable
             $this->children[$elementId]->setParent(null);
 
             unset($this->children[$elementId]);
+
             return true;
         }
+
         return false;
     }
 
     /**
      * Update a child element by replacing it with a new element
      *
-     * @param int|string $elementId The ID of the element to update
-     * @param UIElement $newElement The new element to replace with
+     * @param  int|string  $elementId  The ID of the element to update
+     * @param  UIElement  $newElement  The new element to replace with
      * @return self For method chaining
+     *
      * @throws \InvalidArgumentException If element not found or IDs don't match
      */
     public function update(int|string $elementId, UIElement $newElement): self
     {
         $elementId = (string) $elementId;
-        if (!isset($this->children[$elementId])) {
+        if (! isset($this->children[$elementId])) {
             throw new \InvalidArgumentException(
                 "Element with ID '{$elementId}' not found in container '{$this->id}'"
             );
@@ -603,13 +625,14 @@ class Container implements UIElement, Sizeable, Paddable, Marginable, Gapable
         }
 
         $this->children[$elementId] = $newElement;
+
         return $this;
     }
 
     /**
      * Find a child element by ID (searches recursively through the tree)
      *
-     * @param int|string $elementId The ID of the element to find
+     * @param  int|string  $elementId  The ID of the element to find
      * @return UIElement|null The found element, or null if not found
      */
     public function find(int|string $elementId): ?UIElement
@@ -636,12 +659,13 @@ class Container implements UIElement, Sizeable, Paddable, Marginable, Gapable
     /**
      * Check if this container has a specific child element
      *
-     * @param int|string $elementId The ID of the element to check
+     * @param  int|string  $elementId  The ID of the element to check
      * @return bool True if element exists as direct child, false otherwise
      */
     public function has(int|string $elementId): bool
     {
         $elementId = (string) $elementId;
+
         return isset($this->children[$elementId]);
     }
 
@@ -679,13 +703,14 @@ class Container implements UIElement, Sizeable, Paddable, Marginable, Gapable
         /** @var array<string, UIElement> $emptyChildren */
         $emptyChildren = [];
         $this->children = $emptyChildren;
+
         return $this;
     }
 
     /**
      * Clear this container and embed a Screen inside it.
      *
-     * @param class-string<Screen> $screenClass
+     * @param  class-string<Screen>  $screenClass
      * @return static For method chaining
      */
     public function embed(string $screenClass): static
@@ -703,19 +728,20 @@ class Container implements UIElement, Sizeable, Paddable, Marginable, Gapable
     /**
      * Set flex direction
      *
-     * @param string $direction Direction: row, row-reverse, column, column-reverse
+     * @param  string  $direction  Direction: row, row-reverse, column, column-reverse
      * @return self For method chaining
      */
     public function flexDirection(string $direction): self
     {
         $this->config['flex_direction'] = $direction;
+
         return $this;
     }
 
     /**
      * Set justify content (main axis alignment)
      *
-     * @param JustifyContent|string $justify Alignment value
+     * @param  JustifyContent|string  $justify  Alignment value
      * @return self For method chaining
      */
     public function justifyContent(JustifyContent|string $justify): self
@@ -723,13 +749,14 @@ class Container implements UIElement, Sizeable, Paddable, Marginable, Gapable
         $this->config['justify_content'] = $justify instanceof JustifyContent
             ? $justify->value
             : $justify;
+
         return $this;
     }
 
     /**
      * Set align items (cross axis alignment)
      *
-     * @param AlignItems|string $align Alignment value
+     * @param  AlignItems|string  $align  Alignment value
      * @return self For method chaining
      */
     public function alignItems(AlignItems|string $align): self
@@ -737,78 +764,85 @@ class Container implements UIElement, Sizeable, Paddable, Marginable, Gapable
         $this->config['align_items'] = $align instanceof AlignItems
             ? $align->value
             : $align;
+
         return $this;
     }
 
     /**
      * Set align content (multi-line alignment)
      *
-     * @param string $align Values: flex-start, flex-end, center, space-between, space-around, stretch
+     * @param  string  $align  Values: flex-start, flex-end, center, space-between, space-around, stretch
      * @return self For method chaining
      */
     public function alignContent(string $align): self
     {
         $this->config['align_content'] = $align;
+
         return $this;
     }
 
     /**
      * Set flex wrap
      *
-     * @param string $wrap Values: nowrap, wrap, wrap-reverse
+     * @param  string  $wrap  Values: nowrap, wrap, wrap-reverse
      * @return self For method chaining
      */
     public function flexWrap(string $wrap): self
     {
         $this->config['flex_wrap'] = $wrap;
+
         return $this;
     }
 
     /**
      * Set flex grow factor
      *
-     * @param int|float $grow Grow factor (typically 0-1)
+     * @param  int|float  $grow  Grow factor (typically 0-1)
      * @return self For method chaining
      */
     public function flexGrow(int|float $grow): self
     {
         $this->config['flex_grow'] = $grow;
+
         return $this;
     }
 
     /**
      * Set flex shrink factor
      *
-     * @param int|float $shrink Shrink factor (typically 0-1)
+     * @param  int|float  $shrink  Shrink factor (typically 0-1)
      * @return self For method chaining
      */
     public function flexShrink(int|float $shrink): self
     {
         $this->config['flex_shrink'] = $shrink;
+
         return $this;
     }
 
     /**
      * Set flex basis (initial size)
      *
-     * @param string $basis Size value (px, %, auto, etc)
+     * @param  string  $basis  Size value (px, %, auto, etc)
      * @return self For method chaining
      */
     public function flexBasis(string $basis): self
     {
         $this->config['flex_basis'] = $basis;
+
         return $this;
     }
 
     /**
      * Set order for flex item
      *
-     * @param int $order Order value
+     * @param  int  $order  Order value
      * @return self For method chaining
      */
     public function order(int $order): self
     {
         $this->config['order'] = $order;
+
         return $this;
     }
 
@@ -819,111 +853,120 @@ class Container implements UIElement, Sizeable, Paddable, Marginable, Gapable
     /**
      * Set grid template columns
      *
-     * @param string $template Template string (e.g., '1fr 2fr', 'repeat(3, 1fr)', '100px auto')
+     * @param  string  $template  Template string (e.g., '1fr 2fr', 'repeat(3, 1fr)', '100px auto')
      * @return self For method chaining
      */
     public function gridTemplateColumns(string $template): self
     {
         $this->config['grid_template_columns'] = $template;
+
         return $this;
     }
 
     /**
      * Set grid template rows
      *
-     * @param string $template Template string
+     * @param  string  $template  Template string
      * @return self For method chaining
      */
     public function gridTemplateRows(string $template): self
     {
         $this->config['grid_template_rows'] = $template;
+
         return $this;
     }
 
     /**
      * Set grid template areas
      *
-     * @param list<string>|string $areas Area names or array of area strings
+     * @param  list<string>|string  $areas  Area names or array of area strings
      * @return self For method chaining
      */
     public function gridTemplateAreas(array|string $areas): self
     {
         if (is_array($areas)) {
-            $areas = implode(' ', array_map(fn($a) => '"' . $a . '"', $areas));
+            $areas = implode(' ', array_map(fn ($a) => '"'.$a.'"', $areas));
         }
         $this->config['grid_template_areas'] = $areas;
+
         return $this;
     }
 
     /**
      * Set grid auto columns
      *
-     * @param string $size Size value (auto, minmax(), etc)
+     * @param  string  $size  Size value (auto, minmax(), etc)
      * @return self For method chaining
      */
     public function gridAutoColumns(string $size): self
     {
         $this->config['grid_auto_columns'] = $size;
+
         return $this;
     }
 
     /**
      * Set grid auto rows
      *
-     * @param string $size Size value
+     * @param  string  $size  Size value
      * @return self For method chaining
      */
     public function gridAutoRows(string $size): self
     {
         $this->config['grid_auto_rows'] = $size;
+
         return $this;
     }
 
     /**
      * Set grid auto flow
      *
-     * @param string $flow Values: row, column, row dense, column dense
+     * @param  string  $flow  Values: row, column, row dense, column dense
      * @return self For method chaining
      */
     public function gridAutoFlow(string $flow): self
     {
         $this->config['grid_auto_flow'] = $flow;
+
         return $this;
     }
 
     /**
      * Set grid column span/position
      *
-     * @param string $column Column value (e.g., '1 / 3', 'span 2')
+     * @param  string  $column  Column value (e.g., '1 / 3', 'span 2')
      * @return self For method chaining
      */
     public function gridColumn(string $column): self
     {
         $this->config['grid_column'] = $column;
+
         return $this;
     }
 
     /**
      * Set grid row span/position
      *
-     * @param string $row Row value
+     * @param  string  $row  Row value
      * @return self For method chaining
      */
     public function gridRow(string $row): self
     {
         $this->config['grid_row'] = $row;
+
         return $this;
     }
 
     /**
      * Set grid area name
      *
-     * @param string $area Area name
+     * @param  string  $area  Area name
      * @return self For method chaining
      */
     public function gridArea(string $area): self
     {
         $this->config['grid_area'] = $area;
+
         return $this;
     }
 
@@ -934,96 +977,104 @@ class Container implements UIElement, Sizeable, Paddable, Marginable, Gapable
     /**
      * Set background color
      *
-     * @param string $color Color value (hex, rgb, named)
+     * @param  string  $color  Color value (hex, rgb, named)
      * @return self For method chaining
      */
     public function backgroundColor(string $color): self
     {
         $this->config['background_color'] = $color;
+
         return $this;
     }
 
     /**
      * Set background image
      *
-     * @param string $url Image URL
+     * @param  string  $url  Image URL
      * @return self For method chaining
      */
     public function backgroundImage(string $url): self
     {
         $this->config['background_image'] = $url;
+
         return $this;
     }
 
     /**
      * Set background size
      *
-     * @param string $size Size value (cover, contain, auto, etc)
+     * @param  string  $size  Size value (cover, contain, auto, etc)
      * @return self For method chaining
      */
     public function backgroundSize(string $size): self
     {
         $this->config['background_size'] = $size;
+
         return $this;
     }
 
     /**
      * Set background position
      *
-     * @param string $position Position value (center, top, bottom, etc)
+     * @param  string  $position  Position value (center, top, bottom, etc)
      * @return self For method chaining
      */
     public function backgroundPosition(string $position): self
     {
         $this->config['background_position'] = $position;
+
         return $this;
     }
 
     /**
      * Set border
      *
-     * @param string $border Border value (e.g., '1px solid #ccc')
+     * @param  string  $border  Border value (e.g., '1px solid #ccc')
      * @return self For method chaining
      */
     public function border(string $border): self
     {
         $this->config['border'] = $border;
+
         return $this;
     }
 
     /**
      * Set border radius
      *
-     * @param string $radius Radius value
+     * @param  string  $radius  Radius value
      * @return self For method chaining
      */
     public function borderRadius(string $radius): self
     {
         $this->config['border_radius'] = $radius;
+
         return $this;
     }
 
     /**
      * Set box shadow
      *
-     * @param string $shadow Shadow value
+     * @param  string  $shadow  Shadow value
      * @return self For method chaining
      */
     public function boxShadow(string $shadow): self
     {
         $this->config['box_shadow'] = $shadow;
+
         return $this;
     }
 
     /**
      * Set opacity
      *
-     * @param float $opacity Opacity value (0-1)
+     * @param  float  $opacity  Opacity value (0-1)
      * @return self For method chaining
      */
     public function opacity(float $opacity): self
     {
         $this->config['opacity'] = $opacity;
+
         return $this;
     }
 
@@ -1036,6 +1087,7 @@ class Container implements UIElement, Sizeable, Paddable, Marginable, Gapable
     {
         $this->config['margin_left'] = 'auto';
         $this->config['margin_right'] = 'auto';
+
         return $this;
     }
 
@@ -1046,72 +1098,78 @@ class Container implements UIElement, Sizeable, Paddable, Marginable, Gapable
     /**
      * Set position type
      *
-     * @param string $position Position value (static, relative, absolute, fixed, sticky)
+     * @param  string  $position  Position value (static, relative, absolute, fixed, sticky)
      * @return self For method chaining
      */
     public function position(string $position): self
     {
         $this->config['position'] = $position;
+
         return $this;
     }
 
     /**
      * Set top position
      *
-     * @param string $top Top value
+     * @param  string  $top  Top value
      * @return self For method chaining
      */
     public function top(string $top): self
     {
         $this->config['top'] = $top;
+
         return $this;
     }
 
     /**
      * Set right position
      *
-     * @param string $right Right value
+     * @param  string  $right  Right value
      * @return self For method chaining
      */
     public function right(string $right): self
     {
         $this->config['right'] = $right;
+
         return $this;
     }
 
     /**
      * Set bottom position
      *
-     * @param string $bottom Bottom value
+     * @param  string  $bottom  Bottom value
      * @return self For method chaining
      */
     public function bottom(string $bottom): self
     {
         $this->config['bottom'] = $bottom;
+
         return $this;
     }
 
     /**
      * Set left position
      *
-     * @param string $left Left value
+     * @param  string  $left  Left value
      * @return self For method chaining
      */
     public function left(string $left): self
     {
         $this->config['left'] = $left;
+
         return $this;
     }
 
     /**
      * Set z-index
      *
-     * @param int $zIndex Z-index value
+     * @param  int  $zIndex  Z-index value
      * @return self For method chaining
      */
     public function zIndex(int $zIndex): self
     {
         $this->config['z_index'] = $zIndex;
+
         return $this;
     }
 
@@ -1122,48 +1180,52 @@ class Container implements UIElement, Sizeable, Paddable, Marginable, Gapable
     /**
      * Set overflow behavior
      *
-     * @param string $overflow Overflow value (visible, hidden, scroll, auto)
+     * @param  string  $overflow  Overflow value (visible, hidden, scroll, auto)
      * @return self For method chaining
      */
     public function overflow(string $overflow): self
     {
         $this->config['overflow'] = $overflow;
+
         return $this;
     }
 
     /**
      * Set horizontal overflow
      *
-     * @param string $overflow Overflow value
+     * @param  string  $overflow  Overflow value
      * @return self For method chaining
      */
     public function overflowX(string $overflow): self
     {
         $this->config['overflow_x'] = $overflow;
+
         return $this;
     }
 
     /**
      * Set vertical overflow
      *
-     * @param string $overflow Overflow value
+     * @param  string  $overflow  Overflow value
      * @return self For method chaining
      */
     public function overflowY(string $overflow): self
     {
         $this->config['overflow_y'] = $overflow;
+
         return $this;
     }
 
     /**
      * Set scroll behavior
      *
-     * @param string $behavior Scroll behavior (auto, smooth)
+     * @param  string  $behavior  Scroll behavior (auto, smooth)
      * @return self For method chaining
      */
     public function scrollBehavior(string $behavior): self
     {
         $this->config['scroll_behavior'] = $behavior;
+
         return $this;
     }
 
@@ -1174,12 +1236,13 @@ class Container implements UIElement, Sizeable, Paddable, Marginable, Gapable
     /**
      * Set display property
      *
-     * @param string $display Display value (block, inline, inline-block, flex, grid, none)
+     * @param  string  $display  Display value (block, inline, inline-block, flex, grid, none)
      * @return self For method chaining
      */
     public function display(string $display): self
     {
         $this->config['display'] = $display;
+
         return $this;
     }
 
@@ -1190,36 +1253,39 @@ class Container implements UIElement, Sizeable, Paddable, Marginable, Gapable
     /**
      * Set responsive configuration for different breakpoints
      *
-     * @param array<string, array<string, mixed>> $config Responsive configuration [breakpoint => config]
+     * @param  array<string, array<string, mixed>>  $config  Responsive configuration [breakpoint => config]
      * @return self For method chaining
      */
     public function responsive(array $config): self
     {
         $this->config['responsive'] = $config;
+
         return $this;
     }
 
     /**
      * Hide container on specific breakpoints
      *
-     * @param list<string> $breakpoints Breakpoints to hide on (mobile, tablet, desktop)
+     * @param  list<string>  $breakpoints  Breakpoints to hide on (mobile, tablet, desktop)
      * @return self For method chaining
      */
     public function hideOn(array $breakpoints): self
     {
         $this->config['hide_on'] = $breakpoints;
+
         return $this;
     }
 
     /**
      * Show container only on specific breakpoints
      *
-     * @param list<string> $breakpoints Breakpoints to show on
+     * @param  list<string>  $breakpoints  Breakpoints to show on
      * @return self For method chaining
      */
     public function showOn(array $breakpoints): self
     {
         $this->config['show_on'] = $breakpoints;
+
         return $this;
     }
 
@@ -1230,7 +1296,7 @@ class Container implements UIElement, Sizeable, Paddable, Marginable, Gapable
     /**
      * Add custom CSS class
      *
-     * @param string $appearance CSS class name
+     * @param  string  $appearance  CSS class name
      * @return static For method chaining
      */
     public function appearance(string $appearance): static
@@ -1239,6 +1305,7 @@ class Container implements UIElement, Sizeable, Paddable, Marginable, Gapable
         $this->config['appearance'] = in_array($normalized, ['card', 'plain'], true)
             ? $normalized
             : 'card';
+
         return $this;
     }
 
@@ -1250,6 +1317,7 @@ class Container implements UIElement, Sizeable, Paddable, Marginable, Gapable
     public function card(): static
     {
         $this->config['appearance'] = 'card';
+
         return $this;
     }
 
@@ -1261,6 +1329,7 @@ class Container implements UIElement, Sizeable, Paddable, Marginable, Gapable
     public function plain(): static
     {
         $this->config['appearance'] = 'plain';
+
         return $this;
     }
 
@@ -1272,7 +1341,7 @@ class Container implements UIElement, Sizeable, Paddable, Marginable, Gapable
      * - ['id' => 'general', 'label' => 'General']
      * - ['general' => ['label' => 'General']]
      *
-     * @param array<int|string, string|array<string, mixed>> $tabs
+     * @param  array<int|string, string|array<string, mixed>>  $tabs
      */
     public function tabs(array $tabs, int|string|null $activeTab = null): self
     {
@@ -1282,17 +1351,19 @@ class Container implements UIElement, Sizeable, Paddable, Marginable, Gapable
             if (is_string($tab)) {
                 if (is_string($key)) {
                     $this->tabItem($key, $tab);
+
                     continue;
                 }
 
                 $this->tabItem($tab, $tab);
+
                 continue;
             }
 
             /** @var array<string, mixed> $tabConfig */
             $tabConfig = $tab;
             $tabIdValue = $tabConfig['id'] ?? (is_string($key) ? $key : null) ?? $tabConfig['label'] ?? null;
-            if (!is_string($tabIdValue) && !is_int($tabIdValue)) {
+            if (! is_string($tabIdValue) && ! is_int($tabIdValue)) {
                 continue;
             }
 
@@ -1327,8 +1398,8 @@ class Container implements UIElement, Sizeable, Paddable, Marginable, Gapable
      * - active_text_color
      * - disabled_color
      * - disabled_text_color
-        *
-     * @param array<string, mixed> $options
+     *
+     * @param  array<string, mixed>  $options
      */
     public function tabItem(string $id, ?string $label = null, array $options = []): self
     {
@@ -1359,7 +1430,7 @@ class Container implements UIElement, Sizeable, Paddable, Marginable, Gapable
         }
         $this->config['tabs'] = $tabs;
 
-        if (($this->config['tabs_active'] ?? null) === null && !$tab['disabled']) {
+        if (($this->config['tabs_active'] ?? null) === null && ! $tab['disabled']) {
             $this->config['tabs_active'] = $tab['id'];
         }
 
@@ -1373,6 +1444,7 @@ class Container implements UIElement, Sizeable, Paddable, Marginable, Gapable
     {
         $resolved = $this->resolveTabReference($tab, false);
         $this->config['tabs_active'] = $resolved ?? (is_string($tab) ? trim($tab) : $tab);
+
         return $this;
     }
 
@@ -1382,6 +1454,7 @@ class Container implements UIElement, Sizeable, Paddable, Marginable, Gapable
     public function onTabChange(string $action): self
     {
         $this->config['tabs_on_change'] = trim($action);
+
         return $this;
     }
 
@@ -1391,13 +1464,14 @@ class Container implements UIElement, Sizeable, Paddable, Marginable, Gapable
     public function onTabClose(string $action): self
     {
         $this->config['tabs_on_close'] = trim($action);
+
         return $this;
     }
 
     /**
      * Configure default colors for the tabs chrome.
-      *
-     * @param array<string, mixed> $colors
+     *
+     * @param  array<string, mixed>  $colors
      */
     public function tabColors(array $colors): self
     {
@@ -1422,6 +1496,7 @@ class Container implements UIElement, Sizeable, Paddable, Marginable, Gapable
         }
 
         $this->config['tabs_colors'] = $current;
+
         return $this;
     }
 
@@ -1473,31 +1548,33 @@ class Container implements UIElement, Sizeable, Paddable, Marginable, Gapable
     /**
      * Add custom CSS class
      *
-     * @param string $class CSS class name
+     * @param  string  $class  CSS class name
      * @return self For method chaining
      */
     public function customClass(string $class): self
     {
         $this->config['custom_class'] = $class;
+
         return $this;
     }
 
     /**
      * Add custom inline style
      *
-     * @param string $style CSS style string
+     * @param  string  $style  CSS style string
      * @return self For method chaining
      */
     public function customStyle(string $style): self
     {
         $this->config['custom_style'] = $style;
+
         return $this;
     }
 
     private function assignElementToTab(UIElement $element, int|string $tab): void
     {
         $resolvedTab = $this->resolveTabReference($tab, true);
-        if ($resolvedTab === null || !method_exists($element, 'tab')) {
+        if ($resolvedTab === null || ! method_exists($element, 'tab')) {
             return;
         }
 
@@ -1531,6 +1608,7 @@ class Container implements UIElement, Sizeable, Paddable, Marginable, Gapable
 
         if ($autoCreate) {
             $this->tabItem($search, $search);
+
             return $this->resolveTabReference($search, false);
         }
 
@@ -1575,17 +1653,17 @@ class Container implements UIElement, Sizeable, Paddable, Marginable, Gapable
     {
         $trimmed = trim($value);
         if ($trimmed === '') {
-            return 'tab_' . $this->id . '_' . (count($this->tabsConfig()) + 1);
+            return 'tab_'.$this->id.'_'.(count($this->tabsConfig()) + 1);
         }
 
         $normalized = preg_replace('/[^a-zA-Z0-9]+/', '_', mb_strtolower($trimmed));
-        if (!is_string($normalized)) {
-            return 'tab_' . $this->id . '_' . (count($this->tabsConfig()) + 1);
+        if (! is_string($normalized)) {
+            return 'tab_'.$this->id.'_'.(count($this->tabsConfig()) + 1);
         }
 
         $normalized = trim($normalized, '_');
 
-        return $normalized !== '' ? $normalized : 'tab_' . $this->id . '_' . (count($this->tabsConfig()) + 1);
+        return $normalized !== '' ? $normalized : 'tab_'.$this->id.'_'.(count($this->tabsConfig()) + 1);
     }
 
     private function sanitizeTabString(mixed $value): string
@@ -1616,12 +1694,13 @@ class Container implements UIElement, Sizeable, Paddable, Marginable, Gapable
     /**
      * Add custom data attributes
      *
-     * @param array<string, mixed> $attributes Key-value pairs of data attributes
+     * @param  array<string, mixed>  $attributes  Key-value pairs of data attributes
      * @return self For method chaining
      */
     public function dataAttributes(array $attributes): self
     {
         $this->config['data_attributes'] = $attributes;
+
         return $this;
     }
 
@@ -1662,8 +1741,8 @@ class Container implements UIElement, Sizeable, Paddable, Marginable, Gapable
     /**
      * Quick grid setup
      *
-     * @param string $columns Grid columns template
-     * @param string|null $rows Grid rows template
+     * @param  string  $columns  Grid columns template
+     * @param  string|null  $rows  Grid rows template
      * @return self For method chaining
      */
     public function grid(string $columns, ?string $rows = null): self
@@ -1672,13 +1751,14 @@ class Container implements UIElement, Sizeable, Paddable, Marginable, Gapable
         if ($rows !== null) {
             $this->gridTemplateRows($rows);
         }
+
         return $this;
     }
 
     /**
      * Create equal column grid
      *
-     * @param int $columns Number of columns
+     * @param  int  $columns  Number of columns
      * @return self For method chaining
      */
     public function gridColumns(int $columns): self
@@ -1709,7 +1789,7 @@ class Container implements UIElement, Sizeable, Paddable, Marginable, Gapable
     /**
      * Make container scrollable
      *
-     * @param string $direction Direction (both, x, y)
+     * @param  string  $direction  Direction (both, x, y)
      * @return self For method chaining
      */
     public function scrollable(string $direction = 'both'): self
@@ -1726,7 +1806,7 @@ class Container implements UIElement, Sizeable, Paddable, Marginable, Gapable
     /**
      * Apply rounded corners
      *
-     * @param string|int $radius Radius value (e.g., '8px', 8, 'medium') or integer for pixels
+     * @param  string|int  $radius  Radius value (e.g., '8px', 8, 'medium') or integer for pixels
      * @return self For method chaining
      */
     public function rounded(string|int|bool $radius = 8): self
@@ -1736,13 +1816,14 @@ class Container implements UIElement, Sizeable, Paddable, Marginable, Gapable
         } elseif (\is_bool($radius)) {
             $radius = $radius ? '8px' : '0';
         }
+
         return $this->borderRadius($radius);
     }
 
     /**
      * Apply shadow effect
      *
-     * @param string|int|bool $intensity Shadow intensity (0=none, 1-3=levels, 'light', 'medium', 'heavy', or custom CSS)
+     * @param  string|int|bool  $intensity  Shadow intensity (0=none, 1-3=levels, 'light', 'medium', 'heavy', or custom CSS)
      * @return self For method chaining
      */
     public function shadow(string|int|bool $intensity = 1): self
@@ -1762,7 +1843,7 @@ class Container implements UIElement, Sizeable, Paddable, Marginable, Gapable
             $shadows = [
                 'light' => '0 1px 3px rgba(0,0,0,0.1)',
                 'medium' => '0 4px 6px rgba(0,0,0,0.1)',
-                'heavy' => '0 10px 15px rgba(0,0,0,0.2)'
+                'heavy' => '0 10px 15px rgba(0,0,0,0.2)',
             ];
             $shadow = $shadows[$intensity] ?? $intensity;
         }
@@ -1803,7 +1884,7 @@ class Container implements UIElement, Sizeable, Paddable, Marginable, Gapable
     public function toJson(?int $order = null): array
     {
         // Filter out null values from config including empty arrays (like 'tabs' when no tabs are defined)
-        $config = array_filter($this->config, fn($value) => $value !== null && $value !== []);
+        $config = array_filter($this->config, fn ($value) => $value !== null && $value !== []);
 
         // If not tabs defined, ensure 'tabs_colors' is not included as empty
         if (empty($config['tabs'] ?? [])) {
@@ -1892,7 +1973,7 @@ class Container implements UIElement, Sizeable, Paddable, Marginable, Gapable
     /**
      * Buscar componente hijo por nombre (recursivo)
      *
-     * @param string $name Nombre del componente a buscar
+     * @param  string  $name  Nombre del componente a buscar
      * @return UIElement|null Componente encontrado o null
      */
     public function findByName(string $name): ?UIElement
@@ -1924,7 +2005,7 @@ class Container implements UIElement, Sizeable, Paddable, Marginable, Gapable
     /**
      * Buscar componente hijo por ID (recursivo)
      *
-     * @param int $id ID del componente a buscar
+     * @param  int  $id  ID del componente a buscar
      * @return UIElement|null Componente encontrado o null
      */
     public function findById(int $id): ?UIElement

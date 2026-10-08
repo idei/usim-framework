@@ -10,8 +10,7 @@ class InstallStateManager
     public function __construct(
         private readonly Filesystem $files,
         private readonly string $statePath = ''
-    ) {
-    }
+    ) {}
 
     public function getPath(): string
     {
@@ -26,14 +25,14 @@ class InstallStateManager
     public function read(): ?array
     {
         $path = $this->getPath();
-        if (!$this->files->exists($path)) {
+        if (! $this->files->exists($path)) {
             return null;
         }
 
         $raw = $this->files->get($path);
         $decoded = json_decode($raw, true);
 
-        if (!is_array($decoded)) {
+        if (! is_array($decoded)) {
             return null;
         }
 
@@ -80,7 +79,7 @@ class InstallStateManager
         $state = $this->read() ?? [];
         $completed = is_array($state['completed_steps'] ?? null) ? $state['completed_steps'] : [];
 
-        if (!in_array($key, $completed, true)) {
+        if (! in_array($key, $completed, true)) {
             $completed[] = $key;
         }
 
@@ -91,7 +90,7 @@ class InstallStateManager
     }
 
     /**
-     * @param array<string, int> $syncStats
+     * @param  array<string, int>  $syncStats
      */
     public function finish(array $syncStats): void
     {
@@ -135,14 +134,14 @@ class InstallStateManager
     }
 
     /**
-     * @param array<string, mixed> $state
+     * @param  array<string, mixed>  $state
      */
     private function write(array $state): void
     {
         $path = $this->getPath();
         $directory = dirname($path);
 
-        if (!$this->files->isDirectory($directory)) {
+        if (! $this->files->isDirectory($directory)) {
             $this->files->makeDirectory($directory, 0755, true);
         }
 

@@ -5,7 +5,7 @@ namespace Idei\Usim\Support\Config;
 final class UnitConfig
 {
     /**
-     * @param array<string, array{display_name: string, description: string}> $defaultTranslations
+     * @param  array<string, array{display_name: string, description: string}>  $defaultTranslations
      */
     public function __construct(
         public private(set) ?string $parent = null,

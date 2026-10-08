@@ -12,7 +12,7 @@ class RoleAndPermissionSyncService
     /**
      * Sincroniza roles y permisos desde config('usim') hacia la base de datos.
      *
-     * @param string $defaultGuard El guard a usar si la configuración omite uno.
+     * @param  string  $defaultGuard  El guard a usar si la configuración omite uno.
      * @return array{permissions_created: int, roles_created: int, roles_updated: int}
      */
     public function sync(string $defaultGuard = 'web'): array
@@ -43,7 +43,7 @@ class RoleAndPermissionSyncService
                     continue;
                 }
 
-                if (!is_array($roleMeta)) {
+                if (! is_array($roleMeta)) {
                     continue;
                 }
 
@@ -96,7 +96,7 @@ class RoleAndPermissionSyncService
                     ->where('guard_name', $guardName)
                     ->first();
 
-                if (!$role) {
+                if (! $role) {
                     $role = UsimRole::createWithHome($roleName, $homeScreen, $priority, $guardName);
                     $stats['roles_created']++;
                 } else {
@@ -113,7 +113,7 @@ class RoleAndPermissionSyncService
                 }
 
                 // 4. Sincronizar (atar) los permisos al rol
-                if (!empty($validPermissions)) {
+                if (! empty($validPermissions)) {
                     $role->syncPermissions($validPermissions);
                 }
             }

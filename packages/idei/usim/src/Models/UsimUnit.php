@@ -2,7 +2,6 @@
 
 namespace Idei\Usim\Models;
 
-use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -54,11 +53,14 @@ class UsimUnit extends Model
     }
 
     /**
-     * @return MorphToMany<User, $this>
+     * @return MorphToMany<Model, $this>
      */
     public function users(): MorphToMany
     {
-        return $this->morphedByMany(User::class, 'actor', 'usim_unit_actors')->withTimestamps();
+        /** @var class-string<Model> $userClass */
+        $userClass = config('auth.providers.users.model', config('usim.models.user', 'App\\Models\\User'));
+
+        return $this->morphedByMany($userClass, 'actor', 'usim_unit_actors')->withTimestamps();
     }
 
     /**
@@ -70,7 +72,7 @@ class UsimUnit extends Model
         // relación simplemente no funcionará, pero no romperá la carga de la clase.
         /** @var class-string<Model> $deviceClass */
         $deviceClass = config('usim.models.device', '\\App\\Models\\Device');
-        if (!class_exists($deviceClass)) {
+        if (! class_exists($deviceClass)) {
             $deviceClass = '\\App\\Models\\Device';
         }
 

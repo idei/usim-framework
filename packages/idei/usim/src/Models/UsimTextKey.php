@@ -2,7 +2,6 @@
 
 namespace Idei\Usim\Models;
 
-use Idei\Usim\Models\UsimTextValue;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
@@ -38,7 +37,7 @@ class UsimTextKey extends Model
     }
 
     /**
-     * @param Builder<UsimTextKey> $query
+     * @param  Builder<UsimTextKey>  $query
      * @return Builder<UsimTextKey>
      */
     public function scopeByKey(Builder $query, string $key): Builder

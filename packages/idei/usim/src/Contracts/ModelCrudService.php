@@ -8,10 +8,9 @@ use Illuminate\Database\Eloquent\Model;
  * Aggregated contract for generic Eloquent CRUD/query services.
  *
  * @template TModel of Model
+ *
  * @extends ModelCreateService<TModel>
  * @extends ModelQueryableService<TModel>
  * @extends ModelUpdateService<TModel>
  */
-interface ModelCrudService extends ModelCreateService, ModelQueryableService, ModelUpdateService, ModelDeleteService
-{
-}
+interface ModelCrudService extends ModelCreateService, ModelDeleteService, ModelQueryableService, ModelUpdateService {}

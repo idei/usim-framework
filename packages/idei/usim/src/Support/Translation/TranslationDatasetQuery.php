@@ -5,6 +5,7 @@ namespace Idei\Usim\Support\Translation;
 use Idei\Usim\Models\UsimLanguage;
 use Idei\Usim\Models\UsimTextKey;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Pagination\LengthAwarePaginator;
 
 class TranslationDatasetQuery
 {
@@ -14,7 +15,7 @@ class TranslationDatasetQuery
         $items = UsimLanguage::query()
             ->orderByDesc('is_fallback')
             ->orderBy('name')
-            ->when(!$includeInactive, function (Builder $query): void {
+            ->when(! $includeInactive, function (Builder $query): void {
                 $query->where('is_active', true);
             })
             ->get()
@@ -82,7 +83,7 @@ class TranslationDatasetQuery
                 $query->where('group', $normalizedGroup);
             })
             ->when($normalizedFilter !== '', function (Builder $query) use ($normalizedFilter): void {
-                $like = '%' . $normalizedFilter . '%';
+                $like = '%'.$normalizedFilter.'%';
 
                 $query->where(function (Builder $searchQuery) use ($like): void {
                     $searchQuery->where('key', 'like', $like)
@@ -95,13 +96,13 @@ class TranslationDatasetQuery
             ->orderBy($normalizedSortBy, $normalizedDirection)
             ->paginate($normalizedPerPage, ['*'], 'page', $normalizedPage);
 
-        /** @var \Illuminate\Pagination\LengthAwarePaginator<int, UsimTextKey> $paginator */
+        /** @var LengthAwarePaginator<int, UsimTextKey> $paginator */
         $items = $paginator->getCollection()
             ->map(function (UsimTextKey $textKey): array {
                 $values = $textKey->values;
                 $hasRepresentation = $values->isNotEmpty();
 
-                if (!$hasRepresentation) {
+                if (! $hasRepresentation) {
                     return [
                         'id' => $textKey->id,
                         'key' => $textKey->key,

@@ -10,7 +10,7 @@ use Illuminate\Database\Eloquent\Model;
 interface ModelCreateService
 {
     /**
-     * @param array<string, mixed> $attributes
+     * @param  array<string, mixed>  $attributes
      * @return TModel
      */
     public function create(array $attributes): Model;

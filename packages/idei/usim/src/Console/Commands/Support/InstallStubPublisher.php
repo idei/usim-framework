@@ -6,12 +6,10 @@ use Illuminate\Filesystem\Filesystem;
 
 class InstallStubPublisher
 {
-    public function __construct(private readonly Filesystem $files)
-    {
-    }
+    public function __construct(private readonly Filesystem $files) {}
 
     /**
-     * @param array<string, string> $replacements
+     * @param  array<string, string>  $replacements
      */
     public function publish(
         string $stubPath,
@@ -21,7 +19,7 @@ class InstallStubPublisher
         array $replacements = [],
         ?callable $postInstallCallback = null
     ): void {
-        if ($this->files->exists($targetPath) && !$force && !$autoForce) {
+        if ($this->files->exists($targetPath) && ! $force && ! $autoForce) {
             if ($postInstallCallback) {
                 $postInstallCallback($targetPath);
             }
@@ -30,7 +28,7 @@ class InstallStubPublisher
         }
 
         $directory = dirname($targetPath);
-        if (!$this->files->isDirectory($directory)) {
+        if (! $this->files->isDirectory($directory)) {
             $this->files->makeDirectory($directory, 0755, true);
         }
 

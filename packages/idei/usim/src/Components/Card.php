@@ -2,6 +2,9 @@
 
 namespace Idei\Usim\Components;
 
+use Idei\Usim\Screen;
+use Idei\Usim\Support\UIIdGenerator;
+
 /**
  * Card component builder
  *
@@ -74,8 +77,7 @@ class Card extends UIComponent
     /**
      * Set the card title
      *
-     * @param string $title Card title
-     * @return static
+     * @param  string  $title  Card title
      */
     public function title(string $title): static
     {
@@ -85,8 +87,7 @@ class Card extends UIComponent
     /**
      * Set the card subtitle
      *
-     * @param string $subtitle Card subtitle
-     * @return static
+     * @param  string  $subtitle  Card subtitle
      */
     public function subtitle(string $subtitle): static
     {
@@ -96,8 +97,7 @@ class Card extends UIComponent
     /**
      * Set the card description
      *
-     * @param string $description Card description
-     * @return static
+     * @param  string  $description  Card description
      */
     public function description(string $description): static
     {
@@ -107,8 +107,7 @@ class Card extends UIComponent
     /**
      * Set card content (HTML)
      *
-     * @param string $content HTML content
-     * @return static
+     * @param  string  $content  HTML content
      */
     public function content(string $content): static
     {
@@ -118,23 +117,21 @@ class Card extends UIComponent
     /**
      * Set card image
      *
-     * @param string $imageUrl Image URL
-     * @param string $position Image position (top, bottom, left, right, background)
-     * @param string $alt Alt text for accessibility
-     * @return static
+     * @param  string  $imageUrl  Image URL
+     * @param  string  $position  Image position (top, bottom, left, right, background)
+     * @param  string  $alt  Alt text for accessibility
      */
     public function image(string $imageUrl, string $position = 'top', ?string $alt = null): static
     {
         return $this->setConfig('image', $imageUrl)
-                   ->setConfig('image_position', $position)
-                   ->setConfig('image_alt', $alt);
+            ->setConfig('image_position', $position)
+            ->setConfig('image_alt', $alt);
     }
 
     /**
      * Set card style
      *
-     * @param string $style Style variant (default, outlined, elevated, flat, gradient)
-     * @return static
+     * @param  string  $style  Style variant (default, outlined, elevated, flat, gradient)
      */
     public function style(string $style): static
     {
@@ -144,8 +141,7 @@ class Card extends UIComponent
     /**
      * Set card size
      *
-     * @param string $size Size variant (small, medium, large)
-     * @return static
+     * @param  string  $size  Size variant (small, medium, large)
      */
     public function size(string $size): static
     {
@@ -155,8 +151,7 @@ class Card extends UIComponent
     /**
      * Set card theme
      *
-     * @param string $theme Theme color (primary, secondary, success, warning, danger, info)
-     * @return static
+     * @param  string  $theme  Theme color (primary, secondary, success, warning, danger, info)
      */
     public function theme(string $theme): static
     {
@@ -166,36 +161,33 @@ class Card extends UIComponent
     /**
      * Make card clickable with action
      *
-     * @param string $action Action to trigger
-     * @param array<string, mixed> $parameters Action parameters
-     * @return static
+     * @param  string  $action  Action to trigger
+     * @param  array<string, mixed>  $parameters  Action parameters
      */
     public function action(string $action, array $parameters = []): static
     {
         return $this->setConfig('clickable', true)
-                   ->setConfig('action', $action)
-                   ->setConfig('parameters', $parameters);
+            ->setConfig('action', $action)
+            ->setConfig('parameters', $parameters);
     }
 
     /**
      * Make card clickable with URL navigation
      *
-     * @param string $url URL to navigate to
-     * @param string $target Link target (_self, _blank, etc.)
-     * @return static
+     * @param  string  $url  URL to navigate to
+     * @param  string  $target  Link target (_self, _blank, etc.)
      */
     public function url(string $url, string $target = '_self'): static
     {
         return $this->setConfig('clickable', true)
-                   ->setConfig('url', $url)
-                   ->setConfig('target', $target);
+            ->setConfig('url', $url)
+            ->setConfig('target', $target);
     }
 
     /**
      * Add action buttons to card footer
      *
-     * @param list<array<string, mixed>> $actions Array of button configurations
-     * @return static
+     * @param  list<array<string, mixed>>  $actions  Array of button configurations
      */
     public function actions(array $actions): static
     {
@@ -205,21 +197,20 @@ class Card extends UIComponent
     /**
      * Add an action button to the card footer
      *
-     * @param string $label Button label
-     * @param string $action Action to trigger
-     * @param array<string, mixed> $parameters Action parameters
-     * @param string $style Button style
-     * @return static
+     * @param  string  $label  Button label
+     * @param  string  $action  Action to trigger
+     * @param  array<string, mixed>  $parameters  Action parameters
+     * @param  string  $style  Button style
      */
     public function addAction(string $label, string $action, array $parameters = [], string $style = 'primary'): static
     {
         // Inject caller service ID if not already present
-        if (!isset($parameters['_caller_service_id'])) {
+        if (! isset($parameters['_caller_service_id'])) {
             // Get the service class that's calling this component
             $serviceClass = $this->detectCallingService();
 
             // Get the service ID (offset) using reflection to access private method of UIIdGenerator
-            $reflection = new \ReflectionMethod(\Idei\Usim\Support\UIIdGenerator::class, 'getContextOffset');
+            $reflection = new \ReflectionMethod(UIIdGenerator::class, 'getContextOffset');
             $serviceId = $reflection->invoke(null, $serviceClass);
 
             $parameters['_caller_service_id'] = $serviceId;
@@ -240,8 +231,9 @@ class Card extends UIComponent
             'label' => __($label),
             'action' => $action,
             'parameters' => $parameters,
-            'style' => $style
+            'style' => $style,
         ];
+
         return $this->setConfig('actions', $currentActions);
     }
 
@@ -256,43 +248,46 @@ class Card extends UIComponent
 
         foreach ($trace as $frame) {
             if (isset($frame['class']) &&
-                is_subclass_of($frame['class'], \Idei\Usim\Screen::class)) {
-                return (string)$frame['class'];
+                is_subclass_of($frame['class'], Screen::class)) {
+                return (string) $frame['class'];
             }
         }
 
-           // If not found via subclass check, try standard recursive detection (fallback)
-           // Similar logic to UIComponent::detectCallingContext but for framework internals.
-         foreach ($trace as $frame) {
+        // If not found via subclass check, try standard recursive detection (fallback)
+        // Similar logic to UIComponent::detectCallingContext but for framework internals.
+        foreach ($trace as $frame) {
             if (isset($frame['class'])) {
-                 if (str_starts_with($frame['class'], 'App\\UI\\Components\\')) continue;
-                  if (str_starts_with($frame['class'], 'Idei\\Usim\\')) continue;
-                 if (str_starts_with($frame['class'], 'Idei\\Usim\\Http\\')) continue;
-                 return $frame['class'];
+                if (str_starts_with($frame['class'], 'App\\UI\\Components\\')) {
+                    continue;
+                }
+                if (str_starts_with($frame['class'], 'Idei\\Usim\\')) {
+                    continue;
+                }
+                if (str_starts_with($frame['class'], 'Idei\\Usim\\Http\\')) {
+                    continue;
+                }
+
+                return $frame['class'];
             }
         }
 
         return 'default';
     }
 
-
     /**
      * Set card badge
      *
-     * @param string|int $badge Badge text or icon
-     * @param string $position Badge position (top-left, top-right, bottom-left, bottom-right)
-     * @return static
+     * @param  string|int  $badge  Badge text or icon
+     * @param  string  $position  Badge position (top-left, top-right, bottom-left, bottom-right)
      */
     public function badge(string|int $badge, string $position = 'top-right'): static
     {
         return $this->setConfig('badge', $badge)
-                   ->setConfig('badge_position', $position);
+            ->setConfig('badge_position', $position);
     }
 
     /**
      * Set horizontal orientation
-     *
-     * @return static
      */
     public function horizontal(): static
     {
@@ -301,8 +296,6 @@ class Card extends UIComponent
 
     /**
      * Set vertical orientation
-     *
-     * @return static
      */
     public function vertical(): static
     {
@@ -312,8 +305,7 @@ class Card extends UIComponent
     /**
      * Enable hover effects
      *
-     * @param bool $enabled Whether to enable hover effects
-     * @return static
+     * @param  bool  $enabled  Whether to enable hover effects
      */
     public function hover(bool $enabled = true): static
     {
@@ -322,31 +314,26 @@ class Card extends UIComponent
 
     /**
      * Set compact variant
-     *
-     * @return static
      */
     public function compact(): static
     {
         return $this->setConfig('variant', 'compact')
-                   ->setConfig('content_padding', 'small');
+            ->setConfig('content_padding', 'small');
     }
 
     /**
      * Set expanded variant
-     *
-     * @return static
      */
     public function expanded(): static
     {
         return $this->setConfig('variant', 'expanded')
-                   ->setConfig('content_padding', 'large');
+            ->setConfig('content_padding', 'large');
     }
 
     /**
      * Show or hide the card header
      *
-     * @param bool $show Whether to show the header
-     * @return static
+     * @param  bool  $show  Whether to show the header
      */
     public function showHeader(bool $show = true): static
     {
@@ -356,8 +343,7 @@ class Card extends UIComponent
     /**
      * Show or hide the card footer
      *
-     * @param bool $show Whether to show the footer
-     * @return static
+     * @param  bool  $show  Whether to show the footer
      */
     public function showFooter(bool $show = true): static
     {
@@ -367,8 +353,7 @@ class Card extends UIComponent
     /**
      * Set border radius
      *
-     * @param string $radius Radius level (none, small, medium, large, round)
-     * @return static
+     * @param  string  $radius  Radius level (none, small, medium, large, round)
      */
     public function borderRadius(string $radius): static
     {
@@ -378,8 +363,7 @@ class Card extends UIComponent
     /**
      * Set content padding
      *
-     * @param string $padding Padding level (none, small, medium, large)
-     * @return static
+     * @param  string  $padding  Padding level (none, small, medium, large)
      */
     public function contentPadding(string $padding): static
     {
@@ -389,8 +373,7 @@ class Card extends UIComponent
     /**
      * Set card background color
      *
-     * @param string $color CSS color value
-     * @return static
+     * @param  string  $color  CSS color value
      */
     public function backgroundColor(string $color): static
     {
@@ -400,8 +383,7 @@ class Card extends UIComponent
     /**
      * Set card border color
      *
-     * @param string $color CSS color value
-     * @return static
+     * @param  string  $color  CSS color value
      */
     public function borderColor(string $color): static
     {
@@ -411,8 +393,7 @@ class Card extends UIComponent
     /**
      * Set card text color
      *
-     * @param string $color CSS color value
-     * @return static
+     * @param  string  $color  CSS color value
      */
     public function textColor(string $color): static
     {
@@ -422,8 +403,7 @@ class Card extends UIComponent
     /**
      * Set card status indicator
      *
-     * @param string $status Status value (success, warning, danger, info, etc.)
-     * @return static
+     * @param  string  $status  Status value (success, warning, danger, info, etc.)
      */
     public function status(string $status): static
     {
@@ -433,8 +413,7 @@ class Card extends UIComponent
     /**
      * Set HTML role attribute
      *
-     * @param string $role HTML role (article, button, link, etc.)
-     * @return static
+     * @param  string  $role  HTML role (article, button, link, etc.)
      */
     public function role(string $role): static
     {
@@ -444,8 +423,7 @@ class Card extends UIComponent
     /**
      * Set image object-fit mode
      *
-     * @param string $fit Fit mode (cover, contain, fill, scale-down)
-     * @return static
+     * @param  string  $fit  Fit mode (cover, contain, fill, scale-down)
      */
     public function imageFit(string $fit): static
     {
@@ -455,8 +433,7 @@ class Card extends UIComponent
     /**
      * Set ARIA label for accessibility
      *
-     * @param string $label Accessible label text
-     * @return static
+     * @param  string  $label  Accessible label text
      */
     public function ariaLabel(string $label): static
     {
@@ -467,17 +444,17 @@ class Card extends UIComponent
      * Set card shadow (maps to elevation levels for CSS-class-based rendering).
      * Accepts numeric (0-3) or named values compatible with Container::shadow().
      *
-     * @param string|int $intensity 0/'none', 1/'light', 2/'medium', 3/'heavy' or native 'low'/'high'
-     * @return static
+     * @param  string|int  $intensity  0/'none', 1/'light', 2/'medium', 3/'heavy' or native 'low'/'high'
      */
     public function shadow(string|int $intensity = 1): static
     {
         $map = [
-            0 => 'none',   'none'   => 'none',
-            1 => 'low',    'light'  => 'low',   'low'  => 'low',
+            0 => 'none',   'none' => 'none',
+            1 => 'low',    'light' => 'low',   'low' => 'low',
             2 => 'medium', 'medium' => 'medium',
-            3 => 'high',   'heavy'  => 'high',  'high' => 'high',
+            3 => 'high',   'heavy' => 'high',  'high' => 'high',
         ];
+
         return $this->setConfig('elevation', $map[$intensity] ?? 'medium');
     }
 }

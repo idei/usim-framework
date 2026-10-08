@@ -28,13 +28,11 @@ class ConfigModifier
     /**
      * Updates multiple configuration key-value pairs in a PHP config file.
      *
-     * @param string $filePath
-     * @param array<string, mixed> $values
-     * @return bool
+     * @param  array<string, mixed>  $values
      */
     public static function update(string $filePath, array $values): bool
     {
-        if (!file_exists($filePath)) {
+        if (! file_exists($filePath)) {
             return false;
         }
 
@@ -43,7 +41,7 @@ class ConfigModifier
             return false;
         }
 
-        $parser = (new ParserFactory())->createForNewestSupportedVersion();
+        $parser = (new ParserFactory)->createForNewestSupportedVersion();
         $ast = $parser->parse($code);
 
         if ($ast === null) {
@@ -70,16 +68,14 @@ class ConfigModifier
             self::setNestedValue($configArray, $keys, $val);
         }
 
-        $printer = new Standard();
+        $printer = new Standard;
         $newCode = $printer->prettyPrintFile($ast);
 
         return file_put_contents($filePath, $newCode) !== false;
     }
 
     /**
-     * @param Array_ $arrayNode
-     * @param array<int, string> $keys
-     * @param mixed $value
+     * @param  array<int, string>  $keys
      */
     private static function setNestedValue(Array_ $arrayNode, array $keys, mixed $value): void
     {
@@ -112,12 +108,13 @@ class ConfigModifier
                     key: new String_($currentKey)
                 );
             }
+
             return;
         }
 
         // Intermediate node: must be an Array_
         if ($matchingItem !== null) {
-            if (!($matchingItem->value instanceof Array_)) {
+            if (! ($matchingItem->value instanceof Array_)) {
                 $matchingItem->value = new Array_([], ['kind' => Array_::KIND_SHORT]);
             }
             /** @var Array_ $subArray */
@@ -174,7 +171,7 @@ class ConfigModifier
 
         if (is_array($value)) {
             $items = [];
-            $isAssoc = !array_is_list($value);
+            $isAssoc = ! array_is_list($value);
 
             foreach ($value as $k => $v) {
                 $valNode = self::valueToNode($v);

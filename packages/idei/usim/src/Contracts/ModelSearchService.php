@@ -10,8 +10,7 @@ use Illuminate\Database\Eloquent\Model;
 interface ModelSearchService
 {
     /**
-     * @param string $term
-     * @param array<string, mixed> $filters
+     * @param  array<string, mixed>  $filters
      * @return array<int, TModel>
      */
     public function search(string $term, array $filters = []): array;

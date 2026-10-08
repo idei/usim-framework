@@ -75,7 +75,7 @@ class Button extends UIComponent
     /**
      * Set the button label text
      *
-     * @param string $label The label text
+     * @param  string  $label  The label text
      * @return static For method chaining
      */
     public function label(string $label): static
@@ -86,21 +86,22 @@ class Button extends UIComponent
     /**
      * Set the action to trigger when button is clicked
      *
-     * @param string $action The action name
-     * @param array<string, mixed> $parameters Optional parameters for the action
+     * @param  string  $action  The action name
+     * @param  array<string, mixed>  $parameters  Optional parameters for the action
      * @return static For method chaining
      */
     public function action(string $action, array $parameters = []): static
     {
         $this->setConfig('action', $action);
         $this->setConfig('parameters', $parameters);
+
         return $this;
     }
 
     /**
      * Set the button icon
      *
-     * @param string $icon The icon name
+     * @param  string  $icon  The icon name
      * @return static For method chaining
      */
     public function icon(string $icon): static
@@ -111,7 +112,7 @@ class Button extends UIComponent
     /**
      * Set icon color for SVG icons
      *
-     * @param string|null $color CSS color value (e.g. #ffffff, rgb(255,255,255), var(--color))
+     * @param  string|null  $color  CSS color value (e.g. #ffffff, rgb(255,255,255), var(--color))
      * @return static For method chaining
      */
     public function iconColor(?string $color): static
@@ -122,7 +123,7 @@ class Button extends UIComponent
     /**
      * Set icon size for button icon
      *
-     * @param string|int|null $size CSS size value (e.g. 16, "20px", "1.25rem")
+     * @param  string|int|null  $size  CSS size value (e.g. 16, "20px", "1.25rem")
      * @return static For method chaining
      */
     public function iconSize(string|int|null $size): static
@@ -133,7 +134,7 @@ class Button extends UIComponent
     /**
      * Set the button style
      *
-     * @param string $style The style name (default, primary, secondary, success, danger, warning, info, link)
+     * @param  string  $style  The style name (default, primary, secondary, success, danger, warning, info, link)
      * @return static For method chaining
      */
     public function style(string $style): static
@@ -144,7 +145,7 @@ class Button extends UIComponent
     /**
      * Set whether the button is enabled
      *
-     * @param bool $enabled True if enabled, false if disabled
+     * @param  bool  $enabled  True if enabled, false if disabled
      * @return static For method chaining
      */
     public function enabled(bool $enabled = true): static
@@ -164,7 +165,7 @@ class Button extends UIComponent
 
     public function toggle(): self
     {
-        return $this->setConfig('status', !$this->config['status']);
+        return $this->setConfig('status', ! $this->config['status']);
     }
 
     /**
@@ -180,7 +181,7 @@ class Button extends UIComponent
     /**
      * Set the button tooltip text
      *
-     * @param string $tooltip The tooltip text
+     * @param  string  $tooltip  The tooltip text
      * @return static For method chaining
      */
     public function tooltip(string $tooltip): static
@@ -191,7 +192,7 @@ class Button extends UIComponent
     /**
      * Set the button size
      *
-     * @param string $size The size (xs, small, medium, large, xl)
+     * @param  string  $size  The size (xs, small, medium, large, xl)
      * @return static For method chaining
      */
     public function size(string $size): static
@@ -202,7 +203,7 @@ class Button extends UIComponent
     /**
      * Set the button variant
      *
-     * @param string $variant The variant (solid, outline, ghost, link)
+     * @param  string  $variant  The variant (solid, outline, ghost, link)
      * @return static For method chaining
      */
     public function variant(string $variant): static
@@ -213,7 +214,7 @@ class Button extends UIComponent
     /**
      * Remove background color from button (transparent background)
      *
-     * @param bool $noBackground True to use transparent background
+     * @param  bool  $noBackground  True to use transparent background
      * @return static For method chaining
      */
     public function noBackground(bool $noBackground = true): static
@@ -224,7 +225,7 @@ class Button extends UIComponent
     /**
      * Disable hover visual effects (transform/shadow/background changes)
      *
-     * @param bool $noHover True to disable hover effects
+     * @param  bool  $noHover  True to disable hover effects
      * @return static For method chaining
      */
     public function noHover(bool $noHover = true): static
@@ -235,20 +236,21 @@ class Button extends UIComponent
     /**
      * Plain button preset: transparent background and no hover effects
      *
-     * @param bool $plain True to enable plain style
+     * @param  bool  $plain  True to enable plain style
      * @return static For method chaining
      */
     public function plain(bool $plain = true): static
     {
         $this->setConfig('no_background', $plain);
         $this->setConfig('no_hover', $plain);
+
         return $this;
     }
 
     /**
      * Set the button shape
      *
-     * @param string $shape The shape (default, rounded, pill, square, circle)
+     * @param  string  $shape  The shape (default, rounded, pill, square, circle)
      * @return static For method chaining
      */
     public function shape(string $shape): static
@@ -259,7 +261,7 @@ class Button extends UIComponent
     /**
      * Set the icon position
      *
-     * @param string $position The position (left, right, top, bottom)
+     * @param  string  $position  The position (left, right, top, bottom)
      * @return static For method chaining
      */
     public function iconPosition(string $position): static
@@ -270,7 +272,7 @@ class Button extends UIComponent
     /**
      * Make this an icon-only button (no label)
      *
-     * @param bool $iconOnly True for icon-only button
+     * @param  bool  $iconOnly  True for icon-only button
      * @return static For method chaining
      */
     public function iconOnly(bool $iconOnly = true): static
@@ -281,7 +283,7 @@ class Button extends UIComponent
     /**
      * Make the button full width
      *
-     * @param bool $fullWidth True for full width
+     * @param  bool  $fullWidth  True for full width
      * @return static For method chaining
      */
     public function fullWidth(bool $fullWidth = true): static
@@ -292,8 +294,8 @@ class Button extends UIComponent
     /**
      * Set loading state
      *
-     * @param bool $loading True if loading
-     * @param string|null $loadingText Optional text to show while loading
+     * @param  bool  $loading  True if loading
+     * @param  string|null  $loadingText  Optional text to show while loading
      * @return static For method chaining
      */
     public function loading(bool $loading = true, ?string $loadingText = null): static
@@ -302,13 +304,14 @@ class Button extends UIComponent
         if ($loadingText !== null) {
             $this->setConfig('loading_text', $loadingText);
         }
+
         return $this;
     }
 
     /**
      * Set active state (for toggle buttons)
      *
-     * @param bool $active True if active
+     * @param  bool  $active  True if active
      * @return static For method chaining
      */
     public function active(bool $active = true): static
@@ -319,7 +322,7 @@ class Button extends UIComponent
     /**
      * Add a confirmation message before executing action
      *
-     * @param string $message The confirmation message
+     * @param  string  $message  The confirmation message
      * @return static For method chaining
      */
     public function confirm(string $message): static
@@ -330,7 +333,7 @@ class Button extends UIComponent
     /**
      * Set keyboard shortcut
      *
-     * @param string $shortcut The keyboard shortcut (e.g., "Ctrl+S", "Alt+N")
+     * @param  string  $shortcut  The keyboard shortcut (e.g., "Ctrl+S", "Alt+N")
      * @return static For method chaining
      */
     public function shortcut(string $shortcut): static
@@ -341,7 +344,7 @@ class Button extends UIComponent
     /**
      * Set autofocus on this button
      *
-     * @param bool $autofocus True to autofocus
+     * @param  bool  $autofocus  True to autofocus
      * @return static For method chaining
      */
     public function autofocus(bool $autofocus = true): static
@@ -352,21 +355,22 @@ class Button extends UIComponent
     /**
      * Add a notification badge to the button
      *
-     * @param string|int $badge The badge content (number or text)
-     * @param string $style The badge style (default, primary, success, danger, warning, info)
+     * @param  string|int  $badge  The badge content (number or text)
+     * @param  string  $style  The badge style (default, primary, success, danger, warning, info)
      * @return static For method chaining
      */
     public function badge(string|int $badge, string $style = 'danger'): static
     {
         $this->setConfig('badge', $badge);
         $this->setConfig('badge_style', $style);
+
         return $this;
     }
 
     /**
      * Set ARIA label for accessibility
      *
-     * @param string $label The ARIA label
+     * @param  string  $label  The ARIA label
      * @return static For method chaining
      */
     public function ariaLabel(string $label): static
@@ -377,7 +381,7 @@ class Button extends UIComponent
     /**
      * Set HTML title attribute
      *
-     * @param string $title The title text
+     * @param  string  $title  The title text
      * @return static For method chaining
      */
     public function title(string $title): static
@@ -388,7 +392,7 @@ class Button extends UIComponent
     /**
      * Set loading icon
      *
-     * @param string $icon The loading icon name
+     * @param  string  $icon  The loading icon name
      * @return static For method chaining
      */
     public function loadingIcon(string $icon): static
@@ -399,7 +403,7 @@ class Button extends UIComponent
     /**
      * Set animation effect
      *
-     * @param string $animation The animation name (pulse, bounce, shake, etc.)
+     * @param  string  $animation  The animation name (pulse, bounce, shake, etc.)
      * @return static For method chaining
      */
     public function animation(string $animation): static
@@ -410,7 +414,7 @@ class Button extends UIComponent
     /**
      * Enable/disable ripple effect
      *
-     * @param bool $ripple True to enable ripple effect
+     * @param  bool  $ripple  True to enable ripple effect
      * @return static For method chaining
      */
     public function ripple(bool $ripple = true): static

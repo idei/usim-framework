@@ -5,17 +5,23 @@ namespace Idei\Usim\Navigation;
 use Closure;
 use Idei\Usim\Components\MenuDropdown;
 use Idei\Usim\Navigation\Contracts\MenuProviderInterface;
+use Idei\Usim\Screen;
 use Idei\Usim\UI;
 use Idei\Usim\ValueObjects\Size;
 
 class MenuBuilder
 {
     protected ?string $id;
+
     /** @var list<MenuItem> */
     protected array $items = [];
+
     protected ?TriggerConfig $triggerConfig = null;
+
     protected string $position = 'bottom-left';
+
     protected ?string $width = null;
+
     protected bool $visible = true;
 
     public function __construct(?string $id = null)
@@ -37,6 +43,7 @@ class MenuBuilder
     ): self {
         if ($label instanceof TriggerConfig) {
             $this->triggerConfig = $label;
+
             return $this;
         }
 
@@ -47,6 +54,7 @@ class MenuBuilder
                 label: $label,
                 style: $style
             );
+
             return $this;
         }
 
@@ -71,6 +79,7 @@ class MenuBuilder
             label: $label,
             style: $style
         );
+
         return $this;
     }
 
@@ -82,18 +91,21 @@ class MenuBuilder
     public function position(string $position): self
     {
         $this->position = $position;
+
         return $this;
     }
 
     public function width(Size|string $width): self
     {
         $this->width = $width instanceof Size ? (string) $width : $width;
+
         return $this;
     }
 
     public function visible(bool $visible): self
     {
         $this->visible = $visible;
+
         return $this;
     }
 
@@ -109,11 +121,12 @@ class MenuBuilder
             ->when($when);
 
         $this->items[] = $item;
+
         return $item;
     }
 
     /**
-     * @param class-string<\Idei\Usim\Screen> $screenClass
+     * @param  class-string<Screen>  $screenClass
      */
     public function screen(
         string $screenClass,
@@ -126,11 +139,12 @@ class MenuBuilder
             ->when($when);
 
         $this->items[] = $item;
+
         return $item;
     }
 
     /**
-     * @param array<string, mixed> $params
+     * @param  array<string, mixed>  $params
      */
     public function action(
         string $label,
@@ -145,17 +159,17 @@ class MenuBuilder
             ->when($when);
 
         $this->items[] = $item;
+
         return $item;
     }
 
     /**
      * Create a new menu item that shows a screen.
      *
-     * @param class-string<\Idei\Usim\Screen> $screenClass
-     * @param bool $modal Whether to show the screen in a modal dialog (true) or not (false).
-     * @param Closure|bool|null $when A condition to determine whether the menu item should be displayed.
-     * Can be a Closure that returns a boolean, a boolean value, or null (always displayed).
-     *
+     * @param  class-string<Screen>  $screenClass
+     * @param  bool  $modal  Whether to show the screen in a modal dialog (true) or not (false).
+     * @param  Closure|bool|null  $when  A condition to determine whether the menu item should be displayed.
+     *                                   Can be a Closure that returns a boolean, a boolean value, or null (always displayed).
      * @return MenuItem The created menu item.
      */
     public function screenShow(
@@ -171,6 +185,7 @@ class MenuBuilder
             ->when($when);
 
         $this->items[] = $item;
+
         return $item;
     }
 
@@ -184,7 +199,7 @@ class MenuBuilder
             ->icon($icon)
             ->when($when);
 
-        $subBuilder = new self();
+        $subBuilder = new self;
         $callback($subBuilder);
 
         foreach ($subBuilder->getItems() as $subItem) {
@@ -192,6 +207,7 @@ class MenuBuilder
         }
 
         $this->items[] = $parentItem;
+
         return $parentItem;
     }
 
@@ -199,24 +215,27 @@ class MenuBuilder
     {
         $item = MenuItem::separator()->when($when);
         $this->items[] = $item;
+
         return $item;
     }
 
     public function item(MenuItem $item): self
     {
         $this->items[] = $item;
+
         return $this;
     }
 
     /**
      * Compose using a MenuProviderInterface
      *
-     * @param class-string<MenuProviderInterface>|MenuProviderInterface $provider
+     * @param  class-string<MenuProviderInterface>|MenuProviderInterface  $provider
      */
     public function provider(string|MenuProviderInterface $provider): self
     {
         $instance = is_string($provider) ? app($provider) : $provider;
         $instance->build($this);
+
         return $this;
     }
 
@@ -240,6 +259,7 @@ class MenuBuilder
                 $result[] = $itemData;
             }
         }
+
         return $result;
     }
 
@@ -269,8 +289,9 @@ class MenuBuilder
      */
     public function render(?string $id = null): MenuDropdown
     {
-        $componentId = $id ?? ($this->id ?? 'menu_' . uniqid());
+        $componentId = $id ?? ($this->id ?? 'menu_'.uniqid());
         $dropdown = UI::menuDropdown($componentId);
+
         return $this->populate($dropdown);
     }
 }

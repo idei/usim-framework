@@ -31,6 +31,7 @@ A **Server-Driven UI** framework for Laravel. Define your entire user interface 
 - [File Uploads](#file-uploads)
 - [Authentication Scaffolding](#authentication-scaffolding)
 - [Testing Screens](#testing-screens)
+- [Core Contracts & Mockable Architecture](#core-contracts--mockable-architecture)
 - [Configuration](#configuration)
 - [Headless Mode](#headless-mode)
 - [API Endpoints](#api-endpoints)
@@ -766,6 +767,44 @@ $response->assertOk();
 expect($response->json('toast.type'))->toBe('success');
 
 $ui->assertNoIssues();
+```
+
+---
+
+## Core Contracts & Mockable Architecture
+
+USIM is decoupled from the host application using **Dependency Inversion (DIP)**. The core package never depends on host models like `App\Models\User` or concrete database libraries directly. Instead, it relies on strict interfaces in `Idei\Usim\Contracts`:
+
+| Interface | Namespace | Purpose |
+|---|---|---|
+| `AuthorizableActorInterface` | `Idei\Usim\Contracts` | Entities that can be checked for permissions (`getAuthIdentifier()`) |
+| `UsimUserInterface` | `Idei\Usim\Contracts` | User profile representation (`getEmail()`, `getName()`) |
+| `PairableActorInterface` | `Idei\Usim\Contracts` | Kiosk and physical device actor abstraction (`isPaired()`, `getPairingIdentifier()`) |
+| `ScreenAuthorizerInterface` | `Idei\Usim\Contracts` | Evaluates permissions/roles for screens without tight coupling to Spatie or DB |
+| `UnitsServiceInterface` | `Idei\Usim\Contracts` | Contract for organizational units synchronization |
+| `UnitContextResolverInterface` | `Idei\Usim\Contracts` | Resolves active operational unit slugs |
+| `UnitSyncResult` | `Idei\Usim\Contracts` | Readonly, strongly-typed result DTO for unit synchronizations |
+
+### In-Memory Testing with Mocks
+
+Because screens authorize via `ScreenAuthorizerInterface`, you can test authorization in unit tests without database migrations, seeds, or Spatie permissions:
+
+```php
+use App\Models\User;
+use App\UI\Screens\Admin\UsersManager;
+use Idei\Usim\Contracts\ScreenAuthorizerInterface;
+use Mockery;
+
+it('authorizes admin via mock authorizer', function () {
+    $user = new User(['id' => 1, 'email' => 'admin@example.com']);
+
+    $authorizer = Mockery::mock(ScreenAuthorizerInterface::class);
+    $authorizer->shouldReceive('can')->with($user, 'users.manage', Mockery::any())->once()->andReturn(true);
+    app()->instance(ScreenAuthorizerInterface::class, $authorizer);
+
+    $screen = new UsersManager();
+    expect($screen->authorize($user))->toBeTrue();
+});
 ```
 
 ---

@@ -2,6 +2,4 @@
 
 namespace Idei\Usim\Console\Commands\Support;
 
-class MissingDatabaseException extends \RuntimeException
-{
-}
+class MissingDatabaseException extends \RuntimeException {}

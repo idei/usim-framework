@@ -10,8 +10,7 @@ use Illuminate\Database\Eloquent\Model;
 interface ModelSortService
 {
     /**
-     * @param string $field
-     * @param 'asc'|'desc' $direction
+     * @param  'asc'|'desc'  $direction
      * @return array<int, TModel>
      */
     public function sortBy(string $field, string $direction = 'asc'): array;

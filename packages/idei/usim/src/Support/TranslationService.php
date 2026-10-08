@@ -17,8 +17,7 @@ class TranslationService
         private readonly TranslationKeyManager $keyManager,
         private readonly TranslationDatasetQuery $datasetQuery,
         private readonly TranslationValueResolver $valueResolver
-    ) {
-    }
+    ) {}
 
     public function upsertLanguage(
         string $code,
@@ -27,11 +26,12 @@ class TranslationService
         bool $isActive = true
     ): UsimLanguage {
         $isFallback = config('usim.i18n.fallback_locale') === $code;
+
         return $this->keyManager->upsertLanguage($code, $name, $nativeName, $isActive, $isFallback);
     }
 
     /**
-     * @param array<string, mixed> $attributes
+     * @param  array<string, mixed>  $attributes
      */
     public function createOrUpdateKey(string $key, array $attributes = []): UsimTextKey
     {
@@ -39,7 +39,7 @@ class TranslationService
     }
 
     /**
-     * @param array<string, mixed>|null $mediaMeta
+     * @param  array<string, mixed>|null  $mediaMeta
      */
     public function upsertValue(
         string $key,
@@ -53,7 +53,7 @@ class TranslationService
     }
 
     /**
-     * @param array<string, mixed>|null $mediaMeta
+     * @param  array<string, mixed>|null  $mediaMeta
      */
     public function upsertFallbackValue(
         string $key,
@@ -140,7 +140,7 @@ class TranslationService
     }
 
     /**
-     * @param array<string, mixed> $params
+     * @param  array<string, mixed>  $params
      */
     public function getValue(string $key, array $params = [], ?string $languageCode = null): string
     {
@@ -164,7 +164,7 @@ class TranslationService
     }
 
     /**
-     * @param array<string, mixed> $params
+     * @param  array<string, mixed>  $params
      */
     public function safeGetValue(string $key, array $params = [], ?string $languageCode = null): ?string
     {
@@ -177,7 +177,7 @@ class TranslationService
 
     public function registerMissingKey(string $key): void
     {
-        if (!$this->shouldRegisterMissingKey($key)) {
+        if (! $this->shouldRegisterMissingKey($key)) {
             return;
         }
 

@@ -10,8 +10,7 @@ use Illuminate\Database\Eloquent\Model;
 interface ModelUpdateService
 {
     /**
-     * @param int|string $id
-     * @param array<string, mixed> $attributes
+     * @param  array<string, mixed>  $attributes
      * @return TModel|null
      */
     public function updateById(int|string $id, array $attributes): ?Model;

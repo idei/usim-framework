@@ -33,19 +33,17 @@ abstract class AbstractListingTableModel extends AbstractTableModel
     /**
      * Set a custom listing service instance (supports Dependency Injection).
      *
-     * @param object $listingService
      * @return $this
      */
     public function setListingService(object $listingService): self
     {
         $this->listingService = $listingService;
+
         return $this;
     }
 
     /**
      * Get the listing service instance.
-     *
-     * @return object
      */
     public function getListingService(): object
     {
@@ -62,7 +60,7 @@ abstract class AbstractListingTableModel extends AbstractTableModel
      *     ...
      * ]
      *
-     * @param TModel $item
+     * @param  TModel  $item
      * @return array<string, mixed>
      */
     abstract protected function formatRow(object $item): array;
@@ -92,6 +90,7 @@ abstract class AbstractListingTableModel extends AbstractTableModel
         if (method_exists($service, 'countMatching')) {
             /** @var mixed $count */
             $count = $service->countMatching($searchTerm ?: null, $this->getFilters());
+
             return is_int($count) ? $count : 0;
         }
 
@@ -101,8 +100,6 @@ abstract class AbstractListingTableModel extends AbstractTableModel
     /**
      * Fetch paginated and sorted items using the listing service.
      *
-     * @param int|null $page
-     * @param int|null $perPage
      * @return list<TModel>
      */
     protected function fetchPaginatedItems(?int $page = null, ?int $perPage = null): array
@@ -133,6 +130,7 @@ abstract class AbstractListingTableModel extends AbstractTableModel
 
             /** @var list<TModel> $items */
             $items = array_values($result['items']);
+
             return $items;
         }
 
@@ -150,6 +148,7 @@ abstract class AbstractListingTableModel extends AbstractTableModel
             if (is_array($result) && isset($result['items']) && is_array($result['items'])) {
                 /** @var list<TModel> $items */
                 $items = array_values($result['items']);
+
                 return $items;
             }
         }
@@ -170,6 +169,7 @@ abstract class AbstractListingTableModel extends AbstractTableModel
             if (method_exists($item, 'toArray')) {
                 /** @var array<string, mixed> $array */
                 $array = $item->toArray();
+
                 return $array;
             }
 
@@ -180,8 +180,6 @@ abstract class AbstractListingTableModel extends AbstractTableModel
     /**
      * Formatted data for the current page consumed by the Table component.
      *
-     * @param int $currentPage
-     * @param int $perPage
      * @return list<array<string, mixed>>
      */
     public function getFormattedPageData(int $currentPage, int $perPage): array

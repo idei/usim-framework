@@ -1,7 +1,9 @@
 <?php
+
 namespace Idei\Usim\Components;
 
 use Idei\Usim\Navigation\TriggerConfig;
+use Idei\Usim\Screen;
 
 /**
  * Menu Dropdown Builder
@@ -12,8 +14,6 @@ use Idei\Usim\Navigation\TriggerConfig;
  * with support for multiple levels of nesting, custom styling, and event handlers.
  * It generates semantic HTML markup with proper accessibility attributes and
  * integrates with the component lifecycle for dynamic menu management.
- *
- * @package idei\usim\Components
  */
 class MenuDropdown extends UIComponent
 {
@@ -23,19 +23,18 @@ class MenuDropdown extends UIComponent
     public function getDefaultConfig(): array
     {
         return [
-            'name'        => $this->name,
-            'items'       => [],
+            'name' => $this->name,
+            'items' => [],
         ];
     }
 
     /**
      * Clear all menu items
-     *
-     * @return self
      */
     public function clearItems(): self
     {
         $this->items = [];
+
         return $this;
     }
 
@@ -55,7 +54,7 @@ class MenuDropdown extends UIComponent
      * {@inheritDoc}
      */
     /**
-     * @param array<string, mixed> $config
+     * @param  array<string, mixed>  $config
      */
     public static function deserialize(int $id, array $config): self
     {
@@ -70,18 +69,18 @@ class MenuDropdown extends UIComponent
             }
             $component->items = $items;
         }
+
         return $component;
     }
 
     /**
      * Add a menu item
      *
-     * @param string $label Item label
-     * @param string|null $action Action to trigger (optional if has submenu)
-     * @param array<string, mixed> $params Action parameters
-     * @param string|null $icon Icon emoji or text
-     * @param list<array<string, mixed>> $submenu Submenu items
-     * @return self
+     * @param  string  $label  Item label
+     * @param  string|null  $action  Action to trigger (optional if has submenu)
+     * @param  array<string, mixed>  $params  Action parameters
+     * @param  string|null  $icon  Icon emoji or text
+     * @param  list<array<string, mixed>>  $submenu  Submenu items
      */
     public function item(
         string $label,
@@ -92,11 +91,11 @@ class MenuDropdown extends UIComponent
         bool $visible = true
     ): self {
         $item = [
-            'label'      => $label,
-            'action'     => $action,
-            'params'     => $params,
-            'icon'       => $icon,
-            'submenu'    => $submenu,
+            'label' => $label,
+            'action' => $action,
+            'params' => $params,
+            'icon' => $icon,
+            'submenu' => $submenu,
         ];
 
         if (! $visible) {
@@ -104,13 +103,12 @@ class MenuDropdown extends UIComponent
         }
 
         $this->items[] = $item;
+
         return $this;
     }
 
     /**
      * Add a separator line
-     *
-     * @return self
      */
     public function separator(bool $visible = true): self
     {
@@ -121,6 +119,7 @@ class MenuDropdown extends UIComponent
         $this->items[] = [
             'type' => 'separator',
         ];
+
         return $this;
     }
 
@@ -128,19 +127,18 @@ class MenuDropdown extends UIComponent
      * Add a screen item to the menu automatically using its metadata.
      * Checks access permissions before adding.
      *
-     * @param string $screenClass The fully qualified class name of the screen
-     * @return self
+     * @param  string  $screenClass  The fully qualified class name of the screen
      */
     public function screen(string $screenClass, ?string $label = null, ?string $icon = null): self
     {
-        if (!class_exists($screenClass) || !is_subclass_of($screenClass, \Idei\Usim\Screen::class)) {
+        if (! class_exists($screenClass) || ! is_subclass_of($screenClass, Screen::class)) {
             return $this;
         }
 
         // Check if user has access to this screen
         /** @var array{allowed: bool} $access */
         $access = $screenClass::checkAccess();
-        if (!$access['allowed']) {
+        if (! $access['allowed']) {
             return $this;
         }
 
@@ -159,10 +157,9 @@ class MenuDropdown extends UIComponent
     /**
      * Add a menu item with URL navigation
      *
-     * @param string $label Item label
-     * @param string $url URL to navigate to
-     * @param string|null $icon Icon emoji or text
-     * @return self
+     * @param  string  $label  Item label
+     * @param  string  $url  URL to navigate to
+     * @param  string|null  $icon  Icon emoji or text
      */
     public function link(string $label, string $url, ?string $icon = null, bool $visible = true): self
     {
@@ -170,21 +167,21 @@ class MenuDropdown extends UIComponent
             return $this;
         }
         $item = [
-            'label'      => $label,
-            'url'        => $url,
-            'icon'       => $icon,
+            'label' => $label,
+            'url' => $url,
+            'icon' => $icon,
         ];
         $this->items[] = $item;
+
         return $this;
     }
 
     /**
      * Add a submenu item
      *
-     * @param string $label Parent item label
-     * @param callable $callback Callback to build submenu items
-     * @param string|null $icon Parent icon
-     * @return self
+     * @param  string  $label  Parent item label
+     * @param  callable  $callback  Callback to build submenu items
+     * @param  string|null  $icon  Parent icon
      */
     public function submenu(string $label, callable $callback, ?string $icon = null, bool $visible = true): self
     {
@@ -192,70 +189,71 @@ class MenuDropdown extends UIComponent
             return $this;
         }
 
-        $submenuBuilder = new self($label . '_submenu');
+        $submenuBuilder = new self($label.'_submenu');
         $callback($submenuBuilder);
 
         $item = [
-            'label'   => $label,
-            'icon'    => $icon,
+            'label' => $label,
+            'icon' => $icon,
             'submenu' => $submenuBuilder->items,
         ];
 
         $this->items[] = $item;
+
         return $this;
     }
 
     /**
      * Set the caller service ID for action callbacks
      *
-     * @param string $serviceId Service component ID
-     * @return self
+     * @param  string  $serviceId  Service component ID
      */
     public function callerServiceId(string $serviceId): self
     {
         $this->config['_caller_service_id'] = $serviceId;
+
         return $this;
     }
 
     /**
      * Customize the trigger button
      *
-     * @param string $label Button text
-     * @param string|null $icon Button icon
-     * @param TriggerConfig|string $label Button text or TriggerConfig DTO
-     * @param string|null $icon Button icon
-     * @param string $style Button style (primary, secondary, etc.)
-     * @return self
+     * @param  string  $label  Button text
+     * @param  string|null  $icon  Button icon
+     * @param  TriggerConfig|string  $label  Button text or TriggerConfig DTO
+     * @param  string|null  $icon  Button icon
+     * @param  string  $style  Button style (primary, secondary, etc.)
      */
     public function trigger(TriggerConfig|string $label = '☰', ?string $icon = null, string $style = 'default'): self
     {
         if ($label instanceof TriggerConfig) {
             $label->applyTo($this);
+
             return $this;
         }
 
         $this->config['trigger'] = [
             'label' => $label,
-            'icon'  => $icon,
+            'icon' => $icon,
             'style' => $style,
         ];
+
         return $this;
     }
 
     /**
      * Set an image as the trigger icon (e.g., user profile photo)
      *
-     * @param string $imageUrl URL of the image
-     * @param string $alt Alt text for accessibility
-     * @param string|null $label Optional text label next to image
-     * @param string $style Button style
-     * @return self
+     * @param  string  $imageUrl  URL of the image
+     * @param  string  $alt  Alt text for accessibility
+     * @param  string|null  $label  Optional text label next to image
+     * @param  string  $style  Button style
      */
     public function triggerImage(string $imageUrl, string $alt = 'User', ?string $label = null, string $style = 'default'): self
     {
         $this->config['trigger'] = [
             'image' => $imageUrl,
-            'alt'   => $alt,
+            'alt' => $alt,
             'label' => $label,
             'style' => $style,
         ];
@@ -266,12 +264,12 @@ class MenuDropdown extends UIComponent
     /**
      * Set menu positioning
      *
-     * @param string $position 'bottom-left', 'bottom-right', 'top-left', 'top-right'
-     * @return static
+     * @param  string  $position  'bottom-left', 'bottom-right', 'top-left', 'top-right'
      */
     public function position(string $position = 'bottom-left'): static
     {
         $this->config['position'] = $position;
+
         return $this;
     }
 }

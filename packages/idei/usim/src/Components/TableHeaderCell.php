@@ -2,7 +2,6 @@
 
 namespace Idei\Usim\Components;
 
-use Idei\Usim\Components\TableHeaderRow;
 use Idei\Usim\Enums\Align;
 use Idei\Usim\Enums\FontWeight;
 
@@ -20,8 +19,9 @@ class TableHeaderCell extends UIComponent
     /**
      * Create a new table header cell
      *
-     * @param TableHeaderRow|null $headerRow The parent header row this cell belongs to
-     * @param string|null $name Optional name for the cell
+     * @param  TableHeaderRow|null  $headerRow  The parent header row this cell belongs to
+     * @param  string|null  $name  Optional name for the cell
+     *
      * @phpstan-ignore method.childParameterType
      */
     public function __construct(?TableHeaderRow $headerRow = null, ?string $name = null)
@@ -54,7 +54,7 @@ class TableHeaderCell extends UIComponent
     /**
      * Set the header text
      *
-     * @param string $text The header text
+     * @param  string  $text  The header text
      * @return self For method chaining
      */
     public function text(string $text): self
@@ -65,7 +65,7 @@ class TableHeaderCell extends UIComponent
     /**
      * Make this header sortable
      *
-     * @param bool $sortable True if sortable
+     * @param  bool  $sortable  True if sortable
      * @return self For method chaining
      */
     public function sortable(bool $sortable = true): self
@@ -76,21 +76,22 @@ class TableHeaderCell extends UIComponent
     /**
      * Set the sort direction
      *
-     * @param string|null $direction Sort direction ('asc', 'desc', or null)
+     * @param  string|null  $direction  Sort direction ('asc', 'desc', or null)
      * @return self For method chaining
      */
     public function sortDirection(?string $direction): self
     {
-        if ($direction !== null && !in_array($direction, ['asc', 'desc'])) {
+        if ($direction !== null && ! in_array($direction, ['asc', 'desc'])) {
             throw new \InvalidArgumentException("Sort direction must be 'asc', 'desc', or null");
         }
+
         return $this->setConfig('sort_direction', $direction);
     }
 
     /**
      * Set horizontal alignment for the header content
      *
-     * @param Align $align The alignment (left, center, right)
+     * @param  Align  $align  The alignment (left, center, right)
      * @return self For method chaining
      */
     public function align(Align $align): self
@@ -101,9 +102,8 @@ class TableHeaderCell extends UIComponent
     /**
      * Set width constraints (min and max) for the header cell
      *
-     * @param int|null $minWidth Minimum width in pixels
-     * @param int|null $maxWidth Maximum width in pixels
-     * @return self
+     * @param  int|null  $minWidth  Minimum width in pixels
+     * @param  int|null  $maxWidth  Maximum width in pixels
      */
     public function widthConstraints(?int $minWidth = null, ?int $maxWidth = null): self
     {
@@ -113,13 +113,14 @@ class TableHeaderCell extends UIComponent
         if ($maxWidth !== null) {
             $this->setConfig('max_width', $maxWidth);
         }
+
         return $this;
     }
 
     /**
      * Set the action to trigger when header is clicked (for sorting)
      *
-     * @param string $action Action name
+     * @param  string  $action  Action name
      * @return self For method chaining
      */
     public function action(string $action): self
@@ -130,7 +131,7 @@ class TableHeaderCell extends UIComponent
     /**
      * Set tooltip text
      *
-     * @param string $tooltip Tooltip text
+     * @param  string  $tooltip  Tooltip text
      * @return self For method chaining
      */
     public function tooltip(string $tooltip): self
@@ -141,7 +142,7 @@ class TableHeaderCell extends UIComponent
     /**
      * Set the column index for this cell (for ordering)
      *
-     * @param int $column The column index (0-based)
+     * @param  int  $column  The column index (0-based)
      * @return self For method chaining
      */
     public function column(int $column): self
@@ -152,7 +153,7 @@ class TableHeaderCell extends UIComponent
     /**
      * Set text color
      *
-     * @param string $color Color value (e.g., '#333', 'red')
+     * @param  string  $color  Color value (e.g., '#333', 'red')
      * @return self For method chaining
      */
     public function color(string $color): self
@@ -163,7 +164,7 @@ class TableHeaderCell extends UIComponent
     /**
      * Set background color
      *
-     * @param string $backgroundColor Background color value
+     * @param  string  $backgroundColor  Background color value
      * @return self For method chaining
      */
     public function backgroundColor(string $backgroundColor): self
@@ -174,7 +175,7 @@ class TableHeaderCell extends UIComponent
     /**
      * Set font weight
      *
-     * @param FontWeight $fontWeight Font weight
+     * @param  FontWeight  $fontWeight  Font weight
      * @return self For method chaining
      */
     public function fontWeight(FontWeight $fontWeight): self
@@ -185,27 +186,27 @@ class TableHeaderCell extends UIComponent
     /**
      * Set how many columns this header cell spans
      *
-     * @param int $span Number of columns to span (default: 1)
+     * @param  int  $span  Number of columns to span (default: 1)
      * @return self For method chaining
      */
     public function colspan(int $span): self
     {
         if ($span < 1) {
-            throw new \InvalidArgumentException("Colspan must be at least 1");
+            throw new \InvalidArgumentException('Colspan must be at least 1');
         }
+
         return $this->setConfig('colspan', $span);
     }
 
     /**
      * Get the parent header row
-     *
-     * @return TableHeaderRow
      */
     public function getHeaderRow(): TableHeaderRow
     {
         if ($this->headerRow === null) {
-            throw new \LogicException("Header cell is not associated with a header row");
+            throw new \LogicException('Header cell is not associated with a header row');
         }
+
         return $this->headerRow;
     }
 
@@ -218,7 +219,7 @@ class TableHeaderCell extends UIComponent
     public function toJson(?int $order = null): array
     {
         // Get base config and filter nulls
-        $config = array_filter($this->config, fn($value) => $value !== null);
+        $config = array_filter($this->config, fn ($value) => $value !== null);
 
         // Remove 'visible' if it's true (default value)
         if (isset($config['visible']) && $config['visible'] === true) {
@@ -242,7 +243,7 @@ class TableHeaderCell extends UIComponent
 
         // Exclude additional keys
         $excludeKeys = $this->getExcludedJsonKeys();
-        if (!empty($excludeKeys)) {
+        if (! empty($excludeKeys)) {
             $config = array_diff_key($config, array_flip($excludeKeys));
         }
 

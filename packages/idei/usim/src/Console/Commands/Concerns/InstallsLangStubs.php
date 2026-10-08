@@ -13,12 +13,13 @@ trait InstallsLangStubs
         $sourceRoot = $this->stubsPath('lang');
         $targetRoot = \lang_path();
 
-        if (!$this->files->isDirectory($sourceRoot)) {
+        if (! $this->files->isDirectory($sourceRoot)) {
             $this->line('  <fg=yellow>!</> stubs/lang not found, skipping');
+
             return;
         }
 
-        if (!$this->files->isDirectory($targetRoot)) {
+        if (! $this->files->isDirectory($targetRoot)) {
             $this->files->makeDirectory($targetRoot, 0755, true);
         }
 
@@ -27,21 +28,22 @@ trait InstallsLangStubs
 
         foreach ($this->files->allFiles($sourceRoot) as $sourceFile) {
             $relativePath = $sourceFile->getRelativePathname();
-            $targetPath = $targetRoot . DIRECTORY_SEPARATOR . $relativePath;
+            $targetPath = $targetRoot.DIRECTORY_SEPARATOR.$relativePath;
 
             if ($this->files->exists($targetPath)) {
                 $skipped++;
+
                 continue;
             }
 
             $targetDirectory = dirname($targetPath);
-            if (!$this->files->isDirectory($targetDirectory)) {
+            if (! $this->files->isDirectory($targetDirectory)) {
                 $this->files->makeDirectory($targetDirectory, 0755, true);
             }
 
             $this->files->copy($sourceFile->getPathname(), $targetPath);
             $created++;
-            $base = rtrim(str_replace('\\', '/', \base_path()), '/') . '/';
+            $base = rtrim(str_replace('\\', '/', \base_path()), '/').'/';
             $normalizedTarget = str_replace('\\', '/', $targetPath);
             $relativeTarget = str_starts_with($normalizedTarget, $base)
                 ? substr($normalizedTarget, strlen($base))
@@ -51,6 +53,7 @@ trait InstallsLangStubs
 
         if ($created === 0) {
             $this->line('  <fg=blue>→</> Lang stubs already present, no files copied');
+
             return;
         }
 

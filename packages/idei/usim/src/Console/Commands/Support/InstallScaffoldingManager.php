@@ -6,9 +6,7 @@ use Illuminate\Filesystem\Filesystem;
 
 class InstallScaffoldingManager
 {
-    public function __construct(private readonly Filesystem $files)
-    {
-    }
+    public function __construct(private readonly Filesystem $files) {}
 
     public function publishConfig(bool $force, callable $info, callable $line, callable $callSilently): void
     {
@@ -66,8 +64,9 @@ class InstallScaffoldingManager
         $sourceRoot = $stubsPath('resources');
         $targetRoot = resource_path();
 
-        if (!$this->files->isDirectory($sourceRoot)) {
+        if (! $this->files->isDirectory($sourceRoot)) {
             $line('  <fg=yellow>!</> stubs/resources not found, skipping');
+
             return;
         }
 
@@ -76,15 +75,16 @@ class InstallScaffoldingManager
 
         foreach ($this->files->allFiles($sourceRoot) as $sourceFile) {
             $relativePath = $sourceFile->getRelativePathname();
-            $targetPath = $targetRoot . DIRECTORY_SEPARATOR . $relativePath;
+            $targetPath = $targetRoot.DIRECTORY_SEPARATOR.$relativePath;
 
             if ($this->files->exists($targetPath)) {
                 $skipped++;
+
                 continue;
             }
 
             $targetDirectory = dirname($targetPath);
-            if (!$this->files->isDirectory($targetDirectory)) {
+            if (! $this->files->isDirectory($targetDirectory)) {
                 $this->files->makeDirectory($targetDirectory, 0755, true);
             }
 
@@ -96,6 +96,7 @@ class InstallScaffoldingManager
 
         if ($created === 0) {
             $line('  <fg=blue>→</> Package resources already present, no files copied');
+
             return;
         }
 
@@ -123,12 +124,13 @@ class InstallScaffoldingManager
 
         if (str_contains($contents, 'ui.catchall')) {
             $line('  <fg=blue>→</> Catch-all route already exists in routes/web.php');
+
             return;
         }
 
         $stubContent = $this->files->get($stubsPath('routes/web.php.stub'));
 
-        $this->files->append($webRoutesPath, "\n" . $stubContent);
+        $this->files->append($webRoutesPath, "\n".$stubContent);
         $line('  <fg=green>✓</> Catch-all route added to routes/web.php');
     }
 
@@ -152,7 +154,7 @@ class InstallScaffoldingManager
 
                     $lines = preg_split('/\R/', trim($matches[0])) ?: [];
                     $commentedRoute = implode("\n", array_map(
-                        static fn (string $line): string => '// ' . $line,
+                        static fn (string $line): string => '// '.$line,
                         $lines
                     ));
 
@@ -168,7 +170,7 @@ class InstallScaffoldingManager
 
     private function toRelativePath(string $path): string
     {
-        $base = rtrim(str_replace('\\', '/', base_path()), '/') . '/';
+        $base = rtrim(str_replace('\\', '/', base_path()), '/').'/';
         $normalized = str_replace('\\', '/', $path);
 
         return str_starts_with($normalized, $base)

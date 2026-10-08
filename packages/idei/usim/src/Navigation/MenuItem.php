@@ -10,24 +10,31 @@ use Illuminate\Support\Facades\Gate;
 class MenuItem
 {
     protected ?string $icon = null;
+
     protected ?string $url = null;
+
     protected ?string $action = null;
+
     /** @var array<string, mixed> */
     protected array $params = [];
+
     /** @var class-string<Screen>|null */
     protected ?string $screenClass = null;
+
     protected bool $isSeparator = false;
+
     /** @var list<MenuItem> */
     protected array $children = [];
+
     /** @var list<Closure|bool> */
     protected array $conditions = [];
+
     /** @var list<string> */
     protected array $permissions = [];
 
     public function __construct(
         protected ?string $label = null
-    ) {
-    }
+    ) {}
 
     public static function make(?string $label = null): self
     {
@@ -36,14 +43,16 @@ class MenuItem
 
     public static function separator(): self
     {
-        $item = new self();
+        $item = new self;
         $item->isSeparator = true;
+
         return $item;
     }
 
     public function label(string $label): self
     {
         $this->label = $label;
+
         return $this;
     }
 
@@ -55,6 +64,7 @@ class MenuItem
     public function icon(?string $icon): self
     {
         $this->icon = $icon;
+
         return $this;
     }
 
@@ -66,6 +76,7 @@ class MenuItem
     public function url(string $url): self
     {
         $this->url = $url;
+
         return $this;
     }
 
@@ -75,12 +86,13 @@ class MenuItem
     }
 
     /**
-     * @param array<string, mixed> $params
+     * @param  array<string, mixed>  $params
      */
     public function action(string $action, array $params = []): self
     {
         $this->action = $action;
         $this->params = $params;
+
         return $this;
     }
 
@@ -98,7 +110,7 @@ class MenuItem
     }
 
     /**
-     * @param class-string<Screen> $screenClass
+     * @param  class-string<Screen>  $screenClass
      */
     public function screen(string $screenClass, ?string $label = null, ?string $icon = null): self
     {
@@ -109,6 +121,7 @@ class MenuItem
         if ($icon !== null) {
             $this->icon = $icon;
         }
+
         return $this;
     }
 
@@ -125,18 +138,21 @@ class MenuItem
         if ($condition !== null) {
             $this->conditions[] = $condition;
         }
+
         return $this;
     }
 
     public function can(string $permission): self
     {
         $this->permissions[] = $permission;
+
         return $this;
     }
 
     public function addChild(MenuItem $child): self
     {
         $this->children[] = $child;
+
         return $this;
     }
 
@@ -161,21 +177,21 @@ class MenuItem
         // 1. Evaluate explicit conditions
         foreach ($this->conditions as $condition) {
             $result = $condition instanceof Closure ? $condition() : $condition;
-            if (!$result) {
+            if (! $result) {
                 return false;
             }
         }
 
         // 2. Evaluate Laravel permissions / gates
         foreach ($this->permissions as $permission) {
-            if (!Gate::allows($permission)) {
+            if (! Gate::allows($permission)) {
                 return false;
             }
         }
 
         // 3. Evaluate Screen permissions dynamically using checkAccess()
         if ($this->screenClass !== null) {
-            if (!class_exists($this->screenClass) || !is_subclass_of($this->screenClass, Screen::class)) {
+            if (! class_exists($this->screenClass) || ! is_subclass_of($this->screenClass, Screen::class)) {
                 return false;
             }
 
@@ -192,7 +208,7 @@ class MenuItem
      */
     public function toArray(): ?array
     {
-        if (!$this->isVisible()) {
+        if (! $this->isVisible()) {
             return null;
         }
 
@@ -227,7 +243,7 @@ class MenuItem
             'params' => $this->params,
         ];
 
-        if (!empty($visibleChildren)) {
+        if (! empty($visibleChildren)) {
             $data['submenu'] = $visibleChildren;
         }
 
@@ -239,12 +255,13 @@ class MenuItem
      */
     public function applyTo(MenuDropdown $dropdown): void
     {
-        if (!$this->isVisible()) {
+        if (! $this->isVisible()) {
             return;
         }
 
         if ($this->isSeparator) {
             $dropdown->separator();
+
             return;
         }
 
@@ -270,7 +287,7 @@ class MenuItem
 
         if ($url !== null) {
             $dropdown->link($resolvedLabel, $url, $icon);
-        } elseif (!empty($visibleChildren)) {
+        } elseif (! empty($visibleChildren)) {
             $dropdown->item($resolvedLabel, $this->action, $this->params, $icon, $visibleChildren);
         } else {
             $dropdown->item($resolvedLabel, $this->action, $this->params, $icon);

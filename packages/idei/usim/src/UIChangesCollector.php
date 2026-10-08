@@ -17,7 +17,7 @@ class UIChangesCollector
     }
 
     /**
-     * @param array<array-key, mixed> $change
+     * @param  array<array-key, mixed>  $change
      */
     public function add(array $change = []): void
     {
@@ -25,7 +25,7 @@ class UIChangesCollector
     }
 
     /**
-     * @param array<string, mixed> $storageChange
+     * @param  array<string, mixed>  $storageChange
      */
     public function setStorage(array $storageChange = []): void
     {
@@ -52,6 +52,7 @@ class UIChangesCollector
         $this->changes['storage'] = [
             $storage_key => json_encode($this->storage_changes),
         ];
+
         return $this->changes;
     }
 }

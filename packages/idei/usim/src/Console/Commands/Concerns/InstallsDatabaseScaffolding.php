@@ -16,7 +16,7 @@ trait InstallsDatabaseScaffolding
             ['name' => 'create_usim_text_keys_table', 'autoForce' => true],
             ['name' => 'create_usim_text_values_table', 'autoForce' => true],
             ['name' => 'create_usim_role_settings_table', 'autoForce' => true],
-            ['name' => 'create_units_support_tables', 'autoForce' => true]
+            ['name' => 'create_units_support_tables', 'autoForce' => true],
         ];
 
         foreach ($migrationStubs as $index => $migrationName) {
@@ -24,7 +24,7 @@ trait InstallsDatabaseScaffolding
             $this->installStubMigration($migrationName['name'], $index, $autoForce);
         }
 
-        if (!$this->migrationExists('create_personal_access_tokens_table')) {
+        if (! $this->migrationExists('create_personal_access_tokens_table')) {
             $this->callSilently('vendor:publish', [
                 '--tag' => 'sanctum-migrations',
             ]);
@@ -51,13 +51,14 @@ trait InstallsDatabaseScaffolding
     {
         if ($this->migrationExists($migrationName)) {
             $this->line("  <fg=blue>→</> {$migrationName} already exists");
+
             return;
         }
 
         $migrationsPath = \database_path('migrations');
         $timestamp = date('Y_m_d_His', time() + $offsetSeconds);
         $stubPath = $this->stubsPath("migrations/{$migrationName}.php.stub");
-        $target = $migrationsPath . "/{$timestamp}_{$migrationName}.php";
+        $target = $migrationsPath."/{$timestamp}_{$migrationName}.php";
 
         $this->publishStub($stubPath, $target, $autoForce, []);
         $this->line("  <fg=green>✓</> {$migrationName} migration");
@@ -67,11 +68,11 @@ trait InstallsDatabaseScaffolding
     {
         $migrationsPath = \database_path('migrations');
 
-        if (!$this->files->isDirectory($migrationsPath)) {
+        if (! $this->files->isDirectory($migrationsPath)) {
             return false;
         }
 
-        $files = $this->files->glob($migrationsPath . "/*_{$migrationName}.php");
+        $files = $this->files->glob($migrationsPath."/*_{$migrationName}.php");
 
         return \count($files) > 0;
     }

@@ -21,8 +21,9 @@ class TableHeaderRow extends UIComponent
     /**
      * Create a new table header row
      *
-     * @param Table $table The parent table this header row belongs to
-     * @param string|null $name Optional name for the header row
+     * @param  Table  $table  The parent table this header row belongs to
+     * @param  string|null  $name  Optional name for the header row
+     *
      * @phpstan-ignore method.childParameterType
      */
     public function __construct(?Table $table = null, ?string $name = null)
@@ -46,7 +47,7 @@ class TableHeaderRow extends UIComponent
     /**
      * Create and add a new header cell to this row
      *
-     * @param string|null $name Optional name for the cell
+     * @param  string|null  $name  Optional name for the cell
      * @return TableHeaderCell The created header cell
      */
     public function createCell(?string $name = null): TableHeaderCell
@@ -54,19 +55,21 @@ class TableHeaderRow extends UIComponent
         $cell = new TableHeaderCell($this, $name);
         $cell->setParent($this->id);
         $this->cellComponents[] = $cell;
+
         return $cell;
     }
 
     /**
      * Add an existing header cell to this row
      *
-     * @param TableHeaderCell $cell The header cell to add
+     * @param  TableHeaderCell  $cell  The header cell to add
      * @return self For method chaining
      */
     public function addCell(TableHeaderCell $cell): self
     {
         $cell->setParent($this->id);
         $this->cellComponents[] = $cell;
+
         return $this;
     }
 
@@ -82,14 +85,13 @@ class TableHeaderRow extends UIComponent
 
     /**
      * Get the parent table
-     *
-     * @return Table
      */
     public function getTable(): Table
     {
         if ($this->table === null) {
-            throw new \LogicException("Header row is not associated with a table");
+            throw new \LogicException('Header row is not associated with a table');
         }
+
         return $this->table;
     }
 
@@ -104,7 +106,7 @@ class TableHeaderRow extends UIComponent
     public function toJson(?int $order = null): array
     {
         // Get base config and filter nulls
-        $config = array_filter($this->config, fn($value) => $value !== null);
+        $config = array_filter($this->config, fn ($value) => $value !== null);
 
         // Remove 'visible' if it's true (default value)
         if (isset($config['visible']) && $config['visible'] === true) {
@@ -113,7 +115,7 @@ class TableHeaderRow extends UIComponent
 
         // Exclude additional keys
         $excludeKeys = $this->getExcludedJsonKeys();
-        if (!empty($excludeKeys)) {
+        if (! empty($excludeKeys)) {
             $config = array_diff_key($config, array_flip($excludeKeys));
         }
 

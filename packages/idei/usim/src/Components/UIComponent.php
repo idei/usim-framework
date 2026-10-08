@@ -18,16 +18,21 @@ use Idei\Usim\Support\UIIdGenerator;
  *
  * @phpstan-consistent-constructor
  */
-abstract class UIComponent implements UIElement, Sizeable, Marginable
+abstract class UIComponent implements Marginable, Sizeable, UIElement
 {
-    use HasSizing, HasMargin;
+    use HasMargin, HasSizing;
 
     protected int $id;
+
     protected string $type;
+
     protected ?string $name = null;
+
     protected int|string|null $parent = null;
+
     /** @var array<string, mixed> */
     protected array $config = [];
+
     /** @var array<string, true> Properties explicitly mutated during the current event lifecycle */
     protected array $dirtyKeys = [];
 
@@ -59,6 +64,7 @@ abstract class UIComponent implements UIElement, Sizeable, Marginable
             $this->config['name'] = $this->name;
         }
     }
+
     public function isContainer(): bool
     {
         return false;
@@ -70,7 +76,7 @@ abstract class UIComponent implements UIElement, Sizeable, Marginable
     public static function deserialize(int $id, array $data): self
     {
         /** @var static $component */
-        $component = new static();
+        $component = new static;
         $component->id = $id;
         $type = $data['type'] ?? null;
         $component->type = is_string($type) ? $type : 'unknown';
@@ -89,9 +95,7 @@ abstract class UIComponent implements UIElement, Sizeable, Marginable
     /**
      * {@inheritDoc}
      */
-    public function connectChild(UIElement $element): void
-    {
-    }
+    public function connectChild(UIElement $element): void {}
 
     /**
      * {@inheritDoc}
@@ -109,7 +113,7 @@ abstract class UIComponent implements UIElement, Sizeable, Marginable
     public function toString(): string
     {
         return sprintf(
-            "%s (ID: %d, Name: %s, Parent: %s)",
+            '%s (ID: %d, Name: %s, Parent: %s)',
             ucfirst($this->type),
             $this->id,
             $this->name ?? 'null',
@@ -160,7 +164,6 @@ abstract class UIComponent implements UIElement, Sizeable, Marginable
         return 'default';
     }
 
-
     /**
      * Extract the component type from the class name
      * Example: "Button" -> "button"
@@ -168,6 +171,7 @@ abstract class UIComponent implements UIElement, Sizeable, Marginable
     private function getTypeFromClassName(): string
     {
         $className = (new \ReflectionClass($this))->getShortName();
+
         return strtolower(str_replace('Builder', '', $className));
     }
 
@@ -219,6 +223,7 @@ abstract class UIComponent implements UIElement, Sizeable, Marginable
     public function setVisible(bool $visible): static
     {
         $this->config['visible'] = $visible;
+
         return $this;
     }
 
@@ -232,7 +237,6 @@ abstract class UIComponent implements UIElement, Sizeable, Marginable
 
     /**
      * {@inheritDoc}
-     * @return static
      */
     public function name(?string $name): static
     {
@@ -242,6 +246,7 @@ abstract class UIComponent implements UIElement, Sizeable, Marginable
         } else {
             unset($this->config['name']);
         }
+
         return $this;
     }
 
@@ -256,6 +261,7 @@ abstract class UIComponent implements UIElement, Sizeable, Marginable
         } else {
             unset($this->config['name']);
         }
+
         return $this;
     }
 
@@ -274,13 +280,14 @@ abstract class UIComponent implements UIElement, Sizeable, Marginable
     {
         $this->parent = $parent;
         $this->config['parent'] = $parent;
+
         return $this;
     }
 
     /**
      * Fluent API for setting parent
      *
-     * @param int|string|null $parent The parent (int = parent ID, string = parent name, null = delete)
+     * @param  int|string|null  $parent  The parent (int = parent ID, string = parent name, null = delete)
      * @return static For method chaining
      */
     public function parent(int|string|null $parent): static
@@ -291,17 +298,18 @@ abstract class UIComponent implements UIElement, Sizeable, Marginable
     /**
      * Assign this component to a named or identified tab within a tabbed container.
      *
-     * @param int|string|null $tab The target tab id/name, or null to clear it
-     * @return static
+     * @param  int|string|null  $tab  The target tab id/name, or null to clear it
      */
     public function tab(int|string|null $tab): static
     {
         if ($tab === null) {
             unset($this->config['tab']);
+
             return $this;
         }
 
         $this->config['tab'] = is_string($tab) ? trim($tab) : $tab;
+
         return $this;
     }
 
@@ -316,7 +324,7 @@ abstract class UIComponent implements UIElement, Sizeable, Marginable
     public function toJson(?int $order = null): array
     {
         // Filter out null values from config
-        $config = array_filter($this->config, fn($value) => $value !== null);
+        $config = array_filter($this->config, fn ($value) => $value !== null);
 
         // Keep explicit parent=null for protocol-driven removals in incremental updates.
         if (array_key_exists('parent', $this->config) && $this->config['parent'] === null) {
@@ -366,6 +374,7 @@ abstract class UIComponent implements UIElement, Sizeable, Marginable
     {
         $this->config[$key] = $value;
         $this->dirtyKeys[$key] = true;
+
         return $this;
     }
 
@@ -375,6 +384,7 @@ abstract class UIComponent implements UIElement, Sizeable, Marginable
     public function syncClientConfig(string $key, mixed $value): static
     {
         $this->config[$key] = $value;
+
         return $this;
     }
 
@@ -402,8 +412,8 @@ abstract class UIComponent implements UIElement, Sizeable, Marginable
      * Allows reading component properties from event handlers.
      * Useful for getting current state like text, value, checked, etc.
      *
-     * @param string $key The configuration key
-     * @param mixed $default Default value if key doesn't exist
+     * @param  string  $key  The configuration key
+     * @param  mixed  $default  Default value if key doesn't exist
      * @return mixed The configuration value or default
      */
     public function get(string $key, mixed $default = null): mixed
@@ -414,7 +424,7 @@ abstract class UIComponent implements UIElement, Sizeable, Marginable
     /**
      * Método de utilidad para debugging - obtiene información del contexto
      *
-     * @param string $context Nombre del contexto
+     * @param  string  $context  Nombre del contexto
      * @return array<string, mixed> Información del contexto (offset, contador, etc)
      */
     public static function getContextInfo(string $context): array
@@ -438,7 +448,7 @@ abstract class UIComponent implements UIElement, Sizeable, Marginable
      *
      * CSS values supported for compatibility: static, relative, absolute, fixed, sticky.
      *
-     * @param string $position Anchor name or CSS position value
+     * @param  string  $position  Anchor name or CSS position value
      * @return static For method chaining
      */
     public function position(string $position): static
@@ -449,7 +459,7 @@ abstract class UIComponent implements UIElement, Sizeable, Marginable
     /**
      * Set positioning mode (recommended with anchor-based positioning).
      *
-     * @param string $mode One of: absolute, fixed, relative, static, sticky
+     * @param  string  $mode  One of: absolute, fixed, relative, static, sticky
      * @return static For method chaining
      */
     public function positionMode(string $mode = 'absolute'): static
@@ -460,7 +470,7 @@ abstract class UIComponent implements UIElement, Sizeable, Marginable
     /**
      * Set horizontal offset from anchor.
      *
-     * @param int|string $offset Number (px) or CSS value (e.g. 1rem, 10%)
+     * @param  int|string  $offset  Number (px) or CSS value (e.g. 1rem, 10%)
      * @return static For method chaining
      */
     public function offsetX(int|string $offset): static
@@ -471,7 +481,7 @@ abstract class UIComponent implements UIElement, Sizeable, Marginable
     /**
      * Set vertical offset from anchor.
      *
-     * @param int|string $offset Number (px) or CSS value (e.g. 1rem, 10%)
+     * @param  int|string  $offset  Number (px) or CSS value (e.g. 1rem, 10%)
      * @return static For method chaining
      */
     public function offsetY(int|string $offset): static
@@ -482,21 +492,22 @@ abstract class UIComponent implements UIElement, Sizeable, Marginable
     /**
      * Set both horizontal and vertical offsets from anchor.
      *
-     * @param int|string $offsetX Horizontal offset
-     * @param int|string $offsetY Vertical offset
+     * @param  int|string  $offsetX  Horizontal offset
+     * @param  int|string  $offsetY  Vertical offset
      * @return static For method chaining
      */
     public function offsets(int|string $offsetX, int|string $offsetY): static
     {
         $this->setConfig('position_offset_x', $offsetX);
         $this->setConfig('position_offset_y', $offsetY);
+
         return $this;
     }
 
     /**
      * Set z-index.
      *
-     * @param int|string $zIndex Z-index value
+     * @param  int|string  $zIndex  Z-index value
      * @return static For method chaining
      */
     public function zIndex(int|string $zIndex): static

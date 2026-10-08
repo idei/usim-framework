@@ -6,7 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
 it('always exposes storage as an array when no encrypted state is provided', function () {
-    $middleware = new PrepareUIContext();
+    $middleware = new PrepareUIContext;
     $request = Request::create('/api/ui/demo/menu', 'GET');
 
     $response = $middleware->handle($request, function (Request $request): JsonResponse {
@@ -19,7 +19,7 @@ it('always exposes storage as an array when no encrypted state is provided', fun
 });
 
 it('normalizes decrypted non-array storage payloads to an empty array', function () {
-    $middleware = new PrepareUIContext();
+    $middleware = new PrepareUIContext;
     $storage_key = config('usim.front_store_key', 'my-app');
     $request = Request::create('/api/ui/demo/menu', 'GET', [
         $storage_key => encrypt('null'),

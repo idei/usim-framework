@@ -19,7 +19,7 @@ enum TimeUnit: string
      */
     public function getSingularLabel(): string
     {
-        return match($this) {
+        return match ($this) {
             self::SECONDS => t('usim.time_unit.second.singular'),
             self::MINUTES => t('usim.time_unit.minute.singular'),
             self::HOURS => t('usim.time_unit.hour.singular'),
@@ -32,7 +32,7 @@ enum TimeUnit: string
      */
     public function getPluralLabel(): string
     {
-        return match($this) {
+        return match ($this) {
             self::SECONDS => t('usim.time_unit.second.plural'),
             self::MINUTES => t('usim.time_unit.minute.plural'),
             self::HOURS => t('usim.time_unit.hour.plural'),
@@ -53,7 +53,7 @@ enum TimeUnit: string
      */
     public function toMilliseconds(int $value): int
     {
-        return match($this) {
+        return match ($this) {
             self::SECONDS => $value * 1000,
             self::MINUTES => $value * 60 * 1000,
             self::HOURS => $value * 60 * 60 * 1000,

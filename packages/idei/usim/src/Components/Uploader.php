@@ -2,6 +2,8 @@
 
 namespace Idei\Usim\Components;
 
+use Idei\Usim\Upload\UploadService;
+
 /**
  * Uploader Component Builder
  *
@@ -50,12 +52,13 @@ class Uploader extends UIComponent
     /**
      * Tipos de archivo permitidos
      *
-        * @param list<string> $types Ej: ['image/*', 'application/pdf', 'video/mp4']
+     * @param  list<string>  $types  Ej: ['image/*', 'application/pdf', 'video/mp4']
      */
     public function allowedTypes(array $types): self
     {
         $this->setConfig('allowed_types', $types);
         $this->setConfig('accept', implode(',', $types));
+
         return $this;
     }
 
@@ -87,7 +90,7 @@ class Uploader extends UIComponent
      * Establecer action para procesar uploads
      * El Service debe implementar el método on{Action}(array $params)
      *
-     * @param string $action Nombre de la acción (ej: 'process_uploads')
+     * @param  string  $action  Nombre de la acción (ej: 'process_uploads')
      */
     public function action(string $action): self
     {
@@ -97,7 +100,7 @@ class Uploader extends UIComponent
     /**
      * Establecer relación de aspecto esperada para el dropzone
      *
-     * @param string $ratio Formato "width:height" (ej: '1:1', '16:9', '9:16', '4:3')
+     * @param  string  $ratio  Formato "width:height" (ej: '1:1', '16:9', '9:16', '4:3')
      */
     public function aspect(string $ratio): self
     {
@@ -112,11 +115,12 @@ class Uploader extends UIComponent
      * 3 = 256px base
      * 4 = 320px base
      *
-     * @param int $level Nivel de tamaño (1-4)
+     * @param  int  $level  Nivel de tamaño (1-4)
      */
     public function size(int $level): self
     {
         $level = max(1, min(4, $level)); // Clamp entre 1-4
+
         return $this->setConfig('size_level', $level);
     }
 
@@ -186,7 +190,7 @@ class Uploader extends UIComponent
     /**
      * Establecer archivo existente para mostrar en preview
      *
-     * @param string|null $url URL del archivo existente
+     * @param  string|null  $url  URL del archivo existente
      */
     public function existingFile(?string $url): self
     {
@@ -196,32 +200,33 @@ class Uploader extends UIComponent
     /**
      * Extraer temp_id único de los parámetros (para uploaders con max_files = 1)
      *
-    * @param array<string, mixed> $params Parámetros del request
+     * @param  array<string, mixed>  $params  Parámetros del request
      * @return string|null UUID del archivo temporal o null si no hay
      */
     public function getTempId(array $params): ?string
     {
         $ids = $this->getTempIds($params);
+
         return $ids[0] ?? null;
     }
 
     /**
      * Extraer todos los temp_ids de los parámetros
      *
-    * @param array<string, mixed> $params Parámetros del request
-    * @return list<string> Array de UUIDs de archivos temporales
+     * @param  array<string, mixed>  $params  Parámetros del request
+     * @return list<string> Array de UUIDs de archivos temporales
      */
     public function getTempIds(array $params): array
     {
         $inputName = "{$this->name}_temp_ids";
         $tempIdsJson = $params[$inputName] ?? '[]';
 
-        if (!is_string($tempIdsJson) || $tempIdsJson === '') {
+        if (! is_string($tempIdsJson) || $tempIdsJson === '') {
             return [];
         }
 
         $tempIds = json_decode($tempIdsJson, true);
-        if (!is_array($tempIds)) {
+        if (! is_array($tempIds)) {
             return [];
         }
 
@@ -245,10 +250,10 @@ class Uploader extends UIComponent
      * 4. Actualiza la vista del uploader con los nuevos archivos
      * 5. Retorna el/los filename(s) guardados
      *
-     * @param array $params Parámetros del request
-     * @param string $category Categoría de archivos (ej: 'images', 'documents', 'videos')
-    * @param string|list<string>|null $oldFiles Archivo(s) anterior(es) a eliminar (solo nombre, sin ruta)
-    * @return string|list<string>|null String si max_files=1, array si max_files>1, null si no hay archivos
+     * @param  array  $params  Parámetros del request
+     * @param  string  $category  Categoría de archivos (ej: 'images', 'documents', 'videos')
+     * @param  string|list<string>|null  $oldFiles  Archivo(s) anterior(es) a eliminar (solo nombre, sin ruta)
+     * @return string|list<string>|null String si max_files=1, array si max_files>1, null si no hay archivos
      *
      * @example
      * // Uploader de imagen única
@@ -256,7 +261,6 @@ class Uploader extends UIComponent
      *     $user->profile_image = $filename;
      *     $user->save();
      * }
-     *
      * @example
      * // Uploader de múltiples documentos
      * $filenames = $this->uploader_docs->confirm($params, 'documents', $oldDocuments);
@@ -265,8 +269,8 @@ class Uploader extends UIComponent
      * }
      */
     /**
-     * @param array<string, mixed> $params
-     * @param list<string>|string|null $oldFiles
+     * @param  array<string, mixed>  $params
+     * @param  list<string>|string|null  $oldFiles
      * @return list<string>|string|null
      */
     public function confirm(array $params, string $category, string|array|null $oldFiles = null): string|array|null
@@ -282,7 +286,7 @@ class Uploader extends UIComponent
         if ($isSingle) {
             // Archivo único
             $oldFilename = is_array($oldFiles) ? ($oldFiles[0] ?? null) : $oldFiles;
-            $filename = \Idei\Usim\Upload\UploadService::persistTemporaryUpload(
+            $filename = UploadService::persistTemporaryUpload(
                 $tempIds[0],
                 $category,
                 $oldFilename
@@ -290,14 +294,14 @@ class Uploader extends UIComponent
 
             if ($filename) {
                 // Auto-actualizar vista del uploader
-                $url = \Idei\Usim\Upload\UploadService::fileUrl("uploads/{$category}/{$filename}") . '?t=' . time();
+                $url = UploadService::fileUrl("uploads/{$category}/{$filename}").'?t='.time();
                 $this->existingFile($url);
             }
 
             return $filename;
         } else {
             // Múltiples archivos
-            $filenames = \Idei\Usim\Upload\UploadService::persistMultipleTemporaryUploads($tempIds, $category);
+            $filenames = UploadService::persistMultipleTemporaryUploads($tempIds, $category);
 
             // TODO: implementar auto-actualización de vista para múltiples archivos
             // Requeriría un método existingFiles(array $urls) en lugar de existingFile($url)

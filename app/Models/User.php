@@ -3,6 +3,8 @@
 // @usim: feature="admin", type="model"
 namespace App\Models;
 
+use Idei\Usim\Contracts\AuthorizableActorInterface;
+use Idei\Usim\Contracts\UsimUserInterface;
 use Idei\Usim\Models\UsimUnit;
 use Idei\Usim\Notifications\CustomVerifyEmailNotification;
 use Idei\Usim\Notifications\ResetPasswordNotification;
@@ -15,7 +17,7 @@ use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 use Spatie\Permission\Models\Role;
 use Spatie\Permission\Traits\HasRoles;
-class User extends Authenticatable implements MustVerifyEmail, CanResetPassword
+class User extends Authenticatable implements MustVerifyEmail, CanResetPassword, UsimUserInterface, AuthorizableActorInterface
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasFactory, Notifiable, HasRoles, HasApiTokens;
@@ -24,6 +26,14 @@ class User extends Authenticatable implements MustVerifyEmail, CanResetPassword
     protected function casts(): array
     {
         return ['email_verified_at' => 'datetime', 'password' => 'hashed', 'terms_accepted_at' => 'datetime'];
+    }
+    public function getDisplayName(): string
+    {
+        return (string) ($this->name ?? '');
+    }
+    public function getEmail(): string
+    {
+        return (string) ($this->email ?? '');
     }
     public function displayInfo(): string
     {

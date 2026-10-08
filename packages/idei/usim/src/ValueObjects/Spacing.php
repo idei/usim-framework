@@ -1,12 +1,12 @@
 <?php
+
 // ValueObjects/Spacing.php
+
 namespace Idei\Usim\ValueObjects;
 
 final class Spacing
 {
-    private function __construct(private readonly string $value)
-    {
-    }
+    private function __construct(private readonly string $value) {}
 
     // Factory methods
     public static function px(int $value): self
@@ -42,31 +42,36 @@ final class Spacing
     // Shorthand multi-value method for spacing, similar to CSS (1/2/3/4 values)
     public static function each(
         Spacing $top,
-        Spacing|null $right = null,
-        Spacing|null $bottom = null,
-        Spacing|null $left = null,
+        ?Spacing $right = null,
+        ?Spacing $bottom = null,
+        ?Spacing $left = null,
     ): self {
         $t = (string) self::from($top);
-        if ($right === null)
+        if ($right === null) {
             return new self($t);
+        }
 
         $r = (string) self::from($right);
-        if ($bottom === null)
+        if ($bottom === null) {
             return new self("$t $r");
+        }
 
         $b = (string) self::from($bottom);
-        if ($left === null)
+        if ($left === null) {
             return new self("$t $r $b");
+        }
 
         $l = (string) self::from($left);
+
         return new self("$t $r $b $l");
     }
 
     // Resolver universal — igual que Size
     public static function from(Spacing|string $value): self
     {
-        if ($value instanceof self)
+        if ($value instanceof self) {
             return $value;
+        }
 
         return new self($value);
     }

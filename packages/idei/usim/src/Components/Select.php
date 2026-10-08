@@ -105,7 +105,7 @@ class Select extends UIComponent
     /**
      * Set the select options
      *
-     * @param list<array<string, mixed>> $options Array of options [['value' => 'val', 'label' => 'Label'], ...]
+     * @param  list<array<string, mixed>>  $options  Array of options [['value' => 'val', 'label' => 'Label'], ...]
      * @return static For method chaining
      */
     public function options(array $options): self
@@ -116,9 +116,9 @@ class Select extends UIComponent
     /**
      * Add a single option
      *
-     * @param string $value The option value
-     * @param string $label The option label
-     * @param array<string, mixed> $extra Extra data (icon, avatar, badge, disabled, etc.)
+     * @param  string  $value  The option value
+     * @param  string  $label  The option label
+     * @param  array<string, mixed>  $extra  Extra data (icon, avatar, badge, disabled, etc.)
      * @return static For method chaining
      */
     public function addOption(string $value, string $label, array $extra = []): self
@@ -127,13 +127,14 @@ class Select extends UIComponent
         /** @var list<array<string, mixed>> $options */
         $options = $this->config['options'];
         $options[] = $option;
+
         return $this->setConfig('options', $options);
     }
 
     /**
      * Set option groups
      *
-     * @param list<array{label: string, options: list<array<string, mixed>>}> $groups Array of groups [['label' => 'Group', 'options' => [...]], ...]
+     * @param  list<array{label: string, options: list<array<string, mixed>>}>  $groups  Array of groups [['label' => 'Group', 'options' => [...]], ...]
      * @return static For method chaining
      */
     public function groups(array $groups): self
@@ -144,8 +145,8 @@ class Select extends UIComponent
     /**
      * Add an option group
      *
-     * @param string $label The group label
-     * @param list<array<string, mixed>> $options The options in this group
+     * @param  string  $label  The group label
+     * @param  list<array<string, mixed>>  $options  The options in this group
      * @return static For method chaining
      */
     public function addGroup(string $label, array $options): self
@@ -153,13 +154,14 @@ class Select extends UIComponent
         /** @var list<array{label: string, options: list<array<string, mixed>>}> $groups */
         $groups = $this->config['groups'];
         $groups[] = ['label' => $label, 'options' => $options];
+
         return $this->setConfig('groups', $groups);
     }
 
     /**
      * Set the selected value
      *
-     * @param mixed $value The selected value (string or array for multiple)
+     * @param  mixed  $value  The selected value (string or array for multiple)
      * @return static For method chaining
      */
     public function value(mixed $value): self
@@ -170,7 +172,7 @@ class Select extends UIComponent
     /**
      * Set the placeholder text
      *
-     * @param string $placeholder The placeholder
+     * @param  string  $placeholder  The placeholder
      * @return static For method chaining
      */
     public function placeholder(string $placeholder): self
@@ -181,7 +183,7 @@ class Select extends UIComponent
     /**
      * Set the label
      *
-     * @param string $label The label text
+     * @param  string  $label  The label text
      * @return static For method chaining
      */
     public function label(string $label): self
@@ -192,8 +194,8 @@ class Select extends UIComponent
     /**
      * Enable multiple selection
      *
-     * @param bool $multiple True to enable
-     * @param int|null $maxSelections Max number of selections
+     * @param  bool  $multiple  True to enable
+     * @param  int|null  $maxSelections  Max number of selections
      * @return static For method chaining
      */
     public function multiple(bool $multiple = true, ?int $maxSelections = null): self
@@ -202,14 +204,15 @@ class Select extends UIComponent
         if ($maxSelections !== null) {
             $this->setConfig('max_selections', $maxSelections);
         }
+
         return $this;
     }
 
     /**
      * Make the select searchable
      *
-     * @param bool $searchable True to enable search
-     * @param string|null $placeholder Search placeholder
+     * @param  bool  $searchable  True to enable search
+     * @param  string|null  $placeholder  Search placeholder
      * @return static For method chaining
      */
     public function searchable(bool $searchable = true, ?string $placeholder = null): self
@@ -218,13 +221,14 @@ class Select extends UIComponent
         if ($placeholder !== null) {
             $this->setConfig('search_placeholder', $placeholder);
         }
+
         return $this;
     }
 
     /**
      * Set minimum characters before searching
      *
-     * @param int $chars Minimum characters
+     * @param  int  $chars  Minimum characters
      * @return static For method chaining
      */
     public function minSearchChars(int $chars): self
@@ -235,7 +239,7 @@ class Select extends UIComponent
     /**
      * Mark as required
      *
-     * @param bool $required True if required
+     * @param  bool  $required  True if required
      * @return static For method chaining
      */
     public function required(bool $required = true): self
@@ -246,7 +250,7 @@ class Select extends UIComponent
     /**
      * Disable the select
      *
-     * @param bool $disabled True to disable
+     * @param  bool  $disabled  True to disable
      * @return static For method chaining
      */
     public function disabled(bool $disabled = true): self
@@ -257,7 +261,7 @@ class Select extends UIComponent
     /**
      * Make readonly
      *
-     * @param bool $readonly True for readonly
+     * @param  bool  $readonly  True for readonly
      * @return static For method chaining
      */
     public function readonly(bool $readonly = true): self
@@ -268,7 +272,7 @@ class Select extends UIComponent
     /**
      * Set loading state
      *
-     * @param bool $loading True if loading
+     * @param  bool  $loading  True if loading
      * @return static For method chaining
      */
     public function loading(bool $loading = true): self
@@ -279,7 +283,7 @@ class Select extends UIComponent
     /**
      * Enable/disable clear button
      *
-     * @param bool $clearable True to show clear button
+     * @param  bool  $clearable  True to show clear button
      * @return static For method chaining
      */
     public function clearable(bool $clearable = true): self
@@ -290,7 +294,7 @@ class Select extends UIComponent
     /**
      * Set error message
      *
-     * @param string $message The error message
+     * @param  string  $message  The error message
      * @return static For method chaining
      */
     public function errorMessage(string $message): self
@@ -301,7 +305,7 @@ class Select extends UIComponent
     /**
      * Set help text
      *
-     * @param string $text The help text
+     * @param  string  $text  The help text
      * @return static For method chaining
      */
     public function helpText(string $text): self
@@ -312,7 +316,7 @@ class Select extends UIComponent
     /**
      * Set the style
      *
-     * @param string $style The style (default, primary, success, danger, warning, info)
+     * @param  string  $style  The style (default, primary, success, danger, warning, info)
      * @return static For method chaining
      */
     public function style(string $style): self
@@ -323,7 +327,7 @@ class Select extends UIComponent
     /**
      * Set the size
      *
-     * @param string $size The size (xs, small, medium, large, xl)
+     * @param  string  $size  The size (xs, small, medium, large, xl)
      * @return static For method chaining
      */
     public function size(string $size): self
@@ -334,7 +338,7 @@ class Select extends UIComponent
     /**
      * Set the variant
      *
-     * @param string $variant The variant (outlined, filled, underlined)
+     * @param  string  $variant  The variant (outlined, filled, underlined)
      * @return static For method chaining
      */
     public function variant(string $variant): self
@@ -346,7 +350,7 @@ class Select extends UIComponent
     /**
      * Set dropdown position
      *
-     * @param string $position The position (auto, top, bottom)
+     * @param  string  $position  The position (auto, top, bottom)
      * @return static For method chaining
      */
     public function position(string $position): static
@@ -357,7 +361,7 @@ class Select extends UIComponent
     /**
      * Set close on select behavior
      *
-     * @param bool $close True to close after selection
+     * @param  bool  $close  True to close after selection
      * @return static For method chaining
      */
     public function closeOnSelect(bool $close = true): self
@@ -368,21 +372,22 @@ class Select extends UIComponent
     /**
      * Set icon
      *
-     * @param string $icon The icon name
-     * @param string $position The position (left, right)
+     * @param  string  $icon  The icon name
+     * @param  string  $position  The position (left, right)
      * @return static For method chaining
      */
     public function icon(string $icon, string $position = 'left'): self
     {
         $this->setConfig('icon', $icon);
         $this->setConfig('icon_position', $position);
+
         return $this;
     }
 
     /**
      * Set dropdown icon
      *
-     * @param string $icon The dropdown icon
+     * @param  string  $icon  The dropdown icon
      * @return static For method chaining
      */
     public function dropdownIcon(string $icon): self
@@ -393,21 +398,22 @@ class Select extends UIComponent
     /**
      * Enable badge rendering for multiple selections
      *
-     * @param bool $render True to render as badges
-     * @param string $style Badge style
+     * @param  bool  $render  True to render as badges
+     * @param  string  $style  Badge style
      * @return static For method chaining
      */
     public function renderBadges(bool $render = true, string $style = 'primary'): self
     {
         $this->setConfig('render_badges', $render);
         $this->setConfig('chip_style', $style);
+
         return $this;
     }
 
     /**
      * Enable avatar rendering in options
      *
-     * @param bool $render True to show avatars
+     * @param  bool  $render  True to show avatars
      * @return static For method chaining
      */
     public function renderAvatars(bool $render = true): self
@@ -418,21 +424,22 @@ class Select extends UIComponent
     /**
      * Set remote data URL
      *
-     * @param string $url The remote URL
-     * @param array<string, mixed> $params Additional parameters
+     * @param  string  $url  The remote URL
+     * @param  array<string, mixed>  $params  Additional parameters
      * @return static For method chaining
      */
     public function remote(string $url, array $params = []): self
     {
         $this->setConfig('remote_url', $url);
         $this->setConfig('remote_params', $params);
+
         return $this;
     }
 
     /**
      * Set empty message
      *
-     * @param string $message The message to show when no options
+     * @param  string  $message  The message to show when no options
      * @return static For method chaining
      */
     public function emptyMessage(string $message): self
@@ -443,7 +450,7 @@ class Select extends UIComponent
     /**
      * Set no results message
      *
-     * @param string $message The message for no search results
+     * @param  string  $message  The message for no search results
      * @return static For method chaining
      */
     public function noResultsMessage(string $message): self
@@ -454,8 +461,8 @@ class Select extends UIComponent
     /**
      * Enable creating new options
      *
-     * @param bool $create True to enable
-     * @param string|null $text Template text for create option
+     * @param  bool  $create  True to enable
+     * @param  string|null  $text  Template text for create option
      * @return static For method chaining
      */
     public function createOption(bool $create = true, ?string $text = null): self
@@ -464,13 +471,14 @@ class Select extends UIComponent
         if ($text !== null) {
             $this->setConfig('create_option_text', $text);
         }
+
         return $this;
     }
 
     /**
      * Enable virtual scrolling
      *
-     * @param bool $virtual True to enable
+     * @param  bool  $virtual  True to enable
      * @return static For method chaining
      */
     public function virtualScroll(bool $virtual = true): self
@@ -481,7 +489,7 @@ class Select extends UIComponent
     /**
      * Set autocomplete
      *
-     * @param string $autocomplete The autocomplete value
+     * @param  string  $autocomplete  The autocomplete value
      * @return static For method chaining
      */
     public function autocomplete(string $autocomplete): self
@@ -492,7 +500,7 @@ class Select extends UIComponent
     /**
      * Set ARIA label
      *
-     * @param string $label The ARIA label
+     * @param  string  $label  The ARIA label
      * @return static For method chaining
      */
     public function ariaLabel(string $label): self
@@ -503,7 +511,7 @@ class Select extends UIComponent
     /**
      * Set tooltip
      *
-     * @param string $tooltip The tooltip text
+     * @param  string  $tooltip  The tooltip text
      * @return static For method chaining
      */
     public function tooltip(string $tooltip): self
@@ -514,7 +522,7 @@ class Select extends UIComponent
     /**
      * Set onChange action
      *
-     * @param string $action The action to trigger
+     * @param  string  $action  The action to trigger
      * @return static For method chaining
      */
     public function onChange(string $action): self
@@ -525,7 +533,7 @@ class Select extends UIComponent
     /**
      * Set onSearch action
      *
-     * @param string $action The action to trigger
+     * @param  string  $action  The action to trigger
      * @return static For method chaining
      */
     public function onSearch(string $action): self
@@ -538,6 +546,7 @@ class Select extends UIComponent
      * Returns array format instead of object
      *
      * @return array<int, array<string, mixed>>
+     *
      * @deprecated Use toJson() instead
      */
     public function build(): array

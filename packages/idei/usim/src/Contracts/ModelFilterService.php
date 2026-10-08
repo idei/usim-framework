@@ -10,7 +10,7 @@ use Illuminate\Database\Eloquent\Model;
 interface ModelFilterService
 {
     /**
-     * @param array<string, mixed> $filters
+     * @param  array<string, mixed>  $filters
      * @return array<int, TModel>
      */
     public function filter(array $filters): array;

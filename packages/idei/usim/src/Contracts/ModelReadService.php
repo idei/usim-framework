@@ -10,7 +10,6 @@ use Illuminate\Database\Eloquent\Model;
 interface ModelReadService
 {
     /**
-     * @param int|string $id
      * @return TModel|null
      */
     public function findById(int|string $id): ?Model;

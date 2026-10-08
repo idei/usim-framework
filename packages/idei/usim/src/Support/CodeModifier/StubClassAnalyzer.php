@@ -30,7 +30,7 @@ class StubClassAnalyzer
 
     public function analyze(string $stubPath, string $namespacePlaceholderValue = 'App\\Models'): StubClassSpec
     {
-        if (!file_exists($stubPath)) {
+        if (! file_exists($stubPath)) {
             throw new RuntimeException("Stub file not found: {$stubPath}");
         }
 
@@ -41,7 +41,7 @@ class StubClassAnalyzer
 
         $code = str_replace('{{ namespace }}', $namespacePlaceholderValue, $code);
 
-        $parser = (new ParserFactory())->createForNewestSupportedVersion();
+        $parser = (new ParserFactory)->createForNewestSupportedVersion();
         $ast = $parser->parse($code);
 
         if ($ast === null) {
@@ -87,7 +87,7 @@ class StubClassAnalyzer
     }
 
     /**
-     * @param array<int, Node> $ast
+     * @param  array<int, Node>  $ast
      * @return string[]
      */
     private function extractImports(array $ast): array
@@ -110,7 +110,7 @@ class StubClassAnalyzer
     }
 
     /**
-     * @param string[] $imports
+     * @param  string[]  $imports
      * @return array<string, string> short class name => FQN
      */
     private function buildImportMap(array $imports): array
@@ -124,8 +124,8 @@ class StubClassAnalyzer
     }
 
     /**
-     * @param string[] $names
-     * @param array<string, string> $importMap
+     * @param  string[]  $names
+     * @param  array<string, string>  $importMap
      * @return string[]
      */
     private function resolveNames(array $names, array $importMap): array
@@ -162,11 +162,11 @@ class StubClassAnalyzer
     private function extractArrayPropertyValues(Class_ $classNode, string $propertyName): array
     {
         foreach ($classNode->stmts as $stmt) {
-            if (!$stmt instanceof Property || $stmt->props[0]->name->toString() !== $propertyName) {
+            if (! $stmt instanceof Property || $stmt->props[0]->name->toString() !== $propertyName) {
                 continue;
             }
 
-            if (!$stmt->props[0]->default instanceof Array_) {
+            if (! $stmt->props[0]->default instanceof Array_) {
                 return [];
             }
 
@@ -221,7 +221,7 @@ class StubClassAnalyzer
     /** @return array<string, string> */
     private function extractCastsFromArrayExpr(?Node $arrayExpr): array
     {
-        if (!$arrayExpr instanceof Array_) {
+        if (! $arrayExpr instanceof Array_) {
             return [];
         }
 
@@ -240,11 +240,11 @@ class StubClassAnalyzer
     /** @return string[] */
     private function extractMethods(Class_ $classNode): array
     {
-        $printer = new Standard();
+        $printer = new Standard;
         $methods = [];
 
         foreach ($classNode->stmts as $stmt) {
-            if (!$stmt instanceof ClassMethod || !$stmt->isPublic()) {
+            if (! $stmt instanceof ClassMethod || ! $stmt->isPublic()) {
                 continue;
             }
 

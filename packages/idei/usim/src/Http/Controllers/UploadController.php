@@ -2,11 +2,12 @@
 
 namespace Idei\Usim\Http\Controllers;
 
-use App\Http\Controllers\Controller;
-
 use Idei\Usim\Upload\UploadService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
+use Illuminate\Routing\Controller;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
@@ -22,9 +23,6 @@ class UploadController extends Controller
      * Upload archivo a storage temporal
      *
      * POST /api/upload/temporary
-     *
-     * @param Request $request
-     * @return JsonResponse
      */
     public function uploadTemporary(Request $request): JsonResponse
     {
@@ -35,13 +33,13 @@ class UploadController extends Controller
 
         $file = $request->file('file');
         $componentId = $request->input('component_id');
-        $userId = \Illuminate\Support\Facades\Auth::id();
+        $userId = Auth::id();
 
         // Generar nombres únicos
         $tempId = (string) Str::uuid();
         $originalFilename = $file->getClientOriginalName();
         $extension = $file->getClientOriginalExtension();
-        $storedFilename = $tempId . '.' . $extension;
+        $storedFilename = $tempId.'.'.$extension;
 
         // Guardar en storage temporal (directorio único temp/)
         $path = $file->storeAs(
@@ -93,12 +91,11 @@ class UploadController extends Controller
      *
      * DELETE /api/upload/temporary/{id}
      *
-     * @param string $id UUID del temporary_upload
-     * @return JsonResponse
+     * @param  string  $id  UUID del temporary_upload
      */
     public function deleteTemporary(string $id): JsonResponse
     {
-        $userId = \Illuminate\Support\Facades\Auth::id();
+        $userId = Auth::id();
 
         // Buscar registro temporal
         $temp = DB::table('temporary_uploads')
@@ -106,7 +103,7 @@ class UploadController extends Controller
             ->where('user_id', $userId) // Verificar que sea del mismo usuario
             ->first();
 
-        if (!$temp) {
+        if (! $temp) {
             return response()->json([
                 'success' => false,
                 'message' => 'File not found or access denied',
@@ -130,8 +127,8 @@ class UploadController extends Controller
      *
      * GET /storage/{path}
      *
-     * @param string $path Ruta del archivo
-     * @return \Illuminate\Http\Response
+     * @param  string  $path  Ruta del archivo
+     * @return Response
      */
     public function serveFile(string $path)
     {
@@ -143,7 +140,7 @@ class UploadController extends Controller
         $uploadDisk = is_string($uploadDiskConfig) || $uploadDiskConfig instanceof \UnitEnum
             ? $uploadDiskConfig
             : 'local';
-        if (!Storage::disk($uploadDisk)->exists($path)) {
+        if (! Storage::disk($uploadDisk)->exists($path)) {
             abort(404, 'File not found');
         }
 

@@ -2,15 +2,16 @@
 
 namespace Idei\Usim\Console\Commands;
 
+use Idei\Usim\Support\ScreenDiscoveryService;
+use Idei\Usim\Support\UsimConfig;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Str;
-use Idei\Usim\Support\ScreenDiscoveryService;
-use Idei\Usim\Support\UsimConfig;
 
 class DiscoverScreensCommand extends Command
 {
     protected $signature = 'usim:discover';
+
     protected $description = 'Discover UI Screens and cache their metadata';
 
     public function handle(ScreenDiscoveryService $discoveryService, UsimConfig $usimConfig): int
@@ -57,7 +58,7 @@ class DiscoverScreensCommand extends Command
             $defaultIcon = '';
 
             foreach ($activeLocales as $locale) {
-                $langFile = lang_path($locale . DIRECTORY_SEPARATOR . 'screen' . DIRECTORY_SEPARATOR . $relativePath);
+                $langFile = lang_path($locale.DIRECTORY_SEPARATOR.'screen'.DIRECTORY_SEPARATOR.$relativePath);
                 $fileExists = File::exists($langFile);
                 $payload = $fileExists ? $this->loadLangArrayFile($langFile) : [];
 
@@ -77,11 +78,11 @@ class DiscoverScreensCommand extends Command
                 );
 
                 $dir = \dirname($langFile);
-                if (!File::isDirectory($dir)) {
+                if (! File::isDirectory($dir)) {
                     File::makeDirectory($dir, 0755, true);
                 }
 
-                $content = "<?php\n\nreturn " . $this->exportLangArray($mergedPayload) . ";\n";
+                $content = "<?php\n\nreturn ".$this->exportLangArray($mergedPayload).";\n";
                 File::put($langFile, $content);
             }
         }
@@ -89,7 +90,7 @@ class DiscoverScreensCommand extends Command
 
     private function resolveScreenLangRelativePath(string $screenClass, string $screensNamespace): string
     {
-        $normalizedNamespace = trim($screensNamespace, '\\') . '\\';
+        $normalizedNamespace = trim($screensNamespace, '\\').'\\';
 
         if (str_starts_with($screenClass, $normalizedNamespace)) {
             $relativeClass = substr($screenClass, strlen($normalizedNamespace));
@@ -101,15 +102,15 @@ class DiscoverScreensCommand extends Command
 
         $segments = array_values(array_filter(
             explode('\\', trim($relativeClass, '\\')),
-            static fn(string $segment): bool => $segment !== ''
+            static fn (string $segment): bool => $segment !== ''
         ));
 
         $snakeSegments = array_map(
-            static fn(string $segment): string => Str::snake($segment),
+            static fn (string $segment): string => Str::snake($segment),
             $segments
         );
 
-        return implode(DIRECTORY_SEPARATOR, $snakeSegments) . '.php';
+        return implode(DIRECTORY_SEPARATOR, $snakeSegments).'.php';
     }
 
     /**
@@ -117,13 +118,13 @@ class DiscoverScreensCommand extends Command
      */
     private function loadLangArrayFile(string $path): array
     {
-        if (!\is_file($path)) {
+        if (! \is_file($path)) {
             return [];
         }
 
         $loaded = require $path;
 
-        if (!\is_array($loaded)) {
+        if (! \is_array($loaded)) {
             return [];
         }
 
@@ -132,7 +133,7 @@ class DiscoverScreensCommand extends Command
     }
 
     /**
-     * @param array<mixed> $payload
+     * @param  array<mixed>  $payload
      */
     private function exportLangArray(array $payload, int $indentLevel = 0): string
     {
@@ -164,7 +165,7 @@ class DiscoverScreensCommand extends Command
     {
         $path = $this->getManifestPath();
 
-        $content = "<?php\n\nreturn " . $this->formatArrayToShortSyntax($screens) . ";\n";
+        $content = "<?php\n\nreturn ".$this->formatArrayToShortSyntax($screens).";\n";
 
         file_put_contents($path, $content);
 
@@ -186,7 +187,7 @@ class DiscoverScreensCommand extends Command
                 // Quitamos el escape doble para que quede App\UI\Screens\Home::class
                 $formattedKey = "{$key}::class";
             } else {
-                $formattedKey = is_int($key) ? $key : "'" . addslashes($key) . "'";
+                $formattedKey = is_int($key) ? $key : "'".addslashes($key)."'";
             }
 
             if (\is_array($value)) {
@@ -199,10 +200,10 @@ class DiscoverScreensCommand extends Command
         }
 
         if (empty($parts)) {
-            return "[]";
+            return '[]';
         }
 
-        return "[\n" . implode("\n", $parts) . "\n{$indent}]";
+        return "[\n".implode("\n", $parts)."\n{$indent}]";
     }
 
     private function getManifestPath(): string

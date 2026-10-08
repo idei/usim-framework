@@ -2,10 +2,13 @@
 
 namespace Idei\Usim\Http\Middleware;
 
-use App\Services\Units\UnitContextResolver;
 use Closure;
+use Idei\Usim\Contracts\PairableActorInterface;
+use Idei\Usim\Contracts\UnitContextResolverInterface;
+use Idei\Usim\Layout\AbstractLayout;
 use Idei\Usim\Support\UIStateManager;
 use Illuminate\Auth\SessionGuard;
+use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Laravel\Sanctum\PersonalAccessToken;
@@ -24,8 +27,8 @@ class PrepareUIContext
     public function handle(Request $request, Closure $next): Response
     {
         // 0. Resetear estado de layout para evitar fugas entre requests
-        if (class_exists(\Idei\Usim\Layout\AbstractLayout::class)) {
-            \Idei\Usim\Layout\AbstractLayout::setCurrent(null);
+        if (class_exists(AbstractLayout::class)) {
+            AbstractLayout::setCurrent(null);
         }
 
         // 1. Desencriptar USIM Storage
@@ -50,7 +53,7 @@ class PrepareUIContext
         // 1. Intentar obtener desde Header (y verificar que no esté vacío)
         if ($request->hasHeader('X-USIM-Storage')) {
             $headerValue = $request->header('X-USIM-Storage');
-            if (!empty($headerValue) && $headerValue !== 'null' && $headerValue !== 'undefined') {
+            if (! empty($headerValue) && $headerValue !== 'null' && $headerValue !== 'undefined') {
                 if (str_starts_with($headerValue, 'b64:')) {
                     $decodedHeader = base64_decode(substr($headerValue, 4), true);
                     if ($decodedHeader !== false) {
@@ -85,18 +88,19 @@ class PrepareUIContext
         $storeTokenValue = $storage['store_token'] ?? null;
         $storeToken = \is_scalar($storeTokenValue) ? (string) $storeTokenValue : null;
 
-        $request->headers->set('Authorization', 'Bearer ' . ($storeToken ?? ''));
+        $request->headers->set('Authorization', 'Bearer '.($storeToken ?? ''));
         UIStateManager::setAuthToken($storeToken);
 
         $hasTabClientId = $request->hasHeader(UIStateManager::CLIENT_ID_HEADER);
 
-        if (!empty($storeToken)) {
+        if (! empty($storeToken)) {
             if (class_exists(PersonalAccessToken::class)) {
                 $tokenModel = PersonalAccessToken::findToken($storeToken);
-                if ($tokenModel && $tokenModel->tokenable instanceof \Illuminate\Contracts\Auth\Authenticatable) {
+                if ($tokenModel && $tokenModel->tokenable instanceof Authenticatable) {
                     $actor = $tokenModel->tokenable;
-                    if ($actor instanceof \App\Models\Device) {
-                        if (!$actor->isPaired()) {
+                    $isDevice = $actor instanceof PairableActorInterface;
+                    if ($isDevice) {
+                        if (! $actor->isPaired()) {
                             $this->clearWebGuardUser();
                             $request->setUserResolver(fn () => null);
                         } else {
@@ -121,25 +125,31 @@ class PrepareUIContext
         }
 
         $effectiveUser = $request->user() ?? Auth::guard('device')->user();
-        if ($effectiveUser instanceof \App\Models\Device && !$effectiveUser->isPaired()) {
+        if ($effectiveUser instanceof PairableActorInterface && ! $effectiveUser->isPaired()) {
             $this->clearWebGuardUser();
             $request->setUserResolver(fn () => null);
             $effectiveUser = null;
         }
 
         $unitSlug = UIStateManager::getActiveUnit();
-        UnitContextResolver::resolveAndApply($effectiveUser, $unitSlug);
+        if (app()->bound(UnitContextResolverInterface::class)) {
+            app(UnitContextResolverInterface::class)->applyUserUnit($effectiveUser, $unitSlug);
+        } elseif (class_exists('App\\Services\\Units\\UnitContextResolver')) {
+            /** @var class-string $legacyResolver */
+            $legacyResolver = 'App\\Services\\Units\\UnitContextResolver';
+            $legacyResolver::resolveAndApply($effectiveUser, $unitSlug);
+        }
     }
 
     /**
      * Set the authenticated user for the web guard in the current request.
      */
-    private function setWebGuardUser(\Illuminate\Contracts\Auth\Authenticatable $user): void
+    private function setWebGuardUser(Authenticatable $user): void
     {
         $guard = Auth::guard('web');
         $guard->setUser($user);
 
-        if ($guard instanceof \Illuminate\Auth\SessionGuard) {
+        if ($guard instanceof SessionGuard) {
             try {
                 $loggedOutProp = new \ReflectionProperty($guard, 'loggedOut');
                 $loggedOutProp->setAccessible(true);
@@ -197,7 +207,7 @@ class PrepareUIContext
     {
         $route = $request->route();
 
-        if (!$route) {
+        if (! $route) {
             return; // No hay ruta, salir
         }
 
@@ -211,7 +221,7 @@ class PrepareUIContext
 
                 // Solo inyectar si NO existe ya un route param real con ese nombre
                 // (los route params reales tienen precedencia)
-                if (!$route->hasParameter($paramName)) {
+                if (! $route->hasParameter($paramName)) {
                     $route->setParameter($paramName, $value);
                 }
 

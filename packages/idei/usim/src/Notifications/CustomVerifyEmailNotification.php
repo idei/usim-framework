@@ -3,7 +3,9 @@
 namespace Idei\Usim\Notifications;
 
 use Illuminate\Bus\Queueable;
+use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 use Illuminate\Support\Facades\URL;
@@ -34,7 +36,7 @@ class CustomVerifyEmailNotification extends Notification implements ShouldQueue
     /**
      * Get the mail representation of the notification.
      *
-     * @param \Illuminate\Database\Eloquent\Model&\Illuminate\Contracts\Auth\MustVerifyEmail $notifiable
+     * @param  Model&MustVerifyEmail  $notifiable
      */
     public function toMail(object $notifiable): MailMessage
     {
@@ -43,7 +45,7 @@ class CustomVerifyEmailNotification extends Notification implements ShouldQueue
         $appName = is_string($appName) ? $appName : 'Laravel';
 
         return (new MailMessage)
-            ->subject('✉️ Verifica tu dirección de email - ' . $appName)
+            ->subject('✉️ Verifica tu dirección de email - '.$appName)
             ->view('emails.verify-email', [
                 'user' => $notifiable,
                 'verificationUrl' => $verificationUrl,
@@ -53,7 +55,7 @@ class CustomVerifyEmailNotification extends Notification implements ShouldQueue
     /**
      * Get the verification URL for the given notifiable.
      *
-     * @param \Illuminate\Database\Eloquent\Model&\Illuminate\Contracts\Auth\MustVerifyEmail $notifiable
+     * @param  Model&MustVerifyEmail  $notifiable
      */
     protected function verificationUrl($notifiable): string
     {

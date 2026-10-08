@@ -53,12 +53,12 @@ class UIIdGenerator
     /**
      * Generate a unique ID for a UI element
      *
-     * @param string $context The calling context (class name)
+     * @param  string  $context  The calling context (class name)
      * @return int Unique ID
      */
     public static function generate(string $context): int
     {
-        if (!isset(self::$autoIncPerContext[$context])) {
+        if (! isset(self::$autoIncPerContext[$context])) {
             self::$autoIncPerContext[$context] = 0;
         }
 
@@ -85,8 +85,8 @@ class UIIdGenerator
      * This ensures the same component name always gets the same ID,
      * making IDs stable across requests for named components.
      *
-     * @param string $context The calling context (full class name with namespace)
-     * @param string $name The component name
+     * @param  string  $context  The calling context (full class name with namespace)
+     * @param  string  $name  The component name
      * @return int Deterministic ID
      */
     public static function generateFromName(string $context, string $name): int
@@ -131,7 +131,7 @@ class UIIdGenerator
     /**
      * Get context information for debugging
      *
-     * @param string $context Context name
+     * @param  string  $context  Context name
      * @return array<string, mixed> Context information
      */
     public static function getContextInfo(string $context): array
@@ -160,7 +160,7 @@ class UIIdGenerator
 
         self::$usedLocalIdsPerContext[$context][$localId] = true;
 
-        if (!isset(self::$autoIncPerContext[$context]) || self::$autoIncPerContext[$context] < $localId) {
+        if (! isset(self::$autoIncPerContext[$context]) || self::$autoIncPerContext[$context] < $localId) {
             self::$autoIncPerContext[$context] = $localId;
         }
     }
@@ -171,14 +171,15 @@ class UIIdGenerator
      * Uses lazy loading to ensure all registered UI services are mapped.
      * Performance: ~0.001ms (in-memory array lookup)
      *
-     * @param int $id Component ID
+     * @param  int  $id  Component ID
      * @return string|null Context class name or null if not found
      */
     public static function getContextFromId(int $id): ?string
     {
         self::ensureServicesLoaded();
 
-        $offset = (int)floor($id / 10000) * 10000;
+        $offset = (int) floor($id / 10000) * 10000;
+
         return self::$offsetToContext[$offset] ?? null;
     }
 
@@ -187,8 +188,6 @@ class UIIdGenerator
      *
      * Loads the service registry from the generated manifest file.
      * Use 'php artisan usim:discover' to generate it.
-     *
-     * @return void
      */
     private static function ensureServicesLoaded(): void
     {
@@ -198,8 +197,8 @@ class UIIdGenerator
 
         $manifestPath = app()->bootstrapPath('cache/usim_screens.php');
 
-        if (!file_exists($manifestPath)) {
-             $manifest = [];
+        if (! file_exists($manifestPath)) {
+            $manifest = [];
         } else {
             $manifest = require $manifestPath;
         }
@@ -215,8 +214,6 @@ class UIIdGenerator
 
     /**
      * Reset all counters (useful for testing)
-     *
-     * @return void
      */
     public static function reset(): void
     {
@@ -230,7 +227,7 @@ class UIIdGenerator
      * Convierte el nombre de clase en un número único usando hash CRC32
      * Genera offsets en múltiplos de 10000 para evitar colisiones
      *
-     * @param string $context Nombre del contexto (clase invocante)
+     * @param  string  $context  Nombre del contexto (clase invocante)
      * @return int Offset único para el contexto
      */
     private static function getContextOffset(string $context): int

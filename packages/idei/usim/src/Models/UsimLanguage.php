@@ -2,7 +2,6 @@
 
 namespace Idei\Usim\Models;
 
-use Idei\Usim\Models\UsimTextValue;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -33,7 +32,7 @@ class UsimLanguage extends Model
     }
 
     /**
-     * @param Builder<UsimLanguage> $query
+     * @param  Builder<UsimLanguage>  $query
      * @return Builder<UsimLanguage>
      */
     public function scopeByCode(Builder $query, string $code): Builder

@@ -3,21 +3,22 @@
 namespace Idei\Usim;
 
 use Idei\Usim\Components\Button;
-use Idei\Usim\Components\Label;
+use Idei\Usim\Components\Calendar;
+use Idei\Usim\Components\Card;
+use Idei\Usim\Components\Carousel;
+use Idei\Usim\Components\Checkbox;
 use Idei\Usim\Components\Container;
+use Idei\Usim\Components\Form;
+use Idei\Usim\Components\Input;
+use Idei\Usim\Components\Label;
+use Idei\Usim\Components\MenuDropdown;
+use Idei\Usim\Components\Select;
+use Idei\Usim\Components\Split;
 use Idei\Usim\Components\Table;
 use Idei\Usim\Components\TableRow;
-use Idei\Usim\Components\Input;
-use Idei\Usim\Components\Select;
-use Idei\Usim\Components\Checkbox;
-use Idei\Usim\Components\Form;
-use Idei\Usim\Components\MenuDropdown;
-use Idei\Usim\Components\Card;
-use Idei\Usim\Components\Uploader;
-use Idei\Usim\Components\Calendar;
-use Idei\Usim\Components\Carousel;
-use Idei\Usim\Components\Split;
 use Idei\Usim\Components\Timer;
+use Idei\Usim\Components\UIComponent;
+use Idei\Usim\Components\Uploader;
 
 /**
  * UI component factory
@@ -30,8 +31,7 @@ class UI
     /**
      * Create a new button component
      *
-     * @param string|null $name an optional semantic name for the button
-     * @return Button
+     * @param  string|null  $name  an optional semantic name for the button
      */
     public static function button(?string $name = null): Button
     {
@@ -41,8 +41,7 @@ class UI
     /**
      * Create a new label component
      *
-     * @param string|null $name an optional semantic name for the label
-     * @return Label
+     * @param  string|null  $name  an optional semantic name for the label
      */
     public static function label(?string $name = null): Label
     {
@@ -52,10 +51,9 @@ class UI
     /**
      * Create a new table component
      *
-     * @param string|null $name The optional semantic name for the table
-     * @param int $rows Number of data rows (0 for dynamic table)
-     * @param int $cols Number of columns (0 for dynamic table)
-     * @return Table
+     * @param  string|null  $name  The optional semantic name for the table
+     * @param  int  $rows  Number of data rows (0 for dynamic table)
+     * @param  int  $cols  Number of columns (0 for dynamic table)
      */
     public static function table(?string $name = null, int $rows = 0, int $cols = 0): Table
     {
@@ -65,9 +63,8 @@ class UI
     /**
      * Create a new table row component
      *
-     * @param Table $table The parent table this row belongs to
-     * @param string|null $name The optional semantic name for the row
-     * @return TableRow
+     * @param  Table  $table  The parent table this row belongs to
+     * @param  string|null  $name  The optional semantic name for the row
      */
     public static function tableRow(Table $table, ?string $name = null): TableRow
     {
@@ -77,8 +74,7 @@ class UI
     /**
      * Create a new input component
      *
-     * @param string|null $name The optional semantic name for the input
-     * @return Input
+     * @param  string|null  $name  The optional semantic name for the input
      */
     public static function input(?string $name = null): Input
     {
@@ -88,8 +84,7 @@ class UI
     /**
      * Create a new select component
      *
-     * @param string|null $name The optional semantic name for the select
-     * @return Select
+     * @param  string|null  $name  The optional semantic name for the select
      */
     public static function select(?string $name = null): Select
     {
@@ -99,8 +94,7 @@ class UI
     /**
      * Create a new checkbox component
      *
-     * @param string|null $name The optional semantic name for the checkbox
-     * @return Checkbox
+     * @param  string|null  $name  The optional semantic name for the checkbox
      */
     public static function checkbox(?string $name = null): Checkbox
     {
@@ -110,8 +104,7 @@ class UI
     /**
      * Create a new form component
      *
-     * @param string|null $name The optional semantic name for the form
-     * @return Form
+     * @param  string|null  $name  The optional semantic name for the form
      */
     public static function form(?string $name = null): Form
     {
@@ -121,8 +114,7 @@ class UI
     /**
      * Create a new container component
      *
-     * @param string|null $name The optional semantic name for the container
-     * @return Container
+     * @param  string|null  $name  The optional semantic name for the container
      */
     public static function container(?string $name = null, ?string $context = null): Container
     {
@@ -132,8 +124,7 @@ class UI
     /**
      * Create a new menu dropdown component
      *
-     * @param string $name The semantic name for the menu
-     * @return MenuDropdown
+     * @param  string  $name  The semantic name for the menu
      */
     public static function menuDropdown(string $name): MenuDropdown
     {
@@ -143,8 +134,7 @@ class UI
     /**
      * Create a new card component
      *
-     * @param string|null $name The optional semantic name for the card
-     * @return Card
+     * @param  string|null  $name  The optional semantic name for the card
      */
     public static function card(?string $name = null): Card
     {
@@ -154,8 +144,7 @@ class UI
     /**
      * Create a new uploader component
      *
-     * @param string|null $name The optional semantic name for the uploader
-     * @return Uploader
+     * @param  string|null  $name  The optional semantic name for the uploader
      */
     public static function uploader(?string $name = null): Uploader
     {
@@ -165,8 +154,7 @@ class UI
     /**
      * Create a new calendar component
      *
-     * @param string|null $name The optional semantic name for the calendar
-     * @return Calendar
+     * @param  string|null  $name  The optional semantic name for the calendar
      */
     public static function calendar(?string $name = null): Calendar
     {
@@ -176,8 +164,7 @@ class UI
     /**
      * Create a new carousel component
      *
-     * @param string|null $name The optional semantic name for the carousel
-     * @return Carousel
+     * @param  string|null  $name  The optional semantic name for the carousel
      */
     public static function carousel(?string $name = null): Carousel
     {
@@ -187,8 +174,7 @@ class UI
     /**
      * Create a new split container component.
      *
-     * @param string|null $name The optional semantic name for the split container
-     * @return Split
+     * @param  string|null  $name  The optional semantic name for the split container
      */
     public static function split(?string $name = null): Split
     {
@@ -198,20 +184,19 @@ class UI
     /**
      * Create a new textarea component
      *
-     * @param string|null $name The optional semantic name for the textarea
-     * @return \Idei\Usim\Components\UIComponent
+     * @param  string|null  $name  The optional semantic name for the textarea
      */
-    public static function textarea(?string $name = null): \Idei\Usim\Components\UIComponent
+    public static function textarea(?string $name = null): UIComponent
     {
         $textareaClass = 'Idei\\Usim\\Components\\Textarea';
+
         return new $textareaClass($name);
     }
 
     /**
      * Create a new timer component
      *
-     * @param string|null $name The optional semantic name for the timer
-     * @return Timer
+     * @param  string|null  $name  The optional semantic name for the timer
      */
     public static function timer(?string $name = null): Timer
     {

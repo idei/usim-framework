@@ -48,7 +48,7 @@ class UsersSyncService
     }
 
     /**
-     * @param array{users_created: int, users_updated: int, users_deleted: int} $stats
+     * @param  array{users_created: int, users_updated: int, users_deleted: int}  $stats
      */
     private function upsertRootUser(array &$stats, ?UserConfig $rootConfig, string $userModelClass, string $guardName): void
     {
@@ -56,7 +56,7 @@ class UsersSyncService
             throw new \RuntimeException('ROOT_EMAIL must be a valid email to install USIM.');
         }
 
-        if (!class_exists($userModelClass) || !is_subclass_of($userModelClass, Model::class)) {
+        if (! class_exists($userModelClass) || ! is_subclass_of($userModelClass, Model::class)) {
             throw new \RuntimeException("Configured user model [{$userModelClass}] is invalid.");
         }
 
@@ -72,11 +72,11 @@ class UsersSyncService
     }
 
     /**
-     * @param array{users_created: int, users_updated: int, users_deleted: int} $stats
+     * @param  array{users_created: int, users_updated: int, users_deleted: int}  $stats
      */
     private function upsertConfiguredUsers(array &$stats, string $userModelClass, string $guardName): void
     {
-        if (!class_exists($userModelClass) || !is_subclass_of($userModelClass, Model::class)) {
+        if (! class_exists($userModelClass) || ! is_subclass_of($userModelClass, Model::class)) {
             throw new \RuntimeException("Configured user model [{$userModelClass}] is invalid.");
         }
 
@@ -117,13 +117,13 @@ class UsersSyncService
     {
         $defaultGuard = $this->resolveAuthGuardName();
 
-        if (!class_exists($userModelClass) || !is_subclass_of($userModelClass, Model::class)) {
+        if (! class_exists($userModelClass) || ! is_subclass_of($userModelClass, Model::class)) {
             return $defaultGuard;
         }
 
         try {
             /** @var Model $user */
-            $user = new $userModelClass();
+            $user = new $userModelClass;
             $guard = method_exists($user, 'getDefaultGuardName')
                 ? $user->getDefaultGuardName()
                 : $defaultGuard;
@@ -142,9 +142,8 @@ class UsersSyncService
     }
 
     /**
-     * @param array{users_created: int, users_updated: int, users_deleted: int} $stats
-     * @param class-string<Model> $userModelClass
-     * @param UserConfig $userConfig
+     * @param  array{users_created: int, users_updated: int, users_deleted: int}  $stats
+     * @param  class-string<Model>  $userModelClass
      */
     private function upsertSingleUser(
         array &$stats,
@@ -158,7 +157,7 @@ class UsersSyncService
         $email = trim($userConfig->email);
         $password = trim($userConfig->password);
 
-        if ($email === '' || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        if ($email === '' || ! filter_var($email, FILTER_VALIDATE_EMAIL)) {
             if ($forceRootRules) {
                 throw new \RuntimeException('ROOT_EMAIL must be a valid email to install USIM.');
             }
@@ -183,7 +182,7 @@ class UsersSyncService
         $created = false;
 
         if ($user === null) {
-            $user = new $userModelClass();
+            $user = new $userModelClass;
             $created = true;
             $user->setAttribute('email', $email);
             $user->setAttribute('remember_token', Str::random(10));
@@ -198,7 +197,7 @@ class UsersSyncService
 
         $user->save();
 
-        if (!method_exists($user, 'syncRoles')) {
+        if (! method_exists($user, 'syncRoles')) {
             throw new \RuntimeException('User model must use Spatie HasRoles trait to sync roles.');
         }
 
@@ -252,7 +251,7 @@ class UsersSyncService
     }
 
     /**
-     * @param array<int, string> $roles
+     * @param  array<int, string>  $roles
      * @return array<int, string>
      */
     private function ensureRolesExist(array $roles, string $guardName, string $fallbackRole = 'registered'): array

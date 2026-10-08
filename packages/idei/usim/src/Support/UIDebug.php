@@ -12,20 +12,23 @@ use Illuminate\Support\Facades\Log;
 class UIDebug
 {
     public const LEVEL_INFO = 'info';
+
     public const LEVEL_DEBUG = 'debug';
+
     public const LEVEL_ERROR = 'error';
+
     public const LEVEL_WARNING = 'warning';
 
     /**
-     * @param array<string, mixed>|string $context
+     * @param  array<string, mixed>|string  $context
      */
-    public static function log(string $message, array | string $context = []): void
+    public static function log(string $message, array|string $context = []): void
     {
         self::_log(self::LEVEL_DEBUG, $message, $context);
     }
 
     /**
-     * @param array<string, mixed> $context
+     * @param  array<string, mixed>  $context
      */
     public static function info(string $message, array $context = []): void
     {
@@ -33,39 +36,40 @@ class UIDebug
     }
 
     /**
-     * @param array<string, mixed>|string $context
+     * @param  array<string, mixed>|string  $context
      */
-    public static function debug(string $message, array | string $context = []): void
+    public static function debug(string $message, array|string $context = []): void
     {
         self::_log(self::LEVEL_DEBUG, $message, $context);
     }
 
     /**
-     * @param array<string, mixed>|string $context
+     * @param  array<string, mixed>|string  $context
      */
-    public static function error(string $message, array | string $context = []): void
+    public static function error(string $message, array|string $context = []): void
     {
         self::_log(self::LEVEL_ERROR, $message, $context);
     }
 
     /**
-     * @param array<string, mixed>|string $context
+     * @param  array<string, mixed>|string  $context
      */
-    public static function warning(string $message, array | string $context = []): void
+    public static function warning(string $message, array|string $context = []): void
     {
         self::_log(self::LEVEL_WARNING, $message, $context);
     }
 
     /**
      * Log a debug message
-     * @param string $message Debug message
-        * @param array<string, mixed>|string $context Additional context data
-     * @return void
+     *
+     * @param  string  $message  Debug message
+     * @param  array<string, mixed>|string  $context  Additional context data
      */
-    private static function _log(string $level,string $message, array | string $context = []): void
+    private static function _log(string $level, string $message, array|string $context = []): void
     {
         if (\is_string($context)) {
             Log::$level("$message: $context");
+
             return;
         }
 
@@ -73,6 +77,6 @@ class UIDebug
             $context,
             JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE
         );
-        Log::$level("$message:\n" . $formatted);
+        Log::$level("$message:\n".$formatted);
     }
 }

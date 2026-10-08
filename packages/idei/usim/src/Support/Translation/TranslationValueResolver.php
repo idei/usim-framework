@@ -21,7 +21,7 @@ class TranslationValueResolver
             ->with(['language', 'textKey'])
             ->first();
 
-        if (!$entry) {
+        if (! $entry) {
             return null;
         }
 
@@ -36,7 +36,7 @@ class TranslationValueResolver
     }
 
     /**
-     * @param array<string, mixed> $params
+     * @param  array<string, mixed>  $params
      */
     public function getValue(string $key, array $params = [], ?string $languageCode = null): string
     {
@@ -56,7 +56,7 @@ class TranslationValueResolver
     {
         $entry = $this->resolveValueEntry($key, $languageCode);
 
-        if (!$entry) {
+        if (! $entry) {
             return null;
         }
 
@@ -104,7 +104,7 @@ class TranslationValueResolver
     }
 
     /**
-     * @param array<string, mixed> $params
+     * @param  array<string, mixed>  $params
      */
     private function replaceParams(string $value, array $params): string
     {
@@ -114,7 +114,7 @@ class TranslationValueResolver
 
         $replacePairs = [];
         foreach ($params as $name => $replacement) {
-            $replacePairs[':' . $name] = $this->stringifyReplacement($replacement);
+            $replacePairs[':'.$name] = $this->stringifyReplacement($replacement);
         }
 
         return strtr($value, $replacePairs);

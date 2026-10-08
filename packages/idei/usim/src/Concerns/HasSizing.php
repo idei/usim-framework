@@ -1,13 +1,13 @@
 <?php
 
 // Concerns/HasSizing.php
+
 namespace Idei\Usim\Concerns;
 
 use Idei\Usim\ValueObjects\Size;
 
 trait HasSizing
 {
-
     // Explicit contract for setConfig to ensure it's implemented in the using class
     abstract protected function setConfig(string $key, mixed $value): static;
 

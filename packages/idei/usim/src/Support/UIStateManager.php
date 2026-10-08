@@ -654,10 +654,10 @@ class UIStateManager
      */
     public static function setActiveUnit(?string $slug, ?string $clientId = null): void
     {
-        if ($slug === null || $slug === "") {
-            self::clearKeyValue("active_unit", $clientId);
+        if ($slug === null || $slug === '') {
+            self::clearKeyValue('active_unit', $clientId);
         } else {
-            self::storeKeyValue("active_unit", $slug, $clientId);
+            self::storeKeyValue('active_unit', $slug, $clientId);
         }
     }
 
@@ -666,8 +666,8 @@ class UIStateManager
      */
     public static function getActiveUnit(?string $clientId = null): ?string
     {
-        $slug = self::getKeyValue("active_unit", $clientId);
+        $slug = self::getKeyValue('active_unit', $clientId);
 
-        return \is_string($slug) && $slug !== "" ? $slug : null;
+        return \is_string($slug) && $slug !== '' ? $slug : null;
     }
 }

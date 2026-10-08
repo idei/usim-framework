@@ -6,30 +6,36 @@ use Idei\Usim\Console\Commands\DiscoverScreensCommand;
 use Idei\Usim\Console\Commands\InstallCommand;
 use Idei\Usim\Console\Commands\UsimScaffold;
 use Idei\Usim\Console\Commands\UsimSyncCommand;
+use Idei\Usim\Contracts\ScreenAuthorizerInterface;
+use Idei\Usim\Contracts\UnitContextResolverInterface;
+use Idei\Usim\Contracts\UnitsServiceInterface;
 use Idei\Usim\Events\UsimEvent;
+use Idei\Usim\Jobs\CleanTemporaryUploadsJob;
 use Idei\Usim\Listeners\UsimEventDispatcher;
 use Idei\Usim\Models\UsimRole;
+use Idei\Usim\Support\SpatieScreenAuthorizer;
 use Idei\Usim\Support\Translation\TranslationDatasetQuery;
 use Idei\Usim\Support\Translation\TranslationKeyManager;
 use Idei\Usim\Support\Translation\TranslationValueResolver;
 use Idei\Usim\Support\TranslationService;
 use Idei\Usim\Support\UIIdGenerator;
-use Idei\Usim\UIChangesCollector;
+use Idei\Usim\Support\UsimConfig;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Contracts\Events\Dispatcher;
 use Illuminate\Support\ServiceProvider;
+use Laravel\Octane\Events\RequestReceived;
 
 class UsimServiceProvider extends ServiceProvider
 {
     public function register(): void
     {
         $this->mergeConfigFrom(
-            __DIR__ . '/../config/usim.php',
+            __DIR__.'/../config/usim.php',
             'usim'
         );
 
         $this->app->scoped(UIChangesCollector::class, function ($app) {
-            return new UIChangesCollector();
+            return new UIChangesCollector;
         });
 
         $this->app->singleton(TranslationService::class, function ($app) {
@@ -40,9 +46,28 @@ class UsimServiceProvider extends ServiceProvider
             );
         });
 
-        $this->app->singleton(\Idei\Usim\Support\UsimConfig::class, function () {
-            return new \Idei\Usim\Support\UsimConfig();
+        $this->app->singleton(UsimConfig::class, function () {
+            return new UsimConfig;
         });
+
+        $this->app->singleton(
+            ScreenAuthorizerInterface::class,
+            SpatieScreenAuthorizer::class
+        );
+
+        if (class_exists('App\\Services\\Units\\UnitContextResolver')) {
+            $this->app->bind(
+                UnitContextResolverInterface::class,
+                'App\\Services\\Units\\UnitContextResolver'
+            );
+        }
+
+        if (class_exists('App\\Services\\Units\\UnitsService')) {
+            $this->app->bind(
+                UnitsServiceInterface::class,
+                'App\\Services\\Units\\UnitsService'
+            );
+        }
 
         $this->commands([
             DiscoverScreensCommand::class,
@@ -54,33 +79,33 @@ class UsimServiceProvider extends ServiceProvider
 
     public function boot(Dispatcher $events): void
     {
-        $this->loadRoutesFrom(__DIR__ . '/../routes/api.php');
-        $this->loadViewsFrom(__DIR__ . '/../resources/views', 'usim');
-        $this->loadTranslationsFrom(__DIR__ . '/../lang', 'usim');
+        $this->loadRoutesFrom(__DIR__.'/../routes/api.php');
+        $this->loadViewsFrom(__DIR__.'/../resources/views', 'usim');
+        $this->loadTranslationsFrom(__DIR__.'/../lang', 'usim');
 
         if ($this->app->runningInConsole()) {
             $this->publishes([
-                __DIR__ . '/../resources/assets' => public_path('vendor/idei/usim'),
+                __DIR__.'/../resources/assets' => public_path('vendor/idei/usim'),
             ], 'usim-assets');
         }
 
         // Programar limpieza de archivos temporales (Self-healing maintenance)
         $this->callAfterResolving(Schedule::class, function (Schedule $schedule) {
-            $schedule->job(new \Idei\Usim\Jobs\CleanTemporaryUploadsJob)->hourly();
+            $schedule->job(new CleanTemporaryUploadsJob)->hourly();
         });
 
         // Registrar Evento del Sistema
         $events->listen(UsimEvent::class, UsimEventDispatcher::class);
 
         // Listener para resetear estado en Octane/RoadRunner
-        if (class_exists(\Laravel\Octane\Events\RequestReceived::class)) {
-            $events->listen(\Laravel\Octane\Events\RequestReceived::class, function () {
+        if (class_exists(RequestReceived::class)) {
+            $events->listen(RequestReceived::class, function () {
                 UIIdGenerator::reset();
             });
         }
 
         $this->publishes([
-            __DIR__ . '/../config/usim.php' => config_path('usim.php'),
+            __DIR__.'/../config/usim.php' => config_path('usim.php'),
         ], 'usim-config');
 
         // Forzamos a Spatie a usar el modelo de Roles extendido de USIM
@@ -108,7 +133,7 @@ class UsimServiceProvider extends ServiceProvider
             'auth.guards.device' => [
                 'driver' => 'session',
                 'provider' => 'devices',
-            ]
+            ],
         ]);
     }
 }

@@ -3,6 +3,7 @@
 namespace Idei\Usim\Http\Controllers;
 
 use Idei\Usim\Screen;
+use Idei\Usim\Support\UIIdGenerator;
 use Idei\Usim\Support\UIStateManager;
 use Idei\Usim\UIChangesCollector;
 use Illuminate\Http\JsonResponse;
@@ -209,14 +210,15 @@ class UIController extends Controller
         }
 
         // 4. Caller is Menu (Menu is shared across all screen pages that display menu)
-        if (class_basename($callerClass) === 'Menu' || is_a($callerClass, \App\UI\Screens\Menu::class, true)) {
+        $defaultMenuScreen = config('usim.default_menu_screen', 'App\\UI\\Screens\\Menu');
+        if (class_basename($callerClass) === 'Menu' || (is_string($defaultMenuScreen) && is_a($callerClass, $defaultMenuScreen, true))) {
             return true;
         }
 
         // 5. Caller was an embedded/opened screen for this client
         $openedScreenIds = UIStateManager::getClientOpenedScreens();
         foreach ($openedScreenIds as $openedId) {
-            $context = \Idei\Usim\Support\UIIdGenerator::getContextFromId((int) $openedId);
+            $context = UIIdGenerator::getContextFromId((int) $openedId);
             if ($context === $callerClass) {
                 return true;
             }

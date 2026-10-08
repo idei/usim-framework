@@ -2,6 +2,8 @@
 
 namespace Idei\Usim\Support;
 
+use App\Models\Device;
+use App\Models\User;
 use Idei\Usim\Screen;
 use Idei\Usim\Support\Config\DeviceConfig;
 use Idei\Usim\Support\Config\I18nConfig;
@@ -16,14 +18,23 @@ final class UsimConfig
 {
     // Escalares Base
     public private(set) string $appName;
+
     public private(set) string $apiUrl;
+
     public private(set) string $frontStoreKey;
+
     public private(set) string $screensNamespace;
+
     public private(set) string $screensPath;
+
     public private(set) string $uploadDisk;
+
     public private(set) bool $headlessMode;
+
     public private(set) string $defaultRegisteringRole;
+
     public private(set) string $defaultLayout;
+
     public private(set) string $defaultMenuScreen;
 
     /** @var array<string, string> */
@@ -36,7 +47,6 @@ final class UsimConfig
     /** @var array<string, UserConfig> */
     public private(set) array $users = [];
 
-    /** @var UserConfig|null */
     public private(set) ?UserConfig $rootUser = null;
 
     /** @var array<string, DeviceConfig> */
@@ -48,7 +58,6 @@ final class UsimConfig
     /** @var array<string, PermissionConfig> */
     public private(set) array $permissions = [];
 
-    /** @var I18nConfig */
     public private(set) I18nConfig $i18n;
 
     /** @var array<string, mixed> */
@@ -57,7 +66,7 @@ final class UsimConfig
     public function __construct()
     {
         $raw = config('usim');
-        if (!\is_array($raw)) {
+        if (! \is_array($raw)) {
             $raw = [];
         }
 
@@ -79,8 +88,8 @@ final class UsimConfig
         // 2. Modelos
         $rawModels = \is_array($raw['models'] ?? null) ? $raw['models'] : [];
         $this->models = [
-            'user' => \is_string($rawModels['user'] ?? null) ? $rawModels['user'] : \App\Models\User::class,
-            'device' => \is_string($rawModels['device'] ?? null) ? $rawModels['device'] : \App\Models\Device::class,
+            'user' => \is_string($rawModels['user'] ?? null) ? $rawModels['user'] : User::class,
+            'device' => \is_string($rawModels['device'] ?? null) ? $rawModels['device'] : Device::class,
         ];
 
         // 3. Unidades (Units)
@@ -139,7 +148,7 @@ final class UsimConfig
         $this->i18n = new I18nConfig(
             defaultLocale: \is_string($rawI18n['default_locale'] ?? null) ? $rawI18n['default_locale'] : 'en',
             fallbackLocale: \is_string($rawI18n['fallback_locale'] ?? null) ? $rawI18n['fallback_locale'] : 'en',
-            autoKeyMaxLength: \is_numeric($rawI18n['auto_key_max_length'] ?? null) ? (int)$rawI18n['auto_key_max_length'] : 30,
+            autoKeyMaxLength: \is_numeric($rawI18n['auto_key_max_length'] ?? null) ? (int) $rawI18n['auto_key_max_length'] : 30,
             logChannel: \is_string($rawI18n['log_channel'] ?? null) ? $rawI18n['log_channel'] : 'i18n',
             logAutokeySuggestions: \is_bool($rawI18n['log_autokey_suggestions'] ?? null) ? $rawI18n['log_autokey_suggestions'] : true,
             languages: $languages,
@@ -158,7 +167,7 @@ final class UsimConfig
 
                 $this->roles[$name] = new RoleConfig(
                     defaultTranslations: $parsedTranslations,
-                    priority: \is_numeric($meta['priority'] ?? null) ? (int)$meta['priority'] : 10,
+                    priority: \is_numeric($meta['priority'] ?? null) ? (int) $meta['priority'] : 10,
                     homeScreen: \is_string($meta['home_screen'] ?? null) ? $meta['home_screen'] : null,
                     permissions: $parsedPermissions,
                     guardName: \is_string($meta['guard_name'] ?? null) ? $meta['guard_name'] : 'web'
@@ -183,6 +192,7 @@ final class UsimConfig
 
                 if ($slug === 'root') {
                     $this->rootUser = $userConfig;
+
                     continue;
                 }
 
@@ -214,6 +224,7 @@ final class UsimConfig
         get {
             /** @var array<int, string> $cached */
             $cached = $this->memoizationCache['roleNames'] ??= array_keys($this->roles);
+
             return $cached;
         }
     }
@@ -224,8 +235,9 @@ final class UsimConfig
             /** @var array<string, RoleConfig> $cached */
             $cached = $this->memoizationCache['deviceRoles'] ??= array_filter(
                 $this->roles,
-                fn(RoleConfig $role) => $role->guardName === 'device'
+                fn (RoleConfig $role) => $role->guardName === 'device'
             );
+
             return $cached;
         }
     }
@@ -236,14 +248,16 @@ final class UsimConfig
             /** @var array<int, string> $cached */
             $cached = $this->memoizationCache['activeLanguageCodes'] ??= array_values(array_unique(array_filter(
                 array_map(
-                    static fn(LanguageConfig $lang): string => $lang->active ? trim($lang->code) : '',
+                    static fn (LanguageConfig $lang): string => $lang->active ? trim($lang->code) : '',
                     $this->i18n->languages
                 ),
-                static fn(string $code): bool => $code !== ''
+                static fn (string $code): bool => $code !== ''
             )));
+
             return $cached;
         }
     }
+
     /**
      * Resolve a screen class from a route slug (e.g. 'admin/users-manager' -> 'App\UI\Screens\Admin\UsersManager').
      *

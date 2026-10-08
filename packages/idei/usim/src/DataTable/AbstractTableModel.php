@@ -69,8 +69,6 @@ abstract class AbstractTableModel
 
     /**
      * Get total number of items
-     *
-     * @return int
      */
     public function getTotalItems(): int
     {
@@ -81,33 +79,25 @@ abstract class AbstractTableModel
      * Count total items
      * Default implementation counts getAllData()
      * Override for more efficient counting
-     *
-     * @return int
      */
     abstract protected function countTotal(): int;
 
     /**
      * Updates the content of the row.
      *
-     * @param int $rowIndex Row index to update, in the current page
-     * @param array<string, mixed> $newData New data for the row.
-     * @return void
+     * @param  int  $rowIndex  Row index to update, in the current page
+     * @param  array<string, mixed>  $newData  New data for the row.
      */
-    public function updateRow(int $rowIndex, array $newData): void
-    {
-    }
+    public function updateRow(int $rowIndex, array $newData): void {}
 
     /**
      * Updates the content of a specific cell.
      *
-     * @param int $rowIndex Row index to update, in the current page
-     * @param int $columnIndex Column index to update
-     * @param mixed $newValue New value for the cell.
-     * @return void
+     * @param  int  $rowIndex  Row index to update, in the current page
+     * @param  int  $columnIndex  Column index to update
+     * @param  mixed  $newValue  New value for the cell.
      */
-    public function updateCell(int $rowIndex, int $columnIndex, $newValue): void
-    {
-    }
+    public function updateCell(int $rowIndex, int $columnIndex, $newValue): void {}
 
     /**
      * Get the configuration for "removed" row display
@@ -137,7 +127,7 @@ abstract class AbstractTableModel
     /**
      * Get removal values for all columns based on configuration
      *
-     * @param int $columnCount The number of columns
+     * @param  int  $columnCount  The number of columns
      * @return list<string> Values for each column when row is removed
      */
     public function getRemovalValues(int $columnCount): array

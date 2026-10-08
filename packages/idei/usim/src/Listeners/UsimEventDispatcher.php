@@ -6,6 +6,7 @@ use Idei\Usim\Events\UsimEvent;
 use Idei\Usim\Screen;
 use Idei\Usim\Support\UIIdGenerator;
 use Idei\Usim\Support\UIStateManager;
+use Idei\Usim\UIChangesCollector;
 
 class UsimEventDispatcher
 {
@@ -85,9 +86,9 @@ class UsimEventDispatcher
             }
         }
 
-        if (app()->bound(\Idei\Usim\UIChangesCollector::class)) {
-            /** @var \Idei\Usim\UIChangesCollector $collector */
-            $collector = app(\Idei\Usim\UIChangesCollector::class);
+        if (app()->bound(UIChangesCollector::class)) {
+            /** @var UIChangesCollector $collector */
+            $collector = app(UIChangesCollector::class);
             $incomingStorage = array_merge($incomingStorage, $collector->getStorage());
         }
 

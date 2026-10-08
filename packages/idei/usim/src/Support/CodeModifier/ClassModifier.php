@@ -3,15 +3,22 @@
 namespace Idei\Usim\Support\CodeModifier;
 
 use PhpParser\Node;
+use PhpParser\Node\Expr\Array_;
+use PhpParser\Node\Expr\ArrayItem;
 use PhpParser\Node\Identifier;
+use PhpParser\Node\Name;
+use PhpParser\Node\Scalar\String_;
 use PhpParser\Node\Stmt\Class_;
+use PhpParser\Node\Stmt\ClassMethod;
+use PhpParser\Node\Stmt\Namespace_;
+use PhpParser\Node\Stmt\Property;
+use PhpParser\Node\Stmt\Return_;
 use PhpParser\Node\Stmt\TraitUse;
 use PhpParser\Node\Stmt\Use_;
 use PhpParser\Node\Stmt\UseUse;
-use PhpParser\Node\Stmt\Namespace_;
-use PhpParser\ParserFactory;
 use PhpParser\NodeTraverser;
 use PhpParser\NodeVisitorAbstract;
+use PhpParser\ParserFactory;
 use PhpParser\PrettyPrinter\Standard;
 
 class ClassModifier
@@ -21,7 +28,7 @@ class ClassModifier
         string $className,
         string $traitFQN
     ): void {
-        if (!file_exists($filePath)) {
+        if (! file_exists($filePath)) {
             return;
         }
 
@@ -30,7 +37,7 @@ class ClassModifier
             return;
         }
 
-        $parser = (new ParserFactory())->createForNewestSupportedVersion();
+        $parser = (new ParserFactory)->createForNewestSupportedVersion();
         $ast = $parser->parse($code);
 
         if ($ast === null) {
@@ -38,7 +45,6 @@ class ClassModifier
         }
 
         /** @var array<int, Node> $ast */
-
         $traitShort = class_basename($traitFQN);
 
         $namespaceFound = false;
@@ -49,76 +55,76 @@ class ClassModifier
             }
         }
 
-        $traverser = new NodeTraverser();
+        $traverser = new NodeTraverser;
 
         $traverser->addVisitor(
-            new class ($className, $traitFQN, $traitShort) extends NodeVisitorAbstract {
-
-            public function __construct(
-            private string $className,
-            private string $traitFQN,
-            private string $traitShort
-            ) {}
-
-            public function enterNode(Node $node): ?Node
+            new class($className, $traitFQN, $traitShort) extends NodeVisitorAbstract
             {
-                // Detectar namespace
-                if ($node instanceof Namespace_) {
-                    $hasImport = false;
+                public function __construct(
+                    private string $className,
+                    private string $traitFQN,
+                    private string $traitShort
+                ) {}
 
-                    foreach ($node->stmts as $stmt) {
-                        if ($stmt instanceof Use_) {
-                            foreach ($stmt->uses as $use) {
-                                if ($use->name->toString() === $this->traitFQN) {
-                                    $hasImport = true;
+                public function enterNode(Node $node): ?Node
+                {
+                    // Detectar namespace
+                    if ($node instanceof Namespace_) {
+                        $hasImport = false;
+
+                        foreach ($node->stmts as $stmt) {
+                            if ($stmt instanceof Use_) {
+                                foreach ($stmt->uses as $use) {
+                                    if ($use->name->toString() === $this->traitFQN) {
+                                        $hasImport = true;
+                                    }
                                 }
                             }
                         }
-                    }
 
-                    if (!$hasImport) {
-                        array_unshift($node->stmts, new Use_([
-                            new UseUse(new Node\Name($this->traitFQN))
-                        ]));
-                    }
-                }
-
-                // Agregar trait a la clase
-                if (
-                    $node instanceof Class_
-                    && $node->name instanceof Identifier
-                    && $node->name->toString() === $this->className
-                ) {
-
-                    $hasTrait = false;
-
-                    foreach ($node->stmts as $stmt) {
-                        if ($stmt instanceof TraitUse) {
-                            foreach ($stmt->traits as $trait) {
-                                if ($trait->toString() === $this->traitShort) {
-                                    $hasTrait = true;
-                                }
-                            }
+                        if (! $hasImport) {
+                            array_unshift($node->stmts, new Use_([
+                                new UseUse(new Name($this->traitFQN)),
+                            ]));
                         }
                     }
 
-                    if (!$hasTrait) {
-                        array_unshift(
-                            $node->stmts,
-                            new TraitUse([new Node\Name($this->traitShort)])
-                        );
-                    }
-                }
+                    // Agregar trait a la clase
+                    if (
+                        $node instanceof Class_
+                        && $node->name instanceof Identifier
+                        && $node->name->toString() === $this->className
+                    ) {
 
-                return null;
-            }
+                        $hasTrait = false;
+
+                        foreach ($node->stmts as $stmt) {
+                            if ($stmt instanceof TraitUse) {
+                                foreach ($stmt->traits as $trait) {
+                                    if ($trait->toString() === $this->traitShort) {
+                                        $hasTrait = true;
+                                    }
+                                }
+                            }
+                        }
+
+                        if (! $hasTrait) {
+                            array_unshift(
+                                $node->stmts,
+                                new TraitUse([new Name($this->traitShort)])
+                            );
+                        }
+                    }
+
+                    return null;
+                }
             }
         );
 
         $ast = $traverser->traverse($ast);
 
         // Caso sin namespace → agregar use al root
-        if (!$namespaceFound) {
+        if (! $namespaceFound) {
             $hasImport = false;
 
             foreach ($ast as $node) {
@@ -131,14 +137,14 @@ class ClassModifier
                 }
             }
 
-            if (!$hasImport) {
+            if (! $hasImport) {
                 array_unshift($ast, new Use_([
-                    new UseUse(new Node\Name($traitFQN))
+                    new UseUse(new Name($traitFQN)),
                 ]));
             }
         }
 
-        $printer = new Standard();
+        $printer = new Standard;
         file_put_contents($filePath, $printer->prettyPrintFile($ast));
     }
 
@@ -147,7 +153,7 @@ class ClassModifier
         string $className,
         string $interfaceFQN
     ): void {
-        if (!file_exists($filePath)) {
+        if (! file_exists($filePath)) {
             return;
         }
 
@@ -156,7 +162,7 @@ class ClassModifier
             return;
         }
 
-        $parser = (new ParserFactory())->createForNewestSupportedVersion();
+        $parser = (new ParserFactory)->createForNewestSupportedVersion();
         $ast = $parser->parse($code);
 
         if ($ast === null) {
@@ -164,7 +170,6 @@ class ClassModifier
         }
 
         /** @var array<int, Node> $ast */
-
         $interfaceShort = class_basename($interfaceFQN);
 
         $namespaceFound = false;
@@ -175,74 +180,74 @@ class ClassModifier
             }
         }
 
-        $traverser = new NodeTraverser();
+        $traverser = new NodeTraverser;
 
         $traverser->addVisitor(
-            new class ($className, $interfaceFQN, $interfaceShort) extends NodeVisitorAbstract {
-
-            public function __construct(
-            private string $className,
-            private string $interfaceFQN,
-            private string $interfaceShort
-            ) {}
-
-            public function enterNode(Node $node): ?Node
+            new class($className, $interfaceFQN, $interfaceShort) extends NodeVisitorAbstract
             {
-                // Manejo de namespace (imports)
-                if ($node instanceof Namespace_) {
-                    $hasImport = false;
+                public function __construct(
+                    private string $className,
+                    private string $interfaceFQN,
+                    private string $interfaceShort
+                ) {}
 
-                    foreach ($node->stmts as $stmt) {
-                        if ($stmt instanceof Use_) {
-                            foreach ($stmt->uses as $use) {
-                                if ($use->name->toString() === $this->interfaceFQN) {
-                                    $hasImport = true;
+                public function enterNode(Node $node): ?Node
+                {
+                    // Manejo de namespace (imports)
+                    if ($node instanceof Namespace_) {
+                        $hasImport = false;
+
+                        foreach ($node->stmts as $stmt) {
+                            if ($stmt instanceof Use_) {
+                                foreach ($stmt->uses as $use) {
+                                    if ($use->name->toString() === $this->interfaceFQN) {
+                                        $hasImport = true;
+                                    }
                                 }
                             }
                         }
-                    }
 
-                    if (!$hasImport) {
-                        array_unshift($node->stmts, new Use_([
-                            new UseUse(new Node\Name($this->interfaceFQN))
-                        ]));
-                    }
-                }
-
-                // Agregar interface a la clase
-                if (
-                    $node instanceof Class_
-                    && $node->name instanceof Identifier
-                    && $node->name->toString() === $this->className
-                ) {
-
-                    $hasInterface = false;
-
-                    foreach ($node->implements as $impl) {
-                        if (
-                            (
-                                $impl->toString() === $this->interfaceShort ||
-                                $impl->toString() === $this->interfaceFQN
-                            )
-                        ) {
-                            $hasInterface = true;
+                        if (! $hasImport) {
+                            array_unshift($node->stmts, new Use_([
+                                new UseUse(new Name($this->interfaceFQN)),
+                            ]));
                         }
                     }
 
-                    if (!$hasInterface) {
-                        $node->implements[] = new \PhpParser\Node\Name($this->interfaceShort);
-                    }
-                }
+                    // Agregar interface a la clase
+                    if (
+                        $node instanceof Class_
+                        && $node->name instanceof Identifier
+                        && $node->name->toString() === $this->className
+                    ) {
 
-                return null;
-            }
+                        $hasInterface = false;
+
+                        foreach ($node->implements as $impl) {
+                            if (
+                                (
+                                    $impl->toString() === $this->interfaceShort ||
+                                    $impl->toString() === $this->interfaceFQN
+                                )
+                            ) {
+                                $hasInterface = true;
+                            }
+                        }
+
+                        if (! $hasInterface) {
+                            $node->implements[] = new Name($this->interfaceShort);
+                        }
+                    }
+
+                    return null;
+                }
             }
         );
 
         $ast = $traverser->traverse($ast);
 
         // Caso sin namespace → agregar import en root
-        if (!$namespaceFound) {
+        if (! $namespaceFound) {
             $hasImport = false;
 
             foreach ($ast as $node) {
@@ -255,14 +260,14 @@ class ClassModifier
                 }
             }
 
-            if (!$hasImport) {
+            if (! $hasImport) {
                 array_unshift($ast, new Use_([
-                    new UseUse(new Node\Name($interfaceFQN))
+                    new UseUse(new Name($interfaceFQN)),
                 ]));
             }
         }
 
-        $printer = new Standard();
+        $printer = new Standard;
         file_put_contents($filePath, $printer->prettyPrintFile($ast));
     }
 
@@ -272,7 +277,7 @@ class ClassModifier
         string $propertyName,
         string $value
     ): void {
-        if (!file_exists($filePath)) {
+        if (! file_exists($filePath)) {
             return;
         }
 
@@ -281,7 +286,7 @@ class ClassModifier
             return;
         }
 
-        $parser = (new ParserFactory())->createForNewestSupportedVersion();
+        $parser = (new ParserFactory)->createForNewestSupportedVersion();
         $ast = $parser->parse($code);
 
         if ($ast === null) {
@@ -289,63 +294,62 @@ class ClassModifier
         }
 
         /** @var array<int, Node> $ast */
-
-        $traverser = new NodeTraverser();
+        $traverser = new NodeTraverser;
 
         $traverser->addVisitor(
-            new class ($className, $propertyName, $value) extends NodeVisitorAbstract {
-
-            public function __construct(
-            private string $className,
-            private string $propertyName,
-            private string $value
-            ) {}
-
-            public function enterNode(Node $node): ?Node
+            new class($className, $propertyName, $value) extends NodeVisitorAbstract
             {
-                if (
-                    $node instanceof Class_
-                    && $node->name instanceof Identifier
-                    && $node->name->toString() === $this->className
-                ) {
+                public function __construct(
+                    private string $className,
+                    private string $propertyName,
+                    private string $value
+                ) {}
 
-                    foreach ($node->stmts as $stmt) {
+                public function enterNode(Node $node): ?Node
+                {
+                    if (
+                        $node instanceof Class_
+                        && $node->name instanceof Identifier
+                        && $node->name->toString() === $this->className
+                    ) {
 
-                        if ($stmt instanceof \PhpParser\Node\Stmt\Property) {
+                        foreach ($node->stmts as $stmt) {
 
-                            if (
-                                $stmt->props[0]->name->toString() === $this->propertyName
-                            ) {
+                            if ($stmt instanceof Property) {
 
-                                $prop = $stmt->props[0];
+                                if (
+                                    $stmt->props[0]->name->toString() === $this->propertyName
+                                ) {
 
-                                if ($prop->default instanceof \PhpParser\Node\Expr\Array_) {
+                                    $prop = $stmt->props[0];
 
-                                    foreach ($prop->default->items as $item) {
-                                        if ($item->value instanceof \PhpParser\Node\Scalar\String_) {
-                                            if ($item->value->value === $this->value) {
-                                                return null;
+                                    if ($prop->default instanceof Array_) {
+
+                                        foreach ($prop->default->items as $item) {
+                                            if ($item->value instanceof String_) {
+                                                if ($item->value->value === $this->value) {
+                                                    return null;
+                                                }
                                             }
                                         }
-                                    }
 
-                                    $prop->default->items[] = new \PhpParser\Node\Expr\ArrayItem(
-                                        new \PhpParser\Node\Scalar\String_($this->value)
-                                    );
+                                        $prop->default->items[] = new ArrayItem(
+                                            new String_($this->value)
+                                        );
+                                    }
                                 }
                             }
                         }
                     }
-                }
 
-                return null;
-            }
+                    return null;
+                }
             }
         );
 
         $ast = $traverser->traverse($ast);
 
-        $printer = new Standard();
+        $printer = new Standard;
         file_put_contents($filePath, $printer->prettyPrintFile($ast));
     }
 
@@ -355,7 +359,7 @@ class ClassModifier
         string $field,
         string $type
     ): void {
-        if (!file_exists($filePath)) {
+        if (! file_exists($filePath)) {
             return;
         }
 
@@ -364,7 +368,7 @@ class ClassModifier
             return;
         }
 
-        $parser = (new ParserFactory())->createForNewestSupportedVersion();
+        $parser = (new ParserFactory)->createForNewestSupportedVersion();
         $ast = $parser->parse($code);
 
         if ($ast === null) {
@@ -372,96 +376,95 @@ class ClassModifier
         }
 
         /** @var array<int, Node> $ast */
-
-        $traverser = new NodeTraverser();
+        $traverser = new NodeTraverser;
 
         $traverser->addVisitor(
-            new class ($className, $field, $type) extends NodeVisitorAbstract {
-
-            public function __construct(
-            private string $className,
-            private string $field,
-            private string $type
-            ) {}
-
-            public function enterNode(Node $node): ?Node
+            new class($className, $field, $type) extends NodeVisitorAbstract
             {
-                if (
-                    $node instanceof Class_
-                    && $node->name instanceof Identifier
-                    && $node->name->toString() === $this->className
-                ) {
+                public function __construct(
+                    private string $className,
+                    private string $field,
+                    private string $type
+                ) {}
 
-                    foreach ($node->stmts as $stmt) {
+                public function enterNode(Node $node): ?Node
+                {
+                    if (
+                        $node instanceof Class_
+                        && $node->name instanceof Identifier
+                        && $node->name->toString() === $this->className
+                    ) {
 
-                        // Caso 1: método casts()
-                        if (
-                        $stmt instanceof \PhpParser\Node\Stmt\ClassMethod
-                        && $stmt->name->toString() === 'casts'
-                        ) {
+                        foreach ($node->stmts as $stmt) {
 
-                            if ($stmt->stmts === null) {
-                                continue;
+                            // Caso 1: método casts()
+                            if (
+                                $stmt instanceof ClassMethod
+                                && $stmt->name->toString() === 'casts'
+                            ) {
+
+                                if ($stmt->stmts === null) {
+                                    continue;
+                                }
+
+                                foreach ($stmt->stmts as $methodStmt) {
+
+                                    if (
+                                        $methodStmt instanceof Return_
+                                        && $methodStmt->expr instanceof Array_
+                                    ) {
+
+                                        foreach ($methodStmt->expr->items as $item) {
+                                            if ($item->key instanceof String_) {
+                                                if ($item->key->value === $this->field) {
+                                                    return null;
+                                                }
+                                            }
+                                        }
+
+                                        $methodStmt->expr->items[] = new ArrayItem(
+                                            new String_($this->type),
+                                            new String_($this->field)
+                                        );
+                                    }
+                                }
                             }
 
-                            foreach ($stmt->stmts as $methodStmt) {
+                            // Caso 2: propiedad $casts
+                            if (
+                                $stmt instanceof Property
+                                && $stmt->props[0]->name->toString() === 'casts'
+                            ) {
 
-                                if (
-                                $methodStmt instanceof \PhpParser\Node\Stmt\Return_
-                                && $methodStmt->expr instanceof \PhpParser\Node\Expr\Array_
-                                ) {
+                                $prop = $stmt->props[0];
 
-                                    foreach ($methodStmt->expr->items as $item) {
-                                        if ($item->key instanceof \PhpParser\Node\Scalar\String_) {
+                                if ($prop->default instanceof Array_) {
+
+                                    foreach ($prop->default->items as $item) {
+                                        if ($item->key instanceof String_) {
                                             if ($item->key->value === $this->field) {
                                                 return null;
                                             }
                                         }
                                     }
 
-                                    $methodStmt->expr->items[] = new \PhpParser\Node\Expr\ArrayItem(
-                                        new \PhpParser\Node\Scalar\String_($this->type),
-                                        new \PhpParser\Node\Scalar\String_($this->field)
+                                    $prop->default->items[] = new ArrayItem(
+                                        new String_($this->type),
+                                        new String_($this->field)
                                     );
                                 }
                             }
                         }
-
-                        // Caso 2: propiedad $casts
-                        if (
-                        $stmt instanceof \PhpParser\Node\Stmt\Property
-                        && $stmt->props[0]->name->toString() === 'casts'
-                        ) {
-
-                            $prop = $stmt->props[0];
-
-                            if ($prop->default instanceof \PhpParser\Node\Expr\Array_) {
-
-                                foreach ($prop->default->items as $item) {
-                                    if ($item->key instanceof \PhpParser\Node\Scalar\String_) {
-                                        if ($item->key->value === $this->field) {
-                                            return null;
-                                        }
-                                    }
-                                }
-
-                                $prop->default->items[] = new \PhpParser\Node\Expr\ArrayItem(
-                                    new \PhpParser\Node\Scalar\String_($this->type),
-                                    new \PhpParser\Node\Scalar\String_($this->field)
-                                );
-                            }
-                        }
                     }
-                }
 
-                return null;
-            }
+                    return null;
+                }
             }
         );
 
         $ast = $traverser->traverse($ast);
 
-        $printer = new Standard();
+        $printer = new Standard;
         file_put_contents($filePath, $printer->prettyPrintFile($ast));
     }
 
@@ -469,7 +472,7 @@ class ClassModifier
         string $filePath,
         string $importFQN
     ): void {
-        if (!file_exists($filePath)) {
+        if (! file_exists($filePath)) {
             return;
         }
 
@@ -478,7 +481,7 @@ class ClassModifier
             return;
         }
 
-        $parser = (new ParserFactory())->createForNewestSupportedVersion();
+        $parser = (new ParserFactory)->createForNewestSupportedVersion();
         $ast = $parser->parse($code);
 
         if ($ast === null) {
@@ -486,7 +489,6 @@ class ClassModifier
         }
 
         /** @var array<int, Node> $ast */
-
         $namespaceFound = false;
         foreach ($ast as $node) {
             if ($node instanceof Namespace_) {
@@ -495,10 +497,11 @@ class ClassModifier
             }
         }
 
-        $traverser = new NodeTraverser();
+        $traverser = new NodeTraverser;
 
         $traverser->addVisitor(
-            new class ($importFQN) extends NodeVisitorAbstract {
+            new class($importFQN) extends NodeVisitorAbstract
+            {
                 public function __construct(
                     private string $importFQN
                 ) {}
@@ -518,9 +521,9 @@ class ClassModifier
                             }
                         }
 
-                        if (!$hasImport) {
+                        if (! $hasImport) {
                             $newUse = new Use_([
-                                new UseUse(new Node\Name($this->importFQN))
+                                new UseUse(new Name($this->importFQN)),
                             ]);
 
                             $lastUseIndex = -1;
@@ -545,7 +548,7 @@ class ClassModifier
 
         $ast = $traverser->traverse($ast);
 
-        if (!$namespaceFound) {
+        if (! $namespaceFound) {
             $hasImport = false;
 
             foreach ($ast as $node) {
@@ -558,9 +561,9 @@ class ClassModifier
                 }
             }
 
-            if (!$hasImport) {
+            if (! $hasImport) {
                 $newUse = new Use_([
-                    new UseUse(new Node\Name($importFQN))
+                    new UseUse(new Name($importFQN)),
                 ]);
 
                 $lastUseIndex = -1;
@@ -578,7 +581,7 @@ class ClassModifier
             }
         }
 
-        $printer = new Standard();
+        $printer = new Standard;
         file_put_contents($filePath, $printer->prettyPrintFile($ast));
     }
 
@@ -587,7 +590,7 @@ class ClassModifier
         string $className,
         string $methodCode
     ): void {
-        if (!file_exists($filePath)) {
+        if (! file_exists($filePath)) {
             return;
         }
 
@@ -596,7 +599,7 @@ class ClassModifier
             return;
         }
 
-        $parser = (new ParserFactory())->createForNewestSupportedVersion();
+        $parser = (new ParserFactory)->createForNewestSupportedVersion();
         $ast = $parser->parse($code);
 
         if ($ast === null) {
@@ -604,28 +607,28 @@ class ClassModifier
         }
 
         /** @var array<int, Node> $ast */
-
-        $dummyCode = "<?php\nclass DummyClassWrapper {\n" . $methodCode . "\n}";
+        $dummyCode = "<?php\nclass DummyClassWrapper {\n".$methodCode."\n}";
         $parsedDummy = $parser->parse($dummyCode);
-        if ($parsedDummy === null || !isset($parsedDummy[0]) || !$parsedDummy[0] instanceof Class_) {
+        if ($parsedDummy === null || ! isset($parsedDummy[0]) || ! $parsedDummy[0] instanceof Class_) {
             return;
         }
 
         $methodNodes = array_filter(
             $parsedDummy[0]->stmts,
-            fn($stmt) => $stmt instanceof \PhpParser\Node\Stmt\ClassMethod
+            fn ($stmt) => $stmt instanceof ClassMethod
         );
 
         if (empty($methodNodes)) {
             return;
         }
 
-        $traverser = new NodeTraverser();
+        $traverser = new NodeTraverser;
 
         $traverser->addVisitor(
-            new class ($className, $methodNodes) extends NodeVisitorAbstract {
+            new class($className, $methodNodes) extends NodeVisitorAbstract
+            {
                 /**
-                 * @param array<int, \PhpParser\Node\Stmt\ClassMethod> $methodNodes
+                 * @param  array<int, ClassMethod>  $methodNodes
                  */
                 public function __construct(
                     private string $className,
@@ -641,13 +644,13 @@ class ClassModifier
                     ) {
                         $existingMethodNames = [];
                         foreach ($node->stmts as $stmt) {
-                            if ($stmt instanceof \PhpParser\Node\Stmt\ClassMethod) {
+                            if ($stmt instanceof ClassMethod) {
                                 $existingMethodNames[] = $stmt->name->toString();
                             }
                         }
 
                         foreach ($this->methodNodes as $methodNode) {
-                            if (!in_array($methodNode->name->toString(), $existingMethodNames, true)) {
+                            if (! in_array($methodNode->name->toString(), $existingMethodNames, true)) {
                                 $node->stmts[] = $methodNode;
                                 $existingMethodNames[] = $methodNode->name->toString();
                             }
@@ -661,7 +664,7 @@ class ClassModifier
 
         $ast = $traverser->traverse($ast);
 
-        $printer = new Standard();
+        $printer = new Standard;
         file_put_contents($filePath, $printer->prettyPrintFile($ast));
     }
 }

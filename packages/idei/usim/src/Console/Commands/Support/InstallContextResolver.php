@@ -16,7 +16,7 @@ class InstallContextResolver
 
         $normalizedScreensNamespace = \is_string($screensNamespace) && $screensNamespace !== ''
             ? $screensNamespace
-            : "App\\UI\\Screens";
+            : 'App\\UI\\Screens';
         $normalizedScreensPath = \is_string($screensPath) && $screensPath !== ''
             ? $screensPath
             : app_path('UI/Screens');
@@ -26,13 +26,13 @@ class InstallContextResolver
         return [
             'screensNamespace' => $normalizedScreensNamespace,
             'screensPath' => $normalizedScreensPath,
-            'componentsNamespace' => Str::beforeLast($normalizedScreensNamespace, '\\Screens') . '\\Components',
-            'componentsPath' => Str::beforeLast($normalizedScreensPath, '/Screens') . '/Components',
+            'componentsNamespace' => Str::beforeLast($normalizedScreensNamespace, '\\Screens').'\\Components',
+            'componentsPath' => Str::beforeLast($normalizedScreensPath, '/Screens').'/Components',
         ];
     }
 
     /**
-     * @param array<string, string> $namespaces
+     * @param  array<string, string>  $namespaces
      * @return array<string, string|bool>
      */
     public function buildScaffoldingContext(
@@ -56,6 +56,6 @@ class InstallContextResolver
 
     public function stubsPath(string $path = ''): string
     {
-        return dirname(__DIR__, 4) . '/stubs/' . ltrim($path, '/\\');
+        return dirname(__DIR__, 4).'/stubs/'.ltrim($path, '/\\');
     }
 }

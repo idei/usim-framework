@@ -36,7 +36,7 @@ class Carousel extends UIComponent
     public function mode(string $mode): static
     {
         $safeMode = strtolower($mode);
-        if (!in_array($safeMode, ['manual', 'auto'], true)) {
+        if (! in_array($safeMode, ['manual', 'auto'], true)) {
             $safeMode = 'manual';
         }
 
@@ -45,6 +45,7 @@ class Carousel extends UIComponent
         /** @var array<string, mixed> $autoplay */
         $autoplay = $this->get('autoplay', []);
         $autoplay['enabled'] = $safeMode === 'auto';
+
         return $this->setConfig('autoplay', $autoplay);
     }
 
@@ -81,7 +82,7 @@ class Carousel extends UIComponent
     public function indicators(string $position): static
     {
         $safePosition = strtolower($position);
-        if (!in_array($safePosition, ['top', 'bottom', 'none'], true)) {
+        if (! in_array($safePosition, ['top', 'bottom', 'none'], true)) {
             $safePosition = 'bottom';
         }
 
@@ -118,8 +119,7 @@ class Carousel extends UIComponent
     }
 
     /**
-     * @param list<array<string, mixed>> $items
-     * @return static
+     * @param  list<array<string, mixed>>  $items
      */
     public function items(array $items): static
     {
@@ -127,8 +127,7 @@ class Carousel extends UIComponent
     }
 
     /**
-     * @param array<string, mixed> $media
-     * @return static
+     * @param  array<string, mixed>  $media
      */
     public function currentMedia(array $media): static
     {
@@ -153,6 +152,7 @@ class Carousel extends UIComponent
         /** @var array<string, mixed> $autoplay */
         $autoplay = $this->get('autoplay', []);
         $autoplay['action'] = $action;
+
         return $this->setConfig('autoplay', $autoplay);
     }
 
@@ -161,6 +161,7 @@ class Carousel extends UIComponent
         /** @var array<string, mixed> $autoplay */
         $autoplay = $this->get('autoplay', []);
         $autoplay['timeout_ms'] = max(1, $timeoutMs);
+
         return $this->setConfig('autoplay', $autoplay);
     }
 

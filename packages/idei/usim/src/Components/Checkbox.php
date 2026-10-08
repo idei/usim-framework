@@ -2,8 +2,6 @@
 
 namespace Idei\Usim\Components;
 
-use Idei\Usim\Components\UIComponent;
-
 /**
  * Checkbox component builder for creating single and grouped checkboxes
  *
@@ -114,8 +112,6 @@ class Checkbox extends UIComponent
 
     /**
      * Get the component type
-     *
-     * @return string
      */
     public function getType(): string
     {
@@ -127,8 +123,7 @@ class Checkbox extends UIComponent
     /**
      * Set the checked state
      *
-     * @param bool $checked Whether the checkbox is checked
-     * @return static
+     * @param  bool  $checked  Whether the checkbox is checked
      */
     public function checked(bool $checked = true): static
     {
@@ -137,8 +132,6 @@ class Checkbox extends UIComponent
 
     /**
      * Get the checked state
-     *
-     * @return bool
      */
     public function isChecked(): bool
     {
@@ -150,7 +143,7 @@ class Checkbox extends UIComponent
      * For single checkbox: any value to submit when checked
      * For checkbox group: array of selected values
      *
-     * @param mixed $value The value
+     * @param  mixed  $value  The value
      * @return $this
      */
     public function value($value): static
@@ -160,14 +153,14 @@ class Checkbox extends UIComponent
         } else {
             $this->setConfig('value', $value);
         }
+
         return $this;
     }
 
     /**
      * Set the checkbox label
      *
-     * @param string $label The label text
-     * @return static
+     * @param  string  $label  The label text
      */
     public function label(string $label): static
     {
@@ -177,8 +170,7 @@ class Checkbox extends UIComponent
     /**
      * Set a description text (appears below the label)
      *
-     * @param string $description The description text
-     * @return static
+     * @param  string  $description  The description text
      */
     public function description(string $description): static
     {
@@ -190,8 +182,7 @@ class Checkbox extends UIComponent
     /**
      * Set multiple checkbox options (creates a checkbox group)
      *
-     * @param list<array<string, mixed>> $options Array of options with 'value' and 'label' keys
-     * @return static
+     * @param  list<array<string, mixed>>  $options  Array of options with 'value' and 'label' keys
      */
     public function options(array $options): static
     {
@@ -201,15 +192,14 @@ class Checkbox extends UIComponent
     /**
      * Add a single option to the checkbox group
      *
-     * @param string $value The option value
-     * @param string $label The option label
-     * @param array<string, mixed> $extra Extra properties (icon, description, disabled, etc.)
-     * @return static
+     * @param  string  $value  The option value
+     * @param  string  $label  The option label
+     * @param  array<string, mixed>  $extra  Extra properties (icon, description, disabled, etc.)
      */
     public function addOption(string $value, string $label, array $extra = []): static
     {
         $options = $this->config['options'] ?? [];
-        if (!is_array($options)) {
+        if (! is_array($options)) {
             $options = [];
         }
 
@@ -224,8 +214,7 @@ class Checkbox extends UIComponent
     /**
      * Set the selected values for checkbox group
      *
-     * @param list<string|int> $values Array of selected values
-     * @return static
+     * @param  list<string|int>  $values  Array of selected values
      */
     public function selectedValues(array $values): static
     {
@@ -237,9 +226,8 @@ class Checkbox extends UIComponent
     /**
      * Set the layout for checkbox group
      *
-     * @param string $layout Layout type: vertical, horizontal, grid
-     * @param int|null $columns Number of columns for grid layout
-     * @return static
+     * @param  string  $layout  Layout type: vertical, horizontal, grid
+     * @param  int|null  $columns  Number of columns for grid layout
      */
     public function layout(string $layout, ?int $columns = null): static
     {
@@ -247,13 +235,12 @@ class Checkbox extends UIComponent
         if ($columns !== null) {
             $this->setConfig('columns', $columns);
         }
+
         return $this;
     }
 
     /**
      * Set vertical layout for checkbox group
-     *
-     * @return static
      */
     public function vertical(): static
     {
@@ -262,8 +249,6 @@ class Checkbox extends UIComponent
 
     /**
      * Set horizontal layout for checkbox group
-     *
-     * @return static
      */
     public function horizontal(): static
     {
@@ -273,8 +258,7 @@ class Checkbox extends UIComponent
     /**
      * Set grid layout for checkbox group
      *
-     * @param int $columns Number of columns
-     * @return static
+     * @param  int  $columns  Number of columns
      */
     public function grid(int $columns = 2): static
     {
@@ -284,8 +268,7 @@ class Checkbox extends UIComponent
     /**
      * Set the gap between checkboxes in a group
      *
-     * @param string $gap Gap size: xs, small, medium, large
-     * @return static
+     * @param  string  $gap  Gap size: xs, small, medium, large
      */
     public function gap(string $gap): static
     {
@@ -297,8 +280,7 @@ class Checkbox extends UIComponent
     /**
      * Mark the checkbox as required
      *
-     * @param bool $required Whether the checkbox is required
-     * @return static
+     * @param  bool  $required  Whether the checkbox is required
      */
     public function required(bool $required = true): static
     {
@@ -308,8 +290,7 @@ class Checkbox extends UIComponent
     /**
      * Set minimum selections required (for checkbox groups)
      *
-     * @param int $min Minimum number of selections
-     * @return static
+     * @param  int  $min  Minimum number of selections
      */
     public function minSelections(int $min): static
     {
@@ -319,8 +300,7 @@ class Checkbox extends UIComponent
     /**
      * Set maximum selections allowed (for checkbox groups)
      *
-     * @param int $max Maximum number of selections
-     * @return static
+     * @param  int  $max  Maximum number of selections
      */
     public function maxSelections(int $max): static
     {
@@ -330,8 +310,7 @@ class Checkbox extends UIComponent
     /**
      * Set the error message
      *
-     * @param string $message The error message
-     * @return static
+     * @param  string  $message  The error message
      */
     public function errorMessage(string $message): static
     {
@@ -341,8 +320,7 @@ class Checkbox extends UIComponent
     /**
      * Set help text
      *
-     * @param string $text The help text
-     * @return static
+     * @param  string  $text  The help text
      */
     public function helpText(string $text): static
     {
@@ -354,8 +332,7 @@ class Checkbox extends UIComponent
     /**
      * Set the disabled state
      *
-     * @param bool $disabled Whether the checkbox is disabled
-     * @return static
+     * @param  bool  $disabled  Whether the checkbox is disabled
      */
     public function disabled(bool $disabled = true): static
     {
@@ -365,8 +342,7 @@ class Checkbox extends UIComponent
     /**
      * Set the readonly state
      *
-     * @param bool $readonly Whether the checkbox is readonly
-     * @return static
+     * @param  bool  $readonly  Whether the checkbox is readonly
      */
     public function readonly(bool $readonly = true): static
     {
@@ -376,8 +352,7 @@ class Checkbox extends UIComponent
     /**
      * Set the indeterminate state (for parent checkboxes)
      *
-     * @param bool $indeterminate Whether the checkbox is indeterminate
-     * @return static
+     * @param  bool  $indeterminate  Whether the checkbox is indeterminate
      */
     public function indeterminate(bool $indeterminate = true): static
     {
@@ -389,8 +364,7 @@ class Checkbox extends UIComponent
     /**
      * Set the checkbox style
      *
-     * @param string $style Style: default, primary, success, danger, warning, info
-     * @return static
+     * @param  string  $style  Style: default, primary, success, danger, warning, info
      */
     public function style(string $style): static
     {
@@ -400,8 +374,7 @@ class Checkbox extends UIComponent
     /**
      * Set the checkbox size
      *
-     * @param string $size Size: small, medium, large
-     * @return static
+     * @param  string  $size  Size: small, medium, large
      */
     public function size(string $size): static
     {
@@ -411,8 +384,7 @@ class Checkbox extends UIComponent
     /**
      * Set the checkbox variant
      *
-     * @param string $variant Variant: default, switch, button, card
-     * @return static
+     * @param  string  $variant  Variant: default, switch, button, card
      */
     public function variant(string $variant): static
     {
@@ -422,19 +394,17 @@ class Checkbox extends UIComponent
     /**
      * Use switch variant
      *
-     * @param string $position Switch position: left, right
-     * @return static
+     * @param  string  $position  Switch position: left, right
      */
     public function asSwitch(string $position = 'left'): static
     {
         $this->setConfig('variant', 'switch');
+
         return $this->setConfig('switch_position', $position);
     }
 
     /**
      * Use button variant (checkbox looks like a button)
-     *
-     * @return static
      */
     public function asButton(): static
     {
@@ -443,8 +413,6 @@ class Checkbox extends UIComponent
 
     /**
      * Use card variant (checkbox as a card/tile)
-     *
-     * @return static
      */
     public function asCard(): static
     {
@@ -456,8 +424,7 @@ class Checkbox extends UIComponent
     /**
      * Set the checked icon
      *
-     * @param string $icon The icon name
-     * @return static
+     * @param  string  $icon  The icon name
      */
     public function checkedIcon(string $icon): static
     {
@@ -467,8 +434,7 @@ class Checkbox extends UIComponent
     /**
      * Set the unchecked icon
      *
-     * @param string $icon The icon name
-     * @return static
+     * @param  string  $icon  The icon name
      */
     public function uncheckedIcon(string $icon): static
     {
@@ -478,8 +444,7 @@ class Checkbox extends UIComponent
     /**
      * Set the indeterminate icon
      *
-     * @param string $icon The icon name
-     * @return static
+     * @param  string  $icon  The icon name
      */
     public function indeterminateIcon(string $icon): static
     {
@@ -489,8 +454,7 @@ class Checkbox extends UIComponent
     /**
      * Set an icon for button/card variant
      *
-     * @param string $icon The icon name
-     * @return static
+     * @param  string  $icon  The icon name
      */
     public function icon(string $icon): static
     {
@@ -502,8 +466,7 @@ class Checkbox extends UIComponent
     /**
      * Set custom color
      *
-     * @param string $color The color (hex, rgb, css variable)
-     * @return static
+     * @param  string  $color  The color (hex, rgb, css variable)
      */
     public function color(string $color): static
     {
@@ -513,8 +476,7 @@ class Checkbox extends UIComponent
     /**
      * Set custom active color (when checked)
      *
-     * @param string $color The color (hex, rgb, css variable)
-     * @return static
+     * @param  string  $color  The color (hex, rgb, css variable)
      */
     public function activeColor(string $color): static
     {
@@ -526,8 +488,7 @@ class Checkbox extends UIComponent
     /**
      * Enable toggle all behavior (checkbox controls all children)
      *
-     * @param bool $toggle Whether to enable toggle all
-     * @return static
+     * @param  bool  $toggle  Whether to enable toggle all
      */
     public function toggleAll(bool $toggle = true): static
     {
@@ -537,8 +498,7 @@ class Checkbox extends UIComponent
     /**
      * Enable auto check parent behavior
      *
-     * @param bool $autoCheck Whether to auto check parent
-     * @return static
+     * @param  bool  $autoCheck  Whether to auto check parent
      */
     public function autoCheckParent(bool $autoCheck = true): static
     {
@@ -550,8 +510,7 @@ class Checkbox extends UIComponent
     /**
      * Set the onChange event handler
      *
-     * @param string $handler The event handler name
-     * @return static
+     * @param  string  $handler  The event handler name
      */
     public function onChange(string $handler): static
     {
@@ -563,8 +522,7 @@ class Checkbox extends UIComponent
     /**
      * Set ARIA label for accessibility
      *
-     * @param string $label The ARIA label
-     * @return static
+     * @param  string  $label  The ARIA label
      */
     public function ariaLabel(string $label): static
     {
@@ -574,8 +532,7 @@ class Checkbox extends UIComponent
     /**
      * Set tooltip text
      *
-     * @param string $text The tooltip text
-     * @return static
+     * @param  string  $text  The tooltip text
      */
     public function tooltip(string $text): static
     {

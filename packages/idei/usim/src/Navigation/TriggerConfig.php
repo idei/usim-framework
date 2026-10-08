@@ -34,7 +34,7 @@ readonly class TriggerConfig
     }
 
     /**
-     * @param array<string, mixed> $data
+     * @param  array<string, mixed>  $data
      */
     public static function fromArray(array $data): self
     {
@@ -57,6 +57,7 @@ readonly class TriggerConfig
     {
         if ($this->image !== null) {
             $dropdown->triggerImage($this->image, $this->alt ?? ($this->label ?? 'User'), $this->label, $this->style);
+
             return;
         }
 

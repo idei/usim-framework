@@ -1,6 +1,7 @@
 <?php
 
 // Concerns/HasPadding.php
+
 namespace Idei\Usim\Concerns;
 
 use Idei\Usim\ValueObjects\Spacing;

@@ -13,16 +13,14 @@ class InstallExecutionRollbackManager
      */
     private array $manifest = [];
 
-    public function __construct(private readonly Filesystem $files)
-    {
-    }
+    public function __construct(private readonly Filesystem $files) {}
 
     /**
-     * @param array<int, string> $paths
+     * @param  array<int, string>  $paths
      */
     public function begin(array $paths): void
     {
-        $this->snapshotRoot = storage_path('framework/cache/.usim-install-rollback-' . uniqid());
+        $this->snapshotRoot = storage_path('framework/cache/.usim-install-rollback-'.uniqid());
         $this->files->makeDirectory($this->snapshotRoot, 0755, true, true);
 
         $uniquePaths = array_values(array_unique($paths));
@@ -31,7 +29,7 @@ class InstallExecutionRollbackManager
             $absolutePath = $this->resolveAbsolutePath($path);
             $exists = $this->files->exists($absolutePath);
             $isDir = $exists && $this->files->isDirectory($absolutePath);
-            $backupPath = $this->snapshotRoot . '/item-' . $index;
+            $backupPath = $this->snapshotRoot.'/item-'.$index;
 
             if ($exists) {
                 if ($isDir) {
@@ -98,6 +96,7 @@ class InstallExecutionRollbackManager
         if ($this->isAbsolutePath($path)) {
             return $path;
         }
+
         return base_path($path);
     }
 
@@ -110,12 +109,13 @@ class InstallExecutionRollbackManager
 
     private function removePathIfExists(string $path): void
     {
-        if (!$this->files->exists($path)) {
+        if (! $this->files->exists($path)) {
             return;
         }
 
         if ($this->files->isDirectory($path)) {
             $this->files->deleteDirectory($path);
+
             return;
         }
 

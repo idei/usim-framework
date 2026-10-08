@@ -1,5 +1,7 @@
 <?php
+
 // Concerns/HasMargin.php
+
 namespace Idei\Usim\Concerns;
 
 use Idei\Usim\ValueObjects\Spacing;

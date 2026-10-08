@@ -9,6 +9,7 @@ docs/
 ├── README.md                          # Este archivo - Índice principal
 │
 ├── framework/                         # Framework USIM
+│   ├── CONTRACTS_AND_MOCKS.md        # 🏛️ Contratos, Inversión de Dependencias y Mocks
 │   ├── USIM_EVENTS_SYSTEM.md         # ⚡ Sistema de Eventos (UI & Dominio, Protocolo, Guía Devs & LLMs)
 │   ├── PROTOCOLO_UI.md               # 📜 Especificación formal del protocolo USIM
 │   ├── USIM_ACADEMIC_REPORT.md       # ⭐ Documentación principal
@@ -35,8 +36,7 @@ docs/
 
 ### 🚀 Framework USIM (UI Services Implementation Model)
 
-| Documento | Descripción | Tamaño |
-|-----------|-------------|--------|
+| **[CONTRACTS_AND_MOCKS.md](framework/CONTRACTS_AND_MOCKS.md)** 🏛️ | Arquitectura SOLID, contratos e interfaces core (`Idei\Usim\Contracts`), desacoplamiento de dependencias y testing con mocks | 6K |
 | **[USIM_EVENTS_SYSTEM.md](framework/USIM_EVENTS_SYSTEM.md)** ⚡ | Especificación completa y unificada del sistema de eventos USIM (UI y Dominio), ciclo de vida, diffing, contratos JSON y guía para desarrolladores y LLMs | 25K |
 | **[PROTOCOLO_UI.md](framework/PROTOCOLO_UI.md)** 📜 | Especificación formal del protocolo USIM (Server-Driven UI), gramática EBNF, endpoints, ciclo de vida de Screen y meta-acciones | 22K |
 | **[USIM_ACADEMIC_REPORT.md](framework/USIM_ACADEMIC_REPORT.md)** ⭐ | Documentación académica completa del framework. Arquitectura, características, ejemplos de servicios reales y comparativas con stack tradicional | 41K |
@@ -47,10 +47,11 @@ docs/
 
 Notas de versión funcional recientes:
 
+- **Arquitectura SOLID & DIP**: Contratos core en `Idei\Usim\Contracts`, 0 errores PHPStan Nivel 9 y soporte de mocks en memoria.
 - **Headless Mode** (`USIM_HEADLESS_MODE=true`): USIM puede correr en modo API-only usando `GET /api/ui/{screen}` + `POST /api/ui-event`.
 - **Agent Context** (`Screen::getAgentContext()`): metadata opcional para clientes IA/headless en la key `agent_context` del payload.
 
-**Total Framework:** 6 documentos, ~119K
+**Total Framework:** 7 documentos, ~125K
 
 ---
 

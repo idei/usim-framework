@@ -19,11 +19,11 @@ class Split extends Container
      * {@inheritDoc}
      */
     /**
-     * @param array<string, mixed> $data
+     * @param  array<string, mixed>  $data
      */
     public static function deserialize(int $id, array $data): Split
     {
-        $split = new self();
+        $split = new self;
         $split->id = $id;
 
         $type = $data['type'] ?? 'split';
@@ -36,6 +36,7 @@ class Split extends Container
         $split->parent = is_int($parent) || is_string($parent) || $parent === null ? $parent : null;
 
         $split->config = array_merge($split->config, $data);
+
         return $split;
     }
 
@@ -62,6 +63,7 @@ class Split extends Container
     {
         $normalized = strtolower(trim($orientation));
         $this->config['split_orientation'] = $normalized === 'vertical' ? 'vertical' : 'horizontal';
+
         return $this;
     }
 
@@ -81,6 +83,7 @@ class Split extends Container
     public function splitSize(string $size): static
     {
         $this->config['split_size'] = trim($size);
+
         return $this;
     }
 
@@ -90,30 +93,35 @@ class Split extends Container
     public function splitterSize(string $size): static
     {
         $this->config['splitter_size'] = trim($size);
+
         return $this;
     }
 
     public function minFirstSize(string $size): static
     {
         $this->config['min_first_size'] = trim($size);
+
         return $this;
     }
 
     public function minSecondSize(string $size): static
     {
         $this->config['min_second_size'] = trim($size);
+
         return $this;
     }
 
     public function draggable(bool $enabled = true): static
     {
         $this->config['draggable'] = $enabled;
+
         return $this;
     }
 
     public function collapsible(bool $enabled = true): static
     {
         $this->config['collapsible'] = $enabled;
+
         return $this;
     }
 
@@ -121,12 +129,14 @@ class Split extends Container
     {
         $normalized = strtolower(trim($target));
         $this->config['collapse_target'] = $normalized === 'second' ? 'second' : 'first';
+
         return $this;
     }
 
     public function collapseSize(string $size): static
     {
         $this->config['collapse_size'] = trim($size);
+
         return $this;
     }
 
@@ -136,11 +146,12 @@ class Split extends Container
     public function collapsedPanel(?string $panel): static
     {
         $normalized = $panel === null ? null : strtolower(trim($panel));
-        if (!in_array($normalized, ['first', 'second', null], true)) {
+        if (! in_array($normalized, ['first', 'second', null], true)) {
             $normalized = null;
         }
 
         $this->config['collapsed_panel'] = $normalized;
+
         return $this;
     }
 
@@ -165,6 +176,7 @@ class Split extends Container
     public function addFirst(UIElement $element): static
     {
         $this->firstPaneContainer()->add($element);
+
         return $this;
     }
 
@@ -174,6 +186,7 @@ class Split extends Container
     public function addSecond(UIElement $element): static
     {
         $this->secondPaneContainer()->add($element);
+
         return $this;
     }
 
@@ -209,10 +222,10 @@ class Split extends Container
             return $existingPanes[$index];
         }
 
-        $paneNamePrefix = $this->name !== null ? $this->name : ('split_' . $this->id);
+        $paneNamePrefix = $this->name !== null ? $this->name : ('split_'.$this->id);
         $paneName = sprintf('%s_%s_pane', $paneNamePrefix, $side);
         $pane = new Container($paneName);
-        $pane->plain()->width(\Idei\Usim\ValueObjects\Size::pct(100))->height(\Idei\Usim\ValueObjects\Size::pct(100));
+        $pane->plain()->width(Size::pct(100))->height(Size::pct(100));
         $this->add($pane);
 
         return $pane;

@@ -8,8 +8,6 @@ namespace Idei\Usim\Components;
  * This class provides a fluent interface for constructing and configuring
  * Calendar UI components. It allows developers to create calendar instances
  * with customizable options such as date range, display format, and event handling.
- *
- * @package idei\usim\Components
  */
 class Calendar extends UIComponent
 {
@@ -42,8 +40,7 @@ class Calendar extends UIComponent
     }
 
     /**
-     * @param list<array<string, mixed>> $events
-     * @return static
+     * @param  list<array<string, mixed>>  $events
      */
     public function events(array $events): static
     {
@@ -61,8 +58,7 @@ class Calendar extends UIComponent
     }
 
     /**
-     * @param array<string, mixed> $style
-     * @return static
+     * @param  array<string, mixed>  $style
      */
     public function numberStyle(array $style): static
     {
@@ -83,6 +79,7 @@ class Calendar extends UIComponent
     {
         // Limitación entre 1 y 3
         $columns = max(1, min(3, $columns));
+
         return $this->setConfig('references_columns', $columns);
     }
 

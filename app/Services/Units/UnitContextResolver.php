@@ -1,9 +1,13 @@
 <?php
+
 // @usim: feature="admin", type="service"
+
 namespace App\Services\Units;
 
 use App\Models\User;
+use Idei\Usim\Contracts\UnitContextResolverInterface;
 use Idei\Usim\Models\UsimUnit;
+use Idei\Usim\Support\UIStateManager;
 use Illuminate\Contracts\Auth\Authenticatable;
 
 /**
@@ -13,8 +17,18 @@ use Illuminate\Contracts\Auth\Authenticatable;
  * missing, invalid, or not one of the user's units, the user's first assigned unit
  * (deterministically ordered) is used as a fallback.
  */
-class UnitContextResolver
+class UnitContextResolver implements UnitContextResolverInterface
 {
+    public function resolveUserUnit(?Authenticatable $user, ?string $slug): ?UsimUnit
+    {
+        return self::resolve($user, $slug);
+    }
+
+    public function applyUserUnit(?Authenticatable $user, ?string $slug): ?UsimUnit
+    {
+        return self::resolveAndApply($user, $slug);
+    }
+
     /**
      * Resolve the unit context for the given user and apply it as the current
      * permissions team (via setPermissionsTeamId), returning the resolved unit.
@@ -37,7 +51,7 @@ class UnitContextResolver
      */
     public static function resolve(?Authenticatable $user, ?string $slug): ?UsimUnit
     {
-        if (!$user) {
+        if (! $user) {
             return null;
         }
 
@@ -61,7 +75,7 @@ class UnitContextResolver
         }
 
         // Check if an active unit is already chosen for the current client in UIStateManager
-        $clientActiveUnit = \Idei\Usim\Support\UIStateManager::getActiveUnit();
+        $clientActiveUnit = UIStateManager::getActiveUnit();
         if (\is_string($clientActiveUnit) && $clientActiveUnit !== '') {
             if ($isRoot) {
                 $unit = UsimUnit::where('slug', $clientActiveUnit)->first();

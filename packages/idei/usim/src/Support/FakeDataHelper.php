@@ -12,8 +12,8 @@ class FakeDataHelper
     /**
      * Generate a fake email based on first and last name
      *
-     * @param string|null $firstName Optional first name (will generate if null)
-     * @param string|null $lastName Optional last name (will generate if null)
+     * @param  string|null  $firstName  Optional first name (will generate if null)
+     * @param  string|null  $lastName  Optional last name (will generate if null)
      * @return string Email address
      */
     public static function email(?string $firstName = null, ?string $lastName = null): string
@@ -25,13 +25,13 @@ class FakeDataHelper
         $first = self::sanitizeForEmail($firstName);
         $last = self::sanitizeForEmail($lastName);
 
-        return $first . '.' . $last . '@' . fake()->freeEmailDomain();
+        return $first.'.'.$last.'@'.fake()->freeEmailDomain();
     }
 
     /**
      * Generate a fake full name
      *
-        * @return array{name: string, first_name: string, last_name: string} ['name' => 'John Doe', 'first_name' => 'John', 'last_name' => 'Doe']
+     * @return array{name: string, first_name: string, last_name: string} ['name' => 'John Doe', 'first_name' => 'John', 'last_name' => 'Doe']
      */
     public static function fullName(): array
     {
@@ -48,7 +48,7 @@ class FakeDataHelper
     /**
      * Generate a fake name with compatible email
      *
-        * @return array{name: string, first_name: string, last_name: string, email: string} ['name' => 'John Doe', 'email' => 'john.doe@example.com']
+     * @return array{name: string, first_name: string, last_name: string, email: string} ['name' => 'John Doe', 'email' => 'john.doe@example.com']
      */
     public static function nameWithEmail(): array
     {
@@ -66,7 +66,7 @@ class FakeDataHelper
     /**
      * Generate a fake password
      *
-     * @param int $minLength Minimum password length
+     * @param  int  $minLength  Minimum password length
      * @return string Password
      */
     public static function password(int $minLength = 8): string
@@ -77,8 +77,8 @@ class FakeDataHelper
     /**
      * Generate fake user data for registration forms
      *
-        * @param list<string> $roles Available roles to choose from
-        * @return array{name: string, email: string, password: string, password_confirmation: string, role: string} User data with name, email, password, and role
+     * @param  list<string>  $roles  Available roles to choose from
+     * @return array{name: string, email: string, password: string, password_confirmation: string, role: string} User data with name, email, password, and role
      */
     public static function userData(array $roles = ['user', 'admin', 'moderator']): array
     {
@@ -87,7 +87,7 @@ class FakeDataHelper
         $password = self::password(8);
         $role = fake()->randomElement($roles);
 
-        if (!is_string($role)) {
+        if (! is_string($role)) {
             $role = $roles[0] ?? 'user';
         }
 
@@ -103,7 +103,7 @@ class FakeDataHelper
     /**
      * Sanitize a string to make it safe for use in email addresses
      *
-     * @param string $string Input string
+     * @param  string  $string  Input string
      * @return string Sanitized string (lowercase, no special chars or accents)
      */
     public static function sanitizeForEmail(string $string): string

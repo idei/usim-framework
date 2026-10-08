@@ -22,8 +22,9 @@ class TableRow extends UIComponent
     /**
      * Create a new table row
      *
-     * @param Table|null $table The parent table this row belongs to
-     * @param string|null $name Optional name for the row
+     * @param  Table|null  $table  The parent table this row belongs to
+     * @param  string|null  $name  Optional name for the row
+     *
      * @phpstan-ignore method.childParameterType
      */
     public function __construct(?Table $table = null, ?string $name = null)
@@ -57,12 +58,12 @@ class TableRow extends UIComponent
     /**
      * Set the row index (for ordering)
      *
-     * @param int $row Row index (0-based)
-     * @return self
+     * @param  int  $row  Row index (0-based)
      */
     public function row(int $row): self
     {
         $this->setConfig('row', $row);
+
         return $this;
     }
 
@@ -79,7 +80,7 @@ class TableRow extends UIComponent
     /**
      * Create and add a new cell to this row
      *
-     * @param string|null $name Optional name for the cell
+     * @param  string|null  $name  Optional name for the cell
      * @return TableCell The created cell
      */
     public function createCell(?string $name = null): TableCell
@@ -87,19 +88,21 @@ class TableRow extends UIComponent
         $cell = new TableCell($this, $name);
         $cell->setParent($this->id);
         $this->cellComponents[] = $cell;
+
         return $cell;
     }
 
     /**
      * Add an existing cell to this row
      *
-     * @param TableCell $cell The cell to add
+     * @param  TableCell  $cell  The cell to add
      * @return self For method chaining
      */
     public function addCell(TableCell $cell): self
     {
         $cell->setParent($this->id);
         $this->cellComponents[] = $cell;
+
         return $this;
     }
 
@@ -117,7 +120,7 @@ class TableRow extends UIComponent
      * Set the cells data for this row
      * Creates TableCell components automatically from the array
      *
-     * @param list<mixed> $cells Array of cell values (strings, numbers, arrays, or UIComponent instances)
+     * @param  list<mixed>  $cells  Array of cell values (strings, numbers, arrays, or UIComponent instances)
      * @return self For method chaining
      */
     public function cells(array $cells): self
@@ -157,26 +160,27 @@ class TableRow extends UIComponent
     /**
      * Set a specific cell value by index
      *
-     * @param int $index The cell index (0-based)
-     * @param mixed $value The cell value
+     * @param  int  $index  The cell index (0-based)
+     * @param  mixed  $value  The cell value
      * @return self For method chaining
      */
     public function setCell(int $index, mixed $value): self
     {
         $cells = $this->config['cells'] ?? [];
-        if (!is_array($cells)) {
+        if (! is_array($cells)) {
             $cells = [];
         }
 
         $cells[$index] = $value;
         $this->config['cells'] = $cells;
+
         return $this;
     }
 
     /**
      * Mark this row as selected
      *
-     * @param bool $selected True to select, false otherwise
+     * @param  bool  $selected  True to select, false otherwise
      * @return self For method chaining
      */
     public function selected(bool $selected = true): self
@@ -187,7 +191,7 @@ class TableRow extends UIComponent
     /**
      * Set the action to trigger when the row is clicked.
      *
-     * @param string|null $action Action name or null to clear it
+     * @param  string|null  $action  Action name or null to clear it
      * @return self For method chaining
      */
     public function action(?string $action): self
@@ -198,7 +202,7 @@ class TableRow extends UIComponent
     /**
      * Set the parameters to send when the row is clicked.
      *
-     * @param array<string, mixed>|null $parameters Parameter payload or null to clear it
+     * @param  array<string, mixed>|null  $parameters  Parameter payload or null to clear it
      * @return self For method chaining
      */
     public function parameters(?array $parameters): self
@@ -209,7 +213,7 @@ class TableRow extends UIComponent
     /**
      * Set the row style
      *
-     * @param string $style The style name (default, primary, success, warning, danger, etc.)
+     * @param  string  $style  The style name (default, primary, success, warning, danger, etc.)
      * @return self For method chaining
      */
     public function style(string $style): self
@@ -221,7 +225,7 @@ class TableRow extends UIComponent
      * Mark this row as empty
      * Useful for placeholder rows or rows filled to meet minRows requirement
      *
-     * @param bool $empty True if the row is empty, false otherwise
+     * @param  bool  $empty  True if the row is empty, false otherwise
      * @return self For method chaining
      */
     public function empty(bool $empty = true): self
@@ -231,9 +235,6 @@ class TableRow extends UIComponent
 
     /**
      * Set row minimum height, also ensuring height is synchronized.
-     *
-     * @param Size $height
-     * @return static
      */
     public function minHeight(Size $height): static
     {
@@ -245,9 +246,6 @@ class TableRow extends UIComponent
 
     /**
      * Set row height, also ensuring min_height is synchronized.
-     *
-     * @param Size $height
-     * @return static
      */
     public function height(Size $height): static
     {
@@ -259,14 +257,13 @@ class TableRow extends UIComponent
 
     /**
      * Get the parent table
-     *
-     * @return Table
      */
     public function getTable(): Table
     {
         if ($this->table === null) {
-            throw new \LogicException("Row is not associated with a table");
+            throw new \LogicException('Row is not associated with a table');
         }
+
         return $this->table;
     }
 
@@ -281,7 +278,7 @@ class TableRow extends UIComponent
     public function toJson(?int $order = null): array
     {
         // Get base config and filter nulls
-        $config = array_filter($this->config, fn($value) => $value !== null);
+        $config = array_filter($this->config, fn ($value) => $value !== null);
 
         // Keep explicit parent=null for protocol-driven removals in incremental updates.
         if (array_key_exists('parent', $this->config) && $this->config['parent'] === null) {
@@ -295,7 +292,7 @@ class TableRow extends UIComponent
 
         // Exclude additional keys
         $excludeKeys = $this->getExcludedJsonKeys();
-        if (!empty($excludeKeys)) {
+        if (! empty($excludeKeys)) {
             $config = array_diff_key($config, array_flip($excludeKeys));
         }
 

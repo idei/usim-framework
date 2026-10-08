@@ -3,6 +3,7 @@
 namespace Idei\Usim\Support\Translation;
 
 use Idei\Usim\Support\TranslationService;
+use Illuminate\Translation\Translator;
 use Throwable;
 
 class TranslationResolver
@@ -13,7 +14,7 @@ class TranslationResolver
      *  2. DB-backed TranslationService.
      *  3. The key itself as last-resort fallback.
      *
-     * @param array<string, mixed> $params
+     * @param  array<string, mixed>  $params
      */
     public static function resolve(string $key, array $params = [], ?string $language = null): string
     {
@@ -25,12 +26,12 @@ class TranslationResolver
     /**
      * Attempt to resolve the translation through Laravel's translator.
      *
-     * @param array<string, mixed> $params
+     * @param  array<string, mixed>  $params
      */
     private static function resolveFromLaravel(string $key, array $params, ?string $language): ?string
     {
         try {
-            /** @var \Illuminate\Translation\Translator $translator */
+            /** @var Translator $translator */
             $translator = app('translator');
             $normalizedParams = self::normalizeParams($params);
 
@@ -56,7 +57,7 @@ class TranslationResolver
     /**
      * Attempt to resolve the translation through the database TranslationService.
      *
-     * @param array<string, mixed> $params
+     * @param  array<string, mixed>  $params
      */
     private static function resolveFromDatabase(string $key, array $params, ?string $language): ?string
     {
@@ -99,14 +100,14 @@ class TranslationResolver
 
             $candidates[] = empty($remaining)
                 ? "{$filePath}.value"
-                : "{$filePath}." . implode('.', $remaining);
+                : "{$filePath}.".implode('.', $remaining);
         }
 
         // Support package namespace fallback: usim.dialog.button.ok -> usim::dialog/button.ok
         if ($segments[0] === 'usim' && $segmentCount >= 4) {
             $pkgFilePath = implode('/', array_slice($segments, 1, 2));
             $pkgRemaining = array_slice($segments, 3);
-            $candidates[] = 'usim::' . $pkgFilePath . '.' . implode('.', $pkgRemaining);
+            $candidates[] = 'usim::'.$pkgFilePath.'.'.implode('.', $pkgRemaining);
         }
 
         return $candidates;
@@ -115,7 +116,7 @@ class TranslationResolver
     /**
      * Normalize parameter values to scalars/strings expected by Laravel translator.
      *
-     * @param array<string, mixed> $params
+     * @param  array<string, mixed>  $params
      * @return array<string, bool|float|int|string|null>
      */
     private static function normalizeParams(array $params): array

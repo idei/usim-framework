@@ -20,7 +20,6 @@ class UploadService
     /**
      * Detectar tipo de archivo por MIME type
      *
-     * @param string $mimeType
      * @return string 'image', 'audio', 'video', 'document', 'other'
      */
     public static function detectFileType(string $mimeType): string
@@ -58,9 +57,8 @@ class UploadService
     /**
      * Validar archivo según configuración
      *
-     * @param UploadedFile $file
-        * @param array{allowed_types?: list<string>, max_size?: int} $config ['allowed_types' => [...], 'max_size' => int]
-        * @return array{error: string}|null ['error' => 'mensaje'] si hay error, null si es válido
+     * @param  array{allowed_types?: list<string>, max_size?: int}  $config  ['allowed_types' => [...], 'max_size' => int]
+     * @return array{error: string}|null ['error' => 'mensaje'] si hay error, null si es válido
      */
     public static function validateFile(UploadedFile $file, array $config): ?array
     {
@@ -69,7 +67,7 @@ class UploadService
 
         // Validar tipo
         $allowedTypes = $config['allowed_types'] ?? ['*'];
-        if (!in_array('*', $allowedTypes) && !self::matchesMimePattern($mimeType, $allowedTypes)) {
+        if (! in_array('*', $allowedTypes) && ! self::matchesMimePattern($mimeType, $allowedTypes)) {
             return ['error' => 'File type not allowed'];
         }
 
@@ -85,9 +83,8 @@ class UploadService
     /**
      * Verificar si MIME type coincide con patrones permitidos
      *
-     * @param string $mimeType Ej: 'image/jpeg'
-    * @param list<string> $patterns Ej: ['image/*', 'application/pdf']
-     * @return bool
+     * @param  string  $mimeType  Ej: 'image/jpeg'
+     * @param  list<string>  $patterns  Ej: ['image/*', 'application/pdf']
      */
     private static function matchesMimePattern(string $mimeType, array $patterns): bool
     {
@@ -100,7 +97,7 @@ class UploadService
             // Wildcard match (ej: image/*)
             if (str_ends_with($pattern, '/*')) {
                 $prefix = str_replace('/*', '', $pattern);
-                if (str_starts_with($mimeType, $prefix . '/')) {
+                if (str_starts_with($mimeType, $prefix.'/')) {
                     return true;
                 }
             }
@@ -112,8 +109,7 @@ class UploadService
     /**
      * Extraer metadata según tipo de archivo
      *
-     * @param UploadedFile $file
-    * @return array<string, mixed>
+     * @return array<string, mixed>
      */
     public static function extractMetadata(UploadedFile $file): array
     {
@@ -137,8 +133,7 @@ class UploadService
     /**
      * Extraer metadata de imagen (dimensiones)
      *
-     * @param UploadedFile $file
-    * @return array{width?: int, height?: int} ['width' => int, 'height' => int]
+     * @return array{width?: int, height?: int} ['width' => int, 'height' => int]
      */
     private static function extractImageMetadata(UploadedFile $file): array
     {
@@ -161,7 +156,6 @@ class UploadService
     /**
      * Formatear tamaño de archivo para mostrar
      *
-     * @param int $bytes
      * @return string Ej: "2.5 MB"
      */
     public static function formatFileSize(int $bytes): string
@@ -169,18 +163,18 @@ class UploadService
         $units = ['B', 'KB', 'MB', 'GB'];
         $power = $bytes > 0 ? (int) floor(log($bytes, 1024)) : 0;
 
-        return round($bytes / pow(1024, $power), 2) . ' ' . $units[$power];
+        return round($bytes / pow(1024, $power), 2).' '.$units[$power];
     }
 
     /**
      * Generar URL para acceder a archivo almacenado
      *
-     * @param string $path Ruta relativa en storage (ej: 'uploads/profiles/abc.jpg')
+     * @param  string  $path  Ruta relativa en storage (ej: 'uploads/profiles/abc.jpg')
      * @return string URL completa (ej: 'http://localhost/files/uploads/profiles/abc.jpg')
      */
     public static function fileUrl(string $path): string
     {
-        return url('/files/' . ltrim($path, '/'));
+        return url('/files/'.ltrim($path, '/'));
     }
 
     /**
@@ -189,9 +183,9 @@ class UploadService
      * Mueve un archivo temporal a su ubicación final, elimina el archivo anterior si existe,
      * y limpia el registro temporal de la base de datos.
      *
-     * @param string $tempId UUID del archivo temporal
-     * @param string $category Categoría del archivo (ej: 'images', 'documents', 'videos')
-     * @param string|null $oldFilename Nombre del archivo anterior a eliminar (solo el nombre, sin ruta)
+     * @param  string  $tempId  UUID del archivo temporal
+     * @param  string  $category  Categoría del archivo (ej: 'images', 'documents', 'videos')
+     * @param  string|null  $oldFilename  Nombre del archivo anterior a eliminar (solo el nombre, sin ruta)
      * @return string|null Nombre del archivo guardado (solo nombre, sin ruta) o null si falla
      *
      * @example
@@ -209,7 +203,7 @@ class UploadService
             ->where('id', $tempId)
             ->first();
 
-        if (!$file) {
+        if (! $file) {
             return null;
         }
 
@@ -242,6 +236,7 @@ class UploadService
                 'category' => $category,
                 'error' => $e->getMessage(),
             ]);
+
             return null;
         }
     }
@@ -249,8 +244,8 @@ class UploadService
     /**
      * Eliminar archivo del storage
      *
-     * @param string $category Categoría del archivo (ej: 'images', 'documents')
-     * @param string $filename Nombre del archivo (sin ruta)
+     * @param  string  $category  Categoría del archivo (ej: 'images', 'documents')
+     * @param  string  $filename  Nombre del archivo (sin ruta)
      * @return bool true si se eliminó o no existía, false si hubo error
      */
     public static function deleteFile(string $category, string $filename): bool
@@ -271,6 +266,7 @@ class UploadService
                 'filename' => $filename,
                 'error' => $e->getMessage(),
             ]);
+
             return false;
         }
     }
@@ -278,9 +274,9 @@ class UploadService
     /**
      * Procesar múltiples archivos temporales (útil para uploaders con max_files > 1)
      *
-    * @param list<string> $tempIds Array de UUIDs de archivos temporales
-     * @param string $category Categoría de archivos
-    * @return list<string> Array de nombres de archivos guardados
+     * @param  list<string>  $tempIds  Array de UUIDs de archivos temporales
+     * @param  string  $category  Categoría de archivos
+     * @return list<string> Array de nombres de archivos guardados
      */
     public static function persistMultipleTemporaryUploads(array $tempIds, string $category): array
     {

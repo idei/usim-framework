@@ -5,12 +5,12 @@ namespace Idei\Usim\Console\Commands\Support;
 use Idei\Usim\Models\UsimLanguage;
 use Idei\Usim\Models\UsimRole;
 use Idei\Usim\Models\UsimUnit;
+use Idei\Usim\Support\RoleAndPermissionSyncService;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Str;
-use Spatie\Permission\Models\Permission;
 use Spatie\Permission\PermissionRegistrar;
 
 class SeedAccessControl
@@ -18,7 +18,7 @@ class SeedAccessControl
     /**
      * Sincroniza roles, permisos, usuarios y unidades desde la configuración de USIM hacia la base de datos.
      *
-     * @param array<string, string> $rootUserEnvValues
+     * @param  array<string, string>  $rootUserEnvValues
      * @return array{permissions_created:int,permissions_total:int,roles_created:int,roles_total:int,users_created:int,users_updated:int,languages_created:int,languages_updated:int}
      */
     public function seed(array $rootUserEnvValues, string $userModelClass, ?callable $line = null): array
@@ -40,11 +40,11 @@ class SeedAccessControl
             $guardName = $this->resolveGuardNameForUserModel($userModelClass);
 
             if (is_callable($line)) {
-                $line("  ↳ Synchronizing roles and permissions...");
+                $line('  ↳ Synchronizing roles and permissions...');
             }
 
             // Delegamos la carga dura al nuevo servicio
-            $roleSyncService = app(\Idei\Usim\Support\RoleAndPermissionSyncService::class);
+            $roleSyncService = app(RoleAndPermissionSyncService::class);
             $roleStats = $roleSyncService->sync($guardName);
 
             $stats['permissions_created'] = $roleStats['permissions_created'];
@@ -57,7 +57,7 @@ class SeedAccessControl
             $stats['permissions_total'] = count($permissionsConfig);
 
             if (is_callable($line)) {
-                $line("    ✓ Roles and permissions synchronized via service.");
+                $line('    ✓ Roles and permissions synchronized via service.');
             }
 
             $this->upsertUnits($stats, $line);
@@ -73,11 +73,11 @@ class SeedAccessControl
     }
 
     /**
-     * @param array<string, int> $stats
+     * @param  array<string, int>  $stats
      */
     private function upsertUnits(array &$stats, ?callable $line = null): void
     {
-        if (!config('permission.teams')) {
+        if (! config('permission.teams')) {
             return;
         }
 
@@ -86,7 +86,7 @@ class SeedAccessControl
         $structure = \is_array($unitsConfig) ?
             ($unitsConfig['structure'] ?? []) : [];
 
-        if (!is_array($structure) || empty($structure)) {
+        if (! is_array($structure) || empty($structure)) {
             return;
         }
 
@@ -96,7 +96,7 @@ class SeedAccessControl
 
         // 1. Crear o actualizar unidades básicas
         foreach ($structure as $slug => $data) {
-            if (!is_string($slug) || trim($slug) === '') {
+            if (! is_string($slug) || trim($slug) === '') {
                 continue;
             }
 
@@ -112,12 +112,12 @@ class SeedAccessControl
 
         // 2. Resolver jerarquía padre-hijo
         foreach ($structure as $slug => $data) {
-            if (!is_string($slug) || !is_array($data)) {
+            if (! is_string($slug) || ! is_array($data)) {
                 continue;
             }
 
             $parentId = null;
-            if (!empty($data['parent']) && is_string($data['parent'])) {
+            if (! empty($data['parent']) && is_string($data['parent'])) {
                 $parentId = UsimUnit::where('slug', $data['parent'])->value('id');
             }
 
@@ -126,7 +126,7 @@ class SeedAccessControl
 
         // 3. Sincronizar traducciones de unidades en los archivos de idioma
         foreach ($structure as $slug => $data) {
-            if (!is_string($slug) || !is_array($data)) {
+            if (! is_string($slug) || ! is_array($data)) {
                 continue;
             }
 
@@ -155,12 +155,12 @@ class SeedAccessControl
     }
 
     /**
-     * @param array<string, int> $stats
-     * @param array<string, string> $rootUserEnvValues
+     * @param  array<string, int>  $stats
+     * @param  array<string, string>  $rootUserEnvValues
      */
     private function upsertRootUser(array &$stats, array $rootUserEnvValues, string $userModelClass, string $guardName): void
     {
-        if (!class_exists($userModelClass) || !is_subclass_of($userModelClass, Model::class)) {
+        if (! class_exists($userModelClass) || ! is_subclass_of($userModelClass, Model::class)) {
             throw new \RuntimeException("Configured user model [{$userModelClass}] is invalid.");
         }
 
@@ -203,11 +203,11 @@ class SeedAccessControl
     }
 
     /**
-     * @param array<string, int> $stats
+     * @param  array<string, int>  $stats
      */
     private function upsertConfiguredUsers(array &$stats, string $userModelClass, string $guardName): void
     {
-        if (!class_exists($userModelClass) || !is_subclass_of($userModelClass, Model::class)) {
+        if (! class_exists($userModelClass) || ! is_subclass_of($userModelClass, Model::class)) {
             throw new \RuntimeException("Configured user model [{$userModelClass}] is invalid.");
         }
 
@@ -234,9 +234,9 @@ class SeedAccessControl
     }
 
     /**
-     * @param array<string, int> $stats
-     * @param class-string<Model> $userModelClass
-     * @param array<string, mixed> $userConfig
+     * @param  array<string, int>  $stats
+     * @param  class-string<Model>  $userModelClass
+     * @param  array<string, mixed>  $userConfig
      */
     private function upsertSingleUser(
         array &$stats,
@@ -250,7 +250,7 @@ class SeedAccessControl
         $email = isset($userConfig['email']) && is_string($userConfig['email']) ? trim($userConfig['email']) : '';
         $password = isset($userConfig['password']) && is_string($userConfig['password']) ? trim($userConfig['password']) : '';
 
-        if ($email === '' || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        if ($email === '' || ! filter_var($email, FILTER_VALIDATE_EMAIL)) {
             if ($forceRootRules) {
                 throw new \RuntimeException('ROOT_EMAIL must be a valid email to install USIM.');
             }
@@ -272,14 +272,14 @@ class SeedAccessControl
         $lastName = isset($userConfig['last_name']) && is_string($userConfig['last_name'])
             ? trim($userConfig['last_name'])
             : 'User';
-        $name = trim($firstName . ' ' . $lastName);
+        $name = trim($firstName.' '.$lastName);
 
         /** @var Model|null $user */
         $user = $userModelClass::query()->where('email', $email)->first();
         $created = false;
 
         if ($user === null) {
-            $user = new $userModelClass();
+            $user = new $userModelClass;
             $created = true;
             $user->setAttribute('email', $email);
             $user->setAttribute('remember_token', Str::random(10));
@@ -294,7 +294,7 @@ class SeedAccessControl
 
         $user->save();
 
-        if (!method_exists($user, 'syncRoles')) {
+        if (! method_exists($user, 'syncRoles')) {
             throw new \RuntimeException('User model must use Spatie HasRoles trait to sync roles.');
         }
 
@@ -344,7 +344,7 @@ class SeedAccessControl
     }
 
     /**
-     * @param array<string, mixed> $userConfig
+     * @param  array<string, mixed>  $userConfig
      * @return array<string, array<int, string>>
      */
     private function normalizeUserUnitRoles(array $userConfig, string $fallbackRole): array
@@ -367,6 +367,7 @@ class SeedAccessControl
                 }
                 $normalized[$cleanUnit] = array_values(array_unique($cleanRoles));
             }
+
             return $normalized;
         }
 
@@ -378,7 +379,7 @@ class SeedAccessControl
         if (is_string($roles)) {
             $roles = [$roles];
         }
-        if (!is_array($roles) || $roles === []) {
+        if (! is_array($roles) || $roles === []) {
             $roles = [$fallbackRole];
         }
 
@@ -396,7 +397,7 @@ class SeedAccessControl
     }
 
     /**
-     * @param array<int, string> $roles
+     * @param  array<int, string>  $roles
      * @return array<int, string>
      */
     private function ensureRolesExist(array $roles, string $guardName, string $fallbackRole = 'registered'): array
@@ -421,7 +422,7 @@ class SeedAccessControl
                 ->where('guard_name', $guardName)
                 ->exists();
 
-            if (!$exists) {
+            if (! $exists) {
                 // Esto asegura que pase por tu pipeline limpio de UsimRole
                 UsimRole::createWithHome(
                     name: $roleName,
@@ -436,18 +437,18 @@ class SeedAccessControl
     }
 
     /**
-     * @param array<string, int> $stats
+     * @param  array<string, int>  $stats
      */
     private function upsertLanguages(array &$stats): void
     {
         $usimConfig = $this->loadUsimConfig();
         $i18nConfig = $usimConfig['i18n'] ?? [];
-        if (!is_array($i18nConfig)) {
+        if (! is_array($i18nConfig)) {
             $i18nConfig = [];
         }
 
         $configuredLanguages = $i18nConfig['languages'] ?? config('usim.i18n.languages', []);
-        if (!is_array($configuredLanguages)) {
+        if (! is_array($configuredLanguages)) {
             $configuredLanguages = [];
         }
 
@@ -457,7 +458,7 @@ class SeedAccessControl
         $touchedFallback = false;
 
         foreach ($configuredLanguages as $languageConfig) {
-            if (!is_array($languageConfig)) {
+            if (! is_array($languageConfig)) {
                 continue;
             }
 
@@ -481,7 +482,7 @@ class SeedAccessControl
             $created = false;
 
             if ($language === null) {
-                $language = new UsimLanguage();
+                $language = new UsimLanguage;
                 $language->code = $code;
                 $created = true;
             }
@@ -503,9 +504,9 @@ class SeedAccessControl
             }
         }
 
-        if (!$touchedFallback) {
+        if (! $touchedFallback) {
             $fallbackLanguage = UsimLanguage::query()->firstOrNew(['code' => $fallbackCode]);
-            $created = !$fallbackLanguage->exists;
+            $created = ! $fallbackLanguage->exists;
             $fallbackLanguage->name = $fallbackLanguage->name ?: strtoupper($fallbackCode);
             $fallbackLanguage->native_name = $fallbackLanguage->native_name ?: strtoupper($fallbackCode);
             $fallbackLanguage->is_active = true;
@@ -528,7 +529,7 @@ class SeedAccessControl
     {
         $usimConfig = $this->loadUsimConfig();
         $i18nConfig = $usimConfig['i18n'] ?? [];
-        if (!is_array($i18nConfig)) {
+        if (! is_array($i18nConfig)) {
             $i18nConfig = [];
         }
 
@@ -540,13 +541,13 @@ class SeedAccessControl
 
         // Leemos los roles directamente de la configuración
         $roles = $usimConfig['roles'] ?? config('usim.roles', []);
-        if (!is_array($roles)) {
+        if (! is_array($roles)) {
             $roles = [];
         }
 
         foreach ($roles as $roleName => $roleMeta) {
             // Validación que antes hacía normalizeRolesConfig
-            if (!is_string($roleName) || trim($roleName) === '' || !is_array($roleMeta)) {
+            if (! is_string($roleName) || trim($roleName) === '' || ! is_array($roleMeta)) {
                 continue;
             }
 
@@ -555,12 +556,12 @@ class SeedAccessControl
             foreach ($translations as $locale => $meta) {
                 $this->upsertLangValueByKey(
                     $locale,
-                    $rolePrefix . $roleName . '.name',
+                    $rolePrefix.$roleName.'.name',
                     $meta['display_name'] ?? $roleName
                 );
                 $this->upsertLangValueByKey(
                     $locale,
-                    $rolePrefix . $roleName . '.description',
+                    $rolePrefix.$roleName.'.description',
                     $meta['description'] ?? ''
                 );
             }
@@ -570,7 +571,7 @@ class SeedAccessControl
         $permissions = is_array($permissions) ? $permissions : [];
 
         foreach ($permissions as $permissionName => $permissionMeta) {
-            if (!is_string($permissionName) || trim($permissionName) === '') {
+            if (! is_string($permissionName) || trim($permissionName) === '') {
                 continue;
             }
 
@@ -581,12 +582,12 @@ class SeedAccessControl
             foreach ($translations as $locale => $meta) {
                 $this->upsertLangValueByKey(
                     $locale,
-                    $permissionPrefix . $permissionName . '.name',
+                    $permissionPrefix.$permissionName.'.name',
                     $meta['display_name'] ?? $permissionName
                 );
                 $this->upsertLangValueByKey(
                     $locale,
-                    $permissionPrefix . $permissionName . '.description',
+                    $permissionPrefix.$permissionName.'.description',
                     $meta['description'] ?? ''
                 );
             }
@@ -598,18 +599,17 @@ class SeedAccessControl
     }
 
     /**
-     * @param mixed $translations
      * @return array<string, array{display_name?: string, description?: string}>
      */
     private function normalizeDefaultTranslations(mixed $translations): array
     {
-        if (!is_array($translations)) {
+        if (! is_array($translations)) {
             return [];
         }
 
         $normalized = [];
         foreach ($translations as $locale => $meta) {
-            if (!is_string($locale) || trim($locale) === '' || !is_array($meta)) {
+            if (! is_string($locale) || trim($locale) === '' || ! is_array($meta)) {
                 continue;
             }
 
@@ -630,17 +630,17 @@ class SeedAccessControl
 
     private function normalizeTranslationPrefix(mixed $prefix): string
     {
-        if (!is_string($prefix) || trim($prefix) === '') {
+        if (! is_string($prefix) || trim($prefix) === '') {
             return '';
         }
 
         $prefix = trim($prefix);
 
-        return str_ends_with($prefix, '.') ? $prefix : $prefix . '.';
+        return str_ends_with($prefix, '.') ? $prefix : $prefix.'.';
     }
 
     /**
-     * @param array<string, int> $stats
+     * @param  array<string, int>  $stats
      * @return array{permissions_created:int, permissions_total:int, roles_created:int, roles_total:int, users_created:int, users_updated:int, languages_created:int, languages_updated:int}
      */
     private function normalizeSeedStats(array $stats): array
@@ -679,28 +679,28 @@ class SeedAccessControl
             return;
         }
 
-        $segments = array_values(array_filter(explode('.', $translationKey), static fn($segment): bool => $segment !== ''));
+        $segments = array_values(array_filter(explode('.', $translationKey), static fn ($segment): bool => $segment !== ''));
         if (count($segments) < 2) {
             return;
         }
 
         $file = array_shift($segments);
         $langDir = lang_path($locale);
-        $langFile = $langDir . '/' . $file . '.php';
+        $langFile = $langDir.'/'.$file.'.php';
 
         $payload = $this->loadLangArrayFile($langFile);
         Arr::set($payload, implode('.', $segments), $value);
 
-        if (!File::exists($langDir)) {
+        if (! File::exists($langDir)) {
             File::makeDirectory($langDir, 0755, true);
         }
 
-        $content = "<?php\n\nreturn " . $this->exportPhpArrayShort($payload) . ";\n";
+        $content = "<?php\n\nreturn ".$this->exportPhpArrayShort($payload).";\n";
         File::put($langFile, $content);
     }
 
     /**
-     * @param array<mixed> $payload
+     * @param  array<mixed>  $payload
      */
     private function exportPhpArrayShort(array $payload, int $indentLevel = 0): string
     {
@@ -719,10 +719,10 @@ class SeedAccessControl
                 ? $this->exportPhpArrayShort($value, $indentLevel + 1)
                 : var_export($value, true);
 
-            $lines[] = $itemIndent . $serializedKey . ' => ' . $serializedValue . ',';
+            $lines[] = $itemIndent.$serializedKey.' => '.$serializedValue.',';
         }
 
-        $lines[] = $indent . ']';
+        $lines[] = $indent.']';
 
         return implode("\n", $lines);
     }
@@ -732,7 +732,7 @@ class SeedAccessControl
      */
     private function loadLangArrayFile(string $path): array
     {
-        if (!is_file($path)) {
+        if (! is_file($path)) {
             return [];
         }
 
@@ -752,13 +752,13 @@ class SeedAccessControl
     {
         $defaultGuard = $this->resolveAuthGuardName();
 
-        if (!class_exists($userModelClass) || !is_subclass_of($userModelClass, Model::class)) {
+        if (! class_exists($userModelClass) || ! is_subclass_of($userModelClass, Model::class)) {
             return $defaultGuard;
         }
 
         try {
             /** @var Model $user */
-            $user = new $userModelClass();
+            $user = new $userModelClass;
             $guard = method_exists($user, 'getDefaultGuardName')
                 ? $user->getDefaultGuardName()
                 : $defaultGuard;
@@ -787,7 +787,7 @@ class SeedAccessControl
      */
     private function loadUsimConfig(): array
     {
-        $packageConfig = $this->loadConfigFile(dirname(__DIR__, 4) . '/config/usim.php');
+        $packageConfig = $this->loadConfigFile(dirname(__DIR__, 4).'/config/usim.php');
         $publishedConfig = $this->loadConfigFile(config_path('usim.php'));
 
         $merged = array_replace_recursive($packageConfig, $publishedConfig);
@@ -800,7 +800,7 @@ class SeedAccessControl
      */
     private function loadConfigFile(string $path): array
     {
-        if (!is_file($path)) {
+        if (! is_file($path)) {
             return [];
         }
 

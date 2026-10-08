@@ -40,7 +40,7 @@ class TranslationKeyManager
     {
         $textKey = UsimTextKey::query()->firstOrNew(['key' => $key]);
 
-        if (!$textKey->exists) {
+        if (! $textKey->exists) {
             $textKey->is_active = (bool) ($attributes['is_active'] ?? true);
         }
 
@@ -61,7 +61,7 @@ class TranslationKeyManager
     }
 
     /**
-     * @param array<string, mixed>|null $mediaMeta
+     * @param  array<string, mixed>|null  $mediaMeta
      */
     public function upsertValue(
         string $key,
@@ -101,12 +101,12 @@ class TranslationKeyManager
     public function deleteValue(string $key, string $languageCode): bool
     {
         $textKey = UsimTextKey::query()->byKey($key)->first();
-        if (!$textKey) {
+        if (! $textKey) {
             return false;
         }
 
         $language = UsimLanguage::query()->byCode($languageCode)->first();
-        if (!$language) {
+        if (! $language) {
             return false;
         }
 
@@ -116,13 +116,13 @@ class TranslationKeyManager
             ->delete();
     }
 
-    /** @return \Illuminate\Contracts\Pagination\LengthAwarePaginator<int, UsimTextKey> */
+    /** @return LengthAwarePaginator<int, UsimTextKey> */
     public function listKeys(?string $search = null, int $perPage = 50): LengthAwarePaginator
     {
         return UsimTextKey::query()
             ->when($search, function ($query) use ($search) {
-                $query->where('key', 'like', '%' . $search . '%')
-                    ->orWhere('group', 'like', '%' . $search . '%');
+                $query->where('key', 'like', '%'.$search.'%')
+                    ->orWhere('group', 'like', '%'.$search.'%');
             })
             ->orderBy('key')
             ->paginate($perPage);
@@ -136,6 +136,6 @@ class TranslationKeyManager
 
         $hasFallback = UsimLanguage::query()->where('is_fallback', true)->exists();
         $name = strtoupper($code);
-        $this->upsertLanguage($code, $name, $name, true, !$hasFallback);
+        $this->upsertLanguage($code, $name, $name, true, ! $hasFallback);
     }
 }

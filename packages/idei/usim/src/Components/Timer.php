@@ -50,6 +50,7 @@ class Timer extends UIComponent
     public function every(int $milliseconds): static
     {
         $this->interval($milliseconds);
+
         return $this->repeat(true);
     }
 
@@ -59,6 +60,7 @@ class Timer extends UIComponent
     public function after(int $milliseconds): static
     {
         $this->interval($milliseconds);
+
         return $this->repeat(false);
     }
 
@@ -113,7 +115,7 @@ class Timer extends UIComponent
     /**
      * Set event parameters sent to the backend action handler
      *
-     * @param array<string, mixed> $parameters
+     * @param  array<string, mixed>  $parameters
      */
     public function parameters(array $parameters): static
     {
@@ -128,7 +130,7 @@ class Timer extends UIComponent
         /** @var array<string, mixed> $params */
         $params = $this->get('parameters', []);
         $params[$key] = $value;
+
         return $this->parameters($params);
     }
 }
-

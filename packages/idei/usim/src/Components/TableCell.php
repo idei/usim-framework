@@ -21,8 +21,9 @@ class TableCell extends UIComponent
     /**
      * Create a new table cell
      *
-     * @param TableRow $row The parent row this cell belongs to
-     * @param string|null $name Optional name for the cell
+     * @param  TableRow  $row  The parent row this cell belongs to
+     * @param  string|null  $name  Optional name for the cell
+     *
      * @phpstan-ignore method.childParameterType
      */
     public function __construct(?TableRow $row = null, ?string $name = null)
@@ -52,11 +53,11 @@ class TableCell extends UIComponent
         $column = $this->config['column'] ?? null;
         $text = $this->config['text'] ?? null;
 
-        return "TableCell(id={$this->id}, " .
-            //", name={$this->name}, text=" .
-            ", column=" . (is_scalar($column) ? (string) $column : 'null') .
-            ", text=" . (is_scalar($text) ? (string) $text : 'null') .
-            ")";
+        return "TableCell(id={$this->id}, ".
+            // ", name={$this->name}, text=" .
+            ', column='.(is_scalar($column) ? (string) $column : 'null').
+            ', text='.(is_scalar($text) ? (string) $text : 'null').
+            ')';
     }
 
     public function clearCell(): self
@@ -74,27 +75,27 @@ class TableCell extends UIComponent
         $this->setConfig('text_color', null);
         $this->setConfig('border_color', null);
         $this->child = null;
+
         return $this;
     }
 
     /**
      * Set the column index (for ordering)
      *
-     * @param int $column Column index (0-based)
-     * @return self
+     * @param  int  $column  Column index (0-based)
      */
     public function column(int $column): self
     {
         $this->setConfig('column', $column);
+
         return $this;
     }
 
     /**
      * Set width constraints for the cell
      *
-     * @param int|null $minWidth Minimum width in pixels
-     * @param int|null $maxWidth Maximum width in pixels
-     * @return static
+     * @param  int|null  $minWidth  Minimum width in pixels
+     * @param  int|null  $maxWidth  Maximum width in pixels
      */
     public function widthConstraints(?int $minWidth = null, ?int $maxWidth = null): static
     {
@@ -104,18 +105,20 @@ class TableCell extends UIComponent
         if ($maxWidth !== null) {
             $this->setConfig('max_width', $maxWidth);
         }
+
         return $this;
     }
 
     /**
      * Set padding for the cell
      *
-     * @param int $padding Padding in pixels for more compact cells
+     * @param  int  $padding  Padding in pixels for more compact cells
      * @return self For method chaining
      */
     public function padding(int $padding): self
     {
         $this->setConfig('padding', $padding);
+
         return $this;
     }
 
@@ -146,7 +149,7 @@ class TableCell extends UIComponent
     /**
      * Set simple text content for the cell
      *
-     * @param string|int|float|null $text The text content
+     * @param  string|int|float|null  $text  The text content
      * @return self For method chaining
      */
     public function text(string|int|float|null $text): self
@@ -156,7 +159,6 @@ class TableCell extends UIComponent
 
     /**
      * Get simple text content of the cell
-     * @return string|null
      */
     public function getText(): ?string
     {
@@ -168,7 +170,7 @@ class TableCell extends UIComponent
     /**
      * Set horizontal alignment for the cell content
      *
-     * @param Align $align The alignment (left, center, right)
+     * @param  Align  $align  The alignment (left, center, right)
      * @return self For method chaining
      */
     public function align(Align $align): self
@@ -179,7 +181,7 @@ class TableCell extends UIComponent
     /**
      * Set button configuration for the cell
      *
-     * @param array<string, mixed> $button Button configuration with keys: label, action, style, parameters
+     * @param  array<string, mixed>  $button  Button configuration with keys: label, action, style, parameters
      * @return self For method chaining
      */
     public function button(array $button): self
@@ -190,7 +192,7 @@ class TableCell extends UIComponent
     /**
      * Set multiple buttons configuration for the cell
      *
-     * @param list<array<string, mixed>> $buttons Array of button configurations
+     * @param  list<array<string, mixed>>  $buttons  Array of button configurations
      * @return self For method chaining
      */
     public function buttons(array $buttons): self
@@ -201,10 +203,10 @@ class TableCell extends UIComponent
     /**
      * Set image URL for the cell
      *
-     * @param string $url Image URL
-     * @param string|null $alt Alt text for the image
-     * @param string|null $width Image width
-     * @param string|null $height Image height
+     * @param  string  $url  Image URL
+     * @param  string|null  $alt  Alt text for the image
+     * @param  string|null  $width  Image width
+     * @param  string|null  $height  Image height
      * @return self For method chaining
      */
     public function urlImage(string $url, ?string $alt = null, ?string $width = null, ?string $height = null): self
@@ -219,6 +221,7 @@ class TableCell extends UIComponent
         if ($height !== null) {
             $this->setConfig('image_height', $height);
         }
+
         return $this;
     }
 
@@ -227,37 +230,35 @@ class TableCell extends UIComponent
      * Only one child component is allowed per cell
      * Note: Containers are not allowed as children to prevent recursion issues
      *
-     * @param UIComponent $component The component to add
+     * @param  UIComponent  $component  The component to add
      * @return self For method chaining
      */
     public function addChild(UIComponent $component): self
     {
         if ($this->child !== null) {
-            throw new \LogicException("TableCell can only contain one child component. Use a container if you need multiple components.");
+            throw new \LogicException('TableCell can only contain one child component. Use a container if you need multiple components.');
         }
 
         $this->child = $component;
         $component->setParent($this->id);
+
         return $this;
     }
 
     /**
      * Get the parent row
-     *
-     * @return TableRow
      */
     public function getRow(): TableRow
     {
         if ($this->row === null) {
             throw new \LogicException('TableCell has no parent row assigned.');
         }
+
         return $this->row;
     }
 
     /**
      * Get the child component if any
-     *
-     * @return UIComponent|null
      */
     public function getChild(): ?UIComponent
     {
@@ -275,10 +276,10 @@ class TableCell extends UIComponent
     public function toJson(?int $order = null): array
     {
         // Get base config and filter nulls
-        $config = array_filter($this->config, fn($value) => $value !== null);
+        $config = array_filter($this->config, fn ($value) => $value !== null);
 
         // Inherit min_height from parent row if not set
-        if (!array_key_exists('min_height', $config) && $this->row !== null) {
+        if (! array_key_exists('min_height', $config) && $this->row !== null) {
             /** @var array<string, mixed> $rowConfig */
             $rowConfig = $this->row->getRowConfig();
             if (array_key_exists('min_height', $rowConfig) && $rowConfig['min_height'] !== null) {
@@ -298,7 +299,7 @@ class TableCell extends UIComponent
 
         // Exclude additional keys
         $excludeKeys = $this->getExcludedJsonKeys();
-        if (!empty($excludeKeys)) {
+        if (! empty($excludeKeys)) {
             $config = array_diff_key($config, array_flip($excludeKeys));
         }
 

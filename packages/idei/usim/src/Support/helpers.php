@@ -2,7 +2,7 @@
 
 use Idei\Usim\Support\Translation\TranslationResolver;
 
-if (!function_exists('t')) {
+if (! function_exists('t')) {
     /**
      * Resolve translated text with the following priority:
      *  1. Laravel translator (__), honoring locale and placeholders.
@@ -13,7 +13,7 @@ if (!function_exists('t')) {
      *  2. DB-backed TranslationService.
      *  3. The key itself as last-resort fallback.
      *
-     * @param array<string, mixed> $params
+     * @param  array<string, mixed>  $params
      */
     function t(string $key, array $params = [], ?string $language = null): string
     {

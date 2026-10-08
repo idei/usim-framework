@@ -166,7 +166,39 @@ Notification::assertSentTo($user, SomeNotification::class, function ($notificati
 });
 ```
 
-## 6) Checklist antes de cerrar un test
+## 6) Testing de Autorización y Pantallas con Mocks (In-Memory)
+
+Gracias al desacoplamiento mediante [`ScreenAuthorizerInterface`](file:///workspaces/usim-framework/packages/idei/usim/src/Contracts/ScreenAuthorizerInterface.php), es posible testear la autorización y comportamiento de cualquier `Screen` sin persistir usuarios en SQLite/MySQL ni inicializar las tablas de Spatie:
+
+```php
+use App\Models\User;
+use App\UI\Screens\Admin\UsersManager;
+use Idei\Usim\Contracts\ScreenAuthorizerInterface;
+use Mockery;
+
+it('authorizes admin user to access users manager via mock authorizer', function () {
+    // 1. Instanciar actor en memoria
+    $user = new User(['id' => 1, 'email' => 'admin@example.com']);
+
+    // 2. Mockear el autorizador
+    $authorizer = Mockery::mock(ScreenAuthorizerInterface::class);
+    $authorizer->shouldReceive('can')
+        ->with($user, 'users.manage', Mockery::any())
+        ->once()
+        ->andReturn(true);
+
+    // 3. Enlazar la instancia al contenedor
+    app()->instance(ScreenAuthorizerInterface::class, $authorizer);
+
+    // 4. Evaluar la screen directamente
+    $screen = new UsersManager();
+    expect($screen->authorize($user))->toBeTrue();
+});
+```
+
+Este enfoque permite ejecutar tests en menos de 10 ms por archivo, ideal para tests unitarios aislados (`tests/Unit/`).
+
+## 7) Checklist antes de cerrar un test
 
 - El nombre del test explica el comportamiento esperado.
 - Se valida al menos un efecto funcional (UI o dominio).
@@ -175,9 +207,10 @@ Notification::assertSentTo($user, SomeNotification::class, function ($notificati
 - Termina con `$ui->assertNoIssues();` cuando aplique.
 - Se ejecuto al menos el archivo del test localmente.
 
-## 7) Comandos utiles
+## 8) Comandos utiles
 
 - Ejecutar un archivo:
   - `php artisan test tests/Feature/NombreDelTest.php`
 - Ejecutar toda la suite:
   - `php artisan test`
+

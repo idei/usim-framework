@@ -51,7 +51,7 @@ class UsimTextValue extends Model
     }
 
     /**
-     * @param Builder<UsimTextValue> $query
+     * @param  Builder<UsimTextValue>  $query
      * @return Builder<UsimTextValue>
      */
     public function scopeWithLanguage(Builder $query, string $languageCode): Builder

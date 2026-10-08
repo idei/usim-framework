@@ -56,7 +56,7 @@ enum DialogType: string
      */
     public function getDefaultIcon(): string
     {
-        return match($this) {
+        return match ($this) {
             self::INFO => 'ℹ️',
             self::CONFIRM => '❓',
             self::WARNING => '⚠️',
@@ -72,7 +72,7 @@ enum DialogType: string
      */
     public function getConfirmButtonStyle(): string
     {
-        return match($this) {
+        return match ($this) {
             self::INFO => 'primary',
             self::CONFIRM => 'danger',
             self::WARNING => 'warning',
@@ -88,7 +88,7 @@ enum DialogType: string
      */
     public function hasCancelButton(): bool
     {
-        return match($this) {
+        return match ($this) {
             self::INFO, self::ERROR, self::SUCCESS, self::TIMEOUT => false,
             self::CONFIRM, self::WARNING, self::CHOICE => true,
         };
@@ -99,7 +99,7 @@ enum DialogType: string
      */
     public function getDefaultConfirmLabel(): string
     {
-        return match($this) {
+        return match ($this) {
             self::INFO => t('usim.dialog.button.ok'),
             self::CONFIRM => t('usim.dialog.button.confirm'),
             self::WARNING => t('usim.dialog.button.continue'),

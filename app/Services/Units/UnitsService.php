@@ -1,19 +1,21 @@
 <?php
+
 // @usim: feature="admin", type="service"
+
 namespace App\Services\Units;
 
+use Idei\Usim\Contracts\UnitsServiceInterface;
 use Idei\Usim\Models\UsimUnit;
 use Illuminate\Database\DatabaseManager;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\DB;
 
-class UnitsService
+class UnitsService implements UnitsServiceInterface
 {
     public function __construct(
         protected UnitTranslationGenerator $translationGenerator,
         protected ?DatabaseManager $database = null
-    ) {
-    }
+    ) {}
 
     /**
      * Determine whether organizational units (teams) are enabled in the application.
@@ -31,12 +33,12 @@ class UnitsService
      *     parent?: string|null,
      *     default_translations?: array<string, mixed>
      * }>|null $structure
-     * @param (callable(int $current, int $total, string $slug): void)|null $onProgress
-     * @param string|null $baseLangPath Optional base directory for translation files
+     * @param  (callable(int $current, int $total, string $slug): void)|null  $onProgress
+     * @param  string|null  $baseLangPath  Optional base directory for translation files
      */
     public function sync(?array $structure = null, ?callable $onProgress = null, ?string $baseLangPath = null): UnitSyncResult
     {
-        if (!$this->isTeamsEnabled()) {
+        if (! $this->isTeamsEnabled()) {
             return UnitSyncResult::skipped(
                 'Units are disabled in the Spatie (permission.php) configuration. Skipping unit synchronization.'
             );
@@ -83,7 +85,7 @@ class UnitsService
     /**
      * Remove units from the database that are no longer present in the configuration.
      *
-     * @param array<int, string> $configuredSlugs
+     * @param  array<int, string>  $configuredSlugs
      */
     public function deleteObsoleteUnits(array $configuredSlugs): int
     {
@@ -111,7 +113,7 @@ class UnitsService
      *     parent?: string|null,
      *     default_translations?: array<string, mixed>
      * }> $structure
-     * @param (callable(int $current, int $total, string $slug): void)|null $onProgress
+     * @param  (callable(int $current, int $total, string $slug): void)|null  $onProgress
      */
     public function upsertUnits(array $structure, ?callable $onProgress = null): int
     {
@@ -157,7 +159,7 @@ class UnitsService
             }
 
             $parentId = null;
-            if (!empty($data['parent'])) {
+            if (! empty($data['parent'])) {
                 $parentId = UsimUnit::where('slug', $data['parent'])->value('id');
             }
 
@@ -176,8 +178,7 @@ class UnitsService
      *     parent?: string|null,
      *     default_translations?: array<string, mixed>
      * }> $structure
-     * @param string $filePrefix
-     * @param string|null $baseLangPath Optional base directory for translation files
+     * @param  string|null  $baseLangPath  Optional base directory for translation files
      * @return array<int, string> List of generated file paths
      */
     public function syncTranslations(array $structure, string $filePrefix = 'unit', ?string $baseLangPath = null): array

@@ -7,14 +7,11 @@ use Illuminate\Support\Str;
 
 class InstallEnvironmentManager
 {
-    public function __construct(private readonly Filesystem $files)
-    {
-    }
+    public function __construct(private readonly Filesystem $files) {}
 
     public function assertNotProductionEnvironment(): void
     {
-        $envPath = $this->resolveEnvPath(false, static function (): void {
-        });
+        $envPath = $this->resolveEnvPath(false, static function (): void {});
         $resolvedAppEnv = $this->readEnvValue('APP_ENV', $envPath);
 
         if ($resolvedAppEnv === null) {
@@ -39,7 +36,7 @@ class InstallEnvironmentManager
         }
 
         $examplePath = base_path('.env.example');
-        if (!$allowCreateFromExample || !$this->files->exists($examplePath)) {
+        if (! $allowCreateFromExample || ! $this->files->exists($examplePath)) {
             return null;
         }
 
@@ -69,14 +66,14 @@ class InstallEnvironmentManager
 
             $parts = explode('=', $stubLine, 2);
             $key = trim($parts[0]);
-            if ($key && !preg_match("/(^|\\n)\\s*" . preg_quote($key, '/') . "\\s*=/m", $envContent)) {
-                $appendContent .= $stubLine . "\n";
+            if ($key && ! preg_match('/(^|\\n)\\s*'.preg_quote($key, '/').'\\s*=/m', $envContent)) {
+                $appendContent .= $stubLine."\n";
             }
         }
 
         if ($appendContent !== '') {
             $info('  Appending missing environment variables...');
-            $this->files->append($envPath, "\n# --- USIM Framework ---\n" . trim($appendContent) . "\n");
+            $this->files->append($envPath, "\n# --- USIM Framework ---\n".trim($appendContent)."\n");
             $line('  <fg=green>✓</> .env updated');
         } else {
             $line('  <fg=blue>→</> USIM environment variables already present');
@@ -130,20 +127,20 @@ class InstallEnvironmentManager
             ];
         } catch (\RuntimeException $e) {
             $error($e->getMessage());
+
             return [];
         }
     }
 
     private function readEnvValue(string $key, ?string $envPath = null): ?string
     {
-        $path = $envPath ?? $this->resolveEnvPath(false, static function (): void {
-        });
-        if ($path === null || !$this->files->exists($path)) {
+        $path = $envPath ?? $this->resolveEnvPath(false, static function (): void {});
+        if ($path === null || ! $this->files->exists($path)) {
             return null;
         }
 
         $content = $this->files->get($path);
-        if (!preg_match('/^\s*' . preg_quote($key, '/') . '\s*=\s*(.*)$/m', $content, $matches)) {
+        if (! preg_match('/^\s*'.preg_quote($key, '/').'\s*=\s*(.*)$/m', $content, $matches)) {
             return null;
         }
 
@@ -160,22 +157,23 @@ class InstallEnvironmentManager
     }
 
     /**
-     * @param array<string, string> $entries
+     * @param  array<string, string>  $entries
      */
     private function upsertEnvEntries(string $envPath, array $entries): void
     {
         $content = $this->files->exists($envPath) ? $this->files->get($envPath) : '';
 
         foreach ($entries as $key => $value) {
-            $entryLine = $key . '=' . $this->normalizeEnvValue($value);
-            $pattern = '/^\s*' . preg_quote($key, '/') . '\s*=.*$/m';
+            $entryLine = $key.'='.$this->normalizeEnvValue($value);
+            $pattern = '/^\s*'.preg_quote($key, '/').'\s*=.*$/m';
 
             if (preg_match($pattern, $content) === 1) {
                 $content = (string) preg_replace($pattern, $entryLine, $content);
+
                 continue;
             }
 
-            $content = rtrim($content) . "\n" . $entryLine . "\n";
+            $content = rtrim($content)."\n".$entryLine."\n";
         }
 
         $this->files->put($envPath, $content);
@@ -189,7 +187,8 @@ class InstallEnvironmentManager
 
         if (preg_match('/[\s#"\']/', $value) === 1) {
             $escaped = str_replace('"', '\\"', $value);
-            return '"' . $escaped . '"';
+
+            return '"'.$escaped.'"';
         }
 
         return $value;
@@ -201,7 +200,7 @@ class InstallEnvironmentManager
             ? $default
             : ($label === 'Root first name' ? 'Root' : 'User');
 
-        if (!$interactive) {
+        if (! $interactive) {
             $value = trim($default);
             if ($value === '' || strtoupper($value) === 'CHANGE_ME') {
                 return $fallback;
@@ -226,9 +225,9 @@ class InstallEnvironmentManager
     {
         $fallback = filter_var($default, FILTER_VALIDATE_EMAIL) ? $default : 'root@example.com';
 
-        if (!$interactive) {
+        if (! $interactive) {
             $value = trim($default);
-            if (!filter_var($value, FILTER_VALIDATE_EMAIL)) {
+            if (! filter_var($value, FILTER_VALIDATE_EMAIL)) {
                 return $fallback;
             }
 
@@ -261,7 +260,7 @@ class InstallEnvironmentManager
     ): string {
         $hasExistingPassword = $default !== '' && strtoupper($default) !== 'CHANGE_ME';
 
-        if (!$interactive) {
+        if (! $interactive) {
             if ($hasExistingPassword) {
                 return trim($default);
             }
@@ -297,7 +296,7 @@ class InstallEnvironmentManager
 
             // If secret input returned empty (e.g. on terminals where hidden input fails immediately),
             // attempt standard input via $ask if available.
-            if ($value === '' && $ask !== null && !$fallbackAttempted) {
+            if ($value === '' && $ask !== null && ! $fallbackAttempted) {
                 $fallbackAttempted = true;
                 $fallbackValue = trim((string) $ask($promptLabel, ''));
                 if ($fallbackValue !== '') {
@@ -319,11 +318,13 @@ class InstallEnvironmentManager
 
             if (strtoupper($value) === 'CHANGE_ME') {
                 $line('Root password is required and cannot be CHANGE_ME.');
+
                 continue;
             }
 
             if (mb_strlen($value) < 8) {
                 $line('Root password must be at least 8 characters.');
+
                 continue;
             }
 

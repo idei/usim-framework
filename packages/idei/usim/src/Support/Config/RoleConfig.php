@@ -5,8 +5,8 @@ namespace Idei\Usim\Support\Config;
 final class RoleConfig
 {
     /**
-     * @param array<string, array{display_name: string, description: string}> $defaultTranslations
-     * @param array<int, string> $permissions
+     * @param  array<string, array{display_name: string, description: string}>  $defaultTranslations
+     * @param  array<int, string>  $permissions
      */
     public function __construct(
         public private(set) array $defaultTranslations = [],

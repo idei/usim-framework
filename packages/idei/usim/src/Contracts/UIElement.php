@@ -37,7 +37,7 @@ interface UIElement
      * For leaf elements (Button, Label), this returns their configuration.
      * For composite elements (Container), this recursively calls toJson() on children.
      *
-     * @param int|null $order Optional order index relative to parent container (1, 2, 3...)
+     * @param  int|null  $order  Optional order index relative to parent container (1, 2, 3...)
      * @return array<int, array<string, mixed>> The JSON-serializable array representation
      */
     /** @return array<int, array<string, mixed>> */
@@ -48,8 +48,8 @@ interface UIElement
      * First pass of two-pass deserialization: creates the element in isolation
      * without establishing parent-child relationships.
      *
-     * @param int $id The unique identifier for the element
-     * @param array<string, mixed> $data The JSON data to create from
+     * @param  int  $id  The unique identifier for the element
+     * @param  array<string, mixed>  $data  The JSON data to create from
      * @return self A new instance of the UI element
      */
     public static function deserialize(int $id, array $data): self;
@@ -59,8 +59,7 @@ interface UIElement
      * Second pass of two-pass deserialization: establishes the parent-child relationship
      * in the hierarchical structure.
      *
-     * @param UIElement $element The child element to connect
-     * @return void
+     * @param  UIElement  $element  The child element to connect
      */
     public function connectChild(UIElement $element): void;
 
@@ -68,8 +67,6 @@ interface UIElement
      * Perform any post-connection initialization after all children are connected.
      * This method is called after the two-pass deserialization is complete,
      * allowing the element to finalize its state based on its children.
-     *
-     * @return void
      */
     public function postConnect(): void;
 
@@ -83,7 +80,7 @@ interface UIElement
     /**
      * Set the visibility state of the element
      *
-     * @param bool $visible The visibility state
+     * @param  bool  $visible  The visibility state
      * @return static For method chaining
      */
     public function setVisible(bool $visible): self;
@@ -100,11 +97,10 @@ interface UIElement
     /**
      * Set the parent where this element belongs
      *
-     * @param int|string|null $parent The parent (int = parent ID, string = parent name, null = delete)
+     * @param  int|string|null  $parent  The parent (int = parent ID, string = parent name, null = delete)
      * @return self For method chaining
      */
     public function setParent(int|string|null $parent): self;
 
     public function toString(): string;
-
 }

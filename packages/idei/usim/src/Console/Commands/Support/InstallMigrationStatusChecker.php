@@ -62,19 +62,19 @@ class InstallMigrationStatusChecker
 
         $missingTables = [];
         foreach ($requiredTables as $table) {
-            if (!Schema::hasTable($table)) {
+            if (! Schema::hasTable($table)) {
                 $missingTables[] = $table;
             }
         }
 
         $missingColumns = [];
         foreach ($requiredColumns as $table => $columns) {
-            if (!Schema::hasTable($table)) {
+            if (! Schema::hasTable($table)) {
                 continue;
             }
 
             foreach ($columns as $column) {
-                if (!Schema::hasColumn($table, $column)) {
+                if (! Schema::hasColumn($table, $column)) {
                     $missingColumns[$table][] = $column;
                 }
             }
@@ -84,7 +84,7 @@ class InstallMigrationStatusChecker
         $missingMigrations = $this->detectMissingCriticalMigrations($hasMigrationsTable);
 
         $notes = [];
-        if (!$hasMigrationsTable) {
+        if (! $hasMigrationsTable) {
             $notes[] = 'The migrations table does not exist; migration history cannot be verified.';
         }
 
@@ -107,7 +107,7 @@ class InstallMigrationStatusChecker
     private function assessDatabaseExistence(): array
     {
         $defaultConnection = config('database.default', 'mysql');
-        if (!is_string($defaultConnection) || trim($defaultConnection) === '') {
+        if (! is_string($defaultConnection) || trim($defaultConnection) === '') {
             return [
                 'exists' => false,
                 'issue' => 'database.default is empty; cannot resolve database connection.',
@@ -116,7 +116,7 @@ class InstallMigrationStatusChecker
 
         $defaultConnection = trim($defaultConnection);
         $connectionConfig = config("database.connections.{$defaultConnection}");
-        if (!is_array($connectionConfig)) {
+        if (! is_array($connectionConfig)) {
             return [
                 'exists' => false,
                 'issue' => "Database connection [{$defaultConnection}] is not configured.",
@@ -137,7 +137,7 @@ class InstallMigrationStatusChecker
     }
 
     /**
-     * @param array<string, mixed> $connectionConfig
+     * @param  array<string, mixed>  $connectionConfig
      * @return array{exists:bool,issue:?string}
      */
     private function assessSqliteDatabaseExistence(array $connectionConfig): array
@@ -160,7 +160,7 @@ class InstallMigrationStatusChecker
         $isAbsolutePath = $this->isAbsolutePath($database);
         $databasePath = $isAbsolutePath ? $database : base_path($database);
 
-        if (!is_file($databasePath)) {
+        if (! is_file($databasePath)) {
             return [
                 'exists' => false,
                 'issue' => "SQLite database file does not exist: {$databasePath}",
@@ -170,10 +170,6 @@ class InstallMigrationStatusChecker
         return ['exists' => true, 'issue' => null];
     }
 
-    /**
-     * @param string $path
-     * @return bool
-     */
     private function isAbsolutePath(string $path): bool
     {
         return str_starts_with($path, '/')
@@ -182,7 +178,7 @@ class InstallMigrationStatusChecker
     }
 
     /**
-     * @param array<string, mixed> $connectionConfig
+     * @param  array<string, mixed>  $connectionConfig
      * @return array{exists:bool,issue:?string}
      */
     private function assessMysqlDatabaseExistence(array $connectionConfig, string $driver): array
@@ -194,7 +190,7 @@ class InstallMigrationStatusChecker
         if ($databaseName === '') {
             return [
                 'exists' => false,
-                'issue' => strtoupper($driver) . ' DB_DATABASE is empty in configuration.',
+                'issue' => strtoupper($driver).' DB_DATABASE is empty in configuration.',
             ];
         }
 
@@ -225,7 +221,7 @@ class InstallMigrationStatusChecker
     }
 
     /**
-     * @param array<string, mixed> $connectionConfig
+     * @param  array<string, mixed>  $connectionConfig
      * @return array{exists:bool,issue:?string}
      */
     private function assessPgsqlDatabaseExistence(array $connectionConfig): array
@@ -289,7 +285,7 @@ class InstallMigrationStatusChecker
     }
 
     /**
-     * @param array<string, mixed> $connectionConfig
+     * @param  array<string, mixed>  $connectionConfig
      * @return array{exists:bool,issue:?string}
      */
     private function assessSqlsrvDatabaseExistence(array $connectionConfig): array
@@ -352,7 +348,7 @@ class InstallMigrationStatusChecker
 
     private function makeProbeConnectionName(string $driver): string
     {
-        return 'usim_install_probe_' . $driver . '_' . substr(md5((string) microtime(true)), 0, 8);
+        return 'usim_install_probe_'.$driver.'_'.substr(md5((string) microtime(true)), 0, 8);
     }
 
     /**
@@ -360,7 +356,7 @@ class InstallMigrationStatusChecker
      */
     private function detectMissingCriticalMigrations(bool $hasMigrationsTable): array
     {
-        if (!$hasMigrationsTable) {
+        if (! $hasMigrationsTable) {
             return [];
         }
 
@@ -376,8 +372,8 @@ class InstallMigrationStatusChecker
 
         $executed = DB::table('migrations')
             ->pluck('migration')
-            ->filter(static fn($name): bool => \is_string($name) && $name !== '')
-            ->map(static fn(string $name): string => trim($name))
+            ->filter(static fn ($name): bool => \is_string($name) && $name !== '')
+            ->map(static fn (string $name): string => trim($name))
             ->values()
             ->all();
 
@@ -386,13 +382,13 @@ class InstallMigrationStatusChecker
             $isExecuted = false;
 
             foreach ($executed as $migrationName) {
-                if (str_ends_with($migrationName, '_' . $signature) || $migrationName === $signature) {
+                if (str_ends_with($migrationName, '_'.$signature) || $migrationName === $signature) {
                     $isExecuted = true;
                     break;
                 }
             }
 
-            if (!$isExecuted) {
+            if (! $isExecuted) {
                 $missing[] = $signature;
             }
         }

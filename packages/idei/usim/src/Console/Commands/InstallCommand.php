@@ -25,12 +25,12 @@ use Throwable;
 
 class InstallCommand extends Command
 {
+    use ConfiguresRootEnvironment;
+    use InstallsActorsManagerScaffolding;
     use InstallsDatabaseScaffolding;
     use InstallsLangStubs;
     use InstallsTranslationManagerScaffolding;
-    use InstallsActorsManagerScaffolding;
     use RegistersPackageHelperAutoload;
-    use ConfiguresRootEnvironment;
 
     protected $signature = 'usim:install
                             {--force : Overwrite existing files}';
@@ -38,17 +38,29 @@ class InstallCommand extends Command
     protected $description = 'Install the USIM framework scaffolding';
 
     protected Filesystem $files;
+
     protected InstallStateManager $installStateManager;
+
     protected InstallAppScaffoldingManager $installAppScaffoldingManager;
+
     protected SeedAccessControl $installAccessSynchronizer;
+
     protected InstallContextResolver $installContextResolver;
+
     protected InstallEnvironmentManager $installEnvironmentManager;
+
     protected InstallExecutionRollbackManager $installExecutionRollbackManager;
+
     protected InstallMigrationStatusChecker $installMigrationStatusChecker;
+
     protected InstallScaffoldingManager $installScaffoldingManager;
+
     protected InstallWorkflowBuilder $installWorkflowBuilder;
+
     protected InstallStubPublisher $installStubPublisher;
+
     protected bool $force;
+
     /** @var array<string, string> */
     protected array $rootUserEnvValues = [];
 
@@ -71,8 +83,11 @@ class InstallCommand extends Command
      * Namespace configuration — derived from the app's screens config.
      */
     protected string $screensNamespace;
+
     protected string $screensPath;
+
     protected string $componentsNamespace;
+
     protected string $componentsPath;
 
     public function __construct(
@@ -195,7 +210,6 @@ class InstallCommand extends Command
     }
 
     /**
-     * @param string $envPath
      * @return array<int, array{key:string,label:string,run:callable():void}>
      */
     protected function buildWorkflowSteps(string &$envPath): array
@@ -251,7 +265,7 @@ class InstallCommand extends Command
                     line: function (string $message): void {
                         $this->line($message);
                     },
-                    stubsPath: fn(string $path): string => $this->stubsPath($path),
+                    stubsPath: fn (string $path): string => $this->stubsPath($path),
                     publishStub: function (string $stubPath, string $targetPath, bool $autoForce, array $replacements): void {
                         $this->publishStub($stubPath, $targetPath, $autoForce, $replacements);
                     }
@@ -268,7 +282,7 @@ class InstallCommand extends Command
                     line: function (string $message): void {
                         $this->line($message);
                     },
-                    stubsPath: fn(string $path): string => $this->stubsPath($path)
+                    stubsPath: fn (string $path): string => $this->stubsPath($path)
                 );
             },
             installLanguageStubs: function (): void {
@@ -285,7 +299,7 @@ class InstallCommand extends Command
                     line: function (string $message): void {
                         $this->line($message);
                     },
-                    stubsPath: fn(string $path): string => $this->stubsPath($path)
+                    stubsPath: fn (string $path): string => $this->stubsPath($path)
                 );
             },
             appendEnvVars: function () use (&$envPath): void {
@@ -300,7 +314,7 @@ class InstallCommand extends Command
                 );
             },
             configureRoot: function () use (&$envPath): void {
-                $this->configureRootStep($envPath, fn(string $message) => throw new \RuntimeException($message));
+                $this->configureRootStep($envPath, fn (string $message) => throw new \RuntimeException($message));
             },
             registerHelpers: function (): void {
                 $this->registerPackageHelpersAutoload();
@@ -367,10 +381,10 @@ class InstallCommand extends Command
     {
         $connectivity = $this->installMigrationStatusChecker->assessConnectivity();
 
-        if (!$connectivity['exists']) {
+        if (! $connectivity['exists']) {
             $databaseIssue = $connectivity['issue'] ?? 'Database does not exist or is not reachable with current .env settings.';
             throw new MissingDatabaseException(
-                $databaseIssue . ' Create/configure the database before continuing with `php artisan usim:install`.'
+                $databaseIssue.' Create/configure the database before continuing with `php artisan usim:install`.'
             );
         }
     }
@@ -379,10 +393,10 @@ class InstallCommand extends Command
     {
         $assessment = $this->installMigrationStatusChecker->assess();
 
-        if (!$assessment['database_exists']) {
+        if (! $assessment['database_exists']) {
             $databaseIssue = $assessment['database_issue'] ?? 'Database does not exist or is not reachable with current .env settings.';
             throw new MissingDatabaseException(
-                $databaseIssue . ' Migration is not completed for this environment. Create/configure the database and run `php artisan migrate` before continuing with `php artisan usim:install`.'
+                $databaseIssue.' Migration is not completed for this environment. Create/configure the database and run `php artisan migrate` before continuing with `php artisan usim:install`.'
             );
         }
 
@@ -394,7 +408,7 @@ class InstallCommand extends Command
 
         $missingTables = $assessment['missing_tables'];
         if ($missingTables !== []) {
-            $details[] = 'missing tables: ' . implode(', ', $missingTables);
+            $details[] = 'missing tables: '.implode(', ', $missingTables);
         }
 
         $missingColumns = $assessment['missing_columns'];
@@ -403,12 +417,12 @@ class InstallCommand extends Command
                 continue;
             }
 
-            $details[] = 'missing columns in ' . $table . ': ' . implode(', ', $columns);
+            $details[] = 'missing columns in '.$table.': '.implode(', ', $columns);
         }
 
         $missingMigrations = $assessment['missing_migrations'];
         if ($missingMigrations !== []) {
-            $details[] = 'critical migrations not executed: ' . implode(', ', $missingMigrations);
+            $details[] = 'critical migrations not executed: '.implode(', ', $missingMigrations);
         }
 
         $notes = $assessment['notes'];
@@ -423,7 +437,7 @@ class InstallCommand extends Command
         }
 
         throw new \RuntimeException(
-            'Database migration is not ready for USIM install (' . implode('; ', $details) . '). ' .
+            'Database migration is not ready for USIM install ('.implode('; ', $details).'). '.
                 'Run `php artisan migrate` before continuing.'
         );
     }
@@ -478,12 +492,12 @@ class InstallCommand extends Command
     {
         $sourceRoot = $this->stubsPath('resources');
 
-        if (!$this->files->isDirectory($sourceRoot)) {
+        if (! $this->files->isDirectory($sourceRoot)) {
             return [];
         }
 
         return array_map(
-            static fn ($file): string => 'resources/' . $file->getRelativePathname(),
+            static fn ($file): string => 'resources/'.$file->getRelativePathname(),
             $this->files->allFiles($sourceRoot)
         );
     }
@@ -550,8 +564,8 @@ class InstallCommand extends Command
         $steps = [];
 
         $steps[] = "Run <fg=yellow>php artisan usim:discover</> after creating new screens\n";
-        $steps[] = "Run <fg=yellow>./start.sh [-r]</> to start the development server.\n" .
-            "     <fg=gray>Note: -r option removes database and starts fresh)</fg=gray>";
+        $steps[] = "Run <fg=yellow>./start.sh [-r]</> to start the development server.\n".
+            '     <fg=gray>Note: -r option removes database and starts fresh)</fg=gray>';
         $steps[] = "Installer state is tracked at <fg=yellow>{$this->installStateManager->getPath()}</>";
         $unitsCount = $this->syncStats['units_total'] ?? 0;
         $unitsCreated = $this->syncStats['units_created'] ?? 0;
@@ -583,16 +597,16 @@ class InstallCommand extends Command
         $userModelClass = (string) $context['userModelClass'];
 
         $targetDir = $subDirectory
-            ? $screensPath . '/' . $subDirectory
+            ? $screensPath.'/'.$subDirectory
             : $screensPath;
-        $targetFile = $targetDir . '/' . $fileName;
+        $targetFile = $targetDir.'/'.$fileName;
 
         $namespace = $subDirectory
-            ? $screensNamespace . '\\' . str_replace('/', '\\', $subDirectory)
+            ? $screensNamespace.'\\'.str_replace('/', '\\', $subDirectory)
             : $screensNamespace;
 
         $this->publishStub(
-            $this->stubsPath('screens/' . $stub),
+            $this->stubsPath('screens/'.$stub),
             $targetFile,
             false,
             [
@@ -604,7 +618,7 @@ class InstallCommand extends Command
             ]
         );
 
-        $relativePath = 'app/UI/Screens/' . ($subDirectory ? $subDirectory . '/' : '') . $fileName;
+        $relativePath = 'app/UI/Screens/'.($subDirectory ? $subDirectory.'/' : '').$fileName;
         $this->line("  <fg=green>✓</> {$relativePath}");
     }
 
@@ -618,16 +632,16 @@ class InstallCommand extends Command
         $userModelClass = (string) $context['userModelClass'];
 
         $targetDir = $subDirectory
-            ? $componentsPath . '/' . $subDirectory
+            ? $componentsPath.'/'.$subDirectory
             : $componentsPath;
-        $targetFile = $targetDir . '/' . $fileName;
+        $targetFile = $targetDir.'/'.$fileName;
 
         $namespace = $subDirectory
-            ? $componentsNamespace . '\\' . str_replace('/', '\\', $subDirectory)
+            ? $componentsNamespace.'\\'.str_replace('/', '\\', $subDirectory)
             : $componentsNamespace;
 
         $this->publishStub(
-            $this->stubsPath('components/' . $stub),
+            $this->stubsPath('components/'.$stub),
             $targetFile,
             false,
             [
@@ -639,7 +653,7 @@ class InstallCommand extends Command
             ]
         );
 
-        $relativePath = 'app/UI/Components/' . ($subDirectory ? $subDirectory . '/' : '') . $fileName;
+        $relativePath = 'app/UI/Components/'.($subDirectory ? $subDirectory.'/' : '').$fileName;
         $this->line("  <fg=green>✓</> {$relativePath}");
     }
 
@@ -649,13 +663,13 @@ class InstallCommand extends Command
         $userModelImport = (string) $context['userModelImport'];
         $userModelClass = (string) $context['userModelClass'];
 
-        $targetDir = 'app/Models' . ($subDirectory ? '/' . $subDirectory : '');
-        $targetFile = $targetDir . '/' . $fileName;
+        $targetDir = 'app/Models'.($subDirectory ? '/'.$subDirectory : '');
+        $targetFile = $targetDir.'/'.$fileName;
 
-        $namespace = 'App\\Models' . ($subDirectory ? '\\' . str_replace('/', '\\', $subDirectory) : '');
+        $namespace = 'App\\Models'.($subDirectory ? '\\'.str_replace('/', '\\', $subDirectory) : '');
 
         $this->publishStub(
-            $this->stubsPath('models/' . $stub),
+            $this->stubsPath('models/'.$stub),
             $targetFile,
             false,
             [
@@ -665,7 +679,7 @@ class InstallCommand extends Command
             ]
         );
 
-        $relativePath = 'app/Models/' . ($subDirectory ? $subDirectory . '/' : '') . $fileName;
+        $relativePath = 'app/Models/'.($subDirectory ? $subDirectory.'/' : '').$fileName;
         $this->line("  <fg=green>✓</> {$relativePath}");
     }
 
@@ -700,6 +714,7 @@ class InstallCommand extends Command
     protected function resolveUserModelClass(): string
     {
         $fullClass = $this->resolveUserModelImport();
+
         return \class_basename($fullClass);
     }
 }

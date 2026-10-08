@@ -48,7 +48,7 @@ class Input extends UIComponent
     /**
      * Set the input type
      *
-     * @param string $type The input type (text, number, email, password, tel, url, search, date, datetime-local, time, month, week, color, range, file, hidden)
+     * @param  string  $type  The input type (text, number, email, password, tel, url, search, date, datetime-local, time, month, week, color, range, file, hidden)
      * @return self For method chaining
      */
     public function type(string $type): self
@@ -59,7 +59,7 @@ class Input extends UIComponent
     /**
      * Set the label text
      *
-     * @param string $label The label text
+     * @param  string  $label  The label text
      * @return self For method chaining
      */
     public function label(string $label): self
@@ -70,7 +70,7 @@ class Input extends UIComponent
     /**
      * Set the placeholder text
      *
-     * @param string $placeholder The placeholder text
+     * @param  string  $placeholder  The placeholder text
      * @return self For method chaining
      */
     public function placeholder(string $placeholder): self
@@ -81,7 +81,7 @@ class Input extends UIComponent
     /**
      * Set the input value
      *
-     * @param mixed $value The input value
+     * @param  mixed  $value  The input value
      * @return self For method chaining
      */
     public function value(mixed $value): self
@@ -92,7 +92,7 @@ class Input extends UIComponent
     /**
      * Mark the input as required
      *
-     * @param bool $required True if required, false otherwise
+     * @param  bool  $required  True if required, false otherwise
      * @return self For method chaining
      */
     public function required(bool $required = true): self
@@ -103,7 +103,7 @@ class Input extends UIComponent
     /**
      * Disable the input
      *
-     * @param bool $disabled True to disable, false otherwise
+     * @param  bool  $disabled  True to disable, false otherwise
      * @return self For method chaining
      */
     public function disabled(bool $disabled = true): self
@@ -114,7 +114,7 @@ class Input extends UIComponent
     /**
      * Make the input readonly
      *
-     * @param bool $readonly True for readonly, false otherwise
+     * @param  bool  $readonly  True for readonly, false otherwise
      * @return self For method chaining
      */
     public function readonly(bool $readonly = true): self
@@ -125,7 +125,7 @@ class Input extends UIComponent
     /**
      * Enable autofocus on this input
      *
-     * @param bool $autofocus True to autofocus, false otherwise
+     * @param  bool  $autofocus  True to autofocus, false otherwise
      * @return self For method chaining
      */
     public function autofocus(bool $autofocus = true): self
@@ -136,7 +136,7 @@ class Input extends UIComponent
     /**
      * Set the autocomplete attribute
      *
-     * @param string $autocomplete The autocomplete value (e.g., 'email', 'name', 'tel', 'off')
+     * @param  string  $autocomplete  The autocomplete value (e.g., 'email', 'name', 'tel', 'off')
      * @return self For method chaining
      */
     public function autocomplete(string $autocomplete): self
@@ -147,7 +147,7 @@ class Input extends UIComponent
     /**
      * Set the maximum length
      *
-     * @param int $maxlength Maximum number of characters
+     * @param  int  $maxlength  Maximum number of characters
      * @return self For method chaining
      */
     public function maxLength(int $maxlength): self
@@ -158,7 +158,7 @@ class Input extends UIComponent
     /**
      * Set the minimum length
      *
-     * @param int $minlength Minimum number of characters
+     * @param  int  $minlength  Minimum number of characters
      * @return self For method chaining
      */
     public function minLength(int $minlength): self
@@ -169,7 +169,7 @@ class Input extends UIComponent
     /**
      * Set the minimum value (for number, date, time inputs)
      *
-     * @param mixed $min Minimum value
+     * @param  mixed  $min  Minimum value
      * @return self For method chaining
      */
     public function min(mixed $min): self
@@ -180,7 +180,7 @@ class Input extends UIComponent
     /**
      * Set the maximum value (for number, date, time inputs)
      *
-     * @param mixed $max Maximum value
+     * @param  mixed  $max  Maximum value
      * @return self For method chaining
      */
     public function max(mixed $max): self
@@ -191,7 +191,7 @@ class Input extends UIComponent
     /**
      * Set the step value (for number, range inputs)
      *
-     * @param mixed $step The step value
+     * @param  mixed  $step  The step value
      * @return self For method chaining
      */
     public function step(mixed $step): self
@@ -202,7 +202,7 @@ class Input extends UIComponent
     /**
      * Set a regex pattern for validation
      *
-     * @param string $pattern Regular expression pattern
+     * @param  string  $pattern  Regular expression pattern
      * @return self For method chaining
      */
     public function pattern(string $pattern): self
@@ -213,7 +213,7 @@ class Input extends UIComponent
     /**
      * Enable multiple file selection (for file inputs)
      *
-     * @param bool $multiple True to allow multiple files, false otherwise
+     * @param  bool  $multiple  True to allow multiple files, false otherwise
      * @return self For method chaining
      */
     public function multiple(bool $multiple = true): self
@@ -224,7 +224,7 @@ class Input extends UIComponent
     /**
      * Set accepted file types (for file inputs)
      *
-     * @param string $accept Comma-separated list of file types (e.g., 'image/*', '.pdf,.doc')
+     * @param  string  $accept  Comma-separated list of file types (e.g., 'image/*', '.pdf,.doc')
      * @return self For method chaining
      */
     public function accept(string $accept): self
@@ -235,7 +235,7 @@ class Input extends UIComponent
     /**
      * Set help text (displayed below the input)
      *
-     * @param string $helpText Help text to guide the user
+     * @param  string  $helpText  Help text to guide the user
      * @return self For method chaining
      */
     public function helpText(string $helpText): self
@@ -246,7 +246,7 @@ class Input extends UIComponent
     /**
      * Set error message (displayed when validation fails)
      *
-     * @param string $errorMessage Error message text
+     * @param  string  $errorMessage  Error message text
      * @return self For method chaining
      */
     public function errorMessage(string $errorMessage): self
@@ -258,7 +258,7 @@ class Input extends UIComponent
      * Set or clear error state with message
      * Shows an error icon with tooltip next to the input
      *
-     * @param string|null $error Error message to display, or null to clear error
+     * @param  string|null  $error  Error message to display, or null to clear error
      * @return self For method chaining
      */
     public function error(?string $error): self
@@ -269,7 +269,7 @@ class Input extends UIComponent
     /**
      * Set a tooltip
      *
-     * @param string $tooltip Tooltip text
+     * @param  string  $tooltip  Tooltip text
      * @return self For method chaining
      */
     public function tooltip(string $tooltip): self
@@ -280,7 +280,7 @@ class Input extends UIComponent
     /**
      * Set an icon
      *
-     * @param string $icon Icon name
+     * @param  string  $icon  Icon name
      * @return self For method chaining
      */
     public function icon(string $icon): self
@@ -291,7 +291,7 @@ class Input extends UIComponent
     /**
      * Set the icon position
      *
-     * @param string $position Icon position ('left' or 'right')
+     * @param  string  $position  Icon position ('left' or 'right')
      * @return self For method chaining
      */
     public function iconPosition(string $position): self
@@ -302,7 +302,7 @@ class Input extends UIComponent
     /**
      * Set the input style
      *
-     * @param string $style Style name (default, primary, success, warning, danger)
+     * @param  string  $style  Style name (default, primary, success, warning, danger)
      * @return self For method chaining
      */
     public function style(string $style): self
@@ -313,7 +313,7 @@ class Input extends UIComponent
     /**
      * Set the input size
      *
-     * @param string $size Size (small, medium, large)
+     * @param  string  $size  Size (small, medium, large)
      * @return self For method chaining
      */
     public function size(string $size): self
@@ -324,8 +324,8 @@ class Input extends UIComponent
     /**
      * Set action to trigger on input event (while typing)
      *
-     * @param string $action Action name to call
-     * @param array<string, mixed> $parameters Additional parameters to send
+     * @param  string  $action  Action name to call
+     * @param  array<string, mixed>  $parameters  Additional parameters to send
      * @return self For method chaining
      */
     public function onInput(string $action, array $parameters = []): self
@@ -339,8 +339,8 @@ class Input extends UIComponent
     /**
      * Set action to trigger on change event (after blur)
      *
-     * @param string $action Action name to call
-     * @param array<string, mixed> $parameters Additional parameters to send
+     * @param  string  $action  Action name to call
+     * @param  array<string, mixed>  $parameters  Additional parameters to send
      * @return self For method chaining
      */
     public function onChange(string $action, array $parameters = []): self
@@ -354,8 +354,8 @@ class Input extends UIComponent
     /**
      * Set action to trigger when Enter key is pressed
      *
-     * @param string $action Action name to call
-     * @param array<string, mixed> $parameters Additional parameters to send
+     * @param  string  $action  Action name to call
+     * @param  array<string, mixed>  $parameters  Additional parameters to send
      * @return self For method chaining
      */
     public function onEnter(string $action, array $parameters = []): self
@@ -369,7 +369,7 @@ class Input extends UIComponent
     /**
      * Set debounce time (in milliseconds) for onInput event
      *
-     * @param int $ms Milliseconds to wait before triggering action
+     * @param  int  $ms  Milliseconds to wait before triggering action
      * @return self For method chaining
      */
     public function debounce(int $ms): self

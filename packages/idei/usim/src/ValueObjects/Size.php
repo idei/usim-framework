@@ -6,8 +6,7 @@ final class Size
 {
     private function __construct(
         private readonly string $value
-    ) {
-    }
+    ) {}
 
     // Factory methods for common size units and keywords
     public static function px(int $value): self
@@ -65,10 +64,12 @@ final class Size
     {
         return self::pct(100);
     }
+
     public static function half(): self
     {
         return self::pct(50);
     }
+
     public static function third(): self
     {
         return self::pct(33.333);
@@ -86,10 +87,13 @@ final class Size
 
     public static function from(Size|int|string $value): self
     {
-        if ($value instanceof self)
+        if ($value instanceof self) {
             return $value;
-        if (\is_int($value))
+        }
+        if (\is_int($value)) {
             return self::px($value);
+        }
+
         return new self($value);
     }
 

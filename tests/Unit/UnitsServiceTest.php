@@ -1,8 +1,8 @@
 <?php
 
-use Idei\Usim\Models\UsimUnit;
 use App\Services\Units\UnitsService;
 use App\Services\Units\UnitTranslationGenerator;
+use Idei\Usim\Models\UsimUnit;
 use Illuminate\Filesystem\Filesystem;
 
 beforeEach(function () {
@@ -98,8 +98,8 @@ it('deletes obsolete units while protecting child units from cascade deletion', 
 });
 
 it('generates translation files using UnitTranslationGenerator', function () {
-    $files = new Filesystem();
-    $tempLangDir = sys_get_temp_dir() . '/usim_test_lang_' . uniqid();
+    $files = new Filesystem;
+    $tempLangDir = sys_get_temp_dir().'/usim_test_lang_'.uniqid();
     $generator = new UnitTranslationGenerator($files);
 
     $structure = [
@@ -150,8 +150,8 @@ it('runs full sync with custom structure and returns UnitSyncResult', function (
         ],
     ];
 
-    $files = new Filesystem();
-    $tempLangDir = sys_get_temp_dir() . '/usim_test_sync_' . uniqid();
+    $files = new Filesystem;
+    $tempLangDir = sys_get_temp_dir().'/usim_test_sync_'.uniqid();
 
     $progressCalls = 0;
     $result = $service->sync(
@@ -175,4 +175,3 @@ it('runs full sync with custom structure and returns UnitSyncResult', function (
 
     $files->deleteDirectory($tempLangDir);
 });
-

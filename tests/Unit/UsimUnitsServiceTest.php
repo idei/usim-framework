@@ -7,7 +7,7 @@ use Idei\Usim\Models\UsimUnit;
 
 it('returns empty array when user has no units or roles', function () {
     $user = User::factory()->create();
-    $service = new UsimUnitsService();
+    $service = new UsimUnitsService;
 
     $result = $service->getUserUnitsWithRoles($user);
 
@@ -19,7 +19,7 @@ it('returns units with empty role list when user has membership but no roles ass
     $unit = UsimUnit::firstOrCreate(['slug' => 'sales']);
     $user->usimUnits()->sync([$unit->id]);
 
-    $service = new UsimUnitsService();
+    $service = new UsimUnitsService;
     $result = $service->getUserUnitsWithRoles($user);
 
     expect($result)->toHaveKey('sales');
@@ -45,7 +45,7 @@ it('returns units with their assigned roles for the user', function () {
     setPermissionsTeamId($unitB->id);
     $user->assignRole($roleViewer);
 
-    $service = new UsimUnitsService();
+    $service = new UsimUnitsService;
     $result = $service->getUserUnitsWithRoles($user);
 
     expect($result)->toHaveKeys(['hq', 'branch']);

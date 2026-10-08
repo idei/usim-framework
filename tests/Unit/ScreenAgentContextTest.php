@@ -1,12 +1,15 @@
 <?php
 
 use App\UI\Screens\Home;
+use Idei\Usim\Components\Container;
 use Idei\Usim\Screen;
 
 // Test 1: Screen::getAgentContext() returns empty array by default
 it('screen get-agent-context returns empty array by default', function () {
-    $screen = new class extends Screen {
-        protected function buildBaseUI(\Idei\Usim\Components\Container $container, ...$params): void {
+    $screen = new class extends Screen
+    {
+        protected function buildBaseUI(Container $container, ...$params): void
+        {
             // Empty implementation
         }
     };
@@ -19,8 +22,10 @@ it('screen get-agent-context returns empty array by default', function () {
 
 // Test 2: Screen can override getAgentContext()
 it('screen can override get-agent-context method', function () {
-    $screen = new class extends Screen {
-        protected function buildBaseUI(\Idei\Usim\Components\Container $container, ...$params): void {
+    $screen = new class extends Screen
+    {
+        protected function buildBaseUI(Container $container, ...$params): void
+        {
             // Empty implementation
         }
 
@@ -44,7 +49,7 @@ it('screen can override get-agent-context method', function () {
 
 // Test 3: getAgentContext() return type is array
 it('get-agent-context always returns array', function () {
-    $homeScreen = new Home();
+    $homeScreen = new Home;
 
     $context = $homeScreen->getAgentContext();
 
@@ -53,9 +58,9 @@ it('get-agent-context always returns array', function () {
 
 // Test 4: Agent context structure conforms to expected keys
 it('agent context structure includes expected optional keys', function () {
-    $screen = new class extends Screen {
-        protected function buildBaseUI(\Idei\Usim\Components\Container $container, ...$params): void {
-        }
+    $screen = new class extends Screen
+    {
+        protected function buildBaseUI(Container $container, ...$params): void {}
 
         public function getAgentContext(): array
         {
@@ -71,7 +76,7 @@ it('agent context structure includes expected optional keys', function () {
     $context = $screen->getAgentContext();
 
     // Validate expected structure
-    if (!empty($context)) {
+    if (! empty($context)) {
         expect($context)->toHaveKeys(['purpose']);
     }
 });
@@ -88,9 +93,9 @@ it('agent context can be retrieved after screen initialization', function () {
 
 // Test 6: Multiple calls to getAgentContext() return consistent results
 it('get-agent-context returns consistent results on multiple calls', function () {
-    $screen = new class extends Screen {
-        protected function buildBaseUI(\Idei\Usim\Components\Container $container, ...$params): void {
-        }
+    $screen = new class extends Screen
+    {
+        protected function buildBaseUI(Container $container, ...$params): void {}
 
         public function getAgentContext(): array
         {

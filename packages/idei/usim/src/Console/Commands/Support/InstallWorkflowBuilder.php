@@ -5,21 +5,21 @@ namespace Idei\Usim\Console\Commands\Support;
 class InstallWorkflowBuilder
 {
     /**
-     * @param callable(): void $checkEnvironment
-     * @param callable(): void $checkDatabaseReadiness
-     * @param callable(): void $publishConfig
-     * @param callable(): void $publishAssets
-     * @param callable(): void $installCoreScreens
-     * @param callable(): void $installAuthScaffolding
-     * @param callable(): void $installViews
-    * @param callable(): void $installResources
-     * @param callable(): void $installLanguageStubs
-     * @param callable(): void $installWebRoutes
-     * @param callable(): void $appendEnvVars
-     * @param callable(): void $configureRoot
-     * @param callable(): void $registerHelpers
-     * @param callable(): void $upsertAccessAndLanguages
-     * @param callable(): void $discoverScreens
+     * @param  callable(): void  $checkEnvironment
+     * @param  callable(): void  $checkDatabaseReadiness
+     * @param  callable(): void  $publishConfig
+     * @param  callable(): void  $publishAssets
+     * @param  callable(): void  $installCoreScreens
+     * @param  callable(): void  $installAuthScaffolding
+     * @param  callable(): void  $installViews
+     * @param  callable(): void  $installResources
+     * @param  callable(): void  $installLanguageStubs
+     * @param  callable(): void  $installWebRoutes
+     * @param  callable(): void  $appendEnvVars
+     * @param  callable(): void  $configureRoot
+     * @param  callable(): void  $registerHelpers
+     * @param  callable(): void  $upsertAccessAndLanguages
+     * @param  callable(): void  $discoverScreens
      * @return array<int, array{key:string,label:string,run:callable():void}>
      */
     public function build(

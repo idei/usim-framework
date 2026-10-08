@@ -1,6 +1,7 @@
 <?php
 
 use Idei\Usim\Console\Commands\Support\InstallContextResolver;
+use Idei\Usim\Console\Commands\Support\InstallEnvironmentManager;
 use Idei\Usim\Console\Commands\Support\InstallExecutionRollbackManager;
 use Idei\Usim\Console\Commands\Support\InstallMigrationStatusChecker;
 use Illuminate\Filesystem\Filesystem;
@@ -10,7 +11,7 @@ use Mockery;
 it('correctly resolves componentsPath when screensPath uses Windows backslashes', function () {
     Config::set('usim.screens_path', 'C:\\Users\\emili\\Desktop\\Prueba3\\app\\UI\\Screens');
 
-    $resolver = new InstallContextResolver();
+    $resolver = new InstallContextResolver;
     $namespaces = $resolver->resolveNamespaces();
 
     expect($namespaces['screensPath'])->toBe('C:/Users/emili/Desktop/Prueba3/app/UI/Screens');
@@ -19,7 +20,7 @@ it('correctly resolves componentsPath when screensPath uses Windows backslashes'
 });
 
 it('handles stubsPath with both leading forward slashes and backslashes', function () {
-    $resolver = new InstallContextResolver();
+    $resolver = new InstallContextResolver;
 
     $pathWithSlash = $resolver->stubsPath('/resources');
     $pathWithBackslash = $resolver->stubsPath('\\resources');
@@ -29,7 +30,7 @@ it('handles stubsPath with both leading forward slashes and backslashes', functi
 });
 
 it('does not duplicate Windows absolute path in SQLite assessment when file does not exist', function () {
-    $checker = new InstallMigrationStatusChecker();
+    $checker = new InstallMigrationStatusChecker;
 
     $windowsPath = 'C:\\Users\\emili\\Desktop\\Prueba3\\database\\database.sqlite';
     Config::set('database.default', 'sqlite');
@@ -76,7 +77,7 @@ it('falls back to ask when secret returns empty for password', function () {
     $files->shouldReceive('get')->andReturn('');
     $files->shouldReceive('put')->andReturn(true);
 
-    $envManager = new \Idei\Usim\Console\Commands\Support\InstallEnvironmentManager($files);
+    $envManager = new InstallEnvironmentManager($files);
 
     $secretCalled = false;
     $askCalled = false;
@@ -87,12 +88,15 @@ it('falls back to ask when secret returns empty for password', function () {
         ask: function (string $label, string $default) use (&$askCalled): string {
             if (str_starts_with($label, 'Root password')) {
                 $askCalled = true;
+
                 return 'fallbackPassword123';
             }
+
             return $default;
         },
         secret: function (string $prompt) use (&$secretCalled): string {
             $secretCalled = true;
+
             return ''; // Simulates hiddeninput.exe failing immediately on Windows
         },
         error: fn (string $msg) => null,
@@ -109,7 +113,7 @@ it('prevents infinite loop when input is repeatedly empty', function () {
     $files->shouldReceive('exists')->andReturn(true);
     $files->shouldReceive('get')->andReturn('');
 
-    $envManager = new \Idei\Usim\Console\Commands\Support\InstallEnvironmentManager($files);
+    $envManager = new InstallEnvironmentManager($files);
 
     $errorCalled = false;
     $errorMessage = '';
@@ -137,7 +141,7 @@ it('generates random root password in non-interactive environment when ROOT_PASS
     $files->shouldReceive('get')->andReturn("ROOT_PASSWORD=CHANGE_ME\nROOT_EMAIL=root@example.com\n");
     $files->shouldReceive('put')->andReturn(true);
 
-    $envManager = new \Idei\Usim\Console\Commands\Support\InstallEnvironmentManager($files);
+    $envManager = new InstallEnvironmentManager($files);
 
     $lines = [];
     $result = $envManager->promptAndPersistRootUserEnv(
@@ -164,7 +168,7 @@ it('preserves existing root password in non-interactive environment', function (
     $files->shouldReceive('get')->andReturn("ROOT_PASSWORD=ExistingSecret123!\nROOT_EMAIL=root@example.com\n");
     $files->shouldReceive('put')->andReturn(true);
 
-    $envManager = new \Idei\Usim\Console\Commands\Support\InstallEnvironmentManager($files);
+    $envManager = new InstallEnvironmentManager($files);
 
     $result = $envManager->promptAndPersistRootUserEnv(
         envPath: base_path('.env'),
@@ -184,7 +188,7 @@ it('generates random root password when user leaves password blank in interactiv
     $files->shouldReceive('get')->andReturn('');
     $files->shouldReceive('put')->andReturn(true);
 
-    $envManager = new \Idei\Usim\Console\Commands\Support\InstallEnvironmentManager($files);
+    $envManager = new InstallEnvironmentManager($files);
 
     $lines = [];
     $result = $envManager->promptAndPersistRootUserEnv(
@@ -203,5 +207,3 @@ it('generates random root password when user leaves password blank in interactiv
     expect(strlen($result['password']))->toBe(16);
     expect(collect($lines)->some(fn ($l) => str_contains($l, 'Generated root password')))->toBeTrue();
 });
-
-

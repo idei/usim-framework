@@ -59,12 +59,12 @@ class UsimRole extends SpatieRole
         /** @var self $role */
         $role = static::create([
             'name' => $name,
-            'guard_name' => $guardName
+            'guard_name' => $guardName,
         ]);
 
         $role->usimSetting()->update([
             'home_screen' => $homeScreenSlug,
-            'priority' => $priority
+            'priority' => $priority,
         ]);
 
         return $role;
@@ -83,9 +83,10 @@ class UsimRole extends SpatieRole
                 $setting = $this->relationLoaded('usimSetting')
                     ? $this->getRelation('usimSetting')
                     : $this->usimSetting()->first();
+
                 return $setting->home_screen ?? config('usim.default_home_screen', self::DEFAULT_HOME_SCREEN);
             },
-            set: fn($value) => $this->usimSetting()->updateOrCreate([], ['home_screen' => $value]),
+            set: fn ($value) => $this->usimSetting()->updateOrCreate([], ['home_screen' => $value]),
         );
     }
 
@@ -100,13 +101,13 @@ class UsimRole extends SpatieRole
                     : $this->usimSetting()->first();
 
                 $defaultPriority = config('usim.default_priority', 100);
-                if (!is_int($defaultPriority)) {
+                if (! is_int($defaultPriority)) {
                     $defaultPriority = 100;
                 }
 
                 return $setting->priority ?? $defaultPriority;
             },
-            set: fn($value) => $this->usimSetting()->updateOrCreate([], ['priority' => (int) $value]),
+            set: fn ($value) => $this->usimSetting()->updateOrCreate([], ['priority' => (int) $value]),
         );
     }
 }

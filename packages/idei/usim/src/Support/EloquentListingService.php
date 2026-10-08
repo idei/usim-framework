@@ -21,6 +21,7 @@ use Throwable;
  * Field definitions support base columns and relation paths (`relation.column`).
  *
  * @template TModel of Model
+ *
  * @implements ModelQueryableService<TModel>
  */
 abstract class EloquentListingService implements ModelQueryableService
@@ -39,7 +40,7 @@ abstract class EloquentListingService implements ModelQueryableService
      * @var array<string, array{
      *   type: class-string<Relation<Model, Model, mixed>>,
      *   related_table: string,
-    *   relation: Relation<Model, Model, mixed>
+     *   relation: Relation<Model, Model, mixed>
      * }>
      */
     private array $relationCache = [];
@@ -114,7 +115,7 @@ abstract class EloquentListingService implements ModelQueryableService
     /**
      * Generic pagination helper reusable by child services.
      *
-        * @param array<string, mixed> $filters
+     * @param  array<string, mixed>  $filters
      * @return array{total: int, items: array<int, TModel>}
      */
     public function paginate(
@@ -147,7 +148,7 @@ abstract class EloquentListingService implements ModelQueryableService
     }
 
     /**
-     * @param array<string, mixed> $filters
+     * @param  array<string, mixed>  $filters
      */
     public function countMatching(?string $search = null, array $filters = []): int
     {
@@ -187,7 +188,7 @@ abstract class EloquentListingService implements ModelQueryableService
     {
         $class = $this->modelClass;
 
-        $model = new $class();
+        $model = new $class;
 
         return $model;
     }
@@ -208,8 +209,8 @@ abstract class EloquentListingService implements ModelQueryableService
     }
 
     /**
+     * @param  array<string, mixed>  $filters
      * @return Builder<TModel>
-     * @param array<string, mixed> $filters
      */
     protected function buildQuery(
         ?string $search = null,
@@ -229,8 +230,8 @@ abstract class EloquentListingService implements ModelQueryableService
     }
 
     /**
-     * @param Builder<TModel> $query
-     * @param array<string, mixed> $filters
+     * @param  Builder<TModel>  $query
+     * @param  array<string, mixed>  $filters
      */
     private function applyFilters(Builder $query, array $filters): void
     {
@@ -270,7 +271,7 @@ abstract class EloquentListingService implements ModelQueryableService
     }
 
     /**
-     * @param Builder<TModel> $query
+     * @param  Builder<TModel>  $query
      */
     private function applySearch(Builder $query, ?string $search): void
     {
@@ -310,7 +311,7 @@ abstract class EloquentListingService implements ModelQueryableService
     }
 
     /**
-     * @param Builder<TModel> $query
+     * @param  Builder<TModel>  $query
      */
     private function applySort(Builder $query, ?string $sortField, string $sortDirection): void
     {
@@ -318,7 +319,7 @@ abstract class EloquentListingService implements ModelQueryableService
         $direction = strtolower($sortDirection) === 'desc' ? 'desc' : 'asc';
 
         $targetField = $sortField;
-        if ($targetField === null || !isset($allowed[$targetField])) {
+        if ($targetField === null || ! isset($allowed[$targetField])) {
             $default = $this->defaultSort();
             $targetField = $default['field'];
             $direction = strtolower($default['direction']) === 'desc' ? 'desc' : 'asc';
@@ -349,7 +350,7 @@ abstract class EloquentListingService implements ModelQueryableService
     }
 
     /**
-     * @param Builder<TModel> $query
+     * @param  Builder<TModel>  $query
      */
     private function joinSortableRelation(Builder $query, string $relation): ?string
     {
@@ -410,7 +411,7 @@ abstract class EloquentListingService implements ModelQueryableService
                 continue;
             }
 
-            if (!$relation instanceof Relation) {
+            if (! $relation instanceof Relation) {
                 continue;
             }
 
@@ -443,7 +444,7 @@ abstract class EloquentListingService implements ModelQueryableService
     }
 
     /**
-     * @param array<int, string>|array<string, string|array{path?: string, operator?: string, cast?: 'int'|'float'|'bool'|'string'}> $definitions
+     * @param  array<int, string>|array<string, string|array{path?: string, operator?: string, cast?: 'int'|'float'|'bool'|'string'}>  $definitions
      * @return array<string, array{field: string, path: string, relation: string|null, column: string, operator: string, cast: 'int'|'float'|'bool'|'string'|null}>
      */
     private function normalizeFieldMap(array $definitions, string $defaultOperator): array
@@ -459,8 +460,7 @@ abstract class EloquentListingService implements ModelQueryableService
     }
 
     /**
-     * @param int|string $key
-     * @param string|array{path?: string, operator?: string, cast?: 'int'|'float'|'bool'|'string'} $value
+     * @param  string|array{path?: string, operator?: string, cast?: 'int'|'float'|'bool'|'string'}  $value
      * @return array{field: string, path: string, relation: string|null, column: string, operator: string, cast: 'int'|'float'|'bool'|'string'|null}
      */
     private function normalizeFieldDefinition(int|string $key, string|array $value, string $defaultOperator): array
@@ -510,7 +510,7 @@ abstract class EloquentListingService implements ModelQueryableService
     }
 
     /**
-     * @param Builder<TModel> $query
+     * @param  Builder<TModel>  $query
      * @return array<int, TModel>
      */
     private function collectTypedItems(Builder $query): array
@@ -528,7 +528,7 @@ abstract class EloquentListingService implements ModelQueryableService
     }
 
     /**
-     * @param array<string, array{field: string, path: string, relation: string|null, column: string, operator: string, cast: 'int'|'float'|'bool'|'string'|null}> $definitions
+     * @param  array<string, array{field: string, path: string, relation: string|null, column: string, operator: string, cast: 'int'|'float'|'bool'|'string'|null}>  $definitions
      * @return array{field: string, path: string, relation: string|null, column: string, operator: string, cast: 'int'|'float'|'bool'|'string'|null}|null
      */
     private function resolveDefinition(string $field, array $definitions): ?array
@@ -584,7 +584,7 @@ abstract class EloquentListingService implements ModelQueryableService
      */
     private function normalizeCast(mixed $cast): ?string
     {
-        if (!is_string($cast)) {
+        if (! is_string($cast)) {
             return null;
         }
 
