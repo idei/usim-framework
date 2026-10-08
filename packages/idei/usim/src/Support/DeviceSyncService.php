@@ -10,14 +10,14 @@ class DeviceSyncService
 {
     /**
      * @param  array<string, array<string, mixed>>  $devicesConfig
-     * @return array{synced: list<string>, errors: list<string>}
      */
-    public function sync(array $devicesConfig): array
+    public function sync(array $devicesConfig): \Idei\Usim\Contracts\DeviceSyncResult
     {
+        /** @var array{synced: list<string>, errors: list<string>} $results */
         $results = ['synced' => [], 'errors' => []];
 
         if (empty($devicesConfig)) {
-            return $results;
+            return new \Idei\Usim\Contracts\DeviceSyncResult();
         }
 
         // 1. Resolvemos el nombre de la clase dinámicamente
@@ -27,9 +27,9 @@ class DeviceSyncService
 
         // 2. Verificamos la existencia para evitar un Fatal Error
         if (! class_exists($deviceClass)) {
-            $results['errors'][] = "El modelo [{$deviceClass}] no existe. Asegúrate de ejecutar 'php artisan usim:install' primero.";
-
-            return $results;
+            return new \Idei\Usim\Contracts\DeviceSyncResult(
+                errors: ["El modelo [{$deviceClass}] no existe. Asegúrate de ejecutar 'php artisan usim:install' primero."]
+            );
         }
 
         DB::beginTransaction();
@@ -94,7 +94,10 @@ class DeviceSyncService
             $results['errors'][] = 'Error crítico: '.$e->getMessage();
         }
 
-        return $results;
+        return new \Idei\Usim\Contracts\DeviceSyncResult(
+            synced: $results['synced'],
+            errors: $results['errors']
+        );
     }
 
     private function normalizeStringValue(mixed $value, string $fallback): string

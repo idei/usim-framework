@@ -11,12 +11,7 @@ class LangSyncService
 {
     public function __construct(protected UsimConfig $usimConfig, protected ?string $baseLangPath = null) {}
 
-    /**
-     * Synchronizes the languages and role/permission translations configured in the USIM configuration.
-     *
-     * @return array{languages_created: int, languages_updated: int}
-     */
-    public function sync(): array
+    public function sync(): \Idei\Usim\Contracts\LangSyncResult
     {
         $stats = [
             'languages_created' => 0,
@@ -28,7 +23,10 @@ class LangSyncService
             $this->upsertRoleAndPermissionTranslations();
         });
 
-        return $stats;
+        return new \Idei\Usim\Contracts\LangSyncResult(
+            languagesCreated: $stats['languages_created'],
+            languagesUpdated: $stats['languages_updated']
+        );
     }
 
     /**

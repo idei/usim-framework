@@ -2,6 +2,7 @@
 
 namespace Idei\Usim\Support;
 
+use Idei\Usim\Contracts\UserSyncResult;
 use Idei\Usim\Models\UsimRole;
 use Idei\Usim\Models\UsimUnit;
 use Idei\Usim\Support\Config\UserConfig;
@@ -20,10 +21,7 @@ class UsersSyncService
         $this->usimConfig = $usimConfig ?? app(UsimConfig::class);
     }
 
-    /**
-     * @return array{users_created: int, users_updated: int, users_deleted: int}
-     */
-    public function sync(): array
+    public function sync(): UserSyncResult
     {
         $stats = [
             'users_created' => 0,
@@ -44,7 +42,11 @@ class UsersSyncService
 
         app(PermissionRegistrar::class)->forgetCachedPermissions();
 
-        return $stats;
+        return new UserSyncResult(
+            usersCreated: $stats['users_created'],
+            usersUpdated: $stats['users_updated'],
+            usersDeleted: $stats['users_deleted']
+        );
     }
 
     /**

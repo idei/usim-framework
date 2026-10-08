@@ -6,32 +6,28 @@ use ArrayAccess;
 use Idei\Usim\Contracts\Concerns\ArrayAccessibleDto;
 
 /**
- * Result DTO for organizational unit synchronization operations.
+ * Result DTO for role and permission synchronization operations.
  *
  * @phpstan-consistent-constructor
+ *
  * @implements ArrayAccess<string, mixed>
  */
-readonly class UnitSyncResult implements ArrayAccess, SyncResultInterface
+readonly class RoleSyncResult implements ArrayAccess, SyncResultInterface
 {
     use ArrayAccessibleDto;
 
     /**
-     * @param  array<int, string>  $generatedTranslationFiles
-     * @param  array<int, string>  $errors
+     * @param  list<string>  $errors
      */
     final public function __construct(
+        public int $permissionsCreated = 0,
+        public int $rolesCreated = 0,
+        public int $rolesUpdated = 0,
         public bool $skipped = false,
         public string $skipReason = '',
-        public int $deletedCount = 0,
-        public int $upsertedCount = 0,
-        public int $hierarchyUpdatedCount = 0,
-        public array $generatedTranslationFiles = [],
         public array $errors = []
     ) {}
 
-    /**
-     * Create a result representing a skipped operation.
-     */
     public static function skipped(string $reason): static
     {
         return new static(
@@ -60,22 +56,21 @@ readonly class UnitSyncResult implements ArrayAccess, SyncResultInterface
      */
     public function getErrors(): array
     {
-        return array_values($this->errors);
+        return $this->errors;
     }
 
     /**
-     * @return array{skipped: bool, skip_reason: string, deleted_count: int, upserted_count: int, hierarchy_updated_count: int, generated_translation_files: list<string>, errors: list<string>}
+     * @return array{permissions_created: int, roles_created: int, roles_updated: int, skipped: bool, skip_reason: string, errors: list<string>}
      */
     public function toArray(): array
     {
         return [
+            'permissions_created' => $this->permissionsCreated,
+            'roles_created' => $this->rolesCreated,
+            'roles_updated' => $this->rolesUpdated,
             'skipped' => $this->skipped,
             'skip_reason' => $this->skipReason,
-            'deleted_count' => $this->deletedCount,
-            'upserted_count' => $this->upsertedCount,
-            'hierarchy_updated_count' => $this->hierarchyUpdatedCount,
-            'generated_translation_files' => array_values($this->generatedTranslationFiles),
-            'errors' => array_values($this->errors),
+            'errors' => $this->errors,
         ];
     }
 }

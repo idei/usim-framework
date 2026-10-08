@@ -13,9 +13,8 @@ class RoleAndPermissionSyncService
      * Sincroniza roles y permisos desde config('usim') hacia la base de datos.
      *
      * @param  string  $defaultGuard  El guard a usar si la configuración omite uno.
-     * @return array{permissions_created: int, roles_created: int, roles_updated: int}
      */
-    public function sync(string $defaultGuard = 'web'): array
+    public function sync(string $defaultGuard = 'web'): \Idei\Usim\Contracts\RoleSyncResult
     {
         $stats = ['permissions_created' => 0, 'roles_created' => 0, 'roles_updated' => 0];
 
@@ -126,7 +125,11 @@ class RoleAndPermissionSyncService
 
         app(PermissionRegistrar::class)->forgetCachedPermissions();
 
-        return $stats;
+        return new \Idei\Usim\Contracts\RoleSyncResult(
+            permissionsCreated: $stats['permissions_created'],
+            rolesCreated: $stats['roles_created'],
+            rolesUpdated: $stats['roles_updated']
+        );
     }
 
     private function normalizeStringValue(mixed $value, string $fallback): string

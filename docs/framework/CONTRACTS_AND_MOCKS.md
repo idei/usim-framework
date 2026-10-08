@@ -128,9 +128,27 @@ classDiagram
 - **Implementación Concreta:** [`Idei\Usim\Support\ComponentDiffer`](file:///workspaces/usim-framework/packages/idei/usim/src/Support/ComponentDiffer.php).
 - **Fachada Retrocompatible:** [`Idei\Usim\Support\UIDiffer`](file:///workspaces/usim-framework/packages/idei/usim/src/Support/UIDiffer.php) actúa como adaptador proxy.
 
-### 2.7 DTO Inmutable: `UnitSyncResult`
-- DTO `readonly` con constructor consistente (`@phpstan-consistent-constructor`) y tipos estrictos (`array<int, string>`).
-- Provee métodos semánticos (`isSuccess()`, `isSkipped()`) y factory seguro (`UnitSyncResult::skipped(...)`).
+### 2.7 DTOs Inmutables de Sincronización (`SyncResultInterface`)
+Todos los servicios de sincronización devuelven DTOs `readonly` inmutables que implementan [`SyncResultInterface`](file:///workspaces/usim-framework/packages/idei/usim/src/Contracts/SyncResultInterface.php) y `\ArrayAccess` (para retrocompatibilidad total con accesos tipo `$stats['users_created']`):
+- **[`UnitSyncResult`](file:///workspaces/usim-framework/packages/idei/usim/src/Contracts/UnitSyncResult.php):** Estadísticas de unidades eliminadas, actualizadas y archivos generados.
+- **[`UserSyncResult`](file:///workspaces/usim-framework/packages/idei/usim/src/Contracts/UserSyncResult.php):** Usuarios creados, actualizados y eliminados.
+- **[`RoleSyncResult`](file:///workspaces/usim-framework/packages/idei/usim/src/Contracts/RoleSyncResult.php):** Permisos creados, roles creados y roles actualizados.
+- **[`DeviceSyncResult`](file:///workspaces/usim-framework/packages/idei/usim/src/Contracts/DeviceSyncResult.php):** Lista de dispositivos sincronizados y errores no fatales.
+- **[`LangSyncResult`](file:///workspaces/usim-framework/packages/idei/usim/src/Contracts/LangSyncResult.php):** Idiomas y claves de traducción creadas y actualizadas.
+
+### 2.8 Extensibilidad y Principio Open/Closed en `usim:sync` (`SyncEntityHandlerInterface`)
+Para desacoplar el comando [`UsimSyncCommand`](file:///workspaces/usim-framework/packages/idei/usim/src/Console/Commands/UsimSyncCommand.php) de servicios específicos, se introdujo el contrato [`SyncEntityHandlerInterface`](file:///workspaces/usim-framework/packages/idei/usim/src/Contracts/SyncEntityHandlerInterface.php):
+```php
+interface SyncEntityHandlerInterface
+{
+    public function getIdentifier(): string; // 'users', 'roles', 'devices', 'units', 'lang'
+    public function getDescription(): string;
+    public function getAliases(): array;
+    public function getOrder(): int;
+    public function sync(Command|OutputStyle|null $output = null): SyncResultInterface;
+}
+```
+El comando resuelve dinámicamente todos los handlers etiquetados en el Service Container bajo el tag `'usim.sync_handlers'`. Agregar una nueva entidad sincronizable (ej. en un paquete externo o en la aplicación host) **no requiere modificar una sola línea de `UsimSyncCommand`**.
 
 ---
 
@@ -160,6 +178,15 @@ $this->app->scoped(
     \Idei\Usim\Contracts\UIStateRepositoryInterface::class,
     \Idei\Usim\Support\UIStateRepository::class
 );
+
+// 3. Handlers Extensibles de Sincronización (Open/Closed Principle)
+$this->app->tag([
+    \Idei\Usim\Sync\Handlers\RoleSyncHandler::class,
+    \Idei\Usim\Sync\Handlers\UnitSyncHandler::class,
+    \Idei\Usim\Sync\Handlers\UserSyncHandler::class,
+    \Idei\Usim\Sync\Handlers\DeviceSyncHandler::class,
+    \Idei\Usim\Sync\Handlers\LangSyncHandler::class,
+], 'usim.sync_handlers');
 ```
 
 > [!IMPORTANT]
@@ -224,7 +251,37 @@ it('interacts with mock state repository through UIStateManager facade', functio
 });
 ```
 
-*(Ver implementaciones de referencia en [`tests/Unit/ScreenAuthorizerMockTest.php`](file:///workspaces/usim-framework/tests/Unit/ScreenAuthorizerMockTest.php) y [`tests/Unit/UIStateRepositoryMockTest.php`](file:///workspaces/usim-framework/tests/Unit/UIStateRepositoryMockTest.php)).*
+### 5.3 Test de Extensibilidad Open/Closed (`SyncEntityHandlerInterface`)
+
+```php
+use Idei\Usim\Contracts\SyncEntityHandlerInterface;
+use Idei\Usim\Contracts\SyncResultInterface;
+use Idei\Usim\Contracts\UserSyncResult;
+use Illuminate\Console\Command;
+use Illuminate\Console\OutputStyle;
+
+it('supports custom sync handlers registered via tag adhering to Open/Closed Principle', function () {
+    $customHandler = new class implements SyncEntityHandlerInterface {
+        public bool $executed = false;
+        public function getIdentifier(): string { return 'custom_module'; }
+        public function getDescription(): string { return 'custom module entities'; }
+        public function getAliases(): array { return []; }
+        public function getOrder(): int { return 999; }
+        public function sync(Command|OutputStyle|null $output = null): SyncResultInterface {
+            $this->executed = true;
+            return new UserSyncResult(usersCreated: 42);
+        }
+    };
+
+    app()->tag([get_class($customHandler)], 'usim.sync_handlers');
+    app()->instance(get_class($customHandler), $customHandler);
+
+    $this->artisan('usim:sync custom_module')->assertSuccessful();
+    expect($customHandler->executed)->toBeTrue();
+});
+```
+
+*(Ver implementaciones de referencia en [`tests/Unit/ScreenAuthorizerMockTest.php`](file:///workspaces/usim-framework/tests/Unit/ScreenAuthorizerMockTest.php), [`tests/Unit/UIStateRepositoryMockTest.php`](file:///workspaces/usim-framework/tests/Unit/UIStateRepositoryMockTest.php) y [`tests/Unit/SyncEntityHandlerTest.php`](file:///workspaces/usim-framework/tests/Unit/SyncEntityHandlerTest.php)).*
 
 ---
 

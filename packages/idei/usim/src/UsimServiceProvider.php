@@ -26,6 +26,11 @@ use Idei\Usim\Support\TranslationService;
 use Idei\Usim\Support\UIIdGenerator;
 use Idei\Usim\Support\UIStateRepository;
 use Idei\Usim\Support\UsimConfig;
+use Idei\Usim\Sync\Handlers\DeviceSyncHandler;
+use Idei\Usim\Sync\Handlers\LangSyncHandler;
+use Idei\Usim\Sync\Handlers\RoleSyncHandler;
+use Idei\Usim\Sync\Handlers\UnitSyncHandler;
+use Idei\Usim\Sync\Handlers\UserSyncHandler;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Contracts\Events\Dispatcher;
 use Illuminate\Support\ServiceProvider;
@@ -89,6 +94,14 @@ class UsimServiceProvider extends ServiceProvider
                 'App\\Services\\Units\\UnitsService'
             );
         }
+
+        $this->app->tag([
+            RoleSyncHandler::class,
+            UnitSyncHandler::class,
+            UserSyncHandler::class,
+            DeviceSyncHandler::class,
+            LangSyncHandler::class,
+        ], 'usim.sync_handlers');
 
         $this->commands([
             DiscoverScreensCommand::class,

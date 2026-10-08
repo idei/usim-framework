@@ -59,4 +59,3 @@ interface ComponentIdGeneratorInterface
      */
     public function reset(): void;
 }
-

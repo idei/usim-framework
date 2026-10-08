@@ -16,4 +16,3 @@ interface UIDifferInterface
      */
     public function compare(array $oldUI, array $newUI): array;
 }
-

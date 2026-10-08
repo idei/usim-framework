@@ -47,8 +47,8 @@ class SeedAccessControl
             $roleSyncService = app(RoleAndPermissionSyncService::class);
             $roleStats = $roleSyncService->sync($guardName);
 
-            $stats['permissions_created'] = $roleStats['permissions_created'];
-            $stats['roles_created'] = $roleStats['roles_created'];
+            $stats['permissions_created'] = $roleStats->permissionsCreated;
+            $stats['roles_created'] = $roleStats->rolesCreated;
 
             $usimConfig = $this->loadUsimConfig();
             $rolesConfig = is_array($usimConfig['roles'] ?? null) ? $usimConfig['roles'] : (is_array(config('usim.roles')) ? config('usim.roles') : []);

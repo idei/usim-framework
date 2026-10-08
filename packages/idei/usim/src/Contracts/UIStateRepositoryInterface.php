@@ -187,4 +187,3 @@ interface UIStateRepositoryInterface
      */
     public function getActiveUnit(?string $clientId = null): ?string;
 }
-

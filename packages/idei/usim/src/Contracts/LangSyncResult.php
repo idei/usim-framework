@@ -6,32 +6,27 @@ use ArrayAccess;
 use Idei\Usim\Contracts\Concerns\ArrayAccessibleDto;
 
 /**
- * Result DTO for organizational unit synchronization operations.
+ * Result DTO for language synchronization operations.
  *
  * @phpstan-consistent-constructor
+ *
  * @implements ArrayAccess<string, mixed>
  */
-readonly class UnitSyncResult implements ArrayAccess, SyncResultInterface
+readonly class LangSyncResult implements ArrayAccess, SyncResultInterface
 {
     use ArrayAccessibleDto;
 
     /**
-     * @param  array<int, string>  $generatedTranslationFiles
-     * @param  array<int, string>  $errors
+     * @param  list<string>  $errors
      */
     final public function __construct(
+        public int $languagesCreated = 0,
+        public int $languagesUpdated = 0,
         public bool $skipped = false,
         public string $skipReason = '',
-        public int $deletedCount = 0,
-        public int $upsertedCount = 0,
-        public int $hierarchyUpdatedCount = 0,
-        public array $generatedTranslationFiles = [],
         public array $errors = []
     ) {}
 
-    /**
-     * Create a result representing a skipped operation.
-     */
     public static function skipped(string $reason): static
     {
         return new static(
@@ -60,22 +55,20 @@ readonly class UnitSyncResult implements ArrayAccess, SyncResultInterface
      */
     public function getErrors(): array
     {
-        return array_values($this->errors);
+        return $this->errors;
     }
 
     /**
-     * @return array{skipped: bool, skip_reason: string, deleted_count: int, upserted_count: int, hierarchy_updated_count: int, generated_translation_files: list<string>, errors: list<string>}
+     * @return array{languages_created: int, languages_updated: int, skipped: bool, skip_reason: string, errors: list<string>}
      */
     public function toArray(): array
     {
         return [
+            'languages_created' => $this->languagesCreated,
+            'languages_updated' => $this->languagesUpdated,
             'skipped' => $this->skipped,
             'skip_reason' => $this->skipReason,
-            'deleted_count' => $this->deletedCount,
-            'upserted_count' => $this->upsertedCount,
-            'hierarchy_updated_count' => $this->hierarchyUpdatedCount,
-            'generated_translation_files' => array_values($this->generatedTranslationFiles),
-            'errors' => array_values($this->errors),
+            'errors' => $this->errors,
         ];
     }
 }
