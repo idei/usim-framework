@@ -8,6 +8,7 @@ use Idei\Usim\Console\Commands\UsimScaffold;
 use Idei\Usim\Console\Commands\UsimSyncCommand;
 use Idei\Usim\Contracts\ComponentIdGeneratorInterface;
 use Idei\Usim\Contracts\ScreenAuthorizerInterface;
+use Idei\Usim\Contracts\ScreenLifecycleOrchestratorInterface;
 use Idei\Usim\Contracts\UIDifferInterface;
 use Idei\Usim\Contracts\UIStateRepositoryInterface;
 use Idei\Usim\Contracts\UnitContextResolverInterface;
@@ -18,6 +19,7 @@ use Idei\Usim\Listeners\UsimEventDispatcher;
 use Idei\Usim\Models\UsimRole;
 use Idei\Usim\Support\ComponentDiffer;
 use Idei\Usim\Support\ComponentIdGenerator;
+use Idei\Usim\Support\ScreenLifecycleOrchestrator;
 use Idei\Usim\Support\SpatieScreenAuthorizer;
 use Idei\Usim\Support\Translation\TranslationDatasetQuery;
 use Idei\Usim\Support\Translation\TranslationKeyManager;
@@ -57,6 +59,11 @@ class UsimServiceProvider extends ServiceProvider
         $this->app->scoped(
             UIStateRepositoryInterface::class,
             UIStateRepository::class
+        );
+
+        $this->app->scoped(
+            ScreenLifecycleOrchestratorInterface::class,
+            ScreenLifecycleOrchestrator::class
         );
 
         $this->app->singleton(TranslationService::class, function ($app) {

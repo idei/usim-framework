@@ -178,6 +178,10 @@ $this->app->scoped(
     \Idei\Usim\Contracts\UIStateRepositoryInterface::class,
     \Idei\Usim\Support\UIStateRepository::class
 );
+$this->app->scoped(
+    \Idei\Usim\Contracts\ScreenLifecycleOrchestratorInterface::class,
+    \Idei\Usim\Support\ScreenLifecycleOrchestrator::class
+);
 
 // 3. Handlers Extensibles de Sincronización (Open/Closed Principle)
 $this->app->tag([
@@ -190,19 +194,21 @@ $this->app->tag([
 ```
 
 > [!IMPORTANT]
-> **Octane Safety:** El uso de `$this->app->scoped()` asegura que servicios con estado dependiente de la petición (como el ID del cliente o la pila de modales) sean destruidos y reiniciados en cada ciclo de trabajo de Laravel Octane / FrankenPHP / RoadRunner, evitando memory leaks y contaminación cruzada de sesiones.
+> **Octane Safety:** El uso de `$this->app->scoped()` asegura que servicios con estado dependiente de la petición (como el ID del cliente, la pila de modales o el orquestador de ciclo de vida) sean destruidos y reiniciados en cada ciclo de trabajo de Laravel Octane / FrankenPHP / RoadRunner, evitando memory leaks y contaminación cruzada de sesiones.
 
 ---
 
-## 4. Descomposición Modular de `Screen.php` en Concerns
+## 4. Descomposición Modular de `Screen.php` en Concerns y Orquestador de Ciclo de Vida
 
-Para cumplir con el **Principio de Responsabilidad Única (SRP)**, la clase monolítica [`Screen`](file:///workspaces/usim-framework/packages/idei/usim/src/Screen.php) fue reducida de 2,429 líneas a ~1,480 líneas delegando sus responsabilidades transversales en traits dedicados:
+Para cumplir con el **Principio de Responsabilidad Única (SRP)**, la clase monolítica [`Screen`](file:///workspaces/usim-framework/packages/idei/usim/src/Screen.php) fue reducida de 2,429 líneas a **855 líneas** delegando sus responsabilidades en colaboradores especializados:
 
 - **[`HandlesAuthorization`](file:///workspaces/usim-framework/packages/idei/usim/src/Concerns/HandlesAuthorization.php):** Gestión de permisos, roles requeridos, verificación de accesos y resolución del autorizador vía contrato.
 - **[`HandlesModals`](file:///workspaces/usim-framework/packages/idei/usim/src/Concerns/HandlesModals.php):** Operaciones de apertura, cierre, anidamiento y restauración de la pila de diálogos y modales persistentes en estado.
 - **[`HandlesNavigation`](file:///workspaces/usim-framework/packages/idei/usim/src/Concerns/HandlesNavigation.php):** Enrutamiento por slots (`showInto`), notificaciones toast, redirecciones forzadas y respuestas de aborto HTTP.
+- **[`HandlesScreenProperties`](file:///workspaces/usim-framework/packages/idei/usim/src/Concerns/HandlesScreenProperties.php):** Introspección y reflejo de variables de cliente (`store_*` con cifrado simétrico transparente `_crypt`) y de estado interno del servidor (`state_*`).
+- **[`ScreenLifecycleOrchestrator`](file:///workspaces/usim-framework/packages/idei/usim/src/Support/ScreenLifecycleOrchestrator.php):** Coordina la secuencia de inicialización (`initializeEventContext`), ejecución de handlers de acción (`handleAction`), diffing de UI (`UIDifferInterface`), persistencia en caché (`UIStateRepositoryInterface`), recolección de cambios y renderizado inicial/reload (`render`).
 
-Todas las llamadas históricas (`$this->openModal(...)`, `$this->toast(...)`, `$this->authorize(...)`) permanecen intactas en las pantallas hijas sin ningún cambio destructivo.
+Todas las llamadas históricas (`$this->openModal(...)`, `$this->toast(...)`, `$this->render(...)`, `$this->handleAction(...)`) permanecen intactas en las pantallas hijas como proxies ergonómicos que delegan en el contenedor sin ningún cambio destructivo.
 
 ---
 
@@ -279,9 +285,51 @@ it('supports custom sync handlers registered via tag adhering to Open/Closed Pri
     $this->artisan('usim:sync custom_module')->assertSuccessful();
     expect($customHandler->executed)->toBeTrue();
 });
+### 5.4 Test de Orquestación de Ciclo de Vida (`ScreenLifecycleOrchestratorInterface`)
+
+```php
+use Idei\Usim\Contracts\ComponentIdGeneratorInterface;
+use Idei\Usim\Contracts\UIDifferInterface;
+use Idei\Usim\Contracts\UIStateRepositoryInterface;
+use Idei\Usim\Support\ScreenLifecycleOrchestrator;
+use Idei\Usim\UIChangesCollector;
+use Mockery;
+
+it('orchestrates render lifecycle by building container, diffing and collecting changes', function () {
+    $screen = new LifecycleTestScreen;
+    $contextKey = $screen->getContextIdentifier();
+
+    $idGenerator = Mockery::mock(ComponentIdGeneratorInterface::class);
+    $idGenerator->shouldReceive('pushCurrentContext')->once()->with($contextKey);
+    $idGenerator->shouldReceive('popCurrentContext')->once();
+    $idGenerator->shouldReceive('reserveContextId')->zeroOrMoreTimes();
+
+    $stateRepo = Mockery::mock(UIStateRepositoryInterface::class);
+    $stateRepo->shouldReceive('get')->once()->with($contextKey)->andReturnNull();
+    $stateRepo->shouldReceive('store')->atLeast()->once();
+    $stateRepo->shouldReceive('storeScreenState')->atLeast()->once();
+    $stateRepo->shouldReceive('getScreenState')->once()->with($contextKey)->andReturn([]);
+
+    $differ = Mockery::mock(UIDifferInterface::class);
+    $differ->shouldReceive('compare')->once()->andReturn([1 => ['type' => 'container']]);
+
+    $collector = new UIChangesCollector;
+
+    $orchestrator = new ScreenLifecycleOrchestrator(
+        stateRepository: $stateRepo,
+        differ: $differ,
+        idGenerator: $idGenerator,
+        changesCollector: $collector
+    );
+
+    $orchestrator->render($screen);
+
+    expect($screen->hasContainer())->toBeTrue();
+    expect($collector->all())->toHaveKey(1);
+});
 ```
 
-*(Ver implementaciones de referencia en [`tests/Unit/ScreenAuthorizerMockTest.php`](file:///workspaces/usim-framework/tests/Unit/ScreenAuthorizerMockTest.php), [`tests/Unit/UIStateRepositoryMockTest.php`](file:///workspaces/usim-framework/tests/Unit/UIStateRepositoryMockTest.php) y [`tests/Unit/SyncEntityHandlerTest.php`](file:///workspaces/usim-framework/tests/Unit/SyncEntityHandlerTest.php)).*
+*(Ver implementaciones de referencia en [`tests/Unit/ScreenAuthorizerMockTest.php`](file:///workspaces/usim-framework/tests/Unit/ScreenAuthorizerMockTest.php), [`tests/Unit/UIStateRepositoryMockTest.php`](file:///workspaces/usim-framework/tests/Unit/UIStateRepositoryMockTest.php), [`tests/Unit/SyncEntityHandlerTest.php`](file:///workspaces/usim-framework/tests/Unit/SyncEntityHandlerTest.php) y [`tests/Unit/ScreenLifecycleOrchestratorTest.php`](file:///workspaces/usim-framework/tests/Unit/ScreenLifecycleOrchestratorTest.php)).*
 
 ---
 
