@@ -66,6 +66,28 @@ classDiagram
         +isSuccess() bool
         +static skipped(string reason) static
     }
+    class ComponentIdGeneratorInterface {
+        <<interface>>
+        +generateId(string prefix) string
+        +pushContext(string context) void
+        +popContext() ?string
+        +reset() void
+    }
+    class UIStateRepositoryInterface {
+        <<interface>>
+        +getClientId() string
+        +setClientId(string clientId) void
+        +rememberTabToken(string tabToken) void
+        +get(string key, mixed default) mixed
+        +set(string key, mixed value) void
+        +pushModal(string componentClass, array params) void
+        +popModal() ?array
+        +getModalStack() array
+    }
+    class UIDifferInterface {
+        <<interface>>
+        +diff(array oldTree, array newTree) array
+    }
 
     AuthorizableActorInterface <|-- UsimUserInterface
     ScreenAuthorizerInterface ..> AuthorizableActorInterface
@@ -91,42 +113,75 @@ classDiagram
   ```
 - **Implementación por Defecto:** [`Idei\Usim\Support\SpatieScreenAuthorizer`](file:///workspaces/usim-framework/packages/idei/usim/src/Support/SpatieScreenAuthorizer.php) se enlaza automáticamente en el Service Container cuando Spatie está disponible.
 
-### 2.4 `UnitsServiceInterface` y `UnitContextResolverInterface`
-- Abstraen la sincronización organizacional y la resolución del slug de la unidad activa (`resolveOperationalUnitSlug(): ?string`).
-- **Implementaciones Host:** [`App\Services\Units\UnitsService`](file:///workspaces/usim-framework/app/Services/Units/UnitsService.php) y [`App\Services\Units\UnitContextResolver`](file:///workspaces/usim-framework/app/Services/Units/UnitContextResolver.php).
+### 2.4 `UIStateRepositoryInterface` (Octane-Safe Scoped)
+- Abstrae el repositorio de estado de cliente, tab tokens, cache de pantalla y pila de modales.
+- **Implementación Concreta:** [`Idei\Usim\Support\UIStateRepository`](file:///workspaces/usim-framework/packages/idei/usim/src/Support/UIStateRepository.php).
+- **Fachada Retrocompatible:** [`Idei\Usim\Support\UIStateManager`](file:///workspaces/usim-framework/packages/idei/usim/src/Support/UIStateManager.php) delega estáticamente en el repositorio resuelto del contenedor.
 
-### 2.5 DTO Inmutable: `UnitSyncResult`
+### 2.5 `ComponentIdGeneratorInterface` (Octane-Safe Scoped)
+- Abstrae la generación de identificadores deterministas para componentes UI y el stack de contextos anidados.
+- **Implementación Concreta:** [`Idei\Usim\Support\ComponentIdGenerator`](file:///workspaces/usim-framework/packages/idei/usim/src/Support/ComponentIdGenerator.php).
+- **Fachada Retrocompatible:** [`Idei\Usim\Support\UIIdGenerator`](file:///workspaces/usim-framework/packages/idei/usim/src/Support/UIIdGenerator.php) delega estáticamente en la instancia scoped.
+
+### 2.6 `UIDifferInterface`
+- Abstrae el cálculo de diferencias de árbol de componentes para actualizaciones eficientes vía WebSocket/HTTP.
+- **Implementación Concreta:** [`Idei\Usim\Support\ComponentDiffer`](file:///workspaces/usim-framework/packages/idei/usim/src/Support/ComponentDiffer.php).
+- **Fachada Retrocompatible:** [`Idei\Usim\Support\UIDiffer`](file:///workspaces/usim-framework/packages/idei/usim/src/Support/UIDiffer.php) actúa como adaptador proxy.
+
+### 2.7 DTO Inmutable: `UnitSyncResult`
 - DTO `readonly` con constructor consistente (`@phpstan-consistent-constructor`) y tipos estrictos (`array<int, string>`).
 - Provee métodos semánticos (`isSuccess()`, `isSkipped()`) y factory seguro (`UnitSyncResult::skipped(...)`).
 
 ---
 
-## 3. Enlace en el Service Container (`UsimServiceProvider`)
+## 3. Enlace en el Service Container y Laravel Octane Safety (`UsimServiceProvider`)
 
-El proveedor de servicios registra las implementaciones por defecto en el contenedor de Laravel:
+El proveedor de servicios registra las implementaciones por defecto con el ciclo de vida apropiado:
 
 ```php
 // En packages/idei/usim/src/UsimServiceProvider.php
+
+// 1. Singletons sin estado de solicitud
 $this->app->singleton(
     \Idei\Usim\Contracts\ScreenAuthorizerInterface::class,
     \Idei\Usim\Support\SpatieScreenAuthorizer::class
 );
-```
-
-Si una aplicación desea utilizar un mecanismo de autorización propio o un backend externo, simplemente re-vincula la interfaz en su `AppServiceProvider`:
-
-```php
 $this->app->singleton(
-    \Idei\Usim\Contracts\ScreenAuthorizerInterface::class,
-    CustomRemoteAuthorizer::class
+    \Idei\Usim\Contracts\UIDifferInterface::class,
+    \Idei\Usim\Support\ComponentDiffer::class
+);
+
+// 2. Scoped (Reinicio automático por cada solicitud HTTP / Octane Worker)
+$this->app->scoped(
+    \Idei\Usim\Contracts\ComponentIdGeneratorInterface::class,
+    \Idei\Usim\Support\ComponentIdGenerator::class
+);
+$this->app->scoped(
+    \Idei\Usim\Contracts\UIStateRepositoryInterface::class,
+    \Idei\Usim\Support\UIStateRepository::class
 );
 ```
 
+> [!IMPORTANT]
+> **Octane Safety:** El uso de `$this->app->scoped()` asegura que servicios con estado dependiente de la petición (como el ID del cliente o la pila de modales) sean destruidos y reiniciados en cada ciclo de trabajo de Laravel Octane / FrankenPHP / RoadRunner, evitando memory leaks y contaminación cruzada de sesiones.
+
 ---
 
-## 4. Testing Unitario con Mocks (Sin Base de Datos)
+## 4. Descomposición Modular de `Screen.php` en Concerns
 
-Gracias a `ScreenAuthorizerInterface`, las pantallas pueden probarse de forma unitaria en memoria en milisegundos sin levantar transacciones ni poblar tablas de permisos:
+Para cumplir con el **Principio de Responsabilidad Única (SRP)**, la clase monolítica [`Screen`](file:///workspaces/usim-framework/packages/idei/usim/src/Screen.php) fue reducida de 2,429 líneas a ~1,480 líneas delegando sus responsabilidades transversales en traits dedicados:
+
+- **[`HandlesAuthorization`](file:///workspaces/usim-framework/packages/idei/usim/src/Concerns/HandlesAuthorization.php):** Gestión de permisos, roles requeridos, verificación de accesos y resolución del autorizador vía contrato.
+- **[`HandlesModals`](file:///workspaces/usim-framework/packages/idei/usim/src/Concerns/HandlesModals.php):** Operaciones de apertura, cierre, anidamiento y restauración de la pila de diálogos y modales persistentes en estado.
+- **[`HandlesNavigation`](file:///workspaces/usim-framework/packages/idei/usim/src/Concerns/HandlesNavigation.php):** Enrutamiento por slots (`showInto`), notificaciones toast, redirecciones forzadas y respuestas de aborto HTTP.
+
+Todas las llamadas históricas (`$this->openModal(...)`, `$this->toast(...)`, `$this->authorize(...)`) permanecen intactas en las pantallas hijas sin ningún cambio destructivo.
+
+---
+
+## 5. Testing Unitario con Mocks (Sin Base de Datos)
+
+### 5.1 Test Unitario con `ScreenAuthorizerInterface`
 
 ```php
 use App\Models\User;
@@ -135,32 +190,45 @@ use Idei\Usim\Contracts\ScreenAuthorizerInterface;
 use Mockery;
 
 it('authorizes admin user to access users manager via mock authorizer', function () {
-    // 1. Crear actor en memoria (sin persistencia en DB)
     $user = new User(['id' => 1, 'email' => 'admin@example.com']);
 
-    // 2. Mockear el autorizador
     $authorizer = Mockery::mock(ScreenAuthorizerInterface::class);
     $authorizer->shouldReceive('can')
         ->with($user, 'users.manage', Mockery::any())
         ->once()
         ->andReturn(true);
 
-    // 3. Inyectar el mock en el contenedor
     app()->instance(ScreenAuthorizerInterface::class, $authorizer);
 
-    // 4. Instanciar y verificar la pantalla directamente
     $screen = new UsersManager();
-    $authorized = $screen->authorize($user);
-
-    expect($authorized)->toBeTrue();
+    expect($screen->authorize($user))->toBeTrue();
 });
 ```
 
-*(Ver implementación completa de referencia en [`tests/Unit/ScreenAuthorizerMockTest.php`](file:///workspaces/usim-framework/tests/Unit/ScreenAuthorizerMockTest.php)).*
+### 5.2 Test Unitario con `UIStateRepositoryInterface`
+
+```php
+use Idei\Usim\Contracts\UIStateRepositoryInterface;
+use Idei\Usim\Support\UIStateManager;
+use Mockery;
+
+it('interacts with mock state repository through UIStateManager facade', function () {
+    $mockRepo = Mockery::mock(UIStateRepositoryInterface::class);
+    $mockRepo->shouldReceive('getClientId')->andReturn('mock-client-123');
+    $mockRepo->shouldReceive('get')->with('my_key', 'default_val')->andReturn('mocked_val');
+
+    app()->instance(UIStateRepositoryInterface::class, $mockRepo);
+
+    expect(UIStateManager::getClientId())->toBe('mock-client-123');
+    expect(UIStateManager::get('my_key', 'default_val'))->toBe('mocked_val');
+});
+```
+
+*(Ver implementaciones de referencia en [`tests/Unit/ScreenAuthorizerMockTest.php`](file:///workspaces/usim-framework/tests/Unit/ScreenAuthorizerMockTest.php) y [`tests/Unit/UIStateRepositoryMockTest.php`](file:///workspaces/usim-framework/tests/Unit/UIStateRepositoryMockTest.php)).*
 
 ---
 
-## 5. Estándar de Tipado PHPStan Nivel 9
+## 6. Estándar de Tipado PHPStan Nivel 9
 
 Todos los contratos y DTOs cumplen con el nivel de máxima exigencia de **PHPStan (Nivel 9)**:
 * **Cero `mixed` implícitos:** Todas las colecciones y arrays declaran tipos genéricos (`array<int, string>`, `list<string>`, etc.).

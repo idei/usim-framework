@@ -2,262 +2,81 @@
 
 namespace Idei\Usim\Support;
 
+use Idei\Usim\Contracts\ComponentIdGeneratorInterface;
+
 /**
- * Centralized ID generator for UI components
+ * Static facade / adapter for UI component ID generation.
  *
- * Ensures unique IDs across all UI elements (containers and components)
- * by maintaining a single auto-increment counter per context.
+ * Forwards calls to the scoped ComponentIdGeneratorInterface in the Laravel service container.
  */
 class UIIdGenerator
 {
-    /** @var array<string, int> Auto-increment counter per context */
-    private static array $autoIncPerContext = [];
+    private static ?ComponentIdGeneratorInterface $fallbackInstance = null;
 
-    /** @var array<string, array<int, true>> Reserved local IDs per context */
-    private static array $usedLocalIdsPerContext = [];
+    private static function getGenerator(): ComponentIdGeneratorInterface
+    {
+        if (function_exists('app') && app()->bound(ComponentIdGeneratorInterface::class)) {
+            return app(ComponentIdGeneratorInterface::class);
+        }
 
-    /** @var array<string, array<string, int>> Stable local ID per named component and context */
-    private static array $namedLocalIdsPerContext = [];
+        if (self::$fallbackInstance === null) {
+            self::$fallbackInstance = new ComponentIdGenerator;
+        }
 
-    /** @var array<int, string> Mapping from offset to context class name */
-    private static array $offsetToContext = [];
-
-    /** @var array<string, int> Mapping from context class name to offset */
-    private static array $contextOffsets = [];
-
-    /** @var bool Flag to ensure services are loaded only once */
-    private static bool $servicesLoaded = false;
-
-    /** @var list<string> Context execution stack */
-    private static array $contextStack = [];
+        return self::$fallbackInstance;
+    }
 
     public static function pushCurrentContext(string $context): void
     {
-        self::$contextStack[] = $context;
+        self::getGenerator()->pushCurrentContext($context);
     }
 
     public static function popCurrentContext(): ?string
     {
-        return array_pop(self::$contextStack);
+        return self::getGenerator()->popCurrentContext();
     }
 
     public static function getCurrentContext(): ?string
     {
-        if (empty(self::$contextStack)) {
-            return null;
-        }
-
-        return end(self::$contextStack);
+        return self::getGenerator()->getCurrentContext();
     }
 
-    /**
-     * Generate a unique ID for a UI element
-     *
-     * @param  string  $context  The calling context (class name)
-     * @return int Unique ID
-     */
     public static function generate(string $context): int
     {
-        if (! isset(self::$autoIncPerContext[$context])) {
-            self::$autoIncPerContext[$context] = 0;
-        }
-
-        $localId = self::$autoIncPerContext[$context];
-        do {
-            $localId++;
-        } while (isset(self::$usedLocalIdsPerContext[$context][$localId]));
-
-        self::$autoIncPerContext[$context] = $localId;
-        self::$usedLocalIdsPerContext[$context][$localId] = true;
-
-        $offset = self::getContextOffset($context);
-
-        // Register offset → base context mapping for reverse lookup
-        $baseContext = explode('@', $context, 2)[0];
-        self::$offsetToContext[$offset] = $baseContext;
-
-        return $offset + $localId;
+        return self::getGenerator()->generate($context);
     }
 
-    /**
-     * Generate a deterministic ID based on component name
-     *
-     * This ensures the same component name always gets the same ID,
-     * making IDs stable across requests for named components.
-     *
-     * @param  string  $context  The calling context (full class name with namespace)
-     * @param  string  $name  The component name
-     * @return int Deterministic ID
-     */
     public static function generateFromName(string $context, string $name): int
     {
-        $baseContext = explode('@', $context, 2)[0];
-
-        if (isset(self::$namedLocalIdsPerContext[$context][$name])) {
-            $localId = self::$namedLocalIdsPerContext[$context][$name];
-            $offset = self::getContextOffset($context);
-
-            // Register offset → base context mapping for reverse lookup
-            self::$offsetToContext[$offset] = $baseContext;
-
-            return $offset + $localId;
-        }
-
-        $offset = self::getContextOffset($context);
-
-        // Generate deterministic local ID from component name
-        // Use crc32 to get a hash, then limit to 9999 to avoid offset collision
-        $hash = crc32($name);
-        $localId = (abs($hash) % 9999) + 1; // +1 to avoid ID 0
-
-        // Avoid collisions with IDs already used in this request context
-        // (typically deserialized cache components and auto-generated table rows/cells).
-        while (isset(self::$usedLocalIdsPerContext[$context][$localId])) {
-            $localId++;
-            if ($localId > 9999) {
-                $localId = 1;
-            }
-        }
-
-        self::$namedLocalIdsPerContext[$context][$name] = $localId;
-        self::$usedLocalIdsPerContext[$context][$localId] = true;
-
-        // Register offset → base context mapping for reverse lookup
-        self::$offsetToContext[$offset] = $baseContext;
-
-        return $offset + $localId;
+        return self::getGenerator()->generateFromName($context, $name);
     }
 
     /**
-     * Get context information for debugging
-     *
-     * @param  string  $context  Context name
-     * @return array<string, mixed> Context information
+     * @return array<string, mixed>
      */
     public static function getContextInfo(string $context): array
     {
-        return [
-            'context' => $context,
-            'offset' => self::getContextOffset($context),
-            'current_count' => self::$autoIncPerContext[$context] ?? 0,
-        ];
+        return self::getGenerator()->getContextInfo($context);
     }
 
-    /**
-     * Reserve an already-existing component ID for a context.
-     *
-     * This is required when rebuilding component trees from cached snapshots,
-     * so subsequent auto-generated IDs do not collide with deserialized IDs.
-     */
     public static function reserveContextId(string $context, int $id): void
     {
-        $offset = self::getContextOffset($context);
-        $localId = $id - $offset;
-
-        if ($localId < 1) {
-            return;
-        }
-
-        self::$usedLocalIdsPerContext[$context][$localId] = true;
-
-        if (! isset(self::$autoIncPerContext[$context]) || self::$autoIncPerContext[$context] < $localId) {
-            self::$autoIncPerContext[$context] = $localId;
-        }
+        self::getGenerator()->reserveContextId($context, $id);
     }
 
-    /**
-     * Get context class name from component ID
-     *
-     * Uses lazy loading to ensure all registered UI services are mapped.
-     * Performance: ~0.001ms (in-memory array lookup)
-     *
-     * @param  int  $id  Component ID
-     * @return string|null Context class name or null if not found
-     */
     public static function getContextFromId(int $id): ?string
     {
-        self::ensureServicesLoaded();
-
-        $offset = (int) floor($id / 10000) * 10000;
-
-        return self::$offsetToContext[$offset] ?? null;
+        return self::getGenerator()->getContextFromId($id);
     }
 
-    /**
-     * Lazy load registered UI services
-     *
-     * Loads the service registry from the generated manifest file.
-     * Use 'php artisan usim:discover' to generate it.
-     */
-    private static function ensureServicesLoaded(): void
+    public static function getContextOffset(string $context): int
     {
-        if (self::$servicesLoaded) {
-            return;
-        }
-
-        $manifestPath = app()->bootstrapPath('cache/usim_screens.php');
-
-        if (! file_exists($manifestPath)) {
-            $manifest = [];
-        } else {
-            $manifest = require $manifestPath;
-        }
-
-        foreach ($manifest as $className => $metadata) {
-            $offset = $metadata['id_offset'];
-            self::$offsetToContext[$offset] = $className;
-            self::$contextOffsets[$className] = $offset;
-        }
-
-        self::$servicesLoaded = true;
+        return self::getGenerator()->getContextOffset($context);
     }
 
-    /**
-     * Reset all counters (useful for testing)
-     */
     public static function reset(): void
     {
-        self::$autoIncPerContext = [];
-        self::$usedLocalIdsPerContext = [];
-        self::$namedLocalIdsPerContext = [];
-        self::$contextStack = [];
-    }
-
-    /**
-     * Convierte el nombre de clase en un número único usando hash CRC32
-     * Genera offsets en múltiplos de 10000 para evitar colisiones
-     *
-     * @param  string  $context  Nombre del contexto (clase invocante)
-     * @return int Offset único para el contexto
-     */
-    private static function getContextOffset(string $context): int
-    {
-        // Ensure map is loaded
-        self::ensureServicesLoaded();
-
-        if ($context === 'default') {
-            return 0;
-        }
-
-        // Return from manifest if available
-        if (isset(self::$contextOffsets[$context])) {
-            return self::$contextOffsets[$context];
-        }
-
-        $baseContext = explode('@', $context, 2)[0];
-
-        // Fallback: Determine deterministic ID using CRC32
-        // Must match ScreenDiscoveryService logic
-        $val = abs((int) crc32($context));
-        $bucket = $val % 100000;
-        $offset = $bucket * 10000;
-
-        while (isset(self::$offsetToContext[$offset]) && self::$offsetToContext[$offset] !== $baseContext) {
-            $offset += 10000;
-        }
-
-        self::$contextOffsets[$context] = $offset;
-
-        return $offset;
+        self::getGenerator()->reset();
+        self::$fallbackInstance = null;
     }
 }

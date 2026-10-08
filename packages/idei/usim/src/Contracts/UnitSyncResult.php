@@ -10,8 +10,8 @@ namespace Idei\Usim\Contracts;
 readonly class UnitSyncResult
 {
     /**
-     * @param array<int, string> $generatedTranslationFiles
-     * @param array<int, string> $errors
+     * @param  array<int, string>  $generatedTranslationFiles
+     * @param  array<int, string>  $errors
      */
     final public function __construct(
         public bool $skipped = false,
@@ -21,8 +21,7 @@ readonly class UnitSyncResult
         public int $hierarchyUpdatedCount = 0,
         public array $generatedTranslationFiles = [],
         public array $errors = []
-    ) {
-    }
+    ) {}
 
     /**
      * Create a result representing a skipped operation.
@@ -42,7 +41,6 @@ readonly class UnitSyncResult
 
     public function isSuccess(): bool
     {
-        return !$this->skipped && empty($this->errors);
+        return ! $this->skipped && empty($this->errors);
     }
 }
-

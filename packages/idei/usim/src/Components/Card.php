@@ -209,9 +209,8 @@ class Card extends UIComponent
             // Get the service class that's calling this component
             $serviceClass = $this->detectCallingService();
 
-            // Get the service ID (offset) using reflection to access private method of UIIdGenerator
-            $reflection = new \ReflectionMethod(UIIdGenerator::class, 'getContextOffset');
-            $serviceId = $reflection->invoke(null, $serviceClass);
+            // Get the service ID (offset) directly from UIIdGenerator
+            $serviceId = UIIdGenerator::getContextOffset($serviceClass);
 
             $parameters['_caller_service_id'] = $serviceId;
         }

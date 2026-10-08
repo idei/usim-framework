@@ -6,19 +6,25 @@ use Idei\Usim\Console\Commands\DiscoverScreensCommand;
 use Idei\Usim\Console\Commands\InstallCommand;
 use Idei\Usim\Console\Commands\UsimScaffold;
 use Idei\Usim\Console\Commands\UsimSyncCommand;
+use Idei\Usim\Contracts\ComponentIdGeneratorInterface;
 use Idei\Usim\Contracts\ScreenAuthorizerInterface;
+use Idei\Usim\Contracts\UIDifferInterface;
+use Idei\Usim\Contracts\UIStateRepositoryInterface;
 use Idei\Usim\Contracts\UnitContextResolverInterface;
 use Idei\Usim\Contracts\UnitsServiceInterface;
 use Idei\Usim\Events\UsimEvent;
 use Idei\Usim\Jobs\CleanTemporaryUploadsJob;
 use Idei\Usim\Listeners\UsimEventDispatcher;
 use Idei\Usim\Models\UsimRole;
+use Idei\Usim\Support\ComponentDiffer;
+use Idei\Usim\Support\ComponentIdGenerator;
 use Idei\Usim\Support\SpatieScreenAuthorizer;
 use Idei\Usim\Support\Translation\TranslationDatasetQuery;
 use Idei\Usim\Support\Translation\TranslationKeyManager;
 use Idei\Usim\Support\Translation\TranslationValueResolver;
 use Idei\Usim\Support\TranslationService;
 use Idei\Usim\Support\UIIdGenerator;
+use Idei\Usim\Support\UIStateRepository;
 use Idei\Usim\Support\UsimConfig;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Contracts\Events\Dispatcher;
@@ -38,6 +44,16 @@ class UsimServiceProvider extends ServiceProvider
             return new UIChangesCollector;
         });
 
+        $this->app->scoped(
+            ComponentIdGeneratorInterface::class,
+            ComponentIdGenerator::class
+        );
+
+        $this->app->scoped(
+            UIStateRepositoryInterface::class,
+            UIStateRepository::class
+        );
+
         $this->app->singleton(TranslationService::class, function ($app) {
             return new TranslationService(
                 $app->make(TranslationKeyManager::class),
@@ -49,6 +65,11 @@ class UsimServiceProvider extends ServiceProvider
         $this->app->singleton(UsimConfig::class, function () {
             return new UsimConfig;
         });
+
+        $this->app->singleton(
+            UIDifferInterface::class,
+            ComponentDiffer::class
+        );
 
         $this->app->singleton(
             ScreenAuthorizerInterface::class,
