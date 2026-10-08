@@ -64,10 +64,11 @@ class Menu extends Screen
         }
 
         $container
+            ->card()
             ->layout(LayoutType::HORIZONTAL)
             ->justifyContent(JustifyContent::SPACE_BETWEEN)
             ->alignItems(AlignItems::CENTER)
-            ->padding(Spacing::px(8))
+            ->padding(Spacing::px(5))
             ->marginBottom(Spacing::px(0));
 
         $this->main_menu = $this->buildLeftMenu();
