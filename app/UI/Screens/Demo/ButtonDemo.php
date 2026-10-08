@@ -40,7 +40,7 @@ class ButtonDemo extends Screen
     protected function buildBaseUI(Container $container, ...$params): void
     {
         $this->message_container = UI::container('message_container')
-            ->backgroundColor('#f0f0f0')->borderRadius(Spacing::px(10))
+            ->plain()
             ->width(Size::px(1100))
             ->padding(Spacing::px(5));
 

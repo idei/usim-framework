@@ -43,17 +43,17 @@ class TableDemo extends Screen
         );
 
         $wrapper = UI::container('table_demo_wrapper')
-            ->plain()
+            ->card()
             ->width(Size::full())
-            ->padding(Spacing::px(0))
-            ->margin(Spacing::px(0))
+            ->padding(Spacing::px(5))
+            ->margin(Spacing::px(5))
             ->layout(LayoutType::VERTICAL);
 
         $wrapper->maxWidth($table->getWidth())
             ->add($this->buildToolbar())
             ->add($table);
 
-        $container->padding(Spacing::px(5))->add($wrapper);
+        $container->add($wrapper);
     }
 
     #[Override]

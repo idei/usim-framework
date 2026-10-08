@@ -1,4 +1,5 @@
 <?php
+
 namespace App\UI\Screens\Demo;
 
 use Idei\Usim\Components\Button;
@@ -24,6 +25,7 @@ class FormDemo extends Screen
     protected function buildBaseUI(Container $container, ...$params): void
     {
         $container
+            ->card()
             ->maxWidth(Size::px(500))
             ->centerHorizontal()
             ->shadow(2)

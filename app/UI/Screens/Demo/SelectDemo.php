@@ -118,10 +118,10 @@ class SelectDemo extends Screen
     protected function buildBaseUI(Container $container, ...$params): void
     {
         $container
+            ->card()
             ->maxWidth(Size::px(600))
             ->centerHorizontal()
-            ->shadow(2)
-            ->padding(Spacing::px(30));
+            ->padding(Spacing::px(10));
 
         // Instruction label
         $container->add(

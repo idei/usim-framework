@@ -34,10 +34,10 @@ class InputDemo extends Screen
     protected function buildBaseUI(Container $container, ...$params): void
     {
         $container
+            ->card()
             ->maxWidth(Size::px(500))
             ->centerHorizontal()
-            ->shadow(2)
-            ->padding(Spacing::px(30));
+            ->padding(Spacing::px(10));
 
         $container->add(
             UI::label('lbl_instruction')

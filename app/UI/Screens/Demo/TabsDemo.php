@@ -12,30 +12,35 @@ use Idei\Usim\ValueObjects\Spacing;
 class TabsDemo extends Screen
 {
     public static Visibility $visibility = Visibility::PUBLIC;
+    private const int TAB_CONTAINER_WIDTH = 600;
+    private const int TAB_CONTAINER_HEIGHT = 300;
 
     protected Container $tabs_container;
 
     protected function buildBaseUI(Container $container, ...$params): void
     {
-        $container
-            ->plain()
+        $wrapper = UI::container('tabs_demo_wrapper')
+            ->card()
             ->maxWidth(Size::px(1024))
             ->centerHorizontal()
-            ->padding(Spacing::each(Spacing::px(12), Spacing::px(24), Spacing::px(24), Spacing::px(24)))
-            ->gap(Spacing::px(14));
-
-        $container->add(
-            UI::label('tabs_demo_title')
-                ->text(t('screen.demo.tabs_demo.title'))
-                ->style('h2')
-                ->width(Size::full())
-        );
+            ->padding(Spacing::px(0))
+            ->gap(Spacing::px(5))
+            ->add(
+                UI::label('tabs_demo_title')
+                    ->text(t('screen.demo.tabs_demo.title'))
+                    ->style('h3')
+                    ->center()
+                    ->width(Size::full())
+            );
 
         $this->tabs_container = UI::container('tabs_container')
             ->width(Size::full())
-            ->padding(Spacing::px(16))
-            ->minHeight(Size::px(300))
-            ->gap(Spacing::px(10));
+            ->minWidth(Size::px(self::TAB_CONTAINER_WIDTH))
+            ->maxWidth(Size::px(self::TAB_CONTAINER_WIDTH))
+            ->padding(Spacing::px(5))
+            ->minHeight(Size::px(self::TAB_CONTAINER_HEIGHT))
+            ->maxHeight(Size::px(self::TAB_CONTAINER_HEIGHT))
+            ->gap(Spacing::px(5));
 
         $this->tabs_container
             ->tabs($this->tabsDefaultConfig(), 'overview')
@@ -75,7 +80,9 @@ class TabsDemo extends Screen
             tab: 'advanced'
         );
 
-        $container->add($this->tabs_container);
+        $wrapper->add($this->tabs_container);
+
+        $container->add($wrapper);
     }
 
     /** @param array<string, mixed> $params */
