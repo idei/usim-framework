@@ -1,13 +1,16 @@
 <?php
+
 // @usim: feature="admin", type="screen"
+
 namespace App\UI\Screens\Auth;
 
 use App\Models\User;
 use App\Services\Auth\AuthSessionService;
-use App\Services\Auth\RegisterService;
 use App\Services\Role\RoleService;
 use Idei\Usim\Components\Container;
 use Idei\Usim\Components\Label;
+use Idei\Usim\Contracts\RegisterActionInterface;
+use Idei\Usim\DTOs\RegisterData;
 use Idei\Usim\Enums\AlignItems;
 use Idei\Usim\Enums\JustifyContent;
 use Idei\Usim\Enums\LayoutType;
@@ -22,10 +25,9 @@ use Idei\Usim\ValueObjects\Spacing;
 class Register extends Screen
 {
     public function __construct(
-        protected RegisterService $registerService,
+        protected RegisterActionInterface $registerAction,
         protected AuthSessionService $authSessionService
-    ) {
-    }
+    ) {}
 
     public static Visibility $visibility = Visibility::GUEST;
 
@@ -34,7 +36,7 @@ class Register extends Screen
     public static function authorize(): bool
     {
         // Accessible to guests (users not authenticated)
-        return !self::requireAuth();
+        return ! self::requireAuth();
     }
 
     protected function buildBaseUI(Container $container, ...$params): void
@@ -49,10 +51,10 @@ class Register extends Screen
         $fakeData = (bool) ($params['fakeData'] ?? (config('app.env') === 'local'));
         $askForRole = (bool) ($params['askForRole'] ?? false);
 
-        if ($fakeData ) {
+        if ($fakeData) {
             $roleService = app(RoleService::class);
             $availableRoles = array_map(
-                static fn(UsimRole $role): string => $role->name,
+                static fn (UsimRole $role): string => $role->name,
                 $roleService->getAllowedRoles()
             );
             if (empty($availableRoles)) {
@@ -159,7 +161,7 @@ class Register extends Screen
             $roles = $roleService->getAllowedRoles();
 
             /** @var list<array{value: string, label: string}> $roleOptions */
-            $roleOptions = array_map(static fn(UsimRole $role): array => [
+            $roleOptions = array_map(static fn (UsimRole $role): array => [
                 'value' => $role->name,
                 'label' => t("role.{$role->name}.name"),
             ], $roles);
@@ -245,18 +247,19 @@ class Register extends Screen
     }
 
     /**
-     * @param array<string, mixed> $params
+     * @param  array<string, mixed>  $params
      */
     public function onSubmitRegister(array $params): void
     {
         $askForRole = (bool) ($params['ask_for_role'] ?? false);
 
-        if (!$askForRole) {
+        if (! $askForRole) {
             $acceptTerms = $params['accept_terms'] ?? false;
 
-            if (!$acceptTerms) {
+            if (! $acceptTerms) {
                 $message = t('screen.auth.register.terms_required');
                 $this->toast($message, type: 'error');
+
                 // $this->lbl_register_result->text($message)->style('error');
                 return;
             }
@@ -279,46 +282,51 @@ class Register extends Screen
             $roles = [$defaultRole];
         }
 
-        $sendEmail = !isset($params['send_verification_email']) || (bool) $params['send_verification_email'];
+        $sendEmail = ! isset($params['send_verification_email']) || (bool) $params['send_verification_email'];
 
-        $response = $this->registerService->register(
+        $registerData = new RegisterData(
             name: $name,
             email: $email,
             password: $password,
             passwordConfirmation: $passwordConfirmation,
             roles: $roles,
-            sendVerificationEmail: $sendEmail
+            sendVerificationEmail: $sendEmail,
         );
 
-        if ($response['status'] !== 'success') {
-            $message = $response['message'];
-            $errors = $response['errors'] ?? [];
-            if (!empty($errors)) {
+        $result = $this->registerAction->execute($registerData);
+
+        if (! $result->isSuccess()) {
+            $message = $result->message;
+            $errors = $result->errors;
+            if (! empty($errors)) {
                 $errorMessages = [];
                 foreach ($errors as $fieldErrors) {
                     foreach ($fieldErrors as $err) {
                         $errorMessages[] = $err;
                     }
                 }
-                if (!empty($errorMessages)) {
+                if (! empty($errorMessages)) {
                     $message = implode(' ', $errorMessages);
                 }
             }
 
             $this->toast($message, type: 'error');
-            $this->lbl_register_result->text($message)->style('error');
+            if (isset($this->lbl_register_result)) {
+                $this->lbl_register_result->text($message)->style('error');
+            }
+
             return;
         }
 
-        $message = $response['message'];
+        $message = $result->message;
         $this->toast($message, type: 'success');
-        $this->lbl_register_result->text($message)->style('success');
+        if (isset($this->lbl_register_result)) {
+            $this->lbl_register_result->text($message)->style('success');
+        }
 
-        $user = $response['user'] ?? null;
+        $user = $result->user;
         if ($user instanceof User) {
-            $rawToken = data_get($response, 'data.token');
-            $token = is_string($rawToken) ? $rawToken : null;
-            $this->authSessionService->establishSession($user, null, $token);
+            $this->authSessionService->establishSession($user, null, $result->token);
 
             if ($this->isOpenedAsModal()) {
                 $this->closeModal();
@@ -327,7 +335,7 @@ class Register extends Screen
     }
 
     /**
-     * @param array<string, mixed> $params
+     * @param  array<string, mixed>  $params
      */
     public function onOpenTermsAndConditions(array $params = []): void
     {
@@ -338,6 +346,7 @@ class Register extends Screen
     {
         if ($this->isOpenedAsModal()) {
             $this->closeModal();
+
             return;
         }
     }

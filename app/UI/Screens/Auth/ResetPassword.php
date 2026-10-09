@@ -1,11 +1,13 @@
 <?php
+
 // @usim: feature="admin", type="screen"
+
 namespace App\UI\Screens\Auth;
 
-use App\Services\Auth\PasswordService;
 use Idei\Usim\Components\Container;
 use Idei\Usim\Components\Input;
 use Idei\Usim\Components\Label;
+use Idei\Usim\Contracts\PasswordResetActionInterface;
 use Idei\Usim\Enums\LayoutType;
 use Idei\Usim\Enums\Visibility;
 use Idei\Usim\Screen;
@@ -18,12 +20,13 @@ class ResetPassword extends Screen
     public static Visibility $visibility = Visibility::GUEST;
 
     public function __construct(
-        protected PasswordService $passwordService
-    ) {
-    }
+        protected PasswordResetActionInterface $passwordResetAction
+    ) {}
 
     protected Label $lbl_result;
+
     protected Input $password;
+
     protected Input $password_confirmation;
 
     public function buildBaseUI(Container $container, ...$params): void
@@ -144,9 +147,9 @@ class ResetPassword extends Screen
     /** @param array<string, mixed> $params */
     public function onResetPassword(array $params): void
     {
-        $tokenRaw = $params['reset_token'] ?? '';
+        $tokenRaw = $params['reset_token'] ?? $params['token'] ?? '';
         $token = is_scalar($tokenRaw) ? (string) $tokenRaw : '';
-        $emailRaw = $params['reset_email'] ?? '';
+        $emailRaw = $params['reset_email'] ?? $params['email'] ?? '';
         $email = is_scalar($emailRaw) ? (string) $emailRaw : '';
         $expiresRaw = $params['expires'] ?? request()->query('expires', 0);
         $expires = is_numeric($expiresRaw) ? (int) $expiresRaw : 0;
@@ -157,40 +160,43 @@ class ResetPassword extends Screen
 
         if (empty($token) || empty($email)) {
             $this->showError(t('screen.auth.reset_password.errors.invalid_link'));
+
             return;
         }
 
         if ($expires > 0 && now()->timestamp > $expires) {
             $this->showError(t('screen.auth.reset_password.errors.link_expired'));
+
             return;
         }
 
         if (strlen($password) < 8) {
             $this->showError(t('screen.auth.reset_password.validation.min_length'));
+
             return;
         }
 
         if ($password !== $passwordConfirmation) {
             $this->showError(t('screen.auth.reset_password.validation.mismatch'));
+
             return;
         }
 
         try {
-            $response = $this->passwordService->resetPassword(
+            $result = $this->passwordResetAction->resetPassword(
                 token: $token,
                 email: $email,
                 password: $password,
                 passwordConfirmation: $passwordConfirmation
             );
 
-            $status = $response['status'];
-            $message = $response['message'];
-
-            if ($status === 'success') {
-                $this->lbl_result
-                    ->text(t('screen.auth.reset_password.success.label'))
-                    ->style('text-green-600 font-medium')
-                    ->visible(true);
+            if ($result->isSuccess()) {
+                if (isset($this->lbl_result)) {
+                    $this->lbl_result
+                        ->text(t('screen.auth.reset_password.success.label'))
+                        ->style('text-green-600 font-medium')
+                        ->visible(true);
+                }
 
                 $this->toast(t('screen.auth.reset_password.toast.success'), 'success');
 
@@ -198,13 +204,13 @@ class ResetPassword extends Screen
                 $this->redirect('/auth/login');
             } else {
                 // Extract validation errors if any
-                $errors = $response['errors'] ?? [];
+                $errors = $result->errors;
                 $firstErrorGroup = reset($errors);
-                $firstError = is_array($firstErrorGroup) ? ($firstErrorGroup[0] ?? $message) : $message;
+                $firstError = is_array($firstErrorGroup) ? ($firstErrorGroup[0] ?? $result->message) : $result->message;
                 $this->showError($firstError);
             }
 
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             $this->showError(t('screen.auth.reset_password.errors.connection', ['message' => $e->getMessage()]));
         }
     }

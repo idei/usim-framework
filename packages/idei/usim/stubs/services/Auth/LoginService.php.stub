@@ -6,9 +6,13 @@ use {{ userModel }};
 use App\Services\Auth\AuthSessionService;
 use App\Services\Units\UnitContextResolver;
 use App\Services\Units\UsimUnitsService;
+use Idei\Usim\Contracts\LoginActionInterface;
+use Idei\Usim\DTOs\AuthResult;
+use Idei\Usim\DTOs\LoginCredentials;
+use Idei\Usim\Enums\AuthStatus;
 use Illuminate\Support\Facades\Hash;
 
-class LoginService
+class LoginService implements LoginActionInterface
 {
     public function __construct(
         protected AuthSessionService $authSessionService,
@@ -114,5 +118,34 @@ class LoginService
             'home_screen' => $homeScreen,
             'redirect_to' => $redirectTo,
         ];
+    }
+
+    public function execute(LoginCredentials $credentials, bool $startSession = true): AuthResult
+    {
+        $response = $this->login(
+            $credentials->email,
+            $credentials->password,
+            $credentials->remember,
+            $credentials->unit,
+            $startSession
+        );
+
+        if ($response['status'] !== 'success') {
+            return AuthResult::failed(
+                status: AuthStatus::BAD_CREDENTIALS,
+                message: $response['message'],
+                errors: $response['errors'] ?? []
+            );
+        }
+
+        return AuthResult::success(
+            redirectTo: $response['redirect_to'],
+            token: $response['token'] ?? null,
+            message: $response['message'],
+            user: $response['user'] ?? null,
+            homeScreen: $response['home_screen'] ?? null,
+            activeUnit: $response['active_unit'] ?? null,
+            data: $response['data'] ?? [],
+        );
     }
 }

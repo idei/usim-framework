@@ -336,6 +336,11 @@ abstract class Screen
         return app(UIChangesCollector::class);
     }
 
+    public function getUiChanges(): UIChangesCollector
+    {
+        return $this->uiChanges();
+    }
+
     /**
      * Resolve and validate a Screen instance from the service container.
      *

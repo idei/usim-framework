@@ -3,13 +3,13 @@
 > **Documento de Continuidad para Nuevo Chat / Sesión**  
 > **Fecha:** 2026-10-08  
 > **Rama de trabajo:** `feature/rearch`  
-> **Estado de la suite:** 298 tests de Pest pasando | 0 errores en PHPStan Nivel 9 | Formato Pint al 100%
+> **Estado de la suite:** 304 tests de Pest pasando | 0 errores en PHPStan Nivel 9 | Formato Pint al 100%
 
 ---
 
 ## 1. Resumen Ejecutivo del Estado Actual
 
-Hemos culminado con éxito las dos primeras fases estructurales del plan maestro y la primera parte de la fase 3:
+Hemos culminado con éxito las dos primeras fases estructurales del plan maestro y las dos primeras partes de la fase 3:
 
 1. **Fase 1 (DIP y Desacoplamiento Circular) [COMPLETADA]:**
    - Paquete `packages/idei/usim/` completamente purgado de referencias duras hacia `App\...`.
@@ -37,7 +37,15 @@ Hemos culminado con éxito las dos primeras fases estructurales del plan maestro
    - [`TranslationResolver`](file:///workspaces/usim-framework/packages/idei/usim/src/Support/Translation/TranslationResolver.php) refactorizado para delegar en el contrato, preservando la resolución multi-ruta y candidatos.
    - Suite de tests unitarios con mocks en [`tests/Unit/UsimTranslatorTest.php`](file:///workspaces/usim-framework/tests/Unit/UsimTranslatorTest.php).
 
-4. **Fase 3.4 (Parcial - Sincronización Open/Closed) [COMPLETADA]:**
+4. **Fase 3.2 (Autenticación y Cuentas de Usuario - Action Pattern) [COMPLETADA]:**
+   - Extraídos contratos [`LoginActionInterface`](file:///workspaces/usim-framework/packages/idei/usim/src/Contracts/LoginActionInterface.php), [`RegisterActionInterface`](file:///workspaces/usim-framework/packages/idei/usim/src/Contracts/RegisterActionInterface.php), [`PasswordResetActionInterface`](file:///workspaces/usim-framework/packages/idei/usim/src/Contracts/PasswordResetActionInterface.php).
+   - Extraídos DTOs y Enums: [`AuthStatus`](file:///workspaces/usim-framework/packages/idei/usim/src/Enums/AuthStatus.php), [`LoginCredentials`](file:///workspaces/usim-framework/packages/idei/usim/src/DTOs/LoginCredentials.php), [`AuthResult`](file:///workspaces/usim-framework/packages/idei/usim/src/DTOs/AuthResult.php), [`RegisterData`](file:///workspaces/usim-framework/packages/idei/usim/src/DTOs/RegisterData.php), [`RegistrationResult`](file:///workspaces/usim-framework/packages/idei/usim/src/DTOs/RegistrationResult.php), [`PasswordResetResult`](file:///workspaces/usim-framework/packages/idei/usim/src/DTOs/PasswordResetResult.php).
+   - Servicios de autenticación (`LoginService`, `RegisterService`, `PasswordResetAction`) implementan los contratos manteniendo retrocompatibilidad total.
+   - Screens de autenticación (`Login`, `Register`, `ForgotPassword`, `ResetPassword`) desacopladas de consultas directas a BD/sesión, delegando en acciones inyectadas.
+   - Stubs de paquete sincronizados (`Login.php.stub`, `LoginService.php.stub`).
+   - Suite de tests unitarios en memoria sin base de datos (< 5ms) en [`tests/Unit/AuthActionTest.php`](file:///workspaces/usim-framework/tests/Unit/AuthActionTest.php).
+
+5. **Fase 3.4 (Parcial - Sincronización Open/Closed) [COMPLETADA]:**
    - `UsimSyncCommand` desacoplado a handlers independientes mediante `SyncEntityHandlerInterface` y DTOs `readonly` inmutables `SyncResult` (`UserSyncResult`, `RoleSyncResult`, `DeviceSyncResult`, etc.).
 
 ---
@@ -48,7 +56,7 @@ Hemos culminado con éxito las dos primeras fases estructurales del plan maestro
 flowchart TD
     subgraph Fase3 ["Fase 3: Refactorización de Subsistemas Satélites"]
         F31["3.1 Internacionalización (I18n)\n[COMPLETADO]"]
-        F32["3.2 Autenticación y Cuentas\nLoginActionInterface + AuthResult DTO"]
+        F32["3.2 Autenticación y Cuentas\n[COMPLETADO]"]
         F33["3.3 Dispositivos y Quioscos\nDeviceSecurityGuardInterface"]
         F34["3.4 Scanner de Screens\nScreenDiscoveryScannerInterface"]
         F35["3.5 Screens Administrativas\nUserListingServiceInterface"]
@@ -67,37 +75,20 @@ flowchart TD
 
 ---
 
-### Hito 3.2: Autenticación y Cuentas de Usuario (Action Pattern) [SIGUIENTE PASO RECOMENDADO]
+### Hito 3.2: Autenticación y Cuentas de Usuario (Action Pattern) [COMPLETADA]
 
 #### Objetivo:
 Desacoplar las Screens de autenticación (`Login`, `Register`, `ForgotPassword`, `ResetPassword`) de la lógica directa de sesión (`Auth::attempt`, llamadas directas a Eloquent), transformándolas en vistas puras que deleguen en acciones de caso de uso.
 
-#### Especificación Técnica:
-1. **DTOs y Value Objects:**
-   - Ubicación: `packages/idei/usim/src/DTOs/` o `app/DTOs/`.
-   - `LoginCredentials`: `readonly class LoginCredentials { public string $email; public string $password; public bool $remember; }`
-   - `AuthResult`:
-     ```php
-     enum AuthStatus: string {
-         case SUCCESS = 'success';
-         case BAD_CREDENTIALS = 'bad_credentials';
-         case TERMS_REQUIRED = 'terms_required';
-         case DEVICE_UNPAIRED = 'device_unpaired';
-         case USER_DISABLED = 'user_disabled';
-     }
-     ```
-2. **Contratos de Acción:**
-   - `LoginActionInterface`: `execute(LoginCredentials $credentials): AuthResult`
-   - `RegisterActionInterface`: `execute(RegisterData $data): RegistrationResult`
-   - `PasswordResetActionInterface`: `execute(string $email): void`
-3. **Refactorización de Screens:**
-   - `app/UI/Screens/Auth/Login.php`: Inyectar `LoginActionInterface` (o resolver vía container) en el método de submit, delegando la autenticación y reaccionando según el `AuthStatus`.
-4. **Verificación:**
-   - Tests unitarios probando `Login` y `Register` en memoria sin interactuar con la base de datos real.
+#### Implementación:
+- DTOs y Value Objects en `packages/idei/usim/src/DTOs/` y Enum `AuthStatus` en `packages/idei/usim/src/Enums/`.
+- Contratos de acción `LoginActionInterface`, `RegisterActionInterface`, `PasswordResetActionInterface` en `packages/idei/usim/src/Contracts/`.
+- Implementaciones en `app/Services/Auth/LoginService.php`, `RegisterService.php`, `PasswordResetAction.php`.
+- Screens refactorizadas delegando a contratos y `UIChangesCollector` probado en `tests/Unit/AuthActionTest.php`.
 
 ---
 
-### Hito 3.3: Dispositivos y Quioscos
+### Hito 3.3: Dispositivos y Quioscos [SIGUIENTE PASO RECOMENDADO]
 
 #### Objetivo:
 Extraer la lógica de emparejamiento, verificación de PIN y restricción de quiosco a un guard especializado, eliminando dependencias de infraestructura en middlewares.
@@ -185,14 +176,14 @@ Copia y pega el siguiente mensaje en el nuevo chat para continuar inmediatamente
 
 ```markdown
 Hola, estamos ejecutando el plan maestro de refactorización SOLID para USIM en la rama `feature/rearch`.
-Las Fases 1, 2 y 3.1 están completadas al 100%, con 298 tests pasando y 0 errores en PHPStan Nivel 9.
+Las Fases 1, 2, 3.1 y 3.2 están completadas al 100%, con 304 tests pasando y 0 errores en PHPStan Nivel 9.
 
 Revisa el archivo de handover `docs/HANDOVER_REFACTORING_SOLIDO_FASE3_Y_4.md`.
-Continuemos con la **Fase 3 (Hito 3.2: Autenticación y Cuentas de Usuario - Action Pattern)**:
-1. Crear DTOs y Value Objects (LoginCredentials, AuthResult, AuthStatus enum).
-2. Crear contratos de acción (LoginActionInterface, RegisterActionInterface, PasswordResetActionInterface).
-3. Refactorizar las screens de autenticación (Login, Register, ForgotPassword, ResetPassword) para delegar en las acciones de caso de uso.
-4. Agregar pruebas unitarias con mocks sin tocar la base de datos real.
+Continuemos con la **Fase 3 (Hito 3.3: Dispositivos y Quioscos - DeviceSecurityGuardInterface)**:
+1. Crear contrato `DeviceSecurityGuardInterface` en `packages/idei/usim/src/Contracts/`.
+2. Implementar servicio `DeviceSecurityGuard` desacoplado de HTTP y BD directa.
+3. Refactorizar middleware `PrepareUIContext` para inyectar y delegar en `DeviceSecurityGuardInterface`.
+4. Agregar pruebas unitarias con mocks.
 5. Validar con Pest, PHPStan Nivel 9 y Pint.
 ```
 

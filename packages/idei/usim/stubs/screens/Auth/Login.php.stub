@@ -3,9 +3,10 @@
 namespace {{ namespace }};
 
 use App\Http\Requests\Auth\LoginRequest;
-use App\Services\Auth\LoginService;
 use Idei\Usim\Components\Container;
 use Idei\Usim\Components\Label;
+use Idei\Usim\Contracts\LoginActionInterface;
+use Idei\Usim\DTOs\LoginCredentials;
 use Idei\Usim\Enums\AlignItems;
 use Idei\Usim\Enums\JustifyContent;
 use Idei\Usim\Enums\LayoutType;
@@ -18,7 +19,7 @@ use Idei\Usim\ValueObjects\Spacing;
 class Login extends Screen
 {
     public function __construct(
-        protected LoginService $loginService
+        protected LoginActionInterface $loginAction
     ) {}
 
     public static Visibility $visibility = Visibility::GUEST;
@@ -158,16 +159,16 @@ class Login extends Screen
             return;
         }
 
-        $response = $this->loginService->login(
-            $credentials['email'],
-            $credentials['password'],
-            $credentials['remember'],
-            null,
-            startSession: true
+        $loginCredentials = new LoginCredentials(
+            email: $credentials['email'],
+            password: $credentials['password'],
+            remember: $credentials['remember'],
         );
 
-        $message = $response['message'];
-        $status = $response['status'];
+        $result = $this->loginAction->execute($loginCredentials, startSession: true);
+
+        $message = $result->message;
+        $status = $result->isSuccess() ? 'success' : 'error';
         $this->toast(
             message: $message,
             type: $status,
@@ -175,13 +176,17 @@ class Login extends Screen
         );
         $this->lbl_login_result->text($message)->style($status);
 
-        if ($response['status'] === 'error') {
+        if (! $result->isSuccess()) {
             return;
         }
 
-        $this->store_token = $response['token'];
-        $redirectTo = $response['redirect_to'];
-        $this->redirect($redirectTo);
+        if ($result->token !== null) {
+            $this->store_token = $result->token;
+        }
+
+        if ($result->redirectTo !== null) {
+            $this->redirect($result->redirectTo);
+        }
     }
 
     public function onCloseLoginDialog(): void

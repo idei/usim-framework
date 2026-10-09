@@ -7,6 +7,9 @@ use Idei\Usim\Console\Commands\InstallCommand;
 use Idei\Usim\Console\Commands\UsimScaffold;
 use Idei\Usim\Console\Commands\UsimSyncCommand;
 use Idei\Usim\Contracts\ComponentIdGeneratorInterface;
+use Idei\Usim\Contracts\LoginActionInterface;
+use Idei\Usim\Contracts\PasswordResetActionInterface;
+use Idei\Usim\Contracts\RegisterActionInterface;
 use Idei\Usim\Contracts\ScreenAuthorizerInterface;
 use Idei\Usim\Contracts\ScreenLifecycleOrchestratorInterface;
 use Idei\Usim\Contracts\UIDifferInterface;
@@ -110,6 +113,27 @@ class UsimServiceProvider extends ServiceProvider
             $this->app->bind(
                 UnitsServiceInterface::class,
                 'App\\Services\\Units\\UnitsService'
+            );
+        }
+
+        if (class_exists('App\\Services\\Auth\\LoginService')) {
+            $this->app->bind(
+                LoginActionInterface::class,
+                'App\\Services\\Auth\\LoginService'
+            );
+        }
+
+        if (class_exists('App\\Services\\Auth\\RegisterService')) {
+            $this->app->bind(
+                RegisterActionInterface::class,
+                'App\\Services\\Auth\\RegisterService'
+            );
+        }
+
+        if (class_exists('App\\Services\\Auth\\PasswordResetAction')) {
+            $this->app->bind(
+                PasswordResetActionInterface::class,
+                'App\\Services\\Auth\\PasswordResetAction'
             );
         }
 

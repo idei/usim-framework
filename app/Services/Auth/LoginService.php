@@ -1,20 +1,25 @@
 <?php
+
 // @usim: feature="admin", type="service"
+
 namespace App\Services\Auth;
 
 use App\Models\User;
-use App\Services\Auth\AuthSessionService;
 use App\Services\Units\UnitContextResolver;
 use App\Services\Units\UsimUnitsService;
+use Idei\Usim\Contracts\LoginActionInterface;
+use Idei\Usim\DTOs\AuthResult;
+use Idei\Usim\DTOs\LoginCredentials;
+use Idei\Usim\Enums\AuthStatus;
+use Idei\Usim\Screen;
 use Illuminate\Support\Facades\Hash;
 
-class LoginService
+class LoginService implements LoginActionInterface
 {
     public function __construct(
         protected AuthSessionService $authSessionService,
         protected UsimUnitsService $usimUnitsService
-    ) {
-    }
+    ) {}
 
     /**
      * @return array{
@@ -37,7 +42,7 @@ class LoginService
      *     token: string,
      *     units: array<string, array<mixed>>,
      *     active_unit: string|null,
-     *     home_screen: class-string<\Idei\Usim\Screen>,
+     *     home_screen: class-string<Screen>,
      *     redirect_to: string
      * }
      */
@@ -50,7 +55,7 @@ class LoginService
     ): array {
         $user = User::where('email', $email)->first();
 
-        if (!$user || !Hash::check($password, $user->password)) {
+        if (! $user || ! Hash::check($password, $user->password)) {
             return [
                 'status' => 'error',
                 'message' => t('service.auth.login.invalid_credentials'),
@@ -102,5 +107,34 @@ class LoginService
             'home_screen' => $homeScreen,
             'redirect_to' => $redirectTo,
         ];
+    }
+
+    public function execute(LoginCredentials $credentials, bool $startSession = true): AuthResult
+    {
+        $response = $this->login(
+            $credentials->email,
+            $credentials->password,
+            $credentials->remember,
+            $credentials->unit,
+            $startSession
+        );
+
+        if ($response['status'] !== 'success') {
+            return AuthResult::failed(
+                status: AuthStatus::BAD_CREDENTIALS,
+                message: $response['message'],
+                errors: $response['errors']
+            );
+        }
+
+        return AuthResult::success(
+            redirectTo: $response['redirect_to'],
+            token: $response['token'],
+            message: $response['message'],
+            user: $response['user'],
+            homeScreen: $response['home_screen'],
+            activeUnit: $response['active_unit'],
+            data: $response['data'],
+        );
     }
 }

@@ -1,12 +1,15 @@
 <?php
+
 // @usim: feature="admin", type="screen"
+
 namespace App\UI\Screens\Auth;
 
 use App\Http\Requests\Auth\LoginRequest;
 use App\Models\User;
-use App\Services\Auth\LoginService;
 use Idei\Usim\Components\Container;
 use Idei\Usim\Components\Label;
+use Idei\Usim\Contracts\LoginActionInterface;
+use Idei\Usim\DTOs\LoginCredentials;
 use Idei\Usim\Enums\AlignItems;
 use Idei\Usim\Enums\JustifyContent;
 use Idei\Usim\Enums\LayoutType;
@@ -15,25 +18,27 @@ use Idei\Usim\Screen;
 use Idei\Usim\UI;
 use Idei\Usim\ValueObjects\Size;
 use Idei\Usim\ValueObjects\Spacing;
+use Illuminate\Validation\ValidationException;
 
 class Login extends Screen
 {
     public function __construct(
-        protected LoginService $loginService
-    ) {
-    }
+        protected LoginActionInterface $loginAction
+    ) {}
 
     public static Visibility $visibility = Visibility::GUEST;
 
     protected string $state_email = '';
+
     protected string $store_token = '';
+
     protected Label $lbl_login_result;
 
     public static function authorize(): bool
     {
         // This screen should only be accessible to guests,
         // i.e. users who are not authenticated.
-        return !self::requireAuth();
+        return ! self::requireAuth();
     }
 
     protected function buildBaseUI(Container $container, ...$params): void
@@ -83,7 +88,7 @@ class Login extends Screen
         );
 
         $card->add(
-            UI::label('lbl_login_result')->text('')
+            $this->lbl_login_result = UI::label('lbl_login_result')->text('')
         );
 
         $buttonsContainer = UI::container('login_buttons')
@@ -124,7 +129,9 @@ class Login extends Screen
 
     protected function postLoadUI(): void
     {
-        $this->lbl_login_result->text('')->style('');
+        if (isset($this->lbl_login_result)) {
+            $this->lbl_login_result->text('')->style('');
+        }
     }
 
     /** @param array<string, mixed> $params */
@@ -138,44 +145,51 @@ class Login extends Screen
     {
         try {
             $credentials = LoginRequest::validateData($params);
-        } catch (\Illuminate\Validation\ValidationException) {
+        } catch (ValidationException) {
             $message = t('service.auth.login.validation_errors');
             $this->toast(
                 message: $message,
                 type: 'error'
             );
-            $this->lbl_login_result->text($message)->style('error');
+            if (isset($this->lbl_login_result)) {
+                $this->lbl_login_result->text($message)->style('error');
+            }
+
             return;
         }
 
-        $response = $this->loginService->login(
-            $credentials['email'],
-            $credentials['password'],
-            $credentials['remember'],
-            null,
-            startSession: true
+        $loginCredentials = new LoginCredentials(
+            email: $credentials['email'],
+            password: $credentials['password'],
+            remember: $credentials['remember'],
         );
 
-        $message = $response['message'];
-        $status = $response['status'];
+        $result = $this->loginAction->execute($loginCredentials, startSession: true);
+
+        $message = $result->message;
+        $status = $result->isSuccess() ? 'success' : 'error';
         $this->toast(
             message: $message,
             type: $status
         );
-        $this->lbl_login_result->text($message)->style($status);
+        if (isset($this->lbl_login_result)) {
+            $this->lbl_login_result->text($message)->style($status);
+        }
 
-        if ($response['status'] === 'error') {
+        if (! $result->isSuccess()) {
             return;
         }
 
-        $this->store_token = $response['token'];
+        if ($result->token !== null) {
+            $this->store_token = $result->token;
+        }
         $this->state_email = $credentials['email'];
 
         $this->closeModal();
     }
 
     /**
-     * @param array<string, mixed> $params
+     * @param  array<string, mixed>  $params
      */
     public function onLoggedUser(array $params): void
     {
@@ -189,6 +203,7 @@ class Login extends Screen
     {
         if ($this->isOpenedAsModal()) {
             $this->closeModal();
+
             return;
         }
 
