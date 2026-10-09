@@ -2,6 +2,7 @@
 
 namespace Idei\Usim\Support;
 
+use Idei\Usim\Contracts\ScreenDiscoveryScannerInterface;
 use Idei\Usim\Screen;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Arr;
@@ -10,12 +11,17 @@ use Illuminate\Support\Facades\File;
 use Illuminate\Support\Str;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\PermissionRegistrar;
-use Symfony\Component\Finder\Finder;
-use Symfony\Component\Finder\SplFileInfo;
 
 class ScreenDiscoveryService
 {
     protected int $lastPrunedCount = 0;
+
+    protected ScreenDiscoveryScannerInterface $scanner;
+
+    public function __construct(?ScreenDiscoveryScannerInterface $scanner = null)
+    {
+        $this->scanner = $scanner ?? app(ScreenDiscoveryScannerInterface::class);
+    }
 
     public function getLastPrunedCount(): int
     {
@@ -27,49 +33,41 @@ class ScreenDiscoveryService
      *
      * @return array<string, array<string, mixed>>
      */
-    public function discover(): array
+    public function discover(?string $screensPath = null, ?string $screensNamespace = null): array
     {
-        $rawScreensPath = config('usim.screens_path', app_path('UI/Screens'));
-        $screensPath = \is_string($rawScreensPath) ? $rawScreensPath : app_path('UI/Screens');
+        $screens = $this->scanner->scan($screensPath, $screensNamespace);
 
-        if (! \is_dir($screensPath)) {
+        if ($screens === []) {
             return [];
         }
 
         $manifest = [];
-        $finder = new Finder;
-        $finder->files()->in($screensPath)->name('*.php');
-
         $permissions = [];
         $permissionTranslationKeys = [];
 
-        foreach ($finder as $file) {
-            $className = $this->getClassNameFromFile($file);
+        foreach ($screens as $className) {
+            $id_offset = $this->generateStableOffset($className);
+            $routePath = $className::getRoutePath();
+            $resolvedPermissions = $className::resolvedPermissions();
 
-            if ($className && $this->isValidScreenClass($className)) {
-
-                $id_offset = $this->generateStableOffset($className);
-                $routePath = $className::getRoutePath();
-                $resolvedPermissions = $className::resolvedPermissions();
-
-                foreach ($resolvedPermissions as $permissionName => $translationKey) {
-                    if (! \is_string($permissionName) || \trim($permissionName) === '') {
-                        continue;
-                    }
-
-                    $permissionName = \trim($permissionName);
-                    $permissions[] = $permissionName;
-
-                    if (\is_string($translationKey) && \trim($translationKey) !== '') {
-                        $permissionTranslationKeys[$permissionName] = \trim($translationKey);
-                    }
+            foreach ($resolvedPermissions as $permissionName => $translationKey) {
+                $permissionName = \trim((string) $permissionName);
+                if ($permissionName === '') {
+                    continue;
                 }
 
-                $manifest[$className] = [
-                    'id_offset' => $id_offset,
-                    'route_path' => $routePath,
-                ];
+                $permissions[] = $permissionName;
+
+                $translationKey = \trim((string) $translationKey);
+                if ($translationKey !== '') {
+                    $permissionTranslationKeys[$permissionName] = $translationKey;
+                }
             }
+
+            $manifest[$className] = [
+                'id_offset' => $id_offset,
+                'route_path' => $routePath,
+            ];
         }
 
         $this->createOrUpdateSpatiePermissions($permissions);
@@ -338,32 +336,6 @@ class ScreenDiscoveryService
         $bucket = $val % 100000;
 
         return $bucket * 10000;
-    }
-
-    private function getClassNameFromFile(SplFileInfo $file): string
-    {
-        // Simple extraction assuming PSR-4 structure inside App\UI\Screens
-        // We can optimize this by token parsing if needed, but for now assumption works.
-        $relativePath = $file->getRelativePathname();
-
-        $namespace = config('usim.screens_namespace', 'App\\UI\\Screens');
-        $namespace = \is_string($namespace) ? $namespace : 'App\\UI\\Screens';
-        $namespace = rtrim($namespace, '\\');
-
-        $class = $namespace.'\\'.str_replace(['/', '.php'], ['\\', ''], $relativePath);
-
-        return $class;
-    }
-
-    private function isValidScreenClass(string $className): bool
-    {
-        if (! class_exists($className)) {
-            return false;
-        }
-
-        $reflection = new \ReflectionClass($className);
-
-        return $reflection->isSubclassOf(Screen::class) && ! $reflection->isAbstract();
     }
 
     /**

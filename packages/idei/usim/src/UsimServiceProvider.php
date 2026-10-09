@@ -12,6 +12,7 @@ use Idei\Usim\Contracts\LoginActionInterface;
 use Idei\Usim\Contracts\PasswordResetActionInterface;
 use Idei\Usim\Contracts\RegisterActionInterface;
 use Idei\Usim\Contracts\ScreenAuthorizerInterface;
+use Idei\Usim\Contracts\ScreenDiscoveryScannerInterface;
 use Idei\Usim\Contracts\ScreenLifecycleOrchestratorInterface;
 use Idei\Usim\Contracts\UIDifferInterface;
 use Idei\Usim\Contracts\UIStateRepositoryInterface;
@@ -25,6 +26,7 @@ use Idei\Usim\Models\UsimRole;
 use Idei\Usim\Support\ComponentDiffer;
 use Idei\Usim\Support\ComponentIdGenerator;
 use Idei\Usim\Support\DeviceSecurityGuard;
+use Idei\Usim\Support\FileScreenDiscoveryScanner;
 use Idei\Usim\Support\ScreenLifecycleOrchestrator;
 use Idei\Usim\Support\SpatieScreenAuthorizer;
 use Idei\Usim\Support\Translation\TranslationDatasetQuery;
@@ -102,6 +104,11 @@ class UsimServiceProvider extends ServiceProvider
         $this->app->singleton(
             ScreenAuthorizerInterface::class,
             SpatieScreenAuthorizer::class
+        );
+
+        $this->app->singleton(
+            ScreenDiscoveryScannerInterface::class,
+            FileScreenDiscoveryScanner::class
         );
 
         if (class_exists('App\\Services\\Units\\UnitContextResolver')) {

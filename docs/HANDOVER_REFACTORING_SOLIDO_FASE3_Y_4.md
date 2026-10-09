@@ -3,13 +3,13 @@
 > **Documento de Continuidad para Nuevo Chat / Sesión**  
 > **Fecha:** 2026-10-08  
 > **Rama de trabajo:** `feature/rearch`  
-> **Estado de la suite:** 311 tests de Pest pasando | 0 errores en PHPStan Nivel 9 | Formato Pint al 100%
+> **Estado de la suite:** 317 tests de Pest pasando | 0 errores en PHPStan Nivel 9 | Formato Pint al 100%
 
 ---
 
 ## 1. Resumen Ejecutivo del Estado Actual
 
-Hemos culminado con éxito las dos primeras fases estructurales del plan maestro y las tres primeras partes de la fase 3:
+Hemos culminado con éxito las fases estructurales del plan maestro y los hitos 3.1 al 3.4:
 
 1. **Fase 1 (DIP y Desacoplamiento Circular) [COMPLETADA]:**
    - Paquete `packages/idei/usim/` completamente purgado de referencias duras hacia `App\...`.
@@ -54,8 +54,12 @@ Hemos culminado con éxito las dos primeras fases estructurales del plan maestro
    - Stubs de pantallas de dispositivos sincronizados.
    - Suite de tests unitarios en [`tests/Unit/DeviceSecurityGuardTest.php`](file:///workspaces/usim-framework/tests/Unit/DeviceSecurityGuardTest.php).
 
-6. **Fase 3.4 (Parcial - Sincronización Open/Closed) [COMPLETADA]:**
+6. **Fase 3.4 (Sincronización Open/Closed y Scanner de Screens) [COMPLETADA]:**
    - `UsimSyncCommand` desacoplado a handlers independientes mediante `SyncEntityHandlerInterface` y DTOs `readonly` inmutables `SyncResult` (`UserSyncResult`, `RoleSyncResult`, `DeviceSyncResult`, etc.).
+   - Extraído contrato [`ScreenDiscoveryScannerInterface`](file:///workspaces/usim-framework/packages/idei/usim/src/Contracts/ScreenDiscoveryScannerInterface.php).
+   - Implementación concreta [`FileScreenDiscoveryScanner`](file:///workspaces/usim-framework/packages/idei/usim/src/Support/FileScreenDiscoveryScanner.php) registrada en `UsimServiceProvider`.
+   - [`ScreenDiscoveryService`](file:///workspaces/usim-framework/packages/idei/usim/src/Support/ScreenDiscoveryService.php) refactorizado para desacoplarse del sistema de archivos mediante inyección de dependencias.
+   - Suite de tests unitarios en [`tests/Unit/ScreenDiscoveryScannerTest.php`](file:///workspaces/usim-framework/tests/Unit/ScreenDiscoveryScannerTest.php) y tests de comando en [`tests/Feature/DiscoverScreensCommandTest.php`](file:///workspaces/usim-framework/tests/Feature/DiscoverScreensCommandTest.php).
 
 ---
 
@@ -67,7 +71,7 @@ flowchart TD
         F31["3.1 Internacionalización (I18n)\n[COMPLETADO]"]
         F32["3.2 Autenticación y Cuentas\n[COMPLETADO]"]
         F33["3.3 Dispositivos y Quioscos\n[COMPLETADO]"]
-        F34["3.4 Scanner de Screens\nScreenDiscoveryScannerInterface"]
+        F34["3.4 Sincronización y Scanner\n[COMPLETADO]"]
         F35["3.5 Screens Administrativas\nUserListingServiceInterface"]
     end
 
@@ -111,20 +115,24 @@ Extraer la lógica de emparejamiento, verificación de PIN y restricción de qui
 
 ---
 
-### Hito 3.4 (Restante): Scanner de Screens (`DiscoverScreensCommand`) [SIGUIENTE PASO RECOMENDADO]
+### Hito 3.4: Sincronización Open/Closed y Scanner de Screens [COMPLETADA]
 
 #### Objetivo:
 Extraer la introspección de clases y namespaces del comando a una interfaz para permitir testing unitario sin escanear el sistema de archivos real.
 
-#### Especificación Técnica:
+#### Implementación:
 1. **Contrato `ScreenDiscoveryScannerInterface`:**
-   - Firma: `scan(string $path, string $namespace): array<class-string<Screen>>`.
-2. **Refactorizar `DiscoverScreensCommand`:**
-   - Inyectar el scanner; el comando solo se encarga de mostrar la salida en consola y registrar permisos.
+   - Firma: `scan(?string $path = null, ?string $namespace = null): array<class-string<Screen>>`.
+2. **Implementación concreta `FileScreenDiscoveryScanner`:**
+   - Registrada como singleton en `UsimServiceProvider`.
+3. **Refactorización de `ScreenDiscoveryService`:**
+   - Inyección de dependencias del scanner para generar manifest y sincronizar permisos sin depender del sistema de archivos real.
+4. **Pruebas unitarias y de integración:**
+   - Unit tests en `tests/Unit/ScreenDiscoveryScannerTest.php` y feature tests en `tests/Feature/DiscoverScreensCommandTest.php`.
 
 ---
 
-### Hito 3.5: Screens Administrativas (`UsersManager`, `TranslateManager`)
+### Hito 3.5: Screens Administrativas (`UsersManager`, `TranslateManager`) [SIGUIENTE PASO RECOMENDADO]
 
 #### Objetivo:
 Eliminar consultas Eloquent complejas dentro de las pantallas UI y delegarlas en servicios de listado y mutación:
