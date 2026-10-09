@@ -8,6 +8,8 @@ use Idei\Usim\Support\UIStateManager;
 
 /**
  * Modal overlay lifecycle and management logic for Screen.
+ *
+ * @mixin Screen
  */
 trait HandlesModals
 {
@@ -25,7 +27,8 @@ trait HandlesModals
         array $queryParams = [],
         ?string $screenClass = null,
     ): Screen {
-        $instance = static::make($screenClass);
+        $targetClass = $screenClass ?? static::class;
+        $instance = Screen::make($targetClass);
         $instance->parent = 'modal';
 
         if ($caller !== null) {
@@ -57,7 +60,7 @@ trait HandlesModals
         $instance->clearCachedScreenSnapshot();
 
         $instance->render(
-            incomingStorage: self::$currentIncomingStorage,
+            incomingStorage: Screen::$currentIncomingStorage,
             queryParams: $queryParams,
             parent: 'modal',
             shouldReset: false,
@@ -140,7 +143,7 @@ trait HandlesModals
             return null;
         }
 
-        $instance = static::make($modalClass);
+        $instance = Screen::make($modalClass);
         $instance->parent = 'modal';
         $instance->callerScreenId = $caller->getScreenComponentId();
         $instance->callerScreenClass = $caller::class;
@@ -188,11 +191,11 @@ trait HandlesModals
 
         foreach ($modalStack as $modalMeta) {
             $modalClass = $modalMeta['modal_class'];
-            if (! class_exists($modalClass) || ! is_a($modalClass, self::class, true)) {
+            if (! class_exists($modalClass) || ! is_a($modalClass, Screen::class, true)) {
                 continue;
             }
 
-            $instance = static::make($modalClass);
+            $instance = Screen::make($modalClass);
             $instance->parent = 'modal';
 
             $layerIndex = $modalMeta['layer_index'] ?? ($countsByClass[$modalClass] ?? 0);
@@ -204,8 +207,8 @@ trait HandlesModals
 
             if ($callerScreenClass !== null && isset($screensByClass[$callerScreenClass])) {
                 $effectiveCaller = $screensByClass[$callerScreenClass];
-            } elseif ($callerScreenClass !== null && class_exists($callerScreenClass) && is_a($callerScreenClass, self::class, true)) {
-                $effectiveCaller = static::make($callerScreenClass);
+            } elseif ($callerScreenClass !== null && class_exists($callerScreenClass) && is_a($callerScreenClass, Screen::class, true)) {
+                $effectiveCaller = Screen::make($callerScreenClass);
                 $screensByClass[$callerScreenClass] = $effectiveCaller;
             } else {
                 $effectiveCaller = $caller;
@@ -311,7 +314,7 @@ trait HandlesModals
                 $targetAction = 'on'.str_replace(' ', '', ucwords(str_replace('_', ' ', $targetAction)));
             }
 
-            $caller = self::make($callerScreenClass);
+            $caller = Screen::make($callerScreenClass);
             $caller->handleAction(
                 method: $targetAction,
                 parameters: $parameters,

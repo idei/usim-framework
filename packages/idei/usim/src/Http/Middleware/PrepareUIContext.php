@@ -154,7 +154,6 @@ class PrepareUIContext
         if ($guard instanceof SessionGuard) {
             try {
                 $loggedOutProp = new \ReflectionProperty($guard, 'loggedOut');
-                $loggedOutProp->setAccessible(true);
                 $loggedOutProp->setValue($guard, false);
             } catch (\ReflectionException) {
                 // Ignore reflection errors
@@ -173,7 +172,6 @@ class PrepareUIContext
             $guard->forgetUser();
             try {
                 $loggedOutProp = new \ReflectionProperty($guard, 'loggedOut');
-                $loggedOutProp->setAccessible(true);
                 $loggedOutProp->setValue($guard, true);
             } catch (\ReflectionException) {
                 // Ignore reflection errors

@@ -13,6 +13,8 @@ use ReflectionProperty;
  * Trait providing reflection-based inspection and injection of Screen properties:
  * - store_* variables: Client-synced storage variables (optionally encrypted with _crypt suffix).
  * - state_* variables: Server-side snapshot state variables cached across requests.
+ *
+ * @mixin Screen
  */
 trait HandlesScreenProperties
 {

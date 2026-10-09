@@ -186,9 +186,6 @@ class ScreenLifecycleOrchestrator implements ScreenLifecycleOrchestratorInterfac
 
             if (method_exists($screen, $method)) {
                 $reflectionMethod = new ReflectionMethod($screen, $method);
-                if (! $reflectionMethod->isPublic()) {
-                    $reflectionMethod->setAccessible(true);
-                }
                 $reflectionMethod->invoke($screen, $parameters);
             }
 

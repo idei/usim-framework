@@ -9,6 +9,8 @@ use RuntimeException;
 
 /**
  * Navigation, slots, and client meta-actions logic for Screen.
+ *
+ * @mixin Screen
  */
 trait HandlesNavigation
 {
@@ -23,7 +25,7 @@ trait HandlesNavigation
      */
     public function showInto(string $screenClass, ?string $slot = null, array $params = [], bool $updateBrowserUrl = true, bool $force = false): bool
     {
-        $targetClass = class_exists($screenClass) ? $screenClass : static::resolveScreenClassFromSlug($screenClass);
+        $targetClass = class_exists($screenClass) ? $screenClass : Screen::resolveScreenClassFromSlug($screenClass);
         if ($targetClass === null || ! class_exists($targetClass) || ! is_subclass_of($targetClass, Screen::class)) {
             throw new RuntimeException("Target screen [{$screenClass}] is not a valid Screen instance.");
         }
@@ -52,14 +54,14 @@ trait HandlesNavigation
 
         // If the target screen is already active in the slot, no need to reload unless forced
         if (! $force && $currentScreen !== null) {
-            $currentClass = class_exists($currentScreen) ? $currentScreen : static::resolveScreenClassFromSlug($currentScreen);
+            $currentClass = class_exists($currentScreen) ? $currentScreen : Screen::resolveScreenClassFromSlug($currentScreen);
             if ($currentClass === $targetClass) {
                 return true;
             }
         }
 
         $routePath = $targetClass::getRoutePath();
-        $routeSlug = static::resolveScreenSlug($targetClass);
+        $routeSlug = Screen::resolveScreenSlug($targetClass);
 
         // 1. Locate slot container from layout instance if available
         if ($layout !== null) {
@@ -86,12 +88,12 @@ trait HandlesNavigation
         // Only clear and embed locally if target container is physically present in this screen's tree
         if ($targetContainer instanceof Container) {
             $targetContainer->clear();
-            self::embedInto($targetClass, $targetContainer);
+            Screen::embedInto($targetClass, $targetContainer);
         }
 
         // Update browser URL and instruct frontend to load screen into slot
         if ($updateBrowserUrl && in_array($effectiveSlot, ['main', 'content', 'center'], true)) {
-            UIStateManager::setClientCurrentScreen($routePath, $targetClass);
+            UIStateManager::setClientCurrentScreen($routePath, (string) $targetClass);
             $this->uiChanges()->add([
                 'navigate' => [
                     'url' => $routePath,
@@ -205,4 +207,3 @@ trait HandlesNavigation
         ]);
     }
 }
-

@@ -20,6 +20,17 @@ use Illuminate\Support\Str;
 trait HandlesAuthorization
 {
     /**
+     * Screen visibility level. Used by the framework to determine access and menu display.
+     */
+    public static Visibility $visibility = Visibility::AUTHENTICATED;
+
+    /**
+     * Authentication guard required for this screen ('web', 'device', etc.).
+     * If null, it is automatically resolved by getAuthGuard().
+     */
+    public static ?string $guard = null;
+
+    /**
      * Check if current user has access to this screen and handle unauthorized actions.
      *
      * @return array{allowed: bool, action: ?string, params: array<string, mixed>}

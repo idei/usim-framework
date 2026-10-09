@@ -105,7 +105,6 @@ class DeviceSecurityGuard implements DeviceSecurityGuardInterface
         if ($guard instanceof SessionGuard) {
             try {
                 $loggedOutProp = new ReflectionProperty($guard, 'loggedOut');
-                $loggedOutProp->setAccessible(true);
                 $loggedOutProp->setValue($guard, false);
             } catch (ReflectionException) {
                 // Ignore reflection errors
@@ -128,7 +127,6 @@ class DeviceSecurityGuard implements DeviceSecurityGuardInterface
             $guard->forgetUser();
             try {
                 $loggedOutProp = new ReflectionProperty($guard, 'loggedOut');
-                $loggedOutProp->setAccessible(true);
                 $loggedOutProp->setValue($guard, true);
             } catch (ReflectionException) {
                 // Ignore reflection errors

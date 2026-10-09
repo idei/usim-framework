@@ -9,7 +9,6 @@ use Idei\Usim\Concerns\HandlesNavigation;
 use Idei\Usim\Concerns\HandlesScreenProperties;
 use Idei\Usim\Contracts\ScreenLifecycleOrchestratorInterface;
 use Idei\Usim\Contracts\UIElement;
-use Idei\Usim\Enums\Visibility;
 use Idei\Usim\Layout\AbstractLayout;
 use Idei\Usim\Support\UIIdGenerator;
 use Idei\Usim\Support\UIStateManager;
@@ -128,17 +127,6 @@ abstract class Screen
 
         return static::class;
     }
-
-    /**
-     * Screen visibility level. Used by the framework to determine access and menu display.
-     */
-    public static Visibility $visibility = Visibility::AUTHENTICATED;
-
-    /**
-     * Authentication guard required for this screen ('web', 'device', etc.).
-     * If null, it is automatically resolved by getAuthGuard().
-     */
-    public static ?string $guard = null;
 
     /**
      * Layout class to frame this screen.
