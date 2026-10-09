@@ -2,8 +2,6 @@
 // @usim: feature="admin", type="screen"
 namespace {{ namespace }};
 
-use App\Services\Auth\RegisterService;
-use App\Services\User\UserService;
 use {{ componentsNamespace }}\Modals\EditUserDialog;
 use {{ componentsNamespace }}\Modals\RegisterDialog;
 use {{ screensNamespace }}\Admin\Presenters\UserEditDialogPresenter;
@@ -12,6 +10,9 @@ use Idei\Usim\Components\Button;
 use Idei\Usim\Components\Container;
 use Idei\Usim\Components\Input;
 use Idei\Usim\Components\Table;
+use Idei\Usim\Contracts\RegisterActionInterface;
+use Idei\Usim\Contracts\UserMutationServiceInterface;
+use Idei\Usim\DTOs\RegisterData;
 use Idei\Usim\Enums\DialogType;
 use Idei\Usim\Enums\LayoutType;
 use Idei\Usim\Enums\SelectionMode;
@@ -25,8 +26,8 @@ use Idei\Usim\ValueObjects\Spacing;
  * Trait to manage the users CRUD UI section, table events, and dialog workflows.
  *
  * @mixin Screen
- * @property RegisterService $registerService
- * @property UserService $userService
+ * @property RegisterActionInterface $registerService
+ * @property UserMutationServiceInterface $userService
  * @property ?UserEditDialogPresenter $userEditDialogPresenter
  */
 trait ManagesUsersSection
@@ -120,24 +121,25 @@ trait ManagesUsersSection
      */
     public function onSubmitRegister(array $params): void
     {
-        $response = $this->registerService->register(
+        $registerData = new RegisterData(
             name: $this->stringParamOrDefault($params, 'name', ''),
             email: $this->stringParamOrDefault($params, 'email', ''),
             password: $this->stringParamOrDefault($params, 'password', ''),
             passwordConfirmation: $this->stringParamOrDefault($params, 'password_confirmation', ''),
             roles: $this->normalizeRoles($params['roles'] ?? null),
-            sendVerificationEmail: $this->boolParamOrDefault($params, 'send_verification_email', true)
+            sendVerificationEmail: $this->boolParamOrDefault($params, 'send_verification_email', true),
         );
 
-        $status = $response['status'];
-        $message = $response['message'];
+        $result = $this->registerService->execute($registerData);
 
-        if ($status === 'success') {
-            $this->toast($message, 'success');
-            $this->users_table->refresh();
+        if ($result->isSuccess()) {
+            $this->toast($result->message, 'success');
+            if (isset($this->users_table)) {
+                $this->users_table->refresh();
+            }
             $this->closeModal();
         } else {
-            $this->updateModalWithErrors($response['errors'] ?? []);
+            $this->updateModalWithErrors($result->errors);
         }
     }
 

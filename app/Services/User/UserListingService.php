@@ -1,16 +1,21 @@
 <?php
+
 // @usim: feature="admin", type="service"
+
 namespace App\Services\User;
 
 use App\Models\User;
+use Idei\Usim\Contracts\UserListingServiceInterface;
 use Idei\Usim\Support\EloquentListingService;
 
 /**
  * Read-only listing service for users.
  *
  * @extends EloquentListingService<User>
+ *
+ * @implements UserListingServiceInterface<User>
  */
-class UserListingService extends EloquentListingService
+class UserListingService extends EloquentListingService implements UserListingServiceInterface
 {
     protected string $modelClass = User::class;
 

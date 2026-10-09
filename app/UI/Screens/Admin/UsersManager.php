@@ -1,11 +1,11 @@
 <?php
+
 // @usim: feature="admin", type="screen"
+
 namespace App\UI\Screens\Admin;
 
-use App\Services\Auth\RegisterService;
 use App\Services\Device\DeviceService;
 use App\Services\Role\RoleService;
-use App\Services\User\UserService;
 use App\UI\Screens\Admin\Concerns\HandlesModalFeedback;
 use App\UI\Screens\Admin\Concerns\HandlesScreenParameters;
 use App\UI\Screens\Admin\Concerns\ManagesDevicesSection;
@@ -15,6 +15,8 @@ use App\UI\Screens\Admin\Concerns\ResolvesActiveUnitContext;
 use App\UI\Screens\Admin\Presenters\UserEditDialogPresenter;
 use Idei\Usim\Components\Container;
 use Idei\Usim\Components\Table;
+use Idei\Usim\Contracts\RegisterActionInterface;
+use Idei\Usim\Contracts\UserMutationServiceInterface;
 use Idei\Usim\Screen;
 use Idei\Usim\UI;
 use Idei\Usim\ValueObjects\Size;
@@ -25,33 +27,33 @@ use Idei\Usim\ValueObjects\Spacing;
  */
 class UsersManager extends Screen
 {
-    use HandlesScreenParameters;
     use HandlesModalFeedback;
-    use ResolvesActiveUnitContext;
-    use ManagesUsersSection;
+    use HandlesScreenParameters;
     use ManagesDevicesSection;
     use ManagesRolesSection;
+    use ManagesUsersSection;
+    use ResolvesActiveUnitContext;
 
     private const I18N_PREFIX = 'screen.admin.users_manager.';
 
     protected Container $tabs_container;
+
     protected DeviceService $deviceService;
 
     /**
      * @var Screen|null The current screen instance, used for context in building UI components.
      */
-    protected Screen|null $screen = null;
-
+    protected ?Screen $screen = null;
 
     public function __construct(
-        protected RegisterService $registerService,
-        protected UserService $userService,
+        protected RegisterActionInterface $registerService,
+        protected UserMutationServiceInterface $userService,
         protected RoleService $roleService,
         ?DeviceService $deviceService = null,
         protected ?UserEditDialogPresenter $userEditDialogPresenter = null,
     ) {
         $this->deviceService = $deviceService ?? app(DeviceService::class);
-        $this->userEditDialogPresenter = $userEditDialogPresenter ?? new UserEditDialogPresenter();
+        $this->userEditDialogPresenter = $userEditDialogPresenter ?? new UserEditDialogPresenter;
         $this->screen = $this;
     }
 
@@ -62,7 +64,7 @@ class UsersManager extends Screen
 
     public static function getMenuLabel(): string
     {
-        return t(self::I18N_PREFIX . 'menu_label');
+        return t(self::I18N_PREFIX.'menu_label');
     }
 
     public static function getMenuIcon(): ?string
@@ -87,11 +89,11 @@ class UsersManager extends Screen
             ->gap(Spacing::px(2))
             ->tabs(
                 [
-                    'users_tab' => ['label' => t(self::I18N_PREFIX . 'users_tab')],
-                    'devices_tab' => ['label' => t(self::I18N_PREFIX . 'devices_tab')],
+                    'users_tab' => ['label' => t(self::I18N_PREFIX.'users_tab')],
+                    'devices_tab' => ['label' => t(self::I18N_PREFIX.'devices_tab')],
                     'roles_tab' => [
-                        'label' => t(self::I18N_PREFIX . 'roles_tab'),
-                        'disabled' => !$this->userCan('manage.roles'),
+                        'label' => t(self::I18N_PREFIX.'roles_tab'),
+                        'disabled' => ! $this->userCan('manage.roles'),
                     ],
                 ],
                 'users_tab'
@@ -106,8 +108,7 @@ class UsersManager extends Screen
     /**
      * Generic table sorting helper (DRY).
      *
-     * @param Table $table
-     * @param array<string, mixed> $params
+     * @param  array<string, mixed>  $params
      */
     protected function handleTableSort(Table $table, array $params): void
     {
@@ -121,7 +122,7 @@ class UsersManager extends Screen
     }
 
     /**
-     * @param array<string, mixed> $params
+     * @param  array<string, mixed>  $params
      */
     public function onChangePage(array $params): void
     {
@@ -132,11 +133,13 @@ class UsersManager extends Screen
 
         if (isset($this->devices_table) && $componentId !== null && $componentId === $this->devices_table->getId()) {
             $this->devices_table->page($page);
+
             return;
         }
 
         if (isset($this->roles_table) && $componentId !== null && $componentId === $this->roles_table->getId()) {
             $this->roles_table->page($page);
+
             return;
         }
 

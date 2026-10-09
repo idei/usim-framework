@@ -1,13 +1,16 @@
 <?php
+
 // @usim: feature="admin", type="screen"
+
 namespace App\UI\Screens\Admin;
 
 use App\Models\User;
 use App\Services\Role\RoleService;
-use App\Services\User\UserService;
 use App\UI\Screens\Admin\Presenters\UserEditDialogPresenter;
 use Idei\Usim\Components\Container;
 use Idei\Usim\Components\Label;
+use Idei\Usim\Contracts\UserMutationServiceInterface;
+use Idei\Usim\Contracts\UsimUserInterface;
 use Idei\Usim\Enums\AlignItems;
 use Idei\Usim\Enums\DialogType;
 use Idei\Usim\Enums\JustifyContent;
@@ -21,6 +24,7 @@ use Idei\Usim\Screen;
 use Idei\Usim\UI;
 use Idei\Usim\ValueObjects\Size;
 use Idei\Usim\ValueObjects\Spacing;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
 
 /**
@@ -42,15 +46,21 @@ use Illuminate\Support\Facades\Auth;
 class EditUser extends Screen
 {
     public const DEFAULT_SUBMIT_ACTION = 'submit_update_user';
+
     public const DEFAULT_CANCEL_ACTION = 'close_edit_user';
+
     public const DELETE_ACTION = 'delete_user';
 
     private const SYSTEM_REGISTERED_ROLE = 'registered';
+
     private const DEFAULT_FALLBACK_ROLE = 'user';
+
     private const EXCLUDED_MEMBERSHIP_SLUGS = ['lobby', 'main'];
 
     private const CONTAINER_PADDING = 20;
+
     private const BUTTONS_GAP = 10;
+
     private const BUTTONS_PADDING = 10;
 
     public static Visibility $visibility = Visibility::AUTHENTICATED;
@@ -58,11 +68,11 @@ class EditUser extends Screen
     protected Label $lbl_edit_user_result;
 
     public function __construct(
-        protected UserService $userService,
+        protected UserMutationServiceInterface $userService,
         protected RoleService $roleService,
         protected ?UserEditDialogPresenter $userEditDialogPresenter = null,
     ) {
-        $this->userEditDialogPresenter = $userEditDialogPresenter ?? new UserEditDialogPresenter();
+        $this->userEditDialogPresenter = $userEditDialogPresenter ?? new UserEditDialogPresenter;
     }
 
     protected function buildBaseUI(Container $container, ...$params): void
@@ -73,8 +83,8 @@ class EditUser extends Screen
         /** @var array<string, mixed>|null $user */
         $user = $this->resolveUserPayload($rawUser, $rawUserId);
 
-        $isInLobby = ($user !== null) && !empty($user['is_in_lobby']);
-        $hasOperationalUnits = ($user !== null) && !empty($user['has_operational_units']);
+        $isInLobby = ($user !== null) && ! empty($user['is_in_lobby']);
+        $hasOperationalUnits = ($user !== null) && ! empty($user['has_operational_units']);
         $activeUnit = $this->resolveActiveUnit($user, $hasOperationalUnits);
         $activeSlug = $activeUnit['slug'] ?? null;
         $selectedRoles = $this->resolveSelectedRoles($user, $activeSlug, $isInLobby);
@@ -140,7 +150,7 @@ class EditUser extends Screen
             $this->buildActiveUnitSection($card, $activeUnit);
         }
 
-        if ($user !== null && !empty($user['units_with_roles']) && is_array($user['units_with_roles'])) {
+        if ($user !== null && ! empty($user['units_with_roles']) && is_array($user['units_with_roles'])) {
             /** @var array<string, list<string>> $unitsWithRoles */
             $unitsWithRoles = $user['units_with_roles'];
             $this->buildOtherMembershipsSection($card, $unitsWithRoles, $activeSlug);
@@ -158,7 +168,7 @@ class EditUser extends Screen
             submitAction: self::DEFAULT_SUBMIT_ACTION,
             cancelAction: self::DEFAULT_CANCEL_ACTION,
             submitLabel: $submitLabel,
-            canDelete: $user !== null && !empty($user['id'])
+            canDelete: $user !== null && ! empty($user['id'])
         );
 
         $wrapper->add($card);
@@ -173,7 +183,7 @@ class EditUser extends Screen
     }
 
     /**
-     * @param array<string, mixed> $params
+     * @param  array<string, mixed>  $params
      */
     public function onSubmitUpdateUser(array $params): void
     {
@@ -183,15 +193,21 @@ class EditUser extends Screen
         if ($userId <= 0) {
             $message = self::trans('user_id_required');
             $this->toast($message, 'error');
-            $this->lbl_edit_user_result->text($message)->style('error');
+            if (isset($this->lbl_edit_user_result)) {
+                $this->lbl_edit_user_result->text($message)->style('error');
+            }
+
             return;
         }
 
         $user = $this->userService->findUser($userId);
-        if (!$user) {
+        if (! $user) {
             $message = self::trans('user_not_found');
             $this->toast($message, 'error');
-            $this->lbl_edit_user_result->text($message)->style('error');
+            if (isset($this->lbl_edit_user_result)) {
+                $this->lbl_edit_user_result->text($message)->style('error');
+            }
+
             return;
         }
 
@@ -214,25 +230,30 @@ class EditUser extends Screen
                 'user_updated',
                 [
                     'user_id' => $userId,
-                    'data' => $updateData
+                    'data' => $updateData,
                 ]
             ));
 
             $this->toast($message, 'success');
-            $this->lbl_edit_user_result->text($message)->style('success');
+            if (isset($this->lbl_edit_user_result)) {
+                $this->lbl_edit_user_result->text($message)->style('success');
+            }
 
             if ($this->isOpenedAsModal()) {
                 $this->closeModal();
             }
+
             return;
         }
 
         $this->toast($message, 'error');
-        $this->lbl_edit_user_result->text($message)->style('error');
+        if (isset($this->lbl_edit_user_result)) {
+            $this->lbl_edit_user_result->text($message)->style('error');
+        }
     }
 
     /**
-     * @param array<string, mixed> $params
+     * @param  array<string, mixed>  $params
      */
     public function onDeleteUser(array $params): void
     {
@@ -242,28 +263,35 @@ class EditUser extends Screen
         if ($userId <= 0) {
             $message = self::trans('user_id_required');
             $this->toast($message, 'error');
+
             return;
         }
 
         $user = $this->userService->findUser($userId);
-        if (!$user) {
+        if (! $user) {
             $message = self::trans('user_not_found');
             $this->toast($message, 'error');
+
             return;
         }
+
+        $rawName = $user instanceof UsimUserInterface
+            ? $user->getDisplayName()
+            : $user->getAttribute('name');
+        $userName = is_string($rawName) ? $rawName : '';
 
         ConfirmDialog::open(
             caller: $this,
             type: DialogType::WARNING,
             title: self::trans('delete_confirm_title'),
-            message: self::trans('delete_confirm_message', ['name' => $user->name]),
+            message: self::trans('delete_confirm_message', ['name' => $userName]),
             confirmAction: 'confirm_delete_user',
             confirmParams: ['user_id' => $userId],
         );
     }
 
     /**
-     * @param array<string, mixed> $params
+     * @param  array<string, mixed>  $params
      */
     public function onConfirmDeleteUser(array $params): void
     {
@@ -273,13 +301,15 @@ class EditUser extends Screen
         if ($userId <= 0) {
             $message = self::trans('user_id_required');
             $this->toast($message, 'error');
+
             return;
         }
 
         $user = $this->userService->findUser($userId);
-        if (!$user) {
+        if (! $user) {
             $message = self::trans('user_not_found');
             $this->toast($message, 'error');
+
             return;
         }
 
@@ -300,7 +330,7 @@ class EditUser extends Screen
     }
 
     /**
-     * @param array<string, mixed> $params
+     * @param  array<string, mixed>  $params
      */
     public function onCloseEditUser(array $params = []): void
     {
@@ -310,7 +340,7 @@ class EditUser extends Screen
     /**
      * Alias for closing modal
      *
-     * @param array<string, mixed> $params
+     * @param  array<string, mixed>  $params
      */
     public function onCloseModal(array $params = []): void
     {
@@ -318,7 +348,7 @@ class EditUser extends Screen
     }
 
     /**
-     * @param array<string, mixed> $replace
+     * @param  array<string, mixed>  $replace
      */
     private static function trans(string $key, array $replace = []): string
     {
@@ -372,7 +402,7 @@ class EditUser extends Screen
 
         /** @var array<string, mixed> $userData */
         $userData = $response['data'];
-        $presenter = $this->userEditDialogPresenter ?? new UserEditDialogPresenter();
+        $presenter = $this->userEditDialogPresenter ?? new UserEditDialogPresenter;
         $presented = $presenter->present($userData);
 
         return $presented ?? $userData;
@@ -389,7 +419,7 @@ class EditUser extends Screen
     }
 
     /**
-     * @param array<string, mixed>|null $user
+     * @param  array<string, mixed>|null  $user
      */
     private function buildHiddenInputs(Container $container, ?array $user, bool $isInLobby): void
     {
@@ -430,7 +460,7 @@ class EditUser extends Screen
     }
 
     /**
-     * @param array{id: int|string, slug: string, name: string} $activeUnit
+     * @param  array{id: int|string, slug: string, name: string}  $activeUnit
      */
     private function buildActiveUnitSection(Container $container, array $activeUnit): void
     {
@@ -456,7 +486,7 @@ class EditUser extends Screen
     }
 
     /**
-     * @param array<string, list<string>> $unitsWithRoles
+     * @param  array<string, list<string>>  $unitsWithRoles
      */
     private function buildOtherMembershipsSection(
         Container $container,
@@ -470,14 +500,14 @@ class EditUser extends Screen
 
         $container->add(
             UI::label('other_units_info')
-                ->text(self::trans('other_units') . ': ' . implode(' | ', $memberships))
+                ->text(self::trans('other_units').': '.implode(' | ', $memberships))
                 ->style('secondary')
                 ->size('small')
         );
     }
 
     /**
-     * @param array<string, list<string>> $unitsWithRoles
+     * @param  array<string, list<string>>  $unitsWithRoles
      * @return list<string>
      */
     private function formatOtherMemberships(array $unitsWithRoles, ?string $activeSlug): array
@@ -485,7 +515,7 @@ class EditUser extends Screen
         $relevantSlugs = [];
         foreach (array_keys($unitsWithRoles) as $slugKey) {
             $slug = (string) $slugKey;
-            if ($slug !== $activeSlug && !in_array($slug, self::EXCLUDED_MEMBERSHIP_SLUGS, true)) {
+            if ($slug !== $activeSlug && ! in_array($slug, self::EXCLUDED_MEMBERSHIP_SLUGS, true)) {
                 $relevantSlugs[] = $slug;
             }
         }
@@ -494,7 +524,7 @@ class EditUser extends Screen
             return [];
         }
 
-        /** @var \Illuminate\Database\Eloquent\Collection<string, UsimUnit>|\Illuminate\Support\Collection<string, UsimUnit> $unitModels */
+        /** @var \Illuminate\Database\Eloquent\Collection<string, UsimUnit>|Collection<string, UsimUnit> $unitModels */
         $unitModels = UsimUnit::whereIn('slug', $relevantSlugs)->get()->keyBy('slug');
 
         $memberships = [];
@@ -505,7 +535,7 @@ class EditUser extends Screen
             $unitName = $this->resolveUnitDisplayName($unit, $slug);
 
             $rolesTranslated = array_map(
-                static fn(string $role): string => t("role.{$role}.name"),
+                static fn (string $role): string => t("role.{$role}.name"),
                 $rolesList
             );
 
@@ -540,7 +570,7 @@ class EditUser extends Screen
     }
 
     /**
-     * @param list<string> $selectedRoles
+     * @param  list<string>  $selectedRoles
      */
     private function buildRoleCheckboxes(Container $container, array $selectedRoles): void
     {
@@ -562,7 +592,7 @@ class EditUser extends Screen
         $roles = $this->roleService->getRolesForActor(User::class);
 
         /** @var list<array{value: string, label: string}> $roleOptions */
-        $roleOptions = array_map(static fn(UsimRole $role): array => [
+        $roleOptions = array_map(static fn (UsimRole $role): array => [
             'value' => (string) $role->name,
             'label' => t("role.{$role->name}.name"),
         ], $roles);
@@ -585,7 +615,7 @@ class EditUser extends Screen
                 ->checked(false)
         );
 
-        if (!$emailVerified) {
+        if (! $emailVerified) {
             $container->add(
                 UI::checkbox('send_verification_email')
                     ->label(self::trans('send_verification_email'))
@@ -635,11 +665,11 @@ class EditUser extends Screen
     }
 
     /**
-     * @param array{id: int|string, slug: string, name: string}|null $activeUnit
+     * @param  array{id: int|string, slug: string, name: string}|null  $activeUnit
      */
     private function resolveSubmitLabel(bool $isInLobby, bool $hasOperationalUnits, ?array $activeUnit): string
     {
-        if (!$isInLobby) {
+        if (! $isInLobby) {
             return self::trans('update_user');
         }
 
@@ -651,7 +681,7 @@ class EditUser extends Screen
     }
 
     /**
-     * @param array<string, mixed>|null $user
+     * @param  array<string, mixed>|null  $user
      * @return array{id: int|string, slug: string, name: string}|null
      */
     private function resolveActiveUnit(?array $user, bool $hasOperationalUnits): ?array
@@ -687,7 +717,7 @@ class EditUser extends Screen
     }
 
     /**
-     * @param array<string, mixed>|null $user
+     * @param  array<string, mixed>|null  $user
      * @return list<string>
      */
     private function resolveSelectedRoles(?array $user, ?string $activeSlug, bool $isInLobby): array
@@ -699,7 +729,7 @@ class EditUser extends Screen
             $unitsWithRoles = $user['units_with_roles'] ?? null;
             if ($activeSlug !== null && is_array($unitsWithRoles) && isset($unitsWithRoles[$activeSlug]) && is_array($unitsWithRoles[$activeSlug])) {
                 $selectedRoles = $this->normalizeStringList($unitsWithRoles[$activeSlug]);
-            } elseif (!$isInLobby && is_array($user['roles'] ?? null)) {
+            } elseif (! $isInLobby && is_array($user['roles'] ?? null)) {
                 $selectedRoles = $this->extractRoleNames($user['roles']);
             }
         }
@@ -719,7 +749,7 @@ class EditUser extends Screen
     }
 
     /**
-     * @param array<mixed> $roles
+     * @param  array<mixed>  $roles
      * @return list<string>
      */
     private function extractRoleNames(array $roles): array
@@ -741,7 +771,7 @@ class EditUser extends Screen
     }
 
     /**
-     * @param array<mixed> $values
+     * @param  array<mixed>  $values
      * @return list<string>
      */
     private function normalizeStringList(array $values): array
@@ -759,7 +789,7 @@ class EditUser extends Screen
     }
 
     /**
-     * @param array<string, mixed>|null $user
+     * @param  array<string, mixed>|null  $user
      */
     private function isEmailVerified(?array $user): bool
     {

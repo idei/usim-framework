@@ -18,6 +18,8 @@ use Idei\Usim\Contracts\UIDifferInterface;
 use Idei\Usim\Contracts\UIStateRepositoryInterface;
 use Idei\Usim\Contracts\UnitContextResolverInterface;
 use Idei\Usim\Contracts\UnitsServiceInterface;
+use Idei\Usim\Contracts\UserListingServiceInterface;
+use Idei\Usim\Contracts\UserMutationServiceInterface;
 use Idei\Usim\Contracts\UsimTranslatorInterface;
 use Idei\Usim\Events\UsimEvent;
 use Idei\Usim\Jobs\CleanTemporaryUploadsJob;
@@ -143,6 +145,20 @@ class UsimServiceProvider extends ServiceProvider
             $this->app->bind(
                 PasswordResetActionInterface::class,
                 'App\\Services\\Auth\\PasswordResetAction'
+            );
+        }
+
+        if (class_exists('App\\Services\\User\\UserListingService')) {
+            $this->app->bind(
+                UserListingServiceInterface::class,
+                'App\\Services\\User\\UserListingService'
+            );
+        }
+
+        if (class_exists('App\\Services\\User\\UserService')) {
+            $this->app->bind(
+                UserMutationServiceInterface::class,
+                'App\\Services\\User\\UserService'
             );
         }
 

@@ -4,17 +4,19 @@ namespace {{ namespace }};
 
 use {{ userModel }};
 use App\Services\Units\UsimUnitsService;
+use Idei\Usim\Contracts\UserMutationServiceInterface;
 use Idei\Usim\Events\UsimEvent;
 use Idei\Usim\Models\UsimUnit;
 use Illuminate\Auth\Events\Verified;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Password as PasswordBroker;
 use Spatie\Permission\PermissionRegistrar;
 
-class UserService
+class UserService implements UserMutationServiceInterface
 {
     /**
      * Find user by ID
@@ -92,12 +94,13 @@ class UserService
     /**
      * Update user with validation and role syncing
      *
-     * @param User $user
+     * @param Model $user
      * @param array<string, mixed> $data
      * @return array{status: 'success', message: string, data: array<string, mixed>} | array{status: 'error', message: string, errors: array<string, string[]>}
      */
-    public function updateUser(User $user, array $data): array
+    public function updateUser(Model $user, array $data): array
     {
+        assert($user instanceof {{ userModel }});
         $error = $this->validateUpdateData($data);
         if ($error) {
             return $error;
@@ -419,11 +422,12 @@ class UserService
     /**
      * Delete user with authorization check
      *
-     * @param User $user
+     * @param Model $user
      * @return array{status: string, message: string}
      */
-    public function deleteUser(User $user): array
+    public function deleteUser(Model $user): array
     {
+        assert($user instanceof {{ userModel }});
         // Delete the user if it is different from the currently authenticated user
         if (Auth::id() === $user->id) {
             return [

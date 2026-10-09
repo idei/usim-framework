@@ -4,8 +4,8 @@ namespace {{ namespace }};
 
 use {{ userModel }};
 use App\Services\Units\UsimUnitsService;
-use App\Services\User\UserListingService;
 use Idei\Usim\Components\Table;
+use Idei\Usim\Contracts\UserListingServiceInterface;
 use Idei\Usim\DataTable\AbstractListingTableModel;
 
 /**
@@ -23,9 +23,9 @@ class UserTableModel extends AbstractListingTableModel
         parent::__construct($tableBuilder);
     }
 
-    protected function resolveListingService(): UserListingService
+    protected function resolveListingService(): UserListingServiceInterface
     {
-        return app(UserListingService::class);
+        return app(UserListingServiceInterface::class);
     }
 
     public function getColumns(): array

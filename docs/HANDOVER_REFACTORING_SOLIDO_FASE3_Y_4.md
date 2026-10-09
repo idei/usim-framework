@@ -3,13 +3,13 @@
 > **Documento de Continuidad para Nuevo Chat / Sesión**  
 > **Fecha:** 2026-10-08  
 > **Rama de trabajo:** `feature/rearch`  
-> **Estado de la suite:** 317 tests de Pest pasando | 0 errores en PHPStan Nivel 9 | Formato Pint al 100%
+> **Estado de la suite:** 321 tests de Pest pasando | 0 errores en PHPStan Nivel 9 | Formato Pint al 100%
 
 ---
 
 ## 1. Resumen Ejecutivo del Estado Actual
 
-Hemos culminado con éxito las fases estructurales del plan maestro y los hitos 3.1 al 3.4:
+Hemos culminado con éxito las fases estructurales del plan maestro y la totalidad de la Fase 3 (Hitos 3.1 al 3.5):
 
 1. **Fase 1 (DIP y Desacoplamiento Circular) [COMPLETADA]:**
    - Paquete `packages/idei/usim/` completamente purgado de referencias duras hacia `App\...`.
@@ -61,21 +61,28 @@ Hemos culminado con éxito las fases estructurales del plan maestro y los hitos 
    - [`ScreenDiscoveryService`](file:///workspaces/usim-framework/packages/idei/usim/src/Support/ScreenDiscoveryService.php) refactorizado para desacoplarse del sistema de archivos mediante inyección de dependencias.
    - Suite de tests unitarios en [`tests/Unit/ScreenDiscoveryScannerTest.php`](file:///workspaces/usim-framework/tests/Unit/ScreenDiscoveryScannerTest.php) y tests de comando en [`tests/Feature/DiscoverScreensCommandTest.php`](file:///workspaces/usim-framework/tests/Feature/DiscoverScreensCommandTest.php).
 
+7. **Fase 3.5 (Screens Administrativas: UsersManager y EditUser) [COMPLETADA]:**
+   - Extraídos contratos [`UserListingServiceInterface`](file:///workspaces/usim-framework/packages/idei/usim/src/Contracts/UserListingServiceInterface.php) y [`UserMutationServiceInterface`](file:///workspaces/usim-framework/packages/idei/usim/src/Contracts/UserMutationServiceInterface.php).
+   - Implementaciones concretas [`UserListingService`](file:///workspaces/usim-framework/app/Services/User/UserListingService.php) y [`UserService`](file:///workspaces/usim-framework/app/Services/User/UserService.php) vinculadas en `UsimServiceProvider`.
+   - [`UserTableModel`](file:///workspaces/usim-framework/app/UI/Screens/Admin/TableModels/UserTableModel.php), [`EditUser`](file:///workspaces/usim-framework/app/UI/Screens/Admin/EditUser.php), [`UsersManager`](file:///workspaces/usim-framework/app/UI/Screens/Admin/UsersManager.php) y [`ManagesUsersSection`](file:///workspaces/usim-framework/app/UI/Screens/Admin/Concerns/ManagesUsersSection.php) desacoplados de clases concretas de servicio hacia interfaces.
+   - Stubs de servicios y screens de administración sincronizados.
+   - Suite de tests unitarios en [`tests/Unit/UserAdministrationTest.php`](file:///workspaces/usim-framework/tests/Unit/UserAdministrationTest.php).
+
 ---
 
-## 2. Lo que Falta del Plan (Fases 3 y 4)
+## 2. Lo que Falta del Plan (Fase 4)
 
 ```mermaid
 flowchart TD
-    subgraph Fase3 ["Fase 3: Refactorización de Subsistemas Satélites"]
+    subgraph Fase3 ["Fase 3: Refactorización de Subsistemas Satélites (Completada)"]
         F31["3.1 Internacionalización (I18n)\n[COMPLETADO]"]
         F32["3.2 Autenticación y Cuentas\n[COMPLETADO]"]
         F33["3.3 Dispositivos y Quioscos\n[COMPLETADO]"]
         F34["3.4 Sincronización y Scanner\n[COMPLETADO]"]
-        F35["3.5 Screens Administrativas\nUserListingServiceInterface"]
+        F35["3.5 Screens Administrativas\n[COMPLETADO]"]
     end
 
-    subgraph Fase4 ["Fase 4: Test Harness en Memoria"]
+    subgraph Fase4 ["Fase 4: Test Harness en Memoria [SIGUIENTE PASO]"]
         F41["Mocks de Pantallas sin DB (< 5ms)\nTest Harness para Screens y Eventos"]
     end
 

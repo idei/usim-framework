@@ -1,26 +1,27 @@
 <?php
+
 // @usim: feature="admin", type="service"
+
 namespace App\Services\User;
 
 use App\Models\User;
 use App\Services\Units\UsimUnitsService;
+use Idei\Usim\Contracts\UserMutationServiceInterface;
 use Idei\Usim\Events\UsimEvent;
 use Idei\Usim\Models\UsimUnit;
 use Illuminate\Auth\Events\Verified;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Password as PasswordBroker;
 use Spatie\Permission\PermissionRegistrar;
 
-class UserService
+class UserService implements UserMutationServiceInterface
 {
     /**
      * Find user by ID
-     *
-     * @param int $userId
-     * @return User|null
      */
     public function findUser(int $userId): ?User
     {
@@ -30,14 +31,13 @@ class UserService
     /**
      * Get user with roles
      *
-     * @param int $userId
      * @return array{status: 'success', message: string, data: array<string, mixed>} | array{status: 'error', message: string, errors: array<string, string[]>}
      */
     public function getUser(int $userId): array
     {
         $user = User::find($userId);
 
-        if (!$user) {
+        if (! $user) {
             return [
                 'status' => 'error',
                 'message' => 'Usuario no encontrado',
@@ -50,7 +50,7 @@ class UserService
         $user->load('usimUnits');
 
         $userData = $user->toArray();
-        if (empty($userData['roles']) && !empty($userData['global_roles'])) {
+        if (empty($userData['roles']) && ! empty($userData['global_roles'])) {
             $userData['roles'] = $userData['global_roles'];
         }
 
@@ -68,7 +68,7 @@ class UserService
                 })
                 ->whereNotIn('slug', ['main', 'lobby'])
                 ->get()
-                ->map(static fn(UsimUnit $u): array => [
+                ->map(static fn (UsimUnit $u): array => [
                     'id' => $u->id,
                     'slug' => $u->slug,
                     'name' => ($u->display_name !== $u->translation_key) ? $u->display_name : ucfirst($u->slug),
@@ -92,12 +92,12 @@ class UserService
     /**
      * Update user with validation and role syncing
      *
-     * @param User $user
-     * @param array<string, mixed> $data
+     * @param  array<string, mixed>  $data
      * @return array{status: 'success', message: string, data: array<string, mixed>} | array{status: 'error', message: string, errors: array<string, string[]>}
      */
-    public function updateUser(User $user, array $data): array
+    public function updateUser(Model $user, array $data): array
     {
+        assert($user instanceof User);
         $error = $this->validateUpdateData($data);
         if ($error) {
             return $error;
@@ -109,7 +109,7 @@ class UserService
             return $updateDataResult;
         }
 
-        if (!empty($updateDataResult)) {
+        if (! empty($updateDataResult)) {
             $user->update($updateDataResult);
         }
 
@@ -123,13 +123,13 @@ class UserService
         }
 
         // Send reset email if requested
-        if (!empty($data['send_reset_email'])) {
+        if (! empty($data['send_reset_email'])) {
             $token = PasswordBroker::createToken($user);
             $user->sendPasswordResetNotification($token);
         }
 
         // Send verification email if requested
-        if (!empty($data['send_verification_email'])) {
+        if (! empty($data['send_verification_email'])) {
             $user->email_verified_at = null;
             $user->save();
             $user->sendEmailVerificationNotification();
@@ -138,13 +138,13 @@ class UserService
         // If the updated user is the currently authenticated user, fire an event to update the user data in the UI
         if (Auth::id() === $user->id) {
             event(new UsimEvent('updated_profile', [
-                'user' => $user
+                'user' => $user,
             ]));
         }
 
         $fresh = $this->freshUserWithRoles($user);
         $freshData = $fresh->toArray();
-        if (empty($freshData['roles']) && !empty($freshData['global_roles'])) {
+        if (empty($freshData['roles']) && ! empty($freshData['global_roles'])) {
             $freshData['roles'] = $freshData['global_roles'];
         }
 
@@ -158,14 +158,13 @@ class UserService
     /**
      * Synchronize user roles and unit memberships, managing transitions from lobby to operational units or main.
      *
-     * @param User $user
-     * @param array<int, string> $roles
-     * @param array<string, mixed> $data
+     * @param  array<int, string>  $roles
+     * @param  array<string, mixed>  $data
      * @return array{status: 'error', message: string, errors: array<string, string[]>}|null
      */
     protected function syncUserRolesAndUnits(User $user, array $roles, array $data): ?array
     {
-        if (!config('permission.teams')) {
+        if (! config('permission.teams')) {
             return $this->syncRoles($user, $roles);
         }
 
@@ -179,13 +178,13 @@ class UserService
 
         if ($isInLobby) {
             if ($hasOperationalUnits) {
-                if (!empty($data['target_unit'])) {
+                if (! empty($data['target_unit'])) {
                     $targetUnit = is_numeric($data['target_unit'])
                         ? UsimUnit::find($data['target_unit'])
                         : UsimUnit::where('slug', $data['target_unit'])->first();
                 }
 
-                if (!$targetUnit) {
+                if (! $targetUnit) {
                     $targetUnit = UsimUnit::query()
                         ->where(function ($q) {
                             $q->where('type', '!=', 'system')->orWhereNull('type');
@@ -194,24 +193,24 @@ class UserService
                         ->first();
                 }
 
-                if (!$targetUnit) {
+                if (! $targetUnit) {
                     return $this->validationError('target_unit', 'A valid operational unit is required.');
                 }
             } else {
                 $targetUnit = UsimUnit::firstOrCreate(['slug' => 'main'], ['type' => 'system']);
             }
         } else {
-            if (!empty($data['target_unit'])) {
+            if (! empty($data['target_unit'])) {
                 $targetUnit = is_numeric($data['target_unit'])
                     ? UsimUnit::find($data['target_unit'])
                     : UsimUnit::where('slug', $data['target_unit'])->first();
             }
 
-            if (!$targetUnit) {
+            if (! $targetUnit) {
                 $targetUnit = $user->usimUnits()->whereNotIn('slug', ['lobby'])->first();
             }
 
-            if (!$targetUnit) {
+            if (! $targetUnit) {
                 $targetUnit = UsimUnit::where('slug', 'main')->first();
             }
         }
@@ -259,7 +258,7 @@ class UserService
     /**
      * Validate update payload for empty or null values
      *
-     * @param array<string, mixed> $data
+     * @param  array<string, mixed>  $data
      * @return array{status: 'error', message: string, errors: array<string, string[]>}|null
      */
     private function validateUpdateData(array $data): ?array
@@ -275,12 +274,12 @@ class UserService
         }
 
         if (array_key_exists('roles', $data)) {
-            if ($data['roles'] === null || !is_array($data['roles']) || $data['roles'] === []) {
+            if ($data['roles'] === null || ! is_array($data['roles']) || $data['roles'] === []) {
                 return $this->validationError('roles', 'The roles field must be a non-empty array.');
             }
 
             foreach ($data['roles'] as $roleName) {
-                if (!is_string($roleName) || trim($roleName) === '') {
+                if (! is_string($roleName) || trim($roleName) === '') {
                     return $this->validationError('roles', 'Each role must be a non-empty string.');
                 }
             }
@@ -292,8 +291,7 @@ class UserService
     /**
      * Build update data array based on provided payload, validating each field
      *
-     * @param User $user
-     * @param array<string, mixed> $data
+     * @param  array<string, mixed>  $data
      * @return array<string, mixed>|array{status: 'error', message: string, errors: array<string, string[]>}
      */
     private function buildUpdateData(User $user, array $data): array
@@ -301,14 +299,14 @@ class UserService
         $updateData = [];
 
         if (array_key_exists('name', $data)) {
-            if (!is_string($data['name']) || strlen($data['name']) > 255) {
+            if (! is_string($data['name']) || strlen($data['name']) > 255) {
                 return $this->validationError('name', 'The name must be a string with max 255 characters.');
             }
             $updateData['name'] = trim($data['name']);
         }
 
         if (array_key_exists('email', $data)) {
-            if (!filter_var($data['email'], FILTER_VALIDATE_EMAIL)) {
+            if (! filter_var($data['email'], FILTER_VALIDATE_EMAIL)) {
                 return $this->validationError('email', 'The email must be a valid email address.');
             }
 
@@ -324,7 +322,7 @@ class UserService
         }
 
         if (array_key_exists('password', $data)) {
-            if (!is_string($data['password']) || strlen($data['password']) < 8) {
+            if (! is_string($data['password']) || strlen($data['password']) < 8) {
                 return $this->validationError('password', 'The password must be at least 8 characters.');
             }
 
@@ -341,8 +339,7 @@ class UserService
     /**
      * Sync user roles with validation to prevent removing own admin role and ensure roles exist
      *
-     * @param User $user
-     * @param array<int, string> $roles
+     * @param  array<int, string>  $roles
      * @return array{status: 'error', message: string, errors: array<string, string[]>}|null
      */
     private function syncRoles(User $user, array $roles): ?array
@@ -350,7 +347,7 @@ class UserService
         if (
             Auth::id() === $user->id
             && $user->hasRole('admin')
-            && !in_array('admin', $roles, true)
+            && ! in_array('admin', $roles, true)
         ) {
             return [
                 'status' => 'error',
@@ -366,13 +363,13 @@ class UserService
                 ->where('guard_name', 'web')
                 ->exists();
 
-            if (!$roleExists) {
+            if (! $roleExists) {
                 $invalidRoles[] = $roleName;
             }
         }
 
-        if (!empty($invalidRoles)) {
-            return $this->validationError('roles', 'The role ' . implode(', ', $invalidRoles) . ' does not exist.');
+        if (! empty($invalidRoles)) {
+            return $this->validationError('roles', 'The role '.implode(', ', $invalidRoles).' does not exist.');
         }
 
         $user->syncRoles($roles);
@@ -383,13 +380,11 @@ class UserService
     /**
      * Check if a field is null or empty string in the given data array
      *
-     * @param array<string, mixed> $data
-     * @param string $field
-     * @return bool
+     * @param  array<string, mixed>  $data
      */
     private function isNullOrEmpty(array $data, string $field): bool
     {
-        if (!array_key_exists($field, $data)) {
+        if (! array_key_exists($field, $data)) {
             return false;
         }
 
@@ -403,8 +398,6 @@ class UserService
     /**
      * Build validation error response
      *
-     * @param string $field
-     * @param string $message
      * @return array{status: 'error', message: string, errors: array<string, string[]>}
      */
     private function validationError(string $field, string $message): array
@@ -419,11 +412,11 @@ class UserService
     /**
      * Delete user with authorization check
      *
-     * @param User $user
      * @return array{status: string, message: string}
      */
-    public function deleteUser(User $user): array
+    public function deleteUser(Model $user): array
     {
+        assert($user instanceof User);
         // Delete the user if it is different from the currently authenticated user
         if (Auth::id() === $user->id) {
             return [
@@ -444,7 +437,7 @@ class UserService
     /**
      * Get paginated users list with search and sorting
      *
-     * @param array{per_page?: int, search?: string|null, sort_by?: string, sort_direction?: string, page?: int} $params
+     * @param  array{per_page?: int, search?: string|null, sort_by?: string, sort_direction?: string, page?: int}  $params
      * @return array{status: 'success', message: string, data: array{users: array<int, array<string, mixed>>, pagination: array{current_page: int, total_pages: int, per_page: int, total_items: int}}}
      */
     public function getUsersList(array $params = []): array
@@ -510,14 +503,14 @@ class UserService
             'data' => [
                 'users' => $usersList,
                 'pagination' => $pagination,
-            ]
+            ],
         ];
     }
 
     /**
      * Count total users with optional search filter
      *
-     * @param string|null $search Search term
+     * @param  string|null  $search  Search term
      * @return int Total count
      */
     public function countUsers(?string $search = null): int
@@ -528,15 +521,14 @@ class UserService
 
         $query = User::query();
         $this->applySearchFilter($query, $search);
+
         return $query->count();
     }
 
     /**
      * Apply search filter to query
      *
-     * @param Builder<User> $query
-     * @param string|null $search
-     * @return void
+     * @param  Builder<User>  $query
      */
     private function applySearchFilter($query, ?string $search): void
     {
@@ -553,9 +545,6 @@ class UserService
 
     /**
      * Get a fresh user instance with roles loaded, falling back to the current model when refresh is unavailable.
-     *
-     * @param User $user
-     * @return User
      */
     private function freshUserWithRoles(User $user): User
     {
@@ -577,15 +566,15 @@ class UserService
     /**
      * Verify user email with ID and hash
      *
-     * @param int $id User ID
-     * @param string $hash Email verification hash
+     * @param  int  $id  User ID
+     * @param  string  $hash  Email verification hash
      * @return array{success: bool, status: string, message: string}
      */
     public function verifyEmail(int $id, string $hash): array
     {
         $user = User::find($id);
 
-        if (!$user) {
+        if (! $user) {
             return [
                 'success' => false,
                 'status' => 'error',
@@ -619,7 +608,7 @@ class UserService
 
         // Fire custom UsimEvent for updating user data in the UI
         event(new UsimEvent('email_verified', [
-            'user' => $user
+            'user' => $user,
         ]));
 
         return [

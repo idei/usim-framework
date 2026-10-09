@@ -2,10 +2,8 @@
 // @usim: feature="admin", type="screen"
 namespace {{ namespace }};
 
-use App\Services\Auth\RegisterService;
 use App\Services\Device\DeviceService;
 use App\Services\Role\RoleService;
-use App\Services\User\UserService;
 use {{ screensNamespace }}\Admin\Concerns\HandlesModalFeedback;
 use {{ screensNamespace }}\Admin\Concerns\HandlesScreenParameters;
 use {{ screensNamespace }}\Admin\Concerns\ManagesDevicesSection;
@@ -15,6 +13,8 @@ use {{ screensNamespace }}\Admin\Concerns\ResolvesActiveUnitContext;
 use {{ screensNamespace }}\Admin\Presenters\UserEditDialogPresenter;
 use Idei\Usim\Components\Container;
 use Idei\Usim\Components\Table;
+use Idei\Usim\Contracts\RegisterActionInterface;
+use Idei\Usim\Contracts\UserMutationServiceInterface;
 use Idei\Usim\Screen;
 use Idei\Usim\UI;
 use Idei\Usim\ValueObjects\Size;
@@ -38,8 +38,8 @@ class UsersManager extends Screen
     protected DeviceService $deviceService;
 
     public function __construct(
-        protected RegisterService $registerService,
-        protected UserService $userService,
+        protected RegisterActionInterface $registerService,
+        protected UserMutationServiceInterface $userService,
         protected RoleService $roleService,
         ?DeviceService $deviceService = null,
         protected ?UserEditDialogPresenter $userEditDialogPresenter = null,
