@@ -58,3 +58,4 @@ final readonly class RegistrationResult
         );
     }
 }
+

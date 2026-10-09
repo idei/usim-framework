@@ -17,7 +17,7 @@ class DeviceSecurityGuard implements DeviceSecurityGuardInterface
     /**
      * Resolve the device actor associated with the given request.
      */
-    public function resolveDevice(Request $request): ?PairableActorInterface
+    public function resolveDevice(?Request $request = null): ?PairableActorInterface
     {
         // 1. Check if device guard already has an authenticated PairableActorInterface
         $user = Auth::guard('device')->user();
@@ -25,19 +25,26 @@ class DeviceSecurityGuard implements DeviceSecurityGuardInterface
             return $user;
         }
 
-        // 2. Check token from request storage or bearer header
-        $token = $this->extractToken($request);
-        if ($token !== null && $token !== '') {
-            $device = $this->resolveDeviceByToken($token);
-            if ($device !== null) {
-                return $device;
-            }
+        $req = $request;
+        if ($req === null && app()->bound('request')) {
+            $req = app('request');
         }
 
-        // 3. Check request user resolver
-        $reqUser = $request->user();
-        if ($reqUser instanceof PairableActorInterface) {
-            return $reqUser;
+        if ($req !== null) {
+            // 2. Check token from request storage or bearer header
+            $token = $this->extractToken($req);
+            if ($token !== null && $token !== '') {
+                $device = $this->resolveDeviceByToken($token);
+                if ($device !== null) {
+                    return $device;
+                }
+            }
+
+            // 3. Check request user resolver
+            $reqUser = $req->user();
+            if ($reqUser instanceof PairableActorInterface) {
+                return $reqUser;
+            }
         }
 
         return null;
@@ -63,7 +70,7 @@ class DeviceSecurityGuard implements DeviceSecurityGuardInterface
     /**
      * Determine if the device associated with the request is currently paired and active.
      */
-    public function isDevicePaired(Request $request): bool
+    public function isDevicePaired(?Request $request = null): bool
     {
         $device = $this->resolveDevice($request);
 

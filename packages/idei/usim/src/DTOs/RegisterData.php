@@ -18,3 +18,4 @@ final readonly class RegisterData
         public bool $acceptTerms = true,
     ) {}
 }
+

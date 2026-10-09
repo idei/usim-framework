@@ -10,3 +10,4 @@ class DeviceSecurityGuard extends BaseDeviceSecurityGuard
 {
     // Application-level customizations for device security and kiosk enforcement can be added here.
 }
+

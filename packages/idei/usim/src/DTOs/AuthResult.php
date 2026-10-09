@@ -70,3 +70,4 @@ final readonly class AuthResult
         );
     }
 }
+

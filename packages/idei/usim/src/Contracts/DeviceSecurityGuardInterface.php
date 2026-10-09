@@ -12,7 +12,7 @@ interface DeviceSecurityGuardInterface
     /**
      * Resolve the device actor associated with the given request.
      */
-    public function resolveDevice(Request $request): ?PairableActorInterface;
+    public function resolveDevice(?Request $request = null): ?PairableActorInterface;
 
     /**
      * Resolve a device actor given an access token string.
@@ -22,7 +22,7 @@ interface DeviceSecurityGuardInterface
     /**
      * Determine if the device associated with the request is currently paired and active.
      */
-    public function isDevicePaired(Request $request): bool;
+    public function isDevicePaired(?Request $request = null): bool;
 
     /**
      * Determine if kiosk mode is currently active.

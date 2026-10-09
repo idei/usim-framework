@@ -204,3 +204,4 @@ it('allows ResetPassword screen to be tested in memory with mocked PasswordReset
     expect($changes)->toHaveKey('redirect');
     expect($changes['redirect'])->toBe('/auth/login');
 });
+

@@ -11,3 +11,4 @@ final readonly class LoginCredentials
         public ?string $unit = null,
     ) {}
 }
+

@@ -12,3 +12,4 @@ enum AuthStatus: string
     case USER_DISABLED = 'user_disabled';
     case ERROR = 'error';
 }
+

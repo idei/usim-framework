@@ -157,3 +157,4 @@ it('delegates device unpairing enforcement to DeviceSecurityGuardInterface in Pr
 
     expect($request->user())->toBeNull();
 });
+

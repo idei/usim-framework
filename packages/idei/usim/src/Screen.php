@@ -167,23 +167,6 @@ abstract class Screen
     protected ?AbstractLayout $layoutInstance = null;
 
     /**
-     * Resolve the authentication guard for this screen.
-     */
-    public static function getAuthGuard(): string
-    {
-        if (static::$guard !== null) {
-            return static::$guard;
-        }
-
-        // Screens under the Device namespace default to the 'device' guard
-        if (str_contains(static::class, 'Screens\\Device\\')) {
-            return 'device';
-        }
-
-        return 'web';
-    }
-
-    /**
      * Resolve the layout class for this screen.
      *
      * @return class-string<AbstractLayout>|null

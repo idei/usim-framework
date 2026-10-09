@@ -9,3 +9,4 @@ interface RegisterActionInterface
 {
     public function execute(RegisterData $data): RegistrationResult;
 }
+

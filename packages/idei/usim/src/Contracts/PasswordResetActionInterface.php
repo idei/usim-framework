@@ -15,3 +15,4 @@ interface PasswordResetActionInterface
         string $passwordConfirmation
     ): PasswordResetResult;
 }
+

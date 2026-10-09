@@ -9,3 +9,4 @@ interface LoginActionInterface
 {
     public function execute(LoginCredentials $credentials, bool $startSession = true): AuthResult;
 }
+

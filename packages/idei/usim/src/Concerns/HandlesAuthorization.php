@@ -3,17 +3,19 @@
 namespace Idei\Usim\Concerns;
 
 use Idei\Usim\Contracts\DeviceSecurityGuardInterface;
-use Idei\Usim\Contracts\PairableActorInterface;
 use Idei\Usim\Contracts\ScreenAuthorizerInterface;
 use Idei\Usim\Contracts\UnitContextResolverInterface;
 use Idei\Usim\Enums\Visibility;
 use Idei\Usim\Models\UsimUnit;
+use Idei\Usim\Screen;
 use Idei\Usim\Support\UIStateManager;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 
 /**
  * Authorization and access control logic for Screen.
+ *
+ * @mixin Screen
  */
 trait HandlesAuthorization
 {
@@ -33,17 +35,10 @@ trait HandlesAuthorization
 
         if ($guard === 'device' && Auth::guard('device')->check()) {
             if (app()->bound(DeviceSecurityGuardInterface::class)) {
+                /** @var DeviceSecurityGuardInterface $deviceSecurity */
                 $deviceSecurity = app(DeviceSecurityGuardInterface::class);
-                if (! $deviceSecurity->isDevicePaired(request())) {
+                if (! $deviceSecurity->isDevicePaired()) {
                     $deviceSecurity->logoutDevice();
-                }
-            } else {
-                $deviceGuard = Auth::guard('device');
-                $deviceUser = $deviceGuard->user();
-                if ($deviceUser instanceof PairableActorInterface && ! $deviceUser->isPaired()) {
-                    if (method_exists($deviceGuard, 'forgetUser')) {
-                        $deviceGuard->forgetUser();
-                    }
                 }
             }
         }
@@ -73,6 +68,23 @@ trait HandlesAuthorization
                 'message' => 'Unauthorized: Insufficient permissions.',
             ],
         ];
+    }
+
+    /**
+     * Resolve the authentication guard for this screen.
+     */
+    public static function getAuthGuard(): string
+    {
+        if (isset(static::$guard)) {
+            return static::$guard;
+        }
+
+        // Screens under the Device namespace default to the 'device' guard
+        if (str_contains(static::class, 'Screens\\Device\\')) {
+            return 'device';
+        }
+
+        return 'web';
     }
 
     /**
