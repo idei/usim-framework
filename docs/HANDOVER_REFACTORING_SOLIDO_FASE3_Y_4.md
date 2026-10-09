@@ -3,13 +3,13 @@
 > **Documento de Continuidad para Nuevo Chat / Sesión**  
 > **Fecha:** 2026-10-08  
 > **Rama de trabajo:** `feature/rearch`  
-> **Estado de la suite:** 304 tests de Pest pasando | 0 errores en PHPStan Nivel 9 | Formato Pint al 100%
+> **Estado de la suite:** 311 tests de Pest pasando | 0 errores en PHPStan Nivel 9 | Formato Pint al 100%
 
 ---
 
 ## 1. Resumen Ejecutivo del Estado Actual
 
-Hemos culminado con éxito las dos primeras fases estructurales del plan maestro y las dos primeras partes de la fase 3:
+Hemos culminado con éxito las dos primeras fases estructurales del plan maestro y las tres primeras partes de la fase 3:
 
 1. **Fase 1 (DIP y Desacoplamiento Circular) [COMPLETADA]:**
    - Paquete `packages/idei/usim/` completamente purgado de referencias duras hacia `App\...`.
@@ -45,7 +45,16 @@ Hemos culminado con éxito las dos primeras fases estructurales del plan maestro
    - Stubs de paquete sincronizados (`Login.php.stub`, `LoginService.php.stub`).
    - Suite de tests unitarios en memoria sin base de datos (< 5ms) en [`tests/Unit/AuthActionTest.php`](file:///workspaces/usim-framework/tests/Unit/AuthActionTest.php).
 
-5. **Fase 3.4 (Parcial - Sincronización Open/Closed) [COMPLETADA]:**
+5. **Fase 3.3 (Dispositivos y Quioscos - Guard Especializado) [COMPLETADA]:**
+   - Extraído contrato [`DeviceSecurityGuardInterface`](file:///workspaces/usim-framework/packages/idei/usim/src/Contracts/DeviceSecurityGuardInterface.php).
+   - Implementación base [`DeviceSecurityGuard`](file:///workspaces/usim-framework/packages/idei/usim/src/Support/DeviceSecurityGuard.php) registrada como singleton en el contenedor con fallback/extensión en [`App\Services\Device\DeviceSecurityGuard`](file:///workspaces/usim-framework/app/Services/Device/DeviceSecurityGuard.php).
+   - Middleware [`PrepareUIContext`](file:///workspaces/usim-framework/packages/idei/usim/src/Http/Middleware/PrepareUIContext.php) desacoplado para delegar resolución de dispositivos, comprobación de emparejamiento y desautenticación en el contrato.
+   - Trait [`HandlesAuthorization`](file:///workspaces/usim-framework/packages/idei/usim/src/Concerns/HandlesAuthorization.php) limpio de reflection hacks para el guard `device`.
+   - Screens [`DevicePairingScreen`](file:///workspaces/usim-framework/app/UI/Screens/Device/DevicePairingScreen.php) y [`KioskScreen`](file:///workspaces/usim-framework/app/UI/Screens/Device/KioskScreen.php) desacopladas de modelos directos de BD mediante `PairableActorInterface` y `DeviceSecurityGuardInterface`.
+   - Stubs de pantallas de dispositivos sincronizados.
+   - Suite de tests unitarios en [`tests/Unit/DeviceSecurityGuardTest.php`](file:///workspaces/usim-framework/tests/Unit/DeviceSecurityGuardTest.php).
+
+6. **Fase 3.4 (Parcial - Sincronización Open/Closed) [COMPLETADA]:**
    - `UsimSyncCommand` desacoplado a handlers independientes mediante `SyncEntityHandlerInterface` y DTOs `readonly` inmutables `SyncResult` (`UserSyncResult`, `RoleSyncResult`, `DeviceSyncResult`, etc.).
 
 ---
@@ -57,7 +66,7 @@ flowchart TD
     subgraph Fase3 ["Fase 3: Refactorización de Subsistemas Satélites"]
         F31["3.1 Internacionalización (I18n)\n[COMPLETADO]"]
         F32["3.2 Autenticación y Cuentas\n[COMPLETADO]"]
-        F33["3.3 Dispositivos y Quioscos\nDeviceSecurityGuardInterface"]
+        F33["3.3 Dispositivos y Quioscos\n[COMPLETADO]"]
         F34["3.4 Scanner de Screens\nScreenDiscoveryScannerInterface"]
         F35["3.5 Screens Administrativas\nUserListingServiceInterface"]
     end
@@ -88,23 +97,21 @@ Desacoplar las Screens de autenticación (`Login`, `Register`, `ForgotPassword`,
 
 ---
 
-### Hito 3.3: Dispositivos y Quioscos [SIGUIENTE PASO RECOMENDADO]
+### Hito 3.3: Dispositivos y Quioscos [COMPLETADA]
 
 #### Objetivo:
 Extraer la lógica de emparejamiento, verificación de PIN y restricción de quiosco a un guard especializado, eliminando dependencias de infraestructura en middlewares.
 
-#### Especificación Técnica:
-1. **Contrato `DeviceSecurityGuardInterface`:**
-   - Ubicación: `packages/idei/usim/src/Contracts/DeviceSecurityGuardInterface.php`.
-   - Métodos: `isDevicePaired(Request $request): bool`, `isKioskModeEnabled(): bool`, `resolveDevice(Request $request): ?PairableActorInterface`.
-2. **Desacoplar `PrepareUIContext` Middleware:**
-   - Reemplazar la inspección directa de cookies y base de datos por llamadas a `DeviceSecurityGuardInterface`.
-3. **Implementación Concreta:**
-   - `app/Services/DeviceSecurityGuard.php` o `Idei\Usim\Support\DeviceSecurityGuard`.
+#### Implementación:
+- Contrato [`DeviceSecurityGuardInterface`](file:///workspaces/usim-framework/packages/idei/usim/src/Contracts/DeviceSecurityGuardInterface.php).
+- Implementación concreta [`DeviceSecurityGuard`](file:///workspaces/usim-framework/packages/idei/usim/src/Support/DeviceSecurityGuard.php) en el paquete y extensión en [`App\Services\Device\DeviceSecurityGuard`](file:///workspaces/usim-framework/app/Services/Device/DeviceSecurityGuard.php).
+- Middleware `PrepareUIContext` y trait `HandlesAuthorization` desacoplados.
+- Screens y stubs (`DevicePairingScreen`, `KioskScreen`) desacoplados.
+- Pruebas unitarias en memoria en [`tests/Unit/DeviceSecurityGuardTest.php`](file:///workspaces/usim-framework/tests/Unit/DeviceSecurityGuardTest.php).
 
 ---
 
-### Hito 3.4 (Restante): Scanner de Screens (`DiscoverScreensCommand`)
+### Hito 3.4 (Restante): Scanner de Screens (`DiscoverScreensCommand`) [SIGUIENTE PASO RECOMENDADO]
 
 #### Objetivo:
 Extraer la introspección de clases y namespaces del comando a una interfaz para permitir testing unitario sin escanear el sistema de archivos real.
@@ -176,14 +183,14 @@ Copia y pega el siguiente mensaje en el nuevo chat para continuar inmediatamente
 
 ```markdown
 Hola, estamos ejecutando el plan maestro de refactorización SOLID para USIM en la rama `feature/rearch`.
-Las Fases 1, 2, 3.1 y 3.2 están completadas al 100%, con 304 tests pasando y 0 errores en PHPStan Nivel 9.
+Las Fases 1, 2, 3.1, 3.2 y 3.3 están completadas al 100%, con 311 tests pasando y 0 errores en PHPStan Nivel 9.
 
 Revisa el archivo de handover `docs/HANDOVER_REFACTORING_SOLIDO_FASE3_Y_4.md`.
-Continuemos con la **Fase 3 (Hito 3.3: Dispositivos y Quioscos - DeviceSecurityGuardInterface)**:
-1. Crear contrato `DeviceSecurityGuardInterface` en `packages/idei/usim/src/Contracts/`.
-2. Implementar servicio `DeviceSecurityGuard` desacoplado de HTTP y BD directa.
-3. Refactorizar middleware `PrepareUIContext` para inyectar y delegar en `DeviceSecurityGuardInterface`.
-4. Agregar pruebas unitarias con mocks.
+Continuemos con la **Fase 3 (Hito 3.4 Restante: Scanner de Screens - ScreenDiscoveryScannerInterface)**:
+1. Crear contrato `ScreenDiscoveryScannerInterface` en `packages/idei/usim/src/Contracts/`.
+2. Implementar servicio `ScreenDiscoveryScanner` desacoplado del comando.
+3. Refactorizar `DiscoverScreensCommand` para inyectar y delegar en el contrato.
+4. Agregar pruebas unitarias con mocks sin depender del sistema de archivos real.
 5. Validar con Pest, PHPStan Nivel 9 y Pint.
 ```
 

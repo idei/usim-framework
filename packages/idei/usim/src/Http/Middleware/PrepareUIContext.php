@@ -3,6 +3,7 @@
 namespace Idei\Usim\Http\Middleware;
 
 use Closure;
+use Idei\Usim\Contracts\DeviceSecurityGuardInterface;
 use Idei\Usim\Contracts\PairableActorInterface;
 use Idei\Usim\Contracts\UnitContextResolverInterface;
 use Idei\Usim\Layout\AbstractLayout;
@@ -93,27 +94,28 @@ class PrepareUIContext
 
         $hasTabClientId = $request->hasHeader(UIStateManager::CLIENT_ID_HEADER);
 
+        /** @var DeviceSecurityGuardInterface $deviceSecurity */
+        $deviceSecurity = app(DeviceSecurityGuardInterface::class);
+
         if (! empty($storeToken)) {
-            if (class_exists(PersonalAccessToken::class)) {
-                $tokenModel = PersonalAccessToken::findToken($storeToken);
-                if ($tokenModel && $tokenModel->tokenable instanceof Authenticatable) {
-                    $actor = $tokenModel->tokenable;
-                    $isDevice = $actor instanceof PairableActorInterface;
-                    if ($isDevice) {
-                        if (! $actor->isPaired()) {
-                            $this->clearWebGuardUser();
-                            $request->setUserResolver(fn () => null);
-                        } else {
-                            Auth::guard('device')->setUser($actor);
-                            $request->setUserResolver(fn () => $actor);
-                        }
-                    } else {
-                        $this->setWebGuardUser($actor);
-                        $request->setUserResolver(fn () => $actor);
-                    }
+            $device = $deviceSecurity->resolveDeviceByToken($storeToken);
+            if ($device !== null) {
+                if ($device->isPaired()) {
+                    $deviceSecurity->authenticateDevice($device, $request);
                 } else {
                     $this->clearWebGuardUser();
                     $request->setUserResolver(fn () => null);
+                }
+            } else {
+                if (class_exists(PersonalAccessToken::class)) {
+                    $tokenModel = PersonalAccessToken::findToken($storeToken);
+                    if ($tokenModel && $tokenModel->tokenable instanceof Authenticatable) {
+                        $this->setWebGuardUser($tokenModel->tokenable);
+                        $request->setUserResolver(fn () => $tokenModel->tokenable);
+                    } else {
+                        $this->clearWebGuardUser();
+                        $request->setUserResolver(fn () => null);
+                    }
                 }
             }
         } elseif ($hasTabClientId) {
@@ -180,21 +182,9 @@ class PrepareUIContext
             $guard->forgetUser();
         }
 
-        $deviceGuard = Auth::guard('device');
-        if ($deviceGuard->check()) {
-            if ($deviceGuard instanceof SessionGuard) {
-                $deviceGuard->forgetUser();
-                try {
-                    $loggedOutProp = new \ReflectionProperty($deviceGuard, 'loggedOut');
-                    $loggedOutProp->setAccessible(true);
-                    $loggedOutProp->setValue($deviceGuard, true);
-                } catch (\ReflectionException) {
-                    // Ignore reflection errors
-                }
-            } elseif (method_exists($deviceGuard, 'forgetUser')) {
-                $deviceGuard->forgetUser();
-            }
-        }
+        /** @var DeviceSecurityGuardInterface $deviceSecurity */
+        $deviceSecurity = app(DeviceSecurityGuardInterface::class);
+        $deviceSecurity->logoutDevice();
     }
 
     /**

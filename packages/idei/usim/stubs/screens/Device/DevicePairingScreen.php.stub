@@ -6,12 +6,13 @@ use Idei\Usim\Components\Button;
 use Idei\Usim\Components\Container;
 use Idei\Usim\Components\Label;
 use Idei\Usim\Components\Timer;
+use Idei\Usim\Contracts\DeviceSecurityGuardInterface;
 use Idei\Usim\Enums\Visibility;
 use Idei\Usim\Screen;
+use Idei\Usim\Support\DevicePairingManager;
 use Idei\Usim\UI;
 use Idei\Usim\ValueObjects\Size;
 use Idei\Usim\ValueObjects\Spacing;
-use Idei\Usim\Support\DevicePairingManager;
 
 class DevicePairingScreen extends Screen
 {
@@ -130,10 +131,11 @@ class DevicePairingScreen extends Screen
             // Persistimos el token en el storage del dispositivo
             $this->store_token = $status;
 
-            // Iniciar sesión en el guard 'device' (manejado por sesión e inyectado por UsimServiceProvider)
-            $tokenModel = \Laravel\Sanctum\PersonalAccessToken::findToken($status);
-            if ($tokenModel && $tokenModel->tokenable instanceof \App\Models\Device) {
-                \Illuminate\Support\Facades\Auth::guard('device')->login($tokenModel->tokenable);
+            // Iniciar sesión en el guard 'device' mediante el contrato DeviceSecurityGuardInterface
+            $deviceSecurity = app(DeviceSecurityGuardInterface::class);
+            $device = $deviceSecurity->resolveDeviceByToken($status);
+            if ($device !== null) {
+                $deviceSecurity->authenticateDevice($device);
             }
 
             $this->toast('¡Dispositivo vinculado exitosamente!', 'success');

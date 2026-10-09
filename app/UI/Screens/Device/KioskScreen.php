@@ -1,12 +1,17 @@
 <?php
+
 // @usim: feature="admin", type="screen"
+
 namespace App\UI\Screens\Device;
 
 use Idei\Usim\Components\Carousel;
 use Idei\Usim\Components\Container;
+use Idei\Usim\Contracts\DeviceSecurityGuardInterface;
+use Idei\Usim\Contracts\PairableActorInterface;
 use Idei\Usim\Screen;
 use Idei\Usim\UI;
 use Idei\Usim\ValueObjects\Spacing;
+use Illuminate\Support\Facades\Auth;
 
 class KioskScreen extends Screen
 {
@@ -30,21 +35,26 @@ class KioskScreen extends Screen
 
     public static function authorize(): bool
     {
-        if (!self::requireAuth('device')) {
+        if (! self::requireAuth('device')) {
             return false;
         }
 
-        $device = \Illuminate\Support\Facades\Auth::guard('device')->user();
-        if ($device instanceof \App\Models\Device && !$device->isPaired()) {
-            return false;
+        if (app()->bound(DeviceSecurityGuardInterface::class)) {
+            if (! app(DeviceSecurityGuardInterface::class)->isDevicePaired(request())) {
+                return false;
+            }
+        } else {
+            $device = Auth::guard('device')->user();
+            if ($device instanceof PairableActorInterface && ! $device->isPaired()) {
+                return false;
+            }
         }
 
         return self::requirePermission('device.kiosk_screen.access', 'device');
     }
 
     /**
-     * @param Container $container
-     * @param mixed ...$params
+     * @param  mixed  ...$params
      */
     protected function buildBaseUI(Container $container, ...$params): void
     {

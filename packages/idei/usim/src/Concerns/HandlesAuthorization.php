@@ -2,16 +2,15 @@
 
 namespace Idei\Usim\Concerns;
 
+use Idei\Usim\Contracts\DeviceSecurityGuardInterface;
 use Idei\Usim\Contracts\PairableActorInterface;
 use Idei\Usim\Contracts\ScreenAuthorizerInterface;
 use Idei\Usim\Contracts\UnitContextResolverInterface;
 use Idei\Usim\Enums\Visibility;
 use Idei\Usim\Models\UsimUnit;
 use Idei\Usim\Support\UIStateManager;
-use Illuminate\Auth\SessionGuard;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
-use ReflectionProperty;
 
 /**
  * Authorization and access control logic for Screen.
@@ -33,20 +32,18 @@ trait HandlesAuthorization
         $guard = static::getAuthGuard();
 
         if ($guard === 'device' && Auth::guard('device')->check()) {
-            $deviceUser = Auth::guard('device')->user();
-            if ($deviceUser instanceof PairableActorInterface && ! $deviceUser->isPaired()) {
+            if (app()->bound(DeviceSecurityGuardInterface::class)) {
+                $deviceSecurity = app(DeviceSecurityGuardInterface::class);
+                if (! $deviceSecurity->isDevicePaired(request())) {
+                    $deviceSecurity->logoutDevice();
+                }
+            } else {
                 $deviceGuard = Auth::guard('device');
-                if ($deviceGuard instanceof SessionGuard) {
-                    $deviceGuard->forgetUser();
-                    try {
-                        $loggedOutProp = new ReflectionProperty($deviceGuard, 'loggedOut');
-                        $loggedOutProp->setAccessible(true);
-                        $loggedOutProp->setValue($deviceGuard, true);
-                    } catch (\ReflectionException) {
-                        // Ignore reflection errors
+                $deviceUser = $deviceGuard->user();
+                if ($deviceUser instanceof PairableActorInterface && ! $deviceUser->isPaired()) {
+                    if (method_exists($deviceGuard, 'forgetUser')) {
+                        $deviceGuard->forgetUser();
                     }
-                } elseif (method_exists($deviceGuard, 'forgetUser')) {
-                    $deviceGuard->forgetUser();
                 }
             }
         }

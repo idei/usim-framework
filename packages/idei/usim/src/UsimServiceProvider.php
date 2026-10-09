@@ -7,6 +7,7 @@ use Idei\Usim\Console\Commands\InstallCommand;
 use Idei\Usim\Console\Commands\UsimScaffold;
 use Idei\Usim\Console\Commands\UsimSyncCommand;
 use Idei\Usim\Contracts\ComponentIdGeneratorInterface;
+use Idei\Usim\Contracts\DeviceSecurityGuardInterface;
 use Idei\Usim\Contracts\LoginActionInterface;
 use Idei\Usim\Contracts\PasswordResetActionInterface;
 use Idei\Usim\Contracts\RegisterActionInterface;
@@ -23,6 +24,7 @@ use Idei\Usim\Listeners\UsimEventDispatcher;
 use Idei\Usim\Models\UsimRole;
 use Idei\Usim\Support\ComponentDiffer;
 use Idei\Usim\Support\ComponentIdGenerator;
+use Idei\Usim\Support\DeviceSecurityGuard;
 use Idei\Usim\Support\ScreenLifecycleOrchestrator;
 use Idei\Usim\Support\SpatieScreenAuthorizer;
 use Idei\Usim\Support\Translation\TranslationDatasetQuery;
@@ -136,6 +138,14 @@ class UsimServiceProvider extends ServiceProvider
                 'App\\Services\\Auth\\PasswordResetAction'
             );
         }
+
+        $this->app->singleton(DeviceSecurityGuardInterface::class, function ($app) {
+            if (class_exists('App\\Services\\Device\\DeviceSecurityGuard')) {
+                return $app->make('App\\Services\\Device\\DeviceSecurityGuard');
+            }
+
+            return $app->make(DeviceSecurityGuard::class);
+        });
 
         $this->app->tag([
             RoleSyncHandler::class,

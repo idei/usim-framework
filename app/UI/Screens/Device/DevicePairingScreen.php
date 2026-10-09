@@ -1,16 +1,19 @@
 <?php
+
 // @usim: feature="admin", type="screen"
+
 namespace App\UI\Screens\Device;
 
 use Idei\Usim\Components\Container;
 use Idei\Usim\Components\Label;
 use Idei\Usim\Components\Timer;
+use Idei\Usim\Contracts\DeviceSecurityGuardInterface;
 use Idei\Usim\Enums\Visibility;
 use Idei\Usim\Screen;
+use Idei\Usim\Support\DevicePairingManager;
 use Idei\Usim\UI;
 use Idei\Usim\ValueObjects\Size;
 use Idei\Usim\ValueObjects\Spacing;
-use Idei\Usim\Support\DevicePairingManager;
 
 class DevicePairingScreen extends Screen
 {
@@ -22,10 +25,15 @@ class DevicePairingScreen extends Screen
     public static ?string $layout = null;
 
     protected string $store_session_token = '';
+
     protected string $state_pin = '';
+
     protected string $store_token = '';
+
     protected Label $lbl_pin_display;
+
     protected Label $lbl_status;
+
     protected ?Timer $tmr_pairing_poll = null;
 
     protected function buildBaseUI(Container $container, ...$params): void
@@ -82,11 +90,11 @@ class DevicePairingScreen extends Screen
         $manager = app(DevicePairingManager::class);
 
         $hasActiveSession = false;
-        if (!empty($this->store_session_token)) {
+        if (! empty($this->store_session_token)) {
             $hasActiveSession = $manager->pollStatus($this->store_session_token) !== null;
         }
 
-        if (!$hasActiveSession || empty($this->state_pin)) {
+        if (! $hasActiveSession || empty($this->state_pin)) {
             $pairingData = $manager->initiate();
             $this->store_session_token = $pairingData['session_token'];
             $this->state_pin = $pairingData['pin'];
@@ -96,7 +104,7 @@ class DevicePairingScreen extends Screen
     /**
      * Handle the polling action from the Smart TV
      *
-     * @param array<string, mixed> $params
+     * @param  array<string, mixed>  $params
      */
     public function onCheckStatus(array $params): void
     {
@@ -111,6 +119,7 @@ class DevicePairingScreen extends Screen
             $this->tmr_pairing_poll?->stop();
             $this->toast('El PIN expiró. Generando uno nuevo...', 'warning');
             $this->redirect(self::getRoutePath());
+
             return;
         }
 
@@ -123,20 +132,22 @@ class DevicePairingScreen extends Screen
             // Persistimos el token en el storage del dispositivo
             $this->store_token = $status;
 
-            // Iniciar sesión en el guard 'device' (manejado por sesión e inyectado por UsimServiceProvider)
-            $tokenModel = \Laravel\Sanctum\PersonalAccessToken::findToken($status);
-            if ($tokenModel && $tokenModel->tokenable instanceof \App\Models\Device) {
-                \Illuminate\Support\Facades\Auth::guard('device')->login($tokenModel->tokenable);
+            // Iniciar sesión en el guard 'device' mediante el contrato DeviceSecurityGuardInterface
+            $deviceSecurity = app(DeviceSecurityGuardInterface::class);
+            $device = $deviceSecurity->resolveDeviceByToken($status);
+            if ($device !== null) {
+                $deviceSecurity->authenticateDevice($device);
             }
 
             $this->toast('¡Dispositivo vinculado exitosamente!', 'success');
-            $this->redirect(\App\UI\Screens\Device\KioskScreen::getRoutePath());
+            $this->redirect(KioskScreen::getRoutePath());
+
             return;
         }
 
         // Si sigue pendiente, damos feedback visual
         $this->lbl_status
-            ->text('Aún esperando autorización... (Última revisión: ' . now()->format('H:i:s') . ')')
+            ->text('Aún esperando autorización... (Última revisión: '.now()->format('H:i:s').')')
             ->style('info');
     }
 }
