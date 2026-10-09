@@ -1,6 +1,6 @@
 <?php
 
-use Idei\Usim\Support\Translation\TranslationResolver;
+use Idei\Usim\Contracts\UsimTranslatorInterface;
 
 if (! function_exists('t')) {
     /**
@@ -17,6 +17,6 @@ if (! function_exists('t')) {
      */
     function t(string $key, array $params = [], ?string $language = null): string
     {
-        return TranslationResolver::resolve($key, $params, $language);
+        return app(UsimTranslatorInterface::class)->get($key, $params, $language);
     }
 }

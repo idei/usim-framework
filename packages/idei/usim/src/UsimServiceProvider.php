@@ -13,6 +13,7 @@ use Idei\Usim\Contracts\UIDifferInterface;
 use Idei\Usim\Contracts\UIStateRepositoryInterface;
 use Idei\Usim\Contracts\UnitContextResolverInterface;
 use Idei\Usim\Contracts\UnitsServiceInterface;
+use Idei\Usim\Contracts\UsimTranslatorInterface;
 use Idei\Usim\Events\UsimEvent;
 use Idei\Usim\Jobs\CleanTemporaryUploadsJob;
 use Idei\Usim\Listeners\UsimEventDispatcher;
@@ -28,6 +29,7 @@ use Idei\Usim\Support\TranslationService;
 use Idei\Usim\Support\UIIdGenerator;
 use Idei\Usim\Support\UIStateRepository;
 use Idei\Usim\Support\UsimConfig;
+use Idei\Usim\Support\UsimTranslator;
 use Idei\Usim\Sync\Handlers\DeviceSyncHandler;
 use Idei\Usim\Sync\Handlers\LangSyncHandler;
 use Idei\Usim\Sync\Handlers\RoleSyncHandler;
@@ -73,6 +75,15 @@ class UsimServiceProvider extends ServiceProvider
                 $app->make(TranslationValueResolver::class)
             );
         });
+
+        $this->app->singleton(UsimTranslatorInterface::class, function ($app) {
+            return new UsimTranslator(
+                $app->make('translator'),
+                $app->bound(TranslationService::class) ? $app->make(TranslationService::class) : null
+            );
+        });
+
+        $this->app->alias(UsimTranslatorInterface::class, UsimTranslator::class);
 
         $this->app->singleton(UsimConfig::class, function () {
             return new UsimConfig;

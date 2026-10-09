@@ -3,13 +3,13 @@
 > **Documento de Continuidad para Nuevo Chat / Sesión**  
 > **Fecha:** 2026-10-08  
 > **Rama de trabajo:** `feature/rearch`  
-> **Estado de la suite:** 290 tests de Pest pasando | 0 errores en PHPStan Nivel 9 | Formato Pint al 100%
+> **Estado de la suite:** 298 tests de Pest pasando | 0 errores en PHPStan Nivel 9 | Formato Pint al 100%
 
 ---
 
 ## 1. Resumen Ejecutivo del Estado Actual
 
-Hemos culminado con éxito las dos primeras fases estructurales del plan maestro y parte de la fase 3:
+Hemos culminado con éxito las dos primeras fases estructurales del plan maestro y la primera parte de la fase 3:
 
 1. **Fase 1 (DIP y Desacoplamiento Circular) [COMPLETADA]:**
    - Paquete `packages/idei/usim/` completamente purgado de referencias duras hacia `App\...`.
@@ -30,7 +30,14 @@ Hemos culminado con éxito las dos primeras fases estructurales del plan maestro
    - **Resultado en `Screen`:** Reducción histórica de 2.429 líneas a **855 líneas** (~65% del código desacoplado), manteniendo 100% de retrocompatibilidad para todas las Screens consumidoras.
    - Suite de tests unitarios completa con mocks en memoria en [`tests/Unit/ScreenLifecycleOrchestratorTest.php`](file:///workspaces/usim-framework/tests/Unit/ScreenLifecycleOrchestratorTest.php).
 
-3. **Fase 3.4 (Parcial - Sincronización Open/Closed) [COMPLETADA]:**
+3. **Fase 3.1 (Internacionalización I18n) [COMPLETADA]:**
+   - Extraído contrato [`UsimTranslatorInterface`](file:///workspaces/usim-framework/packages/idei/usim/src/Contracts/UsimTranslatorInterface.php).
+   - Implementación por defecto [`UsimTranslator`](file:///workspaces/usim-framework/packages/idei/usim/src/Support/UsimTranslator.php) registrada como singleton en el Service Container.
+   - Helper global `t()` desacoplado en [`helpers.php`](file:///workspaces/usim-framework/packages/idei/usim/src/Support/helpers.php) para resolver `UsimTranslatorInterface` dinámicamente.
+   - [`TranslationResolver`](file:///workspaces/usim-framework/packages/idei/usim/src/Support/Translation/TranslationResolver.php) refactorizado para delegar en el contrato, preservando la resolución multi-ruta y candidatos.
+   - Suite de tests unitarios con mocks en [`tests/Unit/UsimTranslatorTest.php`](file:///workspaces/usim-framework/tests/Unit/UsimTranslatorTest.php).
+
+4. **Fase 3.4 (Parcial - Sincronización Open/Closed) [COMPLETADA]:**
    - `UsimSyncCommand` desacoplado a handlers independientes mediante `SyncEntityHandlerInterface` y DTOs `readonly` inmutables `SyncResult` (`UserSyncResult`, `RoleSyncResult`, `DeviceSyncResult`, etc.).
 
 ---
@@ -40,7 +47,7 @@ Hemos culminado con éxito las dos primeras fases estructurales del plan maestro
 ```mermaid
 flowchart TD
     subgraph Fase3 ["Fase 3: Refactorización de Subsistemas Satélites"]
-        F31["3.1 Internacionalización (I18n)\nUsimTranslatorInterface + desacople de t()"]
+        F31["3.1 Internacionalización (I18n)\n[COMPLETADO]"]
         F32["3.2 Autenticación y Cuentas\nLoginActionInterface + AuthResult DTO"]
         F33["3.3 Dispositivos y Quioscos\nDeviceSecurityGuardInterface"]
         F34["3.4 Scanner de Screens\nScreenDiscoveryScannerInterface"]
@@ -60,41 +67,7 @@ flowchart TD
 
 ---
 
-### Hito 3.1: Internacionalización (I18n) [SIGUIENTE PASO RECOMENDADO]
-
-#### Objetivo:
-Desacoplar la resolución y persistencia de traducciones para permitir mocks en tests sin requerir base de datos ni lecturas físicas de disco en cada invocación.
-
-#### Especificación Técnica:
-1. **Contrato `UsimTranslatorInterface`:**
-   - Ubicación: `packages/idei/usim/src/Contracts/UsimTranslatorInterface.php`.
-   - Firma esencial:
-     ```php
-     public function get(string $key, array $replace = [], ?string $locale = null): string;
-     public function has(string $key, ?string $locale = null): bool;
-     public function getLocale(): string;
-     public function setLocale(string $locale): void;
-     ```
-2. **Implementación por Defecto (`UsimTranslator`):**
-   - Ubicación: `packages/idei/usim/src/Support/UsimTranslator.php`.
-   - Implementa `UsimTranslatorInterface`, delegando en caché o en el translator de Laravel.
-3. **Desacoplar el Helper Global `t()`:**
-   - En `packages/idei/usim/src/Support/helpers.php`:
-     ```php
-     function t(string $key, array $replace = [], ?string $locale = null): string {
-         return app(UsimTranslatorInterface::class)->get($key, $replace, $locale);
-     }
-     ```
-4. **Separación de Responsabilidades:**
-   - `TranslationQueryService`: Lectura ultrarrápida optimizada en memoria.
-   - `TranslationAdminRepository`: Operaciones administrativas para la screen `TranslateManager`.
-   - `TranslationSyncService`: Sincronización entre archivos de idioma y base de datos.
-5. **Verificación:**
-   - Crear `tests/Unit/UsimTranslatorTest.php` probando el helper `t()` y el servicio con mocks de Mockery.
-
----
-
-### Hito 3.2: Autenticación y Cuentas de Usuario (Action Pattern)
+### Hito 3.2: Autenticación y Cuentas de Usuario (Action Pattern) [SIGUIENTE PASO RECOMENDADO]
 
 #### Objetivo:
 Desacoplar las Screens de autenticación (`Login`, `Register`, `ForgotPassword`, `ResetPassword`) de la lógica directa de sesión (`Auth::attempt`, llamadas directas a Eloquent), transformándolas en vistas puras que deleguen en acciones de caso de uso.
@@ -212,14 +185,14 @@ Copia y pega el siguiente mensaje en el nuevo chat para continuar inmediatamente
 
 ```markdown
 Hola, estamos ejecutando el plan maestro de refactorización SOLID para USIM en la rama `feature/rearch`.
-Las Fases 1 y 2 están completadas al 100% (incluyendo la extracción de ScreenLifecycleOrchestrator y Traits en Screen.php, reduciéndola a 855 líneas), con 290 tests pasando y 0 errores en PHPStan Nivel 9.
+Las Fases 1, 2 y 3.1 están completadas al 100%, con 298 tests pasando y 0 errores en PHPStan Nivel 9.
 
 Revisa el archivo de handover `docs/HANDOVER_REFACTORING_SOLIDO_FASE3_Y_4.md`.
-Continuemos con la **Fase 3 (Hito 3.1: Internacionalización I18n)**:
-1. Crear el contrato `Idei\Usim\Contracts\UsimTranslatorInterface`.
-2. Crear la implementación concreta y registrarla en el Service Container.
-3. Desacoplar el helper global `t()` en `packages/idei/usim/src/Support/helpers.php` para resolver la interfaz desde el contenedor.
-4. Agregar pruebas unitarias con mocks en `tests/Unit/UsimTranslatorTest.php`.
+Continuemos con la **Fase 3 (Hito 3.2: Autenticación y Cuentas de Usuario - Action Pattern)**:
+1. Crear DTOs y Value Objects (LoginCredentials, AuthResult, AuthStatus enum).
+2. Crear contratos de acción (LoginActionInterface, RegisterActionInterface, PasswordResetActionInterface).
+3. Refactorizar las screens de autenticación (Login, Register, ForgotPassword, ResetPassword) para delegar en las acciones de caso de uso.
+4. Agregar pruebas unitarias con mocks sin tocar la base de datos real.
 5. Validar con Pest, PHPStan Nivel 9 y Pint.
 ```
 
