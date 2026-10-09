@@ -185,7 +185,13 @@ class Login extends Screen
         }
         $this->state_email = $credentials['email'];
 
-        $this->closeModal();
+        if (! empty($result->redirectTo)) {
+            $this->redirect($result->redirectTo);
+        }
+
+        if ($this->isOpenedAsModal() || empty($result->redirectTo)) {
+            $this->closeModal();
+        }
     }
 
     /**

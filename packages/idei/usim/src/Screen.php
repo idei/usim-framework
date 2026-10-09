@@ -610,6 +610,85 @@ abstract class Screen
     }
 
     /**
+     * Dispatch an action on the screen by action name (e.g. 'submit_login') or method name (e.g. 'onSubmitLogin').
+     *
+     * @param  string  $action  Action name in snake_case or method name in onPascalCase
+     * @param  array<string, mixed>  $parameters  Parameters passed to the action handler
+     * @param  array<string, mixed>  $incomingStorage  Storage data from frontend
+     * @param  array<string, mixed>  $queryParams  Query parameters from frontend
+     * @param  int|string|null  $parent  Target parent container
+     * @param  int|null  $triggerComponentId  ID of the component that triggered the event
+     */
+    public function callAction(
+        string $action,
+        array $parameters = [],
+        array $incomingStorage = [],
+        array $queryParams = [],
+        int|string|null $parent = null,
+        ?int $triggerComponentId = null
+    ): static {
+        $method = $this->resolveActionMethod($action);
+
+        $this->handleAction(
+            method: $method,
+            parameters: $parameters,
+            incomingStorage: $incomingStorage,
+            queryParams: $queryParams,
+            parent: $parent,
+            triggerComponentId: $triggerComponentId
+        );
+
+        return $this;
+    }
+
+    /**
+     * Resolve an action name (e.g. 'submit_login') or method name (e.g. 'onSubmitLogin') to a callable method on this screen.
+     */
+    public function resolveActionMethod(string $action): string
+    {
+        if (method_exists($this, $action)) {
+            return $action;
+        }
+
+        $studlyAction = 'on'.Str::studly($action);
+        if (method_exists($this, $studlyAction)) {
+            return $studlyAction;
+        }
+
+        throw new \BadMethodCallException(
+            "Action [{$action}] (or method [{$studlyAction}]) does not exist on screen [".static::class.'].'
+        );
+    }
+
+    /**
+     * Dynamically dispatch action handler methods on the screen.
+     * E.g. $screen->submit_login($params) or $screen->onSave($params).
+     *
+     * @param  array<int, mixed>  $arguments
+     */
+    public function __call(string $name, array $arguments): mixed
+    {
+        $candidateMethod = method_exists($this, $name) ? $name : 'on'.Str::studly($name);
+        if (method_exists($this, $candidateMethod)) {
+            /** @var array<string, mixed> $parameters */
+            $parameters = isset($arguments[0]) && is_array($arguments[0]) ? $arguments[0] : [];
+            /** @var array<string, mixed> $incomingStorage */
+            $incomingStorage = isset($arguments[1]) && is_array($arguments[1]) ? $arguments[1] : [];
+            /** @var array<string, mixed> $queryParams */
+            $queryParams = isset($arguments[2]) && is_array($arguments[2]) ? $arguments[2] : [];
+
+            return $this->callAction(
+                action: $candidateMethod,
+                parameters: $parameters,
+                incomingStorage: $incomingStorage,
+                queryParams: $queryParams
+            );
+        }
+
+        throw new \BadMethodCallException("Method [{$name}] does not exist on screen [".static::class.'].');
+    }
+
+    /**
      * Initialize event context
      *
      * Called by UIEventController before invoking event handler.

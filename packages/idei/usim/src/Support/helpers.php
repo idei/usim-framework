@@ -1,6 +1,8 @@
 <?php
 
 use Idei\Usim\Contracts\UsimTranslatorInterface;
+use Idei\Usim\Screen;
+use Idei\Usim\Testing\ScreenTestHarness;
 
 if (! function_exists('t')) {
     /**
@@ -18,5 +20,25 @@ if (! function_exists('t')) {
     function t(string $key, array $params = [], ?string $language = null): string
     {
         return app(UsimTranslatorInterface::class)->get($key, $params, $language);
+    }
+}
+
+if (! function_exists('testScreen')) {
+    /**
+     * Create an in-memory test harness for a Screen.
+     *
+     * @template T of \Idei\Usim\Screen
+     *
+     * @param  class-string<T>|T  $screen
+     * @param  array<string, mixed>  $storage
+     * @param  array<string, mixed>  $query
+     * @return ScreenTestHarness<T>
+     */
+    function testScreen(string|Screen $screen, array $storage = [], array $query = []): ScreenTestHarness
+    {
+        /** @var ScreenTestHarness<T> $harness */
+        $harness = ScreenTestHarness::for($screen, $storage, $query);
+
+        return $harness;
     }
 }

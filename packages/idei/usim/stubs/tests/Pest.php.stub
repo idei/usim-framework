@@ -36,6 +36,9 @@ expect()->extend('toBeOne', function () {
     return $this->toBe(1);
 });
 
+\Idei\Usim\Testing\UsimExpectations::register();
+
+
 /*
 |--------------------------------------------------------------------------
 | Functions

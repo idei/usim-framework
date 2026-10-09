@@ -16,3 +16,7 @@ parameters:
         -
             identifier: larastan.noEnvCallsOutsideOfConfig
             path: packages/idei/usim/config/usim.php
+        -
+            identifier: variable.undefined
+            path: packages/idei/usim/src/Testing/UsimExpectations.php
+

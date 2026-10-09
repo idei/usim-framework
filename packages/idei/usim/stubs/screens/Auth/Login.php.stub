@@ -183,9 +183,14 @@ class Login extends Screen
         if ($result->token !== null) {
             $this->store_token = $result->token;
         }
+        $this->state_email = $credentials['email'];
 
-        if ($result->redirectTo !== null) {
+        if (! empty($result->redirectTo)) {
             $this->redirect($result->redirectTo);
+        }
+
+        if ($this->isOpenedAsModal() || empty($result->redirectTo)) {
+            $this->closeModal();
         }
     }
 

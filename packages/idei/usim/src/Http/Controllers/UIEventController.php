@@ -221,7 +221,15 @@ class UIEventController extends Controller
     {
         $method = $this->actionToMethodName($action);
 
-        return is_callable([$screen, $method]) ? $method : null;
+        if (method_exists($screen, $method)) {
+            return $method;
+        }
+
+        if (method_exists($screen, $action)) {
+            return $action;
+        }
+
+        return null;
     }
 
     /**

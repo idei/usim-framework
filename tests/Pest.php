@@ -1,6 +1,10 @@
 <?php
 
-require_once __DIR__ . '/Support/usim_bootstrap.php';
+use Idei\Usim\Testing\UsimExpectations;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\TestCase;
+
+require_once __DIR__.'/Support/usim_bootstrap.php';
 
 /*
 |--------------------------------------------------------------------------
@@ -13,8 +17,8 @@ require_once __DIR__ . '/Support/usim_bootstrap.php';
 |
 */
 
-pest()->extend(Tests\TestCase::class)
-    ->use(Illuminate\Foundation\Testing\RefreshDatabase::class)
+pest()->extend(TestCase::class)
+    ->use(RefreshDatabase::class)
     ->in('Feature', 'Unit');
 
 /*
@@ -31,6 +35,8 @@ pest()->extend(Tests\TestCase::class)
 expect()->extend('toBeOne', function () {
     return $this->toBe(1);
 });
+
+UsimExpectations::register();
 
 /*
 |--------------------------------------------------------------------------

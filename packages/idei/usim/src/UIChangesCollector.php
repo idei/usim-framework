@@ -2,6 +2,8 @@
 
 namespace Idei\Usim;
 
+use Idei\Usim\Support\UIStateManager;
+
 class UIChangesCollector
 {
     /** @var array<array-key, mixed> */
@@ -54,5 +56,194 @@ class UIChangesCollector
         ];
 
         return $this->changes;
+    }
+
+    /**
+     * Return all raw changes collected so far.
+     *
+     * @return array<array-key, mixed>
+     */
+    public function getChanges(): array
+    {
+        return $this->changes;
+    }
+
+    /**
+     * Determine if a change key exists.
+     */
+    public function has(int|string $key): bool
+    {
+        return array_key_exists($key, $this->changes);
+    }
+
+    /**
+     * Get a change value by key.
+     */
+    public function get(int|string $key, mixed $default = null): mixed
+    {
+        return $this->changes[$key] ?? $default;
+    }
+
+    /**
+     * Get redirect URL if one was collected (from 'redirect' or 'navigate.url').
+     */
+    public function getRedirect(): ?string
+    {
+        if (isset($this->changes['redirect']) && is_string($this->changes['redirect'])) {
+            return $this->changes['redirect'];
+        }
+
+        if (isset($this->changes['navigate']) && is_array($this->changes['navigate']) && isset($this->changes['navigate']['url']) && is_string($this->changes['navigate']['url'])) {
+            return $this->changes['navigate']['url'];
+        }
+
+        return null;
+    }
+
+    /**
+     * Determine if a redirect has been recorded, optionally matching expected target URL.
+     */
+    public function hasRedirect(?string $url = null): bool
+    {
+        $target = $this->getRedirect();
+        if ($target === null) {
+            return false;
+        }
+
+        return $url === null || $target === $url;
+    }
+
+    /**
+     * Return all toast notifications collected.
+     *
+     * @return list<array<string, mixed>>
+     */
+    public function getToasts(): array
+    {
+        if (! isset($this->changes['toast'])) {
+            return [];
+        }
+
+        $toast = $this->changes['toast'];
+        if (is_array($toast)) {
+            if (isset($toast['message'])) {
+                /** @var list<array<string, mixed>> */
+                return [$toast];
+            }
+
+            /** @var list<array<string, mixed>> */
+            return array_values(array_filter($toast, 'is_array'));
+        }
+
+        return [];
+    }
+
+    /**
+     * Determine if a toast notification has been recorded matching message and/or type.
+     */
+    public function hasToast(?string $message = null, ?string $type = null): bool
+    {
+        $toasts = $this->getToasts();
+        if (empty($toasts)) {
+            return false;
+        }
+
+        if ($message === null && $type === null) {
+            return true;
+        }
+
+        foreach ($toasts as $toast) {
+            $toastMsg = isset($toast['message']) && is_string($toast['message']) ? $toast['message'] : '';
+            $toastType = isset($toast['type']) && is_string($toast['type']) ? $toast['type'] : '';
+
+            $msgMatches = $message === null || (str_contains($toastMsg, $message) || $toastMsg === $message);
+            $typeMatches = $type === null || $toastType === $type;
+
+            if ($msgMatches && $typeMatches) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Get modal payload if one was recorded.
+     *
+     * @return array<string, mixed>|null
+     */
+    public function getModal(): ?array
+    {
+        if (isset($this->changes['modal']) && is_array($this->changes['modal'])) {
+            /** @var array<string, mixed> $modal */
+            $modal = $this->changes['modal'];
+
+            return $modal;
+        }
+
+        if (isset($this->changes['update_modal']) && is_array($this->changes['update_modal'])) {
+            /** @var array<string, mixed> $updateModal */
+            $updateModal = $this->changes['update_modal'];
+
+            return $updateModal;
+        }
+
+        $activeModal = UIStateManager::getClientActiveModal();
+        if ($activeModal !== null) {
+            return $activeModal;
+        }
+
+        return null;
+    }
+
+    /**
+     * Determine if a modal has been opened, optionally matching modal class name or slug.
+     */
+    public function hasModal(?string $modalClass = null): bool
+    {
+        $modal = $this->getModal();
+        if ($modal === null) {
+            return false;
+        }
+
+        if ($modalClass === null) {
+            return true;
+        }
+
+        $registered = $modal['modal_class'] ?? $modal['class'] ?? null;
+
+        return is_string($registered) && ($registered === $modalClass || str_ends_with($registered, $modalClass));
+    }
+
+    /**
+     * Determine if modal close action has been requested.
+     */
+    public function isModalClosed(): bool
+    {
+        return ($this->changes['action'] ?? null) === 'close_modal';
+    }
+
+    /**
+     * Return element changes / diffs if any.
+     *
+     * @return array<string|int, mixed>
+     */
+    public function getElements(): array
+    {
+        if (isset($this->changes['elements']) && is_array($this->changes['elements'])) {
+            return $this->changes['elements'];
+        }
+
+        return [];
+    }
+
+    /**
+     * Determine if element diff contains the given component name or ID.
+     */
+    public function hasElement(string|int $elementId): bool
+    {
+        $elements = $this->getElements();
+
+        return array_key_exists($elementId, $elements);
     }
 }
