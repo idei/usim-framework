@@ -94,6 +94,13 @@ class Label extends UIComponent
         return $this->setConfig('text', __($text));
     }
 
+    public function getText(): ?string
+    {
+        $text = $this->get('text');
+
+        return is_string($text) ? $text : null;
+    }
+
     /**
      * Set HTML content (use with caution)
      *

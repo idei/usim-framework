@@ -90,6 +90,10 @@ class InstallCommand extends Command
 
     protected string $componentsPath;
 
+    protected string $layoutsNamespace;
+
+    protected string $layoutsPath;
+
     public function __construct(
         Filesystem $files
     ) {
@@ -178,6 +182,8 @@ class InstallCommand extends Command
         $this->screensPath = $namespaces['screensPath'];
         $this->componentsNamespace = $namespaces['componentsNamespace'];
         $this->componentsPath = $namespaces['componentsPath'];
+        $this->layoutsNamespace = $namespaces['layoutsNamespace'];
+        $this->layoutsPath = $namespaces['layoutsPath'];
     }
 
     protected function installCoreScreens(): void
@@ -547,6 +553,8 @@ class InstallCommand extends Command
                 'screensPath' => $this->screensPath,
                 'componentsNamespace' => $this->componentsNamespace,
                 'componentsPath' => $this->componentsPath,
+                'layoutsNamespace' => $this->layoutsNamespace,
+                'layoutsPath' => $this->layoutsPath,
             ],
             userModelImport: $this->resolveUserModelImport(),
             userModelClass: $this->resolveUserModelClass(),

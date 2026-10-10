@@ -3,6 +3,8 @@
 // @usim: feature="core", type="lang"
 
 return [
+    'menu_title' => 'Users Manager',
+    'icon' => '🛠️',
     'add_user' => 'Agregar Usuario',
     'edit_button' => 'Actualizar',
     'edit_email_label' => 'Correo',
@@ -68,6 +70,6 @@ return [
     'device_delete_confirm_msg' => '¿Estás seguro de que deseas eliminar el dispositivo \':name\'?',
     'edit_device_title' => 'Gestionar Dispositivo',
     'create_device_title' => 'Nuevo Dispositivo',
-    'device_unit_institutional' => 'Institucional (Todos)',
+    'device_unit_institutional' => '🏛️ Institucional (Todos)',
     'pair_new_device_option' => 'Registrar y vincular nuevo dispositivo...',
 ];

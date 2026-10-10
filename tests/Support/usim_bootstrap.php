@@ -1,4 +1,5 @@
 <?php
+// @usim: feature="core", type="test"
 
 require_once __DIR__ . '/UiScreenTestHelpers.php';
 require_once __DIR__ . '/UiMemoryRenderer.php';

@@ -3,6 +3,8 @@
 // @usim: feature="core", type="lang"
 
 return [
+    'menu_title' => 'Users Manager',
+    'icon' => '🛠️',
     'add_user' => 'Add User',
     'edit_button' => 'Update',
     'edit_email_label' => 'Email',
@@ -68,6 +70,6 @@ return [
     'device_delete_confirm_msg' => 'Are you sure you want to delete device \':name\'?',
     'edit_device_title' => 'Manage Device',
     'create_device_title' => 'New Device',
-    'device_unit_institutional' => 'Institutional (All)',
+    'device_unit_institutional' => '🏛️ Institutional (All)',
     'pair_new_device_option' => 'Register and pair new device...',
 ];

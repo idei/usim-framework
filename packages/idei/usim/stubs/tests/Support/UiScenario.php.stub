@@ -2,7 +2,9 @@
 // @usim: feature="core", type="test"
 namespace Tests\Support;
 
+use {{ userModel }};
 use Idei\Usim\Support\UIStateManager;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Str;
 use Illuminate\Testing\TestResponse;
@@ -59,18 +61,31 @@ final class UiScenario
             UIStateManager::setActiveUnit($existingActiveUnit, $scenario->clientId);
         }
 
-        $existingAuthToken = UIStateManager::getAuthToken();
+        $existingAuthToken = null;
+        $actor = Auth::guard('web')->user() ?? Auth::guard('device')->user();
+        if ($actor !== null && method_exists($actor, 'createToken')) {
+            $existingAuthToken = $actor->createToken('scenario-' . $scenario->clientId)->plainTextToken;
+        }
+
         if ($existingAuthToken !== null) {
             UIStateManager::setAuthToken($existingAuthToken, $scenario->clientId);
+            $storageKey = (string) config('usim.front_store_key', 'usim-framework');
+            $scenario->memory->ingest(['storage' => [$storageKey => json_encode(['store_token' => $existingAuthToken])]], 'auto');
         }
 
         session()->put(UIStateManager::CLIENT_ID_COOKIE, $scenario->clientId);
         UIStateManager::clearClientActiveModal($scenario->clientId);
         UIStateManager::clearClientCurrentScreen($scenario->clientId);
 
+        $headers = [];
+        $usimStorage = $scenario->memory->usimStorage();
+        if ($usimStorage !== '') {
+            $headers['X-USIM-Storage'] = $usimStorage;
+        }
+
         $response = $scenario
             ->testWithClientCookie()
-            ->getJson(screenApiUrl($screenClass, $query));
+            ->getJson(screenApiUrl($screenClass, $query), $headers);
         $response->assertOk();
 
         $scenario->ingest($response->json(), 'initial');
@@ -235,6 +250,23 @@ final class UiScenario
         return $this->mustGetComponent($name);
     }
 
+    /** @return array<string, array<string, mixed>> */
+    public function components(): array
+    {
+        return $this->memory->components();
+    }
+
+    public function dumpJson(?string $componentName = null): self
+    {
+        if ($componentName !== null) {
+            dumpJson($this->componentData($componentName));
+        } else {
+            dumpJson($this->components());
+        }
+
+        return $this;
+    }
+
     public function assertNoIssues(): self
     {
         expect($this->memory->issues())->toBe([]);
@@ -274,7 +306,9 @@ final class UiScenario
     {
         session()->put(UIStateManager::CLIENT_ID_COOKIE, $this->clientId);
 
-        return $this->test->withUnencryptedCookie(UIStateManager::CLIENT_ID_COOKIE, $this->clientId);
+        return $this->test
+            ->withHeader(UIStateManager::CLIENT_ID_HEADER, $this->clientId)
+            ->withUnencryptedCookie(UIStateManager::CLIENT_ID_COOKIE, $this->clientId);
     }
 
     private function syncFromServer(): void

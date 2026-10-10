@@ -1,15 +1,17 @@
 <?php
+
 // @usim: feature="admin", type="service"
+
 namespace {{ namespace }};
 
 use {{ userModel }};
-use App\Services\Auth\AuthSessionService;
 use App\Services\Units\UnitContextResolver;
 use App\Services\Units\UsimUnitsService;
 use Idei\Usim\Contracts\LoginActionInterface;
 use Idei\Usim\DTOs\AuthResult;
 use Idei\Usim\DTOs\LoginCredentials;
 use Idei\Usim\Enums\AuthStatus;
+use Idei\Usim\Screen;
 use Illuminate\Support\Facades\Hash;
 
 class LoginService implements LoginActionInterface
@@ -17,8 +19,7 @@ class LoginService implements LoginActionInterface
     public function __construct(
         protected AuthSessionService $authSessionService,
         protected UsimUnitsService $usimUnitsService
-    ) {
-    }
+    ) {}
 
     /**
      * @return array{
@@ -35,19 +36,13 @@ class LoginService implements LoginActionInterface
      *             email: string,
      *             roles: list<string>,
      *             permissions: list<string>
-     *         },
-     *         token: string,
-     *         remember: bool,
-     *         units: array<string, array<mixed>>,
-     *         active_unit: string|null,
-     *         home_screen: class-string<\Idei\Usim\Screen>,
-     *         redirect_to: string
+     *         }
      *     },
      *     user: User,
      *     token: string,
      *     units: array<string, array<mixed>>,
      *     active_unit: string|null,
-     *     home_screen: class-string<\Idei\Usim\Screen>,
+     *     home_screen: class-string<Screen>,
      *     redirect_to: string
      * }
      */
@@ -60,7 +55,7 @@ class LoginService implements LoginActionInterface
     ): array {
         $user = User::where('email', $email)->first();
 
-        if (!$user || !Hash::check($password, $user->password)) {
+        if (! $user || ! Hash::check($password, $user->password)) {
             return [
                 'status' => 'error',
                 'message' => t('service.auth.login.invalid_credentials'),
@@ -104,12 +99,6 @@ class LoginService implements LoginActionInterface
                     'roles' => $roles,
                     'permissions' => $permissions,
                 ],
-                'token' => $token,
-                'remember' => $remember,
-                'units' => $unitsWithRoles,
-                'active_unit' => $activeUnit,
-                'home_screen' => $homeScreen,
-                'redirect_to' => $redirectTo,
             ],
             'user' => $user,
             'token' => $token,
@@ -134,18 +123,18 @@ class LoginService implements LoginActionInterface
             return AuthResult::failed(
                 status: AuthStatus::BAD_CREDENTIALS,
                 message: $response['message'],
-                errors: $response['errors'] ?? []
+                errors: $response['errors']
             );
         }
 
         return AuthResult::success(
             redirectTo: $response['redirect_to'],
-            token: $response['token'] ?? null,
+            token: $response['token'],
             message: $response['message'],
-            user: $response['user'] ?? null,
-            homeScreen: $response['home_screen'] ?? null,
-            activeUnit: $response['active_unit'] ?? null,
-            data: $response['data'] ?? [],
+            user: $response['user'],
+            homeScreen: $response['home_screen'],
+            activeUnit: $response['active_unit'],
+            data: $response['data'],
         );
     }
 }

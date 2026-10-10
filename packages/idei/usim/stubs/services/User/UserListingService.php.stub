@@ -1,5 +1,7 @@
 <?php
+
 // @usim: feature="admin", type="service"
+
 namespace {{ namespace }};
 
 use {{ userModel }};
@@ -10,6 +12,7 @@ use Idei\Usim\Support\EloquentListingService;
  * Read-only listing service for users.
  *
  * @extends EloquentListingService<User>
+ *
  * @implements UserListingServiceInterface<User>
  */
 class UserListingService extends EloquentListingService implements UserListingServiceInterface

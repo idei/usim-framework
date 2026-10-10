@@ -2,8 +2,7 @@
 // @usim: feature="admin", type="screen"
 namespace {{ namespace }};
 
-use {{ componentsNamespace }}\DataTable\TranslationKeysTableModel;
-use {{ componentsNamespace }}\Modals\EditTranslationDialog;
+use {{ screensNamespace }}\Admin\TableModels\TranslationKeysTableModel;
 use Idei\Usim\Components\Container;
 use Idei\Usim\Components\Input;
 use Idei\Usim\Components\Select;

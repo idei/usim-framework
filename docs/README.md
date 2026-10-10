@@ -7,6 +7,7 @@
 ```
 docs/
 ├── README.md                          # Este archivo - Índice principal
+├── TUTORIAL_CREAR_APP_CON_USIM.md     # 🚀 Tutorial paso a paso: Crear una app desde cero
 │
 ├── framework/                         # Framework USIM
 │   ├── CONTRACTS_AND_MOCKS.md        # 🏛️ Contratos, Inversión de Dependencias y Mocks
@@ -33,6 +34,12 @@ docs/
 ---
 
 ## 🎯 Acceso Rápido por Categoría
+
+### 🚀 Para Empezar (Tutorial)
+
+| **[TUTORIAL_CREAR_APP_CON_USIM.md](TUTORIAL_CREAR_APP_CON_USIM.md)** 🚀 | **Guía paso a paso para desarrolladores**: Instalación con `composer require idei/usim`, `usim:install`, scaffolding con `usim:scaf`, construcción de Screens declarativas, eventos reactivos (`onAction`), navegación y testing headless con Pest en < 10ms | 10K |
+
+---
 
 ### 🚀 Framework USIM (UI Services Implementation Model)
 

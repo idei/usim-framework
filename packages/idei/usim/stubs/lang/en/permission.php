@@ -30,6 +30,12 @@ return [
                 'description' => 'Permission to access Auth Profile.',
             ],
         ],
+        'edit_user' => [
+            'access' => [
+                'name' => 'Access Auth Edit User',
+                'description' => 'Permission to access Auth Edit User.',
+            ],
+        ],
     ],
     'admin' => [
         'translate_manager' => [
@@ -48,6 +54,18 @@ return [
             'access' => [
                 'name' => 'Access Admin Admin Device Pairing',
                 'description' => 'Permission to access Admin Admin Device Pairing.',
+            ],
+        ],
+        'edit_user' => [
+            'access' => [
+                'name' => 'Access Admin Edit User',
+                'description' => 'Permission to access Admin Edit User.',
+            ],
+        ],
+        'edit_translation_dialog' => [
+            'access' => [
+                'name' => 'Access Admin Edit Translation Dialog',
+                'description' => 'Permission to access Admin Edit Translation Dialog.',
             ],
         ],
     ],
@@ -79,6 +97,36 @@ return [
                 'name' => 'Access Device Kiosk',
                 'description' => 'Permission to access Device Kiosk.',
             ],
+        ],
+        'edit_device' => [
+            'access' => [
+                'name' => 'Access Device Edit Device',
+                'description' => 'Permission to access Device Edit Device.',
+            ],
+        ],
+        'link' => [
+            'access' => [
+                'name' => 'Access Device Link',
+                'description' => 'Permission to access Device Link.',
+            ],
+        ],
+    ],
+    'create' => [
+        'users' => [
+            'name' => 'Create Users',
+            'description' => 'Allows creating new users in the system.',
+        ],
+    ],
+    'remove' => [
+        'users' => [
+            'name' => 'Remove Users',
+            'description' => 'Allows removing users from the system.',
+        ],
+    ],
+    'pepito' => [
+        'access' => [
+            'name' => 'Access Pepito',
+            'description' => 'Permission to access Pepito.',
         ],
     ],
 ];

@@ -42,9 +42,16 @@ class UsimScaffold extends Command
             return 1;
         }
 
-        $name = $this->pascalize($name);
-        $className = $name;
-        $filePath = app_path('UI/Screens/'.str_replace('\\', '/', $className).'.php');
+        $normalized = str_replace('\\', '/', (string) $name);
+        $parts = array_values(array_filter(explode('/', $normalized)));
+        $rawClass = array_pop($parts) ?? 'Screen';
+        $className = $this->pascalize($rawClass);
+
+        $subNamespace = implode('\\', array_map(fn (string $p): string => $this->pascalize($p), $parts));
+        $fullNamespace = $subNamespace !== '' ? $namespace.'\\'.$subNamespace : $namespace;
+
+        $subPath = implode('/', array_map(fn (string $p): string => $this->pascalize($p), $parts));
+        $filePath = app_path('UI/Screens/'.($subPath !== '' ? $subPath.'/' : '').$className.'.php');
 
         if (file_exists($filePath) && ! $force) {
             $this->error("File '{$filePath}' already exists.");
@@ -58,8 +65,8 @@ class UsimScaffold extends Command
 
             return 1;
         }
-        $stubContent = str_replace('{{ name }}', $name, $stubContent);
-        $stubContent = str_replace('{{ namespace }}', $namespace, $stubContent);
+        $stubContent = str_replace('{{ name }}', $className, $stubContent);
+        $stubContent = str_replace('{{ namespace }}', $fullNamespace, $stubContent);
 
         if (! is_dir(dirname($filePath))) {
             mkdir(dirname($filePath), 0755, true);

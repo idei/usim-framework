@@ -26,6 +26,7 @@ class InstallAppScaffoldingManager
         callable $installTranslationManagerScaffolding,
         callable $installActorsManagerScaffolding
     ): void {
+        $this->installLayout('MainLayout.php.stub', 'MainLayout.php', $context, $publishStub, $line);
         $this->installScreen('Home.php.stub', 'Home.php', null, $context, $publishStub, $line);
         $this->installScreen('MenuStub.php.stub', 'Menu.php', null, $context, $publishStub, $line);
         $this->installScreen('Registered.php.stub', 'Registered.php', null, $context, $publishStub, $line);
@@ -57,6 +58,8 @@ class InstallAppScaffoldingManager
         $newLine();
         $info('Installing Auth screens...');
         $this->installScreen('Auth/Login.php.stub', 'Login.php', 'Auth', $context, $publishStub, $line);
+        $this->installScreen('Auth/Register.php.stub', 'Register.php', 'Auth', $context, $publishStub, $line);
+        $this->installScreen('Auth/LegalTerms.php.stub', 'LegalTerms.php', 'Auth', $context, $publishStub, $line);
         $this->installScreen('Auth/ForgotPassword.php.stub', 'ForgotPassword.php', 'Auth', $context, $publishStub, $line);
         $this->installScreen('Auth/ResetPassword.php.stub', 'ResetPassword.php', 'Auth', $context, $publishStub, $line);
         $this->installScreen('Auth/EmailVerified.php.stub', 'EmailVerified.php', 'Auth', $context, $publishStub, $line);
@@ -76,6 +79,10 @@ class InstallAppScaffoldingManager
         // $this->installScreen('Admin/TableModels/PermissionTableModel.php.stub', 'PermissionTableModel.php', 'Admin/TableModels', $context, $publishStub, $line);
         // // TODO: A ESTO HAY QUE MOFIFICARLO
         // // $this->installComponent('DataTable/UserTableModel.php.stub', 'UserTableModel.php', 'DataTable', $context, $publishStub, $line);
+
+        $newLine();
+        $info('Installing Form Requests...');
+        $this->installRequest('Auth/LoginRequest.php.stub', 'LoginRequest.php', 'Auth', $context, $publishStub, $line);
 
         $newLine();
         $info('Installing AuthController...');
@@ -143,6 +150,38 @@ class InstallAppScaffoldingManager
     /**
      * @param  array<string, string|bool>  $context
      */
+    private function installLayout(
+        string $stubName,
+        string $targetName,
+        array $context,
+        callable $publishStub,
+        callable $line
+    ): void {
+        $stubsBasePath = (string) $context['stubsBasePath'];
+        $layoutsPath = (string) ($context['layoutsPath'] ?? app_path('UI/Layouts'));
+        $layoutsNamespace = (string) ($context['layoutsNamespace'] ?? 'App\\UI\\Layouts');
+        $screensNamespace = (string) $context['screensNamespace'];
+        $componentsNamespace = (string) $context['componentsNamespace'];
+        $userModelImport = (string) $context['userModelImport'];
+
+        $stubPath = $stubsBasePath.'/layouts/'.$stubName;
+        $targetFile = $layoutsPath.'/'.$targetName;
+
+        $publishStub($stubPath, $targetFile, false, [
+            '{{ namespace }}' => $layoutsNamespace,
+            '{{ layoutsNamespace }}' => $layoutsNamespace,
+            '{{ screensNamespace }}' => $screensNamespace,
+            '{{ componentsNamespace }}' => $componentsNamespace,
+            '{{ userModel }}' => $userModelImport,
+        ]);
+
+        $relativePath = $this->toRelativePath($targetFile);
+        $line("  <fg=green>✓</> {$relativePath}");
+    }
+
+    /**
+     * @param  array<string, string|bool>  $context
+     */
     private function installComponent(
         string $stubName,
         string $targetName,
@@ -173,13 +212,43 @@ class InstallAppScaffoldingManager
     /**
      * @param  array<string, string|bool>  $context
      */
+    private function installRequest(
+        string $stubName,
+        string $targetName,
+        ?string $subdirectory,
+        array $context,
+        callable $publishStub,
+        callable $line
+    ): void {
+        $stubsBasePath = (string) $context['stubsBasePath'];
+
+        $stubPath = $stubsBasePath.'/requests/'.$stubName;
+        $targetDir = $subdirectory ? app_path('Http/Requests/'.$subdirectory) : app_path('Http/Requests');
+        $targetFile = $targetDir.'/'.$targetName;
+        $namespace = $subdirectory
+            ? 'App\\Http\\Requests\\'.str_replace('/', '\\', $subdirectory)
+            : 'App\\Http\\Requests';
+
+        $publishStub($stubPath, $targetFile, false, [
+            '{{ namespace }}' => $namespace,
+        ]);
+
+        $relativePath = $this->toRelativePath($targetFile);
+        $line("  <fg=green>✓</> {$relativePath}");
+    }
+
+    /**
+     * @param  array<string, string|bool>  $context
+     */
     private function installAuthServices(array $context, callable $publishStub, callable $line): void
     {
         $this->installService('Auth/AuthSessionService.php.stub', 'AuthSessionService.php', 'Auth', $context, $publishStub, $line);
         $this->installService('Auth/LoginService.php.stub', 'LoginService.php', 'Auth', $context, $publishStub, $line);
         $this->installService('Auth/RegisterService.php.stub', 'RegisterService.php', 'Auth', $context, $publishStub, $line);
         $this->installService('Auth/PasswordService.php.stub', 'PasswordService.php', 'Auth', $context, $publishStub, $line);
+        $this->installService('Auth/PasswordResetAction.php.stub', 'PasswordResetAction.php', 'Auth', $context, $publishStub, $line);
         $this->installService('User/UserService.php.stub', 'UserService.php', 'User', $context, $publishStub, $line);
+        $this->installService('User/UsimUserService.php.stub', 'UsimUserService.php', 'User', $context, $publishStub, $line);
         $this->installService('Role/RoleService.php.stub', 'RoleService.php', 'Role', $context, $publishStub, $line);
         $this->installService('User/UserListingService.php.stub', 'UserListingService.php', 'User', $context, $publishStub, $line);
         $this->installService('Role/RoleListingService.php.stub', 'RoleListingService.php', 'Role', $context, $publishStub, $line);

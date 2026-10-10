@@ -1,4 +1,5 @@
 <?php
+// @usim: feature="core", type="test"
 
 use Idei\Usim\Testing\UsimExpectations;
 use Illuminate\Foundation\Testing\RefreshDatabase;

@@ -1,5 +1,7 @@
 <?php
+
 // @usim: feature="admin", type="screen"
+
 namespace {{ namespace }};
 
 use {{ userModel }};
@@ -23,9 +25,15 @@ class UserTableModel extends AbstractListingTableModel
         parent::__construct($tableBuilder);
     }
 
+    /**
+     * @return UserListingServiceInterface<User>
+     */
     protected function resolveListingService(): UserListingServiceInterface
     {
-        return app(UserListingServiceInterface::class);
+        /** @var UserListingServiceInterface<User> $service */
+        $service = app(UserListingServiceInterface::class);
+
+        return $service;
     }
 
     public function getColumns(): array
@@ -52,7 +60,7 @@ class UserTableModel extends AbstractListingTableModel
     }
 
     /**
-     * @param User $item
+     * @param  User  $item
      * @return array<string, mixed>
      */
     protected function formatRow(object $item): array
@@ -84,7 +92,7 @@ class UserTableModel extends AbstractListingTableModel
         $units = $user->relationLoaded('usimUnits') ? $user->usimUnits : $user->usimUnits()->get();
 
         $operationalUnits = $units->filter(static function ($unit): bool {
-            return $unit->type !== 'system' && !in_array($unit->slug, ['main', 'lobby'], true);
+            return $unit->type !== 'system' && ! in_array($unit->slug, ['main', 'lobby'], true);
         })->values();
 
         if ($operationalUnits->isNotEmpty()) {
@@ -133,7 +141,7 @@ class UserTableModel extends AbstractListingTableModel
             ->toArray();
 
         // In Simple Mode (only system units main and lobby exist), users in lobby show Waiting (Registered)
-        if (!$hasOperationalUnits) {
+        if (! $hasOperationalUnits) {
             $isInLobby = in_array('registered', $roleNames, true)
                 || ($user->relationLoaded('usimUnits') && $user->usimUnits->contains('slug', 'lobby'));
 

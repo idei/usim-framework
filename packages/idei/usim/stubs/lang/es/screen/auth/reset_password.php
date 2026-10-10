@@ -3,6 +3,8 @@
 // @usim: feature="core", type="lang"
 
 return [
+    'menu_title' => 'Reset Password',
+    'icon' => '',
     'actions' => [
         'submit' => 'Cambiar Contraseña',
     ],

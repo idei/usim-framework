@@ -30,6 +30,12 @@ return [
                 'description' => 'Permite acceder a la pantalla Auth Profile.',
             ],
         ],
+        'edit_user' => [
+            'access' => [
+                'name' => 'Acceder a Auth Edit User',
+                'description' => 'Permite acceder a la pantalla Auth Edit User.',
+            ],
+        ],
     ],
     'admin' => [
         'translate_manager' => [
@@ -48,6 +54,18 @@ return [
             'access' => [
                 'name' => 'Acceder a Admin Admin Device Pairing',
                 'description' => 'Permite acceder a la pantalla Admin Admin Device Pairing.',
+            ],
+        ],
+        'edit_user' => [
+            'access' => [
+                'name' => 'Acceder a Admin Edit User',
+                'description' => 'Permite acceder a la pantalla Admin Edit User.',
+            ],
+        ],
+        'edit_translation_dialog' => [
+            'access' => [
+                'name' => 'Acceder a Admin Edit Translation Dialog',
+                'description' => 'Permite acceder a la pantalla Admin Edit Translation Dialog.',
             ],
         ],
     ],
@@ -79,6 +97,36 @@ return [
                 'name' => 'Acceder a Device Kiosk',
                 'description' => 'Permite acceder a la pantalla Device Kiosk.',
             ],
+        ],
+        'edit_device' => [
+            'access' => [
+                'name' => 'Acceder a Device Edit Device',
+                'description' => 'Permite acceder a la pantalla Device Edit Device.',
+            ],
+        ],
+        'link' => [
+            'access' => [
+                'name' => 'Acceder a Device Link',
+                'description' => 'Permite acceder a la pantalla Device Link.',
+            ],
+        ],
+    ],
+    'create' => [
+        'users' => [
+            'name' => 'Crear Usuarios',
+            'description' => 'Permite crear nuevos usuarios en el sistema.',
+        ],
+    ],
+    'remove' => [
+        'users' => [
+            'name' => 'Eliminar Usuarios',
+            'description' => 'Permite eliminar usuarios del sistema.',
+        ],
+    ],
+    'pepito' => [
+        'access' => [
+            'name' => 'Acceder a Pepito',
+            'description' => 'Permite acceder a la pantalla Pepito.',
         ],
     ],
 ];

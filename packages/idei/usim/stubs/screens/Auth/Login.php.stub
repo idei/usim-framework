@@ -1,8 +1,11 @@
 <?php
+
 // @usim: feature="admin", type="screen"
+
 namespace {{ namespace }};
 
 use App\Http\Requests\Auth\LoginRequest;
+use {{ userModel }};
 use Idei\Usim\Components\Container;
 use Idei\Usim\Components\Label;
 use Idei\Usim\Contracts\LoginActionInterface;
@@ -15,6 +18,7 @@ use Idei\Usim\Screen;
 use Idei\Usim\UI;
 use Idei\Usim\ValueObjects\Size;
 use Idei\Usim\ValueObjects\Spacing;
+use Illuminate\Validation\ValidationException;
 
 class Login extends Screen
 {
@@ -24,25 +28,17 @@ class Login extends Screen
 
     public static Visibility $visibility = Visibility::GUEST;
 
-    protected string $store_email = '';
+    protected string $state_email = '';
+
     protected string $store_token = '';
+
     protected Label $lbl_login_result;
 
     public static function authorize(): bool
     {
         // This screen should only be accessible to guests,
         // i.e. users who are not authenticated.
-        return !self::requireAuth();
-    }
-
-    public static function getMenuLabel(): string
-    {
-        return 'Login';
-    }
-
-    public static function getMenuIcon(): ?string
-    {
-        return '🔑';
+        return ! self::requireAuth();
     }
 
     protected function buildBaseUI(Container $container, ...$params): void
@@ -52,23 +48,23 @@ class Login extends Screen
 
         if (config('app.env') === 'local') {
             // Pre-fill credentials in local environment for easier testing
-            $email = empty($this->store_email)
+            $email = empty($this->state_email)
                 ? config('usim.users.root.email')
-                : $this->store_email;
+                : $this->state_email;
             $password = config('usim.users.root.password');
         }
 
         $wrapper = UI::container('login_wrapper')
-            ->plain()
+            ->card()
             ->width(Size::full())
+            ->minWidth(Size::px(400))
             ->layout(LayoutType::VERTICAL)
             ->justifyContent(JustifyContent::CENTER)
             ->alignItems(AlignItems::CENTER)
-            ->padding(Spacing::px(20));
+            ->padding(Spacing::px(5));
 
         $card = UI::container('login_card')
-            ->card()
-            ->maxWidth(Size::px(450))
+            ->plain()
             ->width(Size::full());
 
         $card->add(
@@ -92,7 +88,7 @@ class Login extends Screen
         );
 
         $card->add(
-            UI::label('lbl_login_result')->text('')
+            $this->lbl_login_result = UI::label('lbl_login_result')->text('')
         );
 
         $buttonsContainer = UI::container('login_buttons')
@@ -100,7 +96,6 @@ class Login extends Screen
             ->justifyContent(JustifyContent::SPACE_BETWEEN)
             ->plain()
             ->gap(Spacing::px(10))
-            ->shadow(false)
             ->padding(Spacing::each(Spacing::px(20)));
 
         $buttonsContainer->add(
@@ -134,7 +129,9 @@ class Login extends Screen
 
     protected function postLoadUI(): void
     {
-        $this->lbl_login_result->text('')->style('');
+        if (isset($this->lbl_login_result)) {
+            $this->lbl_login_result->text('')->style('');
+        }
     }
 
     /** @param array<string, mixed> $params */
@@ -148,14 +145,16 @@ class Login extends Screen
     {
         try {
             $credentials = LoginRequest::validateData($params);
-        } catch (\Illuminate\Validation\ValidationException) {
+        } catch (ValidationException) {
             $message = t('service.auth.login.validation_errors');
             $this->toast(
                 message: $message,
-                type: 'error',
-                position: 'top-middle',
+                type: 'error'
             );
-            $this->lbl_login_result->text($message)->style('error');
+            if (isset($this->lbl_login_result)) {
+                $this->lbl_login_result->text($message)->style('error');
+            }
+
             return;
         }
 
@@ -171,10 +170,11 @@ class Login extends Screen
         $status = $result->isSuccess() ? 'success' : 'error';
         $this->toast(
             message: $message,
-            type: $status,
-            position: 'top-middle',
+            type: $status
         );
-        $this->lbl_login_result->text($message)->style($status);
+        if (isset($this->lbl_login_result)) {
+            $this->lbl_login_result->text($message)->style($status);
+        }
 
         if (! $result->isSuccess()) {
             return;
@@ -194,8 +194,25 @@ class Login extends Screen
         }
     }
 
+    /**
+     * @param  array<string, mixed>  $params
+     */
+    public function onLoggedUser(array $params): void
+    {
+        /** @var User|null $user */
+        $user = $params['user'] ?? null;
+        $unitValue = $params['unit'] ?? '';
+        $homeScreen = $params['home_screen'] ?? null;
+    }
+
     public function onCloseLoginDialog(): void
     {
+        if ($this->isOpenedAsModal()) {
+            $this->closeModal();
+
+            return;
+        }
+
         $this->redirect('/');
     }
 }

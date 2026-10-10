@@ -1,5 +1,5 @@
 <?php
-
+// @usim: feature="core", type="test"
 namespace Tests\Traits;
 
 use App\Models\User;

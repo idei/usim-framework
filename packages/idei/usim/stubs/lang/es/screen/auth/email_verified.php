@@ -3,6 +3,8 @@
 // @usim: feature="core", type="lang"
 
 return [
+    'menu_title' => 'Email Verified',
+    'icon' => '',
     'actions' => [
         'go_to_home' => 'Volver al Inicio',
         'go_to_login' => 'Ir al Login',

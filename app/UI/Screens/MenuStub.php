@@ -5,7 +5,8 @@ namespace App\UI\Screens;
 use App\Models\User;
 use App\Services\Auth\AuthSessionService;
 use App\Services\Units\UsimUnitsService;
-use App\UI\Navigation\Menus\MainMenu;
+use App\UI\Screens\Admin\TranslateManager;
+use App\UI\Screens\Admin\UsersManager;
 use App\UI\Screens\Auth\Login;
 use App\UI\Screens\Auth\Profile;
 use App\UI\Screens\Auth\Register;
@@ -53,7 +54,7 @@ class MenuStub extends Screen
     protected MenuDropdown $lang_menu;
     protected ?MenuDropdown $unit_menu = null;
     protected Button $theme_toggle;
-    protected string $store_theme = 'light';
+    protected string $store_theme = 'dark';
     protected string $store_lang = '';
     protected string $store_token = '';
 
@@ -64,10 +65,11 @@ class MenuStub extends Screen
         }
 
         $container
+            ->card()
             ->layout(LayoutType::HORIZONTAL)
             ->justifyContent(JustifyContent::SPACE_BETWEEN)
             ->alignItems(AlignItems::CENTER)
-            ->padding(Spacing::px(8))
+            ->padding(Spacing::px(5))
             ->marginBottom(Spacing::px(0));
 
         $this->main_menu = $this->buildLeftMenu();
@@ -378,26 +380,37 @@ class MenuStub extends Screen
         }
     }
 
-    private function buildLeftMenu(): MenuDropdown
+    private function getMainMenuBuilder(): MenuBuilder
     {
         $builder = MenuBuilder::make('main_menu')
             ->trigger()
             ->position('bottom-left')
-            ->width(Size::px(200))
-            ->provider(MainMenu::class);
+            ->width(Size::px(200));
 
-        return $builder->render('main_menu');
+        $builder->link(t('screen.menu.items.home'), '/', '🏠');
+        $builder->screenShow(
+            UsersManager::class,
+            when: UsersManager::checkAccess()['allowed'] == true
+        );
+        $builder->screenShow(
+            TranslateManager::class,
+            when: TranslateManager::checkAccess()['allowed'] == true
+        );
+
+        $builder->separator();
+        $builder->action(t('screen.menu.items.about'), 'show_about_info', [], 'ℹ️');
+
+        return $builder;
+    }
+
+    private function buildLeftMenu(): MenuDropdown
+    {
+        return $this->getMainMenuBuilder()->render('main_menu');
     }
 
     private function populateMainMenu(MenuDropdown $menu): void
     {
-        $builder = MenuBuilder::make('main_menu')
-            ->trigger()
-            ->position('bottom-left')
-            ->width(Size::px(200))
-            ->provider(MainMenu::class);
-
-        $builder->populate($menu);
+        $this->getMainMenuBuilder()->populate($menu);
     }
 
     private function buildUserMenu(): MenuDropdown

@@ -1,4 +1,5 @@
 <?php
+// @usim: feature="auth", type="test"
 
 use App\Models\User;
 use App\UI\Screens\Auth\ForgotPassword;

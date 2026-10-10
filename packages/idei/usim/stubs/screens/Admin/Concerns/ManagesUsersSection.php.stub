@@ -1,11 +1,13 @@
 <?php
+
 // @usim: feature="admin", type="screen"
+
 namespace {{ namespace }};
 
-use {{ componentsNamespace }}\Modals\EditUserDialog;
-use {{ componentsNamespace }}\Modals\RegisterDialog;
+use {{ screensNamespace }}\Admin\EditUser;
 use {{ screensNamespace }}\Admin\Presenters\UserEditDialogPresenter;
 use {{ screensNamespace }}\Admin\TableModels\UserTableModel;
+use {{ screensNamespace }}\Auth\Register;
 use Idei\Usim\Components\Button;
 use Idei\Usim\Components\Container;
 use Idei\Usim\Components\Input;
@@ -13,10 +15,8 @@ use Idei\Usim\Components\Table;
 use Idei\Usim\Contracts\RegisterActionInterface;
 use Idei\Usim\Contracts\UserMutationServiceInterface;
 use Idei\Usim\DTOs\RegisterData;
-use Idei\Usim\Enums\DialogType;
 use Idei\Usim\Enums\LayoutType;
 use Idei\Usim\Enums\SelectionMode;
-use Idei\Usim\Modals\ConfirmDialog;
 use Idei\Usim\Screen;
 use Idei\Usim\UI;
 use Idei\Usim\ValueObjects\Size;
@@ -26,6 +26,7 @@ use Idei\Usim\ValueObjects\Spacing;
  * Trait to manage the users CRUD UI section, table events, and dialog workflows.
  *
  * @mixin Screen
+ *
  * @property RegisterActionInterface $registerService
  * @property UserMutationServiceInterface $userService
  * @property ?UserEditDialogPresenter $userEditDialogPresenter
@@ -35,13 +36,16 @@ trait ManagesUsersSection
     protected const string USERS_I18N_PREFIX = 'screen.admin.users_manager.';
 
     protected Table $users_table;
+
     protected Input $search_users;
+
     protected Button $add_user_btn;
 
     protected function buildUsersCrudContainer(): Container
     {
         $usersCrudContainer = UI::container('users_crud_container')
             ->layout(LayoutType::VERTICAL)
+            ->fullWidth()
             ->gap(Spacing::px(4))
             ->rounded(0)
             ->minHeight(Size::px(550))
@@ -50,18 +54,18 @@ trait ManagesUsersSection
         $toolbar = UI::container('users_toolbar')
             ->layout(LayoutType::HORIZONTAL)
             ->fullWidth()
-            ->padding(Spacing::px(10))
-            ->gap(Spacing::px(10));
+            ->padding(Spacing::px(8))
+            ->gap(Spacing::px(8));
 
         $search = UI::input('search_users')
-            ->placeholder(t(self::USERS_I18N_PREFIX . 'search_placeholder'))
+            ->placeholder(t(self::USERS_I18N_PREFIX.'search_placeholder'))
             ->width(Size::px(300))
             ->autocomplete('off')
             ->onInput('search_users', [])
             ->debounce(500);
 
         $addBtn = UI::button('add_user_btn')
-            ->label(t(self::USERS_I18N_PREFIX . 'add_user'))
+            ->label(t(self::USERS_I18N_PREFIX.'add_user'))
             ->style('secondary')
             ->action('add_user_clicked')
             ->icon('plus');
@@ -87,19 +91,22 @@ trait ManagesUsersSection
     }
 
     /**
-     * @param array<string, mixed> $params
+     * @param  array<string, mixed>  $params
      */
     public function onAddUserClicked(array $params): void
     {
-        RegisterDialog::open(
-            fakeData: config('app.env') === 'local',
-            askForRole: true,
-            callerServiceId: $this->getScreenComponentId()
+        Screen::openAsModal(
+            params: [
+                'fakeData' => config('app.env') === 'local',
+                'askForRole' => true,
+            ],
+            caller: $this->screen,
+            screenClass: Register::class
         );
     }
 
     /**
-     * @param array<string, mixed> $params
+     * @param  array<string, mixed>  $params
      */
     public function onUsersTableColumnClicked(array $params): void
     {
@@ -107,7 +114,7 @@ trait ManagesUsersSection
     }
 
     /**
-     * @param array<string, mixed> $params
+     * @param  array<string, mixed>  $params
      */
     public function onSearchUsers(array $params): void
     {
@@ -117,7 +124,7 @@ trait ManagesUsersSection
     }
 
     /**
-     * @param array<string, mixed> $params
+     * @param  array<string, mixed>  $params
      */
     public function onSubmitRegister(array $params): void
     {
@@ -144,138 +151,65 @@ trait ManagesUsersSection
     }
 
     /**
-     * @param array<string, mixed> $params
+     * @param  array<string, mixed>  $params
      */
     public function onUsersTableRowClicked(array $params): void
     {
         $userId = $this->optionalIntParam($params, 'model_id');
         if ($userId === null) {
             $this->toast(t('User ID is required'), 'error');
+
             return;
         }
 
         $response = $this->userService->getUser($userId);
         if ($response['status'] !== 'success' || empty($response['data'])) {
             $this->toast($response['message'], 'error');
+
             return;
         }
 
         $this->users_table->select($userId);
 
         $activeUnit = $this->resolveActiveUnit();
-        $presenter = $this->userEditDialogPresenter ?? new UserEditDialogPresenter();
+        $presenter = $this->userEditDialogPresenter ?? new UserEditDialogPresenter;
         $modalUser = $presenter->present($response['data'], $activeUnit);
         if ($modalUser === null) {
             $this->toast(t('User not found'), 'error');
+
             return;
         }
 
-        EditUserDialog::open(
-            user: $modalUser,
-            callerServiceId: $this->getScreenComponentId()
+        Screen::openAsModal(
+            params: [
+                'user' => $modalUser,
+            ],
+            caller: $this->screen,
+            screenClass: EditUser::class
         );
     }
 
     /**
-     * @param array<string, mixed> $params
+     * Handles the 'user_updated' event, fired by: EditUser:class.
+     *
+     * @param  array<string, mixed>  $params
      */
-    public function onSubmitUpdateUser(array $params): void
+    public function onUserUpdated(array $params): void
     {
-        $userId = $this->optionalIntParam($params, 'user_id');
-        if ($userId === null) {
-            $this->toast(t('User ID is required for update'), 'error');
-            return;
-        }
-
-        $user = $this->userService->findUser($userId);
-        if (!$user) {
-            $this->toast(t('User not found'), 'error');
-            return;
-        }
-
-        $updateData = $params;
-        if (isset($updateData['roles'])) {
-            $updateData['roles'] = (array) $updateData['roles'];
-        }
-
-        $activeUnit = $this->resolveActiveUnit();
-        if ($activeUnit) {
-            $updateData['target_unit'] = $activeUnit->id;
-        }
-
-        $response = $this->userService->updateUser($user, $updateData);
-        $status = $response['status'];
-        $message = $response['message'];
-
-        if ($status === 'success') {
-            $this->toast($message, 'success');
-            $this->users_table->refresh();
-            $this->closeModal();
-        } else {
-            $this->toast($message, 'error');
-            $this->updateModalWithErrors($response['errors'] ?? []);
-        }
-    }
-
-    /**
-     * @param array<string, mixed> $params
-     */
-    public function onDeleteUser(array $params): void
-    {
-        $userId = $this->optionalIntParam($params, 'user_id');
-        if ($userId === null) {
-            $this->toast(t('User ID is required'), 'error');
-            return;
-        }
-
-        $response = $this->userService->getUser($userId);
-        if ($response['status'] !== 'success' || empty($response['data'])) {
-            $this->toast(t('User not found'), 'error');
-            return;
-        }
-
-        $user = $response['data'];
-        $name = $user['name'] ?? null;
-        $userName = is_string($name) ? $name : '';
-
-        ConfirmDialog::open(
-            caller: $this,
-            type: DialogType::WARNING,
-            title: t("Delete User"),
-            message: t("Are you sure you want to delete user '{$userName}'?"),
-            confirmAction: 'confirm_delete_user',
-            confirmParams: ['user_id' => $userId],
-        );
-    }
-
-    /**
-     * @param array<string, mixed> $params
-     */
-    public function onConfirmDeleteUser(array $params): void
-    {
-        $userId = $this->optionalIntParam($params, 'user_id');
-        if ($userId === null) {
-            $this->toast(t('User ID is required for deletion'), 'error');
-            return;
-        }
-
-        $user = $this->userService->findUser($userId);
-        if (!$user) {
-            $this->toast(t('User not found'), 'error');
-            return;
-        }
-
-        $response = $this->userService->deleteUser($user);
-        $status = $response['status'];
-        $message = $response['message'];
-
-        $this->toast($message, $status);
         $this->users_table->refresh();
-        $this->closeModal();
     }
 
     /**
-     * @param mixed $roles
+     * Handles the 'user_deleted' event, fired by: EditUser:class.
+     *
+     * @param  array<string, mixed>  $params
+     */
+    public function onUserDeleted(array $params): void
+    {
+        $this->users_table->refresh();
+    }
+
+    /**
      * @return list<string>
      */
     protected function normalizeRoles(mixed $roles): array
@@ -284,7 +218,7 @@ trait ManagesUsersSection
             return [$roles];
         }
 
-        if (!is_array($roles)) {
+        if (! is_array($roles)) {
             return ['user'];
         }
 
@@ -302,12 +236,14 @@ trait ManagesUsersSection
      * Legacy proxy for backwards compatibility.
      *
      * @deprecated Use UserEditDialogPresenter::present() instead.
-     * @param array<string, mixed> $user
+     *
+     * @param  array<string, mixed>  $user
      * @return array<string, mixed>|null
      */
     protected function editDialogUser(array $user): ?array
     {
-        $presenter = $this->userEditDialogPresenter ?? new UserEditDialogPresenter();
+        $presenter = $this->userEditDialogPresenter ?? new UserEditDialogPresenter;
+
         return $presenter->present($user);
     }
 }

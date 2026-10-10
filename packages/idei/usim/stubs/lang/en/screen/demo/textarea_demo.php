@@ -3,6 +3,7 @@
 // @usim: feature="core", type="lang"
 
 return [
-    'menu_label' => 'Textarea Demo',
+    'menu_title' => 'Textareas',
+    'icon' => '📝',
     'title' => 'Textarea Container Demo',
 ];

@@ -3,6 +3,8 @@
 // @usim: feature="core", type="lang"
 
 return [
+    'menu_title' => 'Login',
+    'icon' => '🔑',
     'actions' => [
         'cancel' => 'Cancel',
         'forgot_password' => 'Forgot your password?',

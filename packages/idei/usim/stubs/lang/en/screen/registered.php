@@ -3,6 +3,8 @@
 // @usim: feature="core", type="lang"
 
 return [
+    'menu_title' => 'Registered',
+    'icon' => '',
     'title' => 'Registration Successful!',
     'greeting' => 'Hello, :name',
     'card_title' => 'Pending assignment',

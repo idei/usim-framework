@@ -1,5 +1,7 @@
 <?php
+
 // @usim: feature="admin", type="service"
+
 namespace {{ namespace }};
 
 use {{ userModel }};
@@ -33,7 +35,7 @@ class UsimUnitsService
      */
     public function getAvailableUnits(): Collection
     {
-        if (!Auth::check()) {
+        if (! Auth::check()) {
             return collect();
         }
 
@@ -58,7 +60,6 @@ class UsimUnitsService
      *   'unit_slug2' => ['role3'],
      * ]
      *
-     * @param User $user
      * @return array<string, array<mixed>>
      */
     public function getUserUnitsWithRoles(User $user): array
@@ -70,7 +71,7 @@ class UsimUnitsService
             $unitsWithRoles[$unit->slug] = [];
         }
 
-        if (!config('permission.teams', false)) {
+        if (! config('permission.teams', false)) {
             $roles = $user->getRoleNames()->values()->toArray();
             foreach (array_keys($unitsWithRoles) as $slug) {
                 $unitsWithRoles[$slug] = $roles;
@@ -93,15 +94,15 @@ class UsimUnitsService
             ->join('usim_units', 'usim_units.id', '=', "{$modelHasRolesTable}.{$teamForeignKey}")
             ->where("{$modelHasRolesTable}.model_type", $user->getMorphClass())
             ->where("{$modelHasRolesTable}.{$modelMorphKey}", $user->getKey())
-            ->select("usim_units.slug", "{$rolesTable}.name as role_name")
+            ->select('usim_units.slug', "{$rolesTable}.name as role_name")
             ->get();
 
         foreach ($assignedRoles as $row) {
-            if (!isset($unitsWithRoles[$row->slug])) {
+            if (! isset($unitsWithRoles[$row->slug])) {
                 $unitsWithRoles[$row->slug] = [];
             }
 
-            if (!in_array($row->role_name, $unitsWithRoles[$row->slug], true)) {
+            if (! in_array($row->role_name, $unitsWithRoles[$row->slug], true)) {
                 $unitsWithRoles[$row->slug][] = $row->role_name;
             }
         }

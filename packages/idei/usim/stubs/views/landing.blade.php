@@ -209,7 +209,7 @@
 
     <main class="landing-shell">
         <section class="landing" aria-labelledby="landing-title">
-            <div>
+            <div class="hero">
                 <p class="eyebrow"><span class="dot"></span>{{ t('landing.badge') }}</p>
                 <h1 id="landing-title" class="hero-title">{{ $title }}</h1>
                 <p class="hero-lead">

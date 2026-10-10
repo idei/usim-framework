@@ -31,4 +31,22 @@ final class UiComponentRef
     {
         return $this->scenario->componentData($this->name);
     }
+
+    public function dumpJson(): self
+    {
+        dumpJson($this->data());
+        return $this;
+    }
+
+    public function id(): int
+    {
+        $component = $this->data();
+        $id = $component['_json_key'] ?? ($component['_id'] ?? null);
+
+        if (!is_numeric($id)) {
+            throw new \RuntimeException("Component '{$this->name}' does not have a numeric component ID.");
+        }
+
+        return (int) $id;
+    }
 }

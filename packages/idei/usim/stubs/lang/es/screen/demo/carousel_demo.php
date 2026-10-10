@@ -3,6 +3,8 @@
 // @usim: feature="core", type="lang"
 
 return [
+    'menu_title' => 'Carrusel',
+    'icon' => '🎠',
     'actions' => [
         'reset' => 'Reiniciar Demo',
         'toggle_auto_fullscreen' => 'Alternar Pantalla Completa Auto',

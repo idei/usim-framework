@@ -50,8 +50,8 @@ class ScreenTestHarness
      */
     public static function for(string|Screen $screen, array $storage = [], array $query = []): self
     {
-        /** @var T $instance */
-        $instance = is_string($screen) ? Screen::make($screen) : $screen;
+        /** @phpstan-var T $instance */
+        $instance = \is_string($screen) ? Screen::make($screen) : $screen;
 
         return new self($instance, $storage, $query);
     }
@@ -60,7 +60,7 @@ class ScreenTestHarness
      * Set incoming storage (e.g. store_* variables).
      *
      * @param  array<string, mixed>  $storage
-     * @return $this
+     * @return self<TScreen>
      */
     public function withStorage(array $storage): self
     {
@@ -73,7 +73,7 @@ class ScreenTestHarness
      * Set query parameters.
      *
      * @param  array<string, mixed>  $query
-     * @return $this
+     * @return self<TScreen>
      */
     public function withQuery(array $query): self
     {
@@ -88,7 +88,7 @@ class ScreenTestHarness
      * @param  array<int|string, mixed>  $buildParams
      * @param  bool  $shouldReset
      * @param  bool  $wrapLayout  Whether to wrap in layout if configured (default false for unit testing)
-     * @return $this
+     * @return self<TScreen>
      */
     public function render(array $buildParams = [], bool $shouldReset = false, bool $wrapLayout = false): self
     {
@@ -107,8 +107,9 @@ class ScreenTestHarness
      * Call an action handler on the screen by action name or method name.
      * E.g. ->call('submit_login', ['login_email' => '...'])
      *
+     * @param  string  $action
      * @param  array<string, mixed>  $parameters
-     * @return $this
+     * @return self<TScreen>
      */
     public function call(string $action, array $parameters = []): self
     {
@@ -181,7 +182,7 @@ class ScreenTestHarness
     /**
      * Assert a component exists in the screen tree.
      *
-     * @return $this
+     * @return self<TScreen>
      */
     public function assertHasComponent(string $name): self
     {
@@ -193,13 +194,13 @@ class ScreenTestHarness
     /**
      * Assert a component has a specific value.
      *
-     * @return $this
+     * @return self<TScreen>
      */
     public function assertComponentValue(string $name, mixed $expected): self
     {
         $component = $this->getComponent($name);
         $actual = method_exists($component, 'getValue') ? $component->getValue() : null;
-        Assert::assertSame($expected, $actual, "Expected component [{$name}] value to be [".var_export($expected, true).'], got ['.var_export($actual, true).'].');
+        Assert::assertSame($expected, $actual, "Expected component [{$name}] value to be [" . var_export($expected, true) . '], got [' . var_export($actual, true) . '].');
 
         return $this;
     }
@@ -207,13 +208,20 @@ class ScreenTestHarness
     /**
      * Assert a component has a specific text.
      *
-     * @return $this
+     * @return self<TScreen>
      */
     public function assertComponentText(string $name, string $expected): self
     {
         $component = $this->getComponent($name);
-        $actual = method_exists($component, 'getText') ? $component->getText() : null;
-        Assert::assertSame($expected, $actual, "Expected component [{$name}] text to be [{$expected}], got [".var_export($actual, true).'].');
+        $actual = null;
+        if (method_exists($component, 'getText')) {
+            $actual = $component->getText();
+        }
+        if ($actual === null && method_exists($component, 'get')) {
+            $val = $component->get('text');
+            $actual = is_string($val) ? $val : null;
+        }
+        Assert::assertSame($expected, $actual, "Expected component [{$name}] text to be [{$expected}], got [" . var_export($actual, true) . '].');
 
         return $this;
     }
@@ -221,7 +229,8 @@ class ScreenTestHarness
     /**
      * Assert the screen emitted a redirect.
      *
-     * @return $this
+     * @param  string|null  $expectedUrl
+     * @return self<TScreen>
      */
     public function assertRedirect(?string $expectedUrl = null): self
     {
@@ -237,7 +246,7 @@ class ScreenTestHarness
     /**
      * Assert the screen emitted no redirect.
      *
-     * @return $this
+     * @return self<TScreen>
      */
     public function assertNoRedirect(): self
     {
@@ -253,14 +262,17 @@ class ScreenTestHarness
     /**
      * Assert the screen emitted a toast notification.
      *
-     * @return $this
+     * @param  string|null  $message
+     * @param  string|null  $type
+     *
+     * @return self<TScreen>
      */
     public function assertToast(?string $message = null, ?string $type = null): self
     {
         $collector = $this->getChanges();
         Assert::assertTrue(
             $collector->hasToast($message, $type),
-            "Expected toast with message [{$message}] and type [{$type}], but none matched in: ".json_encode($collector->getToasts())
+            "Expected toast with message [{$message}] and type [{$type}], but none matched in: " . json_encode($collector->getToasts())
         );
 
         return $this;
@@ -269,14 +281,14 @@ class ScreenTestHarness
     /**
      * Assert the screen emitted no toast notifications.
      *
-     * @return $this
+     * @return self<TScreen>
      */
     public function assertNoToast(): self
     {
         $collector = $this->getChanges();
         Assert::assertEmpty(
             $collector->getToasts(),
-            'Expected no toast notifications, but found: '.json_encode($collector->getToasts())
+            'Expected no toast notifications, but found: ' . json_encode($collector->getToasts())
         );
 
         return $this;
@@ -285,7 +297,8 @@ class ScreenTestHarness
     /**
      * Assert a modal was requested.
      *
-     * @return $this
+     * @param  string|null  $modalClass
+     * @return self<TScreen>
      */
     public function assertModal(?string $modalClass = null): self
     {
@@ -301,7 +314,7 @@ class ScreenTestHarness
     /**
      * Assert modal was closed.
      *
-     * @return $this
+     * @return self<TScreen>
      */
     public function assertModalClosed(): self
     {
@@ -317,7 +330,9 @@ class ScreenTestHarness
     /**
      * Assert storage contains key/value.
      *
-     * @return $this
+     * @param  string  $key
+     * @param  mixed|null  $expected
+     * @return self<TScreen>
      */
     public function assertStorageHas(string $key, mixed $expected = null): self
     {
@@ -325,7 +340,7 @@ class ScreenTestHarness
         Assert::assertArrayHasKey($key, $storage, "Storage does not contain key [{$key}].");
 
         if ($expected !== null) {
-            Assert::assertSame($expected, $storage[$key], "Expected storage key [{$key}] to equal [".var_export($expected, true).'], got ['.var_export($storage[$key], true).'].');
+            Assert::assertSame($expected, $storage[$key], "Expected storage key [{$key}] to equal [" . var_export($expected, true) . '], got [' . var_export($storage[$key], true) . '].');
         }
 
         return $this;
@@ -335,12 +350,12 @@ class ScreenTestHarness
      * Dynamically call actions on the screen via harness:
      * $harness->submit_login($params)
      *
+     * @param  string  $name
      * @param  array<int, mixed>  $arguments
-     * @return $this
+     * @return self<TScreen>
      */
     public function __call(string $name, array $arguments): self
     {
-        /** @var array<string, mixed> $parameters */
         $parameters = isset($arguments[0]) && is_array($arguments[0]) ? $arguments[0] : [];
 
         return $this->call($name, $parameters);

@@ -3,6 +3,8 @@
 // @usim: feature="core", type="lang"
 
 return [
+    'menu_title' => 'Registrado',
+    'icon' => '',
     'title' => '¡Registro Exitoso!',
     'greeting' => 'Hola, :name',
     'card_title' => 'Asignación pendiente',

@@ -1,10 +1,11 @@
 <?php
+// @usim: feature="core", type="test"
 
-require_once __DIR__ . '/Support/UiScreenTestHelpers.php';
-require_once __DIR__ . '/Support/UiMemoryRenderer.php';
-require_once __DIR__ . '/Support/UiComponentRef.php';
-require_once __DIR__ . '/Support/UiScenario.php';
-require_once __DIR__ . '/Support/UiPayloadHelpers.php';
+use Idei\Usim\Testing\UsimExpectations;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\TestCase;
+
+require_once __DIR__.'/Support/usim_bootstrap.php';
 
 /*
 |--------------------------------------------------------------------------
@@ -17,8 +18,8 @@ require_once __DIR__ . '/Support/UiPayloadHelpers.php';
 |
 */
 
-pest()->extend(Tests\TestCase::class)
-    ->use(Illuminate\Foundation\Testing\RefreshDatabase::class)
+pest()->extend(TestCase::class)
+    ->use(RefreshDatabase::class)
     ->in('Feature', 'Unit');
 
 /*
@@ -36,8 +37,7 @@ expect()->extend('toBeOne', function () {
     return $this->toBe(1);
 });
 
-\Idei\Usim\Testing\UsimExpectations::register();
-
+UsimExpectations::register();
 
 /*
 |--------------------------------------------------------------------------
@@ -53,11 +53,4 @@ expect()->extend('toBeOne', function () {
 function something()
 {
     // ..
-}
-
-if (!function_exists('uiScenario')) {
-    function uiScenario(Tests\TestCase $test, string $screenClass, array $query = []): Tests\Support\UiScenario
-    {
-        return Tests\Support\UiScenario::boot($test, $screenClass, $query);
-    }
 }

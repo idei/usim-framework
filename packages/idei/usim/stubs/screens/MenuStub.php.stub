@@ -4,14 +4,12 @@ namespace {{ namespace }};
 
 use {{ userModel }};
 use App\Services\Auth\AuthSessionService;
-use App\Services\Auth\RegisterService;
 use App\Services\Units\UsimUnitsService;
-use {{ componentsNamespace }}\Modals\RegisterDialog;
-use {{ componentsNamespace }}\Modals\TermsDialog;
 use {{ screensNamespace }}\Admin\TranslateManager;
 use {{ screensNamespace }}\Admin\UsersManager;
 use {{ screensNamespace }}\Auth\Login;
 use {{ screensNamespace }}\Auth\Profile;
+use {{ screensNamespace }}\Auth\Register;
 use Idei\Usim\Components\Button;
 use Idei\Usim\Components\Container;
 use Idei\Usim\Components\MenuDropdown;
@@ -19,11 +17,12 @@ use Idei\Usim\Enums\AlignItems;
 use Idei\Usim\Enums\DialogType;
 use Idei\Usim\Enums\JustifyContent;
 use Idei\Usim\Enums\LayoutType;
+use Idei\Usim\Enums\Visibility;
 use Idei\Usim\Events\UsimEvent;
 use Idei\Usim\Modals\ConfirmDialog;
 use Idei\Usim\Models\UsimLanguage;
 use Idei\Usim\Models\UsimUnit;
-use Idei\Usim\Enums\Visibility;
+use Idei\Usim\Navigation\MenuBuilder;
 use Idei\Usim\Screen;
 use Idei\Usim\Support\UIStateManager;
 use Idei\Usim\UI;
@@ -37,14 +36,14 @@ use InvalidArgumentException;
 /**
  * Menu Service
  *
- * Builds the main navigation menu for screens
+ * Builds the top navigation bar for USIM application screens.
  */
 class Menu extends Screen
 {
     public static Visibility $visibility = Visibility::PUBLIC;
+    public static ?string $layout = null;
 
     public function __construct(
-        protected RegisterService $registerService,
         protected AuthSessionService $authSessionService,
         protected UsimUnitsService $usimUnitsService
     ) {
@@ -55,19 +54,22 @@ class Menu extends Screen
     protected MenuDropdown $lang_menu;
     protected ?MenuDropdown $unit_menu = null;
     protected Button $theme_toggle;
-    protected string $store_theme = 'light';
+    protected string $store_theme = 'dark';
     protected string $store_lang = '';
-    protected ?string $store_token = null;
+    protected string $store_token = '';
 
     protected function buildBaseUI(Container $container, ...$params): void
     {
+        if ($this->parent === null || $this->parent === 'main') {
+            $container->parent('menu');
+        }
+
         $container
-            ->parent('menu') // Important to set parent!
-            ->plain()
+            ->card()
             ->layout(LayoutType::HORIZONTAL)
             ->justifyContent(JustifyContent::SPACE_BETWEEN)
             ->alignItems(AlignItems::CENTER)
-            ->padding(Spacing::px(0))
+            ->padding(Spacing::px(5))
             ->marginBottom(Spacing::px(0));
 
         $this->main_menu = $this->buildLeftMenu();
@@ -81,6 +83,7 @@ class Menu extends Screen
         $this->user_menu->marginLeft(Spacing::px(12));
 
         $container->add($this->main_menu);
+
         $this->theme_toggle = UI::button('theme_toggle')
             ->action('toggleTheme')
             ->plain()
@@ -88,11 +91,6 @@ class Menu extends Screen
         $container->add($this->theme_toggle);
 
         $units = $this->usimUnitsService->getAvailableUnits();
-        if ($units->count() > 1) {
-            $this->unit_menu = $this->buildUnitMenu($units);
-            $this->unit_menu->marginLeft(Spacing::px(12));
-            $container->add($this->unit_menu);
-        }
         $this->unit_menu = $this->buildUnitMenu($units);
         $this->unit_menu->marginLeft(Spacing::px(12));
         $container->add($this->unit_menu);
@@ -112,7 +110,10 @@ class Menu extends Screen
     }
 
     /**
+     * Toggles the application theme between light and dark modes.
+     *
      * @param array<string, mixed> $params
+     * @return void
      */
     public function onToggleTheme(array $params): void
     {
@@ -123,7 +124,10 @@ class Menu extends Screen
     }
 
     /**
+     * Changes the application language.
+     *
      * @param array<string, mixed> $params
+     * @return void
      */
     public function onChangeLang(array $params): void
     {
@@ -133,9 +137,7 @@ class Menu extends Screen
         }
 
         $this->store_lang = $lang;
-
         $this->changeLanguage($lang);
-
         $this->updateLangMenu();
 
         event(new UsimEvent('reset_screen'));
@@ -169,7 +171,6 @@ class Menu extends Screen
             ->width(Size::px(160));
 
         $this->populateLangMenu($lang_menu);
-
         return $lang_menu;
     }
 
@@ -197,7 +198,10 @@ class Menu extends Screen
     }
 
     /**
+     * Changes the application unit.
+     *
      * @param array<string, mixed> $params
+     * @return void
      */
     public function onChangeUnit(array $params): void
     {
@@ -217,12 +221,8 @@ class Menu extends Screen
             ? $units->firstWhere('id', $unitId)
             : $units->firstWhere('slug', $unitSlug);
 
-        if ($unit === null) {
-            return;
-        }
-
         $currentSlug = UIStateManager::getActiveUnit();
-        if ($unit->slug === $currentSlug) {
+        if ($unit === null || $unit->slug === $currentSlug) {
             return;
         }
 
@@ -243,10 +243,10 @@ class Menu extends Screen
             ['unit' => $this->getUnitDisplayName($unit)]
         ), 'success');
 
-        // event(new UsimEvent('reset_screen'));
-
-        $redirectTo = $this->authSessionService->resolvePostLoginRedirect($user, $unit->slug);
-        $this->redirect($redirectTo);
+        $homeScreen = $this->authSessionService->resolveHomeScreen($user, $unit->slug);
+        if ($homeScreen) {
+            $this->showInto($homeScreen);
+        }
     }
 
     /**
@@ -259,7 +259,6 @@ class Menu extends Screen
             ->width(Size::px(200));
 
         $this->populateUnitMenu($unit_menu, $units);
-
         return $unit_menu;
     }
 
@@ -275,8 +274,7 @@ class Menu extends Screen
             return;
         }
 
-        $this->initStateUnit($units);
-
+        $this->initStoreUnit($units);
         $menu->visible(true);
 
         $activeSlug = UIStateManager::getActiveUnit();
@@ -297,7 +295,7 @@ class Menu extends Screen
     /**
      * @param Collection<int, UsimUnit> $units
      */
-    private function initStateUnit(Collection $units): void
+    private function initStoreUnit(Collection $units): void
     {
         if ($units->isEmpty()) {
             UIStateManager::setActiveUnit(null);
@@ -361,26 +359,16 @@ class Menu extends Screen
             } else {
                 $this->user_menu->trigger("⚙️");
             }
-            // Rebuild main menu to check permissions for screen() items
-            $this->main_menu->clearItems();
             $this->populateMainMenu($this->main_menu);
-
-            // Rebuild user menu to check permissions for items
-            $this->user_menu->clearItems();
             $this->populateUserMenu($this->user_menu);
         } else {
-            // Caso 1: Usuario no autenticado - trigger con icono de configuración
             $this->user_menu->trigger("⚙️");
         }
     }
 
-    /**
-     * Actualizar el trigger del menú de usuario según el estado del perfil
-     */
     private function updateUserMenuTrigger(User $user): void
     {
         if ($user->profile_image) {
-            // Caso 3: Usuario con imagen de perfil
             $imageUrl = UploadService::fileUrl("uploads/images/$user->profile_image");
             $this->user_menu->triggerImage(
                 imageUrl: $imageUrl,
@@ -388,77 +376,135 @@ class Menu extends Screen
                 label: $user->name
             );
         } else {
-            // Caso 2: Usuario sin imagen de perfil - icono + nombre
             $this->user_menu->trigger("👤 $user->name");
         }
     }
 
-    private function buildLeftMenu(): MenuDropdown
+    private function getMainMenuBuilder(): MenuBuilder
     {
-        $main_menu = UI::menuDropdown('main_menu')
+        $builder = MenuBuilder::make('main_menu')
             ->trigger()
             ->position('bottom-left')
             ->width(Size::px(200));
 
-        $this->populateMainMenu($main_menu);
+        $builder->link(t('screen.menu.items.home'), '/', '🏠');
+        $builder->screenShow(
+            UsersManager::class,
+            when: UsersManager::checkAccess()['allowed'] == true
+        );
+        $builder->screenShow(
+            TranslateManager::class,
+            when: TranslateManager::checkAccess()['allowed'] == true
+        );
 
-        return $main_menu;
+        $builder->separator();
+        $builder->action(t('screen.menu.items.about'), 'show_about_info', [], 'ℹ️');
+
+        return $builder;
+    }
+
+    private function buildLeftMenu(): MenuDropdown
+    {
+        return $this->getMainMenuBuilder()->render('main_menu');
     }
 
     private function populateMainMenu(MenuDropdown $menu): void
     {
-        $menu->link(t('screen.menu.items.home'), '/', '🏠');
-        $menu->screen(UsersManager::class);
-        $menu->screen(TranslateManager::class);
-        $menu->separator();
-        $menu->item(t('screen.menu.items.about'), 'show_about_info', [], 'ℹ️');
+        $this->getMainMenuBuilder()->populate($menu);
     }
 
     private function buildUserMenu(): MenuDropdown
     {
-        $user_menu = UI::menuDropdown('user_menu')
-            ->position('bottom-right')
-            ->width(Size::px(180));
-        $user_menu->trigger("⚙️");
-        $this->populateUserMenu($user_menu);
-        return $user_menu;
+        $builder = $this->getUserMenuBuilder();
+        $menu = $builder->render('user_menu');
+        $menu->trigger("⚙️");
+        return $menu;
     }
 
     private function populateUserMenu(MenuDropdown $menu): void
     {
-        $menu->screen(Login::class);
-        $menu->item(t('screen.menu.items.register'), 'show_register_form', [], '📝', visible: !Auth::check());
-        $menu->screen(Profile::class);
-        $menu->item(t('screen.menu.items.logout'), 'confirm_logout', [], '🚪', visible: Auth::check());
+        $builder = $this->getUserMenuBuilder();
+        $builder->populate($menu);
+    }
+
+    private function getUserMenuBuilder(): MenuBuilder
+    {
+        $builder = MenuBuilder::make('user_menu')
+            ->position('bottom-right')
+            ->width(Size::px(180));
+
+        $builder->screenShow(Login::class, modal: true, when: !Auth::check());
+        $builder->screenShow(Register::class, modal: true, when: !Auth::check());
+        $builder->screenShow(Profile::class, modal: true, when: Auth::check());
+
+        $builder->action(
+            t('screen.menu.items.logout'),
+            'confirm_logout',
+            [],
+            '🚪',
+            when: Auth::check()
+        );
+
+        return $builder;
     }
 
     /**
      * @param array<string, mixed> $params
      */
-    public function onLoggedUser(array $params): void
+    public function onShowScreen(array $params): void
     {
-        /** @var User $user */
-        $user = $params['user'] ?? null;
-        $unitValue = $params['unit'] ?? '';
-        if (is_string($unitValue) && $unitValue !== '') {
-            UIStateManager::setActiveUnit($unitValue);
+        /** @var class-string<Screen>|string|null $screen */
+        $screen = $params['screen'] ?? null;
+        $modal = $params['modal'] ?? false;
+
+        if ($screen !== null && is_subclass_of($screen, Screen::class)) {
+            /** @var string|null $slot */
+            $slot = isset($params['slot']) && \is_string($params['slot']) ? $params['slot'] : null;
+
+            if ($modal) {
+                $this->openModal($screen);
+                return;
+            }
+
+            $this->showInto($screen, slot: $slot, updateBrowserUrl: true);
         }
-
-        $this->updateUserMenuTrigger($user);
-
-        // Rebuild user menu to check permissions for items
-        $this->user_menu->clearItems();
-        $this->populateUserMenu($this->user_menu);
-
-        // Rebuild main menu to check permissions for screen() items
-        $this->main_menu->clearItems();
-        $this->populateMainMenu($this->main_menu);
-
-        $this->updateUnitMenu();
     }
 
     /**
+     * Handles the event when a user logs in, updating the menu accordingly.
+     *
      * @param array<string, mixed> $params
+     * @return void
+     */
+    public function onLoggedUser(array $params): void
+    {
+        /** @var User|null $user */
+        $user = $params['user'] ?? null;
+        $unitValue = $params['unit'] ?? '';
+        $homeScreen = $params['home_screen'] ?? null;
+
+        if (\is_string($unitValue) && $unitValue !== '') {
+            UIStateManager::setActiveUnit($unitValue);
+        }
+
+        if ($user instanceof User) {
+            $this->updateUserMenuTrigger($user);
+        }
+
+        $this->populateUserMenu($this->user_menu);
+        $this->populateMainMenu($this->main_menu);
+        $this->updateUnitMenu();
+
+        if (\is_string($homeScreen) && $homeScreen !== '') {
+            $this->showInto($homeScreen, force: true, updateBrowserUrl: true);
+        }
+    }
+
+    /**
+     * Handles the event when a user updates their profile, refreshing the menu to reflect any changes.
+     *
+     * @param array<string, mixed> $params
+     * @return void
      */
     public function onUpdatedProfile(array $params): void
     {
@@ -469,10 +515,10 @@ class Menu extends Screen
     }
 
     /**
-     * Handler to confirm logout
-     */
-    /**
+     * Handles the event when a user logs out, resetting the menu to its default state.
+     *
      * @param array<string, mixed> $params
+     * @return void
      */
     public function onConfirmLogout(array $params): void
     {
@@ -497,13 +543,7 @@ class Menu extends Screen
         }
 
         $this->user_menu->trigger("⚙️");
-
-        // Rebuild user menu to update screen() items
-        $this->user_menu->clearItems();
         $this->populateUserMenu($this->user_menu);
-
-        // Rebuild main menu to remove restricted screen() items
-        $this->main_menu->clearItems();
         $this->populateMainMenu($this->main_menu);
 
         $this->toast(t('screen.menu.logout_success'));
@@ -511,16 +551,14 @@ class Menu extends Screen
     }
 
     /**
-     * Handler for About info dialog
-     */
-    /**
+     * Handles the event when a user cancels the logout process, closing any open modals.
+     *
      * @param array<string, mixed> $params
+     * @return void
      */
     public function onShowAboutInfo(array $params): void
     {
-        // Get this screen ID to receive the callback.
         $version = "0.7.0";
-        // This i18n message may include escaped "\\n" and markdown; the dialog renderer handles both.
         $aboutMessage = t('screen.menu.about.message', [
             'version' => $version,
         ]);
@@ -534,7 +572,10 @@ class Menu extends Screen
     }
 
     /**
+     * Handles the event when an error occurs, aborting the process and displaying an error message.
+     *
      * @param array<string, mixed> $params
+     * @return void
      */
     public function onShowErrorInfo(array $params): void
     {
@@ -542,115 +583,10 @@ class Menu extends Screen
     }
 
     /**
-     * Handler for Register form
-     */
-    /**
+     * Handles the event when a user closes the profile dialog, closing any open modals.
+     *
      * @param array<string, mixed> $params
-     */
-    public function onShowRegisterForm(array $params): void
-    {
-        RegisterDialog::open(
-            submitAction: 'submit_register',
-            fakeData: config('app.env') === 'local',
-            callerServiceId: $this->getScreenComponentId()
-        );
-    }
-
-    /**
-     * @param array<string, mixed> $params
-     */
-    public function onOpenTermsAndConditions(array $params): void
-    {
-        TermsDialog::open(
-            callerServiceId: $this->getScreenComponentId()
-        );
-    }
-
-    /**
-     * Handler to submit register (receives form data)
-     */
-    /**
-     * @param array<string, mixed> $params
-     */
-    public function onSubmitRegister(array $params): void
-    {
-        if ($this->boolParamOrDefault($params, 'accept_terms', false) === false) {
-            $this->toast(t('screen.menu.register_terms_required'), type: 'error');
-            return;
-        }
-
-        $response = $this->registerService->register(
-            name: $this->stringParamOrDefault($params, 'name', ''),
-            email: $this->stringParamOrDefault($params, 'email', ''),
-            password: $this->stringParamOrDefault($params, 'password', ''),
-            passwordConfirmation: $this->stringParamOrDefault($params, 'password_confirmation', ''),
-            roles: $this->normalizeRoles($params['roles'] ?? [config('usim.default_registering_role')]),
-            sendVerificationEmail: $this->boolParamOrDefault($params, 'send_verification_email', true)
-        );
-
-        if ($response['status'] !== 'success') {
-            $this->handleRegisterError($response);
-            return;
-        }
-
-        $this->handleRegisterSuccess($response);
-    }
-
-    /**
-     * @param array<string, mixed> $response
-     */
-    private function handleRegisterSuccess(array $response): void
-    {
-        $messageValue = $response['message'] ?? t('screen.menu.register_success_default');
-        $message = is_string($messageValue) ? $messageValue : t('screen.menu.register_success_default');
-        $this->toast($message, 'success');
-
-        $user = $response['user'] ?? null;
-        if (!$user instanceof User) {
-            $this->closeModal();
-            return;
-        }
-
-        $token = data_get($response, 'data.token');
-        $redirectTo = $this->authSessionService->start($user, null, is_string($token) ? $token : null);
-        $this->redirect($redirectTo);
-    }
-
-    /**
-     * @param array<string, mixed> $response
-     */
-    private function handleRegisterError(array $response): void
-    {
-        $messageValue = $response['message'] ?? t('screen.menu.validation_errors_default');
-        $message = is_string($messageValue) ? $messageValue : t('screen.menu.validation_errors_default');
-        $this->toast($message, 'error');
-        $this->updateModalValidationErrors($this->normalizeErrors($response['errors'] ?? []));
-    }
-
-    /**
-     * @param array<string, mixed> $errors
-     */
-    private function updateModalValidationErrors(array $errors): void
-    {
-        if ($errors === []) {
-            return;
-        }
-
-        $modalUpdates = [];
-        foreach ($errors as $fieldName => $messages) {
-            $modalUpdates[$fieldName] = [
-                'error' => implode(' ', $this->normalizeStringList($messages)),
-            ];
-        }
-
-        $this->updateModal($modalUpdates);
-    }
-
-    /**
-     * Handler to close profile dialog
-     */
-    /**
-     * @param array<string, mixed> $params
+     * @return void
      */
     public function onCloseProfileDialog(array $params): void
     {
@@ -658,10 +594,10 @@ class Menu extends Screen
     }
 
     /**
-     * Handler for Logout
-     */
-    /**
+     * Handles the event when a user requests to log out, showing a confirmation dialog.
+     *
      * @param array<string, mixed> $params
+     * @return void
      */
     public function onLogoutUser(array $params): void
     {
@@ -676,10 +612,10 @@ class Menu extends Screen
     }
 
     /**
-     * Handler to cancel logout
-     */
-    /**
+     * Handles the event when a user cancels the logout process, closing any open modals.
+     *
      * @param array<string, mixed> $params
+     * @return void
      */
     public function onCancelLogout(array $params): void
     {
@@ -687,87 +623,25 @@ class Menu extends Screen
     }
 
     /**
+     * Retrieves a string parameter from the provided array, returning a default value if the parameter is not set or is not a string.
+     *
      * @param array<string, mixed> $params
+     * @param string $key
+     * @param string $default
+     * @return string
      */
     private function stringParamOrDefault(array $params, string $key, string $default): string
     {
         $value = $params[$key] ?? null;
-        return \is_string($value) ? $value : $default;
+        return is_string($value) ? $value : $default;
     }
 
     /**
-     * @param array<string, mixed> $params
+     * Normalizes the locale by ensuring it is a non-empty string.
+     *
+     * @param mixed $locale
+     * @return string
      */
-    private function boolParamOrDefault(array $params, string $key, bool $default): bool
-    {
-        $value = $params[$key] ?? null;
-        return \is_bool($value) ? $value : $default;
-    }
-
-
-    /**
-     * @param mixed $roles
-     * @return list<string>
-     */
-    private function normalizeRoles(mixed $roles): array
-    {
-        if (\is_string($roles)) {
-            return [$roles];
-        }
-
-        if (!is_array($roles)) {
-            return ['user'];
-        }
-
-        return $this->normalizeStringList($roles) ?: ['user'];
-    }
-
-    /**
-     * @param mixed $value
-     * @return array<string, mixed>
-     */
-    private function normalizeErrors(mixed $value): array
-    {
-        if (!is_array($value)) {
-            return [];
-        }
-
-        $normalized = [];
-        foreach ($value as $key => $messages) {
-            if (!is_string($key)) {
-                continue;
-            }
-
-            $normalized[$key] = $messages;
-        }
-
-        return $normalized;
-    }
-
-    /**
-     * @param mixed $value
-     * @return list<string>
-     */
-    private function normalizeStringList(mixed $value): array
-    {
-        if (is_string($value)) {
-            return [$value];
-        }
-
-        if (!is_array($value)) {
-            return [];
-        }
-
-        $normalized = [];
-        foreach ($value as $item) {
-            if (is_string($item)) {
-                $normalized[] = $item;
-            }
-        }
-
-        return $normalized;
-    }
-
     private function normalizeLocale(mixed $locale): string
     {
         if (is_string($locale) && $locale !== '') {

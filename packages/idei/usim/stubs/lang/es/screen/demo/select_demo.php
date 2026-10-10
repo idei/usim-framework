@@ -3,6 +3,8 @@
 // @usim: feature="core", type="lang"
 
 return [
+    'menu_title' => 'Selectores',
+    'icon' => '🖱️',
     'actions' => [
         'reset_all' => 'Reiniciar Todo',
     ],

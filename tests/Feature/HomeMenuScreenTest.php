@@ -1,4 +1,5 @@
 <?php
+// @usim: feature="core", type="test"
 
 use App\Models\User;
 use App\Services\User\UsimUserService;
@@ -282,11 +283,22 @@ it('allows root to switch to operational unit comunicacion and does not retain s
 it('redirects to role default home screen on unit change based on unit roles', function () {
     /** @var \Tests\TestCase $this */
     $userService = app(UsimUserService::class);
-    $user = $userService->provisionFromConfig('admin');
-    $this->actingAs($user);
+    $oafaUnit = UsimUnit::firstOrCreate(['slug' => 'oafa'], ['type' => 'institute']);
+    $ideiUnit = UsimUnit::firstOrCreate(['slug' => 'idei'], ['type' => 'institute']);
 
-    $oafaUnit = UsimUnit::where('slug', 'oafa')->firstOrFail();
-    $ideiUnit = UsimUnit::where('slug', 'idei')->firstOrFail();
+    if (config('usim.users.admin')) {
+        $user = $userService->provisionFromConfig('admin');
+    } else {
+        $user = User::factory()->create(['name' => 'Admin User', 'email' => 'admin@example.com']);
+        $user->usimUnits()->sync([$oafaUnit->id, $ideiUnit->id]);
+        $roleAdmin = \Spatie\Permission\Models\Role::findOrCreate('admin', 'web');
+        $roleTranslator = \Spatie\Permission\Models\Role::findOrCreate('translator', 'web');
+        setPermissionsTeamId($oafaUnit->id);
+        $user->assignRole($roleAdmin);
+        setPermissionsTeamId($ideiUnit->id);
+        $user->assignRole($roleTranslator);
+    }
+    $this->actingAs($user);
 
     // Start in OAFA
     setPermissionsTeamId($oafaUnit->id);
@@ -315,10 +327,21 @@ it('redirects to role default home screen on unit change based on unit roles', f
 it('redirects to highest priority role home screen when unit has multiple roles', function () {
     /** @var \Tests\TestCase $this */
     $userService = app(UsimUserService::class);
-    $user = $userService->provisionFromConfig('test'); // has idei => ['admin', 'translator']
+    $ideiUnit = UsimUnit::firstOrCreate(['slug' => 'idei'], ['type' => 'institute']);
+
+    if (config('usim.users.test')) {
+        $user = $userService->provisionFromConfig('test'); // has idei => ['admin', 'translator']
+    } else {
+        $user = User::factory()->create(['name' => 'Test User', 'email' => 'test@example.com']);
+        $user->usimUnits()->sync([$ideiUnit->id]);
+        $roleAdmin = \Spatie\Permission\Models\Role::findOrCreate('admin', 'web');
+        $roleTranslator = \Spatie\Permission\Models\Role::findOrCreate('translator', 'web');
+        setPermissionsTeamId($ideiUnit->id);
+        $user->assignRole($roleAdmin);
+        $user->assignRole($roleTranslator);
+    }
     $this->actingAs($user);
 
-    $ideiUnit = UsimUnit::where('slug', 'idei')->firstOrFail();
     $otherUnit = UsimUnit::firstOrCreate(['slug' => 'other_dept'], ['type' => 'department']);
     $user->usimUnits()->syncWithoutDetaching([$otherUnit->id]);
 

@@ -1,4 +1,5 @@
 <?php
+// @usim: feature="core", type="screen"
 
 namespace App\UI\Screens;
 
@@ -17,7 +18,7 @@ class Home extends Screen
             ->padding(Spacing::px(0));
         $container->add(
             UI::label('welcome_usim')
-                ->html('welcome-usim', ['title' => config('usim.app_name')])
+                ->html('landing', ['title' => config('usim.app_name', config('app.name', 'USIM Framework'))])
                 ->width(Size::full())
         )->plain();
     }

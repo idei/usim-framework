@@ -4,6 +4,7 @@ namespace {{ namespace }};
 
 use {{ userModel }};
 use App\Services\Units\UnitContextResolver;
+use App\UI\Screens\Home;
 use Idei\Usim\Events\UsimEvent;
 use Idei\Usim\Models\UsimUnit;
 use Idei\Usim\Screen;
@@ -28,7 +29,7 @@ class AuthSessionService
         ?string $homeScreen = null
     ): string {
         // Support legacy callers passing ($user, $token) where $unit contains the auth token
-        if ($token === null && is_string($unit)) {
+        if ($token === null && \is_string($unit)) {
             if (str_contains($unit, '|') || str_contains($unit, '.') || strlen($unit) > 30) {
                 $token = $unit;
                 $unit = null;
@@ -47,7 +48,7 @@ class AuthSessionService
             $resolvedUnit = UnitContextResolver::resolveAndApply($user, $unit);
             if ($resolvedUnit) {
                 $activeUnitSlug = $resolvedUnit->slug;
-            } elseif (is_string($unit) && $unit !== '') {
+            } elseif (\is_string($unit) && $unit !== '') {
                 $fallbackUnit = UsimUnit::where('slug', $unit)->first();
                 if ($fallbackUnit) {
                     setPermissionsTeamId($fallbackUnit->id);
@@ -93,7 +94,14 @@ class AuthSessionService
         return $this->establishSession($user, $unit, $token, $homeScreen);
     }
 
-    public function resolvePostLoginRedirect(User $user, ?string $unit = null): string
+    /**
+     * Resolve the home screen for a user based on their roles and unit context.
+     *
+     * @param User $user
+     * @param string|null $unit
+     * @return class-string<Screen>
+     */
+    public function resolveHomeScreen(User $user, ?string $unit = null): string
     {
         if (config('permission.teams', false)) {
             if ($unit !== null || getPermissionsTeamId() === null) {
@@ -135,14 +143,20 @@ class AuthSessionService
             $screenClass = $role->usimSetting ? $role->usimSetting->home_screen : null;
 
             if (
-                is_string($screenClass)
+                \is_string($screenClass)
+                && $screenClass !== ''
                 && class_exists($screenClass)
                 && is_subclass_of($screenClass, Screen::class)
             ) {
-                return $screenClass::getRoutePath();
+                return $screenClass;
             }
         }
 
-        return redirect()->intended('/')->getTargetUrl();
+        return Home::class;
+    }
+
+    public function resolvePostLoginRedirect(User $user, ?string $unit = null): string
+    {
+        return $this->resolveHomeScreen($user, $unit)::getRoutePath();
     }
 }

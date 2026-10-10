@@ -3,6 +3,8 @@
 // @usim: feature="core", type="lang"
 
 return [
+    'menu_title' => 'Entradas',
+    'icon' => '⌨️',
     'actions' => [
         'validate' => 'Validar',
     ],

@@ -283,12 +283,14 @@ matches_exclude_pattern() {
 infer_type_from_path() {
     local rel_path="$1"
     case "$rel_path" in
+        app/UI/Layouts/*)     echo "layout" ;;
         app/UI/Screens/*)     echo "screen" ;;
         app/UI/Components/*)  echo "component" ;;
         app/Contracts/*)      echo "contract" ;;
         app/Services/*)       echo "service" ;;
         app/Providers/*)      echo "provider" ;;
         app/Http/Controllers/*) echo "controller" ;;
+        app/Http/Requests/*)  echo "request" ;;
         app/Models/*)         echo "model" ;;
         database/migrations/*)echo "migration" ;;
         database/seeders/*)   echo "seeder" ;;
@@ -311,12 +313,14 @@ resolve_default_target() {
 
     if [[ -n "$subpath" ]]; then
         case "$type" in
+            layout)     echo "layouts/${subpath%.stub}.stub" ;;
             screen)     echo "screens/${subpath%.stub}.stub" ;;
             component)  echo "components/${subpath%.stub}.stub" ;;
             contract)   echo "contracts/${subpath%.stub}.stub" ;;
             service)    echo "services/${subpath%.stub}.stub" ;;
             provider)   echo "providers/${subpath%.stub}.stub" ;;
             controller) echo "controllers/${subpath%.stub}.stub" ;;
+            request)    echo "requests/${subpath%.stub}.stub" ;;
             model)      echo "models/${subpath%.stub}.stub" ;;
             migration)  echo "migrations/${subpath%.stub}.stub" ;;
             seeder)     echo "seeders/${subpath%.stub}.stub" ;;
@@ -333,6 +337,10 @@ resolve_default_target() {
     fi
 
     case "$type" in
+        layout)
+            local rel="${src_rel#app/UI/Layouts/}"
+            echo "layouts/${rel}.stub"
+            ;;
         screen)
             local rel="${src_rel#app/UI/Screens/}"
             echo "screens/${rel}.stub"
@@ -356,6 +364,10 @@ resolve_default_target() {
         controller)
             local rel="${src_rel#app/Http/Controllers/}"
             echo "controllers/${rel}.stub"
+            ;;
+        request)
+            local rel="${src_rel#app/Http/Requests/}"
+            echo "requests/${rel}.stub"
             ;;
         model)
             local rel="${src_rel#app/Models/}"
@@ -605,6 +617,17 @@ transform_content_to_stub() {
 
     # 1. Transformaciones específicas según el tipo de recurso
     case "$type" in
+        layout)
+            # Reemplazar declaración de namespace de layouts
+            content="$(echo "$content" | sed -E 's|^namespace App\\UI\\Layouts(\\[a-zA-Z0-9_]+)*;|namespace {{ namespace }};|g')"
+            # Reemplazar imports cruzados de Screens
+            content="$(echo "$content" | sed -E 's|use App\\UI\\Screens\\|use {{ screensNamespace }}\\|g')"
+            # Reemplazar imports de Components
+            content="$(echo "$content" | sed -E 's|use App\\UI\\Components\\|use {{ componentsNamespace }}\\|g')"
+            # Reemplazar imports de modelo User
+            content="$(echo "$content" | sed -E 's|use App\\Models\\User;|use {{ userModel }};|g')"
+            ;;
+
         screen)
             # Reemplazar declaración de namespace
             content="$(echo "$content" | sed -E 's|^namespace App\\UI\\Screens(\\[a-zA-Z0-9_]+)*;|namespace {{ namespace }};|g')"
@@ -963,6 +986,7 @@ SCAN_DIRS=(
     "app/Services"
     "app/Providers"
     "app/Http/Controllers"
+    "app/Http/Requests"
     "app/Models"
     "database/migrations"
     "database/seeders"

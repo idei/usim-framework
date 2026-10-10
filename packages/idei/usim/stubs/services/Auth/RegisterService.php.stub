@@ -1,31 +1,29 @@
 <?php
+
 // @usim: feature="admin", type="service"
+
 namespace {{ namespace }};
 
 use {{ userModel }};
-use App\Services\Auth\AuthSessionService;
+use Idei\Usim\Contracts\RegisterActionInterface;
+use Idei\Usim\DTOs\RegisterData;
+use Idei\Usim\DTOs\RegistrationResult;
 use Idei\Usim\Models\UsimUnit;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 
-class RegisterService
+class RegisterService implements RegisterActionInterface
 {
     public function __construct(
         protected AuthSessionService $authSessionService
-    ) {
-    }
+    ) {}
 
     /**
      * Summary of register
-     * @param string $name
-     * @param string $email
-     * @param string $password
-     * @param string $passwordConfirmation
-     * @param array<string> $roles
-     * @param string|null $unit
-     * @param bool $sendVerificationEmail
+     *
+     * @param  array<string>  $roles
      * @return array{
      *  status: string,
      *  message: string,
@@ -111,5 +109,37 @@ class RegisterService
             ],
             'user' => $user,
         ];
+    }
+
+    public function execute(RegisterData $data): RegistrationResult
+    {
+        $response = $this->register(
+            name: $data->name,
+            email: $data->email,
+            password: $data->password,
+            passwordConfirmation: $data->passwordConfirmation,
+            roles: $data->roles,
+            unit: $data->unit,
+            sendVerificationEmail: $data->sendVerificationEmail,
+        );
+
+        if ($response['status'] !== 'success') {
+            /** @var array<string, list<string>> $errors */
+            $errors = $response['errors'] ?? [];
+
+            return RegistrationResult::failed(
+                message: $response['message'],
+                errors: $errors
+            );
+        }
+
+        $rawToken = data_get($response, 'data.token');
+
+        return RegistrationResult::success(
+            message: $response['message'],
+            user: $response['user'] ?? null,
+            token: is_string($rawToken) ? $rawToken : null,
+            data: $response['data'] ?? [],
+        );
     }
 }

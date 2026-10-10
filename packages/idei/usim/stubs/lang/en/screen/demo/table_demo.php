@@ -3,6 +3,8 @@
 // @usim: feature="core", type="lang"
 
 return [
+    'menu_title' => 'Tables',
+    'icon' => '🎬',
     'title' => 'Table Component Demo',
     'table_title' => 'Famous Movies',
     'title_column' => 'Title',

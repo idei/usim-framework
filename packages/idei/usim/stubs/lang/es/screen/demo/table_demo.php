@@ -3,6 +3,8 @@
 // @usim: feature="core", type="lang"
 
 return [
+    'menu_title' => 'Tablas',
+    'icon' => '🎬',
     'title' => 'Demo de Componente Tabla',
     'table_title' => 'Películas Famosas',
     'title_column' => 'Título',

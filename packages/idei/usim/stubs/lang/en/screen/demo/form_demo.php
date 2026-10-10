@@ -3,6 +3,8 @@
 // @usim: feature="core", type="lang"
 
 return [
+    'menu_title' => 'Forms',
+    'icon' => '📝',
     'actions' => [
         'submit' => 'Submit Form',
     ],

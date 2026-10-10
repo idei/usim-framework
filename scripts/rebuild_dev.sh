@@ -6,7 +6,7 @@ ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 DEV_DIR="$ROOT_DIR/dev"
 CACHE_DIR="$ROOT_DIR/.laravel-template"
 
-clear
+clear 2>/dev/null || true
 
 echo "---------------------------------------"
 echo "USIM dev environment rebuild"
@@ -88,4 +88,6 @@ echo ""
 # we replace this process with a fresh interactive shell already inside
 # dev/. Type 'exit' to return to the shell you started from.
 cd "$DEV_DIR"
-exec "$SHELL"
+if [ -t 0 ]; then
+    exec "$SHELL"
+fi

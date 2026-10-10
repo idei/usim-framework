@@ -7,7 +7,7 @@ use Illuminate\Support\Str;
 class InstallContextResolver
 {
     /**
-     * @return array{screensNamespace:string,screensPath:string,componentsNamespace:string,componentsPath:string}
+     * @return array{screensNamespace:string,screensPath:string,componentsNamespace:string,componentsPath:string,layoutsNamespace:string,layoutsPath:string}
      */
     public function resolveNamespaces(): array
     {
@@ -28,6 +28,8 @@ class InstallContextResolver
             'screensPath' => $normalizedScreensPath,
             'componentsNamespace' => Str::beforeLast($normalizedScreensNamespace, '\\Screens').'\\Components',
             'componentsPath' => Str::beforeLast($normalizedScreensPath, '/Screens').'/Components',
+            'layoutsNamespace' => Str::beforeLast($normalizedScreensNamespace, '\\Screens').'\\Layouts',
+            'layoutsPath' => Str::beforeLast($normalizedScreensPath, '/Screens').'/Layouts',
         ];
     }
 
@@ -48,6 +50,8 @@ class InstallContextResolver
             'screensPath' => (string) ($namespaces['screensPath'] ?? app_path('UI/Screens')),
             'componentsNamespace' => (string) ($namespaces['componentsNamespace'] ?? 'App\\UI\\Components'),
             'componentsPath' => (string) ($namespaces['componentsPath'] ?? app_path('UI/Components')),
+            'layoutsNamespace' => (string) ($namespaces['layoutsNamespace'] ?? 'App\\UI\\Layouts'),
+            'layoutsPath' => (string) ($namespaces['layoutsPath'] ?? app_path('UI/Layouts')),
             'userModelImport' => $userModelImport,
             'userModelClass' => $userModelClass,
             'force' => $force,

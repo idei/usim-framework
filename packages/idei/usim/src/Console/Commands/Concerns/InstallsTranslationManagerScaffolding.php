@@ -11,6 +11,6 @@ trait InstallsTranslationManagerScaffolding
 
         $this->installScreen('Admin/TranslateManager.php.stub', 'TranslateManager.php', 'Admin');
         $this->installComponent('Modals/EditTranslationDialog.php.stub', 'EditTranslationDialog.php', 'Modals');
-        $this->installComponent('DataTable/TranslationKeysTableModel.php.stub', 'TranslationKeysTableModel.php', 'DataTable');
+        $this->installScreen('Admin/TableModels/TranslationKeysTableModel.php.stub', 'TranslationKeysTableModel.php', 'Admin/TableModels');
     }
 }

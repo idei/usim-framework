@@ -59,7 +59,12 @@ it('authenticates configured default registering user role and returns redirect 
 
 it('authenticates configured test user with multiple units and returns redirect contract', function () {
     /** @var \Tests\TestCase $this */
-    $testConfig = config('usim.users.test');
+    $testConfig = config('usim.users.test') ?? [
+        'first_name' => 'Test',
+        'last_name' => 'User',
+        'email' => 'test@example.com',
+        'password' => '11111111',
+    ];
     $unitMain = \Idei\Usim\Models\UsimUnit::firstOrCreate(['slug' => 'main']);
     $unitIdei = \Idei\Usim\Models\UsimUnit::firstOrCreate(['slug' => 'idei']);
 
