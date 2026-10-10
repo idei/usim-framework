@@ -1,24 +1,25 @@
 <?php
 // @usim: feature="core", type="screen"
-
 namespace {{ namespace }};
 
 use Idei\Usim\Components\Container;
 use Idei\Usim\Screen;
+use Idei\Usim\Support\UsimConfig;
 use Idei\Usim\UI;
 use Idei\Usim\ValueObjects\Size;
-use Idei\Usim\ValueObjects\Spacing;
 
 class Home extends Screen
 {
     protected function buildBaseUI(Container $container, ...$params): void
     {
-        $container
-            ->plain()
-            ->padding(Spacing::px(0));
+        $config = app(UsimConfig::class);
+
         $container->add(
             UI::label('welcome_usim')
-                ->html('landing', ['title' => config('usim.app_name', config('app.name', 'USIM Framework'))])
+                ->html(
+                    'welcome-usim',
+                    ['title' => $config->appName]
+                )
                 ->width(Size::full())
         )->plain();
     }

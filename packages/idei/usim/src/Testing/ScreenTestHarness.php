@@ -127,6 +127,34 @@ class ScreenTestHarness
     }
 
     /**
+     * Click an interactive component (e.g. Button) by name, triggering its configured action.
+     *
+     * @param  string  $name
+     * @param  array<string, mixed>  $parameters
+     * @return self<TScreen>
+     */
+    public function click(string $name, array $parameters = []): self
+    {
+        $component = $this->getComponent($name);
+
+        $action = method_exists($component, 'get') ? $component->get('action') : null;
+        if (! is_string($action) || trim($action) === '') {
+            $screenClass = $this->screen::class;
+            throw new \InvalidArgumentException("Component [{$name}] on Screen [{$screenClass}] does not have an action configured to click.");
+        }
+
+        $componentParams = method_exists($component, 'get') ? ($component->get('parameters') ?? []) : [];
+        if (! is_array($componentParams)) {
+            $componentParams = [];
+        }
+
+        /** @var array<string, mixed> $componentParams */
+        $mergedParameters = array_merge($componentParams, $parameters);
+
+        return $this->call($action, $mergedParameters);
+    }
+
+    /**
      * Get the underlying Screen instance.
      *
      * @return TScreen
@@ -189,6 +217,16 @@ class ScreenTestHarness
         $this->getComponent($name);
 
         return $this;
+    }
+
+    /**
+     * Alias for assertHasComponent.
+     *
+     * @return self<TScreen>
+     */
+    public function assertComponentExists(string $name): self
+    {
+        return $this->assertHasComponent($name);
     }
 
     /**
