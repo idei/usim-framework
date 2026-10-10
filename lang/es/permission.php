@@ -60,6 +60,12 @@ return [
                 'description' => 'Permite acceder a la pantalla Admin Edit User.',
             ],
         ],
+        'edit_translation_dialog' => [
+            'access' => [
+                'name' => 'Acceder a Admin Edit Translation Dialog',
+                'description' => 'Permite acceder a la pantalla Admin Edit Translation Dialog.',
+            ],
+        ],
     ],
     'home' => [
         'access' => [

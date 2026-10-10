@@ -60,6 +60,12 @@ return [
                 'description' => 'Permission to access Admin Edit User.',
             ],
         ],
+        'edit_translation_dialog' => [
+            'access' => [
+                'name' => 'Access Admin Edit Translation Dialog',
+                'description' => 'Permission to access Admin Edit Translation Dialog.',
+            ],
+        ],
     ],
     'home' => [
         'access' => [

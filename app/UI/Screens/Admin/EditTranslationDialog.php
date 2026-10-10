@@ -22,20 +22,32 @@ class EditTranslationDialog extends Screen implements ModalInterface
     }
 
     /**
+     * @param array<int|string, mixed> $params
+     */
+    private function stringParam(array $params, string $name, string $default = ''): string
+    {
+        $value = $params[$name] ?? $default;
+
+        return is_scalar($value) ? (string) $value : $default;
+    }
+
+    /**
      * @param mixed ...$params
      */
     protected function buildBaseUI(Container $container, ...$params): void
     {
-        $key = (string) ($params['key'] ?? '');
-        $group = (string) ($params['group'] ?? '');
-        $fallbackLanguageCode = (string) ($params['fallbackLanguageCode'] ?? '');
-        $selectedLanguageCode = $params['selectedLanguageCode'] ?? null;
-        $fallbackText = (string) ($params['fallbackText'] ?? '');
-        $selectedText = (string) ($params['selectedText'] ?? '');
+        $key = $this->stringParam($params, 'key');
+        $group = $this->stringParam($params, 'group');
+        $fallbackLanguageCode = $this->stringParam($params, 'fallbackLanguageCode');
+        $selectedLanguageCode = $this->stringParam($params, 'selectedLanguageCode');
+        $fallbackText = $this->stringParam($params, 'fallbackText');
+        $selectedText = $this->stringParam($params, 'selectedText');
         $fallbackNeedsReview = (bool) ($params['fallbackNeedsReview'] ?? false);
         $selectedNeedsReview = (bool) ($params['selectedNeedsReview'] ?? false);
-        $submitAction = (string) ($params['submitAction'] ?? 'submit_update_translation');
-        $cancelAction = $params['cancelAction'] ?? 'close_modal';
+        $submitAction = $this->stringParam($params, 'submitAction', 'submit_update_translation');
+        $cancelAction = array_key_exists('cancelAction', $params)
+            ? $this->stringParam($params, 'cancelAction')
+            : 'close_modal';
         $callerServiceId = $params['callerServiceId'] ?? $this->callerScreenId;
 
         $container
@@ -64,7 +76,7 @@ class EditTranslationDialog extends Screen implements ModalInterface
 
         $container->add(UI::input('translation_key')->type('hidden')->value($key));
         $container->add(UI::input('fallback_language_code')->type('hidden')->value($fallbackLanguageCode));
-        $container->add(UI::input('selected_language_code')->type('hidden')->value($selectedLanguageCode ?? ''));
+        $container->add(UI::input('selected_language_code')->type('hidden')->value($selectedLanguageCode));
 
         $container->add(
             UI::input('fallback_text')
@@ -81,7 +93,7 @@ class EditTranslationDialog extends Screen implements ModalInterface
                 ->checked(!$fallbackNeedsReview)
         );
 
-        if ($selectedLanguageCode !== null && $selectedLanguageCode !== '') {
+        if ($selectedLanguageCode !== '') {
             $container->add(
                 UI::input('selected_text')
                     ->label('Selected (' . strtoupper($selectedLanguageCode) . ')')
@@ -106,7 +118,7 @@ class EditTranslationDialog extends Screen implements ModalInterface
             ->gap(Spacing::px(10))
             ->padding(Spacing::each(Spacing::px(10)));
 
-        if ($cancelAction) {
+        if ($cancelAction !== '') {
             $buttons->add(
                 UI::button('btn_cancel_translation')
                     ->label('Cancel')
