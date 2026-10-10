@@ -36,21 +36,22 @@ class SplitDemo extends Screen
 
     protected function buildBaseUI(Container $container, ...$params): void
     {
-        $container
-            ->maxWidth(Size::px(1100))
+        $wrapper = UI::container('wrapper')
+            ->card()
+            ->maxWidth(Size::px(600))
+            ->minWidth(Size::px(600))
             ->centerHorizontal()
-            ->padding(Spacing::each(Spacing::px(12), Spacing::px(24), Spacing::px(24), Spacing::px(24)))
-            ->gap(Spacing::px(14))
-            ->plain();
+            ->padding(Spacing::px(8))
+            ->gap(Spacing::px(12));
 
-        $container->add(
+        $wrapper->add(
             UI::label('split_demo_title')
                 ->text(t('screen.demo.split_demo.title'))
                 ->style('h2')
-                ->width(Size::full())
+                ->center()
         );
 
-        $container->add(
+        $wrapper->add(
             UI::label('split_demo_intro')
                 ->text(t('screen.demo.split_demo.intro'))
                 ->style('info')
@@ -144,7 +145,7 @@ class SplitDemo extends Screen
         );
 
         $controls->add($actions);
-        $container->add($controls);
+        $wrapper->add($controls);
 
         $this->split_workspace = UI::split('split_workspace')
             ->orientation($this->store_split_orientation)
@@ -198,7 +199,9 @@ class SplitDemo extends Screen
         $this->split_workspace->addFirst($leftPanel);
         $this->split_workspace->addSecond($rightPanel);
 
-        $container->add($this->split_workspace);
+        $wrapper->add($this->split_workspace);
+
+        $container->add($wrapper);
     }
 
     /**

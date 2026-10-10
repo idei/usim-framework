@@ -25,20 +25,21 @@ class TextareaDemo extends Screen
 
     protected function buildBaseUI(Container $container, ...$params): void
     {
-        $container
+        $wrapper = UI::container('wrapper')
+            ->card()
             ->maxWidth(Size::px(1024))
             ->centerHorizontal()
-            ->plain()
             ->gap(Spacing::px(5))
-            ->padding(Spacing::px(0));
+            ->padding(Spacing::px(8));
 
         $title = UI::label('textarea_demo_title')
             ->text(t('screen.demo.textarea_demo.title'))
+            ->center()
             ->style('h2');
 
-        $container->add($title);
+        $wrapper->add($title);
 
-        // ── Sección 1: texto plano ───────────────────────────────────────────
+        // Sección 1: texto plano
         $sectionPlain = UI::container('section_plain')
             ->plain()
             ->width(Size::full())
@@ -59,9 +60,9 @@ class TextareaDemo extends Screen
                 ->onChange('on_plain_saved')
         );
 
-        $container->add($sectionPlain);
+        $wrapper->add($sectionPlain);
 
-        // // ── Sección 2: markdown ──────────────────────────────────────────────
+        // Sección 2: markdown
         $sectionMd = UI::container('section_md')
             ->plain()
             ->width(Size::full())
@@ -85,7 +86,9 @@ class TextareaDemo extends Screen
                 ->onChange('on_md_saved')
         );
 
-        $container->add($sectionMd);
+        $wrapper->add($sectionMd);
+
+        $container->add($wrapper);
     }
 
     /** @param array<string, mixed> $params */
