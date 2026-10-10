@@ -3,7 +3,7 @@
 namespace App\UI\Screens\Demo;
 
 use App\Services\Movie\MovieListingService;
-use App\UI\Components\DataTable\MovieTableModel;
+use App\UI\Screens\Demo\TableModels\MovieTableModel;
 use Idei\Usim\Components\Container;
 use Idei\Usim\Components\Input;
 use Idei\Usim\Components\Table;

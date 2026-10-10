@@ -2,8 +2,7 @@
 // @usim: feature="admin", type="screen"
 namespace App\UI\Screens\Admin;
 
-use App\UI\Components\DataTable\TranslationKeysTableModel;
-use App\UI\Components\Modals\EditTranslationDialog;
+use App\UI\Screens\Admin\TableModels\TranslationKeysTableModel;
 use Idei\Usim\Components\Container;
 use Idei\Usim\Components\Input;
 use Idei\Usim\Components\Select;

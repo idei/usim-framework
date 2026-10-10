@@ -1,6 +1,6 @@
 <?php
 
-namespace App\UI\Components\DataTable;
+namespace App\UI\Screens\Demo\TableModels;
 
 use App\Models\Movie;
 use App\Services\Movie\MovieListingService;

@@ -1,76 +1,44 @@
 <?php
-// @usim: feature="admin", type="component"
-namespace App\UI\Components\Modals;
+// @usim: feature="admin", type="screen"
+namespace App\UI\Screens\Admin;
 
+use Idei\Usim\Contracts\ModalInterface;
+use Idei\Usim\Components\Container;
 use Idei\Usim\Enums\JustifyContent;
 use Idei\Usim\Enums\LayoutType;
+use Idei\Usim\Screen;
 use Idei\Usim\UI;
-use Idei\Usim\UIChangesCollector;
 use Idei\Usim\ValueObjects\Size;
 use Idei\Usim\ValueObjects\Spacing;
 
-class EditTranslationDialog
+class EditTranslationDialog extends Screen implements ModalInterface
 {
     /**
-     * @param string $key
-     * @param string $group
-     * @param string $fallbackLanguageCode
-     * @param string|null $selectedLanguageCode
-     * @param string $fallbackText
-     * @param string $selectedText
-     * @param bool $fallbackNeedsReview
-     * @param bool $selectedNeedsReview
-     * @param string $submitAction
-     * @param string|null $cancelAction
-     * @param int|null $callerServiceId
+     * @param mixed ...$params Dialog UI parameters.
      */
-    public static function open(
-        string $key,
-        string $group,
-        string $fallbackLanguageCode,
-        ?string $selectedLanguageCode = null,
-        string $fallbackText = '',
-        string $selectedText = '',
-        bool $fallbackNeedsReview = false,
-        bool $selectedNeedsReview = false,
-        string $submitAction = 'submit_update_translation',
-        ?string $cancelAction = 'close_modal',
-        ?int $callerServiceId = null
-    ): void {
-        $dialog = new self();
-        $format = $dialog->getUI(
-            $key,
-            $group,
-            $fallbackLanguageCode,
-            $selectedLanguageCode,
-            $fallbackText,
-            $selectedText,
-            $fallbackNeedsReview,
-            $selectedNeedsReview,
-            $submitAction,
-            $cancelAction,
-            $callerServiceId
-        );
-        app(UIChangesCollector::class)->add($format);
+    public static function open(?Screen $caller = null, mixed ...$params): void
+    {
+        static::openAsModal(params: $params, caller: $caller);
     }
 
     /**
-     * @return array<int, array<string, mixed>>
+     * @param mixed ...$params
      */
-    public function getUI(
-        string $key,
-        string $group,
-        string $fallbackLanguageCode,
-        ?string $selectedLanguageCode,
-        string $fallbackText = '',
-        string $selectedText = '',
-        bool $fallbackNeedsReview = false,
-        bool $selectedNeedsReview = false,
-        string $submitAction = 'submit_update_translation',
-        ?string $cancelAction = 'close_modal',
-        ?int $callerServiceId = null
-    ): array {
-        $container = UI::container('edit_translation_dialog')
+    protected function buildBaseUI(Container $container, ...$params): void
+    {
+        $key = (string) ($params['key'] ?? '');
+        $group = (string) ($params['group'] ?? '');
+        $fallbackLanguageCode = (string) ($params['fallbackLanguageCode'] ?? '');
+        $selectedLanguageCode = $params['selectedLanguageCode'] ?? null;
+        $fallbackText = (string) ($params['fallbackText'] ?? '');
+        $selectedText = (string) ($params['selectedText'] ?? '');
+        $fallbackNeedsReview = (bool) ($params['fallbackNeedsReview'] ?? false);
+        $selectedNeedsReview = (bool) ($params['selectedNeedsReview'] ?? false);
+        $submitAction = (string) ($params['submitAction'] ?? 'submit_update_translation');
+        $cancelAction = $params['cancelAction'] ?? 'close_modal';
+        $callerServiceId = $params['callerServiceId'] ?? $this->callerScreenId;
+
+        $container
             ->parent('modal')
             ->shadow(false)
             ->plain()
@@ -160,6 +128,5 @@ class EditTranslationDialog
 
         $container->add($buttons);
 
-        return $container->toJson();
     }
 }

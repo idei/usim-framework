@@ -1,6 +1,6 @@
 <?php
-// @usim: feature="admin", type="component"
-namespace App\UI\Components\DataTable;
+// @usim: feature="admin", type="screen"
+namespace App\UI\Screens\Admin\TableModels;
 
 use Idei\Usim\Models\UsimTextKey;
 use Idei\Usim\Components\Table;
