@@ -96,4 +96,46 @@ it('executes full SPA registration sequence without redirect and returns registe
     $userMenu = $payload[$userMenuId] ?? null;
     expect($userMenu)->not->toBeNull();
     expect($userMenu['trigger']['label'] ?? '')->toContain('Juan Diego Olivares');
+
+    // 5. Open Profile modal from updated user_menu
+    $profileResponse = $ui->action('user_menu', 'showScreen', [
+        'screen' => \App\UI\Screens\Auth\Profile::class,
+        'modal' => true,
+    ]);
+    $profileResponse->assertOk();
+    $profilePayload = $profileResponse->json();
+    expect(hasModalComponents($profilePayload))->toBeTrue();
+
+    // Verify input_email and input_name are present and populated with user's info
+    $inputEmail = null;
+    $inputName = null;
+    foreach ($profilePayload as $comp) {
+        if (!is_array($comp) || !isset($comp['name'])) {
+            continue;
+        }
+        if ($comp['name'] === 'input_email') {
+            $inputEmail = $comp;
+        } elseif ($comp['name'] === 'input_name') {
+            $inputName = $comp;
+        }
+    }
+
+    expect($inputEmail)->not->toBeNull();
+    expect($inputEmail['value'])->toBe($email);
+    expect($inputName)->not->toBeNull();
+    expect($inputName['value'])->toBe('Juan Diego Olivares');
+
+    // 6. Confirm logout from user_menu via SPA without redirect
+    $logoutResponse = $ui->action('user_menu', 'confirm_logout', []);
+    $logoutResponse->assertOk();
+    $logoutPayload = $logoutResponse->json();
+    expect($logoutPayload['redirect'] ?? null)->toBeNull();
+    expect($logoutPayload['toast']['type'] ?? null)->toBe('success');
+    expect($logoutPayload['navigate'] ?? null)->toBeArray();
+    expect($logoutPayload['navigate']['url'])->toBe(\App\UI\Screens\Home::getRoutePath());
+    expect(Auth::check())->toBeFalse();
+
+    $loggedOutUserMenu = $logoutPayload[$userMenuId] ?? null;
+    expect($loggedOutUserMenu)->not->toBeNull();
+    expect($loggedOutUserMenu['trigger']['label'] ?? '')->toBe('⚙️');
 });

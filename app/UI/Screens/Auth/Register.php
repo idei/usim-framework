@@ -32,6 +32,7 @@ class Register extends Screen
     public static Visibility $visibility = Visibility::GUEST;
 
     protected Label $lbl_register_result;
+    protected string $store_token = '';
 
     public static function authorize(): bool
     {
@@ -70,12 +71,13 @@ class Register extends Screen
         }
 
         $wrapper = UI::container('register_wrapper')
-            ->plain()
-            ->minWidth(Size::px(600))
+            ->card()
+            ->minWidth(Size::px(400))
+            ->maxWidth(Size::px(490))
             ->width(Size::full())
             ->justifyContent(JustifyContent::CENTER)
             ->alignItems(AlignItems::CENTER)
-            ->padding(Spacing::px(5));
+            ->padding(Spacing::px(8));
 
         $card = UI::container('register_card')
             ->plain()
@@ -326,6 +328,10 @@ class Register extends Screen
 
         $user = $result->user;
         if ($user instanceof User) {
+            if ($result->token !== null) {
+                $this->store_token = $result->token;
+            }
+
             $this->authSessionService->establishSession($user, null, $result->token);
 
             if ($this->isOpenedAsModal()) {

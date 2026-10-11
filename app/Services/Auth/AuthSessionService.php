@@ -75,9 +75,44 @@ class AuthSessionService
             'timestamp' => now(),
             'unit' => $activeUnitSlug ?? 'main',
             'home_screen' => $resolvedHomeScreen,
+            'token' => $token,
         ]));
 
         return $resolvedHomeScreen::getRoutePath();
+    }
+
+    /**
+     * Terminate the user session, revoke auth tokens, and dispatch domain logout event.
+     *
+     * @param User|null $user
+     * @return class-string<\Idei\Usim\Screen>
+     */
+    public function logout(?User $user = null): string
+    {
+        /** @var User|null $currentUser */
+        $currentUser = $user ?? (Auth::user() instanceof User ? Auth::user() : null);
+
+        if ($currentUser instanceof User) {
+            $currentUser->tokens()->where('name', 'like', 'auth_token%')->delete();
+        }
+
+        Auth::guard('web')->logout();
+        UIStateManager::setAuthToken(null);
+        UIStateManager::setActiveUnit(null);
+
+        if (function_exists('setPermissionsTeamId') && config('permission.teams')) {
+            setPermissionsTeamId(null);
+        }
+
+        /** @var class-string<\Idei\Usim\Screen> $homeScreen */
+        $homeScreen = Home::class;
+
+        event(new UsimEvent('user_logged_out', [
+            'user' => $currentUser,
+            'home_screen' => $homeScreen,
+        ]));
+
+        return $homeScreen;
     }
 
     /**

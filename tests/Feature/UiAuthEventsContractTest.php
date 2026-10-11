@@ -1,11 +1,11 @@
 <?php
 // @usim: feature="auth", type="test"
-
 use App\Models\User;
 use App\UI\Screens\Auth\ForgotPassword;
 use App\UI\Screens\Auth\Login;
 use App\UI\Screens\Auth\ResetPassword;
 use App\UI\Screens\Menu;
+use Illuminate\Support\Facades\Auth;
 
 it('returns redirect contract on successful login event', function () {
     /** @var \Tests\TestCase $this */
@@ -83,7 +83,7 @@ it('returns UI error feedback when reset-password has mismatched confirmation', 
     expect($response->json('redirect'))->toBeNull();
 });
 
-it('returns redirect contract on confirm_logout event from menu screen', function () {
+it('handles confirm_logout event via SPA without redirect and resets user session', function () {
     /** @var \Tests\TestCase $this */
     /** @var User $user */
     $user = User::factory()->create();
@@ -101,4 +101,8 @@ it('returns redirect contract on confirm_logout event from menu screen', functio
     ]);
 
     $response->assertOk();
+    expect($response->json('redirect'))->toBeNull();
+    expect($response->json('toast.type'))->toBe('success');
+    expect($response->json('navigate.url'))->toBe(\App\UI\Screens\Home::getRoutePath());
+    expect(Auth::check())->toBeFalse();
 });

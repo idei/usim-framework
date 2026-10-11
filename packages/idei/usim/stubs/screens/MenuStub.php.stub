@@ -486,6 +486,11 @@ class Menu extends Screen
         $user = $params['user'] ?? null;
         $unitValue = $params['unit'] ?? '';
         $homeScreen = $params['home_screen'] ?? null;
+        $token = $params['token'] ?? null;
+
+        if (\is_string($token) && $token !== '') {
+            $this->store_token = $token;
+        }
 
         if (\is_string($unitValue) && $unitValue !== '') {
             UIStateManager::setActiveUnit($unitValue);
@@ -526,20 +531,39 @@ class Menu extends Screen
      */
     public function onConfirmLogout(array $params): void
     {
-        /** @var User|null $user */
-        $user = Auth::user();
-        if ($user) {
-            $user->tokens()->where('name', 'like', 'auth_token%')->delete();
+        if (UIStateManager::getClientActiveModal() !== null) {
+            $this->closeModal();
         }
 
-        Auth::logout();
-        UIStateManager::setAuthToken(null);
-        UIStateManager::setActiveUnit(null);
+        $homeScreen = $this->authSessionService->logout();
 
-        if (function_exists('setPermissionsTeamId') && config('permission.teams')) {
-            setPermissionsTeamId(null);
+        $this->toast(t('screen.menu.logout_success'), 'success');
+        $this->resetToGuestState($homeScreen);
+    }
+
+    /**
+     * Handles domain event when a user logs out.
+     *
+     * @param array<string, mixed> $params
+     * @return void
+     */
+    public function onUserLoggedOut(array $params): void
+    {
+        if ($this->store_token === '' && !Auth::check()) {
+            return;
         }
 
+        /** @var class-string<Screen>|string|null $homeScreen */
+        $homeScreen = $params['home_screen'] ?? Home::class;
+        $targetClass = \is_string($homeScreen) && class_exists($homeScreen) && is_subclass_of($homeScreen, Screen::class)
+            ? $homeScreen
+            : Home::class;
+
+        $this->resetToGuestState($targetClass);
+    }
+
+    private function resetToGuestState(string $homeScreen): void
+    {
         $this->store_token = '';
         if ($this->unit_menu !== null) {
             $this->unit_menu->trigger('🏢');
@@ -550,8 +574,7 @@ class Menu extends Screen
         $this->populateUserMenu($this->user_menu);
         $this->populateMainMenu($this->main_menu);
 
-        $this->toast(t('screen.menu.logout_success'));
-        $this->redirect();
+        $this->showInto($homeScreen, force: true, updateBrowserUrl: true);
     }
 
     /**

@@ -19,9 +19,9 @@ use Illuminate\Support\Facades\Password;
 
 class Profile extends Screen
 {
-    protected Input $input_email;
-    protected Input $input_name;
-    protected Uploader $uploader_profile;
+    protected ?Input $input_email = null;
+    protected ?Input $input_name = null;
+    protected ?Uploader $uploader_profile = null;
 
     public static function authorize(): bool
     {
@@ -44,6 +44,52 @@ class Profile extends Screen
         $user = Auth::user();
 
         if (!$user instanceof \App\Models\User) {
+            $wrapper = UI::container('profile_wrapper')
+                ->maxWidth(Size::px(600))
+                ->centerHorizontal()
+                ->plain()
+                ->padding(Spacing::each(
+                    Spacing::px(5),
+                    Spacing::px(20),
+                    Spacing::px(20),
+                    Spacing::px(20)
+                ));
+
+            if ($this->isOpenedAsModal()) {
+                $header = UI::container('profile_modal_header')
+                    ->layout(LayoutType::HORIZONTAL)
+                    ->justifyContent(JustifyContent::SPACE_BETWEEN)
+                    ->alignItems(AlignItems::CENTER)
+                    ->plain()
+                    ->shadow(false)
+                    ->padding(Spacing::zero())
+                    ->margin(Spacing::px(5));
+
+                $header->add(
+                    UI::label('lbl_title')
+                        ->text("👤 Configuración de Perfil")
+                        ->style('h3')
+                );
+
+                $header->add(
+                    UI::button('btn_close_modal')
+                        ->label('✕')
+                        ->action('close_modal')
+                        ->style('secondary')
+                        ->variant('ghost')
+                        ->plain()
+                );
+
+                $wrapper->add($header);
+            }
+
+            $wrapper->add(
+                UI::label('lbl_unauthenticated')
+                    ->text(t('screen.auth.profile.unauthenticated'))
+                    ->style('error')
+            );
+
+            $container->add($wrapper);
             return;
         }
 
@@ -152,7 +198,7 @@ class Profile extends Screen
     {
         $user = Auth::user();
 
-        if (!$user instanceof \App\Models\User) {
+        if (!$user instanceof \App\Models\User || $this->input_email === null || $this->input_name === null || $this->uploader_profile === null) {
             return;
         }
 
@@ -185,8 +231,13 @@ class Profile extends Screen
     public function onSaveProfile(array $params): void
     {
         try {
-            /** @var \App\Models\User $user */
+            /** @var \App\Models\User|null $user */
             $user = Auth::user();
+
+            if (!$user instanceof \App\Models\User || $this->input_name === null || $this->uploader_profile === null) {
+                $this->toast(t('screen.auth.profile.toast.unauthenticated'), 'error');
+                return;
+            }
 
             // Obtener datos del formulario
             $rawName = $params['input_name'] ?? '';
