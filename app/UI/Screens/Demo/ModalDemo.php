@@ -32,19 +32,21 @@ class ModalDemo extends Screen
 
     protected function buildBaseUI(Container $container, ...$params): void
     {
-        $container
-            ->maxWidth(Size::px(600))
-            ->centerHorizontal()
-            ->shadow(2)
-            ->padding(Spacing::px(30));
+        $wrapper = UI::container('wrapper')
+            ->card()
+            ->maxWidth(Size::px(650))
+            ->minWidth(Size::px(650))
+            ->padding(Spacing::px(8))
+            ->centerHorizontal();
 
-        $container->add(
+        $wrapper->add(
             UI::label('lbl_instruction')
                 ->text(t('screen.demo.modal_demo.instruction'))
-                ->style('info')
+                ->style('h3')
+                ->center()
         );
 
-        $container->add(
+        $wrapper->add(
             UI::label('lbl_result')
                 ->text('')
                 ->style('default')
@@ -93,7 +95,8 @@ class ModalDemo extends Screen
                     ->action('open_user_modal')
                     ->width(Size::px(230))
             );
-        $container->add($buttonContainer);
+        $wrapper->add($buttonContainer);
+        $container->add($wrapper);
     }
 
     /**
