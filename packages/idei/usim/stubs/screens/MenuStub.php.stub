@@ -79,24 +79,28 @@ class Menu extends Screen
             $this->store_lang = $this->normalizeLocale(app()->getLocale() ?: config('usim.i18n.fallback_locale', 'en'));
         }
         $this->lang_menu = $this->buildLangMenu();
-        $this->lang_menu->marginLeft(Spacing::px(12));
-        $this->user_menu->marginLeft(Spacing::px(12));
-
-        $container->add($this->main_menu);
 
         $this->theme_toggle = UI::button('theme_toggle')
             ->action('toggleTheme')
-            ->plain()
-            ->marginLeft(Spacing::auto());
-        $container->add($this->theme_toggle);
+            ->plain();
 
         $units = $this->usimUnitsService->getAvailableUnits();
         $this->unit_menu = $this->buildUnitMenu($units);
-        $this->unit_menu->marginLeft(Spacing::px(12));
-        $container->add($this->unit_menu);
 
-        $container->add($this->lang_menu);
-        $container->add($this->user_menu);
+        $rightSection = UI::container('menu_right_section')
+            ->plain()
+            ->layout(LayoutType::HORIZONTAL)
+            ->alignItems(AlignItems::CENTER)
+            ->gap(Spacing::px(12))
+            ->marginLeft(Spacing::auto());
+
+        $rightSection->add($this->theme_toggle);
+        $rightSection->add($this->unit_menu);
+        $rightSection->add($this->lang_menu);
+        $rightSection->add($this->user_menu);
+
+        $container->add($this->main_menu);
+        $container->add($rightSection);
         $this->updateThemeButton();
     }
 

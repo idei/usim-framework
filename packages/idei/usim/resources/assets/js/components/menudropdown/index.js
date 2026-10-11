@@ -231,6 +231,36 @@ class UsimMenuDropdownComponent extends UIComponent {
                 }
             }
         }
+
+        if (changes.trigger !== undefined) {
+            this.config.trigger = changes.trigger;
+            const trigger = element.querySelector('.menu-dropdown-trigger');
+            if (trigger) {
+                const triggerConfig = changes.trigger;
+                const triggerLabel = triggerConfig.label || '☰ Menu';
+                const triggerIcon = triggerConfig.icon;
+                const triggerImage = triggerConfig.image;
+                const triggerAlt = triggerConfig.alt || 'Menu';
+                const triggerStyle = triggerConfig.style || 'default';
+
+                trigger.className = `menu-dropdown-trigger menu-trigger-${triggerStyle}`;
+
+                let triggerContent = '';
+                if (triggerImage) {
+                    triggerContent += `<img src="${triggerImage}" alt="${triggerAlt}" class="trigger-image">`;
+                    if (triggerLabel) {
+                        triggerContent += `<span class="trigger-label">${triggerLabel}</span>`;
+                    }
+                } else {
+                    if (triggerIcon) {
+                        triggerContent += `<span class="trigger-icon">${triggerIcon}</span>`;
+                    }
+                    triggerContent += `<span class="trigger-label">${triggerLabel}</span>`;
+                }
+
+                trigger.innerHTML = triggerContent;
+            }
+        }
     }
 
     closeAllMenus() {

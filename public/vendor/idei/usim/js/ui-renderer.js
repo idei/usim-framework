@@ -1647,6 +1647,7 @@ class UIRenderer {
             const navTitle = uiUpdate.navigate.title || document.title;
             const slotTarget = uiUpdate.navigate.slot || 'content_container';
             const slotContainerId = uiUpdate.navigate.slot_container_id || slotTarget;
+            this.currentNavigateSlotId = slotContainerId;
             if (navUrl && window.history && typeof window.history.pushState === 'function') {
                 window.history.pushState({ path: navUrl, route: navRoute, slot: slotTarget }, navTitle, navUrl);
                 if (navTitle) {
@@ -1718,7 +1719,11 @@ class UIRenderer {
         let containerElement = document.querySelector(`[data-component-id="${containerId}"]`)
             || document.getElementById(String(containerId));
 
-        if (!containerElement && (containerId === 104921240 || String(containerId) === '104921240' || containerId === 'content_container' || containerId === 'main')) {
+        if (!containerElement && (
+            containerId === 104921240 || String(containerId) === '104921240' ||
+            containerId === 'content_container' || containerId === 'main' ||
+            (this.currentNavigateSlotId && String(containerId) === String(this.currentNavigateSlotId))
+        )) {
             containerElement = document.getElementById('content_container')
                 || document.querySelector('[data-component-id="104921240"]')
                 || document.getElementById('main');
@@ -2502,10 +2507,10 @@ class UIRenderer {
                 return true;
             }
 
-            if (!(parentElement instanceof HTMLElement)) {
+            if (!(parentElement instanceof HTMLElement) || !parentElement.isConnected) {
                 parentElement = document.querySelector(`[data-component-id="${config.parent}"]`)
                     || document.getElementById(String(config.parent))
-                    || (config.parent === 104921240 || String(config.parent) === '104921240' || config.parent === 'content_container'
+                    || (config.parent === 104921240 || String(config.parent) === '104921240' || config.parent === 'content_container' || (this.currentNavigateSlotId && String(config.parent) === String(this.currentNavigateSlotId))
                         ? document.getElementById('content_container') || document.querySelector('[data-component-id="104921240"]')
                         : null)
                     || (config.parent === 'main' ? document.getElementById('main') : null);

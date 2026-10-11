@@ -33,7 +33,7 @@ class MainLayout extends AbstractLayout
             ->minHeight(Size::vh(100));
 
         // 1. Top menu slot container
-        $mainMenuContainer = UI::container('main_menu_container')
+        $mainMenuContainer = UI::container('main_menu_container', static::class)
             ->plain()
             ->width(Size::full())
             ->padding(Spacing::px(0))
@@ -63,7 +63,7 @@ class MainLayout extends AbstractLayout
         }
 
         // 2. Main content slot container
-        $contentContainer = UI::container('content_container')
+        $contentContainer = UI::container('content_container', static::class)
             ->plain()
             ->width(Size::full())
             ->flexGrow(1);

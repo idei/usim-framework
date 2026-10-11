@@ -4,6 +4,7 @@ namespace Idei\Usim\Layout;
 
 use Closure;
 use Idei\Usim\Components\Container;
+use Idei\Usim\Contracts\ComponentIdGeneratorInterface;
 use Idei\Usim\Screen;
 use Idei\Usim\Support\UIStateManager;
 use Idei\Usim\UIChangesCollector;
@@ -169,6 +170,17 @@ abstract class AbstractLayout extends Screen implements LayoutInterface
      * Subclasses can override this to configure layout containers and slots.
      */
     protected function buildBaseUI(Container $container, ...$params): void {}
+
+    public function callBuildBaseUI(Container $container, mixed ...$params): void
+    {
+        $idGenerator = app(ComponentIdGeneratorInterface::class);
+        $idGenerator->pushCurrentContext(static::class);
+        try {
+            parent::callBuildBaseUI($container, ...$params);
+        } finally {
+            $idGenerator->popCurrentContext();
+        }
+    }
 
     /**
      * Backward-compatible bridge to build layout structure with a content builder callback.
