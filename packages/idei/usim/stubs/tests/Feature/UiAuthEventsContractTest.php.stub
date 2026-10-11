@@ -1,11 +1,11 @@
 <?php
 // @usim: feature="auth", type="test"
-
 use {{ userModel }};
 use {{ screensNamespace }}\Auth\ForgotPassword;
 use {{ screensNamespace }}\Auth\Login;
 use {{ screensNamespace }}\Auth\ResetPassword;
 use {{ screensNamespace }}\Menu;
+use Illuminate\Support\Facades\Auth;
 
 it('returns redirect contract on successful login event', function () {
     /** @var \Tests\TestCase $this */

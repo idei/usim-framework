@@ -14,6 +14,7 @@ use Idei\Usim\Enums\AlignItems;
 use Idei\Usim\Enums\JustifyContent;
 use Idei\Usim\Enums\LayoutType;
 use Idei\Usim\Enums\Visibility;
+use Idei\Usim\Events\UsimEvent;
 use Idei\Usim\Screen;
 use Idei\Usim\UI;
 use Idei\Usim\ValueObjects\Size;
@@ -146,18 +147,18 @@ class Login extends Screen
     {
         try {
             $credentials = LoginRequest::validateData($params);
-        } catch (ValidationException) {
+        } catch (ValidationException $e) {
             $message = t('service.auth.login.validation_errors');
-            $this->toast(
-                message: $message,
-                type: 'error'
-            );
-            if (isset($this->lbl_login_result)) {
-                $this->lbl_login_result->text($message)->style('error');
-            }
+            event(new UsimEvent('login_failed', [
+                'email' => is_string($params['login_email'] ?? ($params['email'] ?? null)) ? ($params['login_email'] ?? $params['email']) : '',
+                'message' => $message,
+                'errors' => $e->errors(),
+            ]));
 
             return;
         }
+
+        $this->state_email = $credentials['email'];
 
         $loginCredentials = new LoginCredentials(
             email: $credentials['email'],
@@ -165,45 +166,66 @@ class Login extends Screen
             remember: $credentials['remember'],
         );
 
-        $result = $this->loginAction->execute($loginCredentials, startSession: true);
-
-        $message = $result->message;
-        $status = $result->isSuccess() ? 'success' : 'error';
-        $this->toast(
-            message: $message,
-            type: $status
-        );
-        if (isset($this->lbl_login_result)) {
-            $this->lbl_login_result->text($message)->style($status);
-        }
-
-        if (! $result->isSuccess()) {
-            return;
-        }
-
-        if ($result->token !== null) {
-            $this->store_token = $result->token;
-        }
-        $this->state_email = $credentials['email'];
-
-        if (! empty($result->redirectTo)) {
-            $this->redirect($result->redirectTo);
-        }
-
-        if ($this->isOpenedAsModal() || empty($result->redirectTo)) {
-            $this->closeModal();
-        }
+        $this->loginAction->execute($loginCredentials, startSession: true);
     }
 
     /**
+     * Handles domain event when a user logs in successfully.
+     *
      * @param  array<string, mixed>  $params
      */
     public function onLoggedUser(array $params): void
     {
-        /** @var User|null $user */
-        $user = $params['user'] ?? null;
-        $unitValue = $params['unit'] ?? '';
+        $token = $params['token'] ?? null;
+        if (\is_string($token) && $token !== '') {
+            $this->store_token = $token;
+        }
+
+        $message = \is_string($params['message'] ?? null)
+            ? $params['message']
+            : t('service.auth.login.success');
+
+        $this->toast(
+            message: $message,
+            type: 'success'
+        );
+
+        if (isset($this->lbl_login_result)) {
+            $this->lbl_login_result->text($message)->style('success');
+        }
+
+        if ($this->isOpenedAsModal()) {
+            $this->closeModal();
+
+            return;
+        }
+
+        /** @var class-string<Screen>|string|null $homeScreen */
         $homeScreen = $params['home_screen'] ?? null;
+        if (\is_string($homeScreen) && class_exists($homeScreen) && is_subclass_of($homeScreen, Screen::class)) {
+            $this->showInto($homeScreen, force: true, updateBrowserUrl: true);
+        }
+    }
+
+    /**
+     * Handles domain event when a login attempt fails.
+     *
+     * @param  array<string, mixed>  $params
+     */
+    public function onLoginFailed(array $params): void
+    {
+        $message = \is_string($params['message'] ?? null)
+            ? $params['message']
+            : t('service.auth.login.invalid_credentials');
+
+        $this->toast(
+            message: $message,
+            type: 'error'
+        );
+
+        if (isset($this->lbl_login_result)) {
+            $this->lbl_login_result->text($message)->style('error');
+        }
     }
 
     public function onCloseLoginDialog(): void
@@ -214,6 +236,6 @@ class Login extends Screen
             return;
         }
 
-        $this->redirect('/');
+        $this->showInto(\App\UI\Screens\Home::class, force: true, updateBrowserUrl: true);
     }
 }

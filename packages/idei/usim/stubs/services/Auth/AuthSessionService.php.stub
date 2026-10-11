@@ -76,6 +76,7 @@ class AuthSessionService
             'unit' => $activeUnitSlug ?? 'main',
             'home_screen' => $resolvedHomeScreen,
             'token' => $token,
+            'message' => t('service.auth.login.success'),
         ]));
 
         return $resolvedHomeScreen::getRoutePath();

@@ -14,35 +14,65 @@ use Idei\Usim\DTOs\PasswordResetResult;
 use Idei\Usim\Enums\AuthStatus;
 use Idei\Usim\Screen;
 use Idei\Usim\Testing\ScreenTestHarness;
+use Mockery;
 
-it('submits login and navigates on success using direct Screen and custom expectations', function () {
+it('navigates via redirect using direct Screen and custom expectations', function () {
+    /** @var Login $screen */
+    $screen = Screen::make(Login::class);
+    $screen->navigate_forgot_password();
+
+    expect($screen->getUiChanges()->hasRedirect('/auth/forgot-password'))->toBeTrue();
+    expect($screen)->toContainRedirect('/auth/forgot-password');
+});
+
+it('submits login and updates UI on success using direct Screen and custom expectations', function () {
     $loginAction = Mockery::mock(LoginActionInterface::class);
     $loginAction->shouldReceive('execute')
         ->once()
-        ->andReturn(AuthResult::success('/dashboard'));
+        ->andReturnUsing(function () {
+            event(new \Idei\Usim\Events\UsimEvent('logged_user', [
+                'token' => 'mock-jwt-token',
+                'message' => 'Login successful',
+            ]));
+
+            return AuthResult::success(
+                redirectTo: '/home',
+                token: 'mock-jwt-token',
+                message: 'Login successful'
+            );
+        });
 
     app()->instance(LoginActionInterface::class, $loginAction);
 
     /** @var Login $screen */
     $screen = Screen::make(Login::class);
+    $screen->render();
     $screen->submit_login([
         'login_email' => 'admin@test.com',
         'login_password' => 'secret',
     ]);
 
-    expect($screen->getUiChanges())->toContainRedirect('/dashboard');
-    expect($screen)->toContainRedirect('/dashboard');
+    expect($screen->getUiChanges())->toContainToast('Login successful', 'success');
+    expect($screen)->toContainToast('Login successful', 'success');
+    expect($screen->getUiChanges()->hasRedirect())->toBeFalse();
 });
 
 it('handles login failure and produces error toast using ScreenTestHarness', function () {
     $loginAction = Mockery::mock(LoginActionInterface::class);
     $loginAction->shouldReceive('execute')
         ->once()
-        ->andReturn(AuthResult::failed(AuthStatus::BAD_CREDENTIALS, 'Invalid credentials'));
+        ->andReturnUsing(function () {
+            event(new \Idei\Usim\Events\UsimEvent('login_failed', [
+                'message' => 'Invalid credentials',
+            ]));
+
+            return AuthResult::failed(AuthStatus::BAD_CREDENTIALS, 'Invalid credentials');
+        });
 
     app()->instance(LoginActionInterface::class, $loginAction);
 
     $harness = ScreenTestHarness::for(Login::class);
+    $harness->render();
     $harness->call('submit_login', [
         'login_email' => 'admin@test.com',
         'login_password' => 'wrong',

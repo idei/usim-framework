@@ -26,11 +26,18 @@ it('allows Login screen to be tested in memory with mocked LoginActionInterface 
                 && $credentials->password === 'secret123'
                 && $startSession === true;
         })
-        ->andReturn(AuthResult::success(
-            redirectTo: '/dashboard',
-            token: 'mock-auth-token-123',
-            message: 'Inicio de sesión exitoso'
-        ));
+        ->andReturnUsing(function () {
+            event(new \Idei\Usim\Events\UsimEvent('logged_user', [
+                'token' => 'mock-auth-token-123',
+                'message' => 'Inicio de sesión exitoso',
+            ]));
+
+            return AuthResult::success(
+                redirectTo: '/dashboard',
+                token: 'mock-auth-token-123',
+                message: 'Inicio de sesión exitoso'
+            );
+        });
 
     app()->instance(LoginActionInterface::class, $loginActionMock);
 
@@ -56,10 +63,16 @@ it('allows Login screen to handle failure in memory with mocked LoginActionInter
     $loginActionMock = Mockery::mock(LoginActionInterface::class);
     $loginActionMock->shouldReceive('execute')
         ->once()
-        ->andReturn(AuthResult::failed(
-            status: AuthStatus::BAD_CREDENTIALS,
-            message: 'Credenciales inválidas'
-        ));
+        ->andReturnUsing(function () {
+            event(new \Idei\Usim\Events\UsimEvent('login_failed', [
+                'message' => 'Credenciales inválidas',
+            ]));
+
+            return AuthResult::failed(
+                status: AuthStatus::BAD_CREDENTIALS,
+                message: 'Credenciales inválidas'
+            );
+        });
 
     app()->instance(LoginActionInterface::class, $loginActionMock);
 

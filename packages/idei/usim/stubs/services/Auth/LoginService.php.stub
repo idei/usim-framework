@@ -11,6 +11,7 @@ use Idei\Usim\Contracts\LoginActionInterface;
 use Idei\Usim\DTOs\AuthResult;
 use Idei\Usim\DTOs\LoginCredentials;
 use Idei\Usim\Enums\AuthStatus;
+use Idei\Usim\Events\UsimEvent;
 use Idei\Usim\Screen;
 use Illuminate\Support\Facades\Hash;
 
@@ -56,10 +57,19 @@ class LoginService implements LoginActionInterface
         $user = User::where('email', $email)->first();
 
         if (! $user || ! Hash::check($password, $user->password)) {
+            $message = t('service.auth.login.invalid_credentials');
+            $errors = ['email' => [t('service.auth.login.invalid_credentials_detail')]];
+
+            event(new UsimEvent('login_failed', [
+                'email' => $email,
+                'message' => $message,
+                'errors' => $errors,
+            ]));
+
             return [
                 'status' => 'error',
-                'message' => t('service.auth.login.invalid_credentials'),
-                'errors' => ['email' => [t('service.auth.login.invalid_credentials_detail')]],
+                'message' => $message,
+                'errors' => $errors,
             ];
         }
 
