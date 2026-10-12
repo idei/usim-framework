@@ -8,6 +8,7 @@ use Idei\Usim\Components\Input;
 use Idei\Usim\Components\Label;
 use Idei\Usim\Enums\Visibility;
 use Idei\Usim\Screen;
+use Idei\Usim\UI;
 use Idei\Usim\ValueObjects\Size;
 use Idei\Usim\ValueObjects\Spacing;
 
@@ -23,20 +24,20 @@ class FormDemo extends Screen
 
     protected function buildBaseUI(Container $container, ...$params): void
     {
-        $container
+        $wrapper = UI::container()
             ->card()
             ->maxWidth(Size::px(500))
             ->centerHorizontal()
-            ->shadow(2)
-            ->padding(Spacing::px(30));
+            ->padding(Spacing::px(20));
 
-        $container->add(
+        $wrapper->add(
             $this->lbl_instruction
                 ->text(t('screen.demo.form_demo.instruction'))
-                ->style('info')
+                ->center()
+                ->style('h3')
         );
 
-        $container->add(
+        $wrapper->add(
             $this->input_name
                 ->label(t('screen.demo.form_demo.name.label'))
                 ->placeholder(t('screen.demo.form_demo.name.placeholder'))
@@ -46,7 +47,7 @@ class FormDemo extends Screen
                 ->width(Size::full())
         );
 
-        $container->add(
+        $wrapper->add(
             $this->input_email
                 ->label(t('screen.demo.form_demo.email.label'))
                 ->placeholder(t('screen.demo.form_demo.email.placeholder'))
@@ -56,19 +57,21 @@ class FormDemo extends Screen
                 ->width(Size::full())
         );
 
-        $container->add(
+        $wrapper->add(
             $this->btn_submit
                 ->label(t('screen.demo.form_demo.actions.submit'))
                 ->action('submit_form')
                 ->style('primary')
         );
 
-        $container->add(
+        $wrapper->add(
             $this->lbl_result
                 ->text(t('screen.demo.form_demo.result.initial'))
                 ->style('secondary')
                 ->width(Size::full())
         );
+
+        $container->add($wrapper);
     }
 
     protected function postLoadUI(): void
