@@ -65,21 +65,6 @@ class InstallAppScaffoldingManager
         $this->installScreen('Auth/EmailVerified.php.stub', 'EmailVerified.php', 'Auth', $context, $publishStub, $line);
         $this->installScreen('Auth/Profile.php.stub', 'Profile.php', 'Auth', $context, $publishStub, $line);
 
-        // $newLine();
-        // $info('Installing Modal components...');
-        // $this->installComponent('Modals/RegisterDialog.php.stub', 'RegisterDialog.php', 'Modals', $context, $publishStub, $line);
-        // $this->installComponent('Modals/EditUserDialog.php.stub', 'EditUserDialog.php', 'Modals', $context, $publishStub, $line);
-        // $this->installComponent('Modals/EditTranslationDialog.php.stub', 'EditTranslationDialog.php', 'Modals', $context, $publishStub, $line);
-        // $this->installComponent('Modals/TermsDialog.php.stub', 'TermsDialog.php', 'Modals', $context, $publishStub, $line);
-
-        // $newLine();
-        // $info('Installing DataTable components...');
-        // $this->installScreen('Admin/TableModels/UserTableModel.php.stub', 'UserTableModel.php', 'Admin/TableModels', $context, $publishStub, $line);
-        // $this->installScreen('Admin/TableModels/RoleTableModel.php.stub', 'RoleTableModel.php', 'Admin/TableModels', $context, $publishStub, $line);
-        // $this->installScreen('Admin/TableModels/PermissionTableModel.php.stub', 'PermissionTableModel.php', 'Admin/TableModels', $context, $publishStub, $line);
-        // // TODO: A ESTO HAY QUE MOFIFICARLO
-        // // $this->installComponent('DataTable/UserTableModel.php.stub', 'UserTableModel.php', 'DataTable', $context, $publishStub, $line);
-
         $newLine();
         $info('Installing Form Requests...');
         $this->installRequest('Auth/LoginRequest.php.stub', 'LoginRequest.php', 'Auth', $context, $publishStub, $line);

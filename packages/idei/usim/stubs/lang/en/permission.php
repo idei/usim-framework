@@ -129,4 +129,10 @@ return [
             'description' => 'Permission to access Pepito.',
         ],
     ],
+    'home_stub' => [
+        'access' => [
+            'name' => 'Access Home Stub',
+            'description' => 'Permission to access Home Stub.',
+        ],
+    ],
 ];

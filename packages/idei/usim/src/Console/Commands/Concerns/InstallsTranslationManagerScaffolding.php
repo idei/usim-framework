@@ -10,7 +10,7 @@ trait InstallsTranslationManagerScaffolding
         $this->info('Installing Translation Manager scaffolding...');
 
         $this->installScreen('Admin/TranslateManager.php.stub', 'TranslateManager.php', 'Admin');
-        $this->installComponent('Modals/EditTranslationDialog.php.stub', 'EditTranslationDialog.php', 'Modals');
+        $this->installScreen('Admin/EditTranslationDialog.php.stub', 'EditTranslationDialog.php', 'Admin');
         $this->installScreen('Admin/TableModels/TranslationKeysTableModel.php.stub', 'TranslationKeysTableModel.php', 'Admin/TableModels');
     }
 }
