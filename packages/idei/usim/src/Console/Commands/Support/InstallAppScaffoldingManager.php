@@ -27,7 +27,7 @@ class InstallAppScaffoldingManager
         callable $installActorsManagerScaffolding
     ): void {
         $this->installLayout('MainLayout.php.stub', 'MainLayout.php', $context, $publishStub, $line);
-        $this->installScreen('Home.php.stub', 'Home.php', null, $context, $publishStub, $line);
+        $this->installScreen('HomeStub.php.stub', 'Home.php', null, $context, $publishStub, $line);
         $this->installScreen('MenuStub.php.stub', 'Menu.php', null, $context, $publishStub, $line);
         $this->installScreen('Registered.php.stub', 'Registered.php', null, $context, $publishStub, $line);
 
@@ -65,12 +65,12 @@ class InstallAppScaffoldingManager
         $this->installScreen('Auth/EmailVerified.php.stub', 'EmailVerified.php', 'Auth', $context, $publishStub, $line);
         $this->installScreen('Auth/Profile.php.stub', 'Profile.php', 'Auth', $context, $publishStub, $line);
 
-        $newLine();
-        $info('Installing Modal components...');
-        $this->installComponent('Modals/RegisterDialog.php.stub', 'RegisterDialog.php', 'Modals', $context, $publishStub, $line);
-        $this->installComponent('Modals/EditUserDialog.php.stub', 'EditUserDialog.php', 'Modals', $context, $publishStub, $line);
-        $this->installComponent('Modals/EditTranslationDialog.php.stub', 'EditTranslationDialog.php', 'Modals', $context, $publishStub, $line);
-        $this->installComponent('Modals/TermsDialog.php.stub', 'TermsDialog.php', 'Modals', $context, $publishStub, $line);
+        // $newLine();
+        // $info('Installing Modal components...');
+        // $this->installComponent('Modals/RegisterDialog.php.stub', 'RegisterDialog.php', 'Modals', $context, $publishStub, $line);
+        // $this->installComponent('Modals/EditUserDialog.php.stub', 'EditUserDialog.php', 'Modals', $context, $publishStub, $line);
+        // $this->installComponent('Modals/EditTranslationDialog.php.stub', 'EditTranslationDialog.php', 'Modals', $context, $publishStub, $line);
+        // $this->installComponent('Modals/TermsDialog.php.stub', 'TermsDialog.php', 'Modals', $context, $publishStub, $line);
 
         // $newLine();
         // $info('Installing DataTable components...');

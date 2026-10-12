@@ -127,4 +127,10 @@ return [
             'description' => 'Permite acceder a la pantalla Pepito.',
         ],
     ],
+    'home_stub' => [
+        'access' => [
+            'name' => 'Acceder a Home Stub',
+            'description' => 'Permite acceder a la pantalla Home Stub.',
+        ],
+    ],
 ];

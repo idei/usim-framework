@@ -1,7 +1,5 @@
 <?php
-
 // @usim: feature="admin", type="screen"
-
 namespace App\UI\Screens\Admin;
 
 use App\Services\Device\DeviceService;

@@ -22,6 +22,9 @@ trait InstallsActorsManagerScaffolding
         $concernsBase = "$base/Concerns";
 
         $this->installScreen("$base/UsersManager.php.stub", 'UsersManager.php', $base);
+        $this->installScreen("$base/EditUser.php.stub", 'EditUser.php', $base);
+        $this->installScreen("$base/EditTranslationDialog.php.stub", 'EditTranslationDialog.php', $base);
+        $this->installScreen("$base/AdminDevicePairingScreen.php.stub", 'AdminDevicePairingScreen.php', $base);
 
         $this->installScreen("$tableModelsBase/DeviceTableModel.php.stub", 'DeviceTableModel.php', $tableModelsBase);
         $this->installScreen("$tableModelsBase/PermissionTableModel.php.stub", 'PermissionTableModel.php', $tableModelsBase);
