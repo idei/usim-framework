@@ -2,10 +2,17 @@
 
 namespace Idei\Usim\Concerns;
 
+use Idei\Usim\Components\Container;
+use Idei\Usim\Contracts\UIElement;
+use Idei\Usim\Layout\AbstractLayout;
 use Idei\Usim\Screen;
+use Idei\Usim\Support\UIIdGenerator;
 use Illuminate\Contracts\Encryption\DecryptException;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
+use LogicException;
 use ReflectionClass;
+use ReflectionMethod;
 use ReflectionNamedType;
 use ReflectionProperty;
 
@@ -198,5 +205,159 @@ trait HandlesScreenProperties
 
             $property->setValue($this, $value);
         }
+    }
+
+    /**
+     * Auto-wires uninitialized protected properties typed with instantiable UIElement components.
+     * Sets each property to a new instance initialized with the property's name and deterministic ID.
+     */
+    public function autoWireComponentProperties(): void
+    {
+        $reflection = new ReflectionClass($this);
+        $context = $this->getContextIdentifier();
+        $pushed = false;
+
+        if (UIIdGenerator::getCurrentContext() !== $context) {
+            UIIdGenerator::pushCurrentContext($context);
+            $pushed = true;
+        }
+
+        try {
+            foreach ($reflection->getProperties(ReflectionProperty::IS_PROTECTED) as $property) {
+                // Skip properties declared in Screen base class or AbstractLayout
+                $declaringClass = $property->getDeclaringClass()->getName();
+                if ($declaringClass === Screen::class || $declaringClass === AbstractLayout::class) {
+                    continue;
+                }
+
+                // If already initialized (e.g. explicitly in constructor or with default value), skip
+                if ($property->isInitialized($this)) {
+                    continue;
+                }
+
+                $propertyType = $property->getType();
+                if (! ($propertyType instanceof ReflectionNamedType) || $propertyType->isBuiltin()) {
+                    continue;
+                }
+
+                $className = $propertyType->getName();
+                if (! class_exists($className) || ! is_subclass_of($className, UIElement::class)) {
+                    continue;
+                }
+
+                $refClass = new ReflectionClass($className);
+                if (! $refClass->isInstantiable()) {
+                    continue;
+                }
+
+                $propertyName = $property->getName();
+                $constructor = $refClass->getConstructor();
+                $firstParam = $constructor?->getParameters()[0] ?? null;
+
+                /** @var UIElement $instance */
+                if ($firstParam !== null && $firstParam->getName() === 'name') {
+                    $instance = new $className($propertyName);
+                } elseif ($constructor !== null && $this->constructorHasParameter($constructor, 'name')) {
+                    $instance = new $className(name: $propertyName);
+                } elseif ($constructor === null || $constructor->getNumberOfRequiredParameters() === 0) {
+                    $instance = new $className();
+                    $instance->setName($propertyName);
+                } else {
+                    continue;
+                }
+
+                $property->setValue($this, $instance);
+            }
+        } finally {
+            if ($pushed) {
+                UIIdGenerator::popCurrentContext();
+            }
+        }
+    }
+
+    /**
+     * Reconciles component properties after buildBaseUI:
+     * - Auto-names unnamed components assigned to protected UIElement properties.
+     * - Ensures deterministic ID is synchronized and updates container children index.
+     * - Detects naming mismatches (Fail-Fast LogicException).
+     */
+    public function reconcileComponentProperties(Container $container): void
+    {
+        $reflection = new ReflectionClass($this);
+        $context = $this->getContextIdentifier();
+        $pushed = false;
+
+        if (UIIdGenerator::getCurrentContext() !== $context) {
+            UIIdGenerator::pushCurrentContext($context);
+            $pushed = true;
+        }
+
+        try {
+            foreach ($reflection->getProperties(ReflectionProperty::IS_PROTECTED) as $property) {
+                // Skip properties declared in Screen base class or AbstractLayout
+                $declaringClass = $property->getDeclaringClass()->getName();
+                if ($declaringClass === Screen::class || $declaringClass === AbstractLayout::class) {
+                    continue;
+                }
+
+                if (! $property->isInitialized($this)) {
+                    continue;
+                }
+
+                $propertyType = $property->getType();
+                if (! ($propertyType instanceof ReflectionNamedType) || $propertyType->isBuiltin()) {
+                    continue;
+                }
+
+                $className = $propertyType->getName();
+                if (! is_subclass_of($className, UIElement::class)) {
+                    continue;
+                }
+
+                $value = $property->getValue($this);
+                if (! ($value instanceof UIElement)) {
+                    continue;
+                }
+
+                $propertyName = $property->getName();
+                $currentName = $value->getName();
+
+                $matchesName = ($currentName === $propertyName)
+                    || ($currentName !== null && Str::snake($propertyName) === Str::snake($currentName));
+
+                if ($currentName === null) {
+                    // Auto-assign property name to unnamed component
+                    $oldId = $value->getId();
+                    $value->setName($propertyName);
+
+                    $deterministicId = UIIdGenerator::generateFromName($context, $propertyName);
+                    $value->setId($deterministicId);
+
+                    $container->reindexChild($oldId, $deterministicId);
+                } elseif (! $matchesName) {
+                    // Fail-fast detection: developer wrote $this->lbl_foo = UI::label('lbl_bar')
+                    $screenClass = static::class;
+                    throw new LogicException(
+                        "Naming mismatch in Screen [{$screenClass}]: Property \${$propertyName} was assigned a component explicitly named '{$currentName}'. " .
+                        "Either remove the explicit string name to enable auto-naming, or ensure the property name and component name match."
+                    );
+                }
+            }
+        } finally {
+            if ($pushed) {
+                UIIdGenerator::popCurrentContext();
+            }
+        }
+    }
+
+    private function constructorHasParameter(ReflectionMethod $constructor, string $paramName): bool
+    {
+        foreach ($constructor->getParameters() as $param) {
+            if ($param->getName() === $paramName) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }

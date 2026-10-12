@@ -88,6 +88,21 @@ interface UIElement
     public function setName(?string $name): self;
 
     /**
+     * Get the semantic name of the UI element
+     *
+     * @return string|null The element name, or null if anonymous
+     */
+    public function getName(): ?string;
+
+    /**
+     * Set the unique identifier for this UI element
+     *
+     * @param  int  $id  The new element ID
+     * @return self For method chaining
+     */
+    public function setId(int $id): self;
+
+    /**
      * Get the parent where this element belongs
      *
      * @return int|string|null The parent (int = parent ID, string = parent name, null = no parent)

@@ -268,6 +268,16 @@ abstract class UIComponent implements Marginable, Sizeable, UIElement
     /**
      * {@inheritDoc}
      */
+    public function setId(int $id): static
+    {
+        $this->id = $id;
+
+        return $this;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
     public function getParent(): int|string|null
     {
         return $this->parent;

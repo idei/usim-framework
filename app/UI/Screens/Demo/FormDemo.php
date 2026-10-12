@@ -31,11 +31,11 @@ class FormDemo extends Screen
             ->shadow(2)
             ->padding(Spacing::px(30));
 
-        $container->add(
-            UI::label('lbl_instruction')
-                ->text(t('screen.demo.form_demo.instruction'))
-                ->style('info')
-        );
+        $this->lbl_instruction = UI::label()
+            ->text(t('screen.demo.form_demo.instruction'))
+            ->style('info');
+
+        $container->add($this->lbl_instruction);
 
         $container->add(
             UI::input('input_name')

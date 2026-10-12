@@ -42,6 +42,11 @@ abstract class Screen
     use HandlesNavigation;
     use HandlesScreenProperties;
 
+    public function __construct()
+    {
+        $this->autoWireComponentProperties();
+    }
+
     /**
      * Current container instance
      */
@@ -538,7 +543,9 @@ abstract class Screen
 
     public function callBuildBaseUI(Container $container, mixed ...$params): void
     {
+        $this->autoWireComponentProperties();
         $this->buildBaseUI($container, ...$params);
+        $this->reconcileComponentProperties($container);
     }
 
     public function callPostLoadUI(): void

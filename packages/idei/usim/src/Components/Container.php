@@ -351,8 +351,46 @@ class Container implements Gapable, Marginable, Paddable, Sizeable, UIElement
     public function setName(?string $name): self
     {
         $this->name = $name;
+        if ($name !== null) {
+            $this->config['name'] = $name;
+        } else {
+            unset($this->config['name']);
+        }
 
         return $this;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public function setId(int $id): static
+    {
+        $this->id = $id;
+
+        return $this;
+    }
+
+    /**
+     * Reindex a direct or nested child component when its ID changes.
+     */
+    public function reindexChild(int|string $oldId, int|string $newId): void
+    {
+        $oldKey = (string) $oldId;
+        $newKey = (string) $newId;
+
+        if (array_key_exists($oldKey, $this->children)) {
+            $element = $this->children[$oldKey];
+            unset($this->children[$oldKey]);
+            $this->children[$newKey] = $element;
+
+            return;
+        }
+
+        foreach ($this->children as $child) {
+            if ($child instanceof Container) {
+                $child->reindexChild($oldId, $newId);
+            }
+        }
     }
 
     /**
@@ -1979,14 +2017,7 @@ class Container implements Gapable, Marginable, Paddable, Sizeable, UIElement
     public function findByName(string $name): ?UIElement
     {
         foreach ($this->children as $child) {
-            // Buscar en hijos directos que tengan método getName
-            $childName = null;
-            if (method_exists($child, 'getName')) {
-                /** @var UIComponent|Container $child */
-                $childName = $child->getName();
-            }
-
-            if ($childName === $name) {
+            if ($child->getName() === $name) {
                 return $child;
             }
 

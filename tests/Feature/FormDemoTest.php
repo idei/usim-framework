@@ -14,6 +14,11 @@ it('loads form demo with expected defaults', function () {
         $email = $ui->component('input_email');
         $submit = $ui->component('btn_submit');
         $result = $ui->component('lbl_result');
+        $instruction = $ui->component('lbl_instruction');
+
+        $instruction->expect('type')->toBe('label');
+        $instruction->expect('style')->toBe('info');
+        $instruction->expect('text')->toBe(t('screen.demo.form_demo.instruction'));
 
         $name->expect('type')->toBe('input');
         $name->expect('required')->toBeTrue();

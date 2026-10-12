@@ -35,6 +35,7 @@ use Idei\Usim\Screen;
 use Idei\Usim\UI;
 use Idei\Usim\UIChangesCollector;
 use Idei\Usim\ValueObjects\Spacing;
+use Illuminate\Support\Str;
 use ReflectionClass;
 use ReflectionMethod;
 use ReflectionNamedType;
@@ -564,10 +565,11 @@ class ScreenLifecycleOrchestrator implements ScreenLifecycleOrchestratorInterfac
 
             $typeName = $propertyType->getName();
 
-            // Only process UI component types from the current package namespace.
-            if (str_starts_with($typeName, 'Idei\\Usim\\Components\\')) {
+            // Only process UI component types implementing UIElement or from the package namespace.
+            if (str_starts_with($typeName, 'Idei\\Usim\\Components\\') || is_subclass_of($typeName, UIElement::class)) {
                 $componentName = $property->getName();
-                $component = $container->findByName($componentName);
+                $component = $container->findByName($componentName)
+                    ?? $container->findByName(Str::snake($componentName));
 
                 if ($component) {
                     $property->setValue($screen, $component);
