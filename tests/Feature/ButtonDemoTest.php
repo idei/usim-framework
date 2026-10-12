@@ -10,10 +10,10 @@ it('loads button demo screen with expected components', function () {
     $ui = uiScenario($this, ButtonDemo::class, ['reset' => true]);
 
     $buttonsContainer = $ui->component('buttons_container');
-    $messageContainer = $ui->component('message_container');
+    $demoContainer = $ui->component('demo_container');
 
     $buttonsContainer->expect('type')->toBe('container');
-    $messageContainer->expect('type')->toBe('container');
+    $demoContainer->expect('type')->toBe('container');
 
     $ui->assertNoIssues();
 });

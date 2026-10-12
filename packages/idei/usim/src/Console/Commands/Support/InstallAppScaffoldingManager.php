@@ -167,7 +167,7 @@ class InstallAppScaffoldingManager
     /**
      * @param  array<string, string|bool>  $context
      */
-    private function installComponent(
+    protected function installComponent(
         string $stubName,
         string $targetName,
         ?string $subdirectory,
