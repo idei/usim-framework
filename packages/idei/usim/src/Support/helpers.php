@@ -27,7 +27,7 @@ if (! function_exists('testScreen')) {
     /**
      * Create an in-memory test harness for a Screen.
      *
-     * @template T of \Idei\Usim\Screen
+     * @template T of Screen
      *
      * @param  class-string<T>|T  $screen
      * @param  array<string, mixed>  $storage

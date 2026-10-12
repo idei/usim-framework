@@ -8,7 +8,6 @@ use Idei\Usim\Enums\LayoutType;
 use Idei\Usim\Enums\Visibility;
 use Idei\Usim\Screen;
 use Idei\Usim\UI;
-use Idei\Usim\ValueObjects\Size;
 use Idei\Usim\ValueObjects\Spacing;
 
 class ButtonDemo extends Screen
@@ -35,22 +34,25 @@ class ButtonDemo extends Screen
 
     protected Container $buttons_container;
 
-    protected Container $message_container;
+    protected Container $demo_container;
 
     protected function buildBaseUI(Container $container, ...$params): void
     {
-        $this->message_container = UI::container('message_container')
+        $this->demo_container = UI::container('demo_container')
             ->plain()
-            ->width(Size::px(1100))
             ->padding(Spacing::px(5));
 
-        $container
-            ->alignContent('center')->alignItems('center')
-            ->padding(Spacing::px(10))->maxWidth(Size::px(1200))
-            ->centerHorizontal()->plain()
+        $wrapper = UI::container('wrapper')
+            ->card()
+            ->alignContent('center')
+            ->alignItems('center')
+            ->padding(Spacing::px(10))
+            ->centerHorizontal()
             ->gap(Spacing::px(20))
             ->add($this->buttonsContainer())
-            ->add($this->message_container);
+            ->add($this->demo_container);
+
+        $container->add($wrapper);
     }
 
     private function buttonsContainer(): Container
@@ -109,12 +111,12 @@ class ButtonDemo extends Screen
         }
 
         $this->updateButtonState($id);
-        $this->message_container->embed($screenClass);
+        $this->demo_container->embed($screenClass);
     }
 
     protected function postLoadUI(): void
     {
-        $this->message_container->embed(
+        $this->demo_container->embed(
             $this->options[$this->selectedIndex()]
         );
     }
@@ -128,7 +130,7 @@ class ButtonDemo extends Screen
             }
         }
         $button = $this->findRootComponentAs($id, Button::class);
-        if (! $button && $id !== null) {
+        if (!$button && $id !== null) {
             foreach ($this->buttons_container->getChildren() as $child) {
                 if ($child instanceof Button && $child->getName() === $id) {
                     $button = $child;

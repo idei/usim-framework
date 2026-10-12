@@ -53,6 +53,8 @@ class Menu extends Screen
     protected MenuDropdown $lang_menu;
     protected ?MenuDropdown $unit_menu = null;
     protected Button $theme_toggle;
+    // The first value is the default aspect ratio, the other values are the available options for the user to choose from.
+    protected array $store_aspect_ratio = ['16_9', '9_16'];
     protected string $store_theme = 'dark';
     protected string $store_lang = '';
     protected string $store_token = '';
