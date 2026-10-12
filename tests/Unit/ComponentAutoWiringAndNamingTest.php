@@ -87,12 +87,15 @@ it('auto-wires uninitialized component properties before buildBaseUI runs', func
         ->assertHasComponent('user_input')
         ->assertHasComponent('submit_btn');
 
+    /** @var Label $header */
     $header = $harness->getComponent('lbl_header');
     expect($header->get('text'))->toBe('Welcome');
 
+    /** @var Input $input */
     $input = $harness->getComponent('user_input');
     expect($input->get('value'))->toBe('initial_value');
 
+    /** @var Button $button */
     $button = $harness->getComponent('submit_btn');
     expect($button->get('action'))->toBe('handle_submit');
 });
@@ -104,11 +107,13 @@ it('auto-names unnamed components assigned to properties during buildBaseUI', fu
     $harness->assertHasComponent('lbl_instruction')
         ->assertHasComponent('txt_query');
 
+    /** @var Label $instruction */
     $instruction = $harness->getComponent('lbl_instruction');
     expect($instruction->getName())->toBe('lbl_instruction');
     expect($instruction->get('text'))->toBe('Instructions here');
     expect($instruction->get('style'))->toBe('info');
 
+    /** @var Input $query */
     $query = $harness->getComponent('txt_query');
     expect($query->getName())->toBe('txt_query');
     expect($query->get('value'))->toBe('query');
@@ -126,6 +131,7 @@ it('accepts camelCase property names that match snake_case component names', fun
     $harness->render();
 
     $harness->assertHasComponent('user_greeting_label');
+    /** @var Label $component */
     $component = $harness->getComponent('user_greeting_label');
     expect($component->get('text'))->toBe('Hello User');
 });
@@ -136,6 +142,7 @@ it('allows event handlers to manipulate auto-wired components during actions', f
 
     $harness->call('submit_action');
 
+    /** @var Label $header */
     $header = $harness->getComponent('lbl_header');
     expect($header->get('text'))->toBe('Submitted!');
 });

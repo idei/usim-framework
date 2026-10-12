@@ -8,7 +8,6 @@ use Idei\Usim\Components\Input;
 use Idei\Usim\Components\Label;
 use Idei\Usim\Enums\Visibility;
 use Idei\Usim\Screen;
-use Idei\Usim\UI;
 use Idei\Usim\ValueObjects\Size;
 use Idei\Usim\ValueObjects\Spacing;
 
@@ -31,14 +30,14 @@ class FormDemo extends Screen
             ->shadow(2)
             ->padding(Spacing::px(30));
 
-        $this->lbl_instruction = UI::label()
-            ->text(t('screen.demo.form_demo.instruction'))
-            ->style('info');
-
-        $container->add($this->lbl_instruction);
+        $container->add(
+            $this->lbl_instruction
+                ->text(t('screen.demo.form_demo.instruction'))
+                ->style('info')
+        );
 
         $container->add(
-            UI::input('input_name')
+            $this->input_name
                 ->label(t('screen.demo.form_demo.name.label'))
                 ->placeholder(t('screen.demo.form_demo.name.placeholder'))
                 ->value('')
@@ -48,7 +47,7 @@ class FormDemo extends Screen
         );
 
         $container->add(
-            UI::input('input_email')
+            $this->input_email
                 ->label(t('screen.demo.form_demo.email.label'))
                 ->placeholder(t('screen.demo.form_demo.email.placeholder'))
                 ->value('')
@@ -58,14 +57,14 @@ class FormDemo extends Screen
         );
 
         $container->add(
-            UI::button('btn_submit')
+            $this->btn_submit
                 ->label(t('screen.demo.form_demo.actions.submit'))
                 ->action('submit_form')
                 ->style('primary')
         );
 
         $container->add(
-            UI::label('lbl_result')
+            $this->lbl_result
                 ->text(t('screen.demo.form_demo.result.initial'))
                 ->style('secondary')
                 ->width(Size::full())
