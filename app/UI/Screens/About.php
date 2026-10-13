@@ -32,7 +32,7 @@ class About extends Screen
 
         $wrapper->add(
             $this->lbl_title
-                ->text(t('screen.about.title'))
+                ->text(t('screens.about.title'))
                 ->center()
                 ->style('h3')
         );
@@ -47,7 +47,7 @@ class About extends Screen
 
         $wrapper->add(
             $this->close_button
-                ->label(t('screen.about.close'))
+                ->label(t('screens.about.close'))
                 ->style('primary')
                 ->action('close_modal')
         );

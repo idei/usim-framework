@@ -24,7 +24,7 @@ it('loads checkbox demo with expected defaults', function () {
         $btnSubmit->expect('type')->toBe('button');
         $btnSubmit->expect('action')->toBe('submit_selection');
 
-        $lblResult->expect('text')->toBe(t('screen.demo.checkbox_demo.result.initial'));
+        $lblResult->expect('text')->toBe(t('screens.demo.checkbox_demo.result.initial'));
         $lblResult->expect('style')->toBe('secondary');
 
         $ui->assertNoIssues();
@@ -50,10 +50,10 @@ it('rejects selecting python when javascript is not selected', function () {
 
         $response->assertOk();
         expect($response->json('toast.type'))->toBe('error');
-        expect($response->json('toast.message'))->toBe(t('screen.demo.checkbox_demo.validation.python_requires_javascript'));
+        expect($response->json('toast.message'))->toBe(t('screens.demo.checkbox_demo.validation.python_requires_javascript'));
 
         $ui->component('chk_python')->expect('checked')->toBeFalse();
-        $ui->component('lbl_result')->expect('text')->toBe(t('screen.demo.checkbox_demo.validation.python_requires_javascript'));
+        $ui->component('lbl_result')->expect('text')->toBe(t('screens.demo.checkbox_demo.validation.python_requires_javascript'));
         $ui->component('lbl_result')->expect('style')->toBe('danger');
 
         $ui->assertNoIssues();
@@ -88,7 +88,7 @@ it('allows selecting python after javascript is selected', function () {
 
         $ui->component('chk_javascript')->expect('checked')->toBeTrue();
         $ui->component('chk_python')->expect('checked')->toBeTrue();
-        $ui->component('lbl_result')->expect('text')->toBe(t('screen.demo.checkbox_demo.result.python_selected'));
+        $ui->component('lbl_result')->expect('text')->toBe(t('screens.demo.checkbox_demo.result.python_selected'));
         $ui->component('lbl_result')->expect('style')->toBe('success');
 
         $ui->assertNoIssues();
@@ -114,16 +114,16 @@ it('submits selected languages and shows success feedback', function () {
         expect($response->json('toast.type'))->toBe('success');
 
         $languages = implode(', ', [
-            t('screen.demo.checkbox_demo.options.javascript'),
-            t('screen.demo.checkbox_demo.options.python'),
+            t('screens.demo.checkbox_demo.options.javascript'),
+            t('screens.demo.checkbox_demo.options.python'),
         ]);
 
         expect($response->json('toast.message'))->toBe(
-            t('screen.demo.checkbox_demo.result.submitted_toast', ['languages' => $languages])
+            t('screens.demo.checkbox_demo.result.submitted_toast', ['languages' => $languages])
         );
 
         $ui->component('lbl_result')->expect('text')->toBe(
-            t('screen.demo.checkbox_demo.result.submitted', ['languages' => $languages])
+            t('screens.demo.checkbox_demo.result.submitted', ['languages' => $languages])
         );
         $ui->component('lbl_result')->expect('style')->toBe('success');
 

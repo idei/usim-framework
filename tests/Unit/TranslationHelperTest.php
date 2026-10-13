@@ -4,11 +4,11 @@ use App\UI\Screens\Demo\Events\Main;
 use Idei\Usim\Support\Translation\TranslationResolver;
 
 it('resolves translations for nested files beyond 3 directory levels', function () {
-    expect(t('screen.demo.events.main.menu_title', [], 'en'))->toBe('Events');
-    expect(t('screen.demo.events.main.icon', [], 'en'))->toBe('📣');
+    expect(t('screens.demo.events.main.menu_title', [], 'en'))->toBe('Events');
+    expect(t('screens.demo.events.main.icon', [], 'en'))->toBe('📣');
 
-    expect(t('screen.demo.events.main.menu_title', [], 'es'))->toBe('Eventos');
-    expect(t('screen.demo.events.main.icon', [], 'es'))->toBe('📣');
+    expect(t('screens.demo.events.main.menu_title', [], 'es'))->toBe('Eventos');
+    expect(t('screens.demo.events.main.icon', [], 'es'))->toBe('📣');
 });
 
 it('resolves screen menu label and icon for deeply nested screens', function () {
@@ -22,13 +22,13 @@ it('resolves screen menu label and icon for deeply nested screens', function () 
 });
 
 it('correctly builds translation candidate paths', function () {
-    $candidates = TranslationResolver::buildCandidates('screen.demo.events.main.menu_title');
+    $candidates = TranslationResolver::buildCandidates('screens.demo.events.main.menu_title');
 
-    expect($candidates)->toContain('screen.demo.events.main.menu_title');
-    expect($candidates)->toContain('screen/demo.events.main.menu_title');
-    expect($candidates)->toContain('screen/demo/events.main.menu_title');
-    expect($candidates)->toContain('screen/demo/events/main.menu_title');
-    expect($candidates)->toContain('screen/demo/events/main/menu_title.value');
+    expect($candidates)->toContain('screens.demo.events.main.menu_title');
+    expect($candidates)->toContain('screens/demo.events.main.menu_title');
+    expect($candidates)->toContain('screens/demo/events.main.menu_title');
+    expect($candidates)->toContain('screens/demo/events/main.menu_title');
+    expect($candidates)->toContain('screens/demo/events/main/menu_title.value');
 });
 
 it('correctly builds package fallback candidate for usim keys', function () {

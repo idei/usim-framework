@@ -85,7 +85,7 @@ class Profile extends Screen
 
             $wrapper->add(
                 UI::label('lbl_unauthenticated')
-                    ->text(t('screen.auth.profile.unauthenticated'))
+                    ->text(t('screens.auth.profile.unauthenticated'))
                     ->style('error')
             );
 
@@ -144,7 +144,7 @@ class Profile extends Screen
 
         // Email (readonly)
         $this->input_email = UI::input('input_email')
-            ->label(t('screen.auth.profile.email.label'))
+            ->label(t('screens.auth.profile.email.label'))
             ->type('email')
             ->value((string) $user->email)
             ->disabled(true)
@@ -154,9 +154,9 @@ class Profile extends Screen
 
         // Nombre
         $this->input_name = UI::input('input_name')
-            ->label(t('screen.auth.profile.name.label'))
+            ->label(t('screens.auth.profile.name.label'))
             ->type('text')
-            ->placeholder(t('screen.auth.profile.name.placeholder'))
+            ->placeholder(t('screens.auth.profile.name.placeholder'))
             ->value($user->name ?? '')
             ->required(true)
             ->width(Size::full());
@@ -166,7 +166,7 @@ class Profile extends Screen
         // Foto de perfil
         $this->uploader_profile = UI::uploader('uploader_profile')
             ->allowedTypes(['image/*'])
-            ->label(t('screen.auth.profile.photo.label'))
+            ->label(t('screens.auth.profile.photo.label'))
             ->maxFiles(1)
             ->maxSize(2)
             ->aspect('1:1')
@@ -177,7 +177,7 @@ class Profile extends Screen
         // Botones de acción
         $wrapper->add(
             UI::button('btn_save_profile')
-                ->label(t('screen.auth.profile.actions.save'))
+                ->label(t('screens.auth.profile.actions.save'))
                 ->action('save_profile')
                 ->style('primary')
                 ->width(Size::full())
@@ -185,7 +185,7 @@ class Profile extends Screen
 
         $wrapper->add(
             UI::button('btn_change_password')
-                ->label(t('screen.auth.profile.actions.change_password'))
+                ->label(t('screens.auth.profile.actions.change_password'))
                 ->action('change_password')
                 ->style('secondary')
                 ->width(Size::full())
@@ -209,7 +209,7 @@ class Profile extends Screen
         $this->input_name->value($user->name ?? '');
 
         if (!$user->email_verified_at) {
-            $this->input_email->error(t('screen.auth.profile.email.not_verified'));
+            $this->input_email->error(t('screens.auth.profile.email.not_verified'));
         } else {
             $this->input_email->error(null);
         }
@@ -235,7 +235,7 @@ class Profile extends Screen
             $user = Auth::user();
 
             if (!$user instanceof \App\Models\User || $this->input_name === null || $this->uploader_profile === null) {
-                $this->toast(t('screen.auth.profile.toast.unauthenticated'), 'error');
+                $this->toast(t('screens.auth.profile.toast.unauthenticated'), 'error');
                 return;
             }
 
@@ -244,7 +244,7 @@ class Profile extends Screen
             $name = is_string($rawName) ? trim($rawName) : '';
 
             if (empty($name)) {
-                $this->input_name->error(t('screen.auth.profile.validation.name_required'));
+                $this->input_name->error(t('screens.auth.profile.validation.name_required'));
                 return;
             }
 
@@ -271,10 +271,10 @@ class Profile extends Screen
             $this->closeModal(); // Cerrar modal después de guardar
 
             // Mostrar éxito
-            $this->toast(t('screen.auth.profile.toast.updated'), 'success');
+            $this->toast(t('screens.auth.profile.toast.updated'), 'success');
         } catch (\Throwable $e) {
             \Illuminate\Support\Facades\Log::error('Error saving profile: ' . $e->getMessage() . "\n" . $e->getTraceAsString());
-            $this->toast(t('screen.auth.profile.toast.save_error', ['message' => $e->getMessage()]), 'error');
+            $this->toast(t('screens.auth.profile.toast.save_error', ['message' => $e->getMessage()]), 'error');
         }
     }
 
@@ -288,14 +288,14 @@ class Profile extends Screen
         $user = Auth::user();
 
         if ($user->email_verified_at) {
-            $this->toast(t('screen.auth.profile.toast.already_verified'), 'info');
+            $this->toast(t('screens.auth.profile.toast.already_verified'), 'info');
             return;
         }
 
         // Enviar notificación de verificación
         $user->sendEmailVerificationNotification();
 
-        $this->toast(t('screen.auth.profile.toast.verification_sent'), 'success');
+        $this->toast(t('screens.auth.profile.toast.verification_sent'), 'success');
     }
 
     /**
@@ -316,9 +316,9 @@ class Profile extends Screen
         ]);
 
         if ($status === Password::RESET_LINK_SENT) {
-            $this->toast(t('screen.auth.profile.toast.password_link_sent'), 'success');
+            $this->toast(t('screens.auth.profile.toast.password_link_sent'), 'success');
         } else {
-            $this->toast(t('screen.auth.profile.toast.password_link_error'), 'error');
+            $this->toast(t('screens.auth.profile.toast.password_link_error'), 'error');
         }
     }
 }

@@ -24,7 +24,7 @@ class Link extends Screen
     public const DEFAULT_SUBMIT_ACTION = 'submit_approve_device_pairing';
     public const DEFAULT_CANCEL_ACTION = 'close_link_device';
 
-    private const DEVICES_I18N_PREFIX = 'screen.admin.users_manager.';
+    private const DEVICES_I18N_PREFIX = 'screens.admin.users_manager.';
     private const CONTAINER_PADDING = 20;
     private const CONTENT_GAP = 16;
     private const BUTTONS_GAP = 8;

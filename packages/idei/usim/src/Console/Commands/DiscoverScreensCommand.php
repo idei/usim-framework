@@ -58,7 +58,7 @@ class DiscoverScreensCommand extends Command
             $defaultIcon = '';
 
             foreach ($activeLocales as $locale) {
-                $langFile = lang_path($locale.DIRECTORY_SEPARATOR.'screen'.DIRECTORY_SEPARATOR.$relativePath);
+                $langFile = lang_path($locale.DIRECTORY_SEPARATOR.'screens'.DIRECTORY_SEPARATOR.$relativePath);
                 $fileExists = File::exists($langFile);
                 $payload = $fileExists ? $this->loadLangArrayFile($langFile) : [];
 

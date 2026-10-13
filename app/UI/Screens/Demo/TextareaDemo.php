@@ -33,7 +33,7 @@ class TextareaDemo extends Screen
             ->padding(Spacing::px(8));
 
         $title = UI::label('textarea_demo_title')
-            ->text(t('screen.demo.textarea_demo.title'))
+            ->text(t('screens.demo.textarea_demo.title'))
             ->center()
             ->style('h2');
 

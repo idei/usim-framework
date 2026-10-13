@@ -42,7 +42,7 @@ it('loads movies table with expected configuration', function () {
     $table = $ui->component('movies_table')->data();
 
     expect($table['type'] ?? null)->toBe('table');
-    expect($table['title'] ?? null)->toBe(t('screen.demo.table_demo.table_title'));
+    expect($table['title'] ?? null)->toBe(t('screens.demo.table_demo.table_title'));
     expect($table['pagination']['enabled'] ?? null)->toBeTrue();
     expect($table['pagination']['per_page'] ?? null)->toBe(MOVIES_PER_PAGE);
     expect($table['pagination']['current_page'] ?? null)->toBe(1);
@@ -134,6 +134,6 @@ it('handles movie row click through the table name convention', function () {
 
     $eventResponse->assertOk();
     expect($eventResponse->json('toast.message'))->toBe(
-        t('screen.demo.table_demo.row_clicked_toast', ['name' => t($movieTitle)])
+        t('screens.demo.table_demo.row_clicked_toast', ['name' => t($movieTitle)])
     );
 });

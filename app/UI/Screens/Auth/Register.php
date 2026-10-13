@@ -96,7 +96,7 @@ class Register extends Screen
 
         $header->add(
             UI::label('lbl_title')
-                ->text(t('screen.auth.register.title'))
+                ->text(t('screens.auth.register.title'))
                 ->style('h2')
         );
 
@@ -259,7 +259,7 @@ class Register extends Screen
             $acceptTerms = $params['accept_terms'] ?? false;
 
             if (! $acceptTerms) {
-                $message = t('screen.auth.register.terms_required');
+                $message = t('screens.auth.register.terms_required');
                 $this->toast($message, type: 'error');
 
                 // $this->lbl_register_result->text($message)->style('error');

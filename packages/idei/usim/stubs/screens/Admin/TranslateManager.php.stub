@@ -31,7 +31,7 @@ class TranslateManager extends Screen
 
     public static function getMenuLabel(): string
     {
-        return t('screen.admin.translate_manager.title');
+        return t('screens.admin.translate_manager.title');
     }
 
     public static function getMenuIcon(): ?string
@@ -55,16 +55,16 @@ class TranslateManager extends Screen
             ->gap(Spacing::px(12));
 
         $search = UI::input('search_translations')
-            ->label(t('screen.admin.translate_manager.search.label'))
-            ->placeholder(t('screen.admin.translate_manager.search.placeholder'))
+            ->label(t('screens.admin.translate_manager.search.label'))
+            ->placeholder(t('screens.admin.translate_manager.search.placeholder'))
             ->width(Size::px(420))
             ->autocomplete('off')
             ->onInput('search_translations', [])
             ->debounce(500);
 
         $languageFilter = UI::select('language_filter')
-            ->label(t('screen.admin.translate_manager.language.label'))
-            ->placeholder(t('screen.admin.translate_manager.language.placeholder'))
+            ->label(t('screens.admin.translate_manager.language.label'))
+            ->placeholder(t('screens.admin.translate_manager.language.placeholder'))
             ->options($this->getLanguageOptions())
             ->value('all')
             ->onChange('language_filter_change')
@@ -72,11 +72,11 @@ class TranslateManager extends Screen
             ->width(Size::px(200));
 
         $groupFilter = UI::select('group_filter')
-            ->label(t('screen.admin.translate_manager.group.label'))
-            ->placeholder(t('screen.admin.translate_manager.group.placeholder'))
+            ->label(t('screens.admin.translate_manager.group.label'))
+            ->placeholder(t('screens.admin.translate_manager.group.placeholder'))
             ->options($this->getGroupOptions())
             ->value('all')
-            ->searchable(true, t('screen.admin.translate_manager.group.search_placeholder'))
+            ->searchable(true, t('screens.admin.translate_manager.group.search_placeholder'))
             ->onChange('group_filter_change')
             ->style('primary')
             ->width(Size::px(200));
@@ -166,7 +166,7 @@ class TranslateManager extends Screen
     {
         $key = $this->normalizeToString($params['key'] ?? null);
         if ($key === '') {
-            $this->toast(t('screen.admin.translate_manager.errors.key_required'), 'error');
+            $this->toast(t('screens.admin.translate_manager.errors.key_required'), 'error');
             return;
         }
 
@@ -199,15 +199,15 @@ class TranslateManager extends Screen
     {
         $key = $this->normalizeToString($params['key'] ?? null);
         if ($key === '') {
-            $this->toast(t('screen.admin.translate_manager.errors.key_required'), 'error');
+            $this->toast(t('screens.admin.translate_manager.errors.key_required'), 'error');
             return;
         }
 
         ConfirmDialog::open(
             caller: $this,
             type: DialogType::WARNING,
-            title: t('screen.admin.translate_manager.delete.title'),
-            message: t('screen.admin.translate_manager.delete.confirm', ['key' => $key]),
+            title: t('screens.admin.translate_manager.delete.title'),
+            message: t('screens.admin.translate_manager.delete.confirm', ['key' => $key]),
             confirmAction: 'confirm_delete_translation',
             confirmParams: ['key' => $key],
         );
@@ -220,7 +220,7 @@ class TranslateManager extends Screen
     {
         $key = $this->normalizeToString($params['key'] ?? null);
         if ($key === '') {
-            $this->toast(t('screen.admin.translate_manager.errors.key_required_for_deletion'), 'error');
+            $this->toast(t('screens.admin.translate_manager.errors.key_required_for_deletion'), 'error');
             return;
         }
 
@@ -229,12 +229,12 @@ class TranslateManager extends Screen
         $deleted = $translationService->deleteKey($key);
 
         if (!$deleted) {
-            $this->toast(t('screen.admin.translate_manager.errors.key_not_found'), 'error');
+            $this->toast(t('screens.admin.translate_manager.errors.key_not_found'), 'error');
             return;
         }
 
         $this->translations_table->refresh();
-        $this->toast(t('screen.admin.translate_manager.delete.success'), 'success');
+        $this->toast(t('screens.admin.translate_manager.delete.success'), 'success');
         $this->closeModal();
     }
 
@@ -248,7 +248,7 @@ class TranslateManager extends Screen
         $selectedLanguageCode = $this->normalizeToString($params['selected_language_code'] ?? null);
 
         if ($key === '' || $fallbackLanguageCode === '') {
-            $this->toast(t('screen.admin.translate_manager.errors.update_payload_incomplete'), 'error');
+            $this->toast(t('screens.admin.translate_manager.errors.update_payload_incomplete'), 'error');
             return;
         }
 
@@ -277,7 +277,7 @@ class TranslateManager extends Screen
         }
 
         $this->translations_table->refresh();
-        $this->toast(t('screen.admin.translate_manager.update.success'), 'success');
+        $this->toast(t('screens.admin.translate_manager.update.success'), 'success');
         $this->closeModal();
     }
 
@@ -314,7 +314,7 @@ class TranslateManager extends Screen
         $dataset = $translationService->listLanguagesDataset();
 
         $options = [
-            ['value' => 'all', 'label' => t('screen.admin.translate_manager.language.option_none')],
+            ['value' => 'all', 'label' => t('screens.admin.translate_manager.language.option_none')],
         ];
 
         // Resolve fallback code to exclude it from options
@@ -351,7 +351,7 @@ class TranslateManager extends Screen
         $dataset = $translationService->listKeyGroupsDataset();
 
         $options = [
-            ['value' => 'all', 'label' => t('screen.admin.translate_manager.group.option_all')],
+            ['value' => 'all', 'label' => t('screens.admin.translate_manager.group.option_all')],
         ];
 
         foreach ($dataset['items'] as $group) {

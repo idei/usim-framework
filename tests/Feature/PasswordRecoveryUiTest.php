@@ -89,7 +89,7 @@ it('resets password from the link received by email after validations pass', fun
 
         $mismatchResponse->assertOk();
         expect($mismatchResponse->json('toast.type'))->toBe('error');
-        expect($mismatchResponse->json('toast.message'))->toBe(t('screen.auth.reset_password.validation.mismatch'));
+        expect($mismatchResponse->json('toast.message'))->toBe(t('screens.auth.reset_password.validation.mismatch'));
 
         // Submit valid data and verify password update.
         $validResponse = $resetUi->click('btn_reset', array_merge($query, [
@@ -101,7 +101,7 @@ it('resets password from the link received by email after validations pass', fun
 
         $validResponse->assertOk();
         expect($validResponse->json('toast.type'))->toBe('success');
-        expect($validResponse->json('toast.message'))->toBe(t('screen.auth.reset_password.toast.success'));
+        expect($validResponse->json('toast.message'))->toBe(t('screens.auth.reset_password.toast.success'));
         expect($validResponse->json('redirect'))->toBe('/auth/login');
 
         $user->refresh();
@@ -145,10 +145,10 @@ it('rejects expired reset links in reset-password screen', function () {
 
         $response->assertOk();
         expect($response->json('toast.type'))->toBe('error');
-        expect($response->json('toast.message'))->toBe(t('screen.auth.reset_password.errors.link_expired'));
+        expect($response->json('toast.message'))->toBe(t('screens.auth.reset_password.errors.link_expired'));
 
         $result = $resetUi->component('lbl_result')->data();
-        expect((string) ($result['text'] ?? ''))->toBe(t('screen.auth.reset_password.errors.link_expired'));
+        expect((string) ($result['text'] ?? ''))->toBe(t('screens.auth.reset_password.errors.link_expired'));
 
         $user->refresh();
         expect(Hash::check('new-password-123', (string) $user->password))->toBeFalse();

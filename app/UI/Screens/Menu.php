@@ -112,7 +112,7 @@ class Menu extends Screen
         $this->theme_toggle->icon("/vendor/idei/usim/images/$icon.svg");
         $this->theme_toggle->iconColor('var(--usim-menu-trigger-text)');
         $this->theme_toggle->iconSize(24);
-        $this->theme_toggle->tooltip(t('screen.menu.theme_switch_to', ['theme' => $this->store_theme === 'light' ? 'dark' : 'light']));
+        $this->theme_toggle->tooltip(t('screens.menu.theme_switch_to', ['theme' => $this->store_theme === 'light' ? 'dark' : 'light']));
     }
 
     /**
@@ -245,7 +245,7 @@ class Menu extends Screen
         $this->updateUnitMenu();
 
         $this->toast(t(
-            'screen.menu.unit_changed',
+            'screens.menu.unit_changed',
             ['unit' => $this->getUnitDisplayName($unit)]
         ), 'success');
 
@@ -433,7 +433,7 @@ class Menu extends Screen
         $builder->screenShow(Profile::class, modal: true, when: Auth::check());
 
         $builder->action(
-            t('screen.menu.items.logout'),
+            t('screens.menu.items.logout'),
             'confirm_logout',
             [],
             '🚪',
@@ -528,7 +528,7 @@ class Menu extends Screen
 
         $homeScreen = $this->authSessionService->logout();
 
-        $this->toast(t('screen.menu.logout_success'), 'success');
+        $this->toast(t('screens.menu.logout_success'), 'success');
         $this->resetToGuestState($homeScreen);
     }
 
@@ -577,14 +577,14 @@ class Menu extends Screen
     public function onShowAboutInfo(array $params): void
     {
         $version = "1.0.0";
-        $aboutMessage = t('screen.menu.about.message', [
+        $aboutMessage = t('screens.menu.about.message', [
             'version' => $version,
         ]);
 
         ConfirmDialog::open(
             caller: $this,
             type: DialogType::INFO,
-            title: t('screen.menu.about.title'),
+            title: t('screens.menu.about.title'),
             message: $aboutMessage,
         );
     }
@@ -597,7 +597,7 @@ class Menu extends Screen
      */
     public function onShowErrorInfo(array $params): void
     {
-        $this->abort(500, t('screen.menu.abort_demo_error'));
+        $this->abort(500, t('screens.menu.abort_demo_error'));
     }
 
     /**
@@ -622,8 +622,8 @@ class Menu extends Screen
         ConfirmDialog::open(
             caller: $this,
             type: DialogType::CONFIRM,
-            title: t('screen.menu.logout_confirm.title'),
-            message: t('screen.menu.logout_confirm.message'),
+            title: t('screens.menu.logout_confirm.title'),
+            message: t('screens.menu.logout_confirm.message'),
             confirmAction: 'confirm_logout',
             cancelAction: 'cancel_logout',
         );

@@ -26,7 +26,7 @@ it('loads uploader demo with expected base components', function () {
         $ui->component('btn_confirm_profile')->expect('action')->toBe('process_profile');
         $ui->component('btn_confirm_documents')->expect('action')->toBe('process_documents');
 
-        $ui->component('lbl_result')->expect('text')->toBe(t('screen.demo.uploader_demo.result.initial'));
+        $ui->component('lbl_result')->expect('text')->toBe(t('screens.demo.uploader_demo.result.initial'));
         $ui->component('lbl_result')->expect('style')->toBe('secondary');
 
         $ui->assertNoIssues();
@@ -49,7 +49,7 @@ it('shows validation error when processing profile without uploaded file', funct
 
         $response->assertOk();
 
-        $ui->component('lbl_result')->expect('text')->toBe(t('screen.demo.uploader_demo.errors.no_profile'));
+        $ui->component('lbl_result')->expect('text')->toBe(t('screens.demo.uploader_demo.errors.no_profile'));
         $ui->component('lbl_result')->expect('style')->toBe('danger');
         expect($response->json('clear_uploaders'))->toBeNull();
 
@@ -83,7 +83,7 @@ it('processes profile upload, moves file, clears temporary row and requests uplo
         $response->assertOk();
 
         $resultText = $ui->component('lbl_result')->data()['text'] ?? '';
-        expect($resultText)->toContain(t('screen.demo.uploader_demo.profile.processed_header'));
+        expect($resultText)->toContain(t('screens.demo.uploader_demo.profile.processed_header'));
         expect($resultText)->not->toBe('');
         $ui->component('lbl_result')->expect('style')->toBe('success');
 
@@ -136,7 +136,7 @@ it('processes multiple documents and clears document uploader', function () {
         $response->assertOk();
 
         $resultText = $ui->component('lbl_result')->data()['text'] ?? '';
-        expect($resultText)->toContain(t('screen.demo.uploader_demo.documents.processed_header'));
+        expect($resultText)->toContain(t('screens.demo.uploader_demo.documents.processed_header'));
         expect($resultText)->not->toBe('');
         $ui->component('lbl_result')->expect('style')->toBe('success');
 

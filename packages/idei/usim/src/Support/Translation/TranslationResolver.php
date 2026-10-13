@@ -38,11 +38,11 @@ class TranslationResolver
 
     /**
      * Generate candidate keys matching dotted syntax and nested lang file paths.
-     * E.g.: 'screen.demo.events.main.menu_title' generates:
-     *  - 'screen.demo.events.main.menu_title'
-     *  - 'screen/demo.events.main.menu_title'
-     *  - 'screen/demo/events.main.menu_title'
-     *  - 'screen/demo/events/main.menu_title'
+     * E.g.: 'screens.demo.events.main.menu_title' generates:
+     *  - 'screens.demo.events.main.menu_title'
+     *  - 'screens/demo.events.main.menu_title'
+     *  - 'screens/demo/events.main.menu_title'
+     *  - 'screens/demo/events/main.menu_title'
      *
      * @return list<string>
      */

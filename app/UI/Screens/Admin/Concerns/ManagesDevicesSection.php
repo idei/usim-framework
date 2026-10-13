@@ -28,7 +28,7 @@ use Idei\Usim\ValueObjects\Spacing;
  */
 trait ManagesDevicesSection
 {
-    protected const string DEVICES_I18N_PREFIX = 'screen.admin.users_manager.';
+    protected const string DEVICES_I18N_PREFIX = 'screens.admin.users_manager.';
 
     protected Table $devices_table;
     protected Input $search_devices;

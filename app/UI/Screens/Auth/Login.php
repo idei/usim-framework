@@ -71,8 +71,8 @@ class Login extends Screen
 
         $card->add(
             UI::input('login_email')
-                ->label(t('screen.auth.login.email.label'))
-                ->placeholder(t('screen.auth.login.email.placeholder'))
+                ->label(t('screens.auth.login.email.label'))
+                ->placeholder(t('screens.auth.login.email.placeholder'))
                 ->value($email)
                 ->type('email')
                 ->required(true)
@@ -81,9 +81,9 @@ class Login extends Screen
 
         $card->add(
             UI::input('login_password')
-                ->label(t('screen.auth.login.password.label'))
+                ->label(t('screens.auth.login.password.label'))
                 ->type('password')
-                ->placeholder(t('screen.auth.login.password.placeholder'))
+                ->placeholder(t('screens.auth.login.password.placeholder'))
                 ->value($password)
                 ->required(true)
                 ->width(Size::full())
@@ -102,14 +102,14 @@ class Login extends Screen
 
         $buttonsContainer->add(
             UI::button('btn_cancel_login')
-                ->label(t('screen.auth.login.actions.cancel'))
+                ->label(t('screens.auth.login.actions.cancel'))
                 ->style('secondary')
                 ->action('close_login_dialog')
         );
 
         $buttonsContainer->add(
             UI::button('btn_submit_login')
-                ->label(t('screen.auth.login.actions.submit'))
+                ->label(t('screens.auth.login.actions.submit'))
                 ->style('primary')
                 ->action('submit_login')
         );
@@ -119,7 +119,7 @@ class Login extends Screen
         // Forgot Password Link left-aligned below the buttons and filled with the full width of the container
         $card->add(
             UI::button('btn_forgot_password')
-                ->label(t('screen.auth.login.actions.forgot_password'))
+                ->label(t('screens.auth.login.actions.forgot_password'))
                 ->style('link')
                 ->action('navigate_forgot_password')
                 ->width(Size::full())

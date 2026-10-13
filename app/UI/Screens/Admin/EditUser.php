@@ -350,7 +350,7 @@ class EditUser extends Screen
      */
     private static function trans(string $key, array $replace = []): string
     {
-        $screenKey = "screen.auth.edit_user.{$key}";
+        $screenKey = "screens.auth.edit_user.{$key}";
         $translated = t($screenKey, $replace);
         if ($translated !== $screenKey) {
             return $translated;

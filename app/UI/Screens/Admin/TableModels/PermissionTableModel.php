@@ -22,12 +22,12 @@ class PermissionTableModel extends AbstractListingTableModel
     {
         return [
             'name' => [
-                'label' => t('screen.admin.users_manager.permissions_column_name'),
+                'label' => t('screens.admin.users_manager.permissions_column_name'),
                 'width' => 100,
                 'sort_by' => 'name',
             ],
             'description' => [
-                'label' => t('screen.admin.users_manager.permissions_column_description'),
+                'label' => t('screens.admin.users_manager.permissions_column_description'),
                 'width' => 200,
             ],
         ];

@@ -37,14 +37,14 @@ class CheckboxDemo extends Screen
         // Instruction label
         $container->add(
             UI::label('lbl_instruction')
-                ->text(t('screen.demo.checkbox_demo.instruction'))
+                ->text(t('screens.demo.checkbox_demo.instruction'))
                 ->style('info')
         );
 
         // JavaScript checkbox with onChange handler
         $container->add(
             UI::checkbox('chk_javascript')
-                ->label(t('screen.demo.checkbox_demo.options.javascript'))
+                ->label(t('screens.demo.checkbox_demo.options.javascript'))
                 ->checked(false)
                 ->onChange('try_change_javascript') // ← Handler for validation
         );
@@ -52,7 +52,7 @@ class CheckboxDemo extends Screen
         // Python checkbox with onChange handler
         $container->add(
             UI::checkbox('chk_python')
-                ->label(t('screen.demo.checkbox_demo.options.python'))
+                ->label(t('screens.demo.checkbox_demo.options.python'))
                 ->checked(false)
                 ->onChange('try_change_python') // ← Handler for validation
         );
@@ -60,7 +60,7 @@ class CheckboxDemo extends Screen
         // Submit button
         $container->add(
             UI::button('btn_submit')
-                ->label(t('screen.demo.checkbox_demo.actions.submit'))
+                ->label(t('screens.demo.checkbox_demo.actions.submit'))
                 ->action('submit_selection')
                 ->style('primary')
         );
@@ -68,7 +68,7 @@ class CheckboxDemo extends Screen
         // Result label
         $container->add(
             UI::label('lbl_result')
-                ->text(t('screen.demo.checkbox_demo.result.initial'))
+                ->text(t('screens.demo.checkbox_demo.result.initial'))
                 ->style('secondary')
         );
     }
@@ -77,7 +77,7 @@ class CheckboxDemo extends Screen
     {
         $this->chk_javascript->checked(false);
         $this->chk_python->checked(false);
-        $this->lbl_result->text(t('screen.demo.checkbox_demo.result.initial'))->style('secondary');
+        $this->lbl_result->text(t('screens.demo.checkbox_demo.result.initial'))->style('secondary');
     }
 
     /**
@@ -99,11 +99,11 @@ class CheckboxDemo extends Screen
         // Show feedback
         if ($wantsChecked) {
             $this->lbl_result
-                ->text(t('screen.demo.checkbox_demo.result.javascript_selected'))
+                ->text(t('screens.demo.checkbox_demo.result.javascript_selected'))
                 ->style('success');
         } else {
             $this->lbl_result
-                ->text(t('screen.demo.checkbox_demo.result.javascript_deselected'))
+                ->text(t('screens.demo.checkbox_demo.result.javascript_deselected'))
                 ->style('info');
         }
     }
@@ -124,9 +124,9 @@ class CheckboxDemo extends Screen
                                                // ❌ REJECT: Don't allow Python without JavaScript
             $this->chk_python->checked(false); // Keep it unchecked
             $this->lbl_result
-                ->text(t('screen.demo.checkbox_demo.validation.python_requires_javascript'))
+                ->text(t('screens.demo.checkbox_demo.validation.python_requires_javascript'))
                 ->style('danger');
-            $this->toast(t('screen.demo.checkbox_demo.validation.python_requires_javascript'), type: 'error');
+            $this->toast(t('screens.demo.checkbox_demo.validation.python_requires_javascript'), type: 'error');
             return;
         }
 
@@ -136,11 +136,11 @@ class CheckboxDemo extends Screen
 
         if ($wantsChecked) {
             $this->lbl_result
-                ->text(t('screen.demo.checkbox_demo.result.python_selected'))
+                ->text(t('screens.demo.checkbox_demo.result.python_selected'))
                 ->style('success');
         } else {
             $this->lbl_result
-                ->text(t('screen.demo.checkbox_demo.result.python_deselected'))
+                ->text(t('screens.demo.checkbox_demo.result.python_deselected'))
                 ->style('info');
         }
     }
@@ -160,16 +160,16 @@ class CheckboxDemo extends Screen
         $selections = [];
 
         if ($jsChecked) {
-            $selections[] = t('screen.demo.checkbox_demo.options.javascript');
+            $selections[] = t('screens.demo.checkbox_demo.options.javascript');
         }
         if ($pyChecked) {
-            $selections[] = t('screen.demo.checkbox_demo.options.python');
+            $selections[] = t('screens.demo.checkbox_demo.options.python');
         }
 
         // Validate minimum selection
         if (empty($selections)) {
             $this->lbl_result
-                ->text(t('screen.demo.checkbox_demo.validation.minimum_one'))
+                ->text(t('screens.demo.checkbox_demo.validation.minimum_one'))
                 ->style('danger');
             return;
         }
@@ -177,9 +177,9 @@ class CheckboxDemo extends Screen
         // Success message
         $languagesList = implode(', ', $selections);
         $this->lbl_result
-            ->text(t('screen.demo.checkbox_demo.result.submitted', ['languages' => $languagesList]))
+            ->text(t('screens.demo.checkbox_demo.result.submitted', ['languages' => $languagesList]))
             ->style('success');
 
-        $this->toast(t('screen.demo.checkbox_demo.result.submitted_toast', ['languages' => $languagesList]), type: 'success');
+        $this->toast(t('screens.demo.checkbox_demo.result.submitted_toast', ['languages' => $languagesList]), type: 'success');
     }
 }

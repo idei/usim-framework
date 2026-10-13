@@ -20,7 +20,7 @@ class RoleTableModel extends AbstractListingTableModel
 
     public function getColumns(): array
     {
-        $prefix = 'screen.admin.users_manager';
+        $prefix = 'screens.admin.users_manager';
         return [
             'name' => ['label' => t("{$prefix}.roles_column_name"), 'sort_by' => 'name'],
             'guard_name' => ['label' => t("{$prefix}.roles_column_guard"), 'sort_by' => 'guard_name', 'width' => 100],

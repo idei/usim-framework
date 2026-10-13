@@ -9,8 +9,8 @@ it('resolves translations through UsimTranslator using Laravel translator', func
     $translator = app(UsimTranslatorInterface::class);
 
     expect($translator)->toBeInstanceOf(UsimTranslator::class);
-    expect($translator->get('screen.demo.events.main.menu_title', [], 'en'))->toBe('Events');
-    expect($translator->get('screen.demo.events.main.menu_title', [], 'es'))->toBe('Eventos');
+    expect($translator->get('screens.demo.events.main.menu_title', [], 'en'))->toBe('Events');
+    expect($translator->get('screens.demo.events.main.menu_title', [], 'es'))->toBe('Eventos');
 });
 
 it('resolves translations with placeholders through UsimTranslator', function () {
@@ -24,8 +24,8 @@ it('resolves translations with placeholders through UsimTranslator', function ()
 it('correctly checks translation existence via has()', function () {
     $translator = app(UsimTranslatorInterface::class);
 
-    expect($translator->has('screen.demo.events.main.menu_title', 'en'))->toBeTrue();
-    expect($translator->has('screen.demo.events.main.menu_title', 'es'))->toBeTrue();
+    expect($translator->has('screens.demo.events.main.menu_title', 'en'))->toBeTrue();
+    expect($translator->has('screens.demo.events.main.menu_title', 'es'))->toBeTrue();
     expect($translator->has('definitely.non.existent.key.xyz', 'en'))->toBeFalse();
 });
 

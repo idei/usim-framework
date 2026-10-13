@@ -38,7 +38,7 @@ class UserTableModel extends AbstractListingTableModel
 
     public function getColumns(): array
     {
-        $prefix = 'screen.admin.users_manager.table';
+        $prefix = 'screens.admin.users_manager.table';
         $hasOperationalUnits = $this->unitsService->hasOperationalUnits();
 
         if ($hasOperationalUnits) {

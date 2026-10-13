@@ -32,7 +32,7 @@ class EditDevice extends Screen
     public const DEFAULT_CANCEL_ACTION = 'close_edit_device';
     public const DELETE_ACTION = 'delete_device';
     public const PAIR_UNPAIR_ACTION = 'pair_unpair_device';
-    private const DEVICES_I18N_PREFIX = 'screen.admin.users_manager.';
+    private const DEVICES_I18N_PREFIX = 'screens.admin.users_manager.';
     private const CONTAINER_PADDING = 5;
     private const BUTTONS_GAP = 5;
 
@@ -169,7 +169,7 @@ class EditDevice extends Screen
         foreach ($units as $u) {
             $uName = ($u->display_name !== $u->translation_key) ? $u->display_name : ucfirst($u->slug);
             if ($u->slug === 'main') {
-                $label = t('screen.admin.users_manager.device_unit_institutional', [], "Institucional / Todos ({$uName})");
+                $label = t('screens.admin.users_manager.device_unit_institutional', [], "Institucional / Todos ({$uName})");
             } else {
                 $label = $uName;
             }

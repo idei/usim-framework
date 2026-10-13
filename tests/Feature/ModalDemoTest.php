@@ -54,7 +54,7 @@ it('opens confirmation modal and handles confirm action', function () {
         expect($confirmResponse->json('action'))->toBe('close_modal');
 
         $result = $ui->component('lbl_result');
-        $result->expect('text')->toBe(t('screen.demo.modal_demo.result.confirmed', ['type' => 'demo_action']));
+        $result->expect('text')->toBe(t('screens.demo.modal_demo.result.confirmed', ['type' => 'demo_action']));
         $result->expect('style')->toBe('success');
 
         $ui->assertNoIssues();
@@ -83,7 +83,7 @@ it('opens confirmation modal and handles cancel action', function () {
         expect($cancelResponse->json('action'))->toBe('close_modal');
 
         $result = $ui->component('lbl_result');
-        $result->expect('text')->toBe(t('screen.demo.modal_demo.result.cancelled'));
+        $result->expect('text')->toBe(t('screens.demo.modal_demo.result.cancelled'));
         $result->expect('style')->toBe('warning');
 
         $ui->assertNoIssues();
@@ -147,7 +147,7 @@ it('opens screen as modal and returns data to caller via returnToCaller', functi
         expect($saveResponse->json('action'))->toBe('close_modal');
 
         $result = $ui->component('lbl_result');
-        $result->expect('text')->toBe(t('screen.demo.modal_demo.result.user_saved', [
+        $result->expect('text')->toBe(t('screens.demo.modal_demo.result.user_saved', [
             'name' => 'Carlos Gardel',
             'role' => 'admin',
             'email' => 'carlos@tango.com',
@@ -224,7 +224,7 @@ it('persists and restores active modal when refreshing screen (F5) and preserves
 
         // Caller state is updated
         $result = $ui->component('lbl_result');
-        $result->expect('text')->toBe(t('screen.demo.modal_demo.result.user_saved', [
+        $result->expect('text')->toBe(t('screens.demo.modal_demo.result.user_saved', [
             'name' => 'Carlos Gardel',
             'role' => 'admin',
             'email' => 'carlos@tango.com',

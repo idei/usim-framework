@@ -41,7 +41,7 @@ class ModalDemo extends Screen
 
         $wrapper->add(
             UI::label('lbl_instruction')
-                ->text(t('screen.demo.modal_demo.instruction'))
+                ->text(t('screens.demo.modal_demo.instruction'))
                 ->style('h3')
                 ->center()
         );
@@ -59,38 +59,38 @@ class ModalDemo extends Screen
             ->shadow(false)
             ->add(
                 UI::button('btn_open_modal')
-                    ->label(t('screen.demo.modal_demo.actions.open_confirmation'))
+                    ->label(t('screens.demo.modal_demo.actions.open_confirmation'))
                     ->style('primary')
                     ->action('open_confirmation')
                     ->width(Size::px(230))
             )->add(
                 UI::button('btn_error_dialog')
-                    ->label(t('screen.demo.modal_demo.actions.open_error'))
+                    ->label(t('screens.demo.modal_demo.actions.open_error'))
                     ->style('danger')
                     ->action('show_error_dialog')
                     ->width(Size::px(230))
             )->add(
                 UI::button('btn_timeout_dialog')
-                    ->label(t('screen.demo.modal_demo.actions.open_timeout_with_button'))
+                    ->label(t('screens.demo.modal_demo.actions.open_timeout_with_button'))
                     ->style('warning')
                     ->action('show_timeout_dialog', ['duration' => 10])
                     ->width(Size::px(230))
             )->add(
                 UI::button('btn_timeout_no_button')
-                    ->label(t('screen.demo.modal_demo.actions.open_timeout_without_button'))
+                    ->label(t('screens.demo.modal_demo.actions.open_timeout_without_button'))
                     ->style('warning')
                     ->action('show_timeout_no_button')
                     ->width(Size::px(230))
             )->add(
                 UI::button('btn_show_settings')
-                    ->label(t('screen.demo.modal_demo.actions.settings'))
+                    ->label(t('screens.demo.modal_demo.actions.settings'))
                     ->style('secondary')
                     ->icon('settings')
                     ->action('show_settings_confirm')
                     ->width(Size::px(230))
             )->add(
                 UI::button('btn_open_user_modal')
-                    ->label(t('screen.demo.modal_demo.actions.open_user_modal'))
+                    ->label(t('screens.demo.modal_demo.actions.open_user_modal'))
                     ->style('info')
                     ->action('open_user_modal')
                     ->width(Size::px(230))
@@ -110,13 +110,13 @@ class ModalDemo extends Screen
         ConfirmDialog::open(
             caller: $this,
             type: DialogType::CONFIRM,
-            title: t('screen.demo.modal_demo.confirm_dialog.title'),
-            message: t('screen.demo.modal_demo.confirm_dialog.message'),
+            title: t('screens.demo.modal_demo.confirm_dialog.title'),
+            message: t('screens.demo.modal_demo.confirm_dialog.message'),
             confirmAction: 'handle_confirm',
             confirmParams: ['action_type' => 'demo_action'],
-            confirmLabel: t('screen.demo.modal_demo.confirm_dialog.confirm_label'),
+            confirmLabel: t('screens.demo.modal_demo.confirm_dialog.confirm_label'),
             cancelAction: 'handle_cancel',
-            cancelLabel: t('screen.demo.modal_demo.confirm_dialog.cancel_label')
+            cancelLabel: t('screens.demo.modal_demo.confirm_dialog.cancel_label')
         );
     }
 
@@ -130,7 +130,7 @@ class ModalDemo extends Screen
         $actionType = $params['action_type'] ?? 'unknown';
 
         $this->lbl_result
-            ->text(t('screen.demo.modal_demo.result.confirmed', ['type' => $actionType]))
+            ->text(t('screens.demo.modal_demo.result.confirmed', ['type' => $actionType]))
             ->style('success');
 
         $this->closeModal();
@@ -144,7 +144,7 @@ class ModalDemo extends Screen
     public function onHandleCancel(array $params): void
     {
         $this->lbl_result
-            ->text(t('screen.demo.modal_demo.result.cancelled'))
+            ->text(t('screens.demo.modal_demo.result.cancelled'))
             ->style('warning');
 
         $this->closeModal();
@@ -161,8 +161,8 @@ class ModalDemo extends Screen
         ConfirmDialog::open(
             caller: $this,
             type: DialogType::ERROR,
-            title: t('screen.demo.modal_demo.error_dialog.title'),
-            message: t('screen.demo.modal_demo.error_dialog.message'),
+            title: t('screens.demo.modal_demo.error_dialog.title'),
+            message: t('screens.demo.modal_demo.error_dialog.message'),
             confirmAction: 'close_error_dialog'
         );
     }
@@ -188,8 +188,8 @@ class ModalDemo extends Screen
         ConfirmDialog::open(
             caller: $this,
             type: DialogType::TIMEOUT,
-            title: t('screen.demo.modal_demo.timeout_dialog.title'),
-            message: t('screen.demo.modal_demo.timeout_dialog.message'),
+            title: t('screens.demo.modal_demo.timeout_dialog.title'),
+            message: t('screens.demo.modal_demo.timeout_dialog.message'),
             timeout: $duration,
             timeUnit: TimeUnit::SECONDS,
             showCountdown: true,
@@ -205,8 +205,8 @@ class ModalDemo extends Screen
         ConfirmDialog::open(
             caller: $this,
             type: DialogType::TIMEOUT,
-            title: t('screen.demo.modal_demo.auto_close_dialog.title'),
-            message: t('screen.demo.modal_demo.auto_close_dialog.message'),
+            title: t('screens.demo.modal_demo.auto_close_dialog.title'),
+            message: t('screens.demo.modal_demo.auto_close_dialog.message'),
             timeout: 5,
             timeUnit: TimeUnit::SECONDS,
             showCountdown: true,
@@ -233,8 +233,8 @@ class ModalDemo extends Screen
         ConfirmDialog::open(
             caller: $this,
             type: DialogType::WARNING,
-            title: t('screen.demo.modal_demo.settings_dialog.title'),
-            message: t('screen.demo.modal_demo.settings_dialog.message'),
+            title: t('screens.demo.modal_demo.settings_dialog.title'),
+            message: t('screens.demo.modal_demo.settings_dialog.message'),
             confirmAction: 'reset_settings',
             confirmParams: [],
             cancelAction: 'cancel_settings'
@@ -263,8 +263,8 @@ class ModalDemo extends Screen
         ConfirmDialog::open(
             caller: $this,
             type: DialogType::SUCCESS,
-            title: t('screen.demo.modal_demo.success_dialog.title'),
-            message: t('screen.demo.modal_demo.success_dialog.message'),
+            title: t('screens.demo.modal_demo.success_dialog.title'),
+            message: t('screens.demo.modal_demo.success_dialog.message'),
             confirmAction: 'close_success_dialog'
         );
     }
@@ -311,7 +311,7 @@ class ModalDemo extends Screen
         $email = isset($params['email']) && is_string($params['email']) ? $params['email'] : '';
 
         $this->lbl_result
-            ->text(t('screen.demo.modal_demo.result.user_saved', [
+            ->text(t('screens.demo.modal_demo.result.user_saved', [
                 'name' => $name,
                 'role' => $role,
                 'email' => $email,

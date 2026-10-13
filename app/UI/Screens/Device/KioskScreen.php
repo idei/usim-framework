@@ -128,7 +128,7 @@ class KioskScreen extends Screen
                 'kind' => 'image',
                 'url' => 'https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=1200&q=80',
                 'mime' => 'image/jpeg',
-                'title' => t('screen.device.kiosk.media.welcome'),
+                'title' => t('screens.device.kiosk.media.welcome'),
                 'duration_ms' => 5000,
             ],
             [
@@ -136,7 +136,7 @@ class KioskScreen extends Screen
                 'kind' => 'video',
                 'url' => 'https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4',
                 'mime' => 'video/mp4',
-                'title' => t('screen.device.kiosk.media.showcase'),
+                'title' => t('screens.device.kiosk.media.showcase'),
                 'duration_ms' => 5000,
             ],
             [
@@ -144,7 +144,7 @@ class KioskScreen extends Screen
                 'kind' => 'image',
                 'url' => 'https://images.unsplash.com/photo-1491553895911-0055eca6402d?auto=format&fit=crop&w=1200&q=80',
                 'mime' => 'image/jpeg',
-                'title' => t('screen.device.kiosk.media.announcement'),
+                'title' => t('screens.device.kiosk.media.announcement'),
                 'duration_ms' => 6000,
             ],
         ];

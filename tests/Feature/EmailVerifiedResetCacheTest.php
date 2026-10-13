@@ -21,9 +21,9 @@ it('persists the post-load snapshot after reset reloads', function () {
         $resetResponse->assertOk();
         expect(findComponentByName($resetResponse->json(), 'loading_message'))->toBeNull();
         expect(findComponentByName($resetResponse->json(), 'error_message')['text'] ?? null)
-            ->toBe(t('screen.auth.email_verified.error.message'));
+            ->toBe(t('screens.auth.email_verified.error.message'));
         expect(findComponentByName($resetResponse->json(), 'error_detail')['text'] ?? null)
-            ->toBe(t('screen.auth.email_verified.errors.invalid_params'));
+            ->toBe(t('screens.auth.email_verified.errors.invalid_params'));
 
         $cachedResponse = $test
             ->withCookie(UIStateManager::CLIENT_ID_COOKIE, $clientId)
@@ -32,9 +32,9 @@ it('persists the post-load snapshot after reset reloads', function () {
         $cachedResponse->assertOk();
         expect(findComponentByName($cachedResponse->json(), 'loading_message'))->toBeNull();
         expect(findComponentByName($cachedResponse->json(), 'error_message')['text'] ?? null)
-            ->toBe(t('screen.auth.email_verified.error.message'));
+            ->toBe(t('screens.auth.email_verified.error.message'));
         expect(findComponentByName($cachedResponse->json(), 'error_detail')['text'] ?? null)
-            ->toBe(t('screen.auth.email_verified.errors.invalid_params'));
+            ->toBe(t('screens.auth.email_verified.errors.invalid_params'));
     }
 
     app()->setLocale($originalLocale);

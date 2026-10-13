@@ -21,7 +21,7 @@ class MovieTableModel extends AbstractTableModel
 
     public function getColumns(): array
     {
-        $prefix = 'screen.demo.table_demo';
+        $prefix = 'screens.demo.table_demo';
         return [
             'title' => ['label' => t("$prefix.title_column"), 'width' => 350, 'sort_by' => 'title'],
             'genre' => ['label' => t("$prefix.genre_column"), 'width' => 120, 'sort_by' => 'genre_name'],

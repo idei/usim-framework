@@ -66,29 +66,29 @@ class UserFormModal extends Screen
 
         $container->add(
             UI::label('lbl_modal_desc')
-                ->text(t('screen.demo.modal_demo.user_modal.description'))
+                ->text(t('screens.demo.modal_demo.user_modal.description'))
                 ->style('secondary')
         );
 
         $container->add(
             UI::input('input_user_name')
-                ->label(t('screen.demo.modal_demo.user_modal.name_label'))
-                ->placeholder(t('screen.demo.modal_demo.user_modal.name_placeholder'))
+                ->label(t('screens.demo.modal_demo.user_modal.name_label'))
+                ->placeholder(t('screens.demo.modal_demo.user_modal.name_placeholder'))
                 ->value($initialName)
                 ->width(Size::full())
         );
 
         $container->add(
             UI::input('input_user_email')
-                ->label(t('screen.demo.modal_demo.user_modal.email_label'))
-                ->placeholder(t('screen.demo.modal_demo.user_modal.email_placeholder'))
+                ->label(t('screens.demo.modal_demo.user_modal.email_label'))
+                ->placeholder(t('screens.demo.modal_demo.user_modal.email_placeholder'))
                 ->value($initialEmail)
                 ->width(Size::full())
         );
 
         $container->add(
             UI::select('select_user_role')
-                ->label(t('screen.demo.modal_demo.user_modal.role_label'))
+                ->label(t('screens.demo.modal_demo.user_modal.role_label'))
                 ->options([
                     ['value' => 'admin', 'label' => 'Admin'],
                     ['value' => 'editor', 'label' => 'Editor'],
@@ -106,12 +106,12 @@ class UserFormModal extends Screen
             ->shadow(false)
             ->add(
                 UI::button('btn_cancel_modal')
-                    ->label(t('screen.demo.modal_demo.user_modal.cancel'))
+                    ->label(t('screens.demo.modal_demo.user_modal.cancel'))
                     ->style('secondary')
                     ->action('close_modal')
             )->add(
                 UI::button('btn_save_modal')
-                    ->label(t('screen.demo.modal_demo.user_modal.submit'))
+                    ->label(t('screens.demo.modal_demo.user_modal.submit'))
                     ->style('primary')
                     ->action('submit_modal_data')
             );
@@ -136,8 +136,8 @@ class UserFormModal extends Screen
         $role = trim(is_scalar($rawRole) || $rawRole instanceof \Stringable ? (string) $rawRole : 'editor');
 
         if ($name === '') {
-            $this->input_user_name->error(t('screen.demo.modal_demo.user_modal.name_required'));
-            $this->toast(t('screen.demo.modal_demo.user_modal.name_required'), 'error');
+            $this->input_user_name->error(t('screens.demo.modal_demo.user_modal.name_required'));
+            $this->toast(t('screens.demo.modal_demo.user_modal.name_required'), 'error');
 
             return;
         }

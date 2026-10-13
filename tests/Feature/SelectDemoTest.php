@@ -26,7 +26,7 @@ it('loads select demo with expected defaults', function () {
         $selCity->expect('disabled')->toBeTrue();
         $selCity->expect('value')->toBeNull();
         $selCity->expect('options')->toBe([]);
-        $selCity->expect('placeholder')->toBe(t('screen.demo.select_demo.city.placeholder.select_country_first'));
+        $selCity->expect('placeholder')->toBe(t('screens.demo.select_demo.city.placeholder.select_country_first'));
 
         $selLanguages->expect('type')->toBe('select');
         $selLanguages->expect('searchable')->toBeTrue();
@@ -39,7 +39,7 @@ it('loads select demo with expected defaults', function () {
         $btnReset->expect('type')->toBe('button');
         $btnReset->expect('action')->toBe('reset_selections');
 
-        $lblResult->expect('text')->toBe(t('screen.demo.select_demo.result.initial'));
+        $lblResult->expect('text')->toBe(t('screens.demo.select_demo.result.initial'));
         $lblResult->expect('style')->toBe('default');
 
         $ui->assertNoIssues();
@@ -68,7 +68,7 @@ it('enables city select and updates result when selecting a country', function (
 
         $selCity->expect('disabled')->toBeFalse();
         $selCity->expect('value')->toBeNull();
-        $selCity->expect('placeholder')->toBe(t('screen.demo.select_demo.city.placeholder.choose_city'));
+        $selCity->expect('placeholder')->toBe(t('screens.demo.select_demo.city.placeholder.choose_city'));
 
         $cityOptions = $selCity->data()['options'] ?? [];
         expect($cityOptions)->toHaveCount(4);
@@ -182,17 +182,17 @@ it('resets all selections to initial-like state', function () {
         $selCity->expect('disabled')->toBeTrue();
         $selCity->expect('options')->toBe([]);
         $selCity->expect('value')->toBeNull();
-        $selCity->expect('placeholder')->toBe(t('screen.demo.select_demo.city.placeholder.select_country_first'));
+        $selCity->expect('placeholder')->toBe(t('screens.demo.select_demo.city.placeholder.select_country_first'));
 
         $selLanguages = $ui->component('sel_languages');
         $selLanguages->expect('value')->toBeNull();
         $selLanguages->expect('multiple')->toBeFalse();
-        $selLanguages->expect('placeholder')->toBe(t('screen.demo.select_demo.languages.placeholder.single'));
+        $selLanguages->expect('placeholder')->toBe(t('screens.demo.select_demo.languages.placeholder.single'));
 
         $ui->component('chk_enable_multiple')->expect('checked')->toBeFalse();
 
         $lblResult = $ui->component('lbl_result');
-        $lblResult->expect('text')->toBe(t('screen.demo.select_demo.result.reset_done'));
+        $lblResult->expect('text')->toBe(t('screens.demo.select_demo.result.reset_done'));
         $lblResult->expect('style')->toBe('info');
 
         $ui->assertNoIssues();

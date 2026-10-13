@@ -14,7 +14,7 @@ class ButtonDemo extends Screen
 {
     public static Visibility $visibility = Visibility::PUBLIC;
 
-    protected const string KEY_PREFIX = 'screen.demo.container_demo.';
+    protected const string KEY_PREFIX = 'screens.demo.container_demo.';
 
     /** @var array<class-string<Screen>> $options */
     protected array $options = [

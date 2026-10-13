@@ -148,7 +148,7 @@ it('verifies the registered user after opening the email verification link', fun
 
         $verificationUi->component('verified_message')->expect('type')->toBe('label');
         expect((string) ($verificationUi->component('verified_message')->data()['text'] ?? ''))
-            ->toBe(t('screen.auth.email_verified.verified.message'));
+            ->toBe(t('screens.auth.email_verified.verified.message'));
 
         $user->refresh();
         expect($user->email_verified_at)->not->toBeNull();
@@ -158,7 +158,7 @@ it('verifies the registered user after opening the email verification link', fun
 
         $alreadyVerifiedUi->component('already_verified_message')->expect('type')->toBe('label');
         expect((string) ($alreadyVerifiedUi->component('already_verified_message')->data()['text'] ?? ''))
-            ->toBe(t('screen.auth.email_verified.already_verified.message'));
+            ->toBe(t('screens.auth.email_verified.already_verified.message'));
 
         // Build a truly expired signed URL and assert expired-link UI state.
         $expiredUrl = URL::temporarySignedRoute('ui.catchall', now()->subMinute(), [
@@ -175,9 +175,9 @@ it('verifies the registered user after opening the email verification link', fun
 
         $expiredLikeUi->component('error_message')->expect('type')->toBe('label');
         expect((string) ($expiredLikeUi->component('error_message')->data()['text'] ?? ''))
-            ->toBe(t('screen.auth.email_verified.error.message'));
+            ->toBe(t('screens.auth.email_verified.error.message'));
         expect((string) ($expiredLikeUi->component('error_detail')->data()['text'] ?? ''))
-            ->toBe(t('screen.auth.email_verified.errors.expired'));
+            ->toBe(t('screens.auth.email_verified.errors.expired'));
 
         $verificationUi->assertNoIssues();
         $alreadyVerifiedUi->assertNoIssues();

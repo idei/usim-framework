@@ -12,7 +12,7 @@ class MainMenu implements MenuProviderInterface
 {
     public function build(MenuBuilder $menu): void
     {
-        $menu->link(t('screen.menu.items.home'), '/', '🏠');
+        $menu->link(t('screens.menu.items.home'), '/', '🏠');
         $menu->screenShow(
             UsersManager::class,
             when: UsersManager::checkAccess()['allowed'] == true

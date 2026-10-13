@@ -30,7 +30,7 @@ class DeviceTableModel extends AbstractListingTableModel
 
     public function getColumns(): array
     {
-        $prefix = 'screen.admin.users_manager';
+        $prefix = 'screens.admin.users_manager';
         return [
             'name' => [
                 'label' => t("{$prefix}.devices_column_name"),
@@ -75,8 +75,8 @@ class DeviceTableModel extends AbstractListingTableModel
         $isPaired = $device->tokens->isNotEmpty() || !empty($device->device_token);
 
         $statusText = $isPaired
-            ? t('screen.admin.users_manager.devices_status_paired')
-            : t('screen.admin.users_manager.devices_status_unpaired');
+            ? t('screens.admin.users_manager.devices_status_paired')
+            : t('screens.admin.users_manager.devices_status_unpaired');
 
         $status = $isPaired ? "✅ {$statusText}" : "⚠️ {$statusText}";
 
@@ -106,7 +106,7 @@ class DeviceTableModel extends AbstractListingTableModel
             : 'Institucional';
 
         if ($isPublic && $operationalUnits->isEmpty()) {
-            return '🏛️ ' . t('screen.admin.users_manager.device_unit_institutional', [], "{$mainLabel} (Todos)");
+            return '🏛️ ' . t('screens.admin.users_manager.device_unit_institutional', [], "{$mainLabel} (Todos)");
         }
 
         if ($operationalUnits->isNotEmpty()) {

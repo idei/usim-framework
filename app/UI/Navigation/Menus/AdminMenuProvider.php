@@ -11,10 +11,10 @@ class AdminMenuProvider implements MenuProviderInterface
 {
     public function build(MenuBuilder $menu): void
     {
-        $menu->link(t('screen.menu.items.home'), '/', '🏠');
+        $menu->link(t('screens.menu.items.home'), '/', '🏠');
         $menu->screenShow(UsersManager::class);
         $menu->screenShow(TranslateManager::class);
         $menu->separator();
-        $menu->action(t('screen.menu.items.about'), 'show_about_info', [], 'ℹ️');
+        $menu->action(t('screens.menu.items.about'), 'show_about_info', [], 'ℹ️');
     }
 }

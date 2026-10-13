@@ -17,7 +17,7 @@ it('loads input demo screen with expected components', function () {
         $input->expect('type')->toBe('input');
         $button->expect('type')->toBe('button');
         $button->expect('action')->toBe('get_value');
-        $result->expect('text')->toBe(t('screen.demo.input_demo.result.initial'));
+        $result->expect('text')->toBe(t('screens.demo.input_demo.result.initial'));
         $result->expect('style')->toBe('default');
 
         $ui->assertNoIssues();
@@ -38,13 +38,13 @@ it('shows required validation error when input is empty', function () {
 
         $response->assertOk();
         expect($response->json('toast.type'))->toBe('error');
-        expect($response->json('toast.message'))->toBe(t('screen.demo.input_demo.validation.name_required'));
+        expect($response->json('toast.message'))->toBe(t('screens.demo.input_demo.validation.name_required'));
 
         $input = $ui->component('input_text');
         $result = $ui->component('lbl_result');
 
-        $input->expect('error')->toBe(t('screen.demo.input_demo.validation.name_required'));
-        $result->expect('text')->toBe(t('screen.demo.input_demo.result.fix_error'));
+        $input->expect('error')->toBe(t('screens.demo.input_demo.validation.name_required'));
+        $result->expect('text')->toBe(t('screens.demo.input_demo.result.fix_error'));
         $result->expect('style')->toBe('danger');
 
         $ui->assertNoIssues();
@@ -65,13 +65,13 @@ it('shows min-length validation error when input is too short', function () {
 
         $response->assertOk();
         expect($response->json('toast.type'))->toBe('error');
-        expect($response->json('toast.message'))->toBe(t('screen.demo.input_demo.validation.name_min'));
+        expect($response->json('toast.message'))->toBe(t('screens.demo.input_demo.validation.name_min'));
 
         $input = $ui->component('input_text');
         $result = $ui->component('lbl_result');
 
-        $input->expect('error')->toBe(t('screen.demo.input_demo.validation.name_min'));
-        $result->expect('text')->toBe(t('screen.demo.input_demo.result.fix_error'));
+        $input->expect('error')->toBe(t('screens.demo.input_demo.validation.name_min'));
+        $result->expect('text')->toBe(t('screens.demo.input_demo.result.fix_error'));
         $result->expect('style')->toBe('danger');
 
         $ui->assertNoIssues();
@@ -96,7 +96,7 @@ it('shows success result for valid input', function () {
         $result = $ui->component('lbl_result');
 
         $input->expect('error')->toBeNull();
-        $result->expect('text')->toBe(t('screen.demo.input_demo.result.valid_name', ['name' => 'Alice']));
+        $result->expect('text')->toBe(t('screens.demo.input_demo.result.valid_name', ['name' => 'Alice']));
         $result->expect('style')->toBe('success');
 
         $ui->assertNoIssues();

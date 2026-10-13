@@ -32,15 +32,15 @@ class FormDemo extends Screen
 
         $wrapper->add(
             $this->lbl_instruction
-                ->text(t('screen.demo.form_demo.instruction'))
+                ->text(t('screens.demo.form_demo.instruction'))
                 ->center()
                 ->style('h3')
         );
 
         $wrapper->add(
             $this->input_name
-                ->label(t('screen.demo.form_demo.name.label'))
-                ->placeholder(t('screen.demo.form_demo.name.placeholder'))
+                ->label(t('screens.demo.form_demo.name.label'))
+                ->placeholder(t('screens.demo.form_demo.name.placeholder'))
                 ->value('')
                 ->required(true)
                 ->type('text')
@@ -49,8 +49,8 @@ class FormDemo extends Screen
 
         $wrapper->add(
             $this->input_email
-                ->label(t('screen.demo.form_demo.email.label'))
-                ->placeholder(t('screen.demo.form_demo.email.placeholder'))
+                ->label(t('screens.demo.form_demo.email.label'))
+                ->placeholder(t('screens.demo.form_demo.email.placeholder'))
                 ->value('')
                 ->required(true)
                 ->type('email')
@@ -59,14 +59,14 @@ class FormDemo extends Screen
 
         $wrapper->add(
             $this->btn_submit
-                ->label(t('screen.demo.form_demo.actions.submit'))
+                ->label(t('screens.demo.form_demo.actions.submit'))
                 ->action('submit_form')
                 ->style('primary')
         );
 
         $wrapper->add(
             $this->lbl_result
-                ->text(t('screen.demo.form_demo.result.initial'))
+                ->text(t('screens.demo.form_demo.result.initial'))
                 ->style('secondary')
                 ->width(Size::full())
         );
@@ -79,7 +79,7 @@ class FormDemo extends Screen
         $this->input_name->value("")->error(null);
         $this->input_email->value("")->error(null);
         $this->lbl_result
-            ->text(t('screen.demo.form_demo.result.initial'))
+            ->text(t('screens.demo.form_demo.result.initial'))
             ->style('secondary');
     }
 
@@ -106,31 +106,31 @@ class FormDemo extends Screen
 
         // Validate name
         if (empty($name)) {
-            $this->input_name->error(t('screen.demo.form_demo.validation.name_required'));
+            $this->input_name->error(t('screens.demo.form_demo.validation.name_required'));
             $hasErrors = true;
         } elseif (strlen($name) < 2) {
-            $this->input_name->error(t('screen.demo.form_demo.validation.name_min'));
+            $this->input_name->error(t('screens.demo.form_demo.validation.name_min'));
             $hasErrors = true;
         }
 
         // Validate email
         if (empty($email)) {
-            $this->input_email->error(t('screen.demo.form_demo.validation.email_required'));
+            $this->input_email->error(t('screens.demo.form_demo.validation.email_required'));
             $hasErrors = true;
         } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-            $this->input_email->error(t('screen.demo.form_demo.validation.email_invalid'));
+            $this->input_email->error(t('screens.demo.form_demo.validation.email_invalid'));
             $hasErrors = true;
         }
 
         // Show result
         if ($hasErrors) {
             $this->lbl_result
-                ->text(t('screen.demo.form_demo.result.errors'))
+                ->text(t('screens.demo.form_demo.result.errors'))
                 ->style('danger');
-            $this->toast(t('screen.demo.form_demo.toast.correct_errors'), 'error');
+            $this->toast(t('screens.demo.form_demo.toast.correct_errors'), 'error');
         } else {
             $this->lbl_result
-                ->text(t('screen.demo.form_demo.result.success', ['name' => $name, 'email' => $email]))
+                ->text(t('screens.demo.form_demo.result.success', ['name' => $name, 'email' => $email]))
                 ->style('success');
 
             // Clear form inputs after successful submission

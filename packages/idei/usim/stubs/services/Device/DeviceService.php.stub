@@ -222,7 +222,7 @@ class DeviceService
         if (strlen($cleanPin) !== 4) {
             return [
                 'success' => false,
-                'message' => t('screen.admin.users_manager.device_pin_length_error'),
+                'message' => t('screens.admin.users_manager.device_pin_length_error'),
             ];
         }
 
@@ -246,13 +246,13 @@ class DeviceService
 
             return [
                 'success' => true,
-                'message' => t('screen.admin.users_manager.device_paired_success'),
+                'message' => t('screens.admin.users_manager.device_paired_success'),
             ];
         }
 
         return [
             'success' => false,
-            'message' => t('screen.admin.users_manager.device_invalid_pin'),
+            'message' => t('screens.admin.users_manager.device_invalid_pin'),
         ];
     }
 
@@ -274,7 +274,7 @@ class DeviceService
         if (strlen($cleanPin) !== 4) {
             return [
                 'success' => false,
-                'message' => t('screen.admin.users_manager.device_pin_length_error'),
+                'message' => t('screens.admin.users_manager.device_pin_length_error'),
             ];
         }
 
@@ -282,7 +282,7 @@ class DeviceService
         if (!$manager->isValidPin($cleanPin)) {
             return [
                 'success' => false,
-                'message' => t('screen.admin.users_manager.device_invalid_pin'),
+                'message' => t('screens.admin.users_manager.device_invalid_pin'),
             ];
         }
 
@@ -295,7 +295,7 @@ class DeviceService
                 DB::rollBack();
                 return [
                     'success' => false,
-                    'message' => t('screen.admin.users_manager.device_invalid_pin'),
+                    'message' => t('screens.admin.users_manager.device_invalid_pin'),
                 ];
             }
 
@@ -309,7 +309,7 @@ class DeviceService
 
             return [
                 'success' => true,
-                'message' => t('screen.admin.users_manager.device_paired_success'),
+                'message' => t('screens.admin.users_manager.device_paired_success'),
                 'device' => $device,
             ];
         } catch (\Throwable $e) {

@@ -20,11 +20,11 @@ class DemosMenuProvider implements MenuProviderInterface
 {
     public function build(MenuBuilder $menu): void
     {
-        $menu->submenu(t('screen.menu.items.demos'), function (MenuBuilder $submenu) {
+        $menu->submenu(t('screens.menu.items.demos'), function (MenuBuilder $submenu) {
             $submenu->screenShow(ButtonDemo::class);
             $submenu->screenShow(TableDemo::class);
             $submenu->screenShow(ModalDemo::class);
-            $submenu->action(t('screen.menu.demos.abort_error'), 'show_error_info', [], '❌');
+            $submenu->action(t('screens.menu.demos.abort_error'), 'show_error_info', [], '❌');
             $submenu->screenShow(FormDemo::class);
             $submenu->screenShow(InputDemo::class);
             $submenu->screenShow(SelectDemo::class);

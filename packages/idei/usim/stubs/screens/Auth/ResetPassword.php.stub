@@ -53,7 +53,7 @@ class ResetPassword extends Screen
 
         $container->add(
             UI::label('lbl_title')
-                ->text(t('screen.auth.reset_password.title'))
+                ->text(t('screens.auth.reset_password.title'))
                 ->style('h2')
                 ->center()
                 ->color('#10b981') // Green to match theme
@@ -86,7 +86,7 @@ class ResetPassword extends Screen
 
         $formCard->add(
             UI::label('card_title')
-                ->text(t('screen.auth.reset_password.card_title'))
+                ->text(t('screens.auth.reset_password.card_title'))
                 ->style('h3')
                 ->color('#1f2937')
                 ->marginBottom(Spacing::px(5))
@@ -94,7 +94,7 @@ class ResetPassword extends Screen
 
         $formCard->add(
             UI::label('lbl_subtitle_card')
-                ->text(t('screen.auth.reset_password.instruction'))
+                ->text(t('screens.auth.reset_password.instruction'))
                 ->style('p')
                 ->color('#6b7280')
                 ->marginBottom(Spacing::px(15))
@@ -110,18 +110,18 @@ class ResetPassword extends Screen
 
         $formCard->add(
             UI::input('password')
-                ->label(t('screen.auth.reset_password.password.label'))
+                ->label(t('screens.auth.reset_password.password.label'))
                 ->type('password')
-                ->placeholder(t('screen.auth.reset_password.password.placeholder'))
+                ->placeholder(t('screens.auth.reset_password.password.placeholder'))
                 ->required(true)
                 ->width(Size::full())
         );
 
         $formCard->add(
             UI::input('password_confirmation')
-                ->label(t('screen.auth.reset_password.confirm.label'))
+                ->label(t('screens.auth.reset_password.confirm.label'))
                 ->type('password')
-                ->placeholder(t('screen.auth.reset_password.confirm.placeholder'))
+                ->placeholder(t('screens.auth.reset_password.confirm.placeholder'))
                 ->required(true)
                 ->width(Size::full())
         );
@@ -135,7 +135,7 @@ class ResetPassword extends Screen
 
         $formCard->add(
             UI::button('btn_reset')
-                ->label(t('screen.auth.reset_password.actions.submit'))
+                ->label(t('screens.auth.reset_password.actions.submit'))
                 ->style('success')
                 ->action('reset_password')
                 ->marginTop(Spacing::px(10))
@@ -159,25 +159,25 @@ class ResetPassword extends Screen
         $passwordConfirmation = is_scalar($passwordConfirmationRaw) ? (string) $passwordConfirmationRaw : '';
 
         if (empty($token) || empty($email)) {
-            $this->showError(t('screen.auth.reset_password.errors.invalid_link'));
+            $this->showError(t('screens.auth.reset_password.errors.invalid_link'));
 
             return;
         }
 
         if ($expires > 0 && now()->timestamp > $expires) {
-            $this->showError(t('screen.auth.reset_password.errors.link_expired'));
+            $this->showError(t('screens.auth.reset_password.errors.link_expired'));
 
             return;
         }
 
         if (strlen($password) < 8) {
-            $this->showError(t('screen.auth.reset_password.validation.min_length'));
+            $this->showError(t('screens.auth.reset_password.validation.min_length'));
 
             return;
         }
 
         if ($password !== $passwordConfirmation) {
-            $this->showError(t('screen.auth.reset_password.validation.mismatch'));
+            $this->showError(t('screens.auth.reset_password.validation.mismatch'));
 
             return;
         }
@@ -193,12 +193,12 @@ class ResetPassword extends Screen
             if ($result->isSuccess()) {
                 if (isset($this->lbl_result)) {
                     $this->lbl_result
-                        ->text(t('screen.auth.reset_password.success.label'))
+                        ->text(t('screens.auth.reset_password.success.label'))
                         ->style('text-green-600 font-medium')
                         ->visible(true);
                 }
 
-                $this->toast(t('screen.auth.reset_password.toast.success'), 'success');
+                $this->toast(t('screens.auth.reset_password.toast.success'), 'success');
 
                 // Redirect to login after short delay (handled by frontend if possible, or immediate)
                 $this->redirect('/auth/login');
@@ -211,7 +211,7 @@ class ResetPassword extends Screen
             }
 
         } catch (\Throwable $e) {
-            $this->showError(t('screen.auth.reset_password.errors.connection', ['message' => $e->getMessage()]));
+            $this->showError(t('screens.auth.reset_password.errors.connection', ['message' => $e->getMessage()]));
         }
     }
 

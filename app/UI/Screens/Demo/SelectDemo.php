@@ -126,7 +126,7 @@ class SelectDemo extends Screen
         // Instruction label
         $container->add(
             UI::label('lbl_instruction')
-                ->text(t('screen.demo.select_demo.instruction'))
+                ->text(t('screens.demo.select_demo.instruction'))
                 ->style('info')
                 ->width(Size::full())
         );
@@ -134,8 +134,8 @@ class SelectDemo extends Screen
         // Country select
         $container->add(
             UI::select('sel_country')
-                ->label(t('screen.demo.select_demo.country.label'))
-                ->placeholder(t('screen.demo.select_demo.country.placeholder'))
+                ->label(t('screens.demo.select_demo.country.label'))
+                ->placeholder(t('screens.demo.select_demo.country.placeholder'))
                 ->options(self::COUNTRIES)
                 ->value(null)
                 ->required(true)
@@ -147,8 +147,8 @@ class SelectDemo extends Screen
         // City select (initially disabled)
         $container->add(
             UI::select('sel_city')
-                ->label(t('screen.demo.select_demo.city.label'))
-                ->placeholder(t('screen.demo.select_demo.city.placeholder.select_country_first'))
+                ->label(t('screens.demo.select_demo.city.label'))
+                ->placeholder(t('screens.demo.select_demo.city.placeholder.select_country_first'))
                 ->options([])
                 ->value(null)
                 ->disabled(true)
@@ -160,7 +160,7 @@ class SelectDemo extends Screen
         // Checkbox to enable multiple language selection
         $container->add(
             UI::checkbox('chk_enable_multiple')
-                ->label(t('screen.demo.select_demo.languages.enable_multiple'))
+                ->label(t('screens.demo.select_demo.languages.enable_multiple'))
                 ->checked(false)
                 ->onChange('toggle_multiple_languages')
                 ->style('default')
@@ -170,11 +170,11 @@ class SelectDemo extends Screen
         // Languages select (searchable and optionally multiple)
         $container->add(
             UI::select('sel_languages')
-                ->label(t('screen.demo.select_demo.languages.label'))
-                ->placeholder(t('screen.demo.select_demo.languages.placeholder.multiple'))
+                ->label(t('screens.demo.select_demo.languages.label'))
+                ->placeholder(t('screens.demo.select_demo.languages.placeholder.multiple'))
                 ->options(self::LANGUAGES)
                 ->value(null)
-                ->searchable(true, t('screen.demo.select_demo.languages.search'))
+                ->searchable(true, t('screens.demo.select_demo.languages.search'))
                 ->multiple(false)
                 ->onChange('language_change')
                 ->style('info')
@@ -184,14 +184,14 @@ class SelectDemo extends Screen
         // Result label
         $container->add(
             UI::label('lbl_result')
-                ->text(t('screen.demo.select_demo.result.initial'))
+                ->text(t('screens.demo.select_demo.result.initial'))
                 ->style('default')
         );
 
         // Reset button
         $container->add(
             UI::button('btn_reset')
-                ->label(t('screen.demo.select_demo.actions.reset_all'))
+                ->label(t('screens.demo.select_demo.actions.reset_all'))
                 ->action('reset_selections')
                 ->icon('refresh')
                 ->style('secondary')
@@ -217,10 +217,10 @@ class SelectDemo extends Screen
                 ->options([])
                 ->value(null)
                 ->disabled(true)
-                ->placeholder(t('screen.demo.select_demo.city.placeholder.select_country_first'));
+                ->placeholder(t('screens.demo.select_demo.city.placeholder.select_country_first'));
 
             $this->lbl_result
-                ->text(t('screen.demo.select_demo.result.select_country_to_continue'))
+                ->text(t('screens.demo.select_demo.result.select_country_to_continue'))
                 ->style('default');
         } else {
             // Country selected - enable city select with options
@@ -230,12 +230,12 @@ class SelectDemo extends Screen
                 ->options($cities)
                 ->value(null)
                 ->disabled(false)
-                ->placeholder(t('screen.demo.select_demo.city.placeholder.choose_city'));
+                ->placeholder(t('screens.demo.select_demo.city.placeholder.choose_city'));
 
             $countryName = $this->findOptionLabel(self::COUNTRIES, $countryCode, $countryCode);
 
             $this->lbl_result
-                ->text(t('screen.demo.select_demo.result.country_selected', ['country' => $countryName]))
+                ->text(t('screens.demo.select_demo.result.country_selected', ['country' => $countryName]))
                 ->style('success');
         }
     }
@@ -254,7 +254,7 @@ class SelectDemo extends Screen
 
         if (empty($cityCode)) {
             $this->lbl_result
-                ->text(t('screen.demo.select_demo.result.select_city_to_continue'))
+                ->text(t('screens.demo.select_demo.result.select_city_to_continue'))
                 ->style('default');
         } else {
             $info = self::CITY_INFO[$cityCode] ?? null;
@@ -262,19 +262,19 @@ class SelectDemo extends Screen
             if ($info) {
                 $cityName = $this->findCityLabel($cityCode);
 
-                $text = t('screen.demo.select_demo.result.city_info.header', [
+                $text = t('screens.demo.select_demo.result.city_info.header', [
                     'city' => $cityName,
                     'country' => $info['country'],
                 ]);
-                $text .= t('screen.demo.select_demo.result.city_info.population', ['population' => $info['population']]);
-                $text .= t('screen.demo.select_demo.result.city_info.timezone', ['timezone' => $info['timezone']]);
+                $text .= t('screens.demo.select_demo.result.city_info.population', ['population' => $info['population']]);
+                $text .= t('screens.demo.select_demo.result.city_info.timezone', ['timezone' => $info['timezone']]);
 
                 $this->lbl_result
                     ->text($text)
                     ->style('success');
             } else {
                 $this->lbl_result
-                    ->text(t('screen.demo.select_demo.result.city_info_unavailable'))
+                    ->text(t('screens.demo.select_demo.result.city_info_unavailable'))
                     ->style('warning');
             }
         }
@@ -372,12 +372,12 @@ class SelectDemo extends Screen
         if ($enableMultiple) {
             $this->sel_languages
                 ->multiple(true, 3) // Allow up to 3 selections
-                ->placeholder(t('screen.demo.select_demo.languages.placeholder.up_to_three'))
+                ->placeholder(t('screens.demo.select_demo.languages.placeholder.up_to_three'))
                 ->value([]);
         } else {
             $this->sel_languages
                 ->multiple(false)
-                ->placeholder(t('screen.demo.select_demo.languages.placeholder.single'))
+                ->placeholder(t('screens.demo.select_demo.languages.placeholder.single'))
                 ->value(null);
         }
     }
@@ -396,17 +396,17 @@ class SelectDemo extends Screen
             ->options([])
             ->value(null)
             ->disabled(true)
-            ->placeholder(t('screen.demo.select_demo.city.placeholder.select_country_first'));
+            ->placeholder(t('screens.demo.select_demo.city.placeholder.select_country_first'));
 
         $this->sel_languages
             ->value(null)
             ->multiple(false)
-            ->placeholder(t('screen.demo.select_demo.languages.placeholder.single'));
+            ->placeholder(t('screens.demo.select_demo.languages.placeholder.single'));
 
         $this->chk_enable_multiple->checked(false);
 
         $this->lbl_result
-            ->text(t('screen.demo.select_demo.result.reset_done'))
+            ->text(t('screens.demo.select_demo.result.reset_done'))
             ->style('info');
     }
 }

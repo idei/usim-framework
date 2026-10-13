@@ -26,7 +26,7 @@ class TableDemo extends Screen
     protected function buildBaseUI(Container $container, ...$params): void
     {
         $table = UI::table('movies_table')
-            ->title(t('screen.demo.table_demo.table_title'))
+            ->title(t('screens.demo.table_demo.table_title'))
             ->sortedBy('title')
             ->pagination(7)
             ->dataModel(MovieTableModel::class);
@@ -71,7 +71,7 @@ class TableDemo extends Screen
             ->gap(Spacing::px(5));
 
         $search = UI::input('search_movies')
-            ->placeholder(t('screen.demo.table_demo.search_placeholder'))
+            ->placeholder(t('screens.demo.table_demo.search_placeholder'))
             ->width(Size::px(300))
             ->autocomplete('off')
             ->onInput('search_input_typed', [])
@@ -143,7 +143,7 @@ class TableDemo extends Screen
         /** @var \App\Models\Movie $movie */
         $movie = app(MovieListingService::class)->findById($movieId);
 
-        $this->toast(t('screen.demo.table_demo.row_clicked_toast', [
+        $this->toast(t('screens.demo.table_demo.row_clicked_toast', [
             'name' => t($movie->title),
         ]));
     }

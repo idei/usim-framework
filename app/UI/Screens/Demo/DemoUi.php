@@ -37,7 +37,7 @@ class DemoUi extends Screen
     {
         $container->add(
             UI::button('reset_button')
-                ->label(t('screen.demo.demo_ui.actions.reset_state'))
+                ->label(t('screens.demo.demo_ui.actions.reset_state'))
                 ->action('reset_state')
                 ->icon('refresh')
                 ->style('secondary')
@@ -45,13 +45,13 @@ class DemoUi extends Screen
         );
         $container->add(
             UI::label('lbl_welcome')
-                ->text(t('screen.demo.demo_ui.welcome.initial'))
+                ->text(t('screens.demo.demo_ui.welcome.initial'))
                 ->style('info')
         );
 
         $container->add(
             UI::button('btn_test_update')
-                ->label(t('screen.demo.demo_ui.actions.test_update'))
+                ->label(t('screens.demo.demo_ui.actions.test_update'))
                 ->action('test_action')
                 ->icon('star')
                 ->style('primary')
@@ -60,7 +60,7 @@ class DemoUi extends Screen
 
         $container->add(
             UI::label()
-                ->text(t('screen.demo.demo_ui.counter.label'))
+                ->text(t('screens.demo.demo_ui.counter.label'))
                 ->style('default')
         );
 
@@ -72,7 +72,7 @@ class DemoUi extends Screen
 
         $counterContainer->add(
             UI::button('btn_decrement')
-                ->label(t('screen.demo.demo_ui.actions.decrement'))
+                ->label(t('screens.demo.demo_ui.actions.decrement'))
                 ->action('decrement_counter')
                 ->style('danger')
                 ->variant('filled')
@@ -86,7 +86,7 @@ class DemoUi extends Screen
 
         $counterContainer->add(
             UI::button('btn_increment')
-                ->label(t('screen.demo.demo_ui.actions.increment'))
+                ->label(t('screens.demo.demo_ui.actions.increment'))
                 ->action('increment_counter')
                 ->style('success')
                 ->variant('filled')
@@ -96,7 +96,7 @@ class DemoUi extends Screen
 
         $container->add(
             UI::button('btn_test_add')
-                ->label(t('screen.demo.demo_ui.actions.test_add'))
+                ->label(t('screens.demo.demo_ui.actions.test_add'))
                 ->action('add_new_component')
                 ->icon('settings')
                 ->style('warning')
@@ -105,7 +105,7 @@ class DemoUi extends Screen
 
         $container->add(
             UI::label()
-                ->text(t('screen.demo.demo_ui.hint.add_buttons'))
+                ->text(t('screens.demo.demo_ui.hint.add_buttons'))
                 ->style('default')
         );
 
@@ -136,7 +136,7 @@ class DemoUi extends Screen
         $this->store_counter = 1000;
         $this->store_new_components = 0;
         $this->lbl_welcome
-            ->text(t('screen.demo.demo_ui.welcome.initial'))
+            ->text(t('screens.demo.demo_ui.welcome.initial'))
             ->style('info');
         $this->new_components_container->clear();
         $this->updateCounterLabel($this->lbl_counter, $this->store_counter);
@@ -148,7 +148,7 @@ class DemoUi extends Screen
     public function onTestAction(array $params): void
     {
         $this->lbl_welcome
-            ->text(t('screen.demo.demo_ui.welcome.updated', ['time' => now()->toDateTimeString()]))
+            ->text(t('screens.demo.demo_ui.welcome.updated', ['time' => now()->toDateTimeString()]))
             ->style('success');
     }
 
@@ -192,7 +192,7 @@ class DemoUi extends Screen
         $added = false;
         $button_number = $this->store_new_components + 1;
         $new_button = UI::button("btn_new_button_$button_number")
-            ->label(t('screen.demo.demo_ui.dynamic.button_label', ['number' => $button_number]))
+            ->label(t('screens.demo.demo_ui.dynamic.button_label', ['number' => $button_number]))
             ->style('info');
 
         $new_button->action('new_button_action', [

@@ -33,7 +33,7 @@ use Idei\Usim\ValueObjects\Spacing;
  */
 trait ManagesUsersSection
 {
-    protected const string USERS_I18N_PREFIX = 'screen.admin.users_manager.';
+    protected const string USERS_I18N_PREFIX = 'screens.admin.users_manager.';
 
     protected Table $users_table;
 

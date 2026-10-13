@@ -32,7 +32,7 @@ class UsersManager extends Screen
     use ManagesUsersSection;
     use ResolvesActiveUnitContext;
 
-    private const I18N_PREFIX = 'screen.admin.users_manager.';
+    private const I18N_PREFIX = 'screens.admin.users_manager.';
 
     protected Container $tabs_container;
 

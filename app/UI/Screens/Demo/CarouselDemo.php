@@ -39,13 +39,13 @@ class CarouselDemo extends Screen
 
         $container->add(
             UI::label('carousel_demo_intro')
-                ->text(t('screen.demo.carousel_demo.intro'))
+                ->text(t('screens.demo.carousel_demo.intro'))
                 ->style('info')
         );
 
         $container->add(
             UI::label('manual_title')
-                ->text(t('screen.demo.carousel_demo.manual_mode'))
+                ->text(t('screens.demo.carousel_demo.manual_mode'))
                 ->style('primary')
         );
 
@@ -67,7 +67,7 @@ class CarouselDemo extends Screen
 
         $container->add(
             UI::label('auto_title')
-                ->text(t('screen.demo.carousel_demo.auto_mode'))
+                ->text(t('screens.demo.carousel_demo.auto_mode'))
                 ->style('primary')
                 ->marginTop(Spacing::px(16))
         );
@@ -96,14 +96,14 @@ class CarouselDemo extends Screen
 
         $buttons->add(
             UI::button('btn_auto_fullscreen')
-                ->label(t('screen.demo.carousel_demo.actions.toggle_auto_fullscreen'))
+                ->label(t('screens.demo.carousel_demo.actions.toggle_auto_fullscreen'))
                 ->style('secondary')
                 ->action('toggle_auto_fullscreen')
         );
 
         $buttons->add(
             UI::button('btn_reset_carousel_demo')
-                ->label(t('screen.demo.carousel_demo.actions.reset'))
+                ->label(t('screens.demo.carousel_demo.actions.reset'))
                 ->style('warning')
                 ->action('reset_carousel_demo')
         );
@@ -230,21 +230,21 @@ class CarouselDemo extends Screen
                 'kind' => 'image',
                 'url' => 'https://images.unsplash.com/photo-1491553895911-0055eca6402d?auto=format&fit=crop&w=1200&q=80',
                 'mime' => 'image/jpeg',
-                'title' => t('screen.demo.carousel_demo.media.manual_image_1'),
+                'title' => t('screens.demo.carousel_demo.media.manual_image_1'),
             ],
             [
                 'id' => 'm2',
                 'kind' => 'image',
                 'url' => 'https://images.unsplash.com/photo-1519389950473-47ba0277781c?auto=format&fit=crop&w=1200&q=80',
                 'mime' => 'image/jpeg',
-                'title' => t('screen.demo.carousel_demo.media.manual_image_2'),
+                'title' => t('screens.demo.carousel_demo.media.manual_image_2'),
             ],
             [
                 'id' => 'm3',
                 'kind' => 'image',
                 'url' => 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&w=1200&q=80',
                 'mime' => 'image/jpeg',
-                'title' => t('screen.demo.carousel_demo.media.manual_image_3'),
+                'title' => t('screens.demo.carousel_demo.media.manual_image_3'),
             ],
         ];
     }
@@ -260,7 +260,7 @@ class CarouselDemo extends Screen
                 'kind' => 'image',
                 'url' => 'https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=1200&q=80',
                 'mime' => 'image/jpeg',
-                'title' => t('screen.demo.carousel_demo.media.auto_image_5s'),
+                'title' => t('screens.demo.carousel_demo.media.auto_image_5s'),
                 'duration_ms' => 5000,
             ],
             [
@@ -268,7 +268,7 @@ class CarouselDemo extends Screen
                 'kind' => 'video',
                 'url' => 'https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4',
                 'mime' => 'video/mp4',
-                'title' => t('screen.demo.carousel_demo.media.auto_video_5s'),
+                'title' => t('screens.demo.carousel_demo.media.auto_video_5s'),
                 'duration_ms' => 5000,
             ],
             [
@@ -276,7 +276,7 @@ class CarouselDemo extends Screen
                 'kind' => 'audio',
                 'url' => 'https://interactive-examples.mdn.mozilla.net/media/cc0-audio/t-rex-roar.mp3',
                 'mime' => 'audio/mpeg',
-                'title' => t('screen.demo.carousel_demo.media.auto_audio_2s'),
+                'title' => t('screens.demo.carousel_demo.media.auto_audio_2s'),
                 'duration_ms' => 2000,
             ],
         ];

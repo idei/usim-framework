@@ -48,7 +48,7 @@ class ForgotPassword extends Screen
 
         $container->add(
             UI::label('lbl_title')
-                ->text(t('screen.auth.forgot_password.title'))
+                ->text(t('screens.auth.forgot_password.title'))
                 ->style('h2')
                 ->center()
                 ->color('#3b82f6') // Blue to match theme
@@ -81,7 +81,7 @@ class ForgotPassword extends Screen
 
         $formCard->add(
             UI::label('card_title')
-                ->text(t('screen.auth.forgot_password.card_title'))
+                ->text(t('screens.auth.forgot_password.card_title'))
                 ->style('h3')
                 ->color('#1f2937')
                 ->marginBottom(Spacing::px(5))
@@ -89,7 +89,7 @@ class ForgotPassword extends Screen
 
         $formCard->add(
             UI::label('lbl_instruction')
-                ->text(t('screen.auth.forgot_password.instruction'))
+                ->text(t('screens.auth.forgot_password.instruction'))
                 ->style('p')
                 ->color('#6b7280')
                 ->marginBottom(Spacing::px(15))
@@ -97,9 +97,9 @@ class ForgotPassword extends Screen
 
         $formCard->add(
             UI::input('email')
-                ->label(t('screen.auth.forgot_password.email.label'))
+                ->label(t('screens.auth.forgot_password.email.label'))
                 ->type('email')
-                ->placeholder(t('screen.auth.forgot_password.email.placeholder'))
+                ->placeholder(t('screens.auth.forgot_password.email.placeholder'))
                 ->width(Size::full())
         );
 
@@ -118,14 +118,14 @@ class ForgotPassword extends Screen
 
         $buttons->add(
             UI::button('btn_send')
-                ->label(t('screen.auth.forgot_password.actions.send'))
+                ->label(t('screens.auth.forgot_password.actions.send'))
                 ->style('primary')
                 ->action('send_link')
         );
 
         $buttons->add(
             UI::button('btn_back')
-                ->label(t('screen.auth.forgot_password.actions.back'))
+                ->label(t('screens.auth.forgot_password.actions.back'))
                 ->style('outline')
                 ->action('navigate_to_login')
         );
@@ -148,7 +148,7 @@ class ForgotPassword extends Screen
 
         if (empty($email)) {
             if (isset($this->lbl_result)) {
-                $this->lbl_result->text(t('screen.auth.forgot_password.validation.email_required'))->style('error')->visible(true);
+                $this->lbl_result->text(t('screens.auth.forgot_password.validation.email_required'))->style('error')->visible(true);
             }
 
             return;
@@ -159,9 +159,9 @@ class ForgotPassword extends Screen
 
             if ($result->isSuccess()) {
                 if (isset($this->lbl_result)) {
-                    $this->lbl_result->text(t('screen.auth.forgot_password.success'))->style('success')->visible(true);
+                    $this->lbl_result->text(t('screens.auth.forgot_password.success'))->style('success')->visible(true);
                 }
-                $this->toast(t('screen.auth.forgot_password.toast.sent'), 'success');
+                $this->toast(t('screens.auth.forgot_password.toast.sent'), 'success');
                 if (isset($this->email)) {
                     $this->email->value('');
                 }
@@ -174,7 +174,7 @@ class ForgotPassword extends Screen
 
         } catch (\Throwable $e) {
             if (isset($this->lbl_result)) {
-                $this->lbl_result->text(t('screen.auth.forgot_password.errors.connection', ['message' => $e->getMessage()]))->style('error')->visible(true);
+                $this->lbl_result->text(t('screens.auth.forgot_password.errors.connection', ['message' => $e->getMessage()]))->style('error')->visible(true);
             }
         }
     }

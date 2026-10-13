@@ -3,7 +3,6 @@
 namespace Idei\Usim\Support;
 
 use Idei\Usim\Contracts\ScreenDiscoveryScannerInterface;
-use Idei\Usim\Screen;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\DB;
@@ -108,7 +107,7 @@ class ScreenDiscoveryService
         }
 
         $permissionPrefix = $this->normalizeTranslationPrefix(config('usim.i18n.i18n_key_prefixes.permission', 'permission.'));
-        $screenPrefix = $this->normalizeTranslationPrefix(config('usim.i18n.i18n_key_prefixes.screen', 'screen.'));
+        $screenPrefix = $this->normalizeTranslationPrefix(config('usim.i18n.i18n_key_prefixes.screens', config('usim.i18n.i18n_key_prefixes.screen', 'screens.')));
         $screenPermissionPrefix = "{$screenPrefix}permissions.";
 
         foreach ($this->resolveTranslationLocales() as $locale) {

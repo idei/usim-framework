@@ -46,14 +46,14 @@ class SplitDemo extends Screen
 
         $wrapper->add(
             UI::label('split_demo_title')
-                ->text(t('screen.demo.split_demo.title'))
+                ->text(t('screens.demo.split_demo.title'))
                 ->style('h2')
                 ->center()
         );
 
         $wrapper->add(
             UI::label('split_demo_intro')
-                ->text(t('screen.demo.split_demo.intro'))
+                ->text(t('screens.demo.split_demo.intro'))
                 ->style('info')
                 ->width(Size::full())
         );
@@ -66,10 +66,10 @@ class SplitDemo extends Screen
 
         $controls->add(
             UI::select('sel_split_orientation')
-                ->label(t('screen.demo.split_demo.orientation.label'))
+                ->label(t('screens.demo.split_demo.orientation.label'))
                 ->options([
-                    ['value' => 'horizontal', 'label' => t('screen.demo.split_demo.orientation.options.horizontal')],
-                    ['value' => 'vertical', 'label' => t('screen.demo.split_demo.orientation.options.vertical')],
+                    ['value' => 'horizontal', 'label' => t('screens.demo.split_demo.orientation.options.horizontal')],
+                    ['value' => 'vertical', 'label' => t('screens.demo.split_demo.orientation.options.vertical')],
                 ])
                 ->value($this->store_split_orientation)
                 ->onChange('split_orientation_change')
@@ -78,40 +78,40 @@ class SplitDemo extends Screen
 
         $controls->add(
             UI::input('inp_split_size')
-                ->label(t('screen.demo.split_demo.split_size.label'))
+                ->label(t('screens.demo.split_demo.split_size.label'))
                 ->value($this->store_split_size)
-                ->placeholder(t('screen.demo.split_demo.split_size.placeholder'))
+                ->placeholder(t('screens.demo.split_demo.split_size.placeholder'))
                 ->width(Size::px(280))
         );
 
         $controls->add(
             UI::input('inp_splitter_size')
-                ->label(t('screen.demo.split_demo.splitter_size.label'))
+                ->label(t('screens.demo.split_demo.splitter_size.label'))
                 ->value($this->store_splitter_size)
-                ->placeholder(t('screen.demo.split_demo.splitter_size.placeholder'))
+                ->placeholder(t('screens.demo.split_demo.splitter_size.placeholder'))
                 ->width(Size::px(280))
         );
 
         $controls->add(
             UI::checkbox('chk_split_draggable')
-                ->label(t('screen.demo.split_demo.draggable'))
+                ->label(t('screens.demo.split_demo.draggable'))
                 ->checked($this->store_split_draggable)
                 ->onChange('split_draggable_change')
         );
 
         $controls->add(
             UI::checkbox('chk_split_collapsible')
-                ->label(t('screen.demo.split_demo.collapsible'))
+                ->label(t('screens.demo.split_demo.collapsible'))
                 ->checked($this->store_split_collapsible)
                 ->onChange('split_collapsible_change')
         );
 
         $controls->add(
             UI::select('sel_collapse_target')
-                ->label(t('screen.demo.split_demo.collapse_target.label'))
+                ->label(t('screens.demo.split_demo.collapse_target.label'))
                 ->options([
-                    ['value' => 'first', 'label' => t('screen.demo.split_demo.collapse_target.options.first')],
-                    ['value' => 'second', 'label' => t('screen.demo.split_demo.collapse_target.options.second')],
+                    ['value' => 'first', 'label' => t('screens.demo.split_demo.collapse_target.options.first')],
+                    ['value' => 'second', 'label' => t('screens.demo.split_demo.collapse_target.options.second')],
                 ])
                 ->value($this->store_collapse_target)
                 ->onChange('split_collapse_target_change')
@@ -125,21 +125,21 @@ class SplitDemo extends Screen
 
         $actions->add(
             UI::button('btn_apply_split_size')
-                ->label(t('screen.demo.split_demo.actions.apply_sizes'))
+                ->label(t('screens.demo.split_demo.actions.apply_sizes'))
                 ->style('primary')
                 ->action('apply_split_size')
         );
 
         $actions->add(
             UI::button('btn_toggle_split_collapse')
-                ->label(t('screen.demo.split_demo.actions.toggle_collapse'))
+                ->label(t('screens.demo.split_demo.actions.toggle_collapse'))
                 ->style('warning')
                 ->action('toggle_split_collapse')
         );
 
         $actions->add(
             UI::button('btn_reset_split_demo')
-                ->label(t('screen.demo.split_demo.actions.reset_demo'))
+                ->label(t('screens.demo.split_demo.actions.reset_demo'))
                 ->style('secondary')
                 ->action('reset_split_demo')
         );
@@ -173,11 +173,11 @@ class SplitDemo extends Screen
             ->padding(Spacing::px(12))
             ->gap(Spacing::px(8));
 
-        $leftPanel->add(UI::label('split_left_title')->text(t('screen.demo.split_demo.panes.first.title'))->style('primary'));
-        $leftPanel->add(UI::label('split_left_copy')->text(t('screen.demo.split_demo.panes.first.description')));
+        $leftPanel->add(UI::label('split_left_title')->text(t('screens.demo.split_demo.panes.first.title'))->style('primary'));
+        $leftPanel->add(UI::label('split_left_copy')->text(t('screens.demo.split_demo.panes.first.description')));
         $leftPanel->add(
             UI::button('btn_collapse_first')
-                ->label(t('screen.demo.split_demo.actions.collapse_first'))
+                ->label(t('screens.demo.split_demo.actions.collapse_first'))
                 ->style('danger')
                 ->action('collapse_first_panel')
         );
@@ -187,11 +187,11 @@ class SplitDemo extends Screen
             ->padding(Spacing::px(12))
             ->gap(Spacing::px(8));
 
-        $rightPanel->add(UI::label('split_right_title')->text(t('screen.demo.split_demo.panes.second.title'))->style('success'));
-        $rightPanel->add(UI::label('split_right_copy')->text(t('screen.demo.split_demo.panes.second.description')));
+        $rightPanel->add(UI::label('split_right_title')->text(t('screens.demo.split_demo.panes.second.title'))->style('success'));
+        $rightPanel->add(UI::label('split_right_copy')->text(t('screens.demo.split_demo.panes.second.description')));
         $rightPanel->add(
             UI::button('btn_collapse_second')
-                ->label(t('screen.demo.split_demo.actions.collapse_second'))
+                ->label(t('screens.demo.split_demo.actions.collapse_second'))
                 ->style('danger')
                 ->action('collapse_second_panel')
         );

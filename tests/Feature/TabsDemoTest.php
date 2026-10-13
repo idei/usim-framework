@@ -60,7 +60,7 @@ it('renders advanced tab without explicit colors using theme token defaults', fu
 
     $advancedTab = collect($tabs['tabs'] ?? [])->firstWhere('id', 'advanced');
     expect($advancedTab)->not->toBeNull('Advanced tab debe existir');
-    expect($advancedTab['label'] ?? null)->toBe(t('screen.demo.tabs_demo.tabs.advanced.label'));
+    expect($advancedTab['label'] ?? null)->toBe(t('screens.demo.tabs_demo.tabs.advanced.label'));
 
     // Verificar que el tab no tiene colores definidos (fallback a tema)
     expect($advancedTab['color'] ?? null)->toBeNull('No debe tener color definido');

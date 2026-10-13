@@ -41,15 +41,15 @@ class InputDemo extends Screen
 
         $container->add(
             UI::label('lbl_instruction')
-                ->text(t('screen.demo.input_demo.instruction'))
+                ->text(t('screens.demo.input_demo.instruction'))
                 ->style('info')
                 ->width(Size::full())
         );
 
         $container->add(
             UI::input('input_text')
-                ->label(t('screen.demo.input_demo.name.label'))
-                ->placeholder(t('screen.demo.input_demo.name.placeholder'))
+                ->label(t('screens.demo.input_demo.name.label'))
+                ->placeholder(t('screens.demo.input_demo.name.placeholder'))
                 ->value('')
                 ->required(true)
                 ->type('text')
@@ -58,14 +58,14 @@ class InputDemo extends Screen
 
         $container->add(
             UI::button('btn_get_value')
-                ->label(t('screen.demo.input_demo.actions.validate'))
+                ->label(t('screens.demo.input_demo.actions.validate'))
                 ->action('get_value')
                 ->style('primary')
         );
 
         $container->add(
             UI::label('lbl_result')
-                ->text(t('screen.demo.input_demo.result.initial'))
+                ->text(t('screens.demo.input_demo.result.initial'))
                 ->style('default')
                 ->width(Size::full())
         );
@@ -75,7 +75,7 @@ class InputDemo extends Screen
     {
         $this->input_text->value('')->error(null);
         $this->lbl_result
-            ->text(t('screen.demo.input_demo.result.initial'))
+            ->text(t('screens.demo.input_demo.result.initial'))
             ->style('default');
     }
 
@@ -96,11 +96,11 @@ class InputDemo extends Screen
         $this->input_text->error(null);
 
         if (empty($inputValue)) {
-            $this->displayError(t('screen.demo.input_demo.validation.name_required'));
+            $this->displayError(t('screens.demo.input_demo.validation.name_required'));
         } elseif (\strlen($inputValue) < 3) {
-            $this->displayError(t('screen.demo.input_demo.validation.name_min'));
+            $this->displayError(t('screens.demo.input_demo.validation.name_min'));
         } else {
-            $this->lbl_result->text(t('screen.demo.input_demo.result.valid_name', ['name' => $inputValue]))->style('success');
+            $this->lbl_result->text(t('screens.demo.input_demo.result.valid_name', ['name' => $inputValue]))->style('success');
         }
     }
 
@@ -108,6 +108,6 @@ class InputDemo extends Screen
     {
         $this->input_text->error($message);
         $this->toast($message, 'error');
-        $this->lbl_result->text(t('screen.demo.input_demo.result.fix_error'))->style('danger');
+        $this->lbl_result->text(t('screens.demo.input_demo.result.fix_error'))->style('danger');
     }
 }

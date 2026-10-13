@@ -391,7 +391,8 @@ return [
         'i18n_key_prefixes' => [
             'role' => 'role.',
             'permission' => 'permission.',
-            'screen' => 'screen.',
+            'screen' => 'screens.',
+            'screens' => 'screens.',
         ],
     ],
 

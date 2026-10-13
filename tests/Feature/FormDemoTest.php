@@ -17,7 +17,7 @@ it('loads form demo with expected defaults', function () {
         $instruction = $ui->component('lbl_instruction');
 
         $instruction->expect('type')->toBe('label');
-        $instruction->expect('text')->toBe(t('screen.demo.form_demo.instruction'));
+        $instruction->expect('text')->toBe(t('screens.demo.form_demo.instruction'));
 
         $name->expect('type')->toBe('input');
         $name->expect('required')->toBeTrue();
@@ -33,7 +33,7 @@ it('loads form demo with expected defaults', function () {
         $submit->expect('type')->toBe('button');
         $submit->expect('action')->toBe('submit_form');
 
-        $result->expect('text')->toBe(t('screen.demo.form_demo.result.initial'));
+        $result->expect('text')->toBe(t('screens.demo.form_demo.result.initial'));
         $result->expect('style')->toBe('secondary');
 
         $ui->assertNoIssues();
@@ -57,11 +57,11 @@ it('shows required errors when submitting empty form', function () {
 
         $response->assertOk();
 
-        $ui->component('input_name')->expect('error')->toBe(t('screen.demo.form_demo.validation.name_required'));
-        $ui->component('input_email')->expect('error')->toBe(t('screen.demo.form_demo.validation.email_required'));
+        $ui->component('input_name')->expect('error')->toBe(t('screens.demo.form_demo.validation.name_required'));
+        $ui->component('input_email')->expect('error')->toBe(t('screens.demo.form_demo.validation.email_required'));
 
         $result = $ui->component('lbl_result');
-        $result->expect('text')->toBe(t('screen.demo.form_demo.result.errors'));
+        $result->expect('text')->toBe(t('screens.demo.form_demo.result.errors'));
         $result->expect('style')->toBe('danger');
 
         $ui->assertNoIssues();
@@ -85,11 +85,11 @@ it('shows format and min-length errors for invalid values', function () {
 
         $response->assertOk();
 
-        $ui->component('input_name')->expect('error')->toBe(t('screen.demo.form_demo.validation.name_min'));
-        $ui->component('input_email')->expect('error')->toBe(t('screen.demo.form_demo.validation.email_invalid'));
+        $ui->component('input_name')->expect('error')->toBe(t('screens.demo.form_demo.validation.name_min'));
+        $ui->component('input_email')->expect('error')->toBe(t('screens.demo.form_demo.validation.email_invalid'));
 
         $result = $ui->component('lbl_result');
-        $result->expect('text')->toBe(t('screen.demo.form_demo.result.errors'));
+        $result->expect('text')->toBe(t('screens.demo.form_demo.result.errors'));
         $result->expect('style')->toBe('danger');
 
         $ui->assertNoIssues();
@@ -114,7 +114,7 @@ it('submits successfully and clears inputs for valid values', function () {
         $response->assertOk();
 
         $resultText = $ui->component('lbl_result')->data()['text'] ?? '';
-        expect($resultText)->toBe(t('screen.demo.form_demo.result.success', [
+        expect($resultText)->toBe(t('screens.demo.form_demo.result.success', [
             'name' => 'Alice',
             'email' => 'alice@example.com',
         ]));

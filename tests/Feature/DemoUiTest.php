@@ -11,7 +11,7 @@ it('loads demo ui with expected initial state', function () {
         $ui = uiScenario($this, DemoUi::class, ['reset' => true]);
 
         $ui->component('lbl_welcome')->expect('type')->toBe('label');
-        $ui->component('lbl_welcome')->expect('text')->toBe(t('screen.demo.demo_ui.welcome.initial'));
+        $ui->component('lbl_welcome')->expect('text')->toBe(t('screens.demo.demo_ui.welcome.initial'));
 
         $ui->component('btn_test_update')->expect('action')->toBe('test_action');
         $ui->component('btn_test_add')->expect('action')->toBe('add_new_component');
@@ -38,7 +38,7 @@ it('updates welcome label when test update button is clicked', function () {
         $response->assertOk();
 
         $welcomeText = $ui->component('lbl_welcome')->data()['text'] ?? '';
-        expect($welcomeText)->not->toBe(t('screen.demo.demo_ui.welcome.initial'));
+        expect($welcomeText)->not->toBe(t('screens.demo.demo_ui.welcome.initial'));
         expect($welcomeText)->not->toBe('');
         $ui->component('lbl_welcome')->expect('style')->toBe('success');
 
@@ -85,7 +85,7 @@ it('adds a new dynamic button when add action is triggered', function () {
         $newButton->expect('type')->toBe('button');
         $newButton->expect('action')->toBe('new_button_action');
         $newButton->expect('label')->toBe(
-            t('screen.demo.demo_ui.dynamic.button_label', ['number' => 1])
+            t('screens.demo.demo_ui.dynamic.button_label', ['number' => 1])
         );
 
         $ui->assertNoIssues();

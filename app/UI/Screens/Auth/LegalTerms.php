@@ -37,7 +37,7 @@ class LegalTerms extends Screen
             ->padding(Spacing::px(5));
 
         $card->add(UI::label('lbl_title')
-            ->text(t('screen.auth.legal_terms.title'))
+            ->text(t('screens.auth.legal_terms.title'))
             ->style('h3'));
 
         $card->add(
@@ -57,7 +57,7 @@ class LegalTerms extends Screen
 
         $buttons->add(
             UI::button('btn_close_terms')
-                ->label(t('screen.auth.legal_terms.close'))
+                ->label(t('screens.auth.legal_terms.close'))
                 ->style('secondary')
                 ->action('close_legal_terms')
         );
@@ -70,9 +70,9 @@ class LegalTerms extends Screen
     private function termsText(): string
     {
         // Determine the path to the legal terms document based on localization and availability
-        $relativeDoc = t('screen.auth.legal_terms.document');
+        $relativeDoc = t('screens.auth.legal_terms.document');
 
-        if ($relativeDoc === 'screen.auth.legal_terms.document' || empty($relativeDoc)) {
+        if ($relativeDoc === 'screens.auth.legal_terms.document' || empty($relativeDoc)) {
             $relativeDoc = t('modal.terms.document');
         }
         if ($relativeDoc === 'modal.terms.document' || empty($relativeDoc)) {

@@ -27,7 +27,7 @@ class TabsDemo extends Screen
             ->gap(Spacing::px(5))
             ->add(
                 UI::label('tabs_demo_title')
-                    ->text(t('screen.demo.tabs_demo.title'))
+                    ->text(t('screens.demo.tabs_demo.title'))
                     ->style('h3')
                     ->center()
                     ->width(Size::full())
@@ -49,33 +49,33 @@ class TabsDemo extends Screen
 
         $this->tabs_container->add(
             UI::label('tabs_overview_title')
-                ->text(t('screen.demo.tabs_demo.content.overview_title'))
+                ->text(t('screens.demo.tabs_demo.content.overview_title'))
                 ->style('primary'),
             tab: 'overview'
         );
 
         $this->tabs_container->add(
             UI::label('tabs_overview_body')
-                ->text(t('screen.demo.tabs_demo.content.overview_body')),
-            tab: t('screen.demo.tabs_demo.tabs.overview.label')
+                ->text(t('screens.demo.tabs_demo.content.overview_body')),
+            tab: t('screens.demo.tabs_demo.tabs.overview.label')
         );
 
         $this->tabs_container->add(
             UI::label('tabs_activity_log')
-                ->text(t('screen.demo.tabs_demo.content.activity_log'))
+                ->text(t('screens.demo.tabs_demo.content.activity_log'))
                 ->style('secondary'),
-            tab: t('screen.demo.tabs_demo.tabs.activity.label')
+            tab: t('screens.demo.tabs_demo.tabs.activity.label')
         );
 
         $this->tabs_container->add(
             UI::label('tabs_settings_copy')
-                ->text(t('screen.demo.tabs_demo.content.settings_copy')),
+                ->text(t('screens.demo.tabs_demo.content.settings_copy')),
             tab: 'settings'
         );
 
         $this->tabs_container->add(
             UI::label('tabs_advanced_info')
-                ->text(t('screen.demo.tabs_demo.content.advanced_info'))
+                ->text(t('screens.demo.tabs_demo.content.advanced_info'))
                 ->style('info'),
             tab: 'advanced'
         );
@@ -103,7 +103,7 @@ class TabsDemo extends Screen
             return;
         }
 
-        $this->toast(t('screen.demo.tabs_demo.toasts.tab_closed', ['tab' => $tabId]), 'success');
+        $this->toast(t('screens.demo.tabs_demo.toasts.tab_closed', ['tab' => $tabId]), 'success');
     }
 
     /** @return array<string, array<string, mixed>> */
@@ -111,18 +111,18 @@ class TabsDemo extends Screen
     {
         return [
             'overview' => [
-                'label' => t('screen.demo.tabs_demo.tabs.overview.label'),
+                'label' => t('screens.demo.tabs_demo.tabs.overview.label'),
             ],
             'activity' => [
-                'label' => t('screen.demo.tabs_demo.tabs.activity.label'),
+                'label' => t('screens.demo.tabs_demo.tabs.activity.label'),
                 'closable' => true,
             ],
             'settings' => [
-                'label' => t('screen.demo.tabs_demo.tabs.settings.label'),
+                'label' => t('screens.demo.tabs_demo.tabs.settings.label'),
                 'closable' => true,
             ],
             'advanced' => [
-                'label' => t('screen.demo.tabs_demo.tabs.advanced.label'),
+                'label' => t('screens.demo.tabs_demo.tabs.advanced.label'),
             ],
         ];
     }

@@ -35,7 +35,7 @@ class Registered extends Screen
         $appNameConfig = config('usim.app_name') ?? config('app.name') ?? 'USIM Framework';
         $appName = is_string($appNameConfig) ? $appNameConfig : 'USIM Framework';
 
-        $message = t('screen.registered.message', ['app_name' => $appName]);
+        $message = t('screens.registered.message', ['app_name' => $appName]);
 
         $container
             ->layout(LayoutType::VERTICAL)
@@ -54,7 +54,7 @@ class Registered extends Screen
                 ->fontSize('64px')
         );
 
-        $title = t('screen.registered.title');
+        $title = t('screens.registered.title');
 
         // Title
         $container->add(
@@ -68,7 +68,7 @@ class Registered extends Screen
                 ->marginTop(Spacing::px(12))
         );
 
-        $greeting = t('screen.registered.greeting', ['name' => $userName]);
+        $greeting = t('screens.registered.greeting', ['name' => $userName]);
 
         // Greeting
         $container->add(
@@ -81,8 +81,8 @@ class Registered extends Screen
                 ->marginTop(Spacing::px(6))
         );
 
-        $cardTitle = t('screen.registered.card_title');
-        $btnProfileLabel = t('screen.registered.btn_profile');
+        $cardTitle = t('screens.registered.card_title');
+        $btnProfileLabel = t('screens.registered.btn_profile');
 
         // Main informative Card with the required message
         $container->add(
