@@ -136,6 +136,9 @@ class Menu extends Screen
     public function onChangeLang(array $params): void
     {
         $lang = $this->stringParamOrDefault($params, 'lang', '');
+        if (empty($this->store_lang)) {
+            $this->store_lang = $this->normalizeLocale(app()->getLocale() ?: config('usim.i18n.fallback_locale', 'en'));
+        }
         if (empty($lang) || $lang === $this->store_lang) {
             return;
         }
@@ -158,11 +161,9 @@ class Menu extends Screen
         if (!empty($queryString)) {
             parse_str((string) $queryString, $query);
         }
+        $query['reset'] = 'true';
 
-        $target = $path;
-        if (!empty($query)) {
-            $target .= '?' . http_build_query($query);
-        }
+        $target = $path . '?' . http_build_query($query);
 
         $this->redirect($target);
     }

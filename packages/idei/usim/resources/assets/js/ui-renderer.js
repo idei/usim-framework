@@ -785,6 +785,16 @@ class UIComponent {
 
                 // Handle redirects if provided
                 if (result.redirect) {
+                    try {
+                        const currentUrl = new URL(window.location.href);
+                        const redirectUrl = new URL(result.redirect, window.location.href);
+                        if (redirectUrl.href === currentUrl.href) {
+                            window.location.reload();
+                            return result;
+                        }
+                    } catch (_e) {
+                        // Ignore URL parsing errors
+                    }
                     window.location.href = result.redirect;
                 }
 
@@ -1015,6 +1025,16 @@ class UIRenderer {
 
         // Check for redirect instruction immediately
         if (this.data.redirect) {
+            try {
+                const currentUrl = new URL(window.location.href);
+                const redirectUrl = new URL(this.data.redirect, window.location.href);
+                if (redirectUrl.href === currentUrl.href) {
+                    window.location.reload();
+                    return;
+                }
+            } catch (_e) {
+                // Ignore URL parsing errors
+            }
             window.location.href = this.data.redirect;
             return;
         }
@@ -1635,6 +1655,16 @@ class UIRenderer {
             // If there's a toast, save it to show after redirect
             if (uiUpdate.toast) {
                 sessionStorage.setItem('pendingToast', JSON.stringify(uiUpdate.toast));
+            }
+            try {
+                const currentUrl = new URL(window.location.href);
+                const redirectUrl = new URL(uiUpdate.redirect, window.location.href);
+                if (redirectUrl.href === currentUrl.href) {
+                    window.location.reload();
+                    return;
+                }
+            } catch (_e) {
+                // Ignore URL parsing errors
             }
             window.location.href = uiUpdate.redirect;
             return; // Stop processing after redirect
