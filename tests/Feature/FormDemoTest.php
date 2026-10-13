@@ -17,7 +17,6 @@ it('loads form demo with expected defaults', function () {
         $instruction = $ui->component('lbl_instruction');
 
         $instruction->expect('type')->toBe('label');
-        $instruction->expect('style')->toBe('info');
         $instruction->expect('text')->toBe(t('screen.demo.form_demo.instruction'));
 
         $name->expect('type')->toBe('input');

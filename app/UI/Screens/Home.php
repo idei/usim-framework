@@ -15,7 +15,7 @@ class Home extends Screen
         $config = app(UsimConfig::class);
 
         $container->add(
-            UI::label()->
+            UI::label('welcome_usim')->
                 html('welcome-usim', ['title' => $config->appName])
                 ->width(Size::full())
         )->plain();
