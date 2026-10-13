@@ -2,6 +2,7 @@
 
 namespace App\UI\Navigation\Menus;
 
+use App\UI\Screens\About;
 use App\UI\Screens\Admin\TranslateManager;
 use App\UI\Screens\Admin\UsersManager;
 use Idei\Usim\Navigation\Contracts\MenuProviderInterface;
@@ -25,6 +26,6 @@ class MainMenu implements MenuProviderInterface
         $menu->provider(DemosMenuProvider::class);
 
         $menu->separator();
-        $menu->action(t('screen.menu.items.about'), 'show_about_info', [], 'ℹ️');
+        $menu->screenShow(About::class, modal:true);
     }
 }
