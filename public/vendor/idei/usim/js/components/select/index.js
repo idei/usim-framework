@@ -13,6 +13,7 @@ class UsimSelectComponent extends UIComponent {
     constructor(id, config) {
         super(id, config);
         this.selectElement = null;
+        this.wrapperElement = null;
         this.groupElement = null;
     }
 
@@ -54,7 +55,12 @@ class UsimSelectComponent extends UIComponent {
 
         this.renderOptions(this.config.options || []);
 
-        group.appendChild(select);
+        const wrapper = document.createElement('div');
+        wrapper.className = 'ui-select-wrapper';
+        this.wrapperElement = wrapper;
+        wrapper.appendChild(select);
+
+        group.appendChild(wrapper);
 
         if (this.config.on_change) {
             select.addEventListener('change', () => {
@@ -156,6 +162,17 @@ class UsimSelectComponent extends UIComponent {
     }
 
     /**
+     * Override setLoading to position the spinner inside the select wrapper
+     */
+    setLoading(isLoading, options = {}) {
+        super.setLoading(isLoading, options);
+
+        if (isLoading && this._uiSpinner && this.wrapperElement) {
+            this.wrapperElement.appendChild(this._uiSpinner);
+        }
+    }
+
+    /**
      * Handle reactive property changes from delta diffs
      */
     update(changes) {
@@ -168,7 +185,7 @@ class UsimSelectComponent extends UIComponent {
             if (changes.label) {
                 if (!label) {
                     label = document.createElement('label');
-                    this.groupElement.insertBefore(label, this.selectElement);
+                    this.groupElement.insertBefore(label, this.wrapperElement || this.selectElement);
                 }
                 label.textContent = changes.label;
             } else if (label) {

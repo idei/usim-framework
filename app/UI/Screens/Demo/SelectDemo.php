@@ -2,6 +2,10 @@
 
 namespace App\UI\Screens\Demo;
 
+use App\Contracts\CityServiceInterface;
+use App\Contracts\CountryServiceInterface;
+use App\Contracts\LanguageServiceInterface;
+use App\Contracts\StateServiceInterface;
 use Idei\Usim\Components\Button;
 use Idei\Usim\Components\Checkbox;
 use Idei\Usim\Components\Container;
@@ -12,33 +16,60 @@ use Idei\Usim\Screen;
 use Idei\Usim\UI;
 use Idei\Usim\ValueObjects\Size;
 use Idei\Usim\ValueObjects\Spacing;
-use Illuminate\Support\Facades\Http;
 
 /**
- * Select Demo Service
+ * Select Demo Screen
  *
  * Demonstrates modern select component functionality with a 3-level cascade:
  * - Country → State/Province → City
- * - Asynchronous data fetching from public APIs via GET /api/ui-data
+ * - Asynchronous data fetching delegated to domain services
  * - Cascading state and options updates via POST /api/ui-event
  * - Searchable selects and single/multiple selection mode
- * - Robust fallback data for offline / restricted environments
  */
 class SelectDemo extends Screen
 {
     public static Visibility $visibility = Visibility::PUBLIC;
 
+    protected CountryServiceInterface $countryService;
+
+    protected StateServiceInterface $stateService;
+
+    protected CityServiceInterface $cityService;
+
+    protected LanguageServiceInterface $languageService;
+
     protected Select $sel_country;
+
     protected Select $sel_state;
+
     protected Select $sel_city;
+
     protected Select $sel_languages;
+
     protected Label $lbl_result;
+
     protected Checkbox $chk_enable_multiple;
+
     protected Button $btn_reset;
 
     // Persisted state variables across event requests
     protected string $store_selected_country = '';
+
     protected string $store_selected_state = '';
+
+    public function __construct(
+        ?CountryServiceInterface $countryService = null,
+        ?StateServiceInterface $stateService = null,
+        ?CityServiceInterface $cityService = null,
+        ?LanguageServiceInterface $languageService = null,
+    ) {
+        parent::__construct();
+
+        $this->countryService = $countryService ?? app(CountryServiceInterface::class);
+        $this->stateService = $stateService ?? app(StateServiceInterface::class);
+        $this->cityService = $cityService ?? app(CityServiceInterface::class);
+        $this->languageService = $languageService ?? app(LanguageServiceInterface::class);
+    }
 
     /**
      * Build base UI layout and declare components
@@ -141,267 +172,56 @@ class SelectDemo extends Screen
     }
 
     /**
-     * Query handler: fetch countries from public API (GET /api/ui-data?action=countries)
+     * Query handler: fetch countries from country service (GET /api/ui-data?action=countries)
      *
      * @param  array<string, mixed>  $params
-     * @return array<int, array{value: string, label: string}>
+     * @return list<array{value: string, label: string}>
      */
     public function getCountries(array $params = []): array
     {
-        try {
-            $response = Http::timeout(3)->get('https://restcountries.com/v3.1/all?fields=cca2,name,flag');
-            if ($response->successful()) {
-                $data = $response->json();
-                if (is_array($data) && ! empty($data)) {
-                    $countries = [];
-                    foreach ($data as $item) {
-                        $code = strtolower((string) ($item['cca2'] ?? ''));
-                        $name = (string) ($item['name']['common'] ?? $code);
-                        $flag = (string) ($item['flag'] ?? '');
-                        if ($code !== '' && $name !== '') {
-                            $countries[] = [
-                                'value' => $code,
-                                'label' => trim("{$flag} {$name}"),
-                            ];
-                        }
-                    }
-                    if (! empty($countries)) {
-                        usort($countries, static fn (array $a, array $b): int => strcmp($a['label'], $b['label']));
-                        return $countries;
-                    }
-                }
-            }
-        } catch (\Throwable) {
-            // Fallback gracefully below
-        }
-
-        return [
-            ['value' => 'us', 'label' => '🇺🇸 United States'],
-            ['value' => 'es', 'label' => '🇪🇸 Spain'],
-            ['value' => 'ar', 'label' => '🇦🇷 Argentina'],
-            ['value' => 'mx', 'label' => '🇲🇽 Mexico'],
-            ['value' => 'fr', 'label' => '🇫🇷 France'],
-            ['value' => 'de', 'label' => '🇩🇪 Germany'],
-            ['value' => 'it', 'label' => '🇮🇹 Italy'],
-            ['value' => 'br', 'label' => '🇧🇷 Brazil'],
-            ['value' => 'ca', 'label' => '🇨🇦 Canada'],
-            ['value' => 'jp', 'label' => '🇯🇵 Japan'],
-        ];
+        return $this->countryService->getCountries();
     }
 
     /**
      * Query handler: fetch states/provinces for a given country (GET /api/ui-data?action=states)
      *
      * @param  array<string, mixed>  $params
-     * @return array<int, array{value: string, label: string}>
+     * @return list<array{value: string, label: string}>
      */
     public function getStates(array $params = []): array
     {
-        $countryCode = strtolower((string) ($params['country'] ?? $this->store_selected_country));
+        $rawCountryCode = $params['country'] ?? $this->store_selected_country;
+        $countryCode = is_string($rawCountryCode) ? $rawCountryCode : '';
 
-        if ($countryCode === '') {
-            return [];
-        }
-
-        $countryMap = [
-            'us' => 'United States',
-            'es' => 'Spain',
-            'ar' => 'Argentina',
-            'mx' => 'Mexico',
-            'fr' => 'France',
-            'de' => 'Germany',
-            'it' => 'Italy',
-            'br' => 'Brazil',
-            'ca' => 'Canada',
-            'jp' => 'Japan',
-        ];
-
-        $countryName = $countryMap[$countryCode] ?? $countryCode;
-
-        try {
-            $response = Http::timeout(3)->post('https://countriesnow.space/api/v0.1/countries/states', [
-                'country' => $countryName,
-            ]);
-
-            if ($response->successful()) {
-                $states = $response->json('data.states');
-                if (is_array($states) && ! empty($states)) {
-                    $options = [];
-                    foreach ($states as $state) {
-                        $name = (string) ($state['name'] ?? '');
-                        if ($name !== '') {
-                            $options[] = [
-                                'value' => $name,
-                                'label' => $name,
-                            ];
-                        }
-                    }
-                    if (! empty($options)) {
-                        return $options;
-                    }
-                }
-            }
-        } catch (\Throwable) {
-            // Fallback gracefully below
-        }
-
-        $fallbacks = [
-            'us' => ['California', 'New York', 'Texas', 'Florida', 'Illinois'],
-            'es' => ['Madrid', 'Cataluña', 'Andalucía', 'Comunidad Valenciana', 'Galicia'],
-            'ar' => ['Buenos Aires', 'Córdoba', 'Santa Fe', 'Mendoza', 'San Juan'],
-            'mx' => ['Ciudad de México', 'Jalisco', 'Nuevo León', 'Puebla', 'Yucatán'],
-            'fr' => ['Île-de-France', 'Auvergne-Rhône-Alpes', 'Provence-Alpes-Côte d\'Azur', 'Occitanie'],
-            'de' => ['Bavaria', 'Berlin', 'Hamburg', 'North Rhine-Westphalia', 'Hesse'],
-            'it' => ['Lombardy', 'Lazio', 'Campania', 'Veneto', 'Tuscany'],
-            'br' => ['São Paulo', 'Rio de Janeiro', 'Bahia', 'Minas Gerais', 'Paraná'],
-            'ca' => ['Ontario', 'Quebec', 'British Columbia', 'Alberta'],
-            'jp' => ['Tokyo', 'Osaka', 'Kanagawa', 'Aichi', 'Hokkaido'],
-        ];
-
-        $stateList = $fallbacks[$countryCode] ?? ['Region 1', 'Region 2', 'Region 3'];
-        return array_map(static fn (string $s): array => [
-            'value' => $s,
-            'label' => $s,
-        ], $stateList);
+        return $this->stateService->getStates($countryCode);
     }
 
     /**
      * Query handler: fetch cities for a country and state (GET /api/ui-data?action=cities)
      *
      * @param  array<string, mixed>  $params
-     * @return array<int, array{value: string, label: string}>
+     * @return list<array{value: string, label: string}>
      */
     public function getCities(array $params = []): array
     {
-        $countryCode = strtolower((string) ($params['country'] ?? $this->store_selected_country));
-        $stateName = (string) ($params['state'] ?? $this->store_selected_state);
+        $rawCountryCode = $params['country'] ?? $this->store_selected_country;
+        $countryCode = is_string($rawCountryCode) ? $rawCountryCode : '';
 
-        if ($countryCode === '') {
-            return [];
-        }
+        $rawState = $params['state'] ?? $this->store_selected_state;
+        $stateName = is_string($rawState) ? $rawState : '';
 
-        $countryMap = [
-            'us' => 'United States',
-            'es' => 'Spain',
-            'ar' => 'Argentina',
-            'mx' => 'Mexico',
-            'fr' => 'France',
-            'de' => 'Germany',
-            'it' => 'Italy',
-            'br' => 'Brazil',
-            'ca' => 'Canada',
-            'jp' => 'Japan',
-        ];
-
-        $countryName = $countryMap[$countryCode] ?? $countryCode;
-
-        try {
-            $response = Http::timeout(3)->post('https://countriesnow.space/api/v0.1/countries/state/cities', [
-                'country' => $countryName,
-                'state' => $stateName,
-            ]);
-
-            if ($response->successful()) {
-                $citiesData = $response->json('data');
-                if (is_array($citiesData) && ! empty($citiesData)) {
-                    $options = [];
-                    foreach (array_slice($citiesData, 0, 30) as $city) {
-                        $cityStr = (string) $city;
-                        $options[] = [
-                            'value' => $cityStr,
-                            'label' => $cityStr,
-                        ];
-                    }
-                    if (! empty($options)) {
-                        return $options;
-                    }
-                }
-            }
-        } catch (\Throwable) {
-            // Fallback gracefully below
-        }
-
-        $cityFallbacks = [
-            'california' => ['Los Angeles', 'San Francisco', 'San Diego', 'San Jose', 'Sacramento'],
-            'new york' => ['New York City', 'Buffalo', 'Rochester', 'Albany', 'Syracuse'],
-            'texas' => ['Houston', 'Austin', 'Dallas', 'San Antonio', 'Fort Worth'],
-            'florida' => ['Miami', 'Orlando', 'Tampa', 'Jacksonville', 'Tallahassee'],
-            'illinois' => ['Chicago', 'Aurora', 'Naperville', 'Joliet', 'Springfield'],
-            'madrid' => ['Madrid', 'Móstoles', 'Alcalá de Henares', 'Fuenlabrada', 'Leganés'],
-            'cataluña' => ['Barcelona', 'L\'Hospitalet', 'Badalona', 'Terrassa', 'Sabadell'],
-            'andalucía' => ['Sevilla', 'Málaga', 'Córdoba', 'Granada', 'Cádiz'],
-            'buenos aires' => ['La Plata', 'Mar del Plata', 'Bahía Blanca', 'Tandil'],
-            'córdoba' => ['Córdoba', 'Villa Carlos Paz', 'Río Cuarto', 'San Francisco'],
-            'santa fe' => ['Rosario', 'Santa Fe', 'Rafaela', 'Venado Tuerto'],
-            'mendoza' => ['Mendoza', 'San Rafael', 'Godoy Cruz', 'Luján de Cuyo'],
-            'san juan' => ['San Juan', 'Rawson', 'Rivadavia', 'Chimbas', 'Pocito'],
-            'jalisco' => ['Guadalajara', 'Zapopan', 'Puerto Vallarta', 'Tlaquepaque'],
-            'nuevo león' => ['Monterrey', 'San Pedro Garza García', 'Guadalupe', 'Apodaca'],
-            'ciudad de méxico' => ['Cuauhtémoc', 'Benito Juárez', 'Coyoacán', 'Miguel Hidalgo'],
-        ];
-
-        $normalizedState = strtolower($stateName);
-        $cities = $cityFallbacks[$normalizedState] ?? ['Capital City', 'Central City', 'Coastal City'];
-
-        return array_map(static fn (string $c): array => [
-            'value' => $c,
-            'label' => $c,
-        ], $cities);
+        return $this->cityService->getCities($countryCode, $stateName);
     }
 
     /**
-     * Query handler: fetch languages from public API (GET /api/ui-data?action=languages)
+     * Query handler: fetch languages from language service (GET /api/ui-data?action=languages)
      *
      * @param  array<string, mixed>  $params
-     * @return array<int, array{value: string, label: string}>
+     * @return list<array{value: string, label: string}>
      */
     public function getLanguages(array $params = []): array
     {
-        try {
-            $response = Http::timeout(3)->get('https://restcountries.com/v3.1/all?fields=languages');
-            if ($response->successful()) {
-                $data = $response->json();
-                if (is_array($data) && ! empty($data)) {
-                    $uniqueLanguages = [];
-                    foreach ($data as $item) {
-                        $langs = $item['languages'] ?? [];
-                        if (is_array($langs)) {
-                            foreach ($langs as $code => $name) {
-                                $uniqueLanguages[$code] = $name;
-                            }
-                        }
-                    }
-                    if (! empty($uniqueLanguages)) {
-                        asort($uniqueLanguages);
-                        $result = [];
-                        foreach ($uniqueLanguages as $code => $name) {
-                            $result[] = [
-                                'value' => (string) $code,
-                                'label' => (string) $name,
-                            ];
-                        }
-                        if (! empty($result)) {
-                            return $result;
-                        }
-                    }
-                }
-            }
-        } catch (\Throwable) {
-            // Fallback gracefully below
-        }
-
-        return [
-            ['value' => 'en', 'label' => 'English'],
-            ['value' => 'es', 'label' => 'Spanish'],
-            ['value' => 'fr', 'label' => 'French'],
-            ['value' => 'de', 'label' => 'German'],
-            ['value' => 'it', 'label' => 'Italian'],
-            ['value' => 'pt', 'label' => 'Portuguese'],
-            ['value' => 'ja', 'label' => 'Japanese'],
-            ['value' => 'zh', 'label' => 'Chinese'],
-            ['value' => 'ru', 'label' => 'Russian'],
-            ['value' => 'ar', 'label' => 'Arabic'],
-        ];
+        return $this->languageService->getLanguages();
     }
 
     /**
@@ -449,7 +269,7 @@ class SelectDemo extends Screen
                 ->placeholder('Select state/province first...');
 
             $this->lbl_result
-                ->text("🌎 País: " . strtoupper($countryCode) . ". Por favor selecciona un estado/provincia.")
+                ->text('🌎 País: '.strtoupper($countryCode).'. Por favor selecciona un estado/provincia.')
                 ->style('info');
         }
     }
@@ -475,7 +295,7 @@ class SelectDemo extends Screen
                 ->placeholder('Select state/province first...');
 
             $this->lbl_result
-                ->text("🌎 País: " . strtoupper($countryCode) . ". Selecciona un estado/provincia.")
+                ->text('🌎 País: '.strtoupper($countryCode).'. Selecciona un estado/provincia.')
                 ->style('default');
         } else {
             $cities = $this->getCities([
@@ -490,7 +310,7 @@ class SelectDemo extends Screen
                 ->placeholder('Choose a city...');
 
             $this->lbl_result
-                ->text("🌎 País: " . strtoupper($countryCode) . " | 🏛️ Estado/Prov: {$state}. Por favor selecciona una ciudad.")
+                ->text('🌎 País: '.strtoupper($countryCode)." | 🏛️ Estado/Prov: {$state}. Por favor selecciona una ciudad.")
                 ->style('info');
         }
     }
@@ -507,7 +327,7 @@ class SelectDemo extends Screen
 
         if (empty($city)) {
             $this->lbl_result
-                ->text("Selecciona una ciudad para continuar.")
+                ->text('Selecciona una ciudad para continuar.')
                 ->style('default');
         } else {
             $country = strtoupper($this->store_selected_country);
@@ -544,13 +364,13 @@ class SelectDemo extends Screen
 
         if (\is_array($value)) {
             $cleanLangs = array_values(array_filter($value, static fn (mixed $item): bool => is_string($item)));
-            $languageText = "\n🗣️ Idiomas: " . implode(', ', array_map('strtoupper', $cleanLangs));
+            $languageText = "\n🗣️ Idiomas: ".implode(', ', array_map('strtoupper', $cleanLangs));
         } else {
-            $languageText = "\n🗣️ Idioma: " . strtoupper((string) $value);
+            $languageText = "\n🗣️ Idioma: ".strtoupper(is_string($value) || is_numeric($value) ? (string) $value : '');
         }
 
         if (str_contains($currentResult, '📍') || str_contains($currentResult, 'País') || str_contains($currentResult, 'Ciudad')) {
-            $this->lbl_result->text($currentResult . $languageText);
+            $this->lbl_result->text($currentResult.$languageText);
         } else {
             $this->lbl_result->text(trim($languageText))->style('info');
         }

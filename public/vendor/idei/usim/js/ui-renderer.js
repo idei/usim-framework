@@ -899,6 +899,13 @@ class UIComponent {
                     if (element.parentElement) {
                         element.parentElement.appendChild(spinner);
                     }
+                } else if (element.classList && element.classList.contains('ui-select-group')) {
+                    const selectWrapper = element.querySelector('.ui-select-wrapper');
+                    if (selectWrapper) {
+                        selectWrapper.appendChild(spinner);
+                    } else {
+                        element.appendChild(spinner);
+                    }
                 } else {
                     element.appendChild(spinner);
                 }
@@ -923,7 +930,7 @@ class UIComponent {
                 this._uiSpinner.remove();
                 this._uiSpinner = null;
             }
-            const existingSpinner = element.querySelector(':scope > .ui-component-spinner');
+            const existingSpinner = element.querySelector('.ui-component-spinner');
             if (existingSpinner) {
                 existingSpinner.remove();
             }

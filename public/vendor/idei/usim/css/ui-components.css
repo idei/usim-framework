@@ -445,6 +445,7 @@ body {
     display: flex;
     flex-direction: column;
     gap: 6px;
+    position: relative;
 }
 
 .ui-select-group label {
@@ -458,7 +459,15 @@ body {
     color: var(--usim-form-required-color, var(--usim-color-danger));
 }
 
+.ui-select-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+    width: 100%;
+}
+
 .ui-select {
+    width: 100%;
     padding: 10px 12px;
     border: 1px solid var(--usim-form-control-border, var(--ui-border));
     border-radius: 6px;
@@ -478,6 +487,40 @@ body {
 .ui-select:disabled {
     background: var(--usim-form-control-disabled-bg, var(--ui-surface-muted));
     cursor: not-allowed;
+}
+
+/* Spinner positioned inside the select dropdown box (no layout shift) */
+.ui-select-wrapper .ui-component-spinner {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    margin: 0;
+    pointer-events: none;
+    z-index: 2;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--usim-form-control-disabled-bg, var(--ui-surface-muted, #f8f9fa));
+    padding: 2px;
+    border-radius: 50%;
+}
+
+/* Fallback if spinner is placed directly on .ui-select-group */
+.ui-select-group.ui-is-loading > .ui-component-spinner {
+    position: absolute;
+    right: 10px;
+    bottom: 11px;
+    margin: 0;
+    pointer-events: none;
+    z-index: 2;
+    background: var(--usim-form-control-disabled-bg, var(--ui-surface-muted, #f8f9fa));
+    padding: 2px;
+    border-radius: 50%;
+}
+
+.ui-select-group.ui-is-loading .ui-select {
+    padding-right: 32px;
 }
 
 /* Checkbox Styles */
