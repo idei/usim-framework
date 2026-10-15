@@ -29,7 +29,7 @@ class LegalTerms extends Screen
             ->width(Size::full());
 
         $card->add(
-            UI::label()
+            UI::label('legal_terms_document')
                 ->html($this->termsText())
                 ->inline(false)
                 ->width(Size::full())
@@ -44,7 +44,7 @@ class LegalTerms extends Screen
             ->padding(Spacing::zero());
 
         $buttons->add(
-            UI::button()
+            UI::button('btn_close_terms')
                 ->label(t('screens.auth.legal_terms.close'))
                 ->style('secondary')
                 ->action('close_legal_terms')

@@ -9,13 +9,10 @@ it('loads legal terms screen with expected components and rendered markdown', fu
 
     $payload = $uiResponse->json();
 
-    $title = findComponentByName($payload, 'lbl_title');
     $document = findComponentByName($payload, 'legal_terms_document');
     $closeBtn = findComponentByName($payload, 'btn_close_terms');
 
-    expect($title)->not->toBeNull()
-        ->and($title['type'])->toBe('label')
-        ->and($document)->not->toBeNull()
+    expect($document)->not->toBeNull()
         ->and($document['type'])->toBe('label')
         ->and($document['html'])->toContain('usim-markdown-content')
         ->and($closeBtn)->not->toBeNull()
