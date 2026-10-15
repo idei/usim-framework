@@ -13,7 +13,6 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 use JsonSerializable;
 use SplFileInfo;
-use stdClass;
 use Symfony\Component\HttpFoundation\Response;
 
 /**
@@ -125,13 +124,11 @@ class UIDataController extends Controller
     {
         $rawParams = $request->query('parameters', []);
 
-        if (is_string($rawParams)) {
+        if (\is_string($rawParams)) {
             $decoded = json_decode($rawParams, true);
-            $parameters = is_array($decoded) ? $decoded : [];
-        } elseif (is_array($rawParams)) {
-            $parameters = $rawParams;
+            $parameters = \is_array($decoded) ? $decoded : [];
         } else {
-            $parameters = [];
+            $parameters = $rawParams;
         }
 
         // Merge any additional query parameters that aren't system keys
@@ -242,7 +239,7 @@ class UIDataController extends Controller
             is_array($result) ||
             $result instanceof JsonSerializable ||
             $result instanceof Collection ||
-            $result instanceof stdClass
+            $result instanceof \stdClass
         ) {
             return response()->json($result);
         }
