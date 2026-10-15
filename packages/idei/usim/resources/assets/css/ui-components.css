@@ -2191,3 +2191,41 @@ body.modal-open #menu {
 .ui-error-button:hover {
     background-color: var(--usim-error-button-bg-hover, #bb2d3b);
 }
+
+/* Component Loading State & Spinner */
+@keyframes usimComponentSpin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.ui-is-loading {
+    position: relative !important;
+    pointer-events: none !important;
+    opacity: 0.75;
+    cursor: wait !important;
+}
+
+.ui-component-spinner {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    vertical-align: middle;
+    margin-left: 8px;
+    line-height: 1;
+}
+
+.ui-component-spinner .ui-spinner-icon {
+    display: inline-block;
+    width: 1em;
+    height: 1em;
+    min-width: 14px;
+    min-height: 14px;
+    border: 2px solid var(--usim-pagination-spinner-track, rgba(15, 23, 36, 0.15));
+    border-top-color: var(--usim-pagination-spinner-indicator, var(--usim-color-primary, #3498db));
+    border-radius: 50%;
+    animation: usimComponentSpin 0.8s linear infinite;
+}
+
+.ui-button.ui-is-loading .ui-component-spinner {
+    margin-left: 6px;
+}

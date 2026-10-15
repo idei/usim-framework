@@ -617,6 +617,35 @@ abstract class Screen
     }
 
     /**
+     * Dispatch a query on the screen within the read-only lifecycle.
+     *
+     * @param  string  $method  Method name (typically starting with 'get')
+     * @param  array<string, mixed>  $parameters  Parameters passed to the query handler
+     * @param  array<string, mixed>  $incomingStorage  Storage data from frontend
+     * @param  array<string, mixed>  $queryParams  Query parameters from frontend
+     * @param  int|string|null  $parent  Target parent container
+     * @param  int|null  $triggerComponentId  ID of the component that triggered the query
+     */
+    public function handleQuery(
+        string $method,
+        array $parameters = [],
+        array $incomingStorage = [],
+        array $queryParams = [],
+        int|string|null $parent = null,
+        ?int $triggerComponentId = null
+    ): mixed {
+        return static::getLifecycleOrchestrator()->handleQuery(
+            screen: $this,
+            method: $method,
+            parameters: $parameters,
+            incomingStorage: $incomingStorage,
+            queryParams: $queryParams,
+            parent: $parent,
+            triggerComponentId: $triggerComponentId
+        );
+    }
+
+    /**
      * Dispatch an action on the screen by action name (e.g. 'submit_login') or method name (e.g. 'onSubmitLogin').
      *
      * @param  string  $action  Action name in snake_case or method name in onPascalCase

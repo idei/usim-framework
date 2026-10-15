@@ -46,6 +46,23 @@ interface ScreenLifecycleOrchestratorInterface
     ): void;
 
     /**
+     * Execute a query handler within a read-only Screen lifecycle.
+     *
+     * @param  array<string, mixed>  $parameters
+     * @param  array<string, mixed>  $incomingStorage
+     * @param  array<string, mixed>  $queryParams
+     */
+    public function handleQuery(
+        Screen $screen,
+        string $method,
+        array $parameters = [],
+        array $incomingStorage = [],
+        array $queryParams = [],
+        int|string|null $parent = null,
+        ?int $triggerComponentId = null
+    ): mixed;
+
+    /**
      * Initialize event context before invoking action or render.
      *
      * @param  array<string, mixed>  $incomingStorage

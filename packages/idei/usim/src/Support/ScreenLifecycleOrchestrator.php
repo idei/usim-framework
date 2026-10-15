@@ -29,6 +29,7 @@ use Idei\Usim\Contracts\UIDifferInterface;
 use Idei\Usim\Contracts\UIElement;
 use Idei\Usim\Contracts\UIStateRepositoryInterface;
 use Idei\Usim\Enums\LayoutType;
+use Idei\Usim\Exceptions\UsimReadOnlyLifecycleException;
 use Idei\Usim\Layout\AbstractLayout;
 use Idei\Usim\Layout\LayoutInterface;
 use Idei\Usim\Screen;
@@ -191,6 +192,70 @@ class ScreenLifecycleOrchestrator implements ScreenLifecycleOrchestratorInterfac
             }
 
             $this->finalizeEventContext(screen: $screen, reload: false);
+        } finally {
+            $this->idGenerator->popCurrentContext();
+        }
+    }
+
+    /**
+     * Execute a query handler within a read-only Screen lifecycle.
+     *
+     * @param  array<string, mixed>  $parameters  Parameters passed to the query handler
+     * @param  array<string, mixed>  $incomingStorage  Storage data from frontend
+     * @param  array<string, mixed>  $queryParams  Query parameters from frontend
+     * @param  int|string|null  $parent  Target parent container
+     * @param  int|null  $triggerComponentId  ID of the component that triggered the query
+     */
+    public function handleQuery(
+        Screen $screen,
+        string $method,
+        array $parameters = [],
+        array $incomingStorage = [],
+        array $queryParams = [],
+        int|string|null $parent = null,
+        ?int $triggerComponentId = null
+    ): mixed {
+        $this->idGenerator->pushCurrentContext($screen->getContextIdentifier());
+        try {
+            $this->changesCollector->setStorage($incomingStorage);
+
+            $this->initializeEventContext(
+                screen: $screen,
+                incomingStorage: $incomingStorage,
+                queryParams: $queryParams,
+                parent: $parent,
+                eventParameters: $parameters,
+                triggerComponentId: $triggerComponentId
+            );
+
+            $container = $screen->getContainer();
+            if ($container !== null) {
+                $this->clearContainerDirtyState($container);
+            }
+
+            if (! method_exists($screen, $method)) {
+                throw new \BadMethodCallException("Query method [{$method}] does not exist on screen [".get_class($screen).'].');
+            }
+
+            $reflectionMethod = new ReflectionMethod($screen, $method);
+            if ($reflectionMethod->getNumberOfParameters() === 0) {
+                $result = $reflectionMethod->invoke($screen);
+            } else {
+                $result = $reflectionMethod->invoke($screen, $parameters);
+            }
+
+            if ($container !== null) {
+                $dirtyChanges = $this->collectDirtyComponentChanges($container);
+                if (! empty($dirtyChanges)) {
+                    throw new UsimReadOnlyLifecycleException(
+                        'Component tree mutations are not permitted inside GET query methods ['.get_class($screen)."::{$method}()]. ".
+                        'GET methods are reserved exclusively for delivering data/media payloads to components. '.
+                        'If you need to mutate the UI, use a POST event action [on*()] instead.'
+                    );
+                }
+            }
+
+            return $result;
         } finally {
             $this->idGenerator->popCurrentContext();
         }

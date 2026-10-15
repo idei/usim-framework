@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use Idei\Usim\Http\Controllers\UIDataController;
 use Idei\Usim\Http\Controllers\UIEventController;
 use Idei\Usim\Http\Controllers\UploadController;
 use Idei\Usim\Http\Controllers\UIController;
@@ -13,8 +14,11 @@ Route::middleware(['web', PrepareUIContext::class])->prefix('api')->group(functi
         ->name('api.screen')
         ->where('screen', '.*');
 
-    // USIM Event Handler
+    // USIM Event Handler (POST)
     Route::post('/ui-event', [UIEventController::class, 'handleEvent'])->name('ui.event');
+
+    // USIM Data Fetch Handler (GET)
+    Route::get('/ui-data', [UIDataController::class, 'handleFetch'])->name('ui.data');
 
     // USIM Upload Routes
     Route::post('/upload/temporary', [UploadController::class, 'uploadTemporary'])->name('upload.temporary');

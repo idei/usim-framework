@@ -837,6 +837,212 @@ class UIComponent {
         const emoji = { success: '✅', error: '❌', info: 'ℹ️', warning: '⚠️' }[type] || 'ℹ️';
         console.log(`${emoji} ${message}`);
     }
+
+    /**
+     * Get primary DOM element for this component.
+     */
+    getElement() {
+        if (this.element && this.element.isConnected) {
+            return this.element;
+        }
+        const componentId = this.getComponentId();
+        return document.querySelector(`[data-component-id="${componentId}"]`) || this.element;
+    }
+
+    /**
+     * Toggle visual loading state and spinner on the component.
+     *
+     * @param {boolean} isLoading - Whether the component is currently fetching/loading.
+     * @param {object} options - Optional customization (e.g. disableElement: boolean).
+     */
+    setLoading(isLoading, options = {}) {
+        const element = this.getElement();
+        if (!element) return;
+
+        const disableElement = options.disableElement !== false;
+
+        if (isLoading) {
+            element.classList.add('ui-is-loading');
+            element.setAttribute('aria-busy', 'true');
+
+            // Save and apply disabled state
+            if (disableElement) {
+                if (this._wasDisabledMap === undefined) {
+                    this._wasDisabledMap = new Map();
+                }
+
+                // Check self
+                if ('disabled' in element) {
+                    this._wasDisabledMap.set(element, element.disabled);
+                    element.disabled = true;
+                }
+
+                // Check child inputs/buttons/selects/textareas
+                const interactiveElements = element.querySelectorAll('button, input, select, textarea');
+                interactiveElements.forEach((el) => {
+                    this._wasDisabledMap.set(el, el.disabled);
+                    el.disabled = true;
+                });
+            }
+
+            // Ensure spinner is present
+            let spinner = element.querySelector(':scope > .ui-component-spinner') || this._uiSpinner;
+            if (!spinner) {
+                spinner = document.createElement('span');
+                spinner.className = 'ui-component-spinner';
+                spinner.setAttribute('role', 'status');
+                spinner.setAttribute('aria-hidden', 'true');
+                spinner.innerHTML = '<span class="ui-spinner-icon"></span>';
+
+                // Input or textarea elements cannot contain children
+                if (element.tagName === 'INPUT' || element.tagName === 'TEXTAREA') {
+                    if (element.parentElement) {
+                        element.parentElement.appendChild(spinner);
+                    }
+                } else {
+                    element.appendChild(spinner);
+                }
+                this._uiSpinner = spinner;
+            }
+        } else {
+            element.classList.remove('ui-is-loading');
+            element.removeAttribute('aria-busy');
+
+            // Restore disabled state
+            if (this._wasDisabledMap) {
+                this._wasDisabledMap.forEach((wasDisabled, el) => {
+                    if (el && 'disabled' in el) {
+                        el.disabled = wasDisabled;
+                    }
+                });
+                this._wasDisabledMap.clear();
+            }
+
+            // Remove spinner
+            if (this._uiSpinner) {
+                this._uiSpinner.remove();
+                this._uiSpinner = null;
+            }
+            const existingSpinner = element.querySelector(':scope > .ui-component-spinner');
+            if (existingSpinner) {
+                existingSpinner.remove();
+            }
+            if (element.parentElement) {
+                const parentSpinner = element.parentElement.querySelector(':scope > .ui-component-spinner');
+                if (parentSpinner && parentSpinner === this._uiSpinner) {
+                    parentSpinner.remove();
+                    this._uiSpinner = null;
+                }
+            }
+        }
+    }
+
+    /**
+     * Get direct URL to fetch data for this component (e.g. for <img src="..."> or <audio src="...">).
+     *
+     * @param {string} action - Query action name
+     * @param {object} parameters - Parameters to pass
+     * @returns {string} URL string
+     */
+    getDataUrl(action, parameters = {}) {
+        const helpers = window.USIM_COMPONENT_HELPERS;
+        if (helpers && typeof helpers.buildUiDataUrl === 'function') {
+            return helpers.buildUiDataUrl({
+                componentId: this.getComponentId(),
+                action,
+                parameters,
+            });
+        }
+        const url = new URL('/api/ui-data', window.location.origin);
+        url.searchParams.set('component_id', this.getComponentId());
+        url.searchParams.set('action', action);
+        if (parameters && typeof parameters === 'object' && Object.keys(parameters).length > 0) {
+            url.searchParams.set('parameters', JSON.stringify(parameters));
+        }
+        return url.toString();
+    }
+
+    /**
+     * Fetch data from the backend via GET, automatically managing the loading/disabled state.
+     *
+     * @param {string} action - Query action name (routes to Screen::getPascalCase)
+     * @param {object} parameters - Query parameters
+     * @param {object} options - Fetch options (e.g. rawResponse: boolean, disableElement: boolean)
+     * @returns {Promise<any>}
+     */
+    async fetchData(action, parameters = {}, options = {}) {
+        this.setLoading(true, options);
+
+        if (this._activeAbortController) {
+            this._activeAbortController.abort();
+        }
+        this._activeAbortController = new AbortController();
+
+        try {
+            const helpers = window.USIM_COMPONENT_HELPERS;
+            let result;
+
+            if (helpers && typeof helpers.fetchUiData === 'function') {
+                result = await helpers.fetchUiData({
+                    componentId: this.getComponentId(),
+                    action,
+                    parameters,
+                    signal: this._activeAbortController.signal,
+                });
+            } else {
+                const url = this.getDataUrl(action, parameters);
+                const response = await fetch(url, {
+                    method: 'GET',
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                    signal: this._activeAbortController.signal,
+                });
+                const contentType = (response.headers.get('content-type') || '').toLowerCase();
+                let data = null;
+                if (contentType.includes('application/json')) {
+                    data = await response.json();
+                } else if (
+                    contentType.startsWith('image/') ||
+                    contentType.startsWith('audio/') ||
+                    contentType.startsWith('video/') ||
+                    contentType.includes('octet-stream') ||
+                    contentType.includes('pdf')
+                ) {
+                    data = await response.blob();
+                } else {
+                    data = await response.text();
+                }
+                result = { ok: response.ok, status: response.status, contentType, response, data };
+            }
+
+            if (!result.ok) {
+                console.error(`❌ Data fetch failed for action '${action}':`, result);
+                this.showNotification(`Data fetch failed (${result.status})`, 'error');
+                return null;
+            }
+
+            return options.rawResponse ? result : result.data;
+        } catch (error) {
+            if (error.name === 'AbortError') {
+                return null;
+            }
+            console.error(`❌ Error fetching data for action '${action}':`, error);
+            this.showNotification('Error fetching data: ' + error.message, 'error');
+            return null;
+        } finally {
+            this.setLoading(false, options);
+            this._activeAbortController = null;
+        }
+    }
+
+    /**
+     * Clean up component resources when unmounted.
+     */
+    destroy() {
+        if (this._activeAbortController) {
+            this._activeAbortController.abort();
+            this._activeAbortController = null;
+        }
+    }
 }
 
 // ==================== Component Factory ====================
