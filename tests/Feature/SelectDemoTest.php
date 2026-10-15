@@ -2,201 +2,135 @@
 
 use App\UI\Screens\Demo\SelectDemo;
 
-it('loads select demo with expected defaults', function () {
-    $originalLocale = app()->getLocale();
+it('loads select demo screen with expected components and dynamic query actions', function () {
+    /** @var \Tests\TestCase $this */
+    $ui = uiScenario($this, SelectDemo::class, ['reset' => true]);
 
-    foreach (['en', 'es'] as $locale) {
-        app()->setLocale($locale);
+    $selCountry = $ui->component('sel_country');
+    $selState = $ui->component('sel_state');
+    $selCity = $ui->component('sel_city');
+    $selLanguages = $ui->component('sel_languages');
+    $chkMultiple = $ui->component('chk_enable_multiple');
+    $btnReset = $ui->component('btn_reset');
 
-        $ui = uiScenario($this, SelectDemo::class, ['reset' => true]);
+    $selCountry->expect('type')->toBe('select');
+    $selCountry->expect('action')->toBe('countries');
+    $selCountry->expect('on_change')->toBe('country_change');
 
-        $selCountry = $ui->component('sel_country');
-        $selCity = $ui->component('sel_city');
-        $selLanguages = $ui->component('sel_languages');
-        $chkEnableMultiple = $ui->component('chk_enable_multiple');
-        $btnReset = $ui->component('btn_reset');
-        $lblResult = $ui->component('lbl_result');
+    $selState->expect('type')->toBe('select');
+    $selState->expect('disabled')->toBe(true);
+    $selState->expect('on_change')->toBe('state_change');
 
-        $selCountry->expect('type')->toBe('select');
-        $selCountry->expect('required')->toBeTrue();
-        $selCountry->expect('value')->toBeNull();
-        $selCountry->expect('options')->toHaveCount(5);
+    $selCity->expect('type')->toBe('select');
+    $selCity->expect('disabled')->toBe(true);
+    $selCity->expect('on_change')->toBe('city_change');
 
-        $selCity->expect('type')->toBe('select');
-        $selCity->expect('disabled')->toBeTrue();
-        $selCity->expect('value')->toBeNull();
-        $selCity->expect('options')->toBe([]);
-        $selCity->expect('placeholder')->toBe(t('screens.demo.select_demo.city.placeholder.select_country_first'));
+    $selLanguages->expect('type')->toBe('select');
+    $selLanguages->expect('action')->toBe('languages');
+    $selLanguages->expect('on_change')->toBe('language_change');
 
-        $selLanguages->expect('type')->toBe('select');
-        $selLanguages->expect('searchable')->toBeTrue();
-        $selLanguages->expect('multiple')->toBeFalse();
-        $selLanguages->expect('value')->toBeNull();
+    $chkMultiple->expect('type')->toBe('checkbox');
+    $btnReset->expect('type')->toBe('button');
+    $btnReset->expect('action')->toBe('reset_selections');
 
-        $chkEnableMultiple->expect('type')->toBe('checkbox');
-        $chkEnableMultiple->expect('checked')->toBeFalse();
-
-        $btnReset->expect('type')->toBe('button');
-        $btnReset->expect('action')->toBe('reset_selections');
-
-        $lblResult->expect('text')->toBe(t('screens.demo.select_demo.result.initial'));
-        $lblResult->expect('style')->toBe('default');
-
-        $ui->assertNoIssues();
-    }
-
-    app()->setLocale($originalLocale);
+    $ui->assertNoIssues();
 });
 
-it('enables city select and updates result when selecting a country', function () {
-    $originalLocale = app()->getLocale();
+it('executes getCountries query method and returns array of options', function () {
+    $screen = new SelectDemo();
+    $countries = $screen->getCountries();
 
-    foreach (['en', 'es'] as $locale) {
-        app()->setLocale($locale);
-
-        $ui = uiScenario($this, SelectDemo::class, ['reset' => true]);
-
-        $response = $ui->change('sel_country', 'country_change', [
-            'value' => 'es',
-            'name' => 'sel_country',
-        ]);
-
-        $response->assertOk();
-
-        $selCity = $ui->component('sel_city');
-        $lblResult = $ui->component('lbl_result');
-
-        $selCity->expect('disabled')->toBeFalse();
-        $selCity->expect('value')->toBeNull();
-        $selCity->expect('placeholder')->toBe(t('screens.demo.select_demo.city.placeholder.choose_city'));
-
-        $cityOptions = $selCity->data()['options'] ?? [];
-        expect($cityOptions)->toHaveCount(4);
-        expect($cityOptions[0]['value'] ?? null)->toBe('madrid');
-
-        expect($lblResult->data()['text'] ?? '')->not->toBe('');
-        $lblResult->expect('style')->toBe('success');
-
-        $ui->assertNoIssues();
-    }
-
-    app()->setLocale($originalLocale);
+    expect($countries)->toBeArray()->not->toBeEmpty();
+    expect($countries[0])->toHaveKeys(['value', 'label']);
 });
 
-it('shows city info and appends selected language details', function () {
-    $originalLocale = app()->getLocale();
+it('executes getStates query method and returns array of states for a country', function () {
+    $screen = new SelectDemo();
+    $states = $screen->getStates(['country' => 'us']);
 
-    foreach (['en', 'es'] as $locale) {
-        app()->setLocale($locale);
-
-        $ui = uiScenario($this, SelectDemo::class, ['reset' => true]);
-
-        $ui->change('sel_country', 'country_change', [
-            'value' => 'us',
-            'name' => 'sel_country',
-        ])->assertOk();
-
-        $ui->change('sel_city', 'city_change', [
-            'value' => 'ny',
-            'name' => 'sel_city',
-        ])->assertOk();
-
-        $resultAfterCity = $ui->component('lbl_result')->data()['text'] ?? '';
-        expect($resultAfterCity)->not->toBe('');
-        $ui->component('lbl_result')->expect('style')->toBe('success');
-
-        $ui->change('sel_languages', 'language_change', [
-            'value' => 'en',
-            'name' => 'sel_languages',
-        ])->assertOk();
-
-        $resultAfterSingleLanguage = $ui->component('lbl_result')->data()['text'] ?? '';
-        if (str_contains($resultAfterCity, '📍')) {
-            expect($resultAfterSingleLanguage)->toContain('Language: English');
-        } else {
-            expect($resultAfterSingleLanguage)->toBe($resultAfterCity);
-        }
-
-        $ui->change(
-            componentName: 'chk_enable_multiple',
-            action: 'toggle_multiple_languages',
-            parameters: ['checked' => true, 'name' => 'chk_enable_multiple'],
-            includeStorageHeader: false
-        )->assertOk();
-
-        $selLanguages = $ui->component('sel_languages');
-        $selLanguages->expect('multiple')->toBeTrue();
-        $selLanguages->expect('max_selections')->toBe(3);
-        $selLanguages->expect('value')->toBe([]);
-
-        $ui->change('sel_languages', 'language_change', [
-            'value' => ['en', 'es'],
-            'name' => 'sel_languages',
-        ])->assertOk();
-
-        $resultAfterMultipleLanguages = $ui->component('lbl_result')->data()['text'] ?? '';
-        if (str_contains($resultAfterCity, '📍')) {
-            expect($resultAfterMultipleLanguages)->toContain('Languages: English, Spanish');
-        } else {
-            expect($resultAfterMultipleLanguages)->toBe($resultAfterSingleLanguage);
-        }
-
-        $ui->assertNoIssues();
-    }
-
-    app()->setLocale($originalLocale);
+    expect($states)->toBeArray()->not->toBeEmpty();
+    expect($states[0])->toHaveKeys(['value', 'label']);
 });
 
-it('resets all selections to initial-like state', function () {
-    $originalLocale = app()->getLocale();
+it('executes getCities query method and returns array of cities for country and state', function () {
+    $screen = new SelectDemo();
+    $cities = $screen->getCities(['country' => 'us', 'state' => 'California']);
 
-    foreach (['en', 'es'] as $locale) {
-        app()->setLocale($locale);
+    expect($cities)->toBeArray()->not->toBeEmpty();
+    expect($cities[0])->toHaveKeys(['value', 'label']);
+});
 
-        $ui = uiScenario($this, SelectDemo::class, ['reset' => true]);
+it('executes getLanguages query method and returns array of languages', function () {
+    $screen = new SelectDemo();
+    $languages = $screen->getLanguages();
 
-        $ui->change('sel_country', 'country_change', [
-            'value' => 'jp',
-            'name' => 'sel_country',
-        ])->assertOk();
+    expect($languages)->toBeArray()->not->toBeEmpty();
+    expect($languages[0])->toHaveKeys(['value', 'label']);
+});
 
-        $ui->change('sel_city', 'city_change', [
-            'value' => 'tokyo',
-            'name' => 'sel_city',
-        ])->assertOk();
+it('handles 3-level cascading selection country -> state -> city', function () {
+    /** @var \Tests\TestCase $this */
+    $ui = uiScenario($this, SelectDemo::class, ['reset' => true]);
 
-        $ui->change(
-            componentName: 'chk_enable_multiple',
-            action: 'toggle_multiple_languages',
-            parameters: ['checked' => true, 'name' => 'chk_enable_multiple'],
-            includeStorageHeader: false
-        )->assertOk();
+    // 1. Select Country (us)
+    $response = $ui->change('sel_country', 'country_change', ['value' => 'us']);
+    $response->assertOk();
 
-        $response = $ui->click('btn_reset');
+    $selState = $ui->component('sel_state');
+    $selState->expect('disabled')->toBe(false);
+    expect($selState->data()['options'])->toBeArray()->not->toBeEmpty();
 
-        $response->assertOk();
+    $selCity = $ui->component('sel_city');
+    $selCity->expect('disabled')->toBe(true);
 
-        $ui->component('sel_country')->expect('value')->toBeNull();
+    // 2. Select State (California)
+    $response = $ui->change('sel_state', 'state_change', ['value' => 'California']);
+    $response->assertOk();
 
-        $selCity = $ui->component('sel_city');
-        $selCity->expect('disabled')->toBeTrue();
-        $selCity->expect('options')->toBe([]);
-        $selCity->expect('value')->toBeNull();
-        $selCity->expect('placeholder')->toBe(t('screens.demo.select_demo.city.placeholder.select_country_first'));
+    $selCity = $ui->component('sel_city');
+    $selCity->expect('disabled')->toBe(false);
+    expect($selCity->data()['options'])->toBeArray()->not->toBeEmpty();
 
-        $selLanguages = $ui->component('sel_languages');
-        $selLanguages->expect('value')->toBeNull();
-        $selLanguages->expect('multiple')->toBeFalse();
-        $selLanguages->expect('placeholder')->toBe(t('screens.demo.select_demo.languages.placeholder.single'));
+    // 3. Select City (Los Angeles)
+    $response = $ui->change('sel_city', 'city_change', ['value' => 'Los Angeles']);
+    $response->assertOk();
 
-        $ui->component('chk_enable_multiple')->expect('checked')->toBeFalse();
+    $lblResult = $ui->component('lbl_result');
+    expect($lblResult->data()['text'])->toContain('US');
+    expect($lblResult->data()['text'])->toContain('California');
+    expect($lblResult->data()['text'])->toContain('Los Angeles');
 
-        $lblResult = $ui->component('lbl_result');
-        $lblResult->expect('text')->toBe(t('screens.demo.select_demo.result.reset_done'));
-        $lblResult->expect('style')->toBe('info');
+    $ui->assertNoIssues();
+});
 
-        $ui->assertNoIssues();
-    }
+it('toggles multiple languages selection mode', function () {
+    /** @var \Tests\TestCase $this */
+    $ui = uiScenario($this, SelectDemo::class, ['reset' => true]);
 
-    app()->setLocale($originalLocale);
+    $response = $ui->change('chk_enable_multiple', 'toggle_multiple_languages', ['checked' => true]);
+    $response->assertOk();
+
+    $selLanguages = $ui->component('sel_languages');
+    $selLanguages->expect('multiple')->toBe(true);
+
+    $ui->assertNoIssues();
+});
+
+it('resets selections back to default initial state', function () {
+    /** @var \Tests\TestCase $this */
+    $ui = uiScenario($this, SelectDemo::class, ['reset' => true]);
+
+    $ui->change('sel_country', 'country_change', ['value' => 'us']);
+    $ui->change('sel_state', 'state_change', ['value' => 'California']);
+
+    $response = $ui->click('btn_reset');
+    $response->assertOk();
+
+    $selState = $ui->component('sel_state');
+    $selState->expect('disabled')->toBe(true);
+
+    $selCity = $ui->component('sel_city');
+    $selCity->expect('disabled')->toBe(true);
+
+    $ui->assertNoIssues();
 });

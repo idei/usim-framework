@@ -73,6 +73,9 @@ class Select extends UIComponent
             'render_avatars' => false, // Show avatars in options
 
             // Remote data
+            'action' => null, // Dynamic query action (GET /api/ui-data)
+            'parameters' => [], // Parameters for dynamic query action
+            'auto_fetch' => true, // Automatically fetch data on render
             'remote_url' => null, // URL for remote data loading
             'remote_params' => [], // Parameters for remote requests
 
@@ -434,6 +437,58 @@ class Select extends UIComponent
         $this->setConfig('remote_params', $params);
 
         return $this;
+    }
+
+    /**
+     * Set the action to fetch options asynchronously from the server via GET /api/ui-data.
+     * The action corresponds to a method in the screen class (e.g. 'countries' -> getCountries).
+     *
+     * @param  string  $action
+     * @param  array<string, mixed>  $parameters
+     * @return static
+     */
+    public function action(string $action, array $parameters = []): static
+    {
+        $this->setConfig('action', $action);
+        if (! empty($parameters)) {
+            $this->setConfig('parameters', $parameters);
+        }
+
+        return $this;
+    }
+
+    /**
+     * Alias for action() to explicitly indicate remote data querying.
+     *
+     * @param  string  $action
+     * @param  array<string, mixed>  $parameters
+     * @return static
+     */
+    public function dataAction(string $action, array $parameters = []): static
+    {
+        return $this->action($action, $parameters);
+    }
+
+    /**
+     * Set parameters to send with the data query action request.
+     *
+     * @param  array<string, mixed>  $parameters
+     * @return static
+     */
+    public function parameters(array $parameters): static
+    {
+        return $this->setConfig('parameters', $parameters);
+    }
+
+    /**
+     * Enable or disable automatic fetching on initial render.
+     *
+     * @param  bool  $autoFetch
+     * @return static
+     */
+    public function autoFetch(bool $autoFetch = true): static
+    {
+        return $this->setConfig('auto_fetch', $autoFetch);
     }
 
     /**
