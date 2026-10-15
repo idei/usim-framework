@@ -6,6 +6,7 @@ use App\UI\Screens\Demo\ButtonDemo;
 use App\UI\Screens\Demo\CarouselDemo;
 use App\UI\Screens\Demo\CheckboxDemo;
 use App\UI\Screens\Demo\FormDemo;
+use App\UI\Screens\Demo\ImageDemo;
 use App\UI\Screens\Demo\InputDemo;
 use App\UI\Screens\Demo\ModalDemo;
 use App\UI\Screens\Demo\SelectDemo;
@@ -33,6 +34,7 @@ class DemosMenuProvider implements MenuProviderInterface
             $submenu->screenShow(TextareaDemo::class);
             $submenu->screenShow(SplitDemo::class);
             $submenu->screenShow(TabsDemo::class);
+            $submenu->screenShow(ImageDemo::class);
         }, '🎮');
     }
 }

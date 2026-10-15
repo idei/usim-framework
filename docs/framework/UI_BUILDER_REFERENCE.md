@@ -78,6 +78,28 @@ UI::table('id')
 
 > Para tablas dinámicas conectadas a servicios y bases de datos con paginación automática y ordenamiento, consulta la [Guía de TableModels (AbstractListingTableModel)](TABLE_MODELS_GUIDE.md).
 
+### Image
+```php
+use Idei\Usim\Enums\Size;
+
+UI::image('id')
+    ->src('https://example.com/photo.jpg') // URL directa inicial (opcional)
+    ->action('user_photo', ['user_id' => 42]) // Acción de Screen (Screen@getUserPhoto)
+    ->alt('Foto de perfil')
+    ->caption('Foto tomada en 2026')
+    ->width(Size::px(400))
+    ->height(Size::px(300))
+    ->objectFit('cover') // contain, cover, fill, none, scale-down
+    ->rounded() // O borderRadius('12px')
+    ->shadow()
+    ->lazy(true)
+    ->autoFetch(true) // Solicita los datos al montarse automáticamente
+    ->fallbackSrc('/images/placeholder.svg')
+    ->build();
+```
+
+> **Obtención Dinámica de Datos (`GET /api/ui-data`)**: Los componentes que definen `->action(...)` para consulta consumen el canal `GET /api/ui-data`. En el frontend, el componente muestra automáticamente un estado de carga (`.ui-is-loading` con spinner) mientras se resuelve la petición, soportando imágenes binarias, SVG, URLs o datos JSON.
+
 
 ## 🌳 Manipulación de Árbol
 
@@ -146,7 +168,8 @@ UIElement (interface)
 ├── UIComponent (abstract) - Elementos hoja
 │   ├── Button
 │   ├── Label
-│   └── Table
+│   ├── Table
+│   └── Image
 └── Container (composite) - Contenedores
     └── Métodos: add, remove, update, find, etc.
 ```

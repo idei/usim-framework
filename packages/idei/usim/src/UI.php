@@ -9,6 +9,7 @@ use Idei\Usim\Components\Carousel;
 use Idei\Usim\Components\Checkbox;
 use Idei\Usim\Components\Container;
 use Idei\Usim\Components\Form;
+use Idei\Usim\Components\Image;
 use Idei\Usim\Components\Input;
 use Idei\Usim\Components\Label;
 use Idei\Usim\Components\MenuDropdown;
@@ -46,6 +47,16 @@ class UI
     public static function label(?string $name = null): Label
     {
         return new Label($name);
+    }
+
+    /**
+     * Create a new image component
+     *
+     * @param  string|null  $name  An optional semantic name for the image
+     */
+    public static function image(?string $name = null): Image
+    {
+        return new Image($name);
     }
 
     /**

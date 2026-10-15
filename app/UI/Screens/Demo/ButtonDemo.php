@@ -30,6 +30,7 @@ class ButtonDemo extends Screen
         CarouselDemo::class,
         InputDemo::class,
         Main::class,
+        ImageDemo::class,
     ];
 
     protected Container $buttons_container;

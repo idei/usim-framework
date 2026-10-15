@@ -78,6 +78,23 @@ Response esperada:
 - Normalmente HTTP `200 OK` con JSON.
 - Puede incluir solo meta-keys, o meta-keys + deltas de componentes.
 
+## 2.3 Consulta y obtención de datos UI (Data Fetching / Query)
+
+Request:
+
+```http
+GET /api/ui-data?component_id={id}&action={action}&parameters={parameters}
+```
+
+Notas:
+
+- Diseñado para componentes que consumen datos asíncronos o medios binarios (ej. `image`, listas dinámicas).
+- `component_id` (int, requerido): ID del componente que solicita los datos.
+- `action` (string, requerido): Acción en `snake_case` asociada a un método `get*()` en la `Screen`.
+- `parameters` (array|json_string, opcional): Argumentos pasados al método `get*()`.
+- Ciclo de vida de solo lectura: El método en la Screen no puede mutar componentes (lanza HTTP `422 Unprocessable Content`).
+- Retorna directamente el contenido según su MIME: JSON, texto plano, SVG, imagen binaria (`image/png`, `image/jpeg`), audio o video.
+
 ## 3. Sesion de estado UI (storage + client id)
 
 USIM depende de estado entre requests. Un cliente debe mantener y reenviar dos cosas:
@@ -278,6 +295,30 @@ El helper de tests usa como forma fuerte para detectar componente inicial:
 Regla recomendada:
 
 - El cliente debe ser tolerante a campos nuevos/desconocidos.
+
+## 5.3 Componente `image`
+
+Representa un elemento multimedia visual. Puede renderizar una URL estática directa o consultar datos dinámicos/binarios mediante el canal `GET /api/ui-data`.
+
+Campos soportados:
+
+- `type` (string): `"image"`.
+- `parent` (string|int): ID del contenedor padre.
+- `name` (string): Identificador funcional o id del componente.
+- `src` (string, opcional): URL o URI base de la imagen.
+- `action` (string, opcional): Nombre de la acción de consulta (invoca `Screen::get<Action>()` vía `GET /api/ui-data`).
+- `parameters` (object, opcional): Parámetros enviados en la consulta HTTP GET.
+- `alt` (string, opcional): Texto alternativo para accesibilidad e indexación.
+- `caption` (string, opcional): Leyenda o pie de imagen.
+- `width` (string, opcional): Ancho en formato CSS (ej. `"400px"`, `"100%"`).
+- `height` (string, opcional): Alto en formato CSS (ej. `"300px"`, `"auto"`).
+- `object_fit` (string, opcional): Modo de ajuste CSS (`contain`, `cover`, `fill`, `none`, `scale-down`).
+- `border_radius` (string, opcional): Radio del borde (ej. `"8px"`, `"9999px"`).
+- `border` (string, opcional): Estilo de borde CSS (ej. `"1px solid #e2e8f0"`).
+- `shadow` (string, opcional): Sombra CSS (ej. `"0 4px 6px -1px rgba(0,0,0,0.1)"`).
+- `lazy` (bool, opcional): Si activa carga diferida nativa (`loading="lazy"`).
+- `auto_fetch` (bool, opcional): Si es `true` y tiene `action`, el frontend ejecuta automáticamente `fetchData()` al montarse.
+- `fallback_src` (string, opcional): Imagen o SVG de respaldo en caso de error de red o timeout.
 
 ## 6. Snapshot inicial vs delta
 

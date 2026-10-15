@@ -9,6 +9,7 @@ use Idei\Usim\Components\Carousel;
 use Idei\Usim\Components\Checkbox;
 use Idei\Usim\Components\Container;
 use Idei\Usim\Components\Form;
+use Idei\Usim\Components\Image;
 use Idei\Usim\Components\Input;
 use Idei\Usim\Components\Label;
 use Idei\Usim\Components\MenuDropdown;
@@ -766,6 +767,7 @@ class ScreenLifecycleOrchestrator implements ScreenLifecycleOrchestratorInterfac
             'select' => Select::class,
             'checkbox' => Checkbox::class,
             'card' => Card::class,
+            'image' => Image::class,
             'table' => Table::class,
             'container' => Container::class,
             'tablerow' => TableRow::class,

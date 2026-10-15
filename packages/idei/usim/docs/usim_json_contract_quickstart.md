@@ -54,6 +54,14 @@ X-USIM-Storage: <serialized-storage-json-string>
 }
 ```
 
+Consulta de datos (Data Fetching):
+
+```http
+GET /api/ui-data?component_id=101&action=avatar&parameters[size]=thumb
+Cookie: <client-id-cookie>
+X-UI-Client-Id: <tab-client-id>
+```
+
 ## 3. Keys reservadas (no son componentes)
 
 - `storage`

@@ -78,6 +78,7 @@
     <script src="{{ asset('vendor/idei/usim/js/components/tablecell/index.js') }}?v={{ $usimAssetVersion('vendor/idei/usim/js/components/tablecell/index.js') }}"></script>
     <script src="{{ asset('vendor/idei/usim/js/components/tableheadercell/index.js') }}?v={{ $usimAssetVersion('vendor/idei/usim/js/components/tableheadercell/index.js') }}"></script>
     <script src="{{ asset('vendor/idei/usim/js/components/image-crop-editor/index.js') }}?v={{ $usimAssetVersion('vendor/idei/usim/js/components/image-crop-editor/index.js') }}"></script>
+    <script src="{{ asset('vendor/idei/usim/js/components/image/index.js') }}?v={{ $usimAssetVersion('vendor/idei/usim/js/components/image/index.js') }}"></script>
     <script src="{{ asset('vendor/idei/usim/js/components/uploader/index.js') }}?v={{ $usimAssetVersion('vendor/idei/usim/js/components/uploader/index.js') }}"></script>
     <script src="{{ asset('vendor/idei/usim/js/components/calendar/index.js') }}?v={{ $usimAssetVersion('vendor/idei/usim/js/components/calendar/index.js') }}"></script>
     <script src="{{ asset('vendor/idei/usim/js/components/carousel/index.js') }}?v={{ $usimAssetVersion('vendor/idei/usim/js/components/carousel/index.js') }}"></script>

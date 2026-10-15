@@ -41,6 +41,7 @@ resources/assets/
 │   ├── ui-renderer.js
 │   └── components/
 │       ├── button/index.js
+│       ├── image/index.js
 │       ├── input/index.js
 │       ├── table/index.js
 │       ├── timer/index.js
@@ -83,10 +84,14 @@ La clase base está en [packages/idei/usim/resources/assets/js/ui-renderer.js](/
 
 Todo componente modular hereda de ella para reutilizar:
 
-- `applyCommonAttributes(element)`
-- `mount(parentElement)`
-- `getComponentId()`
-- utilidades de eventos ya existentes en el renderer
+- `applyCommonAttributes(element)`: Aplica estilos comunes, clases, layout, dataset de responsive e identificadores.
+- `mount(parentElement)`: Inserta el elemento en el DOM y ejecuta hooks de inicialización.
+- `getComponentId()`: Retorna el identificador determinístico del componente.
+- `setLoading(isLoading, options)`: Conmuta el estado de carga visual (`.ui-is-loading`), deshabilita elementos interactivos (botones/inputs) y monta/desmonta el spinner (`.ui-component-spinner`).
+- `fetchData(action, parameters, options)`: Realiza una consulta asíncrona tipada a `GET /api/ui-data`, gestionando automáticamente el estado de carga y soportando cancelación vía `AbortController`. Retorna una promesa con `{ data, response }` o `Blob`.
+- `getDataUrl(action, parameters)`: Genera la URL con los query parameters requeridos para vincular elementos multimedia nativos (`<img>`, `<video>`, etc.).
+- `destroy()`: Ciclo de vida para limpieza y desmontaje. Cancela peticiones HTTP en vuelo asociadas al componente.
+- Utilidades de eventos ya existentes en el renderer.
 
 Si un componente necesita estilos, ids, atributos comunes, responsive metadata o posicionamiento, normalmente eso ya baja por `applyCommonAttributes()`.
 
@@ -236,9 +241,9 @@ Esto requiere frontend + backend.
 
 Además del módulo JS/CSS, debes tocar:
 
-- builder PHP en `packages/idei/usim/src/Services/Components/`
-- factory `UI::...` en `packages/idei/usim/src/Services/UI.php`
-- mapping del tipo en `packages/idei/usim/src/Services/Screen.php`
+- builder PHP en `packages/idei/usim/src/Components/`
+- factory `UI::...` en `packages/idei/usim/src/UI.php`
+- mapping del tipo en `packages/idei/usim/src/Support/ScreenLifecycleOrchestrator.php` (array de tipos en `instantiateComponentByType`)
 
 El frontend solo renderiza un `type` que ya viene desde backend. Si el backend no puede emitir ese `type`, el componente nunca se instanciará.
 

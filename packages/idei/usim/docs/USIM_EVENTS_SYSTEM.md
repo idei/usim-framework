@@ -24,6 +24,7 @@
    - [4.4 Contrato de Respuesta: Diff Engine y Meta-Keys](#44-contrato-de-respuesta-diff-engine-y-meta-keys)
    - [4.5 Protocolo de Deltas (`UIDiffer`)](#45-protocolo-de-deltas-uidiffer)
    - [4.6 Códigos de Estado y Manejo de Errores](#46-códigos-de-estado-y-manejo-de-errores)
+   - [4.7 Especificación Formal del Canal de Consultas de Datos (`GET /api/ui-data`)](#47-especificación-formal-del-canal-de-consultas-de-datos-get-apiui-data)
 5. [Gestión de Estado Persistente (`X-USIM-Storage` y `store_*`)](#5-gestión-de-estado-persistente-x-usim-storage-y-store_)
    - [5.1 Variables de Estado `store_*`](#51-variables-de-estado-store_)
    - [5.2 Cifrado Transparente (`store_*_crypt`)](#52-cifrado-transparente-store__crypt)
@@ -540,6 +541,40 @@ El motor `UIDiffer::compare($oldUI, $newUI)` analiza las diferencias componente 
 | `403 Forbidden` | Acceso denegado por verificación de autorización. | JSON con contrato `abort`, `redirect` o `toast`. |
 | `419 Unknown` | Token CSRF inválido o expirado. | El cliente web recarga la página automáticamente tras 1200ms. |
 | `500 Server Error` | Excepción no capturada en el handler. | `{"error": "Internal server error", "file": ..., "line": ...}` |
+
+### 4.7 Especificación Formal del Canal de Consultas de Datos (`GET /api/ui-data`)
+
+A diferencia del flujo de eventos transaccionales (`POST /api/ui-event`), USIM implementa un canal de lectura y provisión de datos (**Query / CQRS**) diseñado específicamente para que los componentes obtengan contenido o medios binarios sin incurrir en el recálculo global del árbol de UI (`UIDiffer`).
+
+#### 1. Características Principales
+- **Protocolo Idempotente (`GET`):** Seguro para peticiones concurrentes y cacheable en el cliente o CDN cuando aplique.
+- **Respuestas Polimórficas:** Soporta retornos de datos estructurados (JSON), texto plano, HTML, gráficos vectoriales SVG y medios binarios en streaming (imágenes, audio, video).
+- **Protección de Integridad (Read-Only Guardrail):** Durante la ejecución de una consulta `GET`, la pantalla opera en un ciclo de vida de solo lectura. Si el método intenta mutar el árbol de componentes (ej. `$this->btn->label('Nuevo')`), el framework aborta de forma fail-fast con código HTTP **`422 Unprocessable Content`** y lanza `UsimReadOnlyLifecycleException`.
+- **Estado de Carga y Cancelación en Frontend:** La invocación desde el componente (`component.fetchData()`) activa automáticamente un indicador visual (`.ui-is-loading`, spinner `.ui-component-spinner`) y deshabilita los controles interactivos, cancelando peticiones en vuelo con `AbortController` al desmontar el componente.
+
+#### 2. Parámetros del Request (Query String)
+| Parámetro | Tipo | Requerido | Descripción |
+|---|---|---|---|
+| `component_id` | `int` | **Sí** | ID numérico determinístico del componente solicitante. Utilizado por `UIIdGenerator` para resolver la `Screen` propietaria. |
+| `action` | `string` | **Sí** | Nombre de la acción de consulta en formato `snake_case` (ej. `user_avatar`, `category_options`). |
+| `parameters` | `array \| string` | No | Parámetros adicionales en formato query array (`parameters[seed]=10`) o cadena JSON codificada en URL (`parameters=%7B%22seed%22%3A10%7D`). |
+
+#### 3. Convención de Métodos en la Screen (`get*`)
+El controlador `UIDataController` normaliza la acción y busca en la Screen un método público con prefijo `get`:
+$$\text{"user\_avatar"} \longrightarrow \text{getUserAvatar(array \$params)}$$
+$$\text{"get\_category\_options"} \longrightarrow \text{getCategoryOptions(array \$params)}$$
+$$\text{"preview"} \longrightarrow \text{getPreview(array \$params)}$$
+
+#### 4. Tipos de Retorno Soportados y Transformación de Headers
+| Retorno en PHP | Transformación HTTP | Cabecera `Content-Type` |
+|---|---|---|
+| `array`, `Collection`, `stdClass` | `response()->json($data)` | `application/json` |
+| `string` (texto) | `response($text)` | `text/plain; charset=UTF-8` |
+| `string` (con tags HTML) | `response($html)` | `text/html; charset=UTF-8` |
+| `string` (con tags `<svg>`) | `response($svg)` | `image/svg+xml; charset=UTF-8` |
+| `string` (buffer binario) | Detección MIME automática vía `finfo` | `image/png`, `image/jpeg`, `audio/mpeg`, etc. |
+| `SplFileInfo` / Archivo | `response()->file($file)` | Infiere el tipo MIME del archivo |
+| `BinaryFileResponse` / `StreamedResponse` | Se retorna directamente sin alterar | Configurado por la Screen |
 
 ---
 

@@ -7,6 +7,13 @@ The format is based on Keep a Changelog, and this project follows Semantic Versi
 ## [Unreleased]
 
 ### Added
+- `UIDataController` and route `GET /api/ui-data` for read-only component data queries, decoupling component data retrieval from the full UI diff engine (CQRS read channel).
+- Screen query methods with `get*` prefix (`getUserData()`, `getImage()`, etc.) returning polymorphic payloads: JSON (`array`, `Collection`, `stdClass`), plain text, HTML, SVG, and binary/streaming media (images, audio, video, `BinaryFileResponse`, `StreamedResponse`).
+- Read-only lifecycle orchestration via `ScreenLifecycleOrchestrator::handleQuery()` and `Screen::handleQuery()`, enforcing UI state integrity with `UsimReadOnlyLifecycleException` (HTTP 422) if UI component mutation is attempted during GET.
+- Frontend data fetching methods in `UIComponent`: `fetchData()`, `getDataUrl()`, `setLoading()`, and automatic fetch cancellation via `AbortController` on unmount.
+- Visual loading states with CSS class `.ui-is-loading`, `.ui-component-spinner` and animation keyframe `@keyframes usimComponentSpin`.
+- New `Image` component (`Idei\Usim\Components\Image`, `UI::image()`, `UsimImageComponent`) with automatic fetch, loading spinner overlay, fallback support, and responsive styling.
+- New `ImageDemo` screen (`App\UI\Screens\Demo\ImageDemo`) displaying public image API integration via `getImage()`.
 - `usim:install` now recursively publishes all files under `stubs/resources` into the consuming application's `resources` directory while preserving their relative paths and existing files.
 - Support for `X-UI-Client-Id` request header in `UIStateManager::getOrCreateClientId()`, prioritizing per-tab UUIDs over the shared `ui_client_id` cookie to isolate UI state trees in the backend cache.
 - Per-tab authentication isolation in `PrepareUIContext`: when requests provide `X-UI-Client-Id` without a valid `store_token`, the web guard user is cleared (`clearWebGuardUser()`) and resolved as guest, preventing cross-tab session leakage from shared browser session cookies (`laravel_session`).
