@@ -88,8 +88,9 @@ it('returns menu screen for guests with settings trigger and register option', f
         $userMenu = $ui->component('user_menu')->data();
         $themeToggle = $ui->component('theme_toggle')->data();
         $homeLabel = t('screens.menu.items.home', [], $menuLang);
+        $aboutLabel = t('screens.about.menu_title', [], $menuLang);
         expect(menuItemsContainLabel($mainMenu['items'] ?? [], $homeLabel))->toBeTrue();
-        expect(menuItemsContainLabel($mainMenu['items'] ?? [], t('screens.menu.items.about', [], $menuLang)))->toBeTrue();
+        expect(menuItemsContainLabel($mainMenu['items'] ?? [], $aboutLabel))->toBeTrue();
 
         expect($userMenu['type'] ?? null)->toBe('menudropdown');
         expect($userMenu['trigger']['label'] ?? null)->toBe('⚙️');
