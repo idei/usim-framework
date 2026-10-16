@@ -50,28 +50,71 @@ APP_FALLBACK_LOCALE=es
 ## ⚙️ Paso 2: Configurar `config/usim.php` (Unidad `lobby` y Roles)
 
 Reemplaza el contenido de `config/usim.php` para definir:
-- **Una sola unidad**: `lobby`.
+- **Una sola unidad organizacional**: `lobby` (tipo `system`).
 - **Roles del sistema**: `root`, `admin`, `publisher` y `registered` (el rol por defecto al registrarse).
 - **Pantallas de inicio (`home_screen`) por rol**:
   - `registered` $\rightarrow$ `\App\UI\Screens\Registered::class`
   - `publisher`, `admin`, `root` $\rightarrow$ `\App\UI\Screens\Home::class`
-- **Idioma español (`es`)** como único idioma activo.
+- **Usuarios de semilla**: asignados a la unidad `lobby` con sus respectivos roles (`root`, `admin`, `publisher`, `registered`).
+- **Idioma español (`es`)** como idioma activo.
 
- Edita `config/usim.php`:
+Edita `config/usim.php`:
 
 ```php
 <?php
 
-return [
-    'app_name' => env('USIM_APP_NAME', 'USIM Gestor de Posts'),
-    'api_prefix' => env('USIM_API_PREFIX', 'api'),
+use App\UI\Screens\Home;
+use App\UI\Screens\Registered;
 
-    'storage_disk' => env('USIM_STORAGE_DISK', 'public'),
-    'upload' => [
-        'temp_ttl_hours' => env('USIM_UPLOAD_TEMP_TTL_HOURS', 1),
+return [
+
+    /*
+    |--------------------------------------------------------------------------
+    | Front Store Key
+    |--------------------------------------------------------------------------
+    */
+    'front_store_key' => env('FRONT_STORE_KEY', 'usim-posts-store-key'),
+
+    /*
+    |--------------------------------------------------------------------------
+    | UI Screens Namespace & Path
+    |--------------------------------------------------------------------------
+    */
+    'screens_namespace' => 'App\\UI\\Screens',
+    'screens_path' => app_path('UI/Screens'),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Default Layout & Menu Screen
+    |--------------------------------------------------------------------------
+    */
+    'default_layout' => 'App\\UI\\Layouts\\MainLayout',
+    'default_menu_screen' => 'App\\UI\\Screens\\Menu',
+
+    /*
+    |--------------------------------------------------------------------------
+    | Application Name & API Base URL
+    |--------------------------------------------------------------------------
+    */
+    'app_name' => env('APP_NAME', 'Gestor de Posts USIM'),
+    'api_url' => env('API_BASE_URL', env('APP_URL')),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Upload Disk
+    |--------------------------------------------------------------------------
+    */
+    'upload_disk' => env('UPLOAD_DISK', 'local'),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Models Configuration
+    |--------------------------------------------------------------------------
+    */
+    'models' => [
+        'user' => \App\Models\User::class,
+        'device' => \App\Models\Device::class,
     ],
-    'headless_mode' => env('USIM_HEADLESS_MODE', false),
-    'default_registering_role' => env('USIM_DEFAULT_REGISTERING_ROLE', 'registered'),
 
     /*
     |--------------------------------------------------------------------------
@@ -81,44 +124,62 @@ return [
     'units' => [
         'structure' => [
             'lobby' => [
-                'description' => 'Lobby principal de la aplicación',
+                'parent' => null,
+                'type' => 'system',
                 'default_translations' => [
-                    'es' => 'Lobby',
+                    'es' => [
+                        'display_name' => 'Lobby',
+                        'description' => 'Unidad única del sistema.',
+                    ],
                 ],
-                'children' => [],
             ],
         ],
     ],
 
     /*
     |--------------------------------------------------------------------------
-    | Usuarios de Semilla (Seed Users)
+    | Usuarios Iniciales (Seed Users)
     |--------------------------------------------------------------------------
     */
     'users' => [
         'root' => [
-            'name' => env('USIM_ROOT_USER_NAME', 'Root User'),
-            'email' => env('USIM_ROOT_USER_EMAIL', 'root@example.com'),
-            'password' => env('USIM_ROOT_USER_PASSWORD', 'password'),
-            'units' => ['lobby'],
+            'first_name' => env('ROOT_FIRST_NAME', 'Root'),
+            'last_name' => env('ROOT_LAST_NAME', 'User'),
+            'email' => env('ROOT_EMAIL', 'root@example.com'),
+            'password' => env('ROOT_PASSWORD', '11111111'),
+            'unit_roles' => [
+                'lobby' => ['root'],
+            ],
         ],
+
         'admin' => [
-            'name' => 'Administrador',
+            'first_name' => 'Admin',
+            'last_name' => 'Posts',
             'email' => 'admin@example.com',
-            'password' => 'password',
-            'units' => ['lobby'],
+            'password' => '11111111',
+            'unit_roles' => [
+                'lobby' => ['admin'],
+            ],
         ],
+
         'publisher' => [
-            'name' => 'Publicador',
+            'first_name' => 'Autor',
+            'last_name' => 'Publicador',
             'email' => 'publisher@example.com',
-            'password' => 'password',
-            'units' => ['lobby'],
+            'password' => '11111111',
+            'unit_roles' => [
+                'lobby' => ['publisher'],
+            ],
         ],
+
         'registered' => [
-            'name' => 'Usuario Registrado',
+            'first_name' => 'Usuario',
+            'last_name' => 'Registrado',
             'email' => 'registered@example.com',
-            'password' => 'password',
-            'units' => ['lobby'],
+            'password' => '11111111',
+            'unit_roles' => [
+                'lobby' => ['registered'],
+            ],
         ],
     ],
 
@@ -126,126 +187,154 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | Roles y Permisos
+    | Roles del Sistema
     |--------------------------------------------------------------------------
     */
     'roles' => [
         'root' => [
-            'priority' => 100,
-            'home_screen' => \App\UI\Screens\Home::class,
-            'permissions' => [
-                'system.configure' => [
-                    'es' => 'Configurar parámetros del sistema',
-                ],
-                'manage.roles' => [
-                    'es' => 'Gestionar roles de usuario',
-                ],
-                'manage.permissions' => [
-                    'es' => 'Gestionar permisos de usuario',
-                ],
-                'manage.translations' => [
-                    'es' => 'Gestionar traducciones',
-                ],
-                'manage.devices' => [
-                    'es' => 'Gestionar dispositivos',
-                ],
-                'admin.users_manager.access' => [
-                    'es' => 'Acceder a la pantalla de gestión de usuarios',
-                ],
-                'publish_post.access' => [
-                    'es' => 'Publicar nuevos posts',
-                ],
-                'posts.delete' => [
-                    'es' => 'Eliminar posts publicados',
-                ],
-            ],
             'default_translations' => [
                 'es' => [
-                    'display_name' => 'Superusuario (Root)',
-                    'description' => 'Superusuario con acceso completo al sistema',
+                    'display_name' => 'Raíz',
+                    'description' => 'Acceso total al sistema.',
                 ],
+            ],
+            'priority' => 1,
+            'home_screen' => Home::class,
+            'permissions' => [
+                'home.access',
+                'publish_post.access',
+                'posts.delete',
+                'admin.users_manager.access',
+                'manage.roles',
+                'create.users',
+                'remove.users',
             ],
         ],
+
         'admin' => [
-            'priority' => 90,
-            'home_screen' => \App\UI\Screens\Home::class,
-            'permissions' => [
-                'admin.users_manager.access' => [
-                    'es' => 'Acceder a la pantalla de gestión de usuarios',
-                ],
-                'manage.roles' => [
-                    'es' => 'Asignar roles de admin o publisher a usuarios registrados',
-                ],
-                'publish_post.access' => [
-                    'es' => 'Publicar nuevos posts',
-                ],
-                'posts.delete' => [
-                    'es' => 'Eliminar posts publicados',
-                ],
-            ],
             'default_translations' => [
                 'es' => [
                     'display_name' => 'Administrador',
-                    'description' => 'Puede eliminar posts y asignar roles (admin o publisher) a usuarios registrados',
+                    'description' => 'Puede eliminar posts y asignar el rol de publisher o admin a usuarios registrados.',
                 ],
+            ],
+            'priority' => 2,
+            'home_screen' => Home::class,
+            'permissions' => [
+                'home.access',
+                'publish_post.access',
+                'posts.delete',
+                'admin.users_manager.access',
+                'manage.roles',
+                'create.users',
+                'remove.users',
             ],
         ],
+
         'publisher' => [
-            'priority' => 50,
-            'home_screen' => \App\UI\Screens\Home::class,
-            'permissions' => [
-                'publish_post.access' => [
-                    'es' => 'Publicar nuevos posts',
-                ],
-            ],
             'default_translations' => [
                 'es' => [
                     'display_name' => 'Publicador',
-                    'description' => 'Puede crear y publicar posts con imágenes',
+                    'description' => 'Puede crear y publicar nuevos posts con imagen.',
                 ],
+            ],
+            'priority' => 3,
+            'home_screen' => Home::class,
+            'permissions' => [
+                'home.access',
+                'publish_post.access',
             ],
         ],
+
         'registered' => [
-            'priority' => 10,
-            'home_screen' => \App\UI\Screens\Registered::class,
-            'permissions' => [
-                'profile.view' => [
-                    'es' => 'Ver perfil propio',
-                ],
-                'profile.edit' => [
-                    'es' => 'Editar perfil propio',
-                ],
-            ],
             'default_translations' => [
                 'es' => [
-                    'display_name' => 'Registrado',
-                    'description' => 'Usuario recién registrado en espera de asignación de rol',
+                    'display_name' => 'Usuario Registrado',
+                    'description' => 'Usuario recién registrado pendiente de asignación de rol.',
                 ],
+            ],
+            'priority' => 5,
+            'home_screen' => Registered::class,
+            'permissions' => [
+                'registered.access',
             ],
         ],
     ],
 
     /*
     |--------------------------------------------------------------------------
-    | Internacionalización (Sólo Español)
+    | Permisos
     |--------------------------------------------------------------------------
     */
-    'i18n' => [
-        'default_locale' => 'es',
-        'fallback_locale' => 'es',
-        'languages' => [
-            'es' => [
-                'name' => 'Spanish',
-                'native_name' => 'Español',
-                'active' => true,
+    'permissions' => [
+        'manage.roles' => [
+            'default_translations' => [
+                'es' => [
+                    'display_name' => 'Gestionar Roles',
+                    'description' => 'Permite asignar y editar roles y permisos.',
+                ],
             ],
-            'en' => [
-                'name' => 'English',
-                'native_name' => 'English',
-                'active' => false,
+        ],
+        'create.users' => [
+            'default_translations' => [
+                'es' => [
+                    'display_name' => 'Crear Usuarios',
+                    'description' => 'Permite crear nuevos usuarios en el sistema.',
+                ],
+            ],
+        ],
+        'remove.users' => [
+            'default_translations' => [
+                'es' => [
+                    'display_name' => 'Eliminar Usuarios',
+                    'description' => 'Permite eliminar usuarios del sistema.',
+                ],
+            ],
+        ],
+        'publish_post.access' => [
+            'default_translations' => [
+                'es' => [
+                    'display_name' => 'Publicar Posts',
+                    'description' => 'Permite acceder a la pantalla de creación de posts.',
+                ],
+            ],
+        ],
+        'posts.delete' => [
+            'default_translations' => [
+                'es' => [
+                    'display_name' => 'Eliminar Posts',
+                    'description' => 'Permite eliminar cualquier post publicado.',
+                ],
             ],
         ],
     ],
+
+    'default_registering_role' => 'registered',
+
+    /*
+    |--------------------------------------------------------------------------
+    | Internacionalización (Sólo Español Activo)
+    |--------------------------------------------------------------------------
+    */
+    'i18n' => [
+        'default_locale' => env('USIM_DEFAULT_LOCALE', env('APP_LOCALE', 'es')),
+        'fallback_locale' => env('USIM_FALLBACK_LOCALE', 'es'),
+        'auto_key_max_length' => (int) env('USIM_I18N_AUTO_KEY_MAX_LENGTH', 30),
+        'log_channel' => env('USIM_I18N_LOG_CHANNEL', 'i18n'),
+        'log_autokey_suggestions' => env('USIM_I18N_LOG_AUTOKEY_SUGGESTIONS', false),
+        'languages' => [
+            ['code' => 'es', 'name' => 'Spanish', 'native_name' => 'Español', 'active' => true],
+            ['code' => 'en', 'name' => 'English', 'native_name' => 'English', 'active' => false],
+        ],
+        'i18n_key_prefixes' => [
+            'role' => 'role.',
+            'permission' => 'permission.',
+            'screen' => 'screens.',
+            'screens' => 'screens.',
+        ],
+    ],
+
+    'headless_mode' => env('USIM_HEADLESS_MODE', false),
 ];
 ```
 
@@ -253,58 +342,115 @@ return [
 
 ## 🧩 Paso 3: Adaptar el Contexto de Unidad Única (`lobby`)
 
-Por defecto, los servicios generados por `usim:install` asumen que los usuarios recién registrados están en `lobby` y al ser aprobados pasan a una unidad llamada `main`. Como nuestra aplicación utiliza **únicamente la unidad `lobby`**, haremos tres pequeños ajustes para que la aprobación de usuarios y asignación de roles funcione dentro de `lobby`:
+Por defecto, los servicios generados por `usim:install` asumen que existe una unidad operacional o una segunda unidad de sistema llamada `main`. Como nuestra aplicación simplifica la arquitectura utilizando **únicamente la unidad `lobby`**, adaptaremos los servicios y pantallas administrativas correspondientes:
 
 ### 3.1 `app/Services/User/UserService.php`
 
-En `app/Services/User/UserService.php`, asegúrate de que el estado "en espera" se determine mediante `$user->isRegisteredInLobby()` (que comprueba si su único rol en `lobby` es `registered`) y que al aprobarse permanezca en `lobby`:
+En `app/Services/User/UserService.php`, actualiza los dos métodos donde se verifica si el usuario está en el lobby para usar el método nativo `$user->isRegisteredInLobby()`, y ajusta la sincronización para que, al no existir `main`, mantenga al usuario en `lobby`:
 
-1. En `getPaginatedWithLobbyStatus()`, reemplaza la transformación de `is_in_lobby`:
+1. En el método `getUser(int $userId)`:
 ```php
-$paginator->getCollection()->transform(function (User $user) {
-    $user->setAttribute('is_in_lobby', $user->isRegisteredInLobby());
+// Cambiar:
+$isInLobby = $user->usimUnits->contains('slug', 'lobby');
 
-    return $user;
-});
+// Por:
+$isInLobby = $user->isRegisteredInLobby();
 ```
 
-2. En `findWithLobbyStatus()`, usa también `$user->isRegisteredInLobby()`:
+2. En el método `syncUserRolesAndUnits(User $user, array $roles, array $data)`:
 ```php
-if ($user) {
-    $user->setAttribute('is_in_lobby', $user->isRegisteredInLobby());
+// Cambiar:
+$isInLobby = $user->usimUnits()->where('slug', 'lobby')->exists();
+
+// Por:
+$isInLobby = $user->isRegisteredInLobby();
+```
+
+Y en la asignación de `$targetUnit` dentro de ese mismo método, utiliza `lobby` como fallback:
+```php
+// Si no hay unidades operacionales:
+$targetUnit = UsimUnit::where('slug', 'main')->first()
+    ?? UsimUnit::firstOrCreate(['slug' => 'lobby'], ['type' => 'system']);
+
+// Y en el fallback final:
+if (! $targetUnit) {
+    $targetUnit = UsimUnit::where('slug', 'main')->first()
+        ?? UsimUnit::where('slug', 'lobby')->first();
 }
-```
 
-3. En `approveLobbyRegistration()`, si no existe `main`, usa `lobby` como unidad destino y evita desasociar `lobby` cuando la unidad destino es la misma:
-```php
-$mainUnit = UsimUnit::where('slug', $targetUnitSlug)->first()
-    ?? UsimUnit::where('slug', 'lobby')->first();
-$lobbyUnit = UsimUnit::where('slug', 'lobby')->first();
-
-// ...
-
-if ($lobbyUnit && $lobbyUnit->id !== $mainUnit->id) {
+// Al remover el rol registrado, no desasociar el lobby si targetUnit es lobby:
+if (! $targetUnit || $targetUnit->id !== $lobbyUnit->id) {
     $user->usimUnits()->detach($lobbyUnit->id);
 }
 ```
 
 ### 3.2 `app/UI/Screens/Admin/TableModels/UserTableModel.php`
 
-En `app/UI/Screens/Admin/TableModels/UserTableModel.php`, dentro de `formatRow()`, cambia la detección de lobby para usar `$user->isRegisteredInLobby()`:
+En `app/UI/Screens/Admin/TableModels/UserTableModel.php`, dentro del método privado `formatRoles(User $user, bool $hasOperationalUnits): string`:
 
 ```php
-$isInLobby = (bool) ($user->getAttribute('is_in_lobby') ?? $user->isRegisteredInLobby());
+// Cambiar:
+if (! $hasOperationalUnits) {
+    $isInLobby = in_array('registered', $roleNames, true)
+        || ($user->relationLoaded('usimUnits') && $user->usimUnits->contains('slug', 'lobby'));
+
+    if ($isInLobby) {
+        return t('role.registered.waiting');
+    }
+}
+
+// Por:
+if (! $hasOperationalUnits) {
+    if ($user->isRegisteredInLobby()) {
+        return t('role.registered.waiting');
+    }
+}
 ```
 
 ### 3.3 `app/UI/Screens/Admin/EditUser.php`
 
-En `app/UI/Screens/Admin/EditUser.php`, define `'publisher'` como rol sugerido por defecto cuando el administrador aprueba a un usuario registrado:
+En `app/UI/Screens/Admin/EditUser.php`, cambia el rol sugerido por defecto para que sea `publisher` al aprobar usuarios:
 
 ```php
 private const DEFAULT_FALLBACK_ROLE = 'publisher';
 ```
 
-*(Opcionalmente, en `app/Services/Auth/RegisterService.php`, `app/Services/Units/UnitContextResolver.php`, `app/Services/Auth/AuthSessionService.php` y `app/UI/Screens/Admin/Concerns/ResolvesActiveUnitContext.php`, puedes usar `'lobby'` como fallback si `'main'` no existe).*
+### 3.4 Fallbacks de Unidad en Servicios de Autenticación y Contexto
+
+Para garantizar que el sistema opere fluidamente sin la unidad `main`:
+
+- En `app/Services/Units/UnitContextResolver.php` (en el método para root):
+```php
+if ($isRoot) {
+    return UsimUnit::where('slug', 'main')->first()
+        ?? UsimUnit::where('slug', 'lobby')->first()
+        ?? UsimUnit::orderBy('id')->first();
+}
+```
+
+- En `app/Services/Auth/AuthSessionService.php` (en `establishSession`):
+```php
+$defaultUnit = UsimUnit::where('slug', 'main')->first()
+    ?? UsimUnit::where('slug', 'lobby')->first()
+    ?? UsimUnit::orderBy('id')->first();
+```
+Y en la emisión del evento `logged_user`:
+```php
+'unit' => $activeUnitSlug ?? 'lobby',
+```
+
+- En `app/Services/Auth/RegisterService.php`:
+```php
+$defaultSystemUnit = UsimUnit::where('slug', 'main')->exists() ? 'main' : 'lobby';
+$unitSlug = $unit ?? ($isPendingRegistration ? 'lobby' : $defaultSystemUnit);
+```
+
+- En `app/UI/Screens/Admin/Concerns/ResolvesActiveUnitContext.php`:
+```php
+return UnitContextResolver::resolve($user, null)
+    ?? UsimUnit::where('slug', 'main')->first()
+    ?? UsimUnit::where('slug', 'lobby')->first();
+```
 
 ---
 
@@ -1209,93 +1355,572 @@ class Home extends Screen
 
 ---
 
-### 5.4 Menú Superior 100% SPA y Pantallas de Autenticación (`app/UI/Screens/Menu.php`, `Login.php`, `Register.php`)
+### 5.4 Menú Superior 100% SPA (`app/UI/Screens/Menu.php`)
 
-Para garantizar que **ninguna acción del menú ni del registro/login provoque una recarga del navegador**, utilizamos `MenuBuilder::screenShow()` en lugar de `MenuBuilder::link()`, y eliminamos el selector de idiomas (ya que nuestra app funciona íntegramente en español) y el selector de unidades múltiples.
+Para garantizar que **ninguna acción del menú provoque una recarga del navegador**, utilizamos `MenuBuilder::screenShow()` en lugar de `MenuBuilder::link()`, y eliminamos los selectores multi-unidad y de idioma (la aplicación opera íntegramente en español dentro de la unidad `lobby`).
 
-1. En `app/UI/Screens/Auth/Login.php`:
-   - Configura las etiquetas del menú en español (`Iniciar Sesión` / `🔑`).
-   - En `onLoggedUser()`, asegúrate de no hacer `return` prematuro tras `$this->closeModal()`, y limpia el snapshot en caché antes de navegar con `$this->showInto($homeScreen, force: true, updateBrowserUrl: true)`.
-
-2. En `app/UI/Screens/Auth/Register.php`:
-   - Configura las etiquetas del menú en español (`Registrarse` / `📝`).
-   - Al final de `onSubmitRegister()`, tras `$this->authSessionService->establishSession(...)` y `$this->closeModal()`, navega explícitamente vía SPA a la pantalla inicial del usuario registrado (`Registered::class`):
-   ```php
-   $homeScreen = $this->authSessionService->resolveHomeScreen($user);
-   if (is_string($homeScreen) && class_exists($homeScreen) && is_subclass_of($homeScreen, Screen::class)) {
-       Screen::make($homeScreen)->clearCachedScreenSnapshot();
-       $this->showInto($homeScreen, force: true, updateBrowserUrl: true);
-   }
-   ```
-
-3. En `app/UI/Screens/Auth/Profile.php`:
-   - Configura `getMenuLabel(): string` para retornar `'Mi Perfil'`.
-
-4. En `app/UI/Screens/Menu.php` (métodos `getMainMenuBuilder()` y `onShowScreen()`):
+Reemplaza el archivo `app/UI/Screens/Menu.php`:
 
 ```php
-private function getMainMenuBuilder(): MenuBuilder
+<?php
+// @usim: feature="admin", type="screen"
+namespace App\UI\Screens;
+
+use App\Models\User;
+use App\Services\Auth\AuthSessionService;
+use App\Services\Units\UsimUnitsService;
+use App\UI\Screens\Admin\UsersManager;
+use App\UI\Screens\Auth\Login;
+use App\UI\Screens\Auth\Profile;
+use App\UI\Screens\Auth\Register;
+use Idei\Usim\Components\Button;
+use Idei\Usim\Components\Container;
+use Idei\Usim\Components\MenuDropdown;
+use Idei\Usim\Enums\AlignItems;
+use Idei\Usim\Enums\DialogType;
+use Idei\Usim\Enums\JustifyContent;
+use Idei\Usim\Enums\LayoutType;
+use Idei\Usim\Enums\Visibility;
+use Idei\Usim\Events\UsimEvent;
+use Idei\Usim\Modals\ConfirmDialog;
+use Idei\Usim\Models\UsimUnit;
+use Idei\Usim\Navigation\MenuBuilder;
+use Idei\Usim\Screen;
+use Idei\Usim\Support\UIStateManager;
+use Idei\Usim\UI;
+use Idei\Usim\Upload\UploadService;
+use Idei\Usim\ValueObjects\Size;
+use Idei\Usim\ValueObjects\Spacing;
+use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Auth;
+
+/**
+ * Menu Screen
+ *
+ * Barra de navegación superior 100% SPA para el Gestor de Posts en USIM.
+ */
+class Menu extends Screen
 {
-    $builder = MenuBuilder::make('main_menu')
-        ->trigger()
-        ->position('bottom-left')
-        ->width(Size::px(220));
+    public static Visibility $visibility = Visibility::PUBLIC;
+    public static ?string $layout = null;
 
-    $user = Auth::user();
-    $isRegisteredOnly = $user instanceof User && $user->isRegisteredInLobby();
-
-    // Navegación 100% SPA mediante screenShow() (sin recarga de página)
-    $builder->screenShow(
-        Registered::class,
-        when: $isRegisteredOnly
-    );
-
-    $builder->screenShow(
-        Home::class,
-        when: !$isRegisteredOnly
-    );
-
-    $builder->screenShow(
-        PublishPost::class,
-        when: PublishPost::checkAccess()['allowed'] == true
-    );
-
-    $builder->screenShow(
-        UsersManager::class,
-        when: UsersManager::checkAccess()['allowed'] == true
-    );
-
-    $builder->separator();
-    $builder->action(t('screens.menu.items.about'), 'show_about_info', [], 'ℹ️');
-
-    return $builder;
-}
-
-public function onShowScreen(array $params): void
-{
-    $screen = $params['screen'] ?? null;
-    if (!is_string($screen) || !class_exists($screen) || !is_subclass_of($screen, Screen::class)) {
-        return;
+    public function __construct(
+        protected AuthSessionService $authSessionService,
+        protected UsimUnitsService $usimUnitsService
+    ) {
     }
 
-    Screen::make($screen)->clearCachedScreenSnapshot();
-    $this->showInto($screen, force: true, updateBrowserUrl: true);
+    protected MenuDropdown $main_menu;
+    protected MenuDropdown $user_menu;
+    protected Button $theme_toggle;
+    protected string $store_theme = 'dark';
+    protected string $store_token = '';
+
+    protected function buildBaseUI(Container $container, ...$params): void
+    {
+        if ($this->parent === null || $this->parent === 'main') {
+            $container->parent('menu');
+        }
+
+        $container
+            ->card()
+            ->layout(LayoutType::HORIZONTAL)
+            ->justifyContent(JustifyContent::SPACE_BETWEEN)
+            ->alignItems(AlignItems::CENTER)
+            ->padding(Spacing::px(5))
+            ->marginBottom(Spacing::px(0));
+
+        $this->initActiveUnit();
+
+        $this->main_menu = $this->buildLeftMenu();
+        $this->user_menu = $this->buildUserMenu();
+
+        $this->theme_toggle = UI::button('theme_toggle')
+            ->action('toggleTheme')
+            ->plain();
+
+        $rightSection = UI::container('menu_right_section')
+            ->plain()
+            ->layout(LayoutType::HORIZONTAL)
+            ->alignItems(AlignItems::CENTER)
+            ->gap(Spacing::px(12))
+            ->marginLeft(Spacing::auto());
+
+        $rightSection->add($this->theme_toggle);
+        $rightSection->add($this->user_menu);
+
+        $container->add($this->main_menu);
+        $container->add($rightSection);
+        $this->updateThemeButton();
+    }
+
+    private function updateThemeButton(): void
+    {
+        $icon = $this->store_theme === 'light' ? 'theme-icon-light' : 'theme-icon-dark';
+        $this->theme_toggle->icon("/vendor/idei/usim/images/$icon.svg");
+        $this->theme_toggle->iconColor('var(--usim-menu-trigger-text)');
+        $this->theme_toggle->iconSize(24);
+        $this->theme_toggle->tooltip(t('screens.menu.theme_switch_to', ['theme' => $this->store_theme === 'light' ? 'dark' : 'light']));
+    }
+
+    public function onToggleTheme(array $params): void
+    {
+        $this->store_theme = $this->store_theme === 'light' ? 'dark' : 'light';
+        $this->updateThemeButton();
+        event(new UsimEvent('theme_changed', ['theme' => $this->store_theme]));
+        $this->changeTheme($this->store_theme);
+    }
+
+    private function initActiveUnit(): void
+    {
+        /** @var Collection<int, UsimUnit> $units */
+        $units = $this->usimUnitsService->getAvailableUnits();
+        if ($units->isEmpty()) {
+            UIStateManager::setActiveUnit('lobby');
+            return;
+        }
+
+        $cachedUnit = UIStateManager::getActiveUnit();
+        if ($cachedUnit !== null && $units->contains('slug', $cachedUnit)) {
+            $unit = $units->firstWhere('slug', $cachedUnit);
+            if ($unit instanceof UsimUnit) {
+                setPermissionsTeamId($unit->id);
+            }
+            return;
+        }
+
+        $first = $units->first();
+        if ($first instanceof UsimUnit) {
+            UIStateManager::setActiveUnit($first->slug);
+            setPermissionsTeamId($first->id);
+        }
+    }
+
+    protected function postLoadUI(): void
+    {
+        $this->updateThemeButton();
+
+        if (Auth::check()) {
+            $user = Auth::user();
+            if ($user instanceof User) {
+                $this->updateUserMenuTrigger($user);
+                $this->initActiveUnit();
+            } else {
+                $this->user_menu->trigger("⚙️");
+            }
+            $this->populateMainMenu($this->main_menu);
+            $this->populateUserMenu($this->user_menu);
+        } else {
+            $this->user_menu->trigger("⚙️");
+            $this->populateMainMenu($this->main_menu);
+            $this->populateUserMenu($this->user_menu);
+        }
+    }
+
+    private function updateUserMenuTrigger(User $user): void
+    {
+        if ($user->profile_image) {
+            $imageUrl = UploadService::fileUrl("uploads/images/$user->profile_image");
+            $this->user_menu->triggerImage(
+                imageUrl: $imageUrl,
+                alt: $user->name,
+                label: $user->name
+            );
+        } else {
+            $this->user_menu->trigger("👤 $user->name");
+        }
+    }
+
+    private function getMainMenuBuilder(): MenuBuilder
+    {
+        $builder = MenuBuilder::make('main_menu')
+            ->trigger()
+            ->position('bottom-left')
+            ->width(Size::px(220));
+
+        $user = Auth::user();
+        $isRegisteredOnly = $user instanceof User && $user->isRegisteredInLobby();
+
+        // Navegación 100% SPA mediante screenShow() (sin recarga de página)
+        $builder->screenShow(
+            Registered::class,
+            when: $isRegisteredOnly
+        );
+
+        $builder->screenShow(
+            Home::class,
+            when: !$isRegisteredOnly
+        );
+
+        $builder->screenShow(
+            PublishPost::class,
+            when: PublishPost::checkAccess()['allowed'] == true
+        );
+
+        $builder->screenShow(
+            UsersManager::class,
+            when: UsersManager::checkAccess()['allowed'] == true
+        );
+
+        $builder->separator();
+        $builder->action(t('screens.menu.items.about'), 'show_about_info', [], 'ℹ️');
+
+        return $builder;
+    }
+
+    private function buildLeftMenu(): MenuDropdown
+    {
+        return $this->getMainMenuBuilder()->render('main_menu');
+    }
+
+    private function populateMainMenu(MenuDropdown $menu): void
+    {
+        $this->getMainMenuBuilder()->populate($menu);
+    }
+
+    private function buildUserMenu(): MenuDropdown
+    {
+        $builder = $this->getUserMenuBuilder();
+        $menu = $builder->render('user_menu');
+        $menu->trigger("⚙️");
+        return $menu;
+    }
+
+    private function populateUserMenu(MenuDropdown $menu): void
+    {
+        $builder = $this->getUserMenuBuilder();
+        $builder->populate($menu);
+    }
+
+    private function getUserMenuBuilder(): MenuBuilder
+    {
+        $builder = MenuBuilder::make('user_menu')
+            ->position('bottom-right')
+            ->width(Size::px(180));
+
+        $builder->screenShow(Login::class, modal: true, when: !Auth::check());
+        $builder->screenShow(Register::class, modal: true, when: !Auth::check());
+        $builder->screenShow(Profile::class, modal: true, when: Auth::check());
+
+        $builder->action(
+            t('screens.menu.items.logout'),
+            'confirm_logout',
+            [],
+            '🚪',
+            when: Auth::check()
+        );
+
+        return $builder;
+    }
+
+    public function onShowScreen(array $params): void
+    {
+        /** @var class-string<Screen>|string|null $screen */
+        $screen = $params['screen'] ?? null;
+        $modal = $params['modal'] ?? false;
+
+        if ($screen !== null && is_subclass_of($screen, Screen::class)) {
+            /** @var string|null $slot */
+            $slot = isset($params['slot']) && \is_string($params['slot']) ? $params['slot'] : null;
+
+            if ($modal) {
+                $this->openModal($screen);
+                return;
+            }
+
+            Screen::make($screen)->clearCachedScreenSnapshot();
+            $this->showInto($screen, slot: $slot, updateBrowserUrl: true, force: true);
+        }
+    }
+
+    public function onLoggedUser(array $params): void
+    {
+        /** @var User|null $user */
+        $user = $params['user'] ?? null;
+        $unitValue = $params['unit'] ?? '';
+        $homeScreen = $params['home_screen'] ?? null;
+        $token = $params['token'] ?? null;
+
+        if (\is_string($token) && $token !== '') {
+            $this->store_token = $token;
+        }
+
+        if (\is_string($unitValue) && $unitValue !== '') {
+            UIStateManager::setActiveUnit($unitValue);
+        }
+
+        if ($user instanceof User) {
+            $this->updateUserMenuTrigger($user);
+        }
+
+        $this->populateUserMenu($this->user_menu);
+        $this->populateMainMenu($this->main_menu);
+
+        Screen::make(Home::class)->clearCachedScreenSnapshot();
+        Screen::make(Registered::class)->clearCachedScreenSnapshot();
+
+        if (\is_string($homeScreen) && $homeScreen !== '' && class_exists($homeScreen) && is_subclass_of($homeScreen, Screen::class)) {
+            Screen::make($homeScreen)->clearCachedScreenSnapshot();
+            $this->showInto($homeScreen, force: true, updateBrowserUrl: true);
+        }
+    }
+
+    public function onUpdatedProfile(array $params): void
+    {
+        $user = $params['user'] ?? null;
+        if ($user instanceof User) {
+            $this->updateUserMenuTrigger($user);
+        }
+    }
+
+    public function onConfirmLogout(array $params): void
+    {
+        if (UIStateManager::getClientActiveModal() !== null) {
+            $this->closeModal();
+        }
+
+        $homeScreen = $this->authSessionService->logout();
+
+        $this->toast(t('screens.menu.logout_success'), 'success');
+        $this->resetToGuestState($homeScreen);
+    }
+
+    public function onUserLoggedOut(array $params): void
+    {
+        if ($this->store_token === '' && !Auth::check()) {
+            return;
+        }
+
+        /** @var class-string<Screen>|string|null $homeScreen */
+        $homeScreen = $params['home_screen'] ?? Home::class;
+        $targetClass = \is_string($homeScreen) && class_exists($homeScreen) && is_subclass_of($homeScreen, Screen::class)
+            ? $homeScreen
+            : Home::class;
+
+        $this->resetToGuestState($targetClass);
+    }
+
+    private function resetToGuestState(string $homeScreen): void
+    {
+        $this->store_token = '';
+
+        $this->user_menu->trigger("⚙️");
+        $this->populateUserMenu($this->user_menu);
+        $this->populateMainMenu($this->main_menu);
+
+        Screen::make(Home::class)->clearCachedScreenSnapshot();
+        Screen::make(Registered::class)->clearCachedScreenSnapshot();
+        if (class_exists($homeScreen) && is_subclass_of($homeScreen, Screen::class)) {
+            Screen::make($homeScreen)->clearCachedScreenSnapshot();
+        }
+
+        $this->showInto($homeScreen, force: true, updateBrowserUrl: true);
+    }
+
+    public function onShowAboutInfo(array $params): void
+    {
+        $version = "0.7.0";
+        $aboutMessage = t('screens.menu.about.message', [
+            'version' => $version,
+        ]);
+
+        ConfirmDialog::open(
+            caller: $this,
+            type: DialogType::INFO,
+            title: t('screens.menu.about.title'),
+            message: $aboutMessage,
+        );
+    }
+
+    public function onCloseProfileDialog(array $params): void
+    {
+        $this->closeModal();
+    }
+
+    public function onLogoutUser(array $params): void
+    {
+        ConfirmDialog::open(
+            caller: $this,
+            type: DialogType::CONFIRM,
+            title: t('screens.menu.logout_confirm.title'),
+            message: t('screens.menu.logout_confirm.message'),
+            confirmAction: 'confirm_logout',
+            cancelAction: 'cancel_logout',
+        );
+    }
+
+    public function onCancelLogout(array $params): void
+    {
+        $this->closeModal();
+    }
 }
 ```
 
 ---
 
+### 5.5 Adaptaciones en las Pantallas de Autenticación (`Login.php`, `Register.php`, `Profile.php`)
+
+Para garantizar que el registro y el inicio de sesión se integren con la navegación SPA sin recargas:
+
+1. **`app/UI/Screens/Auth/Login.php`**:
+   - Agrega las etiquetas de menú en español:
+   ```php
+   public static function getMenuLabel(): string
+   {
+       return 'Iniciar Sesión';
+   }
+
+   public static function getMenuIcon(): ?string
+   {
+       return '🔑';
+   }
+   ```
+   - En `onLoggedUser()`, tras cerrar el modal, navega explícitamente limpiando la caché de la pantalla inicial:
+   ```php
+   if ($this->isOpenedAsModal()) {
+       $this->closeModal();
+   }
+
+   $homeScreen = $params['home_screen'] ?? null;
+   if (\is_string($homeScreen) && class_exists($homeScreen) && is_subclass_of($homeScreen, Screen::class)) {
+       Screen::make($homeScreen)->clearCachedScreenSnapshot();
+       $this->showInto($homeScreen, force: true, updateBrowserUrl: true);
+   }
+   ```
+   - En `onCloseLoginDialog()` y `onNavigateForgotPassword()`, asegura que se mantenga el flujo SPA (sin `$this->redirect()`).
+
+2. **`app/UI/Screens/Auth/Register.php`**:
+   - Agrega las etiquetas de menú en español:
+   ```php
+   public static function getMenuLabel(): string
+   {
+       return 'Registrarse';
+   }
+
+   public static function getMenuIcon(): ?string
+   {
+       return '📝';
+   }
+   ```
+   - En `onSubmitRegister()`, tras registrar la cuenta y cerrar el modal, resuelve y navega inmediatamente a la pantalla de inicio del usuario recién registrado:
+   ```php
+   if ($this->isOpenedAsModal()) {
+       $this->closeModal();
+   }
+
+   $this->authSessionService->establishSession($user, null, $result->token);
+
+   $homeScreen = $this->authSessionService->resolveHomeScreen($user);
+   if (class_exists($homeScreen) && is_subclass_of($homeScreen, Screen::class)) {
+       Screen::make($homeScreen)->clearCachedScreenSnapshot();
+       $this->showInto($homeScreen, force: true, updateBrowserUrl: true);
+   }
+   ```
+
+3. **`app/UI/Screens/Auth/Profile.php`**:
+   - Configura `getMenuLabel(): string` para devolver `'Mi Perfil'`.
+
+---
+
 ## 🔄 Paso 6: Ejecutar Migraciones, Sincronizar USIM y Sembrar Datos
 
-Ejecuta los siguientes comandos para crear la tabla `posts`, sincronizar las unidades, roles, permisos y usuarios de `config/usim.php`, y enlazar el almacenamiento público para las imágenes:
+### 6.1 Seeder Opcional con Posts de Bienvenida (`database/seeders/DatabaseSeeder.php`)
+
+Si deseas contar con posts y portadas de ejemplo pre-cargados al iniciar la app, edita `database/seeders/DatabaseSeeder.php`:
+
+```php
+<?php
+
+namespace Database\Seeders;
+
+use App\Contracts\PostServiceInterface;
+use App\Models\User;
+use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
+
+class DatabaseSeeder extends Seeder
+{
+    public function run(): void
+    {
+        if (DB::table('posts')->count() > 0) {
+            return;
+        }
+
+        $publisher = User::where('email', 'publisher@example.com')->first()
+            ?? User::where('email', 'admin@example.com')->first()
+            ?? User::first();
+
+        $admin = User::where('email', 'admin@example.com')->first()
+            ?? $publisher;
+
+        if (!$publisher instanceof User || !$admin instanceof User) {
+            return;
+        }
+
+        Storage::disk('public')->makeDirectory('uploads/images');
+
+        $svg1 = <<<'SVG'
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="450" viewBox="0 0 800 450">
+  <defs>
+    <linearGradient id="bg1" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0f172a"/>
+      <stop offset="100%" stop-color="#00d4aa"/>
+    </linearGradient>
+  </defs>
+  <rect width="800" height="450" fill="url(#bg1)"/>
+  <text x="50%" y="45%" dominant-baseline="middle" text-anchor="middle" fill="#ffffff" font-family="sans-serif" font-size="36" font-weight="bold">Bienvenido a USIM Post Manager</text>
+  <text x="50%" y="58%" dominant-baseline="middle" text-anchor="middle" fill="#e2e8f0" font-family="sans-serif" font-size="20">Arquitectura Server-Driven UI 100% SPA en Laravel</text>
+</svg>
+SVG;
+
+        $svg2 = <<<'SVG'
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="450" viewBox="0 0 800 450">
+  <defs>
+    <linearGradient id="bg2" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1e1b4b"/>
+      <stop offset="100%" stop-color="#3b82f6"/>
+    </linearGradient>
+  </defs>
+  <rect width="800" height="450" fill="url(#bg2)"/>
+  <text x="50%" y="45%" dominant-baseline="middle" text-anchor="middle" fill="#ffffff" font-family="sans-serif" font-size="34" font-weight="bold">Componentes UI::uploader() y UI::image()</text>
+  <text x="50%" y="58%" dominant-baseline="middle" text-anchor="middle" fill="#cbd5e1" font-family="sans-serif" font-size="20">Gestión de archivos temporales y confirmación reactiva</text>
+</svg>
+SVG;
+
+        Storage::disk('public')->put('uploads/images/sample-welcome.svg', $svg1);
+        Storage::disk('public')->put('uploads/images/sample-components.svg', $svg2);
+
+        /** @var PostServiceInterface $postService */
+        $postService = app(PostServiceInterface::class);
+
+        $postService->createPost([
+            'user_id' => (int) $publisher->id,
+            'title' => 'Cómo publicar contenido con UI::uploader y UI::image',
+            'content' => 'En USIM, el componente UI::uploader() sube los archivos de forma asíncrona a una carpeta temporal con vista previa inmediata, y al enviar el formulario se confirma con $this->post_image->confirm($params, \'images\'). Luego, UI::image() los renderiza de forma responsiva.',
+            'image' => 'sample-components.svg',
+        ]);
+
+        $postService->createPost([
+            'user_id' => (int) $admin->id,
+            'title' => 'Bienvenido al Gestor de Posts Didáctico con USIM',
+            'content' => 'Esta aplicación demuestra el flujo de roles en una única unidad organizacional (lobby): los invitados (guest) leen los últimos posts, los nuevos usuarios (registered) ven su pantalla de espera y editan su avatar, los publicadores (publisher) crean posts y los administradores (admin) moderan posts y asignan roles.',
+            'image' => 'sample-welcome.svg',
+        ]);
+    }
+}
+```
+
+### 6.2 Comandos de Inicialización
+
+Ejecuta los siguientes comandos para crear la tabla `posts`, sincronizar las unidades, roles, permisos y usuarios de `config/usim.php`, sembrar los datos y enlazar el almacenamiento público:
 
 ```bash
 php artisan migrate
 php artisan usim:sync
+php artisan db:seed
 php artisan storage:link
 ```
-
-*(Si deseas contar con posts de bienvenida pre-cargados, puedes ejecutar `php artisan db:seed`).*
 
 ---
 
