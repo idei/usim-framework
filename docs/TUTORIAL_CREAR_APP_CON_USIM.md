@@ -1,91 +1,318 @@
-# 🚀 Tutorial Completo: Construyendo una Aplicación Empresarial con USIM Framework
+# 🚀 Tutorial: Crear un Gestor de Posts con Laravel y USIM Framework
 
-> **Objetivo:** Guiar a un desarrollador paso a paso en la creación de una aplicación completa de comercio y gestión con **USIM Framework**, aplicando principios **SOLID**, interfaces limpias, subida de archivos, control de acceso por roles (Guest, Registered, Admin, Root), menús dinámicos y testing headless ultra-rápido con Pest.
-
----
-
-## 📋 Tabla de Contenidos
-
-1. [Arquitectura y Caso de Uso](#1-arquitectura-y-caso-de-uso)
-2. [Instalación y Configuración Inicial](#2-instalación-y-configuración-inicial)
-3. [Base de Datos: Migraciones de Productos y Pedidos](#3-base-de-datos-migraciones-de-productos-y-pedidos)
-4. [Capa de Dominio y Persistencia SOLID (Facades & Service Container)](#4-capa-de-dominio-y-persistencia-solid-facades--service-container)
-5. [Catálogo Público en Home (Experiencia Usuario Guest)](#5-catálogo-público-en-home-experiencia-usuario-guest)
-6. [Flujo de Compras para Usuario Registrado](#6-flujo-de-compras-para-usuario-registrado)
-7. [Pantalla Administrativa de Productos con Subida de Imágenes](#7-pantalla-administrativa-de-productos-con-subida-de-imágenes)
-8. [Navegación Dinámica: Menú Filtrado por Roles y Permisos](#8-navegación-dinámica-menú-filtrado-por-roles-y-permisos)
-9. [Gestión de Roles: El Usuario Root Promoviendo a Admin](#9-gestión-de-roles-el-usuario-root-promoviendo-a-admin)
-10. [Testing Automatizado Headless con Pest (< 10 ms)](#10-testing-automatizado-headless-con-pest--10-ms)
-11. [Conclusiones y Siguientes Pasos](#11-conclusiones-y-siguientes-pasos)
+En este tutorial aprenderás a construir desde cero una aplicación **Gestor de Posts** 100% **SPA (Single Page Application)** utilizando **Laravel** y **USIM Framework** (Server-Driven UI en PHP).
 
 ---
 
-## 1. Arquitectura y Caso de Uso
+## 🎯 ¿Qué vamos a construir?
 
-Construiremos un sistema donde coexisten cuatro perfiles de usuario:
+Construiremos una aplicación didáctica pensada para enseñar los conceptos esenciales de USIM a un desarrollador Laravel:
 
-```mermaid
-flowchart TD
-    Guest["👤 Usuario Guest (Público)"] -->|Ve catálogo / No compra| Home["🏠 Home (Catálogo)"]
-    Guest -->|Inicia sesión| Reg["👤 Usuario Registrado"]
-    
-    Reg -->|Comprar productos| Order["🛒 Realizar Pedidos"]
-    Reg -->|Consultar historial| MyOrders["📦 Mis Pedidos"]
-    
-    Root["👑 Usuario Root (Superadmin)"] -->|Asigna rol 'admin'| UsersManager["👥 Gestión de Usuarios"]
-    
-    Admin["🛡️ Usuario Admin"] -->|CRUD productos + Upload fotos| ProductsManager["📦 Gestión de Productos"]
-```
-
-### Principios de Diseño
-- **Server-Driven UI (SDUI):** Todo el árbol visual y su reactividad se escribe en PHP.
-- **SOLID / Inversión de Dependencias (DIP):** Las pantallas nunca interactúan con consultas SQL directas ni se acoplan a Eloquent; inyectan contratos de servicio (`ProductServiceInterface`, `OrderServiceInterface`).
-- **Encapsulación de Persistencia:** Los servicios utilizan la fachada `DB` con transacciones atómicas seguras y se registran en `AppServiceProvider`.
+1. **Una única Unidad Organizacional (`lobby`)**: Simplificamos la estructura multi-unidad dejando únicamente `lobby` en `config/usim.php`.
+2. **Cuatro estados/roles de usuario con comportamientos bien diferenciados**:
+   - **`guest` (Invitado / No autenticado)**: Ve la pantalla `Home` con los últimos posts publicados y botones para iniciar sesión o registrarse mediante modales SPA.
+   - **`registered` (Recién registrado)**: Ve **únicamente** la pantalla `Registered` con el mensaje *"Se ha registrado en el sistema, en breve se le asignará un rol"*, desde donde puede editar su perfil y cambiar su **avatar** (usando `UI::uploader()` y `UI::image()`).
+   - **`publisher` (Publicador)**: Ve los últimos posts en `Home` y puede acceder a la pantalla `PublishPost` para publicar nuevos posts con imagen de portada (`UI::uploader()`).
+   - **`admin` (Administrador)**: Además de publicar, puede **eliminar posts** directamente desde `Home` y acceder al **Gestor de Usuarios (`UsersManager`)** para aprobar a los usuarios `registered` asignándoles el rol `publisher` o `admin`.
+3. **Componentes Multimedia**: Uso práctico de `UI::uploader()` para subir imágenes temporales y confirmarlas, y `UI::image()` para renderizar portadas de posts y avatares.
+4. **Navegación 100% SPA**: Toda transición entre pantallas y apertura de formularios ocurre mediante `$this->showInto(...)`, `$this->openModal(...)` y `MenuBuilder::screenShow(...)`, **sin utilizar `$this->redirect()` ni recargas de página**.
+5. **Idioma único (Español)**: Configurado directamente en español (`es`) sin complejidad multi-idioma.
 
 ---
 
-## 2. Instalación y Configuración Inicial
+## 🛠️ Paso 1: Creación del Proyecto e Instalación de USIM
 
-### Paso 2.1: Crear el proyecto e instalar USIM
+### 1.1 Crear el proyecto Laravel e instalar el paquete
 
 ```bash
-composer create-project laravel/laravel tienda-usim
-cd tienda-usim
+composer create-project laravel/laravel gestor-posts
+cd gestor-posts
+
+# Instalar el paquete USIM
 composer require idei/usim
-```
 
-*(En este monorepo de desarrollo, puedes usar directamente `./scripts/rebuild_dev.sh`)*.
-
-### Paso 2.2: Inicializar el scaffolding
-
-```bash
+# Ejecutar el instalador interactivo/automático de USIM
 php artisan usim:install --force --no-interaction
 ```
 
-Este comando publica las migraciones, assets y la pantalla principal de menú (`app/UI/Screens/Menu.php`).
+### 1.2 Configurar el idioma Español en `.env`
 
-Configura en tu archivo `.env` el correo del superadministrador:
-```dotenv
-ROOT_EMAIL=root@tienda.com
-ROOT_PASSWORD=secret123
-```
+Edita tu archivo `.env` para fijar el idioma de la aplicación en español (`es`):
 
-Sincroniza roles y permisos iniciales:
-```bash
-php artisan usim:sync
+```env
+APP_NAME="USIM Gestor de Posts"
+APP_LOCALE=es
+APP_FALLBACK_LOCALE=es
 ```
 
 ---
 
-## 3. Base de Datos: Migraciones de Productos y Pedidos
+## ⚙️ Paso 2: Configurar `config/usim.php` (Unidad `lobby` y Roles)
 
-Crea la migración para las tablas `products`, `orders` y `order_items`:
+Reemplaza el contenido de `config/usim.php` para definir:
+- **Una sola unidad**: `lobby`.
+- **Roles del sistema**: `root`, `admin`, `publisher` y `registered` (el rol por defecto al registrarse).
+- **Pantallas de inicio (`home_screen`) por rol**:
+  - `registered` $\rightarrow$ `\App\UI\Screens\Registered::class`
+  - `publisher`, `admin`, `root` $\rightarrow$ `\App\UI\Screens\Home::class`
+- **Idioma español (`es`)** como único idioma activo.
 
-```bash
-php artisan make:migration create_products_and_orders_tables
+ Edita `config/usim.php`:
+
+```php
+<?php
+
+return [
+    'app_name' => env('USIM_APP_NAME', 'USIM Gestor de Posts'),
+    'api_prefix' => env('USIM_API_PREFIX', 'api'),
+
+    'storage_disk' => env('USIM_STORAGE_DISK', 'public'),
+    'upload' => [
+        'temp_ttl_hours' => env('USIM_UPLOAD_TEMP_TTL_HOURS', 1),
+    ],
+    'headless_mode' => env('USIM_HEADLESS_MODE', false),
+    'default_registering_role' => env('USIM_DEFAULT_REGISTERING_ROLE', 'registered'),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Unidades Organizacionales (Sólo "lobby")
+    |--------------------------------------------------------------------------
+    */
+    'units' => [
+        'structure' => [
+            'lobby' => [
+                'description' => 'Lobby principal de la aplicación',
+                'default_translations' => [
+                    'es' => 'Lobby',
+                ],
+                'children' => [],
+            ],
+        ],
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Usuarios de Semilla (Seed Users)
+    |--------------------------------------------------------------------------
+    */
+    'users' => [
+        'root' => [
+            'name' => env('USIM_ROOT_USER_NAME', 'Root User'),
+            'email' => env('USIM_ROOT_USER_EMAIL', 'root@example.com'),
+            'password' => env('USIM_ROOT_USER_PASSWORD', 'password'),
+            'units' => ['lobby'],
+        ],
+        'admin' => [
+            'name' => 'Administrador',
+            'email' => 'admin@example.com',
+            'password' => 'password',
+            'units' => ['lobby'],
+        ],
+        'publisher' => [
+            'name' => 'Publicador',
+            'email' => 'publisher@example.com',
+            'password' => 'password',
+            'units' => ['lobby'],
+        ],
+        'registered' => [
+            'name' => 'Usuario Registrado',
+            'email' => 'registered@example.com',
+            'password' => 'password',
+            'units' => ['lobby'],
+        ],
+    ],
+
+    'devices' => [],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Roles y Permisos
+    |--------------------------------------------------------------------------
+    */
+    'roles' => [
+        'root' => [
+            'priority' => 100,
+            'home_screen' => \App\UI\Screens\Home::class,
+            'permissions' => [
+                'system.configure' => [
+                    'es' => 'Configurar parámetros del sistema',
+                ],
+                'manage.roles' => [
+                    'es' => 'Gestionar roles de usuario',
+                ],
+                'manage.permissions' => [
+                    'es' => 'Gestionar permisos de usuario',
+                ],
+                'manage.translations' => [
+                    'es' => 'Gestionar traducciones',
+                ],
+                'manage.devices' => [
+                    'es' => 'Gestionar dispositivos',
+                ],
+                'admin.users_manager.access' => [
+                    'es' => 'Acceder a la pantalla de gestión de usuarios',
+                ],
+                'publish_post.access' => [
+                    'es' => 'Publicar nuevos posts',
+                ],
+                'posts.delete' => [
+                    'es' => 'Eliminar posts publicados',
+                ],
+            ],
+            'default_translations' => [
+                'es' => [
+                    'display_name' => 'Superusuario (Root)',
+                    'description' => 'Superusuario con acceso completo al sistema',
+                ],
+            ],
+        ],
+        'admin' => [
+            'priority' => 90,
+            'home_screen' => \App\UI\Screens\Home::class,
+            'permissions' => [
+                'admin.users_manager.access' => [
+                    'es' => 'Acceder a la pantalla de gestión de usuarios',
+                ],
+                'manage.roles' => [
+                    'es' => 'Asignar roles de admin o publisher a usuarios registrados',
+                ],
+                'publish_post.access' => [
+                    'es' => 'Publicar nuevos posts',
+                ],
+                'posts.delete' => [
+                    'es' => 'Eliminar posts publicados',
+                ],
+            ],
+            'default_translations' => [
+                'es' => [
+                    'display_name' => 'Administrador',
+                    'description' => 'Puede eliminar posts y asignar roles (admin o publisher) a usuarios registrados',
+                ],
+            ],
+        ],
+        'publisher' => [
+            'priority' => 50,
+            'home_screen' => \App\UI\Screens\Home::class,
+            'permissions' => [
+                'publish_post.access' => [
+                    'es' => 'Publicar nuevos posts',
+                ],
+            ],
+            'default_translations' => [
+                'es' => [
+                    'display_name' => 'Publicador',
+                    'description' => 'Puede crear y publicar posts con imágenes',
+                ],
+            ],
+        ],
+        'registered' => [
+            'priority' => 10,
+            'home_screen' => \App\UI\Screens\Registered::class,
+            'permissions' => [
+                'profile.view' => [
+                    'es' => 'Ver perfil propio',
+                ],
+                'profile.edit' => [
+                    'es' => 'Editar perfil propio',
+                ],
+            ],
+            'default_translations' => [
+                'es' => [
+                    'display_name' => 'Registrado',
+                    'description' => 'Usuario recién registrado en espera de asignación de rol',
+                ],
+            ],
+        ],
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Internacionalización (Sólo Español)
+    |--------------------------------------------------------------------------
+    */
+    'i18n' => [
+        'default_locale' => 'es',
+        'fallback_locale' => 'es',
+        'languages' => [
+            'es' => [
+                'name' => 'Spanish',
+                'native_name' => 'Español',
+                'active' => true,
+            ],
+            'en' => [
+                'name' => 'English',
+                'native_name' => 'English',
+                'active' => false,
+            ],
+        ],
+    ],
+];
 ```
 
-Edita el archivo generado en `database/migrations/`:
+---
+
+## 🧩 Paso 3: Adaptar el Contexto de Unidad Única (`lobby`)
+
+Por defecto, los servicios generados por `usim:install` asumen que los usuarios recién registrados están en `lobby` y al ser aprobados pasan a una unidad llamada `main`. Como nuestra aplicación utiliza **únicamente la unidad `lobby`**, haremos tres pequeños ajustes para que la aprobación de usuarios y asignación de roles funcione dentro de `lobby`:
+
+### 3.1 `app/Services/User/UserService.php`
+
+En `app/Services/User/UserService.php`, asegúrate de que el estado "en espera" se determine mediante `$user->isRegisteredInLobby()` (que comprueba si su único rol en `lobby` es `registered`) y que al aprobarse permanezca en `lobby`:
+
+1. En `getPaginatedWithLobbyStatus()`, reemplaza la transformación de `is_in_lobby`:
+```php
+$paginator->getCollection()->transform(function (User $user) {
+    $user->setAttribute('is_in_lobby', $user->isRegisteredInLobby());
+
+    return $user;
+});
+```
+
+2. En `findWithLobbyStatus()`, usa también `$user->isRegisteredInLobby()`:
+```php
+if ($user) {
+    $user->setAttribute('is_in_lobby', $user->isRegisteredInLobby());
+}
+```
+
+3. En `approveLobbyRegistration()`, si no existe `main`, usa `lobby` como unidad destino y evita desasociar `lobby` cuando la unidad destino es la misma:
+```php
+$mainUnit = UsimUnit::where('slug', $targetUnitSlug)->first()
+    ?? UsimUnit::where('slug', 'lobby')->first();
+$lobbyUnit = UsimUnit::where('slug', 'lobby')->first();
+
+// ...
+
+if ($lobbyUnit && $lobbyUnit->id !== $mainUnit->id) {
+    $user->usimUnits()->detach($lobbyUnit->id);
+}
+```
+
+### 3.2 `app/UI/Screens/Admin/TableModels/UserTableModel.php`
+
+En `app/UI/Screens/Admin/TableModels/UserTableModel.php`, dentro de `formatRow()`, cambia la detección de lobby para usar `$user->isRegisteredInLobby()`:
+
+```php
+$isInLobby = (bool) ($user->getAttribute('is_in_lobby') ?? $user->isRegisteredInLobby());
+```
+
+### 3.3 `app/UI/Screens/Admin/EditUser.php`
+
+En `app/UI/Screens/Admin/EditUser.php`, define `'publisher'` como rol sugerido por defecto cuando el administrador aprueba a un usuario registrado:
+
+```php
+private const DEFAULT_FALLBACK_ROLE = 'publisher';
+```
+
+*(Opcionalmente, en `app/Services/Auth/RegisterService.php`, `app/Services/Units/UnitContextResolver.php`, `app/Services/Auth/AuthSessionService.php` y `app/UI/Screens/Admin/Concerns/ResolvesActiveUnitContext.php`, puedes usar `'lobby'` como fallback si `'main'` no existe).*
+
+---
+
+## 🗄️ Paso 4: Migración y Capa de Servicios para Posts (SOLID)
+
+### 4.1 Crear la migración de la tabla `posts`
+
+Crea el archivo `database/migrations/2026_10_16_030000_create_posts_table.php`:
 
 ```php
 <?php
@@ -98,56 +325,26 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('products', function (Blueprint $table) {
+        Schema::create('posts', function (Blueprint $table) {
             $table->id();
-            $table->string('name');
-            $table->text('description')->nullable();
-            $table->decimal('price', 10, 2);
-            $table->integer('stock')->default(0);
+            $table->foreignId('user_id')->constrained('users')->cascadeOnDelete();
+            $table->string('title');
+            $table->text('content');
             $table->string('image')->nullable();
-            $table->boolean('is_active')->default(true);
-            $table->timestamps();
-        });
-
-        Schema::create('orders', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('user_id')->constrained()->cascadeOnDelete();
-            $table->decimal('total', 10, 2);
-            $table->string('status')->default('completed'); // pending, completed, cancelled
-            $table->timestamps();
-        });
-
-        Schema::create('order_items', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('order_id')->constrained()->cascadeOnDelete();
-            $table->foreignId('product_id')->constrained()->cascadeOnDelete();
-            $table->integer('quantity');
-            $table->decimal('unit_price', 10, 2);
             $table->timestamps();
         });
     }
 
     public function down(): void
     {
-        Schema::dropIfExists('order_items');
-        Schema::dropIfExists('orders');
-        Schema::dropIfExists('products');
+        Schema::dropIfExists('posts');
     }
 };
 ```
 
-Ejecuta la migración:
-```bash
-php artisan migrate
-```
+### 4.2 Crear el Contrato `app/Contracts/PostServiceInterface.php`
 
----
-
-## 4. Capa de Dominio y Persistencia SOLID (Facades & Service Container)
-
-Siguiendo el principio de inversión de dependencias, definimos interfaces para los servicios y las registramos en Laravel.
-
-### Paso 4.1: Contrato de Productos (`app/Contracts/ProductServiceInterface.php`)
+Siguiendo el principio de Inversión de Dependencias (SOLID), nuestras Screens dependerán de una interfaz y no de consultas SQL directas:
 
 ```php
 <?php
@@ -156,197 +353,522 @@ namespace App\Contracts;
 
 use Illuminate\Support\Collection;
 
-interface ProductServiceInterface
+interface PostServiceInterface
 {
     /**
-     * @return Collection<int, object{id: int, name: string, description: ?string, price: float, stock: int, image: ?string, is_active: bool}>
+     * Obtiene los últimos posts ordenados por fecha descendente.
      */
-    public function getActiveProducts(): Collection;
+    public function getLatestPosts(): Collection;
 
+    /**
+     * Busca un post por su ID.
+     */
     public function findById(int $id): ?object;
 
     /**
-     * @param array{name: string, description: ?string, price: float, stock: int, image: ?string} $data
+     * Crea un nuevo post y devuelve su ID.
+     *
+     * @param array{user_id: int, title: string, content: string, image: ?string} $data
      */
-    public function createProduct(array $data): int;
+    public function createPost(array $data): int;
 
     /**
-     * @param array{name?: string, description?: ?string, price?: float, stock?: int, image?: ?string} $data
+     * Elimina un post por su ID.
      */
-    public function updateProduct(int $id, array $data): bool;
-
-    public function deleteProduct(int $id): bool;
+    public function deletePost(int $id): bool;
 }
 ```
 
-### Paso 4.2: Implementación con la Fachada DB (`app/Services/Product/DatabaseProductService.php`)
+### 4.3 Crear la Implementación `app/Services/Post/DatabasePostService.php`
 
 ```php
 <?php
 
-namespace App\Services\Product;
+namespace App\Services\Post;
 
-use App\Contracts\ProductServiceInterface;
+use App\Contracts\PostServiceInterface;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 
-class DatabaseProductService implements ProductServiceInterface
+class DatabasePostService implements PostServiceInterface
 {
-    public function getActiveProducts(): Collection
+    public function getLatestPosts(): Collection
     {
-        return DB::table('products')
-            ->where('is_active', true)
-            ->where('stock', '>', 0)
-            ->orderBy('name')
+        return DB::table('posts')
+            ->join('users', 'posts.user_id', '=', 'users.id')
+            ->select('posts.*', 'users.name as author_name')
+            ->orderByDesc('posts.created_at')
+            ->orderByDesc('posts.id')
             ->get();
     }
 
     public function findById(int $id): ?object
     {
-        return DB::table('products')->where('id', $id)->first();
+        return DB::table('posts')
+            ->join('users', 'posts.user_id', '=', 'users.id')
+            ->select('posts.*', 'users.name as author_name')
+            ->where('posts.id', $id)
+            ->first();
     }
 
-    public function createProduct(array $data): int
+    public function createPost(array $data): int
     {
-        return (int) DB::table('products')->insertGetId([
-            'name' => $data['name'],
-            'description' => $data['description'] ?? null,
-            'price' => $data['price'],
-            'stock' => $data['stock'],
+        return DB::table('posts')->insertGetId([
+            'user_id' => $data['user_id'],
+            'title' => $data['title'],
+            'content' => $data['content'],
             'image' => $data['image'] ?? null,
-            'is_active' => true,
             'created_at' => now(),
             'updated_at' => now(),
         ]);
     }
 
-    public function updateProduct(int $id, array $data): bool
+    public function deletePost(int $id): bool
     {
-        $payload = array_merge($data, ['updated_at' => now()]);
-        return DB::table('products')->where('id', $id)->update($payload) > 0;
-    }
-
-    public function deleteProduct(int $id): bool
-    {
-        return DB::table('products')->where('id', $id)->delete() > 0;
+        return DB::table('posts')->where('id', $id)->delete() > 0;
     }
 }
 ```
 
-### Paso 4.3: Contrato e Implementación de Pedidos Transaccionales (`app/Contracts/OrderServiceInterface.php`)
+### 4.4 Registrar el Servicio en `app/Providers/AppServiceProvider.php`
 
 ```php
 <?php
 
-namespace App\Contracts;
+namespace App\Providers;
 
-interface OrderServiceInterface
+use App\Contracts\PostServiceInterface;
+use App\Services\Post\DatabasePostService;
+use Illuminate\Support\ServiceProvider;
+
+class AppServiceProvider extends ServiceProvider
 {
-    public function createOrder(int $userId, int $productId, int $quantity = 1): int;
-}
-```
-
-Implementación en `app/Services/Order/DatabaseOrderService.php`:
-
-```php
-<?php
-
-namespace App\Services\Order;
-
-use App\Contracts\OrderServiceInterface;
-use Illuminate\Support\Facades\DB;
-use RuntimeException;
-
-class DatabaseOrderService implements OrderServiceInterface
-{
-    public function createOrder(int $userId, int $productId, int $quantity = 1): int
+    public function register(): void
     {
-        return DB::transaction(function () use ($userId, $productId, $quantity) {
-            // 1. Bloquear y verificar stock de producto
-            $product = DB::table('products')
-                ->where('id', $productId)
-                ->lockForUpdate()
-                ->first();
-
-            if (! $product) {
-                throw new RuntimeException('El producto no existe.');
-            }
-
-            if ($product->stock < $quantity) {
-                throw new RuntimeException("Stock insuficiente para: {$product->name}");
-            }
-
-            // 2. Descontar stock
-            DB::table('products')
-                ->where('id', $productId)
-                ->decrement('stock', $quantity);
-
-            $total = (float) $product->price * $quantity;
-
-            // 3. Crear orden
-            $orderId = (int) DB::table('orders')->insertGetId([
-                'user_id' => $userId,
-                'total' => $total,
-                'status' => 'completed',
-                'created_at' => now(),
-                'updated_at' => now(),
-            ]);
-
-            // 4. Crear línea de orden
-            DB::table('order_items')->insert([
-                'order_id' => $orderId,
-                'product_id' => $productId,
-                'quantity' => $quantity,
-                'unit_price' => $product->price,
-                'created_at' => now(),
-                'updated_at' => now(),
-            ]);
-
-            return $orderId;
-        });
+        $this->app->singleton(PostServiceInterface::class, DatabasePostService::class);
     }
-}
-```
 
-### Paso 4.4: Enlazar en `app/Providers/AppServiceProvider.php`
-
-Abre `app/Providers/AppServiceProvider.php` y añade los bindings:
-
-```php
-use App\Contracts\OrderServiceInterface;
-use App\Contracts\ProductServiceInterface;
-use App\Services\Order\DatabaseOrderService;
-use App\Services\Product\DatabaseProductService;
-
-public function register(): void
-{
-    $this->app->singleton(ProductServiceInterface::class, DatabaseProductService::class);
-    $this->app->singleton(OrderServiceInterface::class, DatabaseOrderService::class);
+    public function boot(): void
+    {
+        //
+    }
 }
 ```
 
 ---
 
-## 5. Catálogo Público en Home (Experiencia Usuario Guest)
+## 🖥️ Paso 5: Crear y Modificar las Pantallas (Screens) en USIM
 
-La pantalla principal (`app/UI/Screens/Home.php`) debe ser accesible por cualquiera (`Visibility::PUBLIC`). Los usuarios no autenticados (Guests) podrán explorar los productos con sus fotos, y si intentan comprar, se les invitará a identificarse.
+### 5.1 Pantalla de Espera para Usuarios Registrados (`app/UI/Screens/Registered.php`)
 
-Modifica `app/UI/Screens/Home.php`:
+Cuando un usuario se registra en el sistema, obtiene el rol `registered`. Esta pantalla le informa que en breve un administrador le asignará un rol (`publisher` o `admin`), muestra su avatar actual con `UI::image()` y le permite abrir el modal `Profile` para cambiar su nombre o subir su avatar con `UI::uploader()`.
+
+Edita `app/UI/Screens/Registered.php`:
+
+```php
+<?php
+// @usim: feature="admin", type="screen"
+namespace App\UI\Screens;
+
+use App\Models\User;
+use App\UI\Screens\Auth\Profile;
+use Idei\Usim\Components\Container;
+use Idei\Usim\Components\Image;
+use Idei\Usim\Components\Label;
+use Idei\Usim\Enums\LayoutType;
+use Idei\Usim\Screen;
+use Idei\Usim\UI;
+use Idei\Usim\Upload\UploadService;
+use Idei\Usim\ValueObjects\Size;
+use Idei\Usim\ValueObjects\Spacing;
+use Illuminate\Support\Facades\Auth;
+
+class Registered extends Screen
+{
+    protected Image $registered_avatar;
+    protected Label $registered_greeting;
+
+    public static function authorize(): bool
+    {
+        return self::requireAuth();
+    }
+
+    public static function getMenuLabel(): string
+    {
+        return 'Inicio';
+    }
+
+    public static function getMenuIcon(): ?string
+    {
+        return '⏳';
+    }
+
+    protected function buildBaseUI(Container $container, ...$params): void
+    {
+        $user = Auth::user();
+        $userName = $user instanceof User ? $user->name : '';
+
+        $message = 'Se ha registrado en el sistema, en breve se le asignará un rol. Mientras tanto, puede actualizar su perfil y su foto de avatar.';
+
+        $container
+            ->layout(LayoutType::VERTICAL)
+            ->plain()
+            ->justifyContent('start')
+            ->alignItems('center')
+            ->padding(Spacing::px(30))
+            ->minHeight(Size::vh(80));
+
+        $container->add(
+            UI::label('registered_icon')
+                ->text('⏳')
+                ->style('h1')
+                ->center()
+                ->fontSize('64px')
+        );
+
+        // Vista previa del avatar usando el componente UI::image()
+        $this->registered_avatar = UI::image('registered_avatar')
+            ->alt($userName)
+            ->width(Size::px(96))
+            ->height(Size::px(96))
+            ->circular()
+            ->objectFit('cover')
+            ->shadow(true)
+            ->visible(false);
+
+        $container->add($this->registered_avatar);
+
+        $container->add(
+            UI::label('registered_title')
+                ->text('Cuenta Pendiente de Asignación de Rol')
+                ->style('h2')
+                ->center()
+                ->fontSize('26px')
+                ->fontWeight('bold')
+                ->color('#00d4aa')
+                ->marginTop(Spacing::px(12))
+        );
+
+        $this->registered_greeting = UI::label('registered_greeting')
+            ->text("¡Hola, {$userName}!")
+            ->style('h3')
+            ->center()
+            ->fontSize('18px')
+            ->color('#7a8499')
+            ->marginTop(Spacing::px(6));
+
+        $container->add($this->registered_greeting);
+
+        $container->add(
+            UI::card('registered_card')
+                ->title('Estado de su cuenta')
+                ->description($message)
+                ->theme('info')
+                ->maxWidth(Size::px(650))
+                ->marginTop(Spacing::px(24))
+                ->addAction('👤 Editar Mi Perfil / Avatar', 'go_to_profile', [], 'primary')
+        );
+
+        $container->add(
+            UI::label('registered_message')
+                ->text('Un administrador revisará su solicitud y le asignará el rol de Publicador o Administrador.')
+                ->style('p')
+                ->center()
+                ->maxWidth(Size::px(650))
+                ->fontSize('15px')
+                ->marginTop(Spacing::px(16))
+                ->color('#7a8499')
+        );
+    }
+
+    protected function postLoadUI(): void
+    {
+        $user = Auth::user();
+        if ($user instanceof User) {
+            $this->refreshUserView($user);
+        }
+    }
+
+    /**
+     * Abre el modal de Perfil en modo SPA.
+     */
+    public function onGoToProfile(array $params): void
+    {
+        $this->openModal(Profile::class);
+    }
+
+    /**
+     * Escucha el evento 'updated_profile' emitido por la pantalla Profile
+     * para actualizar reactivamente el nombre y el avatar sin recargar la página.
+     */
+    public function onUpdatedProfile(array $params): void
+    {
+        $user = $params['user'] ?? Auth::user();
+        if ($user instanceof User) {
+            $this->refreshUserView($user);
+        }
+    }
+
+    private function refreshUserView(User $user): void
+    {
+        $this->registered_greeting->text("¡Hola, {$user->name}!");
+
+        if (\is_string($user->profile_image) && $user->profile_image !== '') {
+            $imageUrl = UploadService::fileUrl("uploads/images/{$user->profile_image}") . '?t=' . time();
+            $this->registered_avatar
+                ->src($imageUrl)
+                ->alt($user->name)
+                ->visible(true);
+        } else {
+            $this->registered_avatar->visible(false);
+        }
+    }
+}
+```
+
+---
+
+### 5.2 Pantalla para Publicar Posts (`app/UI/Screens/PublishPost.php`)
+
+Esta pantalla utiliza `UI::uploader()` para subir la imagen de portada del post y `self::requireRole(['publisher', 'admin'])` para autorizar únicamente a publicadores y administradores. Al guardar el post, navega en modo SPA a `Home::class` usando `$this->showInto(Home::class, force: true, updateBrowserUrl: true)`.
+
+Crea el archivo `app/UI/Screens/PublishPost.php`:
 
 ```php
 <?php
 
 namespace App\UI\Screens;
 
-use App\Contracts\OrderServiceInterface;
-use App\Contracts\ProductServiceInterface;
-use App\UI\Screens\Auth\Login;
+use App\Contracts\PostServiceInterface;
+use App\Models\User;
 use Idei\Usim\Components\Container;
-use Idei\Usim\Components\UI;
+use Idei\Usim\Components\Input;
+use Idei\Usim\Components\Uploader;
 use Idei\Usim\Enums\AlignItems;
+use Idei\Usim\Enums\JustifyContent;
+use Idei\Usim\Enums\LayoutType;
+use Idei\Usim\Screen;
+use Idei\Usim\UI;
+use Idei\Usim\ValueObjects\Size;
+use Idei\Usim\ValueObjects\Spacing;
+use Illuminate\Support\Facades\Auth;
+
+class PublishPost extends Screen
+{
+    protected Input $post_title;
+    protected Input $post_content;
+    protected Uploader $post_image;
+
+    public function __construct(
+        protected PostServiceInterface $postService
+    ) {
+    }
+
+    public static function authorize(): bool
+    {
+        return self::requireRole(['publisher', 'admin']);
+    }
+
+    public static function getMenuLabel(): string
+    {
+        return 'Publicar Post';
+    }
+
+    public static function getMenuIcon(): ?string
+    {
+        return '✍️';
+    }
+
+    protected function buildBaseUI(Container $container, ...$params): void
+    {
+        $container
+            ->plain()
+            ->width(Size::full())
+            ->maxWidth(Size::px(720))
+            ->centerHorizontal()
+            ->padding(Spacing::px(24))
+            ->gap(Spacing::px(16));
+
+        $header = UI::container('publish_header')
+            ->width(Size::full())
+            ->layout(LayoutType::HORIZONTAL)
+            ->justifyContent(JustifyContent::SPACE_BETWEEN)
+            ->alignItems(AlignItems::CENTER)
+            ->plain()
+            ->shadow(false)
+            ->padding(Spacing::zero())
+            ->gap(Spacing::px(16));
+
+        $header->add(
+            UI::label('lbl_publish_title')
+                ->text('✍️ Publicar Nuevo Post')
+                ->style('h2')
+                ->color('primary')
+        );
+
+        $header->add(
+            UI::button('btn_back_home')
+                ->label('← Volver al Inicio')
+                ->action('cancel_post')
+                ->style('secondary')
+        );
+
+        $container->add($header);
+
+        $formCard = UI::container('publish_form_card')
+            ->card()
+            ->width(Size::full())
+            ->layout(LayoutType::VERTICAL)
+            ->padding(Spacing::px(24))
+            ->gap(Spacing::px(16));
+
+        $this->post_title = UI::input('post_title')
+            ->label('Título del Post')
+            ->placeholder('Escribe un título atractivo...')
+            ->required(true)
+            ->width(Size::full());
+
+        $this->post_content = UI::input('post_content')
+            ->label('Contenido')
+            ->placeholder('Desarrolla el contenido de tu publicación...')
+            ->required(true)
+            ->width(Size::full());
+
+        // Componente Uploader para subir la imagen de portada
+        $this->post_image = UI::uploader('post_image')
+            ->images()
+            ->maxFiles(1)
+            ->maxSize(5)
+            ->aspect('16:9')
+            ->size(2)
+            ->label('Imagen de Portada (opcional)');
+
+        $actionsRow = UI::container('publish_actions_row')
+            ->width(Size::full())
+            ->layout(LayoutType::HORIZONTAL)
+            ->justifyContent(JustifyContent::END)
+            ->gap(Spacing::px(12))
+            ->plain()
+            ->shadow(false)
+            ->padding(Spacing::zero());
+
+        $actionsRow->add(
+            UI::button('btn_cancel_post')
+                ->label('Cancelar')
+                ->action('cancel_post')
+                ->style('secondary')
+        );
+
+        $actionsRow->add(
+            UI::button('btn_save_post')
+                ->label('Publicar Post')
+                ->action('save_post')
+                ->style('primary')
+        );
+
+        $formCard->add($this->post_title);
+        $formCard->add($this->post_content);
+        $formCard->add($this->post_image);
+        $formCard->add($actionsRow);
+
+        $container->add($formCard);
+    }
+
+    public function onSavePost(array $params): void
+    {
+        $user = Auth::user();
+        if (!$user instanceof User) {
+            $this->toast('Debes iniciar sesión para publicar.', 'error');
+            return;
+        }
+
+        $rawTitle = $params['post_title'] ?? '';
+        $rawContent = $params['post_content'] ?? '';
+
+        $title = is_string($rawTitle) ? trim($rawTitle) : '';
+        $content = is_string($rawContent) ? trim($rawContent) : '';
+
+        $this->post_title->error(null);
+        $this->post_content->error(null);
+
+        $hasErrors = false;
+        if ($title === '') {
+            $this->post_title->error('El título es obligatorio.');
+            $hasErrors = true;
+        }
+
+        if ($content === '') {
+            $this->post_content->error('El contenido es obligatorio.');
+            $hasErrors = true;
+        }
+
+        if ($hasErrors) {
+            $this->toast('Por favor completa los campos obligatorios.', 'warning');
+            return;
+        }
+
+        // Confirmar y mover la imagen temporal a storage/app/public/uploads/images/
+        $confirmedImage = $this->post_image->confirm($params, 'images');
+        $imageFilename = null;
+        if (is_string($confirmedImage) && $confirmedImage !== '') {
+            $imageFilename = $confirmedImage;
+        } elseif (is_array($confirmedImage) && isset($confirmedImage[0]) && is_string($confirmedImage[0])) {
+            $imageFilename = $confirmedImage[0];
+        }
+
+        $this->postService->createPost([
+            'user_id' => (int) $user->id,
+            'title' => $title,
+            'content' => $content,
+            'image' => $imageFilename,
+        ]);
+
+        $this->toast('¡Post publicado correctamente!', 'success');
+
+        // Limpiar snapshot en caché de Home y navegar vía SPA forzando recarga de los últimos posts
+        Screen::make(Home::class)->clearCachedScreenSnapshot();
+        $this->showInto(Home::class, force: true, updateBrowserUrl: true);
+    }
+
+    public function onCancelPost(array $params): void
+    {
+        Screen::make(Home::class)->clearCachedScreenSnapshot();
+        $this->showInto(Home::class, force: true, updateBrowserUrl: true);
+    }
+}
+```
+
+---
+
+### 5.3 Pantalla Principal de Últimos Posts (`app/UI/Screens/Home.php`)
+
+La pantalla `Home` es pública (`Visibility::PUBLIC`) y adapta su interfaz según quién la visite:
+- Si el usuario autenticado sólo tiene el rol `registered`, embebe únicamente `Registered::class`.
+- Si es `guest`, muestra los últimos posts y botones para abrir `Login` o `Register` en modal.
+- Si es `publisher` o `admin`, muestra el botón **Publicar Post** (`showInto(PublishPost::class)`).
+- Si es `admin`, muestra además el botón **Gestionar Usuarios** (`showInto(UsersManager::class)`) y el botón **🗑️ Eliminar** en cada post.
+- Cada post con imagen utiliza `UI::image()` para renderizar su portada.
+- Implementa `postLoadUI()` para refrescar siempre el contenedor y volver a consultar los últimos posts desde la base de datos aunque el snapshot de `Home` se recupere de la caché de USIM.
+
+Edita `app/UI/Screens/Home.php`:
+
+```php
+<?php
+// @usim: feature="admin", type="screen"
+namespace App\UI\Screens;
+
+use App\Contracts\PostServiceInterface;
+use App\Models\User;
+use App\UI\Screens\Admin\UsersManager;
+use App\UI\Screens\Auth\Login;
+use App\UI\Screens\Auth\Register;
+use Idei\Usim\Components\Container;
+use Idei\Usim\Enums\AlignItems;
+use Idei\Usim\Enums\JustifyContent;
 use Idei\Usim\Enums\LayoutType;
 use Idei\Usim\Enums\Visibility;
 use Idei\Usim\Screen;
+use Idei\Usim\UI;
 use Idei\Usim\Upload\UploadService;
 use Idei\Usim\ValueObjects\Size;
 use Idei\Usim\ValueObjects\Spacing;
@@ -356,372 +878,362 @@ class Home extends Screen
 {
     public static Visibility $visibility = Visibility::PUBLIC;
 
-    protected Container $catalog_grid;
+    protected ?Container $posts_list_container = null;
 
     public function __construct(
-        protected ProductServiceInterface $productService,
-        protected OrderServiceInterface $orderService,
-    ) {}
+        protected PostServiceInterface $postService
+    ) {
+    }
+
+    public static function getMenuLabel(): string
+    {
+        return 'Inicio';
+    }
+
+    public static function getMenuIcon(): ?string
+    {
+        return '🏠';
+    }
 
     protected function buildBaseUI(Container $container, ...$params): void
     {
-        $container
-            ->layout(LayoutType::VERTICAL)
-            ->alignItems(AlignItems::STRETCH)
-            ->gap(Spacing::px(24))
-            ->padding(Spacing::px(24));
-
-        // Cabecera Hero y bienvenida
-        $container->add(
-            UI::label('tienda_title')
-                ->text('🛍️ Tienda Oficial USIM')
-                ->bold()
-        )->add(
-            UI::label('tienda_subtitle')
-                ->text('Catálogo Server-Driven UI con reactividad en tiempo real.')
-                ->color('var(--usim-text-muted)')
-        );
-
-        // Contenedor cuadrícula de productos
-        $this->catalog_grid = UI::container('catalog_grid')
-            ->layout(LayoutType::HORIZONTAL)
-            ->gap(Spacing::px(16));
-
-        $this->renderProducts();
-
-        $container->add($this->catalog_grid);
+        $this->renderHomeContent($container);
     }
 
-    protected function renderProducts(): void
+    protected function postLoadUI(): void
     {
-        $this->catalog_grid->clear();
-        $products = $this->productService->getActiveProducts();
-
-        if ($products->isEmpty()) {
-            $this->catalog_grid->add(
-                UI::label('no_products')
-                    ->text('No hay productos disponibles por el momento.')
-                    ->color('var(--usim-text-muted)')
-            );
-            return;
-        }
-
-        foreach ($products as $product) {
-            $card = UI::container("product_card_{$product->id}")
-                ->card()
-                ->width(Size::px(260))
-                ->padding(Spacing::px(16))
-                ->layout(LayoutType::VERTICAL)
-                ->gap(Spacing::px(8));
-
-            // Imagen del producto
-            if ($product->image) {
-                $imageUrl = UploadService::fileUrl("uploads/images/{$product->image}");
-                $card->add(UI::label("img_{$product->id}")->html("<img src='{$imageUrl}' style='width:100%; height:160px; object-fit:cover; border-radius:8px;' alt='{$product->name}' />"));
-            } else {
-                $card->add(UI::label("img_{$product->id}")->html("<div style='width:100%; height:160px; background:var(--usim-surface-variant); display:flex; align-items:center; justify-content:center; border-radius:8px; font-size:32px;'>📦</div>"));
-            }
-
-            // Nombre, Precio y Stock
-            $card->add(UI::label("name_{$product->id}")->text($product->name)->bold())
-                ->add(UI::label("price_{$product->id}")->text('$' . number_format((float) $product->price, 2))->color('var(--usim-primary)')->bold())
-                ->add(UI::label("stock_{$product->id}")->text("Disponibles: {$product->stock}")->color('var(--usim-text-muted)'));
-
-            // Botón interactivo condicional según autenticación
-            if (! Auth::check()) {
-                // Usuario GUEST: abre modal de login
-                $card->add(
-                    UI::button("login_to_buy_{$product->id}")
-                        ->label('Iniciar sesión para comprar')
-                        ->style('secondary')
-                        ->action('onGuestBuyAttempt')
-                );
-            } else {
-                // Usuario AUTENTICADO: permite compra directa
-                $card->add(
-                    UI::button("buy_btn_{$product->id}")
-                        ->label('⚡ Comprar Ahora')
-                        ->style('primary')
-                        ->action('onBuyProduct', ['product_id' => $product->id])
-                );
-            }
-
-            $this->catalog_grid->add($card);
+        $container = $this->getContainer();
+        if ($container instanceof Container) {
+            $container->clear();
+            $this->renderHomeContent($container);
         }
     }
 
-    /**
-     * Acción invocada por un usuario Guest al intentar comprar.
-     */
-    public function onGuestBuyAttempt(): void
+    private function renderHomeContent(Container $container): void
     {
-        $this->toast('Debes iniciar sesión con tu cuenta para comprar.', 'info');
-        Screen::openAsModal(screenClass: Login::class, caller: $this);
-    }
-
-    /**
-     * Acción invocada por un usuario registrado para realizar la compra.
-     *
-     * @param array{product_id: int} $params
-     */
-    public function onBuyProduct(array $params): void
-    {
-        $productId = (int) ($params['product_id'] ?? 0);
         $user = Auth::user();
 
-        if (! $user) {
-            $this->toast('Sesión expirada.', 'error');
+        // Si el usuario tiene únicamente el rol "registered", sólo debe ver la pantalla Registered
+        if ($user instanceof User && $user->isRegisteredInLobby()) {
+            $container
+                ->plain()
+                ->padding(Spacing::zero());
+            Screen::make(Registered::class)->clearCachedScreenSnapshot();
+            Screen::embedInto(Registered::class, $container);
             return;
         }
 
-        try {
-            $orderId = $this->orderService->createOrder(
-                userId: (int) $user->getAuthIdentifier(),
-                productId: $productId,
-                quantity: 1
-            );
-
-            $this->toast("¡Pedido #{$orderId} completado con éxito!", 'success');
-            
-            // Actualizamos la vista de productos de forma reactiva (refleja el stock restante)
-            $this->renderProducts();
-        } catch (\Throwable $e) {
-            $this->toast($e->getMessage(), 'error');
-        }
-    }
-}
-```
-
----
-
-## 6. Flujo de Compras para Usuario Registrado
-
-Cuando un usuario nuevo se registra (utilizando la pantalla modal `Register::class` que USIM proporciona por defecto), adquiere el rol `registered`.
-
-### Comportamiento Reactivo
-1. Al cargar la Home, el método `Auth::check()` evalúa `true`.
-2. El botón de cada tarjeta se renderiza con la etiqueta **"⚡ Comprar Ahora"**.
-3. Al pulsar el botón:
-   - El cliente emite el evento `onBuyProduct` con el parámetro `{ product_id: X }`.
-   - `DatabaseOrderService` ejecuta una transacción atómica con `lockForUpdate()`.
-   - Se reduce el stock y se registra la orden.
-   - El servidor responde con el diff reactivo: actualiza el texto de stock disponible y lanza un Toast flotante verde sin recargar la página.
-
----
-
-## 7. Pantalla Administrativa de Productos con Subida de Imágenes
-
-Crearemos la pantalla administrativa para crear y gestionar productos en `app/UI/Screens/Admin/ProductsManager.php`.
-
-Esta pantalla:
-- Solo es accesible por usuarios con rol `admin` o `root`.
-- Contiene un formulario con campos de texto y el componente `UI::uploader()` para fotos.
-- Persiste la imagen temporal hacia la carpeta final mediante `$this->uploader->confirm(...)`.
-
-Crea la pantalla con el generador:
-```bash
-php artisan usim:scaf Admin/ProductsManager
-```
-
-Edita `app/UI/Screens/Admin/ProductsManager.php`:
-
-```php
-<?php
-
-namespace App\UI\Screens\Admin;
-
-use App\Contracts\ProductServiceInterface;
-use Idei\Usim\Components\Button;
-use Idei\Usim\Components\Container;
-use Idei\Usim\Components\Input;
-use Idei\Usim\Components\Textarea;
-use Idei\Usim\Components\UI;
-use Idei\Usim\Components\Uploader;
-use Idei\Usim\Enums\LayoutType;
-use Idei\Usim\Enums\Visibility;
-use Idei\Usim\Screen;
-use Idei\Usim\ValueObjects\Size;
-use Idei\Usim\ValueObjects\Spacing;
-
-class ProductsManager extends Screen
-{
-    public static Visibility $visibility = Visibility::AUTHENTICATED;
-
-    /**
-     * Control de acceso estricto: Solo administradores o root.
-     */
-    public static function authorize(): bool
-    {
-        return self::requireRole(['admin', 'root']);
-    }
-
-    protected Input $product_name;
-    protected Input $product_price;
-    protected Input $product_stock;
-    protected Uploader $product_image;
-    protected Container $products_admin_list;
-
-    public function __construct(
-        protected ProductServiceInterface $productService
-    ) {}
-
-    protected function buildBaseUI(Container $container, ...$params): void
-    {
         $container
-            ->layout(LayoutType::VERTICAL)
+            ->maxWidth(Size::px(900))
+            ->centerHorizontal()
+            ->padding(Spacing::px(24))
             ->gap(Spacing::px(20))
-            ->padding(Spacing::px(24));
+            ->plain();
 
-        $container->add(
-            UI::label('admin_title')
-                ->text('⚙️ Panel de Administración: Productos')
-                ->bold()
-        )->add(
-            UI::label('admin_subtitle')
-                ->text('Agrega nuevos productos al catálogo con imagen.')
-                ->color('var(--usim-text-muted)')
+        $header = UI::container('home_header')
+            ->card()
+            ->layout(LayoutType::HORIZONTAL)
+            ->justifyContent(JustifyContent::SPACE_BETWEEN)
+            ->alignItems(AlignItems::CENTER)
+            ->padding(Spacing::px(20))
+            ->gap(Spacing::px(16));
+
+        $titleBox = UI::container('home_title_box')
+            ->layout(LayoutType::VERTICAL)
+            ->gap(Spacing::px(4))
+            ->plain()
+            ->shadow(false)
+            ->padding(Spacing::zero());
+
+        $titleBox->add(
+            UI::label('lbl_home_title')
+                ->text('📰 Últimos Posts')
+                ->style('h2')
+                ->color('primary')
         );
 
-        // Formulario de Alta
-        $formContainer = UI::container('product_form_card')
-            ->card()
-            ->layout(LayoutType::VERTICAL)
-            ->gap(Spacing::px(12))
-            ->padding(Spacing::px(16));
+        $subtitleText = $this->resolveRoleSubtitle($user instanceof User ? $user : null);
+        $titleBox->add(
+            UI::label('lbl_home_subtitle')
+                ->text($subtitleText)
+                ->style('p')
+                ->color('#7a8499')
+        );
 
-        $this->product_name = UI::input('product_name')
-            ->placeholder('Nombre del producto')
-            ->required();
+        $actionsBox = UI::container('home_actions_box')
+            ->layout(LayoutType::HORIZONTAL)
+            ->alignItems(AlignItems::CENTER)
+            ->gap(Spacing::px(10))
+            ->plain()
+            ->shadow(false)
+            ->padding(Spacing::zero());
 
-        $this->product_price = UI::input('product_price')
-            ->placeholder('Precio (ej. 49.99)')
-            ->required();
-
-        $this->product_stock = UI::input('product_stock')
-            ->placeholder('Cantidad en stock inicial')
-            ->required();
-
-        // Componente Uploader de Imagen con validación
-        $this->product_image = UI::uploader('product_image')
-            ->images()
-            ->maxFiles(1)
-            ->maxSize(5)
-            ->label('Foto del producto (PNG, JPG)');
-
-        $saveBtn = UI::button('save_product_btn')
-            ->label('💾 Guardar Producto')
-            ->style('primary')
-            ->action('onSaveProduct');
-
-        $formContainer->add(UI::label('form_heading')->text('Nuevo Producto')->bold())
-            ->add($this->product_name)
-            ->add($this->product_price)
-            ->add($this->product_stock)
-            ->add($this->product_image)
-            ->add($saveBtn);
-
-        // Lista de productos existentes
-        $this->products_admin_list = UI::container('products_admin_list')
-            ->layout(LayoutType::VERTICAL)
-            ->gap(Spacing::px(8));
-
-        $this->refreshProductsList();
-
-        $container->add($formContainer)
-            ->add(UI::label('list_heading')->text('Productos Activos en Sistema')->bold())
-            ->add($this->products_admin_list);
-    }
-
-    protected function refreshProductsList(): void
-    {
-        $this->products_admin_list->clear();
-        $products = $this->productService->getActiveProducts();
-
-        foreach ($products as $product) {
-            $row = UI::container("admin_row_{$product->id}")
-                ->card()
-                ->layout(LayoutType::HORIZONTAL)
-                ->justifyContent('space-between')
-                ->alignItems('center')
-                ->padding(Spacing::px(10));
-
-            $row->add(UI::label("row_label_{$product->id}")->text("{$product->name} — \${$product->price} (Stock: {$product->stock})")->bold())
-                ->add(
-                    UI::button("delete_btn_{$product->id}")
-                        ->label('Eliminar')
-                        ->style('danger')
-                        ->action('onDeleteProduct', ['product_id' => $product->id])
+        if (!$user instanceof User) {
+            $actionsBox->add(
+                UI::button('btn_home_login')
+                    ->label('🔑 Iniciar Sesión')
+                    ->action('open_login')
+                    ->style('primary')
+            );
+            $actionsBox->add(
+                UI::button('btn_home_register')
+                    ->label('📝 Registrarse')
+                    ->action('open_register')
+                    ->style('secondary')
+            );
+        } else {
+            if ($this->currentUserHasRole(['publisher', 'admin'])) {
+                $actionsBox->add(
+                    UI::button('btn_go_publish')
+                        ->label('✍️ Publicar Post')
+                        ->action('go_to_publish')
+                        ->style('primary')
                 );
+            }
 
-            $this->products_admin_list->add($row);
+            if ($this->currentUserHasRole('admin')) {
+                $actionsBox->add(
+                    UI::button('btn_go_users')
+                        ->label('👥 Gestionar Usuarios')
+                        ->action('go_to_users')
+                        ->style('secondary')
+                );
+            }
         }
+
+        $header->add($titleBox);
+        $header->add($actionsBox);
+        $container->add($header);
+
+        $this->posts_list_container = UI::container('posts_list_container')
+            ->layout(LayoutType::VERTICAL)
+            ->gap(Spacing::px(20))
+            ->plain()
+            ->shadow(false)
+            ->padding(Spacing::zero());
+
+        $this->renderPostsList();
+
+        $container->add($this->posts_list_container);
     }
 
     /**
-     * Handler de Guardado con Procesamiento de Imagen.
+     * Comprueba si el usuario autenticado posee alguno de los roles indicados.
      *
-     * @param array<string, mixed> $params
+     * @param string|list<string> $roles
      */
-    public function onSaveProduct(array $params): void
+    private function currentUserHasRole(string|array $roles): bool
     {
-        $name = trim((string) ($params['product_name'] ?? ''));
-        $price = (float) ($params['product_price'] ?? 0);
-        $stock = (int) ($params['product_stock'] ?? 0);
+        $user = Auth::user();
+        if (!$user instanceof User) {
+            return false;
+        }
 
-        if ($name === '' || $price <= 0) {
-            $this->toast('Debes indicar un nombre y precio válidos.', 'error');
+        if ($user->isRoot()) {
+            return true;
+        }
+
+        $roleList = is_array($roles) ? $roles : [$roles];
+
+        return $user->globalRoles()->whereIn('name', $roleList)->exists();
+    }
+
+    private function resolveRoleSubtitle(?User $user): string
+    {
+        if ($user === null) {
+            return 'Modo invitado (guest): visualiza las publicaciones recientes o inicia sesión para participar.';
+        }
+
+        if ($this->currentUserHasRole('admin')) {
+            return "Conectado como {$user->name} (Administrador): puedes publicar posts, eliminarlos y asignar roles a usuarios registrados.";
+        }
+
+        if ($this->currentUserHasRole('publisher')) {
+            return "Conectado como {$user->name} (Publicador): puedes compartir nuevos posts con la comunidad.";
+        }
+
+        return "Conectado como {$user->name}.";
+    }
+
+    private function renderPostsList(): void
+    {
+        if (!$this->posts_list_container instanceof Container) {
             return;
         }
 
-        // Procesar y confirmar la imagen subida
-        $savedImageFilename = $this->product_image->confirm($params, 'images');
+        $this->posts_list_container->clear();
 
-        $this->productService->createProduct([
-            'name' => $name,
-            'description' => 'Producto agregado desde el panel de administración.',
-            'price' => $price,
-            'stock' => $stock,
-            'image' => is_string($savedImageFilename) ? $savedImageFilename : null,
-        ]);
+        $posts = $this->postService->getLatestPosts();
 
-        $this->toast("Producto '{$name}' creado correctamente.", 'success');
+        if ($posts->isEmpty()) {
+            $emptyCard = UI::container('posts_empty_card')
+                ->card()
+                ->padding(Spacing::px(32))
+                ->alignItems(AlignItems::CENTER);
 
-        // Limpiar inputs y refrescar lista
-        $this->product_name->value('');
-        $this->product_price->value('');
-        $this->product_stock->value('');
-        $this->refreshProductsList();
+            $emptyCard->add(
+                UI::label('lbl_no_posts')
+                    ->text('Aún no hay posts publicados.')
+                    ->style('h3')
+                    ->center()
+            );
+
+            $this->posts_list_container->add($emptyCard);
+            return;
+        }
+
+        $isAdmin = $this->currentUserHasRole('admin');
+
+        foreach ($posts as $post) {
+            $postCard = UI::container("post_card_{$post->id}")
+                ->card()
+                ->layout(LayoutType::VERTICAL)
+                ->padding(Spacing::px(20))
+                ->gap(Spacing::px(12));
+
+            if (!empty($post->image) && is_string($post->image)) {
+                $imageUrl = $this->resolvePostImageUrl($post->image);
+
+                // Componente UI::image() para mostrar la portada del post
+                $postCard->add(
+                    UI::image("post_img_{$post->id}")
+                        ->src($imageUrl)
+                        ->alt((string) $post->title)
+                        ->width(Size::full())
+                        ->height(Size::px(280))
+                        ->objectFit('cover')
+                        ->rounded(8)
+                );
+            }
+
+            $postHeader = UI::container("post_header_{$post->id}")
+                ->layout(LayoutType::HORIZONTAL)
+                ->justifyContent(JustifyContent::SPACE_BETWEEN)
+                ->alignItems(AlignItems::CENTER)
+                ->plain()
+                ->shadow(false)
+                ->padding(Spacing::zero());
+
+            $postHeader->add(
+                UI::label("post_title_{$post->id}")
+                    ->text((string) $post->title)
+                    ->style('h3')
+            );
+
+            if ($isAdmin) {
+                $postHeader->add(
+                    UI::button("btn_delete_post_{$post->id}")
+                        ->label('🗑️ Eliminar')
+                        ->action('delete_post', ['post_id' => (int) $post->id])
+                        ->style('danger')
+                );
+            }
+
+            $postCard->add($postHeader);
+
+            $authorName = (string) ($post->author_name ?? 'Autor');
+            $createdAt = !empty($post->created_at) ? (string) $post->created_at : '';
+
+            $postCard->add(
+                UI::label("post_meta_{$post->id}")
+                    ->text("Publicado por {$authorName}" . ($createdAt !== '' ? " • {$createdAt}" : ''))
+                    ->style('caption')
+                    ->color('#7a8499')
+            );
+
+            $postCard->add(
+                UI::label("post_content_{$post->id}")
+                    ->text((string) $post->content)
+                    ->style('p')
+            );
+
+            $this->posts_list_container->add($postCard);
+        }
     }
 
-    /**
-     * @param array{product_id: int} $params
-     */
-    public function onDeleteProduct(array $params): void
+    private function resolvePostImageUrl(string $image): string
     {
-        $productId = (int) ($params['product_id'] ?? 0);
-        $this->productService->deleteProduct($productId);
-        $this->toast('Producto eliminado.', 'info');
-        $this->refreshProductsList();
+        if (str_starts_with($image, 'http://') || str_starts_with($image, 'https://') || str_starts_with($image, '/')) {
+            return $image;
+        }
+
+        return UploadService::fileUrl("uploads/images/{$image}");
+    }
+
+    public function onOpenLogin(array $params): void
+    {
+        $this->openModal(Login::class);
+    }
+
+    public function onOpenRegister(array $params): void
+    {
+        $this->openModal(Register::class);
+    }
+
+    public function onGoToPublish(array $params): void
+    {
+        $this->showInto(PublishPost::class, updateBrowserUrl: true);
+    }
+
+    public function onGoToUsers(array $params): void
+    {
+        $this->showInto(UsersManager::class, updateBrowserUrl: true);
+    }
+
+    public function onDeletePost(array $params): void
+    {
+        if (!$this->currentUserHasRole('admin')) {
+            $this->toast('No tienes permisos para eliminar posts.', 'error');
+            return;
+        }
+
+        $postId = isset($params['post_id']) && is_numeric($params['post_id'])
+            ? (int) $params['post_id']
+            : 0;
+
+        if ($postId <= 0) {
+            return;
+        }
+
+        $deleted = $this->postService->deletePost($postId);
+
+        if ($deleted) {
+            $this->toast('Post eliminado correctamente.', 'success');
+            $this->renderPostsList();
+        } else {
+            $this->toast('No se encontró el post a eliminar.', 'warning');
+        }
     }
 }
 ```
 
 ---
 
-## 8. Navegación Dinámica: Menú Filtrado por Roles y Permisos
+### 5.4 Menú Superior 100% SPA y Pantallas de Autenticación (`app/UI/Screens/Menu.php`, `Login.php`, `Register.php`)
 
-Para que el menú superior muestre únicamente los enlaces a los que el usuario tiene acceso legítimo, configuramos `app/UI/Screens/Menu.php`.
+Para garantizar que **ninguna acción del menú ni del registro/login provoque una recarga del navegador**, utilizamos `MenuBuilder::screenShow()` en lugar de `MenuBuilder::link()`, y eliminamos el selector de idiomas (ya que nuestra app funciona íntegramente en español) y el selector de unidades múltiples.
 
-USIM incluye la clase fluida `MenuBuilder`, que acepta el parámetro condicional `when: ...`:
+1. En `app/UI/Screens/Auth/Login.php`:
+   - Configura las etiquetas del menú en español (`Iniciar Sesión` / `🔑`).
+   - En `onLoggedUser()`, asegúrate de no hacer `return` prematuro tras `$this->closeModal()`, y limpia el snapshot en caché antes de navegar con `$this->showInto($homeScreen, force: true, updateBrowserUrl: true)`.
 
-Abre `app/UI/Screens/Menu.php` y localiza el método `getMainMenuBuilder()`:
+2. En `app/UI/Screens/Auth/Register.php`:
+   - Configura las etiquetas del menú en español (`Registrarse` / `📝`).
+   - Al final de `onSubmitRegister()`, tras `$this->authSessionService->establishSession(...)` y `$this->closeModal()`, navega explícitamente vía SPA a la pantalla inicial del usuario registrado (`Registered::class`):
+   ```php
+   $homeScreen = $this->authSessionService->resolveHomeScreen($user);
+   if (is_string($homeScreen) && class_exists($homeScreen) && is_subclass_of($homeScreen, Screen::class)) {
+       Screen::make($homeScreen)->clearCachedScreenSnapshot();
+       $this->showInto($homeScreen, force: true, updateBrowserUrl: true);
+   }
+   ```
+
+3. En `app/UI/Screens/Auth/Profile.php`:
+   - Configura `getMenuLabel(): string` para retornar `'Mi Perfil'`.
+
+4. En `app/UI/Screens/Menu.php` (métodos `getMainMenuBuilder()` y `onShowScreen()`):
 
 ```php
-use App\UI\Screens\Admin\ProductsManager;
-use App\UI\Screens\Admin\UsersManager;
-use Idei\Usim\Navigation\MenuBuilder;
-use Illuminate\Support\Facades\Auth;
-
 private function getMainMenuBuilder(): MenuBuilder
 {
     $builder = MenuBuilder::make('main_menu')
@@ -729,206 +1241,85 @@ private function getMainMenuBuilder(): MenuBuilder
         ->position('bottom-left')
         ->width(Size::px(220));
 
-    // 1. Enlace público siempre visible
-    $builder->link('Inicio / Catálogo', '/', '🛍️');
+    $user = Auth::user();
+    $isRegisteredOnly = $user instanceof User && $user->isRegisteredInLobby();
 
-    // 2. Enlace a Administración de Productos: visible solo para Admin o Root
+    // Navegación 100% SPA mediante screenShow() (sin recarga de página)
     $builder->screenShow(
-        ProductsManager::class,
-        when: ProductsManager::checkAccess()['allowed'] === true
+        Registered::class,
+        when: $isRegisteredOnly
     );
 
-    // 3. Enlace a Administración de Usuarios: solo para Root o Gestor de Usuarios
+    $builder->screenShow(
+        Home::class,
+        when: !$isRegisteredOnly
+    );
+
+    $builder->screenShow(
+        PublishPost::class,
+        when: PublishPost::checkAccess()['allowed'] == true
+    );
+
     $builder->screenShow(
         UsersManager::class,
-        when: UsersManager::checkAccess()['allowed'] === true
+        when: UsersManager::checkAccess()['allowed'] == true
     );
 
     $builder->separator();
-    $builder->action('Acerca de', 'show_about_info', [], 'ℹ️');
+    $builder->action(t('screens.menu.items.about'), 'show_about_info', [], 'ℹ️');
 
     return $builder;
 }
-```
 
-### ¿Cómo opera la evaluación de acceso?
-Cuando un usuario visita cualquier URL:
-1. `ProductsManager::checkAccess()['allowed']` evalúa estáticamente `ProductsManager::authorize()`.
-2. Si el usuario actual es **Guest** o **Registered**, la condición devuelve `false` y el ítem **nunca aparece en el HTML/JSON del menú**.
-3. Si un usuario malintencionado intenta navegar directamente por URL a `/admin/products-manager`, el middleware de USIM ejecuta `checkAccess()`, detecta la falta de rol y aborta con código HTTP 403 Forbidden.
-
----
-
-## 9. Gestión de Roles: El Usuario Root Promoviendo a Admin
-
-USIM provee de fábrica la pantalla `UsersManager` (`app/UI/Screens/Admin/UsersManager.php`) y la estructura de roles Spatie configurada con caché limpia.
-
-### Flujo de Trabajo para Promover a un Usuario a Administrador:
-
-```mermaid
-sequenceDiagram
-    autonumber
-    actor Root as 👑 Superadmin (Root)
-    participant UI as 🖥️ UsersManager Screen
-    participant Modal as 🪟 EditUser Dialog
-    participant Service as ⚙️ UserService (DIP)
-    participant DB as 🗄️ Database
-
-    Root->>UI: Abre pantalla /admin/users-manager
-    UI->>UI: Valida que Root tiene rol 'root'
-    Root->>UI: Localiza al usuario registrado en la tabla
-    Root->>UI: Clic en botón "Editar Roles"
-    UI->>Modal: Abre diálogo modal con lista de roles
-    Root->>Modal: Marca checkbox "admin" y pulsa "Guardar"
-    Modal->>Service: onSaveRoles(userId, ['admin'])
-    Service->>DB: DB::transaction -> syncRoles(['admin'])
-    Modal-->>UI: Cierra modal + emite Toast "Roles actualizados"
-    Note over Root,DB: El usuario promovido ahora ve el menú 'Gestión de Productos'
-```
-
-1. **Inicio de Sesión como Root:**
-   Accede con las credenciales definidas en tu `.env` (`ROOT_EMAIL` / `ROOT_PASSWORD`).
-2. **Acceso al Gestor de Usuarios:**
-   En el menú principal, haz clic en **"Users Manager"**.
-3. **Selección del Usuario:**
-   En la tabla de usuarios, selecciona al usuario que se acaba de registrar.
-4. **Asignación del Rol:**
-   Abre el modal de edición, marca el rol **`admin`** y guarda los cambios.
-5. **Comprobación:**
-   Cuando ese usuario inicie sesión con su propia cuenta, su menú se regenerará reactivamente mostrando el acceso a **`ProductsManager`**.
-
----
-
-## 10. Testing Automatizado Headless con Pest (< 10 ms)
-
-La potencia de USIM reside en su arnés `testScreen()`. Puedes simular usuarios con diferentes roles y verificar tanto el árbol de componentes como las transiciones de estado en memoria pura.
-
-Crea la prueba en `tests/Unit/ShopFlowTest.php`:
-
-```php
-<?php
-
-use App\Contracts\ProductServiceInterface;
-use App\Models\User;
-use App\UI\Screens\Admin\ProductsManager;
-use App\UI\Screens\Home;
-use Spatie\Permission\Models\Role;
-
-beforeEach(function () {
-    Role::findOrCreate('admin', 'web');
-    Role::findOrCreate('registered', 'web');
-    if (function_exists('setPermissionsTeamId')) {
-        setPermissionsTeamId(1);
+public function onShowScreen(array $params): void
+{
+    $screen = $params['screen'] ?? null;
+    if (!is_string($screen) || !class_exists($screen) || !is_subclass_of($screen, Screen::class)) {
+        return;
     }
-});
 
-it('un usuario guest puede ver los productos pero no comprar directamente', function () {
-    // 1. Crear producto de prueba vía el servicio
-    app(ProductServiceInterface::class)->createProduct([
-        'name' => 'Teclado Mecánico RGB',
-        'price' => 89.99,
-        'stock' => 5,
-    ]);
-
-    // 2. Probar la pantalla Home como Guest
-    $screen = testScreen(Home::class);
-
-    // Debe existir el botón de inicio de sesión obligatorio
-    $screen->assertComponentExists('login_to_buy_1');
-
-    // Al hacer clic, debe notificarse y abrir el modal de login
-    $screen->click('login_to_buy_1')
-           ->assertToast('Debes iniciar sesión con tu cuenta para comprar.');
-});
-
-it('un usuario registrado puede comprar un producto reduciendo su stock', function () {
-    $productService = app(ProductServiceInterface::class);
-    $productId = $productService->createProduct([
-        'name' => 'Mouse Ergonómico',
-        'price' => 45.00,
-        'stock' => 2,
-    ]);
-
-    $customer = User::factory()->create();
-    $customer->assignRole('registered');
-
-    // Simulamos la autenticación
-    $this->actingAs($customer);
-
-    $screen = testScreen(Home::class);
-
-    // Debe mostrar el botón de compra habilitado
-    $screen->assertComponentExists("buy_btn_{$productId}")
-           ->click("buy_btn_{$productId}")
-           ->assertToast('¡Pedido #1 completado con éxito!');
-
-    // Verificar que la base de datos refleja la reducción de stock
-    $updatedProduct = $productService->findById($productId);
-    expect($updatedProduct->stock)->toBe(1);
-});
-
-it('bloquea a usuarios sin rol admin de acceder a ProductsManager', function () {
-    $normalUser = User::factory()->create();
-    $normalUser->assignRole('registered');
-
-    $this->actingAs($normalUser);
-
-    // Comprobamos la autorización estática
-    $access = ProductsManager::checkAccess();
-
-    expect($access['allowed'])->toBeFalse()
-        ->and($access['action'])->toBe('abort')
-        ->and($access['params']['code'])->toBe(403);
-});
-
-it('permite a un usuario promovido a admin acceder a la gestion de productos', function () {
-    $adminUser = User::factory()->create();
-    $adminUser->assignRole('admin');
-
-    $this->actingAs($adminUser);
-
-    $access = ProductsManager::checkAccess();
-    expect($access['allowed'])->toBeTrue();
-
-    // Verificamos que puede inicializar la pantalla y sus componentes
-    $screen = testScreen(ProductsManager::class);
-    $screen->assertComponentExists('product_name')
-           ->assertComponentExists('product_image')
-           ->assertComponentExists('save_product_btn');
-});
-```
-
-### Ejecutar los tests:
-
-```bash
-./vendor/bin/pest tests/Unit/ShopFlowTest.php
-```
-
-Resultado esperado:
-```bash
-  PASS  Tests\Unit\ShopFlowTest
-  ✓ un usuario guest puede ver los productos pero no comprar directamente
-  ✓ un usuario registrado puede comprar un producto reduciendo su stock
-  ✓ bloquea a usuarios sin rol admin de acceder a ProductsManager
-  ✓ permite a un usuario promovido a admin acceder a la gestion de productos
-
-  Tests:    4 passed (14 assertions)
-  Duration: 0.19s
+    Screen::make($screen)->clearCachedScreenSnapshot();
+    $this->showInto($screen, force: true, updateBrowserUrl: true);
+}
 ```
 
 ---
 
-## 11. Conclusiones y Siguientes Pasos
+## 🔄 Paso 6: Ejecutar Migraciones, Sincronizar USIM y Sembrar Datos
 
-Siguiendo esta guía has construido:
-1. Una capa de persistencia desacoplada basada en **principios SOLID**, contratos e inyección mediante `AppServiceProvider`.
-2. Una vista de **catálogo público** donde los usuarios invitados exploran productos con imágenes.
-3. Un flujo transaccional seguro donde los **usuarios registrados** efectúan compras con diffing reactivo en tiempo real.
-4. Un **panel administrativo protegido por roles** con soporte para subida de fotos y persistencia de archivos.
-5. Un **menú reactivo dinámico** que oculta o expone pantallas según la autorización estricta del usuario.
-6. Un conjunto de **pruebas automatizadas ultrarrápidas** que garantizan la integridad del sistema en menos de 200 ms.
+Ejecuta los siguientes comandos para crear la tabla `posts`, sincronizar las unidades, roles, permisos y usuarios de `config/usim.php`, y enlazar el almacenamiento público para las imágenes:
 
-### Lecturas Complementarias
-- [Especificación del Sistema de Eventos USIM](framework/USIM_EVENTS_SYSTEM.md)
-- [Contratos e Inversión de Dependencias en el Core](framework/CONTRACTS_AND_MOCKS.md)
-- [Referencia Completa del Fluent UI Builder](framework/UI_BUILDER_REFERENCE.md)
+```bash
+php artisan migrate
+php artisan usim:sync
+php artisan storage:link
+```
+
+*(Si deseas contar con posts de bienvenida pre-cargados, puedes ejecutar `php artisan db:seed`).*
+
+---
+
+## 🧭 Paso 7: Recorrido por los Roles de la Aplicación
+
+Levanta el servidor de desarrollo:
+
+```bash
+php artisan serve
+```
+
+Abre `http://localhost:8000` en tu navegador y prueba cada flujo sin que la página se recargue en ningún momento:
+
+1. **Como `guest` (Invitado)**:
+   - Al entrar a `/`, ves la pantalla `Home` con los últimos posts publicados y sus imágenes (`UI::image()`).
+   - No ves botones para publicar ni para eliminar posts.
+2. **Como `registered` (`registered@example.com` / `password` o registrando una cuenta nueva)**:
+   - Al iniciar sesión o registrarte, USIM te lleva automáticamente en modo SPA a la pantalla `Registered`.
+   - Verás el mensaje: *"Se ha registrado en el sistema, en breve se le asignará un rol."*
+   - Haz clic en **👤 Editar Mi Perfil / Avatar**: se abrirá el modal `Profile` donde puedes subir una imagen con `UI::uploader()`. Al guardar, tanto el avatar circular en la pantalla `Registered` (`UI::image()`) como el icono del menú superior se actualizan reactivamente.
+3. **Como `admin` (`admin@example.com` / `password`)**:
+   - En `Home`, cada post muestra el botón **🗑️ Eliminar**, que borra el post y refresca el listado instantáneamente.
+   - Haz clic en **👥 Gestionar Usuarios** (`UsersManager`): verás a los usuarios en estado `En espera (Registrado)`. Al hacer clic en **Editar**, podrás aprobar al usuario y asignarle el rol **Publicador (`publisher`)** o **Administrador (`admin`)**.
+4. **Como `publisher` (`publisher@example.com` / `password` o el usuario recién promovido)**:
+   - En `Home` (o desde el menú principal `☰`), haz clic en **✍️ Publicar Post**.
+   - Completa el título, el contenido y sube una imagen de portada con `UI::uploader()`.
+   - Al pulsar **Publicar Post**, la imagen temporal se confirma (`$this->post_image->confirm($params, 'images')`) y vuelves mediante SPA a `Home`, donde el nuevo post aparece en primer lugar.
