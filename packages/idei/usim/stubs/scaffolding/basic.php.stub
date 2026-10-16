@@ -2,29 +2,41 @@
 
 namespace {{ namespace }};
 
+use Idei\Usim\Components\Button;
 use Idei\Usim\Components\Container;
+use Idei\Usim\Components\Label;
 use Idei\Usim\Enums\Visibility;
 use Idei\Usim\Screen;
 use Idei\Usim\UI;
-use Idei\Usim\ValueObjects\Size;
-use Idei\Usim\ValueObjects\Spacing;
 
 class {{ name }} extends Screen
 {
     public static Visibility $visibility = Visibility::PUBLIC;
 
-	protected function buildBaseUI(Container $container, ...$params): void
-	{
-        $container->padding(Spacing::px(20))
-            ->centerHorizontal()
-            ->maxWidth(Size::px(600))
-            ->minHeight(Size::px(400))
-            ->shadow(2);
+    protected Button $button;
+    protected Label $label;
 
-        $container->add(
-            UI::label("label")
-                ->text("Hello {{ name }}!")
-                ->style('h1')
+    protected function buildBaseUI(Container $container, ...$params): void
+    {
+        $wrapper = UI::container()->card();
+
+        $wrapper->add(
+            $this->label
+                ->text("Click the button below to see the action in effect.")
+                ->style('h4')
         );
-	}
+        $wrapper->add(
+            $this->button
+                ->label("Click me!")
+                ->action("buttonClicked")
+        );
+
+        $container->add($wrapper);
+    }
+
+    public function buttonClicked(): void
+    {
+        $this->label->text("Hello {{ name }}!");
+        $this->button->label("Clicked!")->disabled();
+    }
 }

@@ -35,6 +35,17 @@ composer require idei/usim
 php artisan usim:install --force --no-interaction
 ```
 
+> [!TIP]
+> **Desarrolladores en el monorepo de USIM Framework**:
+> Si te encuentras trabajando dentro del propio repositorio de desarrollo de `usim-framework`, no necesitas ejecutar `composer create-project` ni requerir el paquete manualmente. Puedes ejecutar directamente el script:
+> ```bash
+> ./scripts/rebuild_dev.sh
+> ```
+> Este script crea automáticamente el entorno `dev/`, inicializa Laravel Octane con Roadrunner y enlaza el paquete local `@dev` de USIM.
+
+> [!NOTE]
+> Durante la ejecución de `php artisan usim:install`, USIM publica automáticamente varias migraciones necesarias para el sistema, incluyendo `add_profile_image_to_users_table`, que añade el campo `profile_image` a la tabla `users` para soportar la carga de avatares.
+
 ### 1.2 Configurar el idioma Español en `.env`
 
 Edita tu archivo `.env` para fijar el idioma de la aplicación en español (`es`):
@@ -44,6 +55,16 @@ APP_NAME="USIM Gestor de Posts"
 APP_LOCALE=es
 APP_FALLBACK_LOCALE=es
 ```
+
+### 1.3 Habilitar `profile_image` en el modelo `User.php`
+
+Para que el modelo `User` pueda asignar y persistir de forma segura la imagen de perfil subida por el usuario en la pantalla `Profile`, asegúrate de incluir `'profile_image'` en los atributos asignables de `app/Models/User.php`:
+
+```php
+#[Fillable(['name', 'email', 'password', 'profile_image'])]
+class User extends Authenticatable implements ...
+```
+*(O mediante la propiedad protegida `$fillable = ['name', 'email', 'password', 'profile_image'];` según tu versión de Laravel).*
 
 ---
 
@@ -992,7 +1013,7 @@ La pantalla `Home` es pública (`Visibility::PUBLIC`) y adapta su interfaz segú
 - Si el usuario autenticado sólo tiene el rol `registered`, embebe únicamente `Registered::class`.
 - Si es `guest`, muestra los últimos posts y botones para abrir `Login` o `Register` en modal.
 - Si es `publisher` o `admin`, muestra el botón **Publicar Post** (`showInto(PublishPost::class)`).
-- Si es `admin`, muestra además el botón **Gestionar Usuarios** (`showInto(UsersManager::class)`) y el botón **🗑️ Eliminar** en cada post.
+- Si es `admin`, muestra además el botón **Gestionar Usuarios** (`showInto(UsersManager::class)`) y el botón **🗑️ Eliminar** con diálogo modal de confirmación (`ConfirmDialog::open(...)`) en cada post.
 - Cada post con imagen utiliza `UI::image()` para renderizar su portada.
 - Implementa `postLoadUI()` para refrescar siempre el contenedor y volver a consultar los últimos posts desde la base de datos aunque el snapshot de `Home` se recupere de la caché de USIM.
 
@@ -1010,9 +1031,11 @@ use App\UI\Screens\Auth\Login;
 use App\UI\Screens\Auth\Register;
 use Idei\Usim\Components\Container;
 use Idei\Usim\Enums\AlignItems;
+use Idei\Usim\Enums\DialogType;
 use Idei\Usim\Enums\JustifyContent;
 use Idei\Usim\Enums\LayoutType;
 use Idei\Usim\Enums\Visibility;
+use Idei\Usim\Modals\ConfirmDialog;
 use Idei\Usim\Screen;
 use Idei\Usim\UI;
 use Idei\Usim\Upload\UploadService;
@@ -1048,11 +1071,8 @@ class Home extends Screen
 
     protected function postLoadUI(): void
     {
-        $container = $this->getContainer();
-        if ($container instanceof Container) {
-            $container->clear();
-            $this->renderHomeContent($container);
-        }
+        $this->container->clear();
+        $this->renderHomeContent($this->container);
     }
 
     private function renderHomeContent(Container $container): void
@@ -1152,7 +1172,7 @@ class Home extends Screen
         $container->add($header);
 
         $this->posts_list_container = UI::container('posts_list_container')
-            ->layout(LayoutType::VERTICAL)
+            ->layout(LayoutType::HORIZONTAL)
             ->gap(Spacing::px(20))
             ->plain()
             ->shadow(false)
@@ -1203,10 +1223,6 @@ class Home extends Screen
 
     private function renderPostsList(): void
     {
-        if (!$this->posts_list_container instanceof Container) {
-            return;
-        }
-
         $this->posts_list_container->clear();
 
         $posts = $this->postService->getLatestPosts();
@@ -1214,6 +1230,7 @@ class Home extends Screen
         if ($posts->isEmpty()) {
             $emptyCard = UI::container('posts_empty_card')
                 ->card()
+                ->width(Size::full())
                 ->padding(Spacing::px(32))
                 ->alignItems(AlignItems::CENTER);
 
@@ -1234,6 +1251,7 @@ class Home extends Screen
             $postCard = UI::container("post_card_{$post->id}")
                 ->card()
                 ->layout(LayoutType::VERTICAL)
+                ->minWidth(Size::px(350))
                 ->padding(Spacing::px(20))
                 ->gap(Spacing::px(12));
 
@@ -1246,7 +1264,7 @@ class Home extends Screen
                         ->src($imageUrl)
                         ->alt((string) $post->title)
                         ->width(Size::full())
-                        ->height(Size::px(280))
+                        ->height(Size::px(220))
                         ->objectFit('cover')
                         ->rounded(8)
                 );
@@ -1270,7 +1288,7 @@ class Home extends Screen
                 $postHeader->add(
                     UI::button("btn_delete_post_{$post->id}")
                         ->label('🗑️ Eliminar')
-                        ->action('delete_post', ['post_id' => (int) $post->id])
+                        ->action('confirm_delete_post', ['post_id' => (int) $post->id])
                         ->style('danger')
                 );
             }
@@ -1326,8 +1344,46 @@ class Home extends Screen
         $this->showInto(UsersManager::class, updateBrowserUrl: true);
     }
 
+    /**
+     * Muestra un diálogo modal de confirmación antes de borrar el post.
+     */
+    public function onConfirmDeletePost(array $params): void
+    {
+        if (!$this->currentUserHasRole('admin')) {
+            $this->toast('No tienes permisos para eliminar posts.', 'error');
+            return;
+        }
+
+        $postId = isset($params['post_id']) && is_numeric($params['post_id'])
+            ? (int) $params['post_id']
+            : 0;
+
+        if ($postId <= 0) {
+            return;
+        }
+
+        ConfirmDialog::open(
+            caller: $this,
+            type: DialogType::CONFIRM,
+            title: '¿Eliminar publicación?',
+            message: '¿Estás seguro de que deseas eliminar este post? Esta acción no se puede deshacer.',
+            confirmAction: 'delete_post',
+            confirmParams: ['post_id' => $postId],
+            cancelAction: 'cancel_delete_post',
+            confirmLabel: 'Sí, eliminar',
+            cancelLabel: 'Cancelar',
+        );
+    }
+
+    public function onCancelDeletePost(array $params): void
+    {
+        $this->closeModal();
+    }
+
     public function onDeletePost(array $params): void
     {
+        $this->closeModal();
+
         if (!$this->currentUserHasRole('admin')) {
             $this->toast('No tienes permisos para eliminar posts.', 'error');
             return;
@@ -1350,8 +1406,38 @@ class Home extends Screen
             $this->toast('No se encontró el post a eliminar.', 'warning');
         }
     }
+
+    /**
+     * Maneja el evento reactivo de dominio cuando un usuario inicia sesión.
+     * Actualiza el contenido de la pantalla Home con los permisos y roles del usuario autenticado.
+     *
+     * @param array<string, mixed> $params
+     */
+    public function onLoggedUser(array $params): void
+    {
+        $this->container->clear();
+        $this->renderHomeContent($this->container);
+    }
+
+    /**
+     * Maneja el evento reactivo de dominio cuando un usuario cierra sesión.
+     * Restablece el contenido de la pantalla Home al modo invitado (guest).
+     *
+     * @param array<string, mixed> $params
+     */
+    public function onUserLoggedOut(array $params): void
+    {
+        $this->container->clear();
+        $this->renderHomeContent($this->container);
+    }
 }
 ```
+
+> [!TIP]
+> **Actualización Reactiva mediante `UsimEvent`:**
+> En USIM, cuando un usuario inicia sesión (`logged_user`) o cierra sesión (`user_logged_out`), el despachador de eventos `UsimEventDispatcher` transmite el evento en **broadcast** a todas las pantallas abiertas concurrentemente del cliente (como `Menu` y `Home`).
+> Al implementar `onLoggedUser()` y `onUserLoggedOut()` en `Home`, la pantalla limpia su contenedor y re-renderiza su contenido con los roles vigentes del usuario en la misma respuesta HTTP, sin necesidad de recargar la página en el navegador ni forzar navegaciones externas.
+
 
 ---
 
@@ -1638,7 +1724,6 @@ class Menu extends Screen
         /** @var User|null $user */
         $user = $params['user'] ?? null;
         $unitValue = $params['unit'] ?? '';
-        $homeScreen = $params['home_screen'] ?? null;
         $token = $params['token'] ?? null;
 
         if (\is_string($token) && $token !== '') {
@@ -1655,14 +1740,6 @@ class Menu extends Screen
 
         $this->populateUserMenu($this->user_menu);
         $this->populateMainMenu($this->main_menu);
-
-        Screen::make(Home::class)->clearCachedScreenSnapshot();
-        Screen::make(Registered::class)->clearCachedScreenSnapshot();
-
-        if (\is_string($homeScreen) && $homeScreen !== '' && class_exists($homeScreen) && is_subclass_of($homeScreen, Screen::class)) {
-            Screen::make($homeScreen)->clearCachedScreenSnapshot();
-            $this->showInto($homeScreen, force: true, updateBrowserUrl: true);
-        }
     }
 
     public function onUpdatedProfile(array $params): void
@@ -1775,15 +1852,15 @@ Para garantizar que el registro y el inicio de sesión se integren con la navega
        return '🔑';
    }
    ```
-   - En `onLoggedUser()`, tras cerrar el modal, navega explícitamente limpiando la caché de la pantalla inicial:
+   - En `onLoggedUser()`, si la pantalla se abrió como modal, ciérralo y retorna; el despachador de eventos enviará el `UsimEvent('logged_user')` a todas las pantallas abiertas (`Menu`, `Home`), actualizándolas de forma reactiva sin navegación forzada:
    ```php
    if ($this->isOpenedAsModal()) {
        $this->closeModal();
+       return;
    }
 
    $homeScreen = $params['home_screen'] ?? null;
    if (\is_string($homeScreen) && class_exists($homeScreen) && is_subclass_of($homeScreen, Screen::class)) {
-       Screen::make($homeScreen)->clearCachedScreenSnapshot();
        $this->showInto($homeScreen, force: true, updateBrowserUrl: true);
    }
    ```
@@ -1922,29 +1999,53 @@ php artisan db:seed
 php artisan storage:link
 ```
 
+> [!NOTE]
+> **Descubrimiento de Pantallas (`usim:discover`)**:
+> Siempre que crees pantallas nuevas o modifiques metadatos (como títulos, visibilidad o accesos), puedes regenerar el manifiesto con `php artisan usim:discover`. Nota que el comando `php artisan usim:sync` ya ejecuta automáticamente este paso.
+
 ---
 
 ## 🧭 Paso 7: Recorrido por los Roles de la Aplicación
 
-Levanta el servidor de desarrollo:
+### 7.1 Iniciar el Servidor de Desarrollo
+
+Puedes iniciar el servidor tradicional con Artisan:
 
 ```bash
 php artisan serve
 ```
 
-Abre `http://localhost:8000` en tu navegador y prueba cada flujo sin que la página se recargue en ningún momento:
+O bien, si estás utilizando **Laravel Octane con Roadrunner** (la arquitectura de alto rendimiento recomendada para USIM):
+
+```bash
+# Iniciar Octane con Roadrunner:
+./start.sh
+
+# O reiniciar el entorno eliminando caché/bd fresca si es necesario:
+./start.sh -r
+```
+
+> [!TIP]
+> **Ciclo de Vida y Persistencia en Memoria (Laravel Octane / Roadrunner)**:
+> En servidores persistentes como Roadrunner, los procesos de PHP se mantienen en memoria entre peticiones sucesivas. USIM fue diseñado desde sus bases para este entorno:
+> - El método `postLoadUI()` de las Screens siempre se ejecuta tras recuperar un snapshot de caché, lo que permite re-evaluar datos frescos (como la lista de posts más recientes o el avatar actualizado) sin penalizaciones.
+> - Métodos como `Screen::make(Home::class)->clearCachedScreenSnapshot()` invalidan la caché previa de la vista para que las mutaciones de datos se sincronicen de inmediato con los clientes SPA.
+
+### 7.2 Probar los Flujos y Roles de Usuario
+
+Abre `http://localhost:8000` (o el puerto configurado) en tu navegador y prueba cada flujo sin que la página se recargue en ningún momento:
 
 1. **Como `guest` (Invitado)**:
    - Al entrar a `/`, ves la pantalla `Home` con los últimos posts publicados y sus imágenes (`UI::image()`).
    - No ves botones para publicar ni para eliminar posts.
-2. **Como `registered` (`registered@example.com` / `password` o registrando una cuenta nueva)**:
+2. **Como `registered` (`registered@example.com` / `11111111` o registrando una cuenta nueva)**:
    - Al iniciar sesión o registrarte, USIM te lleva automáticamente en modo SPA a la pantalla `Registered`.
    - Verás el mensaje: *"Se ha registrado en el sistema, en breve se le asignará un rol."*
    - Haz clic en **👤 Editar Mi Perfil / Avatar**: se abrirá el modal `Profile` donde puedes subir una imagen con `UI::uploader()`. Al guardar, tanto el avatar circular en la pantalla `Registered` (`UI::image()`) como el icono del menú superior se actualizan reactivamente.
-3. **Como `admin` (`admin@example.com` / `password`)**:
-   - En `Home`, cada post muestra el botón **🗑️ Eliminar**, que borra el post y refresca el listado instantáneamente.
+3. **Como `admin` (`admin@example.com` / `11111111`)**:
+   - En `Home`, cada post muestra el botón **🗑️ Eliminar**. Al pulsarlo, se despliega un diálogo nativo de confirmación (`ConfirmDialog::open(...)`). Al confirmar, el post se elimina y la lista se refresca instantáneamente en pantalla.
    - Haz clic en **👥 Gestionar Usuarios** (`UsersManager`): verás a los usuarios en estado `En espera (Registrado)`. Al hacer clic en **Editar**, podrás aprobar al usuario y asignarle el rol **Publicador (`publisher`)** o **Administrador (`admin`)**.
-4. **Como `publisher` (`publisher@example.com` / `password` o el usuario recién promovido)**:
+4. **Como `publisher` (`publisher@example.com` / `11111111` o el usuario recién promovido)**:
    - En `Home` (o desde el menú principal `☰`), haz clic en **✍️ Publicar Post**.
    - Completa el título, el contenido y sube una imagen de portada con `UI::uploader()`.
    - Al pulsar **Publicar Post**, la imagen temporal se confirma (`$this->post_image->confirm($params, 'images')`) y vuelves mediante SPA a `Home`, donde el nuevo post aparece en primer lugar.
