@@ -719,6 +719,18 @@ $image = UI::image('post_image')
     ->caption($post->title);
 ```
 
+For images saved by USIM's upload flow, `storage()` resolves a relative filename
+with `UploadService::fileUrl()`. Absolute URLs and root-relative paths remain
+unchanged:
+
+```php
+$image = UI::image("post_img_{$post->id}")
+    ->src($post->image ?? '')
+    ->storage('uploads/images')
+    ->placeholderAspect(AspectRatio::_16_9)
+    ->placeholderId($post->id);
+```
+
 `placeholderId()` provides a stable identity for seeded image services. To use
 Picsum, set `USIM_IMAGE_PLACEHOLDER_GENERATOR` to
 `Idei\Usim\Services\ImagePlaceholders\PicsumImagePlaceholderGenerator`; the URL

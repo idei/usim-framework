@@ -4,6 +4,7 @@ namespace Idei\Usim\Components;
 
 use Idei\Usim\Contracts\ImagePlaceholderGeneratorInterface;
 use Idei\Usim\Enums\AspectRatio;
+use Idei\Usim\Upload\UploadService;
 use Idei\Usim\ValueObjects\ImagePlaceholder;
 use InvalidArgumentException;
 
@@ -15,6 +16,8 @@ use InvalidArgumentException;
  */
 class Image extends UIComponent
 {
+    private ?string $storagePath = null;
+
     protected function getDefaultConfig(): array
     {
         return [
@@ -43,6 +46,23 @@ class Image extends UIComponent
     public function src(string $src): static
     {
         return $this->setConfig('src', $src);
+    }
+
+    /**
+     * Resolve relative source filenames from the configured USIM upload path.
+     *
+     * Absolute URLs, root-relative URLs, and data URIs are left unchanged.
+     */
+    public function storage(string $directory): static
+    {
+        $directory = trim($directory, '/');
+        if ($directory === '' || in_array('..', explode('/', $directory), true)) {
+            throw new InvalidArgumentException('Image storage directory must be a non-empty relative path.');
+        }
+
+        $this->storagePath = $directory;
+
+        return $this;
     }
 
     public function alt(string $alt): static
@@ -167,7 +187,10 @@ class Image extends UIComponent
             return $json;
         }
 
-        if ($this->shouldGeneratePlaceholder()) {
+        $src = $this->config['src'] ?? null;
+        if (is_string($src) && trim($src) !== '') {
+            $component['src'] = $this->resolveStoredSource($src);
+        } elseif ($this->shouldGeneratePlaceholder()) {
             $component['src'] = $this->generatePlaceholderSource();
         }
 
@@ -182,6 +205,26 @@ class Image extends UIComponent
         $json[$this->id] = $component;
 
         return $json;
+    }
+
+    private function resolveStoredSource(string $src): string
+    {
+        if ($this->storagePath === null || $this->isAbsoluteSource($src)) {
+            return $src;
+        }
+
+        $filename = trim($src, '/');
+        if ($filename === '' || in_array('..', explode('/', $filename), true)) {
+            throw new InvalidArgumentException('Image source must be a filename relative to its storage directory.');
+        }
+
+        return UploadService::fileUrl("{$this->storagePath}/{$filename}");
+    }
+
+    private function isAbsoluteSource(string $src): bool
+    {
+        return str_starts_with($src, '/')
+            || preg_match('/^[a-z][a-z0-9+.-]*:/i', $src) === 1;
     }
 
     private function shouldGeneratePlaceholder(): bool

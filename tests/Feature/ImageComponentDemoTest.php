@@ -132,6 +132,31 @@ it('keeps explicit sources and uses placeholders while async image actions load'
     expect($asyncConfig['src'])->toStartWith('data:image/svg+xml;base64,');
 });
 
+it('resolves relative image filenames through the configured storage directory', function () {
+    $component = UI::image('stored_image')
+        ->src('post-cover.jpg')
+        ->storage('uploads/images');
+    $config = $component->toJson()[$component->getId()];
+
+    expect($config['src'])->toBe(url('/files/uploads/images/post-cover.jpg'));
+    expect($config)->not->toHaveKey('storage_path');
+    expect($component->getDirtyKeys())->not->toContain('storage_path');
+});
+
+it('leaves absolute image sources unchanged when storage is configured', function () {
+    $remote = UI::image('remote_image')
+        ->src('https://cdn.example.com/post-cover.jpg')
+        ->storage('uploads/images')
+        ->toJson();
+    $rootRelative = UI::image('root_image')
+        ->src('/images/post-cover.jpg')
+        ->storage('uploads/images')
+        ->toJson();
+
+    expect(array_values($remote)[0]['src'])->toBe('https://cdn.example.com/post-cover.jpg');
+    expect(array_values($rootRelative)[0]['src'])->toBe('/images/post-cover.jpg');
+});
+
 it('renders ImageDemo screen containing the Image component', function () {
     /** @var TestCase $this */
     $originalGenerator = config('usim.images.placeholder.generator');
