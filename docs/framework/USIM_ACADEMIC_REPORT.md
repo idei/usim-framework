@@ -171,7 +171,7 @@ protected function buildBaseUI(Container $container, ...$params): void
             ->label('Foto de Perfil')
             ->maxFiles(1)
             ->maxSize(2)
-            ->aspect('1:1')
+            ->aspect(\Idei\Usim\Enums\AspectRatio::_1_1)
     );
 
     // Botón guardar con action
@@ -1057,7 +1057,7 @@ class ProfileService extends Screen
                 ->label('Foto de Perfil')
                 ->maxFiles(1)
                 ->maxSize(2)
-                ->aspect('1:1')
+                ->aspect(\Idei\Usim\Enums\AspectRatio::_1_1)
                 ->size(1)
         );
 

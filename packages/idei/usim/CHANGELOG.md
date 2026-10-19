@@ -21,6 +21,7 @@ The format is based on Keep a Changelog, and this project follows Semantic Versi
 - Declared `protected string $store_token = '';` on `KioskScreen` and stub to preserve `sessionStorage` device authentication token across screen reloads and polling ticks.
 
 ### Changed
+- `Uploader::aspect()` now requires an `AspectRatio` enum case and serializes its backing string to `aspect_ratio`.
 - Unified published package configuration into `config/usim.php` (includes `users.roles`), replacing the previous split publish target (`config/ui-services.php` + `config/users.php`) for new installs.
 - Runtime config resolution now uses `usim.*` keys only; legacy `ui-services.*` fallbacks were removed.
 - Migrated web client storage from `localStorage` to `sessionStorage` (`ui-renderer.js`, `components/storage`, `components/shared/ui-event`, `components/uploader`), isolating `X-USIM-Storage` and `store_*` variables per browser tab.

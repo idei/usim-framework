@@ -218,7 +218,7 @@ Verifica el límite en tu código (`Uploader`):
 // En ProfileService.php
 $uploaderProfile = UI::uploader('uploader_profile')
     ->maxSize(2)  // ← Este valor debe ser menor que el límite del servidor
-    ->aspect('1:1');
+    ->aspect(\Idei\Usim\Enums\AspectRatio::_1_1);
 ```
 
 ## Checklist de Deployment
@@ -280,4 +280,3 @@ df -h
 - [PHP: Runtime Configuration](https://www.php.net/manual/en/ini.core.php)
 - [Nginx: client_max_body_size](http://nginx.org/en/docs/http/ngx_http_core_module.html#client_max_body_size)
 - [Laravel: File Uploads](https://laravel.com/docs/11.x/requests#files)
-

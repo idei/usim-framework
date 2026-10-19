@@ -6,6 +6,7 @@ use Idei\Usim\Components\Container;
 use Idei\Usim\Components\Label;
 use Idei\Usim\Components\Button;
 use Idei\Usim\Components\Uploader;
+use Idei\Usim\Enums\AspectRatio;
 use Idei\Usim\Enums\Visibility;
 use Idei\Usim\Screen;
 use Idei\Usim\UI;
@@ -63,7 +64,7 @@ class UploaderDemo extends Screen
                 ->label(t('screens.demo.uploader_demo.profile.label'))
                 ->maxFiles(1)
                 ->maxSize(2)
-                ->aspect('1:1')
+                ->aspect(AspectRatio::_1_1)
                 ->size(2)
         );
 
@@ -94,7 +95,7 @@ class UploaderDemo extends Screen
                 ->label(t('screens.demo.uploader_demo.banner.label'))
                 ->maxFiles(1)
                 ->maxSize(3)
-                ->aspect('16:9')
+                ->aspect(AspectRatio::_16_9)
                 ->size(3)
         );
 
@@ -125,7 +126,7 @@ class UploaderDemo extends Screen
                 ->label(t('screens.demo.uploader_demo.story.label'))
                 ->maxFiles(1)
                 ->maxSize(3)
-                ->aspect('9:16')
+                ->aspect(AspectRatio::_9_16)
                 ->size(2)
         );
 

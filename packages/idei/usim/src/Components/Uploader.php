@@ -2,6 +2,7 @@
 
 namespace Idei\Usim\Components;
 
+use Idei\Usim\Enums\AspectRatio;
 use Idei\Usim\Upload\UploadService;
 
 /**
@@ -100,11 +101,11 @@ class Uploader extends UIComponent
     /**
      * Establecer relación de aspecto esperada para el dropzone
      *
-     * @param  string  $ratio  Formato "width:height" (ej: '1:1', '16:9', '9:16', '4:3')
+     * @param AspectRatio $ratio Expected aspect ratio for the dropzone.
      */
-    public function aspect(string $ratio): self
+    public function aspect(AspectRatio $ratio): self
     {
-        return $this->setConfig('aspect_ratio', $ratio);
+        return $this->setConfig('aspect_ratio', $ratio->value);
     }
 
     /**

@@ -906,7 +906,7 @@ class PublishPost extends Screen
             ->images()
             ->maxFiles(1)
             ->maxSize(5)
-            ->aspect('16:9')
+            ->aspect(\Idei\Usim\Enums\AspectRatio::_16_9)
             ->size(2)
             ->label('Imagen de Portada (opcional)');
 

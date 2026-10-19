@@ -671,12 +671,14 @@ $container->add($table);
 Use the `Uploader` for file uploads with temporary storage, preview, and image cropping:
 
 ```php
+use Idei\Usim\Enums\AspectRatio;
+
 $uploader = UI::uploader('avatar')
     ->label('Profile Photo')
     ->allowedTypes(['image/*'])
     ->maxFiles(1)
     ->maxSize(2)       // MB
-    ->aspect('1:1')    // crop ratio
+    ->aspect(AspectRatio::_1_1)    // crop ratio
     ->size(1);         // display size
 
 $container->add($uploader);
