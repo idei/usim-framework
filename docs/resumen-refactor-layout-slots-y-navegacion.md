@@ -28,8 +28,9 @@ Este documento detalla todas las modificaciones implementadas para permitir que 
 - **Inicialización del contexto de eventos en Layouts:** En `Screen::getLayout()`, tras instanciar la clase de layout (`app($layoutClass)`), ahora se invoca `$layout->initializeEventContext()`. Esto garantiza que los slots (`content_container`, `main_menu_container`) queden registrados y el árbol de componentes esté listo para recibir inserciones durante peticiones `/api/ui-event`.
 - **Corrección de argumentos en `showInto()`:** Se normalizó el orden de llamada hacia el layout:
   ```php
-  $layout->showInto($targetClass, $effectiveSlot, $params, $updateBrowserUrl);
+  $layout->showInto($targetClass, $effectiveSlot, $params, $updateBrowserUrl, $force);
   ```
+  y cuando `$force = true`, se purga automáticamente el snapshot de la pantalla destino (`clearCachedScreenSnapshot()`) tanto en `HandlesNavigation` como en `AbstractLayout`.
 
 ### 2.2. Backend (`packages/idei/usim/src/Layout/AbstractLayout.php`)
 - **Directivas de limpieza del contenedor:** En el método `showInto()`, se agregaron al colector de cambios (`UIChangesCollector`) las claves:

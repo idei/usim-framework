@@ -29,6 +29,7 @@ The format is based on Keep a Changelog, and this project follows Semantic Versi
 - Migrated web client storage from `localStorage` to `sessionStorage` (`ui-renderer.js`, `components/storage`, `components/shared/ui-event`, `components/uploader`), isolating `X-USIM-Storage` and `store_*` variables per browser tab.
 - `Screen::getStorageVariables()` now safely collects nullable typed primitive properties (`?string`, `?int`, etc.) without throwing uninitialized property errors.
 - `Screen::checkAccess()` and `PrepareUIContext` now enforce active device pairing: when an authenticated device is unpaired or tokens are deleted, the session guard (`device`) is terminated (`forgetUser()` and `loggedOut = true`), immediately returning a redirect response to `/device/device-pairing-screen`.
+- `Screen::showInto()` and `AbstractLayout::showInto()`: passing `force: true` now automatically purges the target screen's cached snapshot (via `clearCachedScreenSnapshot()`) and state variables in `UIStateRepository`, ensuring fresh UI reconstruction without manual `Screen::make()->clearCachedScreenSnapshot()` boilerplate.
 
 ### Fixed
 - Toast position styles now apply to the toast container rather than each toast, keeping `top-middle` centered; centered positions also remain centered on mobile.

@@ -992,14 +992,12 @@ class PublishPost extends Screen
 
         $this->toast('¡Post publicado correctamente!', 'success');
 
-        // Limpiar snapshot en caché de Home y navegar vía SPA forzando recarga de los últimos posts
-        Screen::make(Home::class)->clearCachedScreenSnapshot();
+        // Navegar vía SPA con force: true para limpiar el snapshot en caché de Home y recargar los últimos posts
         $this->showInto(Home::class, force: true, updateBrowserUrl: true);
     }
 
     public function onCancelPost(array $params): void
     {
-        Screen::make(Home::class)->clearCachedScreenSnapshot();
         $this->showInto(Home::class, force: true, updateBrowserUrl: true);
     }
 }
@@ -1714,7 +1712,6 @@ class Menu extends Screen
                 return;
             }
 
-            Screen::make($screen)->clearCachedScreenSnapshot();
             $this->showInto($screen, slot: $slot, updateBrowserUrl: true, force: true);
         }
     }
@@ -1889,7 +1886,6 @@ Para garantizar que el registro y el inicio de sesión se integren con la navega
 
    $homeScreen = $this->authSessionService->resolveHomeScreen($user);
    if (class_exists($homeScreen) && is_subclass_of($homeScreen, Screen::class)) {
-       Screen::make($homeScreen)->clearCachedScreenSnapshot();
        $this->showInto($homeScreen, force: true, updateBrowserUrl: true);
    }
    ```
@@ -2029,7 +2025,7 @@ O bien, si estás utilizando **Laravel Octane con Roadrunner** (la arquitectura 
 > **Ciclo de Vida y Persistencia en Memoria (Laravel Octane / Roadrunner)**:
 > En servidores persistentes como Roadrunner, los procesos de PHP se mantienen en memoria entre peticiones sucesivas. USIM fue diseñado desde sus bases para este entorno:
 > - El método `postLoadUI()` de las Screens siempre se ejecuta tras recuperar un snapshot de caché, lo que permite re-evaluar datos frescos (como la lista de posts más recientes o el avatar actualizado) sin penalizaciones.
-> - Métodos como `Screen::make(Home::class)->clearCachedScreenSnapshot()` invalidan la caché previa de la vista para que las mutaciones de datos se sincronicen de inmediato con los clientes SPA.
+> - Al navegar con `$this->showInto(..., force: true)`, USIM invalida y purga automáticamente la caché previa de la vista (`clearCachedScreenSnapshot()`), asegurando que la pantalla se reconstruya limpia desde `buildBaseUI()` y las mutaciones de datos se sincronicen de inmediato.
 
 ### 7.2 Probar los Flujos y Roles de Usuario
 

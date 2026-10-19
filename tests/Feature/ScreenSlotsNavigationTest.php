@@ -149,3 +149,49 @@ it('returns early when target screen is already active in the slot', function ()
     expect($collector->all())->toHaveKey('navigate');
 });
 
+class TestForceReloadCounterScreen extends \Idei\Usim\Screen
+{
+    public const ROUTE_PATH = '/test-force-reload';
+    public static int $buildCount = 0;
+
+    public static function authorize(): bool
+    {
+        return true;
+    }
+
+    protected function buildBaseUI(Container $container, ...$params): void
+    {
+        self::$buildCount++;
+        $container->add(UI::button('btn_test'));
+    }
+}
+
+it('clears cached screen snapshot and rebuilds UI when force is true in showInto', function () {
+    $user = \App\Models\User::factory()->create();
+    /** @var \Tests\TestCase $this */
+    $this->actingAs($user);
+
+    $host = app(Menu::class);
+    $host->initializeEventContext();
+
+    TestForceReloadCounterScreen::$buildCount = 0;
+
+    // First load builds the UI from scratch
+    $host->showInto(TestForceReloadCounterScreen::class);
+    expect(TestForceReloadCounterScreen::$buildCount)->toBe(1);
+
+    // Switch to another screen so the slot is no longer TestForceReloadCounterScreen
+    $host->showInto(TableDemo::class);
+
+    // Navigating back without force reuses cached snapshot (buildBaseUI is not re-invoked)
+    $host->showInto(TestForceReloadCounterScreen::class, force: false);
+    expect(TestForceReloadCounterScreen::$buildCount)->toBe(1);
+
+    // Switch away again
+    $host->showInto(TableDemo::class);
+
+    // Navigating with force: true clears the cached snapshot and re-invokes buildBaseUI
+    $host->showInto(TestForceReloadCounterScreen::class, force: true);
+    expect(TestForceReloadCounterScreen::$buildCount)->toBe(2);
+});
+

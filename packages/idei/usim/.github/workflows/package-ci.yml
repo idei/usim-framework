@@ -24,7 +24,7 @@ on:
 
 jobs:
   quality:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     env:
       FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
@@ -56,7 +56,7 @@ jobs:
         run: |
           set -e
           for file in $(find stubs -type f -name '*.php.stub'); do
-            # Replace template placeholders so the stub can be parsed as valid PHP.
-            sed -E 's/\{\{[[:space:]]*[^}]+[[:space:]]*\}\}/App\\StubPlaceholder/g' "$file" > /tmp/usim-lint.php
+            # Reemplaza los placeholders por un identificador simple sin contrabarras
+            sed -E 's/\{\{[[:space:]]*[^}]+[[:space:]]*\}\}/StubPlaceholderTest/g' "$file" > /tmp/usim-lint.php
             php -l /tmp/usim-lint.php
           done

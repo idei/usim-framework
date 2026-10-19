@@ -204,7 +204,7 @@ Para cumplir con el **Principio de Responsabilidad Única (SRP)**, la clase mono
 
 - **[`HandlesAuthorization`](file:///workspaces/usim-framework/packages/idei/usim/src/Concerns/HandlesAuthorization.php):** Gestión de permisos, roles requeridos, verificación de accesos y resolución del autorizador vía contrato.
 - **[`HandlesModals`](file:///workspaces/usim-framework/packages/idei/usim/src/Concerns/HandlesModals.php):** Operaciones de apertura, cierre, anidamiento y restauración de la pila de diálogos y modales persistentes en estado.
-- **[`HandlesNavigation`](file:///workspaces/usim-framework/packages/idei/usim/src/Concerns/HandlesNavigation.php):** Enrutamiento por slots (`showInto`), notificaciones toast, redirecciones forzadas y respuestas de aborto HTTP.
+- **[`HandlesNavigation`](file:///workspaces/usim-framework/packages/idei/usim/src/Concerns/HandlesNavigation.php):** Enrutamiento por slots (`showInto`), recarga forzada con purga de caché (`force: true`), notificaciones toast, redirecciones forzadas y respuestas de aborto HTTP.
 - **[`HandlesScreenProperties`](file:///workspaces/usim-framework/packages/idei/usim/src/Concerns/HandlesScreenProperties.php):** Introspección y reflejo de variables de cliente (`store_*` con cifrado simétrico transparente `_crypt`) y de estado interno del servidor (`state_*`).
 - **[`ScreenLifecycleOrchestrator`](file:///workspaces/usim-framework/packages/idei/usim/src/Support/ScreenLifecycleOrchestrator.php):** Coordina la secuencia de inicialización (`initializeEventContext`), ejecución de handlers de acción (`handleAction`), diffing de UI (`UIDifferInterface`), persistencia en caché (`UIStateRepositoryInterface`), recolección de cambios y renderizado inicial/reload (`render`).
 

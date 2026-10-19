@@ -62,7 +62,7 @@ interface LayoutInterface
     public function getSlots(): array;
     public function setActiveScreen(string $slot, string $screenClass): self;
     public function getActiveScreen(string $slot = 'main'): ?string;
-    public function showInto(string $screenClass, ?string $slot = null, array $params = [], bool $updateBrowserUrl = true): bool;
+    public function showInto(string $screenClass, ?string $slot = null, array $params = [], bool $updateBrowserUrl = true, bool $force = false): bool;
     public function show(string $screenClass, ?string $slot = null, array $params = []): bool;
 }
 ```
@@ -80,7 +80,7 @@ Clase base abstracta que:
   Cuando el layout se restaura desde un snapshot de sesión (`UIStateManager`), no se vuelve a ejecutar `buildBaseUI()`. `AbstractLayout` implementa:
   - `postLoadUI()`: Descubre y re-registra automáticamente los contenedores `content_container` y `main_menu_container` dentro de `$this->container`.
   - Fallback en `getSlot()`: Si `$slots` no contiene el slot buscado, realiza una búsqueda por nombres canónicos (`['content_container', 'main_container', 'main', 'content']`) en el árbol reconstruido y lo cachea en memoria.
-- Métodos de navegación y despliegue `showInto()` y `show()` con emisión de directiva de navegación HTML5 (`navigate`).
+- Métodos de navegación y despliegue `showInto()` y `show()` con emisión de directiva de navegación HTML5 (`navigate`). Soporta el parámetro `force: true` para forzar la recarga del slot y purgar automáticamente el snapshot previo en caché (`clearCachedScreenSnapshot()`).
 
 ---
 
