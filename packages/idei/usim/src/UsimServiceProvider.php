@@ -8,6 +8,7 @@ use Idei\Usim\Console\Commands\UsimScaffold;
 use Idei\Usim\Console\Commands\UsimSyncCommand;
 use Idei\Usim\Contracts\ComponentIdGeneratorInterface;
 use Idei\Usim\Contracts\DeviceSecurityGuardInterface;
+use Idei\Usim\Contracts\ImagePlaceholderGeneratorInterface;
 use Idei\Usim\Contracts\LoginActionInterface;
 use Idei\Usim\Contracts\PasswordResetActionInterface;
 use Idei\Usim\Contracts\RegisterActionInterface;
@@ -25,6 +26,7 @@ use Idei\Usim\Events\UsimEvent;
 use Idei\Usim\Jobs\CleanTemporaryUploadsJob;
 use Idei\Usim\Listeners\UsimEventDispatcher;
 use Idei\Usim\Models\UsimRole;
+use Idei\Usim\Services\ImagePlaceholders\SvgImagePlaceholderGenerator;
 use Idei\Usim\Support\ComponentDiffer;
 use Idei\Usim\Support\ComponentIdGenerator;
 use Idei\Usim\Support\DeviceSecurityGuard;
@@ -56,6 +58,13 @@ class UsimServiceProvider extends ServiceProvider
         $this->mergeConfigFrom(
             __DIR__.'/../config/usim.php',
             'usim'
+        );
+
+        $this->app->bindIf(
+            ImagePlaceholderGeneratorInterface::class,
+            fn ($app) => $app->make(
+                $app['config']->get('usim.images.placeholder.generator', SvgImagePlaceholderGenerator::class)
+            )
         );
 
         $this->app->scoped(UIChangesCollector::class, function ($app) {

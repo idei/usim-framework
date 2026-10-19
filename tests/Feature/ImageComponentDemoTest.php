@@ -3,10 +3,13 @@
 namespace Tests\Feature;
 
 use App\UI\Screens\Demo\ImageDemo;
+use Idei\Usim\Enums\AspectRatio;
+use Idei\Usim\Services\ImagePlaceholders\PicsumImagePlaceholderGenerator;
 use Idei\Usim\Screen;
 use Idei\Usim\Support\UIIdGenerator;
 use Idei\Usim\UI;
 use Idei\Usim\ValueObjects\Size;
+use RuntimeException;
 use Tests\TestCase;
 
 it('builds Image component with fluent API correctly', function () {
@@ -36,6 +39,75 @@ it('builds Image component with fluent API correctly', function () {
     expect($config['caption'])->toBe('Profile Photo');
 });
 
+it('generates a default SVG image using the configured aspect ratio and caption', function () {
+    $img = UI::image('post_image')
+        ->width(Size::px(640))
+        ->placeholderAspect(AspectRatio::_16_9)
+        ->placeholderId(42)
+        ->placeholderColors('#123456', '#abcdef')
+        ->caption('Post & news');
+
+    $config = $img->toJson()[$img->getId()];
+    $src = $config['src'] ?? null;
+    if (! is_string($src)) {
+        throw new RuntimeException('Expected the image placeholder source to be a string.');
+    }
+    $svg = base64_decode(substr($src, strlen('data:image/svg+xml;base64,')), true);
+    if (! is_string($svg)) {
+        throw new RuntimeException('Expected the image placeholder source to contain valid base64.');
+    }
+
+    expect($src)->toStartWith('data:image/svg+xml;base64,');
+    expect($svg)->toContain('width="640" height="360"');
+    expect($svg)->toContain('Post &amp; news');
+    expect($svg)->toContain('fill="#123456"');
+    expect($svg)->toContain('fill="#abcdef"');
+    expect($config)->not->toHaveKey('placeholder_aspect_ratio');
+    expect($config)->not->toHaveKey('placeholder_enabled');
+    expect($config)->not->toHaveKey('placeholder_id');
+    expect($config)->not->toHaveKey('placeholder_background_color');
+    expect($config)->not->toHaveKey('placeholder_text_color');
+});
+
+it('uses a stable Picsum seed and calculates dimensions from height', function () {
+    $originalGenerator = config('usim.images.placeholder.generator');
+    config(['usim.images.placeholder.generator' => PicsumImagePlaceholderGenerator::class]);
+
+    try {
+        $img = UI::image('post_image')
+            ->height(Size::px(360))
+            ->placeholderAspect(AspectRatio::_16_9)
+            ->placeholderId(42);
+
+        $config = $img->toJson()[$img->getId()];
+
+        expect($config['src'])->toBe('https://picsum.photos/seed/12342/640/360');
+    } finally {
+        config(['usim.images.placeholder.generator' => $originalGenerator]);
+    }
+});
+
+it('keeps explicit sources and uses placeholders while async image actions load', function () {
+    $explicit = UI::image('explicit_image')
+        ->src('https://example.com/image.jpg')
+        ->placeholderAspect(AspectRatio::_16_9)
+        ->toJson();
+    $explicitConfig = array_values($explicit)[0] ?? null;
+
+    $async = UI::image('async_image')
+        ->action('load_image')
+        ->placeholderAspect(AspectRatio::_16_9)
+        ->toJson();
+    $asyncConfig = array_values($async)[0] ?? null;
+    if (! is_array($explicitConfig) || ! is_array($asyncConfig)) {
+        throw new RuntimeException('Expected serialized image component configurations.');
+    }
+
+    expect($explicitConfig['src'])->toBe('https://example.com/image.jpg');
+    expect($asyncConfig['action'])->toBe('load_image');
+    expect($asyncConfig['src'])->toStartWith('data:image/svg+xml;base64,');
+});
+
 it('renders ImageDemo screen containing the Image component', function () {
     /** @var TestCase $this */
     $ui = uiScenario($this, ImageDemo::class, ['reset' => true]);
@@ -58,6 +130,10 @@ it('fetches image data from ImageDemo getImage() via GET /api/ui-data', function
 
     $response->assertOk();
     $contentType = $response->headers->get('Content-Type');
+    $content = $response->getContent();
     expect($contentType)->toMatch('/image\/(jpeg|svg\+xml|png)/');
-    expect(strlen($response->getContent()))->toBeGreaterThan(50);
+    if (! is_string($content)) {
+        throw new RuntimeException('Expected image response content.');
+    }
+    expect(strlen($content))->toBeGreaterThan(50);
 });

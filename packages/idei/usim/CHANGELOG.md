@@ -7,6 +7,7 @@ The format is based on Keep a Changelog, and this project follows Semantic Versi
 ## [Unreleased]
 
 ### Added
+- Backend-generated `Image` placeholders with optional `AspectRatio`, caption, colors, stable IDs, a local SVG generator, a Picsum seeded generator, and an extensible `ImagePlaceholderGeneratorInterface`.
 - `UIDataController` and route `GET /api/ui-data` for read-only component data queries, decoupling component data retrieval from the full UI diff engine (CQRS read channel).
 - Screen query methods with `get*` prefix (`getUserData()`, `getImage()`, etc.) returning polymorphic payloads: JSON (`array`, `Collection`, `stdClass`), plain text, HTML, SVG, and binary/streaming media (images, audio, video, `BinaryFileResponse`, `StreamedResponse`).
 - Read-only lifecycle orchestration via `ScreenLifecycleOrchestrator::handleQuery()` and `Screen::handleQuery()`, enforcing UI state integrity with `UsimReadOnlyLifecycleException` (HTTP 422) if UI component mutation is attempted during GET.

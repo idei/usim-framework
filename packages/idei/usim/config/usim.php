@@ -337,6 +337,30 @@ return [
     ],
 
     /*
+    |--------------------------------------------------------------------------
+    | Image placeholders
+    |--------------------------------------------------------------------------
+    |
+    | The generator class may be replaced with an application implementation
+    | of ImagePlaceholderGeneratorInterface (for example, one using an API key).
+    |
+    */
+    'images' => [
+        'placeholder' => [
+            'enabled' => env('USIM_IMAGE_PLACEHOLDER_ENABLED', true),
+            'generator' => env(
+                'USIM_IMAGE_PLACEHOLDER_GENERATOR',
+                \Idei\Usim\Services\ImagePlaceholders\SvgImagePlaceholderGenerator::class
+            ),
+            'width' => (int) env('USIM_IMAGE_PLACEHOLDER_WIDTH', 640),
+            'height' => (int) env('USIM_IMAGE_PLACEHOLDER_HEIGHT', 360),
+            'background_color' => env('USIM_IMAGE_PLACEHOLDER_BACKGROUND', '#e2e8f0'),
+            'text_color' => env('USIM_IMAGE_PLACEHOLDER_TEXT_COLOR', '#475569'),
+            'seed_prefix' => env('USIM_IMAGE_PLACEHOLDER_SEED_PREFIX', '123'),
+        ],
+    ],
+
+    /*
      |--------------------------------------------------------------------------
      | Headless Mode
      |--------------------------------------------------------------------------

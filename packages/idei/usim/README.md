@@ -700,6 +700,42 @@ public function onSaveProfile(array $params): void
 
 ---
 
+## Image placeholders
+
+An `Image` without a `src` receives a generated placeholder by default. The default
+generator creates an SVG locally using the component caption and configured colors.
+Its dimensions use pixel-sized `width`/`height` when provided, or the configured
+placeholder dimensions; `AspectRatio` fills in a missing dimension:
+
+```php
+use Idei\Usim\Enums\AspectRatio;
+use Idei\Usim\ValueObjects\Size;
+
+$image = UI::image('post_image')
+    ->width(Size::px(640))
+    ->placeholderAspect(AspectRatio::_16_9)
+    ->placeholderId($post->id)
+    ->placeholderColors('#e2e8f0', '#475569')
+    ->caption($post->title);
+```
+
+`placeholderId()` provides a stable identity for seeded image services. To use
+Picsum, set `USIM_IMAGE_PLACEHOLDER_GENERATOR` to
+`Idei\Usim\Services\ImagePlaceholders\PicsumImagePlaceholderGenerator`; the URL
+uses the configured seed prefix and the same identity to return a stable image.
+To integrate another image API (including one requiring an API key), implement
+`ImagePlaceholderGeneratorInterface` and configure its fully-qualified class in
+`USIM_IMAGE_PLACEHOLDER_GENERATOR`, or bind that interface in the application.
+
+The available `.env` settings are `USIM_IMAGE_PLACEHOLDER_ENABLED`,
+`USIM_IMAGE_PLACEHOLDER_WIDTH`, `USIM_IMAGE_PLACEHOLDER_HEIGHT`,
+`USIM_IMAGE_PLACEHOLDER_BACKGROUND`, `USIM_IMAGE_PLACEHOLDER_TEXT_COLOR`, and
+`USIM_IMAGE_PLACEHOLDER_SEED_PREFIX`. An explicit `src` always takes precedence;
+`fallback()` remains the separate behavior for a source that fails to load.
+Placeholders are not generated for images loaded through `action()`.
+
+---
+
 ## Authentication Scaffolding
 
 `php artisan usim:install` provides a complete authentication and admin system:
