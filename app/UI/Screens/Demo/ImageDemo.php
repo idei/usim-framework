@@ -4,6 +4,7 @@ namespace App\UI\Screens\Demo;
 
 use Idei\Usim\Components\Container;
 use Idei\Usim\Components\Image;
+use Idei\Usim\Enums\AspectRatio;
 use Idei\Usim\Enums\Visibility;
 use Idei\Usim\Screen;
 use Idei\Usim\UI;
@@ -44,12 +45,46 @@ class ImageDemo extends Screen
         $this->public_image = UI::image('public_image')
             ->action('image')
             ->width(Size::px(500))
-            ->height(Size::px(340))
+            ->placeholderAspect(AspectRatio::_16_9)
+            ->placeholderId('image-demo-dynamic')
             ->rounded(8)
             ->border()
             ->caption(t('screens.demo.image_demo.caption'));
 
         $card->add($this->public_image);
+
+        $card->add(
+            UI::label('placeholder_landscape_title')
+                ->text(t('screens.demo.image_demo.landscape_title'))
+                ->style('h3')
+        );
+
+        $card->add(
+            UI::image('placeholder_landscape')
+                ->width(Size::px(500))
+                ->placeholderAspect(AspectRatio::_16_9)
+                ->placeholderId('image-demo-landscape')
+                ->caption(t('screens.demo.image_demo.landscape_caption'))
+                ->rounded(8)
+                ->border()
+        );
+
+        $card->add(
+            UI::label('placeholder_portrait_title')
+                ->text(t('screens.demo.image_demo.portrait_title'))
+                ->style('h3')
+        );
+
+        $card->add(
+            UI::image('placeholder_portrait')
+                ->height(Size::px(320))
+                ->placeholderAspect(AspectRatio::_9_16)
+                ->placeholderId('image-demo-portrait')
+                ->placeholderColors('#7c3aed', '#ffffff')
+                ->caption(t('screens.demo.image_demo.portrait_caption'))
+                ->rounded(8)
+                ->border()
+        );
 
         $container->add($card);
     }

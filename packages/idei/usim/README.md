@@ -731,8 +731,8 @@ The available `.env` settings are `USIM_IMAGE_PLACEHOLDER_ENABLED`,
 `USIM_IMAGE_PLACEHOLDER_WIDTH`, `USIM_IMAGE_PLACEHOLDER_HEIGHT`,
 `USIM_IMAGE_PLACEHOLDER_BACKGROUND`, `USIM_IMAGE_PLACEHOLDER_TEXT_COLOR`, and
 `USIM_IMAGE_PLACEHOLDER_SEED_PREFIX`. An explicit `src` always takes precedence;
+an action-based image shows its placeholder while the request is in progress.
 `fallback()` remains the separate behavior for a source that fails to load.
-Placeholders are not generated for images loaded through `action()`.
 
 ---
 

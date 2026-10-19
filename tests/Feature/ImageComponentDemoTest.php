@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\UI\Screens\Demo\ImageDemo;
 use Idei\Usim\Enums\AspectRatio;
 use Idei\Usim\Services\ImagePlaceholders\PicsumImagePlaceholderGenerator;
+use Idei\Usim\Services\ImagePlaceholders\SvgImagePlaceholderGenerator;
 use Idei\Usim\Screen;
 use Idei\Usim\Support\UIIdGenerator;
 use Idei\Usim\UI;
@@ -69,6 +70,29 @@ it('generates a default SVG image using the configured aspect ratio and caption'
     expect($config)->not->toHaveKey('placeholder_text_color');
 });
 
+it('wraps and centers long placeholder captions within the image bounds', function () {
+    $img = UI::image('portrait_placeholder')
+        ->height(Size::px(320))
+        ->placeholderAspect(AspectRatio::_9_16)
+        ->caption('Custom background and text colors stay centered');
+
+    $config = $img->toJson()[$img->getId()];
+    $src = $config['src'] ?? null;
+    if (! is_string($src)) {
+        throw new RuntimeException('Expected the image placeholder source to be a string.');
+    }
+
+    $svg = base64_decode(substr($src, strlen('data:image/svg+xml;base64,')), true);
+    if (! is_string($svg)) {
+        throw new RuntimeException('Expected the image placeholder source to contain valid base64.');
+    }
+
+    expect($svg)->toContain('text-anchor="middle"');
+    expect(substr_count($svg, '<tspan x="50%"'))->toBeGreaterThan(1);
+    expect($svg)->toContain('Custom');
+    expect($svg)->toContain('centered');
+});
+
 it('uses a stable Picsum seed and calculates dimensions from height', function () {
     $originalGenerator = config('usim.images.placeholder.generator');
     config(['usim.images.placeholder.generator' => PicsumImagePlaceholderGenerator::class]);
@@ -110,13 +134,34 @@ it('keeps explicit sources and uses placeholders while async image actions load'
 
 it('renders ImageDemo screen containing the Image component', function () {
     /** @var TestCase $this */
-    $ui = uiScenario($this, ImageDemo::class, ['reset' => true]);
+    $originalGenerator = config('usim.images.placeholder.generator');
+    config(['usim.images.placeholder.generator' => SvgImagePlaceholderGenerator::class]);
 
-    $img = $ui->component('public_image');
-    $img->expect('type')->toBe('image');
-    $img->expect('action')->toBe('image');
+    try {
+        $ui = uiScenario($this, ImageDemo::class, ['reset' => true]);
 
-    $ui->assertNoIssues();
+        $img = $ui->component('public_image');
+        $img->expect('type')->toBe('image');
+        $img->expect('action')->toBe('image');
+        $img->expect('src')->toStartWith('data:image/svg+xml;base64,');
+
+        $landscape = $ui->component('placeholder_landscape');
+        $landscape->expect('width')->toBe('500px');
+        $landscape->expect('src')->toStartWith('data:image/svg+xml;base64,');
+
+        $portrait = $ui->component('placeholder_portrait');
+        $portrait->expect('height')->toBe('320px');
+        $portrait->expect('src')->toStartWith('data:image/svg+xml;base64,');
+
+        expect($ui->component('placeholder_landscape_title')->data()['text'])
+            ->toBe(t('screens.demo.image_demo.landscape_title'));
+        expect($ui->component('placeholder_portrait_title')->data()['text'])
+            ->toBe(t('screens.demo.image_demo.portrait_title'));
+
+        $ui->assertNoIssues();
+    } finally {
+        config(['usim.images.placeholder.generator' => $originalGenerator]);
+    }
 });
 
 it('fetches image data from ImageDemo getImage() via GET /api/ui-data', function () {
