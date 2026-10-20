@@ -87,6 +87,17 @@ class PrepareUIContext
         }
 
         $storeTokenValue = $storage['store_token'] ?? null;
+        if (empty($storeTokenValue) && ! empty($storage['store_token_crypt']) && \is_string($storage['store_token_crypt'])) {
+            try {
+                $storeTokenValue = decrypt($storage['store_token_crypt']);
+            } catch (\Throwable) {
+                // Ignore decrypt failure
+            }
+        }
+        if (empty($storeTokenValue) && $request->bearerToken()) {
+            $storeTokenValue = $request->bearerToken();
+        }
+
         $storeToken = \is_scalar($storeTokenValue) ? (string) $storeTokenValue : null;
 
         $request->headers->set('Authorization', 'Bearer '.($storeToken ?? ''));

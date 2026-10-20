@@ -7,7 +7,9 @@ use Idei\Usim\Contracts\UIElement;
 use Idei\Usim\Layout\AbstractLayout;
 use Idei\Usim\Screen;
 use Idei\Usim\Support\UIIdGenerator;
+use Idei\Usim\Support\UIStateManager;
 use Illuminate\Contracts\Encryption\DecryptException;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use LogicException;
@@ -40,10 +42,6 @@ trait HandlesScreenProperties
      */
     public function injectStorageValues(array $incomingStorage): void
     {
-        if (empty($incomingStorage)) {
-            return;
-        }
-
         $reflection = new ReflectionClass($this);
 
         foreach ($reflection->getProperties(ReflectionProperty::IS_PROTECTED) as $property) {
@@ -61,6 +59,14 @@ trait HandlesScreenProperties
 
             // Check if this key exists in incoming storage
             if (! array_key_exists($propertyName, $incomingStorage)) {
+                // Defensive fallback: If store_token / store_token_crypt is declared on this screen
+                // but not present in incoming storage, hydrate it from UIStateManager active token
+                if ($propertyName === 'store_token' || $propertyName === 'store_token_crypt') {
+                    $activeToken = UIStateManager::getAuthToken();
+                    if (! empty($activeToken) && empty($property->getValue($this))) {
+                        $property->setValue($this, $activeToken);
+                    }
+                }
                 continue;
             }
 
@@ -78,6 +84,16 @@ trait HandlesScreenProperties
                     Log::warning("Failed to decrypt storage variable '{$propertyName}': ".$e->getMessage());
 
                     continue; // Skip injection if decryption fails
+                }
+            }
+
+            // If store_token was explicitly sent as empty/null, but we have an active token from UIStateManager
+            // and the user is authenticated, preserve active token
+            if (($propertyName === 'store_token' || $propertyName === 'store_token_crypt') && empty($value)) {
+                $isAuth = Auth::guard('web')->check() || Auth::guard('device')->check();
+                $activeToken = UIStateManager::getAuthToken();
+                if ($isAuth && ! empty($activeToken)) {
+                    $value = $activeToken;
                 }
             }
 
@@ -99,6 +115,9 @@ trait HandlesScreenProperties
         $reflection = new ReflectionClass($this);
         $properties = $reflection->getProperties(ReflectionProperty::IS_PROTECTED);
 
+        $isUserAuthenticated = Auth::guard('web')->check() || Auth::guard('device')->check();
+        $activeAuthToken = UIStateManager::getAuthToken();
+
         foreach ($properties as $property) {
             $propertyName = $property->getName();
             if (str_starts_with($propertyName, 'store_')) {
@@ -111,9 +130,35 @@ trait HandlesScreenProperties
                     $isPrimitive = in_array($typeName, ['int', 'float', 'string', 'bool', 'array', 'mixed']);
                     if ($isPrimitive) {
                         $value = $property->getValue($this);
-                        if ($value !== null && str_ends_with($propertyName, '_crypt')) {
-                            $value = encrypt($value);
+
+                        // Auth token protection:
+                        // Prevent accidental clobbering of store_token / store_token_crypt
+                        // when the user is actively authenticated.
+                        if ($propertyName === 'store_token' || $propertyName === 'store_token_crypt') {
+                            if (empty($value)) {
+                                if (! empty($activeAuthToken)) {
+                                    $value = $propertyName === 'store_token_crypt'
+                                        ? encrypt($activeAuthToken)
+                                        : $activeAuthToken;
+                                } elseif ($isUserAuthenticated) {
+                                    // User is authenticated via session guard but property has no token value;
+                                    // do not emit an empty string that would clobber client storage.
+                                    continue;
+                                }
+                            }
                         }
+
+                        if ($value !== null && str_ends_with($propertyName, '_crypt') && $propertyName !== 'store_token_crypt') {
+                            $value = encrypt($value);
+                        } elseif ($value !== null && $propertyName === 'store_token_crypt' && ! empty($value)) {
+                            // If value is not yet encrypted, encrypt it
+                            try {
+                                decrypt($value);
+                            } catch (\Throwable) {
+                                $value = encrypt($value);
+                            }
+                        }
+
                         $storage[$propertyName] = $value;
                     }
                 }

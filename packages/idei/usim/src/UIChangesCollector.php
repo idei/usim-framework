@@ -3,6 +3,7 @@
 namespace Idei\Usim;
 
 use Idei\Usim\Support\UIStateManager;
+use Illuminate\Support\Facades\Auth;
 
 class UIChangesCollector
 {
@@ -31,6 +32,28 @@ class UIChangesCollector
      */
     public function setStorage(array $storageChange = []): void
     {
+        $isUserAuthenticated = Auth::guard('web')->check() || Auth::guard('device')->check();
+        $activeAuthToken = UIStateManager::getAuthToken();
+
+        // Defensive protection: if existing storage changes already has a valid store_token,
+        // and incoming storageChange has an empty store_token, but user remains authenticated,
+        // do not overwrite the token with empty string.
+        if (isset($this->storage_changes['store_token']) && ! empty($this->storage_changes['store_token'])) {
+            if (array_key_exists('store_token', $storageChange) && empty($storageChange['store_token'])) {
+                if ($isUserAuthenticated || ! empty($activeAuthToken)) {
+                    unset($storageChange['store_token']);
+                }
+            }
+        }
+
+        if (isset($this->storage_changes['store_token_crypt']) && ! empty($this->storage_changes['store_token_crypt'])) {
+            if (array_key_exists('store_token_crypt', $storageChange) && empty($storageChange['store_token_crypt'])) {
+                if ($isUserAuthenticated || ! empty($activeAuthToken)) {
+                    unset($storageChange['store_token_crypt']);
+                }
+            }
+        }
+
         $this->storage_changes = array_merge($this->storage_changes, $storageChange);
     }
 
