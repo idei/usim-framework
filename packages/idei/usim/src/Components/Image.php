@@ -285,16 +285,16 @@ class Image extends UIComponent
             id: (string) $placeholderId,
             width: $width,
             height: $height,
-            caption: is_string($this->config['caption'] ?? null) ? $this->config['caption'] : null,
+            caption: is_string($this->config['alt'] ?? null) ? $this->config['alt'] : null,
             backgroundColor: $this->stringSetting(
                 $this->config['placeholder_background_color'] ?? null,
                 $settings['background_color'] ?? null,
-                '#e2e8f0'
+                '#234878'
             ),
             textColor: $this->stringSetting(
                 $this->config['placeholder_text_color'] ?? null,
                 $settings['text_color'] ?? null,
-                '#475569'
+                '#d5d9df'
             ),
             seedPrefix: $this->stringSetting($settings['seed_prefix'] ?? null, null, '123'),
         ));

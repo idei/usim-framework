@@ -49,7 +49,8 @@ class ImageDemo extends Screen
             ->placeholderId('image-demo-dynamic')
             ->rounded(8)
             ->border()
-            ->caption(t('screens.demo.image_demo.caption'));
+            ->caption(t('screens.demo.image_demo.caption'))
+            ->alt(t('screens.demo.image_demo.caption'));
 
         $card->add($this->public_image);
 
@@ -64,7 +65,7 @@ class ImageDemo extends Screen
                 ->width(Size::px(500))
                 ->placeholderAspect(AspectRatio::_16_9)
                 ->placeholderId('image-demo-landscape')
-                ->caption(t('screens.demo.image_demo.landscape_caption'))
+                ->alt(t('screens.demo.image_demo.landscape_caption'))
                 ->rounded(8)
                 ->border()
         );
@@ -81,7 +82,7 @@ class ImageDemo extends Screen
                 ->placeholderAspect(AspectRatio::_9_16)
                 ->placeholderId('image-demo-portrait')
                 ->placeholderColors('#7c3aed', '#ffffff')
-                ->caption(t('screens.demo.image_demo.portrait_caption'))
+                ->alt(t('screens.demo.image_demo.portrait_caption'))
                 ->rounded(8)
                 ->border()
         );
