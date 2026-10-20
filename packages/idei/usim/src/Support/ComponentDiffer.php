@@ -30,12 +30,14 @@ class ComponentDiffer implements UIDifferInterface
 
         foreach ($newComponents as $id => $newComp) {
             if (! isset($oldComponents[$id])) {
+                unset($newComp['_storage_path']);
                 $changes[$id] = $newComp;
             } else {
                 $oldParent = $oldComponents[$id]['parent'] ?? null;
                 $newParent = $newComp['parent'] ?? null;
 
                 if ($oldParent === null && $newParent !== null) {
+                    unset($newComp['_storage_path']);
                     $changes[$id] = $newComp;
                 } else {
                     $diff = $this->diffProperties($oldComponents[$id], $newComp);
@@ -67,7 +69,7 @@ class ComponentDiffer implements UIDifferInterface
         $changes = [];
 
         foreach ($new as $key => $value) {
-            if ($key === 'type' || $key === '_order') {
+            if ($key === 'type' || $key === '_order' || $key === '_storage_path') {
                 continue;
             }
 
@@ -77,7 +79,7 @@ class ComponentDiffer implements UIDifferInterface
         }
 
         foreach ($old as $key => $value) {
-            if (! isset($new[$key]) && $key !== 'type' && $key !== 'parent' && $key !== '_order') {
+            if (! isset($new[$key]) && $key !== 'type' && $key !== 'parent' && $key !== '_order' && $key !== '_storage_path') {
                 $changes[$key] = null;
             }
         }
@@ -104,4 +106,3 @@ class ComponentDiffer implements UIDifferInterface
         return $flat;
     }
 }
-

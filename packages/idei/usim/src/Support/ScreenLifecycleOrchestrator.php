@@ -464,7 +464,11 @@ class ScreenLifecycleOrchestrator implements ScreenLifecycleOrchestratorInterfac
                     continue;
                 }
                 foreach ($dirtyProps as $propKey => $propValue) {
-                    $diff[$componentId][$propKey] = $propValue;
+                    if (array_key_exists($propKey, $newUI[$componentId])) {
+                        $diff[$componentId][$propKey] = $newUI[$componentId][$propKey];
+                    } else {
+                        $diff[$componentId][$propKey] = $propValue;
+                    }
                 }
             }
         }
@@ -658,7 +662,7 @@ class ScreenLifecycleOrchestrator implements ScreenLifecycleOrchestratorInterfac
     protected function collectDirtyComponentChanges(Container $container): array
     {
         $dirtyChanges = [];
-        $ignoredKeys = ['type', 'parent', '_order'];
+        $ignoredKeys = ['type', 'parent', '_order', '_storage_path'];
 
         foreach ($container->getChildren() as $child) {
             if ($child instanceof UIComponent) {

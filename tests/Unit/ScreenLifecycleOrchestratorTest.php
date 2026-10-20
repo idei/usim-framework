@@ -1,12 +1,14 @@
 <?php
 
+use Idei\Usim\Components\Container;
 use Idei\Usim\Contracts\ComponentIdGeneratorInterface;
 use Idei\Usim\Contracts\ScreenLifecycleOrchestratorInterface;
 use Idei\Usim\Contracts\UIDifferInterface;
 use Idei\Usim\Contracts\UIStateRepositoryInterface;
+use Idei\Usim\Screen;
 use Idei\Usim\Support\ScreenLifecycleOrchestrator;
+use Idei\Usim\UI;
 use Idei\Usim\UIChangesCollector;
-use Mockery;
 use Mockery\MockInterface;
 use Tests\Support\LifecycleTestScreen;
 
@@ -153,4 +155,58 @@ it('clears cached snapshot through clearCachedScreenSnapshot', function () {
 
     $result = $orchestrator->clearCachedScreenSnapshot($screen);
     expect($result)->toBeTrue();
+});
+
+it('preserves transformed values in buildDiffResponse when dirty component properties exist', function () {
+    $orchestrator = app(ScreenLifecycleOrchestratorInterface::class);
+
+    $screen = new class extends Screen
+    {
+        protected function buildBaseUI(Container $container, ...$params): void {}
+    };
+
+    $container = UI::container('test_screen')->root(true);
+    $img = UI::image('avatar')->src('avatar.png')->storage('uploads/avatars');
+    $container->add($img);
+
+    $screen->setContainer($container);
+    $newUI = $container->toJson();
+    $screen->setNewUI($newUI);
+    $screen->setOldUI([]);
+
+    $diff = $orchestrator->buildDiffResponse($screen);
+
+    $imgId = $img->getId();
+    expect($diff)->toHaveKey($imgId);
+    expect($diff[$imgId]['src'])->toBe(url('/files/uploads/avatars/avatar.png'));
+    expect($diff[$imgId]['src'])->not->toBe('avatar.png');
+});
+
+it('preserves transformed url when image source is mutated during reactive event lifecycle', function () {
+    $orchestrator = app(ScreenLifecycleOrchestratorInterface::class);
+
+    $screen = new class extends Screen
+    {
+        protected function buildBaseUI(Container $container, ...$params): void {}
+    };
+
+    $container = UI::container('test_screen')->root(true);
+    $img = UI::image('avatar')->src('avatar1.png')->storage('uploads/avatars');
+    $container->add($img);
+
+    $screen->setContainer($container);
+    $oldUI = $container->toJson();
+    $screen->setOldUI($oldUI);
+
+    // Component is mutated dynamically during event handler
+    $img->src('avatar2.png');
+    $newUI = $container->toJson();
+    $screen->setNewUI($newUI);
+
+    $diff = $orchestrator->buildDiffResponse($screen);
+
+    $imgId = $img->getId();
+    expect($diff)->toHaveKey($imgId);
+    expect($diff[$imgId]['src'])->toBe(url('/files/uploads/avatars/avatar2.png'));
+    expect($diff[$imgId]['src'])->not->toBe('avatar2.png');
 });

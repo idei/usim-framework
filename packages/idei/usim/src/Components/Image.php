@@ -61,8 +61,26 @@ class Image extends UIComponent
         }
 
         $this->storagePath = $directory;
+        $this->config['_storage_path'] = $directory;
 
         return $this;
+    }
+
+    /**
+     * @param  array<string, mixed>  $data
+     */
+    public static function deserialize(int $id, array $data): self
+    {
+        /** @var self $component */
+        $component = parent::deserialize($id, $data);
+
+        $storagePath = $data['_storage_path'] ?? null;
+        if (is_string($storagePath) && $storagePath !== '') {
+            $component->storagePath = $storagePath;
+            $component->config['_storage_path'] = $storagePath;
+        }
+
+        return $component;
     }
 
     public function alt(string $alt): static
@@ -304,7 +322,7 @@ class Image extends UIComponent
     }
 
     /**
-     * @param array<string, mixed> $settings
+     * @param  array<string, mixed>  $settings
      */
     private function positiveSetting(array $settings, string $key, int $default): int
     {

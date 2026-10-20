@@ -32,6 +32,8 @@ The format is based on Keep a Changelog, and this project follows Semantic Versi
 - `Screen::showInto()` and `AbstractLayout::showInto()`: passing `force: true` now automatically purges the target screen's cached snapshot (via `clearCachedScreenSnapshot()`) and state variables in `UIStateRepository`, ensuring fresh UI reconstruction without manual `Screen::make()->clearCachedScreenSnapshot()` boilerplate.
 
 ### Fixed
+- Fixed image URL diff resolution in `ScreenLifecycleOrchestrator::buildDiffResponse()`: dirty component properties now prioritize transformed values present in `$newUI` rather than injecting raw configuration values, preventing relative storage paths (`Image::storage()`) from overwriting canonical URLs during reactive events.
+- Preserved `Image::storage()` directory configuration across UI tree cache serialization and deserialization via internal `_storage_path`.
 - Toast position styles now apply to the toast container rather than each toast, keeping `top-middle` centered; centered positions also remain centered on mobile.
 - `stubs/services/Auth/RegisterService.php.stub`: users registering with only the default pending role (`usim.default_registering_role`, e.g. `registered`) are now placed in the `lobby` unit instead of `main` when no explicit `$unit` is given. Previously they landed in `main`, so the lobby-cleanup logic (removing the `registered` role and detaching `lobby`) never triggered once an admin later assigned them a role in an operational unit, leaving `registered` stuck on the user.
 - Fixed static analysis warning in `PrepareUIContext::clearWebGuardUser()` by validating `Illuminate\Auth\SessionGuard` before calling `forgetUser()`.
