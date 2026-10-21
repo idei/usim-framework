@@ -8,16 +8,33 @@ use InvalidArgumentException;
 
 class SvgImagePlaceholderGenerator implements ImagePlaceholderGeneratorInterface
 {
+    private const MIN_FONT_SIZE = 10;
+
+    private const MAX_FONT_SIZE = 40;
+
     public function generate(ImagePlaceholder $placeholder): string
     {
         $this->assertColor($placeholder->backgroundColor);
         $this->assertColor($placeholder->textColor);
 
-        $fontSize = max(12, min(24, (int) floor($placeholder->width / 12)));
-        $lineHeight = (int) ceil($fontSize * 1.25);
-        $maxCharacters = max(1, (int) floor(($placeholder->width - 32) / ($fontSize * 0.65)));
-        $maxLines = max(1, (int) floor(($placeholder->height - 24) / $lineHeight));
-        $lines = $this->wrapCaption($placeholder->caption ?? '', $maxCharacters);
+        $caption = $placeholder->caption ?? '';
+        $maxFontSize = max(self::MIN_FONT_SIZE, min(self::MAX_FONT_SIZE, (int) floor(min($placeholder->width, $placeholder->height) / 4)));
+
+        $fontSize = $maxFontSize;
+        $layout = $this->layout($caption, $placeholder, $fontSize);
+        $lines = $layout[0];
+        $maxLines = $layout[1];
+        $lineHeight = $layout[2];
+
+        // Largest font size whose wrapped text fits inside the rectangle.
+        while ($fontSize > self::MIN_FONT_SIZE
+            && (count($lines) > $maxLines || ! $this->keepsWordsWhole($lines, $caption))) {
+            $fontSize--;
+            $layout = $this->layout($caption, $placeholder, $fontSize);
+            $lines = $layout[0];
+            $maxLines = $layout[1];
+            $lineHeight = $layout[2];
+        }
 
         if (count($lines) > $maxLines) {
             $lines = array_slice($lines, 0, $maxLines);
@@ -46,6 +63,28 @@ class SvgImagePlaceholderGenerator implements ImagePlaceholderGeneratorInterface
         );
 
         return 'data:image/svg+xml;base64,'.base64_encode($svg);
+    }
+
+    /**
+     * @return array{0: list<string>, 1: int, 2: int} lines, max lines, line height
+     */
+    private function layout(string $caption, ImagePlaceholder $placeholder, int $fontSize): array
+    {
+        $lineHeight = (int) ceil($fontSize * 1.25);
+        $maxCharacters = max(1, (int) floor(($placeholder->width - 32) / ($fontSize * 0.65)));
+        $maxLines = max(1, (int) floor(($placeholder->height - 24) / $lineHeight));
+
+        return [$this->wrapCaption($caption, $maxCharacters), $maxLines, $lineHeight];
+    }
+
+    /**
+     * @param  list<string>  $lines
+     */
+    private function keepsWordsWhole(array $lines, string $caption): bool
+    {
+        $words = preg_split('/\s+/u', trim($caption), -1, PREG_SPLIT_NO_EMPTY) ?: [];
+
+        return count(preg_split('/\s+/u', implode(' ', $lines), -1, PREG_SPLIT_NO_EMPTY) ?: []) === count($words);
     }
 
     /**

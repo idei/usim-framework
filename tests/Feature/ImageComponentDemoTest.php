@@ -46,7 +46,7 @@ it('generates a default SVG image using the configured aspect ratio and caption'
         ->placeholderAspect(AspectRatio::_16_9)
         ->placeholderId(42)
         ->placeholderColors('#123456', '#abcdef')
-        ->caption('Post & news');
+        ->alt('Post & news');
 
     $config = $img->toJson()[$img->getId()];
     $src = $config['src'] ?? null;
@@ -74,7 +74,7 @@ it('wraps and centers long placeholder captions within the image bounds', functi
     $img = UI::image('portrait_placeholder')
         ->height(Size::px(320))
         ->placeholderAspect(AspectRatio::_9_16)
-        ->caption('Custom background and text colors stay centered');
+        ->alt('Custom background and text colors stay centered');
 
     $config = $img->toJson()[$img->getId()];
     $src = $config['src'] ?? null;
