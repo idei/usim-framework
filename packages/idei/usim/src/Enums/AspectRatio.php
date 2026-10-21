@@ -15,6 +15,17 @@ enum AspectRatio: string
     case _16_9 = '16:9';
     case _9_16 = '9:16';
 
+    public static function all(): array
+    {
+        $all = self::cases();
+        return array_map(fn($case) => $case->value, $all);
+    }
+
+    public static function default(): self
+    {
+        return self::_16_9;
+    }
+
     /**
      * Calculate the missing dimension from the aspect ratio.
      *
