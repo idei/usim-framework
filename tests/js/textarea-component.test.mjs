@@ -19,6 +19,7 @@ function createDomEnvironment() {
         'packages/idei/usim/resources/assets/js/component-registry.js',
         'packages/idei/usim/resources/assets/js/ui-renderer.js',
         'packages/idei/usim/resources/assets/js/components/shared/ui-event.js',
+        'packages/idei/usim/resources/assets/js/components/button/index.js',
         'packages/idei/usim/resources/assets/js/components/textarea/index.js',
     ];
 
@@ -160,6 +161,42 @@ test('UIComponent: defines triggerAction on base class as robust fallback', asyn
     assert.equal(sentPayload.action, 'custom_action');
     assert.deepEqual(sentPayload.parameters, { foo: 'bar' });
     assert.deepEqual(appliedUpdate, { success: true });
+});
+
+test('Textarea: assigns name attribute to DOM element and is collected by button collectContextValues', async () => {
+    const dom = createDomEnvironment();
+
+    // Create a container with class ui-container
+    const container = dom.window.document.createElement('div');
+    container.className = 'ui-container';
+    dom.window.document.body.appendChild(container);
+
+    // Create textarea component
+    const textareaComp = dom.window.USIM_COMPONENTS.create('textarea', 201, {
+        name: 'input_message',
+        label: 'Mensaje',
+        value: 'Hola mundo desde el textarea',
+    });
+    const taEl = textareaComp.render();
+    container.appendChild(taEl);
+
+    // Create button component
+    const buttonComp = dom.window.USIM_COMPONENTS.create('button', 202, {
+        label: 'Enviar',
+        action: 'submit_form',
+    });
+    const btnEl = buttonComp.render();
+    container.appendChild(btnEl);
+
+    // Verify textarea DOM element has name attribute
+    const ta = taEl.querySelector('textarea');
+    assert.ok(ta, 'Textarea element should exist');
+    assert.equal(ta.name, 'input_message', 'Textarea element must have name attribute matching config');
+    assert.equal(ta.value, 'Hola mundo desde el textarea');
+
+    // Verify button collectContextValues collects input_message
+    const collected = buttonComp.collectContextValues();
+    assert.equal(collected.input_message, 'Hola mundo desde el textarea', 'collectContextValues must include textarea value under its name');
 });
 
 

@@ -6,6 +6,7 @@ use Idei\Usim\Components\Button;
 use Idei\Usim\Components\Container;
 use Idei\Usim\Components\Input;
 use Idei\Usim\Components\Label;
+use Idei\Usim\Components\Textarea;
 use Idei\Usim\Enums\Visibility;
 use Idei\Usim\Screen;
 use Idei\Usim\UI;
@@ -19,6 +20,7 @@ class FormDemo extends Screen
     protected Label $lbl_instruction;
     protected Input $input_name;
     protected Input $input_email;
+    protected Textarea $input_message;
     protected Button $btn_submit;
     protected Label $lbl_result;
 
@@ -28,7 +30,7 @@ class FormDemo extends Screen
             ->card()
             ->maxWidth(Size::px(500))
             ->centerHorizontal()
-            ->padding(Spacing::px(20));
+            ->padding(Spacing::px(10));
 
         $wrapper->add(
             $this->lbl_instruction
@@ -56,6 +58,14 @@ class FormDemo extends Screen
                 ->type('email')
                 ->width(Size::full())
         );
+        $wrapper->add(
+            $this->input_message
+                ->label(t('screens.demo.form_demo.message.label'))
+                ->placeholder(t('screens.demo.form_demo.message.placeholder'))
+                ->value('Una situación pendular...\n\tY poco convencional.')
+                ->required(true)
+                ->width(Size::full())
+        );
 
         $wrapper->add(
             $this->btn_submit
@@ -78,6 +88,7 @@ class FormDemo extends Screen
     {
         $this->input_name->value("")->error(null);
         $this->input_email->value("")->error(null);
+        $this->input_message->value("")->error(null);
         $this->lbl_result
             ->text(t('screens.demo.form_demo.result.initial'))
             ->style('secondary');
@@ -97,9 +108,13 @@ class FormDemo extends Screen
         $rawEmail = $params['input_email'] ?? '';
         $email = trim(is_scalar($rawEmail) || $rawEmail instanceof \Stringable ? (string) $rawEmail : '');
 
+        $rawMessage = $params['input_message'] ?? '';
+        $message = trim(is_scalar($rawMessage) || $rawMessage instanceof \Stringable ? (string) $rawMessage : '');
+
         // Clear previous errors
         $this->input_name->error(null);
         $this->input_email->error(null);
+        $this->input_message->error(null);
 
         // Validation flags
         $hasErrors = false;
@@ -130,12 +145,17 @@ class FormDemo extends Screen
             $this->toast(t('screens.demo.form_demo.toast.correct_errors'), 'error');
         } else {
             $this->lbl_result
-                ->text(t('screens.demo.form_demo.result.success', ['name' => $name, 'email' => $email]))
+                ->text(t('screens.demo.form_demo.result.success', [
+                    'name' => $name,
+                    'email' => $email,
+                    'message' => $message
+                ]))
                 ->style('success');
 
             // Clear form inputs after successful submission
             $this->input_name->value('');
             $this->input_email->value('');
+            $this->input_message->value('');
         }
     }
 }

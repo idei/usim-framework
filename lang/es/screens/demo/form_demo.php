@@ -10,6 +10,10 @@ return [
         'label' => 'Correo',
         'placeholder' => 'Ingresa tu correo',
     ],
+    'message' => [
+        'label' => 'Mensaje',
+        'placeholder' => 'Ingresa tu mensaje',
+    ],
     'instruction' => 'Completa el formulario (todos los campos son obligatorios):',
     'name' => [
         'label' => 'Nombre',
@@ -21,7 +25,8 @@ return [
         'success' => 'Formulario enviado correctamente!
 
 Nombre: :name
-Correo: :email',
+Correo: :email
+Mensaje: :message',
     ],
     'title' => 'Demo de Componente Formulario',
     'toast' => [

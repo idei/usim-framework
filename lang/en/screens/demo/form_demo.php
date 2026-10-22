@@ -10,6 +10,10 @@ return [
         'label' => 'Email',
         'placeholder' => 'Enter your email',
     ],
+    'message' => [
+        'label' => 'Message',
+        'placeholder' => 'Enter your message',
+    ],
     'instruction' => 'Fill out the form below (all fields are required):',
     'name' => [
         'label' => 'Name',
@@ -21,7 +25,8 @@ return [
         'success' => 'Form submitted successfully!
 
 Name: :name
-Email: :email',
+Email: :email
+Message: :message',
     ],
     'title' => 'Form Component Demo',
     'toast' => [
