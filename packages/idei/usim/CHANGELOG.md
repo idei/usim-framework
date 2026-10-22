@@ -16,6 +16,7 @@ The format is based on Keep a Changelog, and this project follows Semantic Versi
 - New `Image` component (`Idei\Usim\Components\Image`, `UI::image()`, `UsimImageComponent`) with automatic fetch, loading spinner overlay, fallback support, and responsive styling.
 - New `ImageDemo` screen (`App\UI\Screens\Demo\ImageDemo`) displaying public image API integration via `getImage()`.
 - `usim:install` now recursively publishes all files under `stubs/resources` into the consuming application's `resources` directory while preserving their relative paths and existing files.
+- Promoted `triggerAction()` to base class `UIComponent` (`ui-renderer.js`), enabling all components to dispatch actions via `sendUiEvent` and `applyUiUpdate` with fallback to `sendEventToBackend`, preventing method omission errors across custom components.
 - Support for `X-UI-Client-Id` request header in `UIStateManager::getOrCreateClientId()`, prioritizing per-tab UUIDs over the shared `ui_client_id` cookie to isolate UI state trees in the backend cache.
 - Per-tab authentication isolation in `PrepareUIContext`: when requests provide `X-UI-Client-Id` without a valid `store_token`, the web guard user is cleared (`clearWebGuardUser()`) and resolved as guest, preventing cross-tab session leakage from shared browser session cookies (`laravel_session`).
 - Added `Device::isPaired(): bool` contract to `App\Models\Device` and package stubs, establishing pairing symmetry where pairing $\equiv$ login and unpairing $\equiv$ logout.

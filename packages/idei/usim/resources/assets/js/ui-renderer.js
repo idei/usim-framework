@@ -724,6 +724,40 @@ class UIComponent {
     }
 
     /**
+     * Dispatch an action using USIM component helpers (sendUiEvent + applyUiUpdate)
+     * or fallback to sendEventToBackend.
+     *
+     * @param {string} action - Action name (e.g. 'on_plain_saved', 'submit')
+     * @param {object} [parameters={}] - Action parameters
+     * @param {string} [event='input'] - Event type
+     */
+    async triggerAction(action, parameters = {}, event = 'input') {
+        try {
+            const componentId = this.getComponentId();
+            const helpers = window.USIM_COMPONENT_HELPERS;
+            if (helpers?.sendUiEvent) {
+                const { ok, result } = await helpers.sendUiEvent({
+                    componentId,
+                    event,
+                    action,
+                    parameters,
+                });
+
+                if (ok) {
+                    helpers.applyUiUpdate?.(result);
+                }
+                return;
+            }
+
+            if (typeof this.sendEventToBackend === 'function') {
+                await this.sendEventToBackend(event, action, parameters);
+            }
+        } catch (error) {
+            console.error(`UIComponent [${this.constructor.name}] triggerAction error:`, error);
+        }
+    }
+
+    /**
      * Send UI event to backend
      *
      * @param {string} event - Event type (click, change, etc.)
@@ -1051,6 +1085,8 @@ class UIComponent {
         }
     }
 }
+
+window.UIComponent = UIComponent;
 
 // ==================== Component Factory ====================
 class ComponentFactory {

@@ -79,6 +79,7 @@ test('Textarea: triggers onChange action without TypeError and sends event paylo
 
     assert.ok(sentPayload, 'sendUiEvent should have been called');
     assert.equal(sentPayload.componentId, 102);
+    assert.equal(sentPayload.event, 'change');
     assert.equal(sentPayload.action, 'on_plain_saved');
     assert.equal(sentPayload.parameters.value, 'Texto de prueba');
     assert.equal(sentPayload.parameters.post_content, 'Texto de prueba');
@@ -123,7 +124,42 @@ test('Textarea: triggers debounced onInput action with value', async () => {
 
     assert.ok(sentPayload, 'sendUiEvent should be called after debounce delay');
     assert.equal(sentPayload.componentId, 103);
+    assert.equal(sentPayload.event, 'input');
     assert.equal(sentPayload.action, 'on_typing');
     assert.equal(sentPayload.parameters.value, 'Escribiendo');
 });
+
+test('UIComponent: defines triggerAction on base class as robust fallback', async () => {
+    const dom = createDomEnvironment();
+    let sentPayload = null;
+    let appliedUpdate = null;
+
+    dom.window.USIM_COMPONENT_HELPERS.sendUiEvent = async (payload) => {
+        sentPayload = payload;
+        return { ok: true, result: { success: true } };
+    };
+
+    dom.window.USIM_COMPONENT_HELPERS.applyUiUpdate = (result) => {
+        appliedUpdate = result;
+    };
+
+    class DummyComponent extends dom.window.UIComponent {
+        render() {
+            return dom.window.document.createElement('div');
+        }
+    }
+
+    const dummy = new DummyComponent('888', { name: 'dummy' });
+    assert.equal(typeof dummy.triggerAction, 'function', 'UIComponent must provide triggerAction');
+
+    await dummy.triggerAction('custom_action', { foo: 'bar' }, 'custom_event');
+
+    assert.ok(sentPayload, 'Base triggerAction must dispatch via sendUiEvent');
+    assert.equal(sentPayload.componentId, 888);
+    assert.equal(sentPayload.event, 'custom_event');
+    assert.equal(sentPayload.action, 'custom_action');
+    assert.deepEqual(sentPayload.parameters, { foo: 'bar' });
+    assert.deepEqual(appliedUpdate, { success: true });
+});
+
 

@@ -537,7 +537,7 @@ class UsimTextareaComponent extends UIComponent {
         return params;
     }
 
-    async triggerAction(action, parameters) {
+    async triggerAction(action, parameters, event = 'input') {
         try {
             const componentId = this.getComponentId();
             const helpers = window.USIM_COMPONENT_HELPERS;
@@ -547,7 +547,7 @@ class UsimTextareaComponent extends UIComponent {
 
             const { ok, result } = await helpers.sendUiEvent({
                 componentId,
-                event: 'input',
+                event,
                 action,
                 parameters,
             });
@@ -567,7 +567,8 @@ class UsimTextareaComponent extends UIComponent {
         this._debounceTimer = setTimeout(() => {
             this.triggerAction(
                 this.config.on_input.action,
-                this.buildActionParameters(this.config.on_input.parameters, this._textarea?.value ?? '')
+                this.buildActionParameters(this.config.on_input.parameters, this._textarea?.value ?? ''),
+                'input'
             );
         }, debounce);
     }
@@ -576,7 +577,8 @@ class UsimTextareaComponent extends UIComponent {
         if (!this.config.on_change) return;
         this.triggerAction(
             this.config.on_change.action,
-            this.buildActionParameters(this.config.on_change.parameters, this._textarea?.value ?? '')
+            this.buildActionParameters(this.config.on_change.parameters, this._textarea?.value ?? ''),
+            'change'
         );
     }
 }
