@@ -379,9 +379,15 @@ class Container implements Gapable, Marginable, Paddable, Sizeable, UIElement
         $newKey = (string) $newId;
 
         if (array_key_exists($oldKey, $this->children)) {
-            $element = $this->children[$oldKey];
-            unset($this->children[$oldKey]);
-            $this->children[$newKey] = $element;
+            $newChildren = [];
+            foreach ($this->children as $key => $child) {
+                if ((string) $key === $oldKey) {
+                    $newChildren[$newKey] = $child;
+                } else {
+                    $newChildren[$key] = $child;
+                }
+            }
+            $this->children = $newChildren;
 
             return;
         }

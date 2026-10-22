@@ -678,6 +678,29 @@ abstract class Screen
     }
 
     /**
+     * Convert an action name or event name to an onPascalCase method name.
+     *
+     * Handles:
+     * - snake_case (e.g. 'submit_form' -> 'onSubmitForm')
+     * - snake_case with 'on_' prefix (e.g. 'on_plain_saved' -> 'onPlainSaved')
+     * - kebab-case (e.g. 'open-dialog' -> 'onOpenDialog')
+     * - onPascalCase (e.g. 'onSubmitForm' -> 'onSubmitForm')
+     * - camelCase (e.g. 'submitForm' -> 'onSubmitForm')
+     */
+    public static function actionToMethodName(string $action): string
+    {
+        if (str_starts_with($action, 'on_') || str_starts_with($action, 'on-')) {
+            $action = substr($action, 3);
+        }
+
+        if (preg_match('/^on[A-Z]/', $action)) {
+            return $action;
+        }
+
+        return 'on'.Str::studly($action);
+    }
+
+    /**
      * Resolve an action name (e.g. 'submit_login') or method name (e.g. 'onSubmitLogin') to a callable method on this screen.
      */
     public function resolveActionMethod(string $action): string
@@ -686,9 +709,14 @@ abstract class Screen
             return $action;
         }
 
-        $studlyAction = 'on'.Str::studly($action);
+        $studlyAction = static::actionToMethodName($action);
         if (method_exists($this, $studlyAction)) {
             return $studlyAction;
+        }
+
+        $legacyAction = 'on'.Str::studly($action);
+        if (method_exists($this, $legacyAction)) {
+            return $legacyAction;
         }
 
         throw new \BadMethodCallException(
@@ -704,7 +732,11 @@ abstract class Screen
      */
     public function __call(string $name, array $arguments): mixed
     {
-        $candidateMethod = method_exists($this, $name) ? $name : 'on'.Str::studly($name);
+        $candidateMethod = method_exists($this, $name) ? $name : static::actionToMethodName($name);
+        if (! method_exists($this, $candidateMethod)) {
+            $candidateMethod = 'on'.Str::studly($name);
+        }
+
         if (method_exists($this, $candidateMethod)) {
             /** @var array<string, mixed> $parameters */
             $parameters = isset($arguments[0]) && is_array($arguments[0]) ? $arguments[0] : [];

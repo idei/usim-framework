@@ -153,6 +153,9 @@ trait HandlesScreenProperties
                         } elseif ($value !== null && $propertyName === 'store_token_crypt' && ! empty($value)) {
                             // If value is not yet encrypted, encrypt it
                             try {
+                                if (! \is_string($value)) {
+                                    throw new \Exception('Value is not a string');
+                                }
                                 decrypt($value);
                             } catch (\Throwable) {
                                 $value = encrypt($value);

@@ -74,7 +74,7 @@ class UsimEventDispatcher
 
     protected function processEvent(UsimEvent $event): void
     {
-        $methodName = 'on'.str_replace('_', '', ucwords($event->eventName, '_'));
+        $methodName = Screen::actionToMethodName($event->eventName);
         $openedScreens = UIStateManager::getClientOpenedScreens();
         $incomingStorageRaw = request()->storage ?? [];
         $incomingStorage = [];

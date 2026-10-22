@@ -101,11 +101,13 @@ class Uploader extends UIComponent
     /**
      * Establecer relación de aspecto esperada para el dropzone
      *
-     * @param AspectRatio $ratio Expected aspect ratio for the dropzone.
+     * @param AspectRatio|string $ratio Expected aspect ratio for the dropzone.
      */
-    public function aspect(AspectRatio $ratio): self
+    public function aspect(AspectRatio|string $ratio): self
     {
-        return $this->setConfig('aspect_ratio', $ratio->value);
+        $value = $ratio instanceof AspectRatio ? $ratio->value : $ratio;
+
+        return $this->setConfig('aspect_ratio', $value);
     }
 
     /**

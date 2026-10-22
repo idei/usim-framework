@@ -310,9 +310,7 @@ trait HandlesModals
         $this->closeModal();
 
         if ($callerScreenClass !== null && $targetAction !== null && class_exists($callerScreenClass)) {
-            if (! str_starts_with($targetAction, 'on')) {
-                $targetAction = 'on'.str_replace(' ', '', ucwords(str_replace('_', ' ', $targetAction)));
-            }
+            $targetAction = Screen::actionToMethodName($targetAction);
 
             $caller = Screen::make($callerScreenClass);
             $caller->handleAction(

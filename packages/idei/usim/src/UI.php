@@ -17,8 +17,8 @@ use Idei\Usim\Components\Select;
 use Idei\Usim\Components\Split;
 use Idei\Usim\Components\Table;
 use Idei\Usim\Components\TableRow;
+use Idei\Usim\Components\Textarea;
 use Idei\Usim\Components\Timer;
-use Idei\Usim\Components\UIComponent;
 use Idei\Usim\Components\Uploader;
 
 /**
@@ -197,11 +197,9 @@ class UI
      *
      * @param  string|null  $name  The optional semantic name for the textarea
      */
-    public static function textarea(?string $name = null): UIComponent
+    public static function textarea(?string $name = null): Textarea
     {
-        $textareaClass = 'Idei\\Usim\\Components\\Textarea';
-
-        return new $textareaClass($name);
+        return new Textarea($name);
     }
 
     /**

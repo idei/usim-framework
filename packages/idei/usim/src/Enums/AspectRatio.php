@@ -15,6 +15,11 @@ enum AspectRatio: string
     case _16_9 = '16:9';
     case _9_16 = '9:16';
 
+    /**
+     * Get all aspect ratio values as an array of strings.
+     *
+     * @return array<string> An array of aspect ratio strings.
+     */
     public static function all(): array
     {
         $all = self::cases();

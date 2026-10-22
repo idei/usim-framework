@@ -10,6 +10,7 @@ use Idei\Usim\UIChangesCollector;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
+use Illuminate\Support\Str;
 
 // use Illuminate\Support\Facades\Log;
 
@@ -229,6 +230,16 @@ class UIEventController extends Controller
             return $action;
         }
 
+        $camel = Str::camel($action);
+        if (method_exists($screen, $camel)) {
+            return $camel;
+        }
+
+        $legacyMethod = 'on'.Str::studly($action);
+        if (method_exists($screen, $legacyMethod)) {
+            return $legacyMethod;
+        }
+
         return null;
     }
 
@@ -238,19 +249,17 @@ class UIEventController extends Controller
      * Convention: snake_case → onPascalCase
      * Examples:
      * - test_action → onTestAction
+     * - on_plain_saved → onPlainSaved
      * - submit_form → onSubmitForm
      * - cancel_form → onCancelForm
      * - open_settings → onOpenSettings
      *
-     * @param  string  $action  Action name in snake_case
+     * @param  string  $action  Action name
      * @return string Method name in onPascalCase format
      */
     private function actionToMethodName(string $action): string
     {
-        // Replace underscores with spaces, capitalize words, remove spaces
-        $pascalCase = str_replace(' ', '', ucwords(str_replace('_', ' ', $action)));
-
-        return 'on'.$pascalCase;
+        return Screen::actionToMethodName($action);
     }
 
     /** @return array<string, mixed> */

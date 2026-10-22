@@ -45,7 +45,6 @@ class TextareaDemo extends Screen
             ->width(Size::full())
             ->gap(Spacing::px(12));
 
-        /** @var Textarea $plainTextarea */
         $plainTextarea = UI::textarea('plain_textarea');
 
         $sectionPlain->add(
@@ -70,7 +69,6 @@ class TextareaDemo extends Screen
 
         $defaultMd = "## Bienvenido al editor Markdown\n\nEscribe **negrita**, *cursiva* o `código inline`.\n\n- Viñeta 1\n- Viñeta 2\n\n> Una cita de ejemplo.\n";
 
-        /** @var Textarea $markdownTextarea */
         $markdownTextarea = UI::textarea('md_textarea');
 
         $sectionMd->add(
@@ -96,6 +94,9 @@ class TextareaDemo extends Screen
     {
         $rawValue = $params['value'] ?? '';
         $value = trim(is_scalar($rawValue) || $rawValue instanceof \Stringable ? (string) $rawValue : '');
+        $len = mb_strlen($value);
+
+        $this->toast("Texto guardado ({$len} car.)");
     }
 
     /** @param array<string, mixed> $params */
