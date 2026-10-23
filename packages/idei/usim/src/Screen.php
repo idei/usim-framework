@@ -804,10 +804,11 @@ abstract class Screen
      * Build and attach a nested screen inside a parent container.
      *
      * @param  class-string<Screen>  $class
+     * @param  array<int|string, mixed>  $params
      */
-    public static function embedInto(string $class, Container $parent): void
+    public static function embedInto(string $class, Container $parent, array $params = []): void
     {
-        static::getLifecycleOrchestrator()->embedInto($class, $parent);
+        static::getLifecycleOrchestrator()->embedInto($class, $parent, $params);
     }
 
     /**

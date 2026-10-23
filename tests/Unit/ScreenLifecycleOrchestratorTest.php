@@ -1,10 +1,13 @@
 <?php
 
 use Idei\Usim\Components\Container;
+use Idei\Usim\Components\Input;
 use Idei\Usim\Contracts\ComponentIdGeneratorInterface;
 use Idei\Usim\Contracts\ScreenLifecycleOrchestratorInterface;
 use Idei\Usim\Contracts\UIDifferInterface;
 use Idei\Usim\Contracts\UIStateRepositoryInterface;
+use Idei\Usim\Exceptions\UIRequestValidationException;
+use Idei\Usim\Http\Requests\UIRequest;
 use Idei\Usim\Screen;
 use Idei\Usim\Support\ScreenLifecycleOrchestrator;
 use Idei\Usim\UI;
@@ -211,7 +214,7 @@ it('preserves transformed url when image source is mutated during reactive event
     expect($diff[$imgId]['src'])->not->toBe('avatar2.png');
 });
 
-class TestOrchestratorDeviceRequest extends \Idei\Usim\Http\Requests\UIRequest
+class TestOrchestratorDeviceRequest extends UIRequest
 {
     public function rules(): array
     {
@@ -225,11 +228,15 @@ class TestOrchestratorDeviceRequest extends \Idei\Usim\Http\Requests\UIRequest
 it('orchestrates handleAction with UIRequest and binds errors on validation failure', function () {
     $orchestrator = app(ScreenLifecycleOrchestratorInterface::class);
 
-    $screen = new class extends Screen {
+    $screen = new class extends Screen
+    {
         public static ?string $layout = null;
+
         public bool $executed = false;
+
         public ?TestOrchestratorDeviceRequest $receivedRequest = null;
-        protected \Idei\Usim\Components\Input $input_pin;
+
+        protected Input $input_pin;
 
         protected function buildBaseUI(Container $container, ...$params): void
         {
@@ -279,7 +286,7 @@ it('orchestrates handleAction with UIRequest and binds errors on validation fail
     $ref = new ReflectionClass($screen);
     $prop = $ref->getProperty('input_pin');
     $prop->setAccessible(true);
-    /** @var \Idei\Usim\Components\Input $inputPin */
+    /** @var Input $inputPin */
     $inputPin = $prop->getValue($screen);
 
     $json = $inputPin->toJson();
@@ -291,7 +298,8 @@ it('orchestrates handleAction with UIRequest and binds errors on validation fail
 it('orchestrates handleQuery with UIRequest and validates query parameters', function () {
     $orchestrator = app(ScreenLifecycleOrchestratorInterface::class);
 
-    $screen = new class extends Screen {
+    $screen = new class extends Screen
+    {
         public static ?string $layout = null;
 
         protected function buildBaseUI(Container $container, ...$params): void {}
@@ -322,5 +330,36 @@ it('orchestrates handleQuery with UIRequest and validates query parameters', fun
             'name' => 'A', // min:3 fails
             'pin' => 'bad',
         ]
-    ))->toThrow(\Idei\Usim\Exceptions\UIRequestValidationException::class);
+    ))->toThrow(UIRequestValidationException::class);
+});
+
+class TestEmbedScreenWithParams extends Screen
+{
+    public const ROUTE_PATH = '/test-embed-params';
+
+    public static ?string $layout = null;
+
+    public static array $receivedParams = [];
+
+    public static function authorize(): bool
+    {
+        return true;
+    }
+
+    protected function buildBaseUI(Container $container, ...$params): void
+    {
+        self::$receivedParams = $params;
+        $container->add(UI::label('lbl_param')->text('ok'));
+    }
+}
+
+it('orchestrates embedInto by initializing context and passing buildParams', function () {
+    $orchestrator = app(ScreenLifecycleOrchestratorInterface::class);
+    $parent = UI::container('test_parent');
+
+    TestEmbedScreenWithParams::$receivedParams = [];
+    $orchestrator->embedInto(TestEmbedScreenWithParams::class, $parent, ['test_key' => 'test_val']);
+
+    expect(TestEmbedScreenWithParams::$receivedParams)->toBe(['test_key' => 'test_val']);
+    expect($parent->getChildren())->not->toBeEmpty();
 });

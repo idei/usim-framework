@@ -52,15 +52,15 @@ trait HandlesNavigation
             $currentScreen = UIStateManager::getClientCurrentScreenClass();
         }
 
-        // If the target screen is already active in the slot, no need to reload unless forced
-        if (! $force && $currentScreen !== null) {
+        // If the target screen is already active in the slot, no need to reload unless forced or passing params
+        if (! $force && empty($params) && $currentScreen !== null) {
             $currentClass = class_exists($currentScreen) ? $currentScreen : Screen::resolveScreenClassFromSlug($currentScreen);
             if ($currentClass === $targetClass) {
                 return true;
             }
         }
 
-        if ($force) {
+        if ($force || ! empty($params)) {
             Screen::make($targetClass)->clearCachedScreenSnapshot();
         }
 
@@ -92,7 +92,7 @@ trait HandlesNavigation
         // Only clear and embed locally if target container is physically present in this screen's tree
         if ($targetContainer instanceof Container) {
             $targetContainer->clear();
-            Screen::embedInto($targetClass, $targetContainer);
+            Screen::embedInto($targetClass, $targetContainer, $params);
         }
 
         // Update browser URL and instruct frontend to load screen into slot

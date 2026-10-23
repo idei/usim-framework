@@ -118,6 +118,7 @@ interface ScreenLifecycleOrchestratorInterface
      * Embed a screen into a parent container.
      *
      * @param  class-string<Screen>  $screenClass
+     * @param  array<int|string, mixed>  $buildParams
      */
-    public function embedInto(string $screenClass, Container $parent): void;
+    public function embedInto(string $screenClass, Container $parent, array $buildParams = []): void;
 }

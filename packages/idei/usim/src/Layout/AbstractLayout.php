@@ -291,13 +291,13 @@ abstract class AbstractLayout extends Screen implements LayoutInterface
             return false;
         }
 
-        if ($force) {
+        if ($force || ! empty($params)) {
             Screen::make($targetClass)->clearCachedScreenSnapshot();
         }
 
         // Clear existing content in the slot container
         $targetContainer->clear();
-        Screen::embedInto($targetClass, $targetContainer);
+        Screen::embedInto($targetClass, $targetContainer, $params);
         $this->setActiveScreen($effectiveSlot, $targetClass);
 
         $routeSlug = Screen::resolveScreenSlug($targetClass);

@@ -113,7 +113,7 @@ class ScreenLifecycleOrchestrator implements ScreenLifecycleOrchestratorInterfac
                         $slot = $layout->getSlot('content') ?? $layout->getSlot('main');
                         if ($slot instanceof Container) {
                             $slot->clear();
-                            $this->embedInto($screen::class, $slot);
+                            $this->embedInto($screen::class, $slot, $buildParams);
                         }
 
                         return;
@@ -553,8 +553,9 @@ class ScreenLifecycleOrchestrator implements ScreenLifecycleOrchestratorInterfac
      * Build and attach a nested screen inside a parent container.
      *
      * @param  class-string<Screen>  $screenClass
+     * @param  array<int|string, mixed>  $buildParams
      */
-    public function embedInto(string $screenClass, Container $parent): void
+    public function embedInto(string $screenClass, Container $parent, array $buildParams = []): void
     {
         $parentId = $parent->getId();
 
@@ -571,11 +572,16 @@ class ScreenLifecycleOrchestrator implements ScreenLifecycleOrchestratorInterfac
                 $instance->onResetScreen();
             }
 
+            if (! empty($buildParams)) {
+                $instance->clearCachedScreenSnapshot();
+            }
+
             $this->initializeEventContext(
                 screen: $instance,
                 incomingStorage: Screen::getCurrentIncomingStorage(),
                 queryParams: Screen::getCurrentQueryParams(),
-                parent: $parentId
+                parent: $parentId,
+                buildParams: $buildParams
             );
             $instance->callPostLoadUI();
 
