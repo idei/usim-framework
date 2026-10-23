@@ -7,10 +7,12 @@ use Idei\Usim\Screen;
 use Idei\Usim\Support\UIIdGenerator;
 use Idei\Usim\Support\UIStateManager;
 use Idei\Usim\UIChangesCollector;
+use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
 
 // use Illuminate\Support\Facades\Log;
 
@@ -110,6 +112,15 @@ class UIEventController extends Controller
             // Log::info('UI Event handled', [json_encode($changes, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT)]);
 
             return response()->json($changes);
+        } catch (ValidationException $exception) {
+            return response()->json([
+                'message' => $exception->getMessage(),
+                'errors' => $exception->errors(),
+            ], 422);
+        } catch (AuthorizationException $exception) {
+            return response()->json([
+                'error' => $exception->getMessage() ?: 'Access denied',
+            ], 403);
         } catch (\Throwable $exception) {
             report($exception);
 

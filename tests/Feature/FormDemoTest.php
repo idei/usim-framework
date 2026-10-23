@@ -117,6 +117,7 @@ it('submits successfully and clears inputs for valid values', function () {
         expect($resultText)->toBe(t('screens.demo.form_demo.result.success', [
             'name' => 'Alice',
             'email' => 'alice@example.com',
+            'message' => '',
         ]));
 
         $ui->component('lbl_result')->expect('style')->toBe('success');

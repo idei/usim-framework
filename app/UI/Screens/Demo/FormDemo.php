@@ -2,26 +2,34 @@
 
 namespace App\UI\Screens\Demo;
 
+use App\UI\Requests\Demo\FormDemoRequest;
 use Idei\Usim\Components\Button;
 use Idei\Usim\Components\Container;
 use Idei\Usim\Components\Input;
 use Idei\Usim\Components\Label;
 use Idei\Usim\Components\Textarea;
 use Idei\Usim\Enums\Visibility;
+use Idei\Usim\Http\Requests\UIRequest;
 use Idei\Usim\Screen;
 use Idei\Usim\UI;
 use Idei\Usim\ValueObjects\Size;
 use Idei\Usim\ValueObjects\Spacing;
+use Illuminate\Contracts\Validation\Validator;
 
 class FormDemo extends Screen
 {
     public static Visibility $visibility = Visibility::PUBLIC;
 
     protected Label $lbl_instruction;
+
     protected Input $input_name;
+
     protected Input $input_email;
+
     protected Textarea $input_message;
+
     protected Button $btn_submit;
+
     protected Label $lbl_result;
 
     protected function buildBaseUI(Container $container, ...$params): void
@@ -86,76 +94,40 @@ class FormDemo extends Screen
 
     protected function postLoadUI(): void
     {
-        $this->input_name->value("")->error(null);
-        $this->input_email->value("")->error(null);
-        $this->input_message->value("")->error(null);
+        $this->input_name->value('')->error(null);
+        $this->input_email->value('')->error(null);
+        $this->input_message->value('')->error(null);
         $this->lbl_result
             ->text(t('screens.demo.form_demo.result.initial'))
             ->style('secondary');
     }
 
     /**
-     * Handle form submission with validation
-     * Reads input values from frontend parameters (sent by collectContextValues)
+     * Handle form submission using FormDemoRequest.
      */
-    /** @param array<string, mixed> $params */
-    public function onSubmitForm(array $params): void
+    public function onSubmitForm(FormDemoRequest $request): void
     {
-        // Get input values from frontend parameters (sent by collectContextValues)
-        $rawName = $params['input_name'] ?? '';
-        $name = trim(is_scalar($rawName) || $rawName instanceof \Stringable ? (string) $rawName : '');
+        $this->lbl_result
+            ->text(t('screens.demo.form_demo.result.success', [
+                'name' => $request->name,
+                'email' => $request->email,
+                'message' => $request->message ?? '',
+            ]))
+            ->style('success');
 
-        $rawEmail = $params['input_email'] ?? '';
-        $email = trim(is_scalar($rawEmail) || $rawEmail instanceof \Stringable ? (string) $rawEmail : '');
+        // Clear form inputs after successful submission
+        $this->input_name->value('');
+        $this->input_email->value('');
+        $this->input_message->value('');
+    }
 
-        $rawMessage = $params['input_message'] ?? '';
-        $message = trim(is_scalar($rawMessage) || $rawMessage instanceof \Stringable ? (string) $rawMessage : '');
-
-        // Clear previous errors
-        $this->input_name->error(null);
-        $this->input_email->error(null);
-        $this->input_message->error(null);
-
-        // Validation flags
-        $hasErrors = false;
-
-        // Validate name
-        if (empty($name)) {
-            $this->input_name->error(t('screens.demo.form_demo.validation.name_required'));
-            $hasErrors = true;
-        } elseif (strlen($name) < 2) {
-            $this->input_name->error(t('screens.demo.form_demo.validation.name_min'));
-            $hasErrors = true;
-        }
-
-        // Validate email
-        if (empty($email)) {
-            $this->input_email->error(t('screens.demo.form_demo.validation.email_required'));
-            $hasErrors = true;
-        } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-            $this->input_email->error(t('screens.demo.form_demo.validation.email_invalid'));
-            $hasErrors = true;
-        }
-
-        // Show result
-        if ($hasErrors) {
-            $this->lbl_result
-                ->text(t('screens.demo.form_demo.result.errors'))
-                ->style('danger');
-            $this->toast(t('screens.demo.form_demo.toast.correct_errors'), 'error');
-        } else {
-            $this->lbl_result
-                ->text(t('screens.demo.form_demo.result.success', [
-                    'name' => $name,
-                    'email' => $email,
-                    'message' => $message
-                ]))
-                ->style('success');
-
-            // Clear form inputs after successful submission
-            $this->input_name->value('');
-            $this->input_email->value('');
-            $this->input_message->value('');
-        }
+    /**
+     * Update result label when form validation fails.
+     */
+    public function onValidationFailed(UIRequest $request, Validator $validator): void
+    {
+        $this->lbl_result
+            ->text(t('screens.demo.form_demo.result.errors'))
+            ->style('danger');
     }
 }

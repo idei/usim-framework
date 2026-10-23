@@ -210,3 +210,117 @@ it('preserves transformed url when image source is mutated during reactive event
     expect($diff[$imgId]['src'])->toBe(url('/files/uploads/avatars/avatar2.png'));
     expect($diff[$imgId]['src'])->not->toBe('avatar2.png');
 });
+
+class TestOrchestratorDeviceRequest extends \Idei\Usim\Http\Requests\UIRequest
+{
+    public function rules(): array
+    {
+        return [
+            'name' => 'required|string|min:3',
+            'pin' => 'required|digits:4',
+        ];
+    }
+}
+
+it('orchestrates handleAction with UIRequest and binds errors on validation failure', function () {
+    $orchestrator = app(ScreenLifecycleOrchestratorInterface::class);
+
+    $screen = new class extends Screen {
+        public static ?string $layout = null;
+        public bool $executed = false;
+        public ?TestOrchestratorDeviceRequest $receivedRequest = null;
+        protected \Idei\Usim\Components\Input $input_pin;
+
+        protected function buildBaseUI(Container $container, ...$params): void
+        {
+            $container->add(
+                $this->input_pin->label('PIN')
+            );
+        }
+
+        public function onSave(TestOrchestratorDeviceRequest $request): void
+        {
+            $this->executed = true;
+            $this->receivedRequest = $request;
+        }
+    };
+
+    // 1. Valid submission
+    $orchestrator->handleAction(
+        screen: $screen,
+        method: 'onSave',
+        parameters: [
+            'name' => 'Valid Name',
+            'pin' => '1234',
+        ]
+    );
+
+    expect($screen->executed)->toBeTrue();
+    expect($screen->receivedRequest)->toBeInstanceOf(TestOrchestratorDeviceRequest::class);
+    expect($screen->receivedRequest->name)->toBe('Valid Name');
+
+    // 2. Invalid submission
+    $screen->executed = false;
+    $screen->receivedRequest = null;
+
+    $orchestrator->handleAction(
+        screen: $screen,
+        method: 'onSave',
+        parameters: [
+            'name' => 'X', // min:3
+            'pin' => 'abc', // digits:4
+        ]
+    );
+
+    expect($screen->executed)->toBeFalse();
+    expect($screen->receivedRequest)->toBeNull();
+
+    // Verify component error was set on input_pin
+    $ref = new ReflectionClass($screen);
+    $prop = $ref->getProperty('input_pin');
+    $prop->setAccessible(true);
+    /** @var \Idei\Usim\Components\Input $inputPin */
+    $inputPin = $prop->getValue($screen);
+
+    $json = $inputPin->toJson();
+    $config = reset($json);
+    expect($config)->toHaveKey('error');
+    expect($config['error'])->not->toBeEmpty();
+});
+
+it('orchestrates handleQuery with UIRequest and validates query parameters', function () {
+    $orchestrator = app(ScreenLifecycleOrchestratorInterface::class);
+
+    $screen = new class extends Screen {
+        public static ?string $layout = null;
+
+        protected function buildBaseUI(Container $container, ...$params): void {}
+
+        public function getDevice(TestOrchestratorDeviceRequest $request): array
+        {
+            return ['status' => 'ok', 'pin' => $request->pin];
+        }
+    };
+
+    // Valid query
+    $result = $orchestrator->handleQuery(
+        screen: $screen,
+        method: 'getDevice',
+        parameters: [
+            'name' => 'Query Device',
+            'pin' => '5678',
+        ]
+    );
+
+    expect($result)->toBe(['status' => 'ok', 'pin' => '5678']);
+
+    // Invalid query throws exception
+    expect(fn () => $orchestrator->handleQuery(
+        screen: $screen,
+        method: 'getDevice',
+        parameters: [
+            'name' => 'A', // min:3 fails
+            'pin' => 'bad',
+        ]
+    ))->toThrow(\Idei\Usim\Exceptions\UIRequestValidationException::class);
+});

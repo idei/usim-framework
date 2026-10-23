@@ -6,11 +6,13 @@ use Idei\Usim\Exceptions\UsimReadOnlyLifecycleException;
 use Idei\Usim\Screen;
 use Idei\Usim\Support\UIIdGenerator;
 use Idei\Usim\Support\UIStateManager;
+use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
 use JsonSerializable;
 use SplFileInfo;
 use Symfony\Component\HttpFoundation\Response;
@@ -89,6 +91,15 @@ class UIDataController extends Controller
             );
 
             return $this->formatQueryResponse($result);
+        } catch (ValidationException $exception) {
+            return response()->json([
+                'message' => $exception->getMessage(),
+                'errors' => $exception->errors(),
+            ], 422);
+        } catch (AuthorizationException $exception) {
+            return response()->json([
+                'error' => $exception->getMessage() ?: 'Access denied',
+            ], 403);
         } catch (UsimReadOnlyLifecycleException $exception) {
             return response()->json([
                 'error' => 'Read-only lifecycle violation',

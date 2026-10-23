@@ -30,7 +30,9 @@ use Idei\Usim\Contracts\UIDifferInterface;
 use Idei\Usim\Contracts\UIElement;
 use Idei\Usim\Contracts\UIStateRepositoryInterface;
 use Idei\Usim\Enums\LayoutType;
+use Idei\Usim\Exceptions\UIRequestValidationException;
 use Idei\Usim\Exceptions\UsimReadOnlyLifecycleException;
+use Idei\Usim\Http\Requests\UIRequest;
 use Idei\Usim\Layout\AbstractLayout;
 use Idei\Usim\Layout\LayoutInterface;
 use Idei\Usim\Screen;
@@ -189,7 +191,45 @@ class ScreenLifecycleOrchestrator implements ScreenLifecycleOrchestratorInterfac
 
             if (method_exists($screen, $method)) {
                 $reflectionMethod = new ReflectionMethod($screen, $method);
-                $reflectionMethod->invoke($screen, $parameters);
+                $firstParam = $reflectionMethod->getParameters()[0] ?? null;
+                $firstParamType = $firstParam?->getType();
+
+                if (
+                    $firstParamType instanceof ReflectionNamedType &&
+                    ! $firstParamType->isBuiltin() &&
+                    is_subclass_of($firstParamType->getName(), UIRequest::class)
+                ) {
+                    $requestClass = $firstParamType->getName();
+                    /** @var UIRequest $uiRequest */
+                    $uiRequest = app($requestClass);
+                    $uiRequest->initialize(
+                        screen: $screen,
+                        parameters: $parameters,
+                        incomingStorage: $incomingStorage,
+                        queryParams: $queryParams,
+                        triggerComponentId: $triggerComponentId
+                    );
+
+                    try {
+                        $uiRequest->validate();
+                        $reflectionMethod->invoke($screen, $uiRequest);
+                    } catch (UIRequestValidationException $validationException) {
+                        if ($uiRequest->shouldAutoBindErrors()) {
+                            $uiRequest->bindErrorsToScreen($screen, $validationException->validator->errors());
+
+                            $toastMsg = $uiRequest->errorToastMessage();
+                            if ($toastMsg !== null) {
+                                $screen->toast($toastMsg, 'error');
+                            }
+
+                            $uiRequest->failedValidation($validationException->validator);
+                        } else {
+                            throw $validationException;
+                        }
+                    }
+                } else {
+                    $reflectionMethod->invoke($screen, $parameters);
+                }
             }
 
             $this->finalizeEventContext(screen: $screen, reload: false);
@@ -242,7 +282,30 @@ class ScreenLifecycleOrchestrator implements ScreenLifecycleOrchestratorInterfac
             if ($reflectionMethod->getNumberOfParameters() === 0) {
                 $result = $reflectionMethod->invoke($screen);
             } else {
-                $result = $reflectionMethod->invoke($screen, $parameters);
+                $firstParam = $reflectionMethod->getParameters()[0] ?? null;
+                $firstParamType = $firstParam?->getType();
+
+                if (
+                    $firstParamType instanceof ReflectionNamedType &&
+                    ! $firstParamType->isBuiltin() &&
+                    is_subclass_of($firstParamType->getName(), UIRequest::class)
+                ) {
+                    $requestClass = $firstParamType->getName();
+                    /** @var UIRequest $uiRequest */
+                    $uiRequest = app($requestClass);
+                    $uiRequest->initialize(
+                        screen: $screen,
+                        parameters: $parameters,
+                        incomingStorage: $incomingStorage,
+                        queryParams: $queryParams,
+                        triggerComponentId: $triggerComponentId
+                    );
+
+                    $uiRequest->validate();
+                    $result = $reflectionMethod->invoke($screen, $uiRequest);
+                } else {
+                    $result = $reflectionMethod->invoke($screen, $parameters);
+                }
             }
 
             if ($container !== null) {

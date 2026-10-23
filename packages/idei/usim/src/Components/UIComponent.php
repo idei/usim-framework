@@ -367,6 +367,14 @@ abstract class UIComponent implements Marginable, Sizeable, UIElement
     }
 
     /**
+     * Get the label text for this component if defined.
+     */
+    public function getLabel(): ?string
+    {
+        return is_string($this->config['label'] ?? null) ? $this->config['label'] : null;
+    }
+
+    /**
      * Get the component configuration (without ID wrapper)
      * Useful for internal operations
      *

@@ -3,6 +3,7 @@
 namespace App\UI\Screens\Admin;
 
 use App\Models\Device; // Tu modelo polimórfico de dispositivo
+use App\UI\Requests\Device\ApprovePairingRequest;
 use Idei\Usim\Components\Button;
 use Idei\Usim\Components\Container;
 use Idei\Usim\Components\Input;
@@ -60,23 +61,13 @@ class AdminDevicePairingScreen extends Screen
     }
 
     /**
-     * Handler que recibe el PIN enviado por el administrador
-     *
-     * @param array<string, mixed> $params
+     * Handler que recibe el PIN validado mediante ApprovePairingRequest.
      */
-    public function onApprovePairing(array $params): void
+    public function onApprovePairing(ApprovePairingRequest $request): void
     {
-        $rawPin = $params['input_pin'] ?? '';
-        $pin = trim(is_scalar($rawPin) || $rawPin instanceof \Stringable ? (string) $rawPin : '');
+        $pin = (string) $request->pin;
 
-        $this->input_pin->error(null);
-
-        if (empty($pin) || strlen($pin) !== 4) {
-            $this->input_pin->error('El PIN debe tener exactamente 4 dígitos.');
-            return;
-        }
-
-        // TODO: En una versión final, aquí también seleccionarías de un dropdown
+        // En una versión final, aquí también seleccionarías de un dropdown
         // a qué registro de la tabla `devices` corresponde este PIN.
         // Por ahora, para la prueba, tomamos el primer dispositivo disponible (ej: el Smart TV de la DB)
         $device = Device::first();
