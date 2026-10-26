@@ -2,6 +2,8 @@
 
 namespace Idei\Usim\Components;
 
+use Idei\Usim\Enums\AspectRatio;
+
 /**
  * Builder for Carousel UI component.
  *
@@ -23,6 +25,8 @@ class Carousel extends UIComponent
             'current_index' => 0,
             'items' => [],
             'current_media' => null,
+            'aspect_ratio' => null,
+            'object_fit' => null,
             'autoplay' => [
                 'enabled' => false,
                 'timeout_ms' => 5000,
@@ -173,5 +177,15 @@ class Carousel extends UIComponent
     public function prevAction(string $action): static
     {
         return $this->setConfig('prev_action', $action);
+    }
+
+    public function aspect(AspectRatio $aspect): static
+    {
+        return $this->setConfig('aspect_ratio', $aspect->value);
+    }
+
+    public function objectFit(string $fit = 'cover'): static
+    {
+        return $this->setConfig('object_fit', $fit);
     }
 }

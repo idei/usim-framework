@@ -1,6 +1,20 @@
 <?php
 
 use App\UI\Screens\Demo\CarouselDemo;
+use Idei\Usim\Enums\AspectRatio;
+use Idei\Usim\UI;
+
+it('configures aspect ratio and object fit on carousel component', function () {
+    $carousel = UI::carousel('vertical_reel')
+        ->aspect(AspectRatio::_9_16)
+        ->objectFit('contain');
+
+    $json = $carousel->toJson();
+    $config = reset($json);
+
+    expect($config['aspect_ratio'] ?? null)->toBe('9:16');
+    expect($config['object_fit'] ?? null)->toBe('contain');
+});
 
 it('loads carousel demo with manual and auto carousels', function () {
     $ui = uiScenario($this, CarouselDemo::class, ['reset' => true]);

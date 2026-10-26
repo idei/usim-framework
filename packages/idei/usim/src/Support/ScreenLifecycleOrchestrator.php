@@ -123,6 +123,10 @@ class ScreenLifecycleOrchestrator implements ScreenLifecycleOrchestratorInterfac
                 }
             }
 
+            if (! empty($buildParams)) {
+                $screen->clearCachedScreenSnapshot();
+            }
+
             $this->initializeEventContext(
                 screen: $screen,
                 incomingStorage: $incomingStorage,

@@ -303,10 +303,19 @@ abstract class AbstractLayout extends Screen implements LayoutInterface
         $routeSlug = Screen::resolveScreenSlug($targetClass);
         if ($updateBrowserUrl && in_array($effectiveSlot, ['main', 'content', 'center'], true)) {
             $routePath = $targetClass::getRoutePath();
+            $queryParams = array_filter(
+                $params,
+                static fn ($value, $key) => is_string($key) && (is_scalar($value) || $value instanceof \Stringable),
+                ARRAY_FILTER_USE_BOTH
+            );
+            $navigateUrl = ! empty($queryParams)
+                ? $routePath.'?'.http_build_query($queryParams)
+                : $routePath;
+
             UIStateManager::setClientCurrentScreen($routePath, $targetClass);
             app(UIChangesCollector::class)->add([
                 'navigate' => [
-                    'url' => $routePath,
+                    'url' => $navigateUrl,
                     'route' => $routeSlug,
                     'title' => $targetClass::getMenuLabel(),
                     'slot' => $targetContainer->getName() ?? $effectiveSlot,

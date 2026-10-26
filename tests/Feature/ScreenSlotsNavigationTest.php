@@ -245,12 +245,15 @@ it('propagates params through showInto down to target buildBaseUI', function () 
     $collector = app(UIChangesCollector::class);
     $allChanges = $collector->all();
     expect($allChanges)->toHaveKey('navigate');
+    expect($allChanges['navigate']['url'])->toBe(TestParamsReceiverScreen::getRoutePath().'?post_id=42&filter=published');
 
     // Navigating again with new parameters should reload with the new params even without explicit force
+    $collector->reset();
     $host->showInto(TestParamsReceiverScreen::class, params: ['post_id' => 99]);
 
     expect(TestParamsReceiverScreen::$buildCount)->toBe(2);
     expect(TestParamsReceiverScreen::$receivedParams)->toBe(['post_id' => 99]);
+    expect($collector->all()['navigate']['url'])->toBe(TestParamsReceiverScreen::getRoutePath().'?post_id=99');
 });
 
 it('propagates params through Screen::embedInto and Container::embed', function () {
@@ -294,4 +297,22 @@ it('propagates params in HandlesNavigation fallback container tree', function ()
     $hostScreen->showInto(TestParamsReceiverScreen::class, slot: 'custom_slot', params: ['post_id' => 303]);
 
     expect(TestParamsReceiverScreen::$receivedParams)->toBe(['post_id' => 303]);
+
+    $collector = app(UIChangesCollector::class);
+    $collector->reset();
+    $hostScreen->showInto(TestParamsReceiverScreen::class, slot: 'main', params: ['post_id' => 404]);
+    expect($collector->all()['navigate']['url'] ?? null)->toBe(TestParamsReceiverScreen::getRoutePath().'?post_id=404');
+});
+
+it('passes URL query params as buildParams to buildBaseUI in UIController::show', function () {
+    /** @var TestCase $this */
+    config()->set('usim.screens_namespace', '');
+    TestParamsReceiverScreen::$receivedParams = [];
+    TestParamsReceiverScreen::$buildCount = 0;
+
+    $response = $this->getJson('/api/ui/test-params-receiver-screen?post_id=55&mode=edit&reset=true&parent=main');
+
+    $response->assertOk();
+    expect(TestParamsReceiverScreen::$buildCount)->toBe(1);
+    expect(TestParamsReceiverScreen::$receivedParams)->toBe(['post_id' => '55', 'mode' => 'edit']);
 });
