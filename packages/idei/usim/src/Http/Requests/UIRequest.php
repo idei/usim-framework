@@ -87,6 +87,19 @@ abstract class UIRequest implements ArrayAccess
     protected bool $autoBindComponentErrors = true;
 
     /**
+     * Stores validation errors that could not be bound to any visual component.
+     *
+     * @var array<string, list<string>>
+     */
+    protected array $unboundErrors = [];
+
+    /**
+     * Whether the error toast should display the first unbound validation error
+     * when validation errors have no associated visual components on the Screen.
+     */
+    protected bool $fallbackToFirstErrorOnToast = true;
+
+    /**
      * Toast notification translation key or message shown on validation failure.
      * Set to null to disable toast notification.
      */
@@ -455,12 +468,25 @@ abstract class UIRequest implements ArrayAccess
      */
     public function errorToastMessage(): ?string
     {
+        if ($this->fallbackToFirstErrorOnToast && $this->hasUnboundErrors()) {
+            $firstError = $this->firstUnboundErrorMessage();
+            if ($firstError !== null) {
+                return $firstError;
+            }
+        }
+
         if ($this->errorToast === null || $this->errorToast === '') {
             return null;
         }
 
         if (function_exists('t')) {
-            return t($this->errorToast);
+            $translated = t($this->errorToast);
+
+            if ($this->errorToast === 'validation.check_form_errors' && $translated === $this->errorToast) {
+                return 'Por favor verifique los datos ingresados.';
+            }
+
+            return $translated;
         }
 
         return $this->errorToast;
@@ -471,6 +497,7 @@ abstract class UIRequest implements ArrayAccess
      */
     public function bindErrorsToScreen(Screen $screen, MessageBag $errors): void
     {
+        $this->unboundErrors = [];
         $inverseMap = array_flip($this->map());
 
         foreach ($errors->getMessages() as $field => $messages) {
@@ -489,8 +516,44 @@ abstract class UIRequest implements ArrayAccess
                 } elseif (method_exists($component, 'errorMessage')) {
                     $component->errorMessage($firstMessage);
                 }
+            } else {
+                /** @var list<string> $fieldMessages */
+                $fieldMessages = array_values(array_map(strval(...), (array) $messages));
+                $this->unboundErrors[$field] = $fieldMessages;
             }
         }
+    }
+
+    /**
+     * Determine if any validation errors could not be bound to a screen component.
+     */
+    public function hasUnboundErrors(): bool
+    {
+        return ! empty($this->unboundErrors);
+    }
+
+    /**
+     * Get all validation errors that could not be bound to a screen component.
+     *
+     * @return array<string, list<string>>
+     */
+    public function unboundErrors(): array
+    {
+        return $this->unboundErrors;
+    }
+
+    /**
+     * Get the first validation error message not bound to any visual component.
+     */
+    public function firstUnboundErrorMessage(): ?string
+    {
+        foreach ($this->unboundErrors as $messages) {
+            if (isset($messages[0]) && $messages[0] !== '') {
+                return $messages[0];
+            }
+        }
+
+        return null;
     }
 
     /**

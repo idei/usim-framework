@@ -272,3 +272,45 @@ it('populates readonly properties and enforces immutability', function () {
     expect($request->name)->toBe('Immutable Item');
     expect($request->note)->toBeNull();
 });
+
+class SampleActionCommandRequest extends UIRequest
+{
+    public function rules(): array
+    {
+        return [
+            'post_id' => 'required|integer|min:1',
+        ];
+    }
+
+    public function messages(): array
+    {
+        return [
+            'post_id.required' => 'El ID del post es obligatorio.',
+            'post_id.integer' => 'El ID del post debe ser numérico.',
+        ];
+    }
+}
+
+it('tracks unbound errors and projects first unbound error message on errorToastMessage', function () {
+    $screen = new SampleDeviceScreen;
+    $screen->render();
+
+    $request = new SampleActionCommandRequest;
+    $request->initialize(
+        screen: $screen,
+        parameters: []
+    );
+
+    try {
+        $request->validate();
+        $this->fail('Validation should have failed');
+    } catch (UIRequestValidationException $e) {
+        $request->bindErrorsToScreen($screen, $e->validator->errors());
+    }
+
+    expect($request->hasUnboundErrors())->toBeTrue();
+    expect($request->unboundErrors())->toHaveKey('post_id');
+    expect($request->firstUnboundErrorMessage())->toBe('El ID del post es obligatorio.');
+    expect($request->errorToastMessage())->toBe('El ID del post es obligatorio.');
+});
+

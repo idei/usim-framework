@@ -48,6 +48,24 @@ class UIRequestFeatureQueryRequest extends UIRequest
     }
 }
 
+class UIRequestFeatureDeleteActionRequest extends UIRequest
+{
+    public function rules(): array
+    {
+        return [
+            'post_id' => 'required|integer|min:1',
+        ];
+    }
+
+    public function messages(): array
+    {
+        return [
+            'post_id.required' => 'El ID del post es obligatorio.',
+            'post_id.integer' => 'El ID del post debe ser un número entero.',
+        ];
+    }
+}
+
 class UIRequestFeatureScreen extends Screen
 {
     public static ?string $layout = null;
@@ -86,6 +104,11 @@ class UIRequestFeatureScreen extends Screen
     public function onSubmitHeadless(UIRequestFeatureHeadlessRequest $request): void
     {
         $this->toast('Headless success', 'success');
+    }
+
+    public function onDeletePost(UIRequestFeatureDeleteActionRequest $request): void
+    {
+        $this->toast('Post eliminado: '.$request->validated('post_id'), 'success');
     }
 
     public function getLookup(UIRequestFeatureQueryRequest $request): array
@@ -200,4 +223,24 @@ it('returns HTTP 422 with structured JSON errors when GET /api/ui-data fails UIR
     expect($response->json())->toHaveKeys(['message', 'errors']);
     expect($response->json('errors.filter_id'))->toBeArray();
 });
+
+it('projects first unbound validation error in toast when action request has no matching visual component', function () {
+    /** @var TestCase $this */
+    $screen = Screen::make(UIRequestFeatureScreen::class);
+    $screen->render();
+
+    $btnId = UIIdGenerator::generateFromName(UIRequestFeatureScreen::class, 'btn_save');
+
+    $response = $this->postJson('/api/ui-event', [
+        'component_id' => $btnId,
+        'event' => 'click',
+        'action' => 'delete_post',
+        'parameters' => [],
+    ]);
+
+    $response->assertOk();
+    expect($response->json('toast.type'))->toBe('error');
+    expect($response->json('toast.message'))->toBe('El ID del post es obligatorio.');
+});
+
 

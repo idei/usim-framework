@@ -95,3 +95,32 @@ UI::label('status_badge')
     ->secondary(); // o ->muted()
 ```
 
+---
+
+## Paso 5: Uso de `UIRequest` en Acciones Directas (Action Requests / Errores Huérfanos)
+
+Ahora `UIRequest` soporta formalmente **Action Requests** (eventos de botones en tablas, tarjetas o menús contextuales cuyos parámetros —como `id` o `post_id`— no corresponden a un componente `Input` en pantalla).
+
+- Cuando un error de validación no encuentra un componente visual al cual vincularse (`hasUnboundErrors() === true`), `UIRequest::errorToastMessage()` proyecta automáticamente el **primer mensaje de validación real** en el Toast de error (controlado por `protected bool $fallbackToFirstErrorOnToast = true;`).
+- Si la clave por defecto `validation.check_form_errors` no tiene traducción definida en el proyecto, el Toast muestra un fallback legible (`"Por favor verifique los datos ingresados."`) en lugar de la clave técnica cruda.
+
+```php
+class PostIdRequest extends UIRequest
+{
+    public function rules(): array
+    {
+        return [
+            'id' => ['required', 'integer', 'min:1'],
+        ];
+    }
+
+    public function messages(): array
+    {
+        return [
+            'id.required' => 'El ID del post es obligatorio.',
+        ];
+    }
+}
+```
+
+
