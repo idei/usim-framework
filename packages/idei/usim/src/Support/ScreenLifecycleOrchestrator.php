@@ -110,10 +110,44 @@ class ScreenLifecycleOrchestrator implements ScreenLifecycleOrchestratorInterfac
                             shouldReset: $shouldReset
                         );
 
+                        // 1. Re-embed main content slot
                         $slot = $layout->getSlot('content') ?? $layout->getSlot('main');
                         if ($slot instanceof Container) {
                             $slot->clear();
                             $this->embedInto($screen::class, $slot, $buildParams);
+                        }
+
+                        // 2. Re-embed top menu slot if present in the layout
+                        $menuSlot = $layout->getSlot('top_menu') ?? $layout->getSlot('menu');
+                        $menuClass = $layout->getActiveScreen('top_menu')
+                            ?? $layout->getActiveScreen('menu')
+                            ?? ($screen::getMenuScreen() !== null ? $screen::getMenuScreen() : null)
+                            ?? $layout::getMenuScreen()
+                            ?? $this->usimConfig->defaultMenuScreen;
+
+                        if ($menuClass !== null && ! is_subclass_of($menuClass, Screen::class)) {
+                            $menuClass = Screen::resolveScreenClassFromSlug($menuClass);
+                        }
+
+                        if ($menuSlot instanceof Container && $menuClass !== null && class_exists($menuClass) && is_subclass_of($menuClass, Screen::class)) {
+                            $menuSlot->clear();
+                            $this->embedInto($menuClass, $menuSlot);
+                        }
+
+                        // 3. Re-embed any other registered slot with an active screen
+                        foreach ($layout->getActiveScreens() as $slotName => $activeClass) {
+                            if (in_array($slotName, ['main', 'content', 'top_menu', 'menu'], true)) {
+                                continue;
+                            }
+                            $otherSlot = $layout->getSlot($slotName);
+                            $targetClass = is_subclass_of($activeClass, Screen::class)
+                                ? $activeClass
+                                : (is_string($activeClass) ? Screen::resolveScreenClassFromSlug($activeClass) : null);
+
+                            if ($otherSlot instanceof Container && $targetClass !== null && class_exists($targetClass) && is_subclass_of($targetClass, Screen::class)) {
+                                $otherSlot->clear();
+                                $this->embedInto($targetClass, $otherSlot);
+                            }
                         }
 
                         return;

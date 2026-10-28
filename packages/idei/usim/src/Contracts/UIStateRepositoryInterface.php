@@ -186,4 +186,9 @@ interface UIStateRepositoryInterface
      * Get the active organizational unit slug for the client.
      */
     public function getActiveUnit(?string $clientId = null): ?string;
+
+    /**
+     * Clear all cached screen and layout snapshots, opened screen tracking, and active modals for the client.
+     */
+    public function clearClientSnapshots(?string $clientId = null): void;
 }

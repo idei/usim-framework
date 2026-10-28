@@ -239,4 +239,9 @@ class UIStateManager
     {
         return self::getRepository()->getActiveUnit($clientId);
     }
+
+    public static function clearClientSnapshots(?string $clientId = null): void
+    {
+        self::getRepository()->clearClientSnapshots($clientId);
+    }
 }

@@ -108,8 +108,38 @@ class UIStateRepository implements UIStateRepositoryInterface
 
         $firstKey = (string) array_key_first($uiState);
         $this->storeClientOpenedScreens($firstKey, $clientId);
+        $this->storeClientOpenedClass($serviceClass, $clientId);
 
         return $result;
+    }
+
+    /**
+     * Store each screen/layout class opened by the client.
+     */
+    protected function storeClientOpenedClass(string $serviceClass, ?string $clientId = null): void
+    {
+        $clientId ??= $this->getOrCreateClientId();
+        $cacheKey = "ui_open_classes:{$clientId}";
+        $ttl = $this->getCacheTtl();
+
+        $classes = Cache::get($cacheKey, []);
+        if (! \is_array($classes)) {
+            $classes = [];
+        }
+        $classes[$serviceClass] = true;
+        Cache::put($cacheKey, $classes, $ttl);
+    }
+
+    /**
+     * @return list<string>
+     */
+    public function getClientOpenedClasses(?string $clientId = null): array
+    {
+        $clientId ??= $this->getOrCreateClientId();
+        $cacheKey = "ui_open_classes:{$clientId}";
+        $classes = Cache::get($cacheKey, []);
+
+        return \is_array($classes) ? array_keys($classes) : [];
     }
 
     /**
@@ -566,6 +596,58 @@ class UIStateRepository implements UIStateRepositoryInterface
         $slug = $this->getKeyValue('active_unit', $clientId);
 
         return \is_string($slug) && $slug !== '' ? $slug : null;
+    }
+
+    /**
+     * Clear all cached screen and layout snapshots, and active modals for the client.
+     */
+    public function clearClientSnapshots(?string $clientId = null): void
+    {
+        $clientId ??= $this->getOrCreateClientId();
+
+        $defaultMenuScreen = function_exists('config') ? config('usim.default_menu_screen', 'App\\UI\\Screens\\Menu') : 'App\\UI\\Screens\\Menu';
+        $storedClasses = $this->getClientOpenedClasses($clientId);
+
+        // 1. Clear snapshots of all tracked layout classes and host screens (except Menu which handles auth transition events)
+        foreach ($storedClasses as $serviceClass) {
+            if ($serviceClass === 'App\\UI\\Screens\\Menu' || $serviceClass === $defaultMenuScreen || is_subclass_of($serviceClass, $defaultMenuScreen)) {
+                continue;
+            }
+            $this->clear($serviceClass, $clientId);
+        }
+
+        // 2. Clear snapshots of tracked screen root IDs (except Menu)
+        $openedScreens = $this->getClientOpenedScreens($clientId);
+        foreach ($openedScreens as $screenRootId) {
+            $context = $this->getIdGenerator()->getContextFromId((int) $screenRootId);
+            if ($context !== null && $context !== '') {
+                if ($context === 'App\\UI\\Screens\\Menu' || $context === $defaultMenuScreen || is_subclass_of($context, $defaultMenuScreen)) {
+                    continue;
+                }
+                $this->clear($context, $clientId);
+            }
+        }
+
+        // 3. Clear active layout if known from current screen
+        $currentScreenClass = $this->getClientCurrentScreenClass($clientId);
+        if ($currentScreenClass !== null && method_exists($currentScreenClass, 'getLayoutClass')) {
+            $layoutClass = $currentScreenClass::getLayoutClass();
+            if ($layoutClass) {
+                $this->clear($layoutClass, $clientId);
+            }
+        }
+
+        // 4. Clear default layout if configured
+        if (function_exists('app') && app()->bound(\Idei\Usim\Support\UsimConfig::class)) {
+            /** @var \Idei\Usim\Support\UsimConfig $usimConfig */
+            $usimConfig = app(\Idei\Usim\Support\UsimConfig::class);
+            if (! empty($usimConfig->defaultLayout) && class_exists($usimConfig->defaultLayout)) {
+                $this->clear($usimConfig->defaultLayout, $clientId);
+            }
+        }
+
+        // 5. Purge active modals stack
+        $this->clearClientActiveModal($clientId);
     }
 
     /**

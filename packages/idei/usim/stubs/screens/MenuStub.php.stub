@@ -360,15 +360,15 @@ class Menu extends Screen
             $user = Auth::user();
             if ($user instanceof User) {
                 $this->updateUserMenuTrigger($user);
-                $this->updateUnitMenu();
             } else {
                 $this->user_menu->trigger("⚙️");
             }
-            $this->populateMainMenu($this->main_menu);
-            $this->populateUserMenu($this->user_menu);
         } else {
             $this->user_menu->trigger("⚙️");
         }
+        $this->updateUnitMenu();
+        $this->populateMainMenu($this->main_menu);
+        $this->populateUserMenu($this->user_menu);
     }
 
     private function updateUserMenuTrigger(User $user): void

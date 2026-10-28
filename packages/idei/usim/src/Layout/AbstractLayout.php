@@ -30,6 +30,9 @@ abstract class AbstractLayout extends Screen implements LayoutInterface
     /** @var array<string, class-string<Screen>|string> */
     protected array $activeScreens = [];
 
+    /** @var array<string, class-string<Screen>|string> */
+    protected array $state_active_screens = [];
+
     /**
      * Get the currently active layout instance in the request/session context.
      */
@@ -144,6 +147,10 @@ abstract class AbstractLayout extends Screen implements LayoutInterface
     {
         parent::postLoadUI();
 
+        if (! empty($this->state_active_screens)) {
+            $this->activeScreens = array_merge($this->activeScreens, $this->state_active_screens);
+        }
+
         // Restore slot references when loaded from cached snapshot
         if (isset($this->container)) {
             if ($this->contentContainer === null) {
@@ -206,11 +213,25 @@ abstract class AbstractLayout extends Screen implements LayoutInterface
             return $this->activeScreens[$slot];
         }
 
+        if (isset($this->state_active_screens[$slot])) {
+            return $this->state_active_screens[$slot];
+        }
+
         if (in_array($slot, ['main', 'content', 'center'], true)) {
             return UIStateManager::getClientCurrentScreenClass();
         }
 
         return null;
+    }
+
+    /**
+     * Get all active screens mapped to slots.
+     *
+     * @return array<string, class-string<Screen>|string>
+     */
+    public function getActiveScreens(): array
+    {
+        return array_merge($this->state_active_screens, $this->activeScreens);
     }
 
     /**
@@ -221,6 +242,7 @@ abstract class AbstractLayout extends Screen implements LayoutInterface
     public function setActiveScreen(string $slot, string $screenClass): self
     {
         $this->activeScreens[$slot] = $screenClass;
+        $this->state_active_screens[$slot] = $screenClass;
 
         return $this;
     }
