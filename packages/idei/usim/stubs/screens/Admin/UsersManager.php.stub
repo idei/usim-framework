@@ -55,11 +55,6 @@ class UsersManager extends Screen
         $this->screen = $this;
     }
 
-    public static function authorize(): bool
-    {
-        return self::requirePermission('admin.users_manager.access');
-    }
-
     public static function getMenuLabel(): string
     {
         return t(self::I18N_PREFIX.'menu_label');

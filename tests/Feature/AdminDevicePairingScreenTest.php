@@ -17,7 +17,9 @@ it('approves pairing when valid 4-digit pin is submitted via ApprovePairingReque
 
     $admin = User::factory()->create();
     $admin->usimUnits()->sync([$unit->id]);
+    $perm = \Spatie\Permission\Models\Permission::findOrCreate('admin.admin_device_pairing.access', 'web');
     $roleAdmin = \Spatie\Permission\Models\Role::findOrCreate('admin', 'web');
+    $roleAdmin->givePermissionTo($perm);
     $admin->assignRole($roleAdmin);
     $this->actingAs($admin);
 
@@ -60,7 +62,9 @@ it('rejects invalid pin and auto-binds error on input_pin component via ApproveP
 
     $admin = User::factory()->create();
     $admin->usimUnits()->sync([$unit->id]);
+    $perm = \Spatie\Permission\Models\Permission::findOrCreate('admin.admin_device_pairing.access', 'web');
     $roleAdmin = \Spatie\Permission\Models\Role::findOrCreate('admin', 'web');
+    $roleAdmin->givePermissionTo($perm);
     $admin->assignRole($roleAdmin);
     $this->actingAs($admin);
 

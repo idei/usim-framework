@@ -8,6 +8,7 @@ use Spatie\Permission\Models\Role;
 beforeEach(function () {
     app(\Idei\Usim\Support\RoleAndPermissionSyncService::class)->sync();
     UsimUnit::firstOrCreate(['slug' => 'main'], ['type' => 'system']);
+    $this->actingAs($this->createRootUser());
 });
 
 it('loads edit user screen with expected base components', function () {
@@ -16,7 +17,6 @@ it('loads edit user screen with expected base components', function () {
         'name' => 'Alice Doe',
         'email' => 'alice@example.com',
     ]);
-    $this->actingAs($user);
 
     $uiResponse = getScreenJson($this, EditUser::class, ['user_id' => $user->id]);
     $uiResponse->assertOk();
@@ -74,8 +74,6 @@ it('renders edit user screen appropriately for lobby user in Simple Mode', funct
     $lobbyUser->syncRoles(['registered']);
     setPermissionsTeamId(null);
 
-    $this->actingAs($lobbyUser);
-
     app()->setLocale('es');
     $uiResponse = getScreenJson($this, EditUser::class, ['user_id' => $lobbyUser->id]);
     $uiResponse->assertOk();
@@ -104,8 +102,6 @@ it('renders edit user screen appropriately for lobby user in Multi-Unit Mode', f
     setPermissionsTeamId($lobbyUnit->id);
     $lobbyUser->syncRoles(['registered']);
     setPermissionsTeamId(null);
-
-    $this->actingAs($lobbyUser);
 
     app()->setLocale('es');
     $userParam = [
@@ -144,7 +140,6 @@ it('updates user successfully and redirects to home when standalone', function (
         'name' => 'Old Name',
         'email' => 'old@example.com',
     ]);
-    $this->actingAs($user);
 
     $uiResponse = getScreenJson($this, EditUser::class, ['user_id' => $user->id]);
     $uiResponse->assertOk();
@@ -173,7 +168,6 @@ it('updates user successfully and redirects to home when standalone', function (
 it('handles cancel by redirecting to home when not opened as modal', function () {
     /** @var \Tests\TestCase $this */
     $user = User::factory()->create();
-    $this->actingAs($user);
 
     $uiResponse = getScreenJson($this, EditUser::class, ['user_id' => $user->id]);
     $uiResponse->assertOk();
@@ -195,7 +189,6 @@ it('opens edit user as modal and handles close modal action', function () {
         'name' => 'Modal User',
         'email' => 'modal.user@example.com',
     ]);
-    $this->actingAs($user);
 
     $modal = EditUser::openAsModal(['user_id' => $user->id]);
     expect($modal->isOpenedAsModal())->toBeTrue();

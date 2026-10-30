@@ -23,12 +23,6 @@ class TranslateManager extends Screen
     protected Select $language_filter;
     protected Select $group_filter;
 
-    public static function authorize(): bool
-    {
-        //return self::requireRole(['admin', 'root', 'translator']);
-        return self::requirePermission('admin.translate_manager.access');
-    }
-
     public static function getMenuLabel(): string
     {
         return t('screens.admin.translate_manager.title');

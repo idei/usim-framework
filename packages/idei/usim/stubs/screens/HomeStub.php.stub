@@ -3,6 +3,7 @@
 namespace {{ namespace }};
 
 use Idei\Usim\Components\Container;
+use Idei\Usim\Enums\Visibility;
 use Idei\Usim\Screen;
 use Idei\Usim\Support\UsimConfig;
 use Idei\Usim\UI;
@@ -10,6 +11,8 @@ use Idei\Usim\ValueObjects\Size;
 
 class Home extends Screen
 {
+    public static Visibility $visibility = Visibility::PUBLIC;
+
     protected function buildBaseUI(Container $container, ...$params): void
     {
         $config = app(UsimConfig::class);

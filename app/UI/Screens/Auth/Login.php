@@ -5,7 +5,6 @@
 namespace App\UI\Screens\Auth;
 
 use App\Http\Requests\Auth\LoginRequest;
-use App\Models\User;
 use Idei\Usim\Components\Container;
 use Idei\Usim\Components\Label;
 use Idei\Usim\Contracts\LoginActionInterface;
@@ -34,13 +33,6 @@ class Login extends Screen
     protected string $store_token = '';
 
     protected Label $lbl_login_result;
-
-    public static function authorize(): bool
-    {
-        // This screen should only be accessible to guests,
-        // i.e. users who are not authenticated.
-        return ! self::requireAuth();
-    }
 
     protected function buildBaseUI(Container $container, ...$params): void
     {

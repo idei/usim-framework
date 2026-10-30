@@ -2,6 +2,7 @@
 namespace App\UI\Screens\Demo;
 
 use App\UI\Screens\Demo\Events\Main;
+use App\UI\Screens\Demo\NewLabelDemo;
 use Idei\Usim\Components\Button;
 use Idei\Usim\Components\Container;
 use Idei\Usim\Enums\LayoutType;
@@ -31,6 +32,7 @@ class ButtonDemo extends Screen
         InputDemo::class,
         Main::class,
         ImageDemo::class,
+        NewLabelDemo::class,
     ];
 
     protected Container $buttons_container;

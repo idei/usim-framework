@@ -284,7 +284,7 @@ return [
             ],
             'priority' => 5,
             'home_screen' => Registered::class,
-            'permissions' => ['home.access'],
+            'permissions' => ['registered.access'],
         ],
         'root' => [
             'default_translations' => [
@@ -302,7 +302,13 @@ return [
             ],
             'priority' => 2,
             'home_screen' => UsersManager::class,
-            'permissions' => ['admin.users_manager.access'],
+            'permissions' => [
+                'admin.users_manager.access',
+                'admin.admin_device_pairing.access',
+                'admin.edit_user.access',
+                'device.edit_device.access',
+                'device.link.access',
+            ],
         ],
         'translator' => [
             'default_translations' => [
@@ -311,7 +317,10 @@ return [
             ],
             'priority' => 3,
             'home_screen' => TranslateManager::class,
-            'permissions' => ['admin.translate_manager.access'],
+            'permissions' => [
+                'admin.translate_manager.access',
+                'admin.edit_translation_dialog.access',
+            ],
         ],
         'member' => [
             'default_translations' => [

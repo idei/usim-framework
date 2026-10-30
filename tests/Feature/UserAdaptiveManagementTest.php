@@ -150,7 +150,7 @@ it('renders EditUser appropriately for lobby user in Simple Mode', function () {
     $lobbyUser->syncRoles(['registered']);
     setPermissionsTeamId(null);
 
-    $this->actingAs($lobbyUser);
+    $this->actingAs($this->createRootUser());
 
     $userService = app(UserService::class);
     $response = $userService->getUser($lobbyUser->id);
@@ -198,7 +198,7 @@ it('renders EditUser appropriately for lobby user in Multi-Unit Mode', function 
     $lobbyUser->syncRoles(['registered']);
     setPermissionsTeamId(null);
 
-    $this->actingAs($lobbyUser);
+    $this->actingAs($this->createRootUser());
 
     $userService = app(UserService::class);
     $response = $userService->getUser($lobbyUser->id);

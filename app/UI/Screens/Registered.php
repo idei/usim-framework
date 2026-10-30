@@ -15,14 +15,6 @@ use Illuminate\Support\Facades\Auth;
 class Registered extends Screen
 {
     /**
-     * This screen requires an authenticated user.
-     */
-    public static function authorize(): bool
-    {
-        return self::requireAuth();
-    }
-
-    /**
      * Build base UI structure for the Registered user Home Screen.
      *
      * @param mixed ...$params

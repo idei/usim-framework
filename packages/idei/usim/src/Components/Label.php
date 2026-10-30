@@ -19,6 +19,8 @@ namespace Idei\Usim\Components;
  * - Visual effects: animations, shadow, glow
  * - Layout control: inline/block, width constraints
  * - Full accessibility: ARIA labels, roles, semantic structure
+ *
+ * @deprecated Use \Idei\Usim\Components\NewLabel (via UI::newLabel()) instead.
  */
 class Label extends UIComponent
 {

@@ -13,6 +13,7 @@ use Idei\Usim\Components\Image;
 use Idei\Usim\Components\Input;
 use Idei\Usim\Components\Label;
 use Idei\Usim\Components\MenuDropdown;
+use Idei\Usim\Components\NewLabel;
 use Idei\Usim\Components\Select;
 use Idei\Usim\Components\Split;
 use Idei\Usim\Components\Table;
@@ -873,6 +874,7 @@ class ScreenLifecycleOrchestrator implements ScreenLifecycleOrchestratorInterfac
     {
         return match ($type) {
             'label' => Label::class,
+            'newlabel' => NewLabel::class,
             'button' => Button::class,
             'input' => Input::class,
             'select' => Select::class,

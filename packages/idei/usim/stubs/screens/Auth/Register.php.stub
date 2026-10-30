@@ -34,12 +34,6 @@ class Register extends Screen
     protected Label $lbl_register_result;
     protected string $store_token = '';
 
-    public static function authorize(): bool
-    {
-        // Accessible to guests (users not authenticated)
-        return ! self::requireAuth();
-    }
-
     protected function buildBaseUI(Container $container, ...$params): void
     {
         $name = '';

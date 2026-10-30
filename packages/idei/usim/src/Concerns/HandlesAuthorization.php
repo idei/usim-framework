@@ -59,6 +59,7 @@ trait HandlesAuthorization
             $redirectUrl = ($guard === 'device')
                 ? url('/device/device-pairing-screen')
                 : url('/auth/login');
+        // TODO: ESTO PUEDE SER UN PROBLEMA POR LA REDIRECCIÓN.
 
             return [
                 'allowed' => false,
@@ -99,11 +100,32 @@ trait HandlesAuthorization
     }
 
     /**
-     * Determine if the user is authorized to access this service.
+     * Determine if the user is authorized to access this screen.
+     *
+     * Override this method in child classes to customize authorization logic.
+     *
+     * @return bool
      */
     public static function authorize(): bool
     {
-        return true;
+        if (static::$visibility === Visibility::PUBLIC) {
+            return true;
+        }
+        if (static::$visibility === Visibility::GUEST) {
+            return ! self::requireAuth();
+        }
+        $screenAccessPermission = self::getScreenSlug() . '.access';
+        return self::requirePermission($screenAccessPermission);
+    }
+
+    /**
+     * Determine if the current user can access this screen.
+     *
+     * @return bool
+     */
+    public static function canAccess() : bool
+    {
+        return static::checkAccess()['allowed'];
     }
 
     /**
@@ -282,7 +304,7 @@ trait HandlesAuthorization
         $segments = explode('\\', $cleanPath);
 
         return collect($segments)
-            ->map(fn ($segment) => Str::snake(Str::replaceLast('Screen', '', $segment)))
+            ->map(fn($segment) => Str::snake(Str::replaceLast('Screen', '', $segment)))
             ->implode('.');
     }
 
@@ -357,7 +379,7 @@ trait HandlesAuthorization
         }
 
         if (! str_contains($permission, '.')) {
-            $permission = static::getScreenSlug().'.'.$permission;
+            $permission = static::getScreenSlug() . '.' . $permission;
         }
 
         if (app()->bound(ScreenAuthorizerInterface::class)) {

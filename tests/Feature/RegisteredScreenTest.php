@@ -9,8 +9,9 @@ use Spatie\Permission\Models\Role;
 use Spatie\Permission\PermissionRegistrar;
 
 it('loads registered screen with expected components and message for registered user', function () {
-    Role::findOrCreate('registered');
-    Permission::findOrCreate('home.access');
+    $role = Role::findOrCreate('registered');
+    $perm = Permission::findOrCreate('registered.access');
+    $role->givePermissionTo($perm);
     $unit = UsimUnit::firstOrCreate(['slug' => 'lobby']);
     if (config('permission.teams')) {
         setPermissionsTeamId($unit->id);
@@ -59,8 +60,9 @@ it('redirects unauthenticated guest accessing registered screen', function () {
 });
 
 it('handles onGoToProfile action and opens profile modal', function () {
-    Role::findOrCreate('registered');
-    Permission::findOrCreate('home.access');
+    $role = Role::findOrCreate('registered');
+    $perm = Permission::findOrCreate('registered.access');
+    $role->givePermissionTo($perm);
     $unit = UsimUnit::firstOrCreate(['slug' => 'lobby']);
     if (config('permission.teams')) {
         setPermissionsTeamId($unit->id);
@@ -85,8 +87,9 @@ it('handles onGoToProfile action and opens profile modal', function () {
 });
 
 it('renders registered screen message in Spanish', function () {
-    Role::findOrCreate('registered');
-    Permission::findOrCreate('home.access');
+    $role = Role::findOrCreate('registered');
+    $perm = Permission::findOrCreate('registered.access');
+    $role->givePermissionTo($perm);
     $unit = UsimUnit::firstOrCreate(['slug' => 'lobby']);
     if (config('permission.teams')) {
         setPermissionsTeamId($unit->id);
@@ -108,8 +111,9 @@ it('renders registered screen message in Spanish', function () {
 });
 
 it('renders registered screen message in English', function () {
-    Role::findOrCreate('registered');
-    Permission::findOrCreate('home.access');
+    $role = Role::findOrCreate('registered');
+    $perm = Permission::findOrCreate('registered.access');
+    $role->givePermissionTo($perm);
     $unit = UsimUnit::firstOrCreate(['slug' => 'lobby']);
     if (config('permission.teams')) {
         setPermissionsTeamId($unit->id);

@@ -13,6 +13,7 @@ use Idei\Usim\Components\Image;
 use Idei\Usim\Components\Input;
 use Idei\Usim\Components\Label;
 use Idei\Usim\Components\MenuDropdown;
+use Idei\Usim\Components\NewLabel;
 use Idei\Usim\Components\Select;
 use Idei\Usim\Components\Split;
 use Idei\Usim\Components\Table;
@@ -43,10 +44,22 @@ class UI
      * Create a new label component
      *
      * @param  string|null  $name  an optional semantic name for the label
+     *
+     * @deprecated Use UI::newLabel() instead.
      */
     public static function label(?string $name = null): Label
     {
         return new Label($name);
+    }
+
+    /**
+     * Create a new label component (modern version)
+     *
+     * @param  string|null  $name  an optional semantic name for the label
+     */
+    public static function newLabel(?string $name = null): NewLabel
+    {
+        return new NewLabel($name);
     }
 
     /**

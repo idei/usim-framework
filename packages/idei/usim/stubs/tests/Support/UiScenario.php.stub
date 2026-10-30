@@ -123,12 +123,14 @@ final class UiScenario
         }
 
         $componentId = $this->mustGetComponentId($componentName);
+        $componentParameters = is_array($component['parameters'] ?? null) ? $component['parameters'] : [];
+        $mergedParameters = array_merge($componentParameters, $parameters);
 
         return $this->sendUiEvent(
             componentId: $componentId,
             event: 'click',
             action: $action,
-            parameters: $parameters,
+            parameters: $mergedParameters,
             storageMode: self::STORAGE_HEADER,
             syncComponentId: $componentId
         );

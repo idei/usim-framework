@@ -37,6 +37,7 @@ class EditDevice extends Screen
     private const BUTTONS_GAP = 5;
 
     public static Visibility $visibility = Visibility::AUTHENTICATED;
+    public static ?string $guard = 'web';
 
     protected Label $lbl_edit_device_result;
     protected ?Label $device_status_banner = null;
