@@ -50,14 +50,22 @@ class UIStateRepository implements UIStateRepositoryInterface
         $clientId = request()->cookie(self::CLIENT_ID_COOKIE);
 
         if (\is_string($clientId) && $clientId !== '') {
-            session()->put(self::CLIENT_ID_COOKIE, $clientId);
+            try {
+                session()->put(self::CLIENT_ID_COOKIE, $clientId);
+            } catch (\Throwable) {
+                // Session store unavailable
+            }
 
             return $clientId;
         }
 
-        $sessionClientId = session()->get(self::CLIENT_ID_COOKIE);
-        if (\is_string($sessionClientId) && $sessionClientId !== '') {
-            return $sessionClientId;
+        try {
+            $sessionClientId = session()->get(self::CLIENT_ID_COOKIE);
+            if (\is_string($sessionClientId) && $sessionClientId !== '') {
+                return $sessionClientId;
+            }
+        } catch (\Throwable) {
+            // Session store unavailable
         }
 
         $clientId = (string) Str::uuid();
@@ -73,7 +81,11 @@ class UIStateRepository implements UIStateRepositoryInterface
             sameSite: 'lax'
         );
 
-        session()->put(self::CLIENT_ID_COOKIE, $clientId);
+        try {
+            session()->put(self::CLIENT_ID_COOKIE, $clientId);
+        } catch (\Throwable) {
+            // Session store unavailable
+        }
 
         return $clientId;
     }
@@ -605,7 +617,8 @@ class UIStateRepository implements UIStateRepositoryInterface
     {
         $clientId ??= $this->getOrCreateClientId();
 
-        $defaultMenuScreen = function_exists('config') ? config('usim.default_menu_screen', 'App\\UI\\Screens\\Menu') : 'App\\UI\\Screens\\Menu';
+        $defaultMenuConfig = function_exists('config') ? config('usim.default_menu_screen', 'App\\UI\\Screens\\Menu') : 'App\\UI\\Screens\\Menu';
+        $defaultMenuScreen = \is_string($defaultMenuConfig) ? $defaultMenuConfig : 'App\\UI\\Screens\\Menu';
         $storedClasses = $this->getClientOpenedClasses($clientId);
 
         // 1. Clear snapshots of all tracked layout classes and host screens (except Menu which handles auth transition events)
@@ -648,6 +661,100 @@ class UIStateRepository implements UIStateRepositoryInterface
 
         // 5. Purge active modals stack
         $this->clearClientActiveModal($clientId);
+
+        // 6. Clear current screen tracking
+        $this->clearClientCurrentScreen($clientId);
+
+        // 7. Reset in-memory layout singleton
+        if (class_exists(\Idei\Usim\Layout\AbstractLayout::class)) {
+            \Idei\Usim\Layout\AbstractLayout::setCurrent(null);
+        }
+    }
+
+    /**
+     * Refresh/extend the expiration TTL of active client cache entries (sliding expiration).
+     */
+    public function touchClientSession(?string $clientId = null): void
+    {
+        $clientId ??= $this->getOrCreateClientId();
+        $ttl = $this->getCacheTtl();
+
+        // 1. Opened screens list and individual screen states
+        $screensKey = "ui_open_screens:{$clientId}";
+        $openedScreens = Cache::get($screensKey);
+        if ($openedScreens !== null) {
+            Cache::put($screensKey, $openedScreens, $ttl);
+
+            if (\is_array($openedScreens)) {
+                foreach (array_keys($openedScreens) as $rootComponentId) {
+                    $context = $this->getIdGenerator()->getContextFromId((int) $rootComponentId);
+                    if (\is_string($context) && $context !== '') {
+                        $stateKey = $this->getCacheKey($context, clientId: $clientId);
+                        $state = Cache::get($stateKey);
+                        if ($state !== null) {
+                            Cache::put($stateKey, $state, $ttl);
+                        }
+
+                        $screenStateKey = $this->getCacheKey($context, prefix: 'ui_screen_state', clientId: $clientId);
+                        $screenState = Cache::get($screenStateKey);
+                        if ($screenState !== null) {
+                            Cache::put($screenStateKey, $screenState, $ttl);
+                        }
+                    }
+                }
+            }
+        }
+
+        // 2. Opened classes and individual screen states
+        $classesKey = "ui_open_classes:{$clientId}";
+        $openedClasses = Cache::get($classesKey);
+        if (\is_array($openedClasses)) {
+            Cache::put($classesKey, $openedClasses, $ttl);
+
+            foreach (array_keys($openedClasses) as $serviceClass) {
+                if (! \is_string($serviceClass) || $serviceClass === '') {
+                    continue;
+                }
+                $stateKey = $this->getCacheKey($serviceClass, clientId: $clientId);
+                $state = Cache::get($stateKey);
+                if ($state !== null) {
+                    Cache::put($stateKey, $state, $ttl);
+                }
+
+                $screenStateKey = $this->getCacheKey($serviceClass, prefix: 'ui_screen_state', clientId: $clientId);
+                $screenState = Cache::get($screenStateKey);
+                if ($screenState !== null) {
+                    Cache::put($screenStateKey, $screenState, $ttl);
+                }
+            }
+        }
+
+        // 3. Active modals stack
+        $modalKey = "ui_active_modal:{$clientId}";
+        $modal = Cache::get($modalKey);
+        if ($modal !== null) {
+            Cache::put($modalKey, $modal, $ttl);
+        }
+
+        // 4. Current screen route and class
+        $currentScreenKey = "ui_current_screen:{$clientId}";
+        $currentScreen = Cache::get($currentScreenKey);
+        if ($currentScreen !== null) {
+            Cache::put($currentScreenKey, $currentScreen, $ttl);
+        }
+
+        // 5. Auth token & Active unit
+        $authTokenKey = $this->getCacheKey(prefix: 'ui_auth_token', clientId: $clientId);
+        $token = Cache::get($authTokenKey);
+        if ($token !== null) {
+            Cache::put($authTokenKey, $token, $ttl);
+        }
+
+        $activeUnitKey = $this->getCacheKey(prefix: 'ui_key_active_unit', clientId: $clientId);
+        $activeUnit = Cache::get($activeUnitKey);
+        if ($activeUnit !== null) {
+            Cache::put($activeUnitKey, $activeUnit, $ttl);
+        }
     }
 
     /**
@@ -655,8 +762,8 @@ class UIStateRepository implements UIStateRepositoryInterface
      */
     protected function getCacheTtl(): int
     {
-        $ttlConfig = config('usim.ui_cache_ttl', 60);
-        $ttl = \is_int($ttlConfig) ? $ttlConfig : 60;
+        $ttlConfig = config('usim.ui_cache_ttl', 7200);
+        $ttl = \is_int($ttlConfig) ? $ttlConfig : 7200;
         if (\is_string($ttlConfig) && ctype_digit($ttlConfig)) {
             $ttl = (int) $ttlConfig;
         }

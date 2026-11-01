@@ -37,6 +37,8 @@ final class UsimConfig
 
     public private(set) string $defaultMenuScreen;
 
+    public private(set) int $uiCacheTtl;
+
     /** @var array<string, string> */
     public private(set) array $models = [];
 
@@ -84,6 +86,7 @@ final class UsimConfig
         $this->defaultRegisteringRole = \is_string($raw['default_registering_role'] ?? null) ? $raw['default_registering_role'] : 'registered';
         $this->defaultLayout = \is_string($raw['default_layout'] ?? null) ? $raw['default_layout'] : 'App\\UI\\Layouts\\MainLayout';
         $this->defaultMenuScreen = \is_string($raw['default_menu_screen'] ?? null) ? $raw['default_menu_screen'] : 'App\\UI\\Screens\\Menu';
+        $this->uiCacheTtl = isset($raw['ui_cache_ttl']) && is_numeric($raw['ui_cache_ttl']) ? (int) $raw['ui_cache_ttl'] : 7200;
 
         // 2. Modelos
         $rawModels = \is_array($raw['models'] ?? null) ? $raw['models'] : [];

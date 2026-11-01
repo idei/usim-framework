@@ -187,14 +187,19 @@ class Login extends Screen
             $this->lbl_login_result->text($message)->style('success');
         }
 
+        /** @var class-string<Screen>|string|null $homeScreen */
+        $homeScreen = $params['home_screen'] ?? null;
+
         if ($this->isOpenedAsModal()) {
-            $this->closeModal();
+            if (\is_string($homeScreen) && class_exists($homeScreen) && is_subclass_of($homeScreen, Screen::class)) {
+                $this->closeModalAndNavigate($homeScreen);
+            } else {
+                $this->closeModal();
+            }
 
             return;
         }
 
-        /** @var class-string<Screen>|string|null $homeScreen */
-        $homeScreen = $params['home_screen'] ?? null;
         if (\is_string($homeScreen) && class_exists($homeScreen) && is_subclass_of($homeScreen, Screen::class)) {
             $this->showInto($homeScreen, force: true, updateBrowserUrl: true);
         }

@@ -59,6 +59,14 @@ class UIStateManager
         return self::getRepository()->getClientOpenedScreens($clientId);
     }
 
+    /**
+     * @return list<string>
+     */
+    public static function getClientOpenedClasses(?string $clientId = null): array
+    {
+        return self::getRepository()->getClientOpenedClasses($clientId);
+    }
+
     public static function removeClientOpenedScreen(string|int $screenId, ?string $clientId = null): void
     {
         self::getRepository()->removeClientOpenedScreen($screenId, $clientId);
@@ -243,5 +251,10 @@ class UIStateManager
     public static function clearClientSnapshots(?string $clientId = null): void
     {
         self::getRepository()->clearClientSnapshots($clientId);
+    }
+
+    public static function touchClientSession(?string $clientId = null): void
+    {
+        self::getRepository()->touchClientSession($clientId);
     }
 }

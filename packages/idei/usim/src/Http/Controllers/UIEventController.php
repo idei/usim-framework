@@ -105,6 +105,9 @@ class UIEventController extends Controller
                 UsimEventDispatcher::flushQueuedEvents();
             } finally {
                 UsimEventDispatcher::resetRequestState();
+                if (class_exists(\Idei\Usim\Layout\AbstractLayout::class)) {
+                    \Idei\Usim\Layout\AbstractLayout::setCurrent(null);
+                }
             }
 
             $changes = $this->uiChanges->all();

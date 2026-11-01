@@ -58,6 +58,16 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | UI State Cache TTL
+    |--------------------------------------------------------------------------
+    |
+    | Tiempo de vida en segundos para la persistencia del estado de componentes
+    | y pantallas abiertas en la caché. Por defecto 7200 segundos (2 horas).
+    */
+    'ui_cache_ttl' => (int) env('USIM_UI_CACHE_TTL', 7200),
+
+    /*
+    |--------------------------------------------------------------------------
     | Application Name
     |--------------------------------------------------------------------------
     | Nombre de la aplicación que se mostrará en la interfaz de usuario.

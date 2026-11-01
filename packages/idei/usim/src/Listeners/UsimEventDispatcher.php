@@ -18,8 +18,17 @@ class UsimEventDispatcher
 
     protected static bool $deferProcessing = false;
 
+    /** @var array<string, bool> */
+    protected static array $processedEventHashes = [];
+
     public function handle(UsimEvent $event): void
     {
+        $eventHash = spl_object_hash($event);
+        if (isset(self::$processedEventHashes[$eventHash])) {
+            return;
+        }
+        self::$processedEventHashes[$eventHash] = true;
+
         // 1. Encolamos el evento entrante
         self::$eventQueue[] = $event;
 
@@ -52,6 +61,7 @@ class UsimEventDispatcher
         self::$eventQueue = [];
         self::$isProcessing = false;
         self::$deferProcessing = false;
+        self::$processedEventHashes = [];
     }
 
     private function drainQueue(): void
@@ -76,11 +86,52 @@ class UsimEventDispatcher
     {
         $methodName = Screen::actionToMethodName($event->eventName);
         $openedScreens = UIStateManager::getClientOpenedScreens();
+
+        /** @var array<string, bool> $targetScreenClasses */
+        $targetScreenClasses = [];
+
+        foreach ($openedScreens as $rootComponentId) {
+            $screenClass = UIIdGenerator::getContextFromId((int) $rootComponentId);
+            if (\is_string($screenClass) && $screenClass !== '') {
+                $targetScreenClasses[$screenClass] = true;
+            }
+        }
+
+        foreach (UIStateManager::getClientOpenedClasses() as $openedClass) {
+            if ($openedClass !== '') {
+                $targetScreenClasses[$openedClass] = true;
+            }
+        }
+
+        // Asegurar notificación de la pantalla de menú predeterminada si Menu está abierta
+        // o si nos encontramos en el ciclo de un evento UI (UIEventController / petición UI)
+        $defaultMenuConfig = config('usim.default_menu_screen', 'App\\UI\\Screens\\Menu');
+        $defaultMenuScreen = \is_string($defaultMenuConfig) ? $defaultMenuConfig : 'App\\UI\\Screens\\Menu';
+        if (class_exists($defaultMenuScreen)) {
+            $isUiRequest = self::$deferProcessing || request()->is('api/ui*') || request()->is('ui*') || request()->hasHeader('X-UI-Client-Id');
+            if ($isUiRequest || isset($targetScreenClasses[$defaultMenuScreen])) {
+                $targetScreenClasses[$defaultMenuScreen] = true;
+            }
+        }
+
+        // Asegurar notificación de la pantalla actualmente activa
+        $currentScreen = UIStateManager::getClientCurrentScreenClass();
+        if (\is_string($currentScreen) && class_exists($currentScreen)) {
+            $targetScreenClasses[$currentScreen] = true;
+        }
+
+        // Asegurar notificación del modal activo si existe
+        $activeModal = UIStateManager::getClientActiveModal();
+        if (\is_array($activeModal) && ! empty($activeModal['modal_class']) && class_exists($activeModal['modal_class'])) {
+            $targetScreenClasses[$activeModal['modal_class']] = true;
+        }
+
         $incomingStorageRaw = request()->storage ?? [];
+        /** @var array<string, mixed> $incomingStorage */
         $incomingStorage = [];
-        if (is_array($incomingStorageRaw)) {
+        if (\is_array($incomingStorageRaw)) {
             foreach ($incomingStorageRaw as $key => $value) {
-                if (is_string($key)) {
+                if (\is_string($key)) {
                     $incomingStorage[$key] = $value;
                 }
             }
@@ -92,9 +143,8 @@ class UsimEventDispatcher
             $incomingStorage = array_merge($incomingStorage, $collector->getStorage());
         }
 
-        foreach ($openedScreens as $rootComponentId) {
-            $screenClass = UIIdGenerator::getContextFromId((int) $rootComponentId);
-            if (! is_string($screenClass) || $screenClass === '') {
+        foreach (array_keys($targetScreenClasses) as $screenClass) {
+            if (! class_exists($screenClass) || (! is_subclass_of($screenClass, Screen::class) && $screenClass !== Screen::class)) {
                 continue;
             }
 

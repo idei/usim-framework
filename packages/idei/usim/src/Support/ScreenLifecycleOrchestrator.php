@@ -57,14 +57,16 @@ use RuntimeException;
  */
 class ScreenLifecycleOrchestrator implements ScreenLifecycleOrchestratorInterface
 {
+    protected UsimConfig $usimConfig;
+
     public function __construct(
         protected UIStateRepositoryInterface $stateRepository,
         protected UIDifferInterface $differ,
         protected ComponentIdGeneratorInterface $idGenerator,
         protected UIChangesCollector $changesCollector,
-        protected ?UsimConfig $usimConfig = null,
+        ?UsimConfig $usimConfig = null,
     ) {
-        $this->usimConfig ??= app(UsimConfig::class);
+        $this->usimConfig = $usimConfig ?? app(UsimConfig::class);
     }
 
     /**
@@ -126,7 +128,7 @@ class ScreenLifecycleOrchestrator implements ScreenLifecycleOrchestratorInterfac
                             ?? $layout::getMenuScreen()
                             ?? $this->usimConfig->defaultMenuScreen;
 
-                        if ($menuClass !== null && ! is_subclass_of($menuClass, Screen::class)) {
+                        if (! is_subclass_of($menuClass, Screen::class)) {
                             $menuClass = Screen::resolveScreenClassFromSlug($menuClass);
                         }
 
@@ -143,7 +145,7 @@ class ScreenLifecycleOrchestrator implements ScreenLifecycleOrchestratorInterfac
                             $otherSlot = $layout->getSlot($slotName);
                             $targetClass = is_subclass_of($activeClass, Screen::class)
                                 ? $activeClass
-                                : (is_string($activeClass) ? Screen::resolveScreenClassFromSlug($activeClass) : null);
+                                : Screen::resolveScreenClassFromSlug($activeClass);
 
                             if ($otherSlot instanceof Container && $targetClass !== null && class_exists($targetClass) && is_subclass_of($targetClass, Screen::class)) {
                                 $otherSlot->clear();

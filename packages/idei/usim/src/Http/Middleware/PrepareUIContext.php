@@ -38,6 +38,9 @@ class PrepareUIContext
         // 2. Inyectar route params desde query
         $this->injectRouteParamsFromQuery($request);
 
+        // 3. Renovar TTL de la sesión de UI del cliente (sliding expiration)
+        UIStateManager::touchClientSession();
+
         return $next($request);
     }
 

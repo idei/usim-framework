@@ -63,6 +63,13 @@ interface UIStateRepositoryInterface
     public function getClientOpenedScreens(?string $clientId = null): array;
 
     /**
+     * Get list of screen/layout class names currently opened by the client.
+     *
+     * @return list<string>
+     */
+    public function getClientOpenedClasses(?string $clientId = null): array;
+
+    /**
      * Remove a screen ID from the client's opened screens tracking.
      */
     public function removeClientOpenedScreen(string|int $screenId, ?string $clientId = null): void;
@@ -191,4 +198,9 @@ interface UIStateRepositoryInterface
      * Clear all cached screen and layout snapshots, opened screen tracking, and active modals for the client.
      */
     public function clearClientSnapshots(?string $clientId = null): void;
+
+    /**
+     * Refresh/extend the expiration TTL of active client cache entries (sliding expiration).
+     */
+    public function touchClientSession(?string $clientId = null): void;
 }

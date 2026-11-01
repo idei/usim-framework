@@ -231,9 +231,9 @@ class NewLabelDemo extends Screen
     public function onChangeState(array $params): void
     {
         $this->store_click_count++;
-        $style = (string) ($params['style'] ?? 'primary');
-        $variant = (string) ($params['variant'] ?? 'pill');
-        $icon = (string) ($params['icon'] ?? '⚡');
+        $style = isset($params['style']) && is_string($params['style']) ? $params['style'] : 'primary';
+        $variant = isset($params['variant']) && is_string($params['variant']) ? $params['variant'] : 'pill';
+        $icon = isset($params['icon']) && is_string($params['icon']) ? $params['icon'] : '⚡';
 
         $this->store_current_style = $style;
         $this->store_current_variant = $variant;

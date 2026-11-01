@@ -282,6 +282,21 @@ trait HandlesModals
     }
 
     /**
+     * Close the current modal and navigate to a target screen in the underlying shell.
+     *
+     * @param  class-string<Screen>|string  $screenClass  Target screen class or slug
+     * @param  array<int|string, mixed>  $params  Parameters passed to target's buildBaseUI
+     * @param  string|null  $slot  Optional slot override
+     * @param  bool  $force  Whether to force reload the slot
+     */
+    public function closeModalAndNavigate(string $screenClass, array $params = [], ?string $slot = null, bool $force = true): bool
+    {
+        $this->closeModal();
+
+        return $this->showInto($screenClass, slot: $slot, params: $params, updateBrowserUrl: true, force: $force);
+    }
+
+    /**
      * Close the current modal and return data to the caller screen.
      *
      * @param  string|array<string, mixed>|null  $action
