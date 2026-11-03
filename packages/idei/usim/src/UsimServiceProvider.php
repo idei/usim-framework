@@ -86,6 +86,8 @@ class UsimServiceProvider extends ServiceProvider
             ScreenLifecycleOrchestrator::class
         );
 
+        $this->app->singleton(\Idei\Usim\Support\MethodParameterResolver::class);
+
         $this->app->singleton(TranslationService::class, function ($app) {
             return new TranslationService(
                 $app->make(TranslationKeyManager::class),

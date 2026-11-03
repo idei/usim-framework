@@ -43,8 +43,14 @@ Created with fluent builders, for example:
 ### Event handling
 - Components expose actions (`->action('save_item')`).
 - Handler naming convention: `on` + PascalCase action name.
-  - `save_item` -> `onSaveItem(array $params)`
-- Params include UI values from current client state.
+  - `save_item` -> `onSaveItem(...)`
+- Handlers support automatic typed parameter resolution and hydration:
+  - Strongly-typed arguments resolved by attribute name (`int $user_id`, `string $tab = 'main'`, `BackedEnum $status`, `User $user`).
+  - Request injection via `UIRequest $request` or `$this->request()`.
+  - Legacy signature `array $params` is fully supported for backwards compatibility.
+- Automatic query string propagation:
+  - Client JS (`ui-renderer.js` and `ui-event.js`) sends `window.location.search` with `/api/ui-event` and `/api/ui-data`.
+  - Available in Screen via `$this->query('param', $default)` or `$this->getQueryParams()`, and via `$request->query('param')`.
 
 ### State model
 - Screen state is server-side.

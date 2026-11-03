@@ -229,6 +229,8 @@ Segun `packages/idei/usim/CHANGELOG.md` y `packages/idei/usim/README.md`, el con
 - El framework soporta cambio de tema y usa `ui-theme-tokens.css` para light/dark mode.
 - Soporte de **Headless Mode** con `USIM_HEADLESS_MODE=true`: el catch-all web devuelve `406` y los clientes deben usar `GET /api/ui/{screen}` + `POST /api/ui-event`.
 - Soporte de **Agent Context** por Screen mediante `getAgentContext(): array`: si no esta vacio, se serializa en `agent_context` dentro del payload JSON para clientes IA/headless.
+- **Propagación de Query String en eventos y datos:** El frontend (`ui-renderer.js` y `ui-event.js`) propaga automáticamente el query string completo (`window.location.search`) en peticiones `POST /api/ui-event` y `GET /api/ui-data`. En la `Screen`, están disponibles vía `$this->query('key', $default)` o `$this->getQueryParams()`, y en controllers/requests vía `$request->query('key')`.
+- **Inyección e hidratación automática de parámetros tipados:** Los handlers `on*()` y métodos `get*()` resuelven parámetros por nombre contra los datos del evento/query e hidratan automáticamente tipos escalares (`int`, `float`, `string`, `bool`, `array`), `BackedEnum`, Modelos Eloquent (`findOrFail`), inyección de `UIRequest`, o valores predeterminados/nulos. Parámetros obligatorios ausentes o incompatibles lanzan `ValidationException` (HTTP 422). Se mantiene retrocompatibilidad total con `array $params`.
 
 ## Reglas para decidir donde editar
 
@@ -242,7 +244,8 @@ Segun `packages/idei/usim/CHANGELOG.md` y `packages/idei/usim/README.md`, el con
 ## Convenciones tecnicas USIM
 
 - Usa `Screen` para screens y `UI::*` para crear componentes.
-- Los handlers siguen la convencion `on<ActionName>` en PascalCase a partir del action snake_case.
+- Los handlers siguen la convencion `on<ActionName>` en PascalCase a partir del action snake_case y soportan parámetros tipados e hidratados por nombre, `UIRequest $request`, o `array $params`.
+- Para acceder a los parámetros del query string de la URL en la `Screen`, usa `$this->query('param', $default)`.
 - Piensa siempre en IDs deterministas, diffs incrementales y reconstruccion correcta del estado.
 - Las propiedades `store_*` son persistidas entre requests; usa `_crypt` solo para valores sensibles.
 - Prioriza implementaciones en PHP alineadas con Laravel y con la arquitectura server-driven del framework.
@@ -258,7 +261,7 @@ Cuando en este repo se hable de "Screen", debes interpretarlo siempre con este s
 - La `Screen` concentra interfaz + estado + reglas de interaccion en backend; el frontend solo renderiza el contrato JSON.
 - El estado vive del lado servidor y se restaura entre requests; las propiedades `store_*` persisten entre eventos.
 - El flujo reactivo esperado es: restaurar estado -> ejecutar handler -> calcular diff -> enviar solo delta al cliente.
-- Los handlers se resuelven por convencion: `action` en snake_case -> metodo `onPascalCase(array $params)`.
+- Los handlers se resuelven por convencion: `action` en snake_case -> metodo `onPascalCase(...)` con resolución e hidratación de parámetros tipados por nombre, `UIRequest`, o `array $params`.
 - La autorizacion y acceso pertenecen a la `Screen` (`authorize`, `checkAccess`) y no al frontend.
 - La ruta de una `Screen` se deriva por convencion del namespace/clase (`getRoutePath`), salvo personalizaciones explicitas.
 - La metadata de navegacion tambien pertenece a la `Screen`: `getMenuLabel()`, `getMenuIcon()` y `getRoutePath()`.
@@ -284,7 +287,7 @@ Cuando el usuario te pida "crear una Screen" o "agregar una screen", debes enten
    - `getMenuIcon(): ?string` - emoji o icono para el menu (opcional)
    - `authorize(): bool` - control de acceso basado en roles (opcional pero recomendado)
 3. **Propiedades protegidas**: declara como `protected` los componentes que necesites persistir entre requests (e.g., `protected Table $users_table`, `protected Input $search_field`).
-4. **Handlers**: implementa metodos en convención `on<ActionName>` (e.g., `onAddUserClicked`, `onSearchUsers`, `onSubmitRegister`). Reciben `array $params` con datos del evento frontend.
+4. **Handlers**: implementa metodos en convención `on<ActionName>` (e.g., `onAddUserClicked`, `onSearchUsers`, `onSubmitRegister`). Pueden recibir parámetros fuertemente tipados por nombre (`int $user_id`, `string $tab = 'main'`, `User $user`, etc.), `UIRequest $request`, o el array tradicional `array $params`. La URL query string está disponible con `$this->query('param')`.
 5. **postLoadUI()**: si necesitas sincronizar estado restaurado con valores de componentes, implementa este metodo.
 
 ### Control de roles

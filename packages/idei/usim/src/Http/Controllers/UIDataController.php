@@ -80,7 +80,10 @@ class UIDataController extends Controller
             }
 
             $incomingStorage = $this->normalizeArray($request->input('storage', []));
-            $queryParams = $request->query();
+            $bodyQueryParams = $this->normalizeArray($request->input('query_params', []));
+            $reservedKeys = ['component_id', 'action', 'parameters', '_caller_screen_id', '_caller_service_id', 'storage', 'query_params'];
+            $urlQueryParams = array_diff_key($request->query(), array_flip($reservedKeys));
+            $queryParams = array_merge($bodyQueryParams, $urlQueryParams);
 
             $result = $screen->handleQuery(
                 method: $method,
@@ -123,6 +126,7 @@ class UIDataController extends Controller
         return $request->validate([
             'component_id' => 'required|integer',
             'action' => 'required|string',
+            'query_params' => 'sometimes|array',
         ]);
     }
 

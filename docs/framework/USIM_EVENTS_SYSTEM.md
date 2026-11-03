@@ -737,7 +737,54 @@ class UserProfileScreen extends Screen
 }
 ```
 
-### 7.2 Emisión y Recepción de Eventos de Dominio (`UsimEvent`)
+### 7.2 Inyección e Hidratación Automática de Parámetros (`MethodParameterResolver`)
+
+En lugar de extraer parámetros manualmente desde `$params`, los handlers de acción (`on*()`) y consultas (`get*()`) admiten parámetros tipados resueltos e hidratados automáticamente por el framework:
+
+```php
+// 1. Tipos escalares con valores por defecto y nullables
+public function onSelectUser(int $user_id, string $tab = 'profile', ?int $limit = null): void
+{
+    // $user_id se castea automáticamente a entero
+    // $tab toma 'profile' si no se envió en el payload
+}
+
+// 2. BackedEnums (PHP 8.1+)
+public function onChangeStatus(UserStatus $status): void
+{
+    // Coerción automática vía UserStatus::tryFrom()
+}
+
+// 3. Model Binding implícito de Eloquent
+public function onDeleteUser(User $user): void
+{
+    // Resuelve automáticamente el modelo User::find($id) buscando 'user_id', 'id' o 'user'
+}
+
+// 4. Form Requests (UIRequest) con validación automática
+public function onSaveProfile(SaveProfileRequest $request): void
+{
+    // Valida reglas, mapea campos y auto-asocia errores a componentes visuales
+}
+
+// 5. Parámetros de Query String de la URL
+public function onFilterResults(): void
+{
+    $tenantId = $this->query('tenant_id'); // Desde window.location.search
+    $allQueries = $this->getQueryParams();
+}
+```
+
+#### Precedencia de Resolución
+1. **`$parameters`** del evento/componente (`action('click', ['user_id' => 1])`).
+2. **`$queryParams`** de la URL activa del navegador (`?user_id=1`).
+3. **`$incomingStorage`** de la sesión del cliente (`user_id` o `store_user_id`).
+4. **Valor por defecto** definido en la firma PHP.
+5. **`null`** (si el tipo es nullable).
+
+Si un parámetro requerido no se provee o no coincide con el tipo esperado, el framework responde automáticamente con `HTTP 422 Unprocessable Content` y la estructura de errores de validación estándar de Laravel.
+
+### 7.3 Emisión y Recepción de Eventos de Dominio (`UsimEvent`)
 
 Cuando una acción en una pantalla debe impactar en otras pantallas activas de la sesión (por ejemplo, el menú de navegación, un carrito de compras o un panel lateral):
 

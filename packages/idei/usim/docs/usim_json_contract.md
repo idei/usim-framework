@@ -44,9 +44,11 @@ Response esperada:
 Request:
 
 ```http
-POST /api/ui-event
+POST /api/ui-event?query_param=val
 Content-Type: application/json
 ```
+
+> **Propagación de Query String:** Las peticiones a `POST /api/ui-event` adjuntan automáticamente todos los parámetros de la URL activa del navegador (`window.location.search`), haciéndolos accesibles en la Screen mediante `$this->query('param')` o en `UIRequest` vía `$request->query('param')`.
 
 Body base:
 
@@ -57,6 +59,9 @@ Body base:
   "action": "submit_login",
   "parameters": {
     "field_a": "value"
+  },
+  "query_params": {
+    "optional_headless_query": "value"
   }
 }
 ```
@@ -70,20 +75,21 @@ Campos:
   - `change`
   - `action`
   - `timeout`
-- `action` (string, requerido): accion backend a ejecutar.
-- `parameters` (object, requerido): datos enviados por el cliente (valores de formulario, contexto, etc.).
+- `action` (string, requerido): accion backend a ejecutar. Corresponde al handler `onPascalCase` en la Screen.
+- `parameters` (object, requerido): datos enviados por el componente o formulario.
+- `query_params` (object, opcional): parámetros de query provistos en el body para clientes headless o pruebas API.
 
 Response esperada:
 
-- Normalmente HTTP `200 OK` con JSON.
-- Puede incluir solo meta-keys, o meta-keys + deltas de componentes.
+- Normalmente HTTP `200 OK` con JSON (deltas de componentes y/o meta-keys).
+- Si falta un parámetro obligatorio o hay incompatibilidad de tipo: HTTP `422 Unprocessable Content` con objeto `{ "message": "...", "errors": { ... } }`.
 
 ## 2.3 Consulta y obtención de datos UI (Data Fetching / Query)
 
 Request:
 
 ```http
-GET /api/ui-data?component_id={id}&action={action}&parameters={parameters}
+GET /api/ui-data?component_id={id}&action={action}&parameters={parameters}&page_filter=value
 ```
 
 Notas:
@@ -92,6 +98,8 @@ Notas:
 - `component_id` (int, requerido): ID del componente que solicita los datos.
 - `action` (string, requerido): Acción en `snake_case` asociada a un método `get*()` en la `Screen`.
 - `parameters` (array|json_string, opcional): Argumentos pasados al método `get*()`.
+- **Query String:** Anexa automáticamente la query string de la página del navegador, aislando las claves reservadas del framework (`component_id`, `action`, `parameters`, `storage`).
+- **Hidratación de parámetros:** Los métodos de consulta (`get*()`) admiten argumentos tipados (`int $id`, `string $size`, `BackedEnum $type`), resolviéndose automáticamente.
 - Ciclo de vida de solo lectura: El método en la Screen no puede mutar componentes (lanza HTTP `422 Unprocessable Content`).
 - Retorna directamente el contenido según su MIME: JSON, texto plano, SVG, imagen binaria (`image/png`, `image/jpeg`), audio o video.
 

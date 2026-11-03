@@ -58,6 +58,7 @@ use RuntimeException;
 class ScreenLifecycleOrchestrator implements ScreenLifecycleOrchestratorInterface
 {
     protected UsimConfig $usimConfig;
+    protected MethodParameterResolver $parameterResolver;
 
     public function __construct(
         protected UIStateRepositoryInterface $stateRepository,
@@ -65,8 +66,10 @@ class ScreenLifecycleOrchestrator implements ScreenLifecycleOrchestratorInterfac
         protected ComponentIdGeneratorInterface $idGenerator,
         protected UIChangesCollector $changesCollector,
         ?UsimConfig $usimConfig = null,
+        ?MethodParameterResolver $parameterResolver = null,
     ) {
         $this->usimConfig = $usimConfig ?? app(UsimConfig::class);
+        $this->parameterResolver = $parameterResolver ?? app(MethodParameterResolver::class);
     }
 
     /**
@@ -232,44 +235,32 @@ class ScreenLifecycleOrchestrator implements ScreenLifecycleOrchestratorInterfac
 
             if (method_exists($screen, $method)) {
                 $reflectionMethod = new ReflectionMethod($screen, $method);
-                $firstParam = $reflectionMethod->getParameters()[0] ?? null;
-                $firstParamType = $firstParam?->getType();
 
-                if (
-                    $firstParamType instanceof ReflectionNamedType &&
-                    ! $firstParamType->isBuiltin() &&
-                    is_subclass_of($firstParamType->getName(), UIRequest::class)
-                ) {
-                    $requestClass = $firstParamType->getName();
-                    /** @var UIRequest $uiRequest */
-                    $uiRequest = app($requestClass);
-                    $uiRequest->initialize(
+                try {
+                    $arguments = $this->parameterResolver->resolve(
+                        reflectionMethod: $reflectionMethod,
                         screen: $screen,
                         parameters: $parameters,
-                        incomingStorage: $incomingStorage,
                         queryParams: $queryParams,
+                        incomingStorage: $incomingStorage,
                         triggerComponentId: $triggerComponentId
                     );
 
-                    try {
-                        $uiRequest->validate();
-                        $reflectionMethod->invoke($screen, $uiRequest);
-                    } catch (UIRequestValidationException $validationException) {
-                        if ($uiRequest->shouldAutoBindErrors()) {
-                            $uiRequest->bindErrorsToScreen($screen, $validationException->validator->errors());
+                    $reflectionMethod->invokeArgs($screen, $arguments);
+                } catch (UIRequestValidationException $validationException) {
+                    $uiRequest = $validationException->uiRequest;
+                    if ($uiRequest && $uiRequest->shouldAutoBindErrors()) {
+                        $uiRequest->bindErrorsToScreen($screen, $validationException->validator->errors());
 
-                            $toastMsg = $uiRequest->errorToastMessage();
-                            if ($toastMsg !== null) {
-                                $screen->toast($toastMsg, 'error');
-                            }
-
-                            $uiRequest->failedValidation($validationException->validator);
-                        } else {
-                            throw $validationException;
+                        $toastMsg = $uiRequest->errorToastMessage();
+                        if ($toastMsg !== null) {
+                            $screen->toast($toastMsg, 'error');
                         }
+
+                        $uiRequest->failedValidation($validationException->validator);
+                    } else {
+                        throw $validationException;
                     }
-                } else {
-                    $reflectionMethod->invoke($screen, $parameters);
                 }
             }
 
@@ -320,34 +311,16 @@ class ScreenLifecycleOrchestrator implements ScreenLifecycleOrchestratorInterfac
             }
 
             $reflectionMethod = new ReflectionMethod($screen, $method);
-            if ($reflectionMethod->getNumberOfParameters() === 0) {
-                $result = $reflectionMethod->invoke($screen);
-            } else {
-                $firstParam = $reflectionMethod->getParameters()[0] ?? null;
-                $firstParamType = $firstParam?->getType();
+            $arguments = $this->parameterResolver->resolve(
+                reflectionMethod: $reflectionMethod,
+                screen: $screen,
+                parameters: $parameters,
+                queryParams: $queryParams,
+                incomingStorage: $incomingStorage,
+                triggerComponentId: $triggerComponentId
+            );
 
-                if (
-                    $firstParamType instanceof ReflectionNamedType &&
-                    ! $firstParamType->isBuiltin() &&
-                    is_subclass_of($firstParamType->getName(), UIRequest::class)
-                ) {
-                    $requestClass = $firstParamType->getName();
-                    /** @var UIRequest $uiRequest */
-                    $uiRequest = app($requestClass);
-                    $uiRequest->initialize(
-                        screen: $screen,
-                        parameters: $parameters,
-                        incomingStorage: $incomingStorage,
-                        queryParams: $queryParams,
-                        triggerComponentId: $triggerComponentId
-                    );
-
-                    $uiRequest->validate();
-                    $result = $reflectionMethod->invoke($screen, $uiRequest);
-                } else {
-                    $result = $reflectionMethod->invoke($screen, $parameters);
-                }
-            }
+            $result = $reflectionMethod->invokeArgs($screen, $arguments);
 
             if ($container !== null) {
                 $dirtyChanges = $this->collectDirtyComponentChanges($container);

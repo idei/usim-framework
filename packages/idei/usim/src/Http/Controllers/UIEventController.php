@@ -48,6 +48,10 @@ class UIEventController extends Controller
         $componentId = (int) $validated['component_id'];
         $action = $validated['action'];
         $parameters = $validated['parameters'] ?? [];
+        $bodyQueryParams = $this->normalizeArray($request->input('query_params', []));
+        $reservedKeys = ['storage'];
+        $urlQueryParams = array_diff_key($request->query(), array_flip($reservedKeys));
+        $queryParams = array_merge($bodyQueryParams, $urlQueryParams);
 
         try {
             $callerScreenId = $this->extractCallerScreenId($parameters);
@@ -98,6 +102,7 @@ class UIEventController extends Controller
                     method: $method,
                     parameters: $parameters,
                     incomingStorage: $incomingStorage,
+                    queryParams: $queryParams,
                     triggerComponentId: $componentId
                 );
 
@@ -146,6 +151,7 @@ class UIEventController extends Controller
             'event' => 'required|string',
             'action' => 'required|string',
             'parameters' => 'array',
+            'query_params' => 'sometimes|array',
         ]);
     }
 

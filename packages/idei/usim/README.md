@@ -228,15 +228,44 @@ $container->add($tabs);
 
 ### Event Handlers
 
-When a button fires an action (e.g. `->action('save_form')`), the framework calls a handler method on the same screen class. The convention is **`on` + PascalCase action name**:
+When a button or interactive component fires an action (e.g. `->action('save_form')`), the framework calls a handler method on the same screen class. The convention is **`on` + PascalCase action name**:
 
 | Action string | Handler method |
 |---|---|
-| `save_form` | `onSaveForm(array $params)` |
-| `delete_item` | `onDeleteItem(array $params)` |
-| `navigate_home` | `onNavigateHome(array $params)` |
+| `save_form` | `onSaveForm(SaveUserRequest $request)` or `onSaveForm(array $params)` |
+| `delete_item` | `onDeleteItem(int $item_id)` |
+| `select_tab` | `onSelectTab(string $tab = 'main')` |
+| `navigate_home` | `onNavigateHome()` |
 
-The `$params` array contains all current component values (inputs, selects, checkboxes, etc.) from the client.
+#### Method Signature & Parameter Hydration
+
+Action handlers (`on*()`) and query methods (`get*()`) support automatic parameter resolution and type hydration via `MethodParameterResolver`:
+
+1. **Typed Primitive Parameters:** Declaring typed parameters (`int $id`, `string $name`, `bool $is_active`, `float $amount`, `array $items`) automatically hydrates and coerces values from component parameters, active URL query parameters, or client storage.
+   ```php
+   public function onEditUser(int $user_id, string $tab = 'profile'): void
+   {
+       // $user_id is cast to int; $tab uses 'profile' if not provided
+   }
+   ```
+2. **BackedEnums (PHP 8.1+):** Automatically cast using `tryFrom()`:
+   ```php
+   public function onChangeStatus(UserStatus $status): void
+   ```
+3. **Eloquent Model Binding:** Automatically resolves models by `{param}_id` or `id`:
+   ```php
+   public function onDeleteUser(User $user): void
+   ```
+4. **Form Requests (`UIRequest`):** Fully validated request classes with attribute mapping and auto-binding of component errors:
+   ```php
+   public function onSaveForm(SaveProfileRequest $request): void
+   ```
+5. **URL Query String Propagation:** Browser URL query parameters are automatically attached to `POST /api/ui-event` and `GET /api/ui-data`. Access them via:
+   - `$this->query('param', $default)` or `$this->getQueryParams()` directly on the `Screen`.
+   - `$request->query('param', $default)` inside `UIRequest`.
+6. **Legacy & Parameterless Signatures:** Methods accepting `array $params` or `array $parameters` receive the full parameters array. Parameterless methods (`public function onRefresh(): void`) invoke cleanly without arguments.
+
+If a required parameter is missing or has an incompatible type, the framework automatically returns an `HTTP 422 Unprocessable Content` response with structured error messages.
 
 ### State Management
 

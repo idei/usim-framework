@@ -486,6 +486,18 @@ abstract class Screen
     }
 
     /**
+     * Retrieve a query parameter or all query parameters from the URL.
+     */
+    public function query(?string $key = null, mixed $default = null): mixed
+    {
+        if ($key === null) {
+            return $this->queryParams;
+        }
+
+        return data_get($this->queryParams, $key, $default);
+    }
+
+    /**
      * @param  array<string, mixed>  $queryParams
      */
     public function setQueryParams(array $queryParams): static

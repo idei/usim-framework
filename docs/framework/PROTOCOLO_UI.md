@@ -286,6 +286,9 @@ Donde `screen_route_path` corresponde a la ruta canónica derivada por `Screen::
 
 **Endpoint:** `POST /api/ui-event`
 
+> [!NOTE]
+> **Propagación de Query String:** El cliente JavaScript transmite automáticamente la query string de la página actual (`window.location.search`) en la URL de la petición `POST /api/ui-event` (y en el cuerpo JSON bajo `query_params`). En el backend, estos parámetros están disponibles en la `Screen` mediante `$this->query('param', $default)` y en el controlador/request vía `$request->query('param')`. Lo mismo aplica para las consultas dinámicas a `GET /api/ui-data`.
+
 **Headers recomendados:**
 ```http
 Content-Type: application/json
@@ -324,14 +327,15 @@ Tipo de interacción producida en el cliente:
 - `"timeout"`: Evento generado al expirar un temporizador (componente `Timer` para polling recurrente/one-shot, modales de alerta o cuenta regresiva).
 
 #### 6.3.3 `action` (string, required)
-Nombre de la acción del componente en formato **snake_case**. En el backend, `UIEventController` convierte automáticamente este valor al método correspondiente del Screen en convención `onPascalCase`:
+Nombre de la acción del componente en formato **snake_case**. En el backend, `UIEventController` y `ScreenLifecycleOrchestrator` resuelven automáticamente este valor al método correspondiente del Screen en convención `onPascalCase`, con **inyección e hidratación automática de parámetros tipados**:
 ```
-Frontend (action)    →    Backend (Screen método)
-─────────────────────────────────────────────────
+Frontend (action)    →    Backend (Screen método con parámetros hidratados)
+─────────────────────────────────────────────────────────────────────────────
 "submit_form"        →    onSubmitForm(array $params)
-"delete_user"        →    onDeleteUser(array $params)
-"change_theme"       →    onChangeTheme(array $params)
-"close_modal"        →    onCloseModal(array $params)
+"save_item"          →    onSaveItem(int $id, string $title, ?string $desc = null)
+"delete_user"        →    onDeleteUser(User $user) o onDeleteUser(int $id)
+"filter_status"      →    onFilterStatus(StatusEnum $status)
+"inspect_event"      →    onInspectEvent(UIRequest $request)
 ```
 
 #### 6.3.4 `parameters` (object, optional)
@@ -352,7 +356,7 @@ Cuando se despacha un evento a `POST /api/ui-event`, la clase `Screen` ejecuta e
    - **Inyección de variables de storage:** Localiza propiedades declaradas con visibilidad `protected` cuyo nombre inicie con `store_`. Si existen en el payload de almacenamiento recibido, inyecta su valor. Aquellas propiedades con sufijo `_crypt` (ej. `protected string $store_token_crypt;`) son **desencriptadas automáticamente** usando `decrypt()` de Laravel antes de la inyección.
    - **Inyección de referencias de componentes:** Localiza propiedades protegidas tipadas con clases de componentes (ej. `protected Input $user_email;`) y las enlaza automáticamente al componente del árbol cuyo nombre coincida con la propiedad (`$container->findByName(...)`).
 2. **Ejecución del Handler:**
-   - El controlador invoca el método correspondiente `$screen->$method($parameters)`. Durante la ejecución, el handler puede mutar propiedades de componentes, invocar helpers de acción (`$this->toast(...)`, `$this->changeTheme(...)`, `$this->redirect(...)`, etc.) o modificar variables `store_*`.
+   - `ScreenLifecycleOrchestrator` utiliza `MethodParameterResolver` para resolver e hidratar los argumentos del método handler correspondiente `$screen->$method(...)`. Resuelve parámetros según su nombre contra `$parameters` y la query string, soportando tipos escalares (`int`, `float`, `string`, `bool`, `array`), `BackedEnum`, Modelos Eloquent (`findOrFail`), instancias de `UIRequest`, o valores por defecto. Si el método solo declara `(array $params)` o no recibe argumentos, se mantiene compatibilidad total sin cambios. Durante la ejecución, el handler puede mutar propiedades de componentes, invocar helpers de acción (`$this->toast(...)`, `$this->changeTheme(...)`, `$this->redirect(...)`, etc.) o modificar variables `store_*`.
 3. **`finalizeEventContext()`:**
    - Serializa el estado mutado: `$this->newUI = $this->container->toJson()`.
    - Persiste el nuevo árbol en la caché de pantalla (`cacheScreenSnapshot()`).
