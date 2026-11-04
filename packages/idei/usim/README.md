@@ -456,6 +456,10 @@ protected function postLoadUI(): void
 }
 ```
 
+> **Strongly-Typed Parameter Injection**: Lifecycle methods support direct dependency injection and automatic type-hydration. You can declare strongly-typed signatures such as `buildBaseUI(Container $container, Post $post, int $tab = 1)` and `postLoadUI(Post $post)`. Models are automatically resolved from in-memory navigation parameters, URL query strings (`?post=1` or `?post_id=1`), or database lookups.
+>
+> **Navigation Model Normalization**: When calling `$this->navigate(EditPost::class, ['post' => $post])`, USIM normalizes Eloquent models (`$model->getKey()`) and `BackedEnum` cases into browser query strings (`/edit_post?post=123`) while passing rich model instances directly into `buildBaseUI()` and `postLoadUI()`.
+
 > Component auto-injection: If you declare a typed property with the same name as a component ID, USIM automatically injects the builder instance. For example, `protected Input $input_name;` will be populated with the input created as `UI::input('input_name')`.
 
 ---

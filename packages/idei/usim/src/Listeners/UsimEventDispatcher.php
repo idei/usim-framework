@@ -158,10 +158,16 @@ class UsimEventDispatcher
                 continue;
             }
 
+            $queryParams = Screen::getCurrentQueryParams();
+            if (empty($queryParams)) {
+                $queryParams = request()->query();
+            }
+
             $screen->handleAction(
                 method: $methodName,
                 parameters: $event->params,
                 incomingStorage: $incomingStorage,
+                queryParams: $queryParams,
             );
         }
     }

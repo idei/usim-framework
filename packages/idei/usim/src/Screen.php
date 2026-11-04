@@ -10,6 +10,7 @@ use Idei\Usim\Concerns\HandlesScreenProperties;
 use Idei\Usim\Contracts\ScreenLifecycleOrchestratorInterface;
 use Idei\Usim\Contracts\UIElement;
 use Idei\Usim\Layout\AbstractLayout;
+use Idei\Usim\Support\MethodParameterResolver;
 use Idei\Usim\Support\UIIdGenerator;
 use Idei\Usim\Support\UIStateManager;
 use Idei\Usim\Support\UsimConfig;
@@ -34,6 +35,9 @@ use RuntimeException;
  * - initializeEventContext() - Called before event handler
  * - onEventHandler($params) - Your event handler
  * - finalizeEventContext() - Called after event handler, returns formatted response
+ *
+ * @method void buildBaseUI(Container $container, mixed ...$params)
+ * @method void postLoadUI(mixed ...$params)
  */
 abstract class Screen
 {
@@ -387,16 +391,37 @@ abstract class Screen
     }
 
     /**
-     * Build base user Interface structure
+     * Normalize parameters into a flat array of scalar query string values for browser URLs.
      *
-     * Override this method in your service to define the base user Interface.
-     * This will be called automatically if the cache expires.
-     *
-     * @param  mixed  ...$params  Optional parameters for user Interface construction
+     * @param  array<int|string, mixed>  $params
+     * @return array<string, string|int|float|bool>
      */
-    abstract protected function buildBaseUI(Container $container, ...$params): void;
+    public static function normalizeParamsForUrl(array $params): array
+    {
+        /** @var array<string, string|int|float|bool> $normalized */
+        $normalized = [];
+        foreach ($params as $key => $value) {
+            if (! is_string($key)) {
+                continue;
+            }
+            if ($value instanceof \Illuminate\Database\Eloquent\Model) {
+                $keyVal = $value->getKey();
+                if (is_scalar($keyVal)) {
+                    $normalized[$key] = $keyVal;
+                } elseif ($keyVal instanceof \Stringable) {
+                    $normalized[$key] = (string) $keyVal;
+                }
+            } elseif ($value instanceof \BackedEnum) {
+                $normalized[$key] = $value->value;
+            } elseif (is_scalar($value)) {
+                $normalized[$key] = $value;
+            } elseif ($value instanceof \Stringable) {
+                $normalized[$key] = (string) $value;
+            }
+        }
 
-    protected function postLoadUI(): void {}
+        return $normalized;
+    }
 
     /**
      * Get the lifecycle orchestrator instance for this screen.
@@ -491,10 +516,15 @@ abstract class Screen
     public function query(?string $key = null, mixed $default = null): mixed
     {
         if ($key === null) {
-            return $this->queryParams;
+            return ! empty($this->queryParams) ? $this->queryParams : request()->query();
         }
 
-        return data_get($this->queryParams, $key, $default);
+        $val = data_get($this->queryParams, $key);
+        if ($val !== null) {
+            return $val;
+        }
+
+        return request()->query($key, $default);
     }
 
     /**
@@ -556,13 +586,62 @@ abstract class Screen
     public function callBuildBaseUI(Container $container, mixed ...$params): void
     {
         $this->autoWireComponentProperties();
-        $this->buildBaseUI($container, ...$params);
+
+        if (method_exists($this, 'buildBaseUI')) {
+            $reflectionMethod = new \ReflectionMethod($this, 'buildBaseUI');
+            $unpackedParams = (count($params) === 1 && isset($params[0]) && is_array($params[0])) ? $params[0] : $params;
+
+            /** @var MethodParameterResolver $resolver */
+            $resolver = app(MethodParameterResolver::class);
+            $arguments = $resolver->resolve(
+                reflectionMethod: $reflectionMethod,
+                screen: $this,
+                parameters: $unpackedParams,
+                queryParams: static::getCurrentQueryParams(),
+                incomingStorage: static::getCurrentIncomingStorage(),
+                provided: [
+                    Container::class => $container,
+                    'container' => $container,
+                ]
+            );
+
+            $reflectionMethod->invokeArgs($this, $arguments);
+        } else {
+            throw new \LogicException(sprintf('Screen [%s] must implement buildBaseUI(Container $container, ...).', static::class));
+        }
+
         $this->reconcileComponentProperties($container);
     }
 
-    public function callPostLoadUI(): void
+    /**
+     * @param  array<string|int, mixed>  $params
+     */
+    public function callPostLoadUI(array $params = []): void
     {
-        $this->postLoadUI();
+        if (method_exists($this, 'postLoadUI')) {
+            $reflectionMethod = new \ReflectionMethod($this, 'postLoadUI');
+            if ($reflectionMethod->getNumberOfParameters() === 0) {
+                $reflectionMethod->invoke($this);
+
+                return;
+            }
+
+            /** @var MethodParameterResolver $resolver */
+            $resolver = app(MethodParameterResolver::class);
+            $arguments = $resolver->resolve(
+                reflectionMethod: $reflectionMethod,
+                screen: $this,
+                parameters: $params,
+                queryParams: static::getCurrentQueryParams(),
+                incomingStorage: static::getCurrentIncomingStorage(),
+                provided: [
+                    Container::class => $this->container ?? null,
+                    'container' => $this->container ?? null,
+                ]
+            );
+
+            $reflectionMethod->invokeArgs($this, $arguments);
+        }
     }
 
     /**
@@ -744,6 +823,10 @@ abstract class Screen
      */
     public function __call(string $name, array $arguments): mixed
     {
+        if (in_array($name, ['buildBaseUI', 'postLoadUI'], true)) {
+            return null;
+        }
+
         $candidateMethod = method_exists($this, $name) ? $name : static::actionToMethodName($name);
         if (! method_exists($this, $candidateMethod)) {
             $candidateMethod = 'on'.Str::studly($name);
@@ -803,12 +886,15 @@ abstract class Screen
      * Finalize event context
      *
      * Called by UIEventController after event handler completes.
+     *
+     * @param  array<int|string, mixed>  $params
      */
-    public function finalizeEventContext(bool $reload = false): void
+    public function finalizeEventContext(bool $reload = false, array $params = []): void
     {
         static::getLifecycleOrchestrator()->finalizeEventContext(
             screen: $this,
-            reload: $reload
+            reload: $reload,
+            params: $params
         );
     }
 

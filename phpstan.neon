@@ -19,4 +19,7 @@ parameters:
         -
             identifier: variable.undefined
             path: packages/idei/usim/src/Testing/UsimExpectations.php
+        -
+            message: '#Method .*::buildBaseUI\(\) has parameter \$params with no type specified\.#'
+            identifier: missingType.parameter
 

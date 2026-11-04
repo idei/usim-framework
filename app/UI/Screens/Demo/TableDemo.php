@@ -14,7 +14,6 @@ use Idei\Usim\Screen;
 use Idei\Usim\UI;
 use Idei\Usim\ValueObjects\Size;
 use Idei\Usim\ValueObjects\Spacing;
-use Override;
 
 class TableDemo extends Screen
 {
@@ -56,7 +55,6 @@ class TableDemo extends Screen
         $container->add($wrapper);
     }
 
-    #[Override]
     protected function postLoadUI(): void
     {
         $this->search_movies->value($this->movies_table->getSearchTerm());

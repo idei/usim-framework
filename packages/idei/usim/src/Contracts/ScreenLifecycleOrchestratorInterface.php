@@ -82,8 +82,10 @@ interface ScreenLifecycleOrchestratorInterface
 
     /**
      * Finalize event context after action execution or render.
+     *
+     * @param  array<int|string, mixed>  $params
      */
-    public function finalizeEventContext(Screen $screen, bool $reload = false): void;
+    public function finalizeEventContext(Screen $screen, bool $reload = false, array $params = []): void;
 
     /**
      * Reconstruct the screen's component tree from cache (or build if not cached).

@@ -97,11 +97,7 @@ trait HandlesNavigation
 
         // Update browser URL and instruct frontend to load screen into slot
         if ($updateBrowserUrl && in_array($effectiveSlot, ['main', 'content', 'center'], true)) {
-            $queryParams = array_filter(
-                $params,
-                static fn ($value, $key) => is_string($key) && (is_scalar($value) || $value instanceof \Stringable),
-                ARRAY_FILTER_USE_BOTH
-            );
+            $queryParams = Screen::normalizeParamsForUrl($params);
             $navigateUrl = ! empty($queryParams)
                 ? $routePath.'?'.http_build_query($queryParams)
                 : $routePath;

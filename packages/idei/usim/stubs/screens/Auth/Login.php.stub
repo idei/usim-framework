@@ -200,6 +200,20 @@ class Login extends Screen
             return;
         }
 
+        // Check for intended redirect destination (only for full-page login)
+        $rawRedirect = $this->query('redirect');
+        if (! is_string($rawRedirect) && session()->isStarted()) {
+            $rawRedirect = session()->pull('url.intended');
+        }
+
+        if (is_string($rawRedirect) && $rawRedirect !== '' && ! str_contains($rawRedirect, '/auth/login')) {
+            if (str_starts_with($rawRedirect, '/') && ! str_starts_with($rawRedirect, '//')) {
+                $this->redirect($rawRedirect);
+
+                return;
+            }
+        }
+
         if (\is_string($homeScreen) && class_exists($homeScreen) && is_subclass_of($homeScreen, Screen::class)) {
             $this->showInto($homeScreen, force: true, updateBrowserUrl: true);
         }

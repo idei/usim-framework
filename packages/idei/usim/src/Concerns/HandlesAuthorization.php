@@ -56,10 +56,18 @@ trait HandlesAuthorization
 
         // 2. Handle failure based on authentication state
         if (! Auth::guard($guard)->check()) {
-            $redirectUrl = ($guard === 'device')
-                ? url('/device/device-pairing-screen')
-                : url('/auth/login');
-        // TODO: ESTO PUEDE SER UN PROBLEMA POR LA REDIRECCIÓN.
+            if ($guard === 'device') {
+                $redirectUrl = url('/device/device-pairing-screen');
+            } else {
+                $loginUrl = url('/auth/login');
+                $intendedUrl = static::resolveIntendedUrl();
+                if ($intendedUrl !== null && $intendedUrl !== '' && ! str_contains($intendedUrl, '/auth/login')) {
+                    if (session()->isStarted()) {
+                        session()->put('url.intended', $intendedUrl);
+                    }
+                }
+                $redirectUrl = $loginUrl;
+            }
 
             return [
                 'allowed' => false,
@@ -80,6 +88,51 @@ trait HandlesAuthorization
                 'message' => 'Unauthorized: Insufficient permissions.',
             ],
         ];
+    }
+
+    /**
+     * Resolve the intended destination URL for unauthenticated redirects.
+     */
+    protected static function resolveIntendedUrl(): ?string
+    {
+        $request = request();
+
+        if ($request->query('parent') === 'menu') {
+            return null;
+        }
+
+        $uri = $request->getRequestUri();
+        if (str_starts_with($uri, '/api/ui/')) {
+            $uri = '/'.substr($uri, strlen('/api/ui/'));
+        } elseif (str_starts_with($uri, '/api/ui-event') || str_starts_with($uri, '/api/ui-data')) {
+            $referer = $request->header('referer');
+            if (is_string($referer) && $referer !== '') {
+                $parsed = parse_url($referer);
+                $uri = ($parsed['path'] ?? '/').(isset($parsed['query']) ? '?'.$parsed['query'] : '');
+            } else {
+                $routePath = static::getRoutePath();
+                $queryString = $request->getQueryString();
+                $uri = $routePath.($queryString ? '?'.$queryString : '');
+            }
+        }
+
+        if (str_starts_with($uri, '/menu') || str_contains($uri, 'parent=menu')) {
+            return null;
+        }
+
+        // Clean internal framework query parameters (reset, parent)
+        $parsed = parse_url($uri);
+        $path = $parsed['path'] ?? '/';
+        if (isset($parsed['query'])) {
+            parse_str($parsed['query'], $queryParams);
+            unset($queryParams['reset'], $queryParams['parent']);
+            $queryString = http_build_query($queryParams);
+            $uri = $path.($queryString !== '' ? '?'.$queryString : '');
+        } else {
+            $uri = $path;
+        }
+
+        return $uri;
     }
 
     /**

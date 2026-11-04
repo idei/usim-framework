@@ -175,7 +175,7 @@ class ScreenLifecycleOrchestrator implements ScreenLifecycleOrchestratorInterfac
                 buildParams: $buildParams
             );
 
-            $this->finalizeEventContext(screen: $screen, reload: true);
+            $this->finalizeEventContext(screen: $screen, reload: true, params: $buildParams);
 
             $agentContext = $screen->getAgentContext();
             if (! empty($agentContext)) {
@@ -402,11 +402,13 @@ class ScreenLifecycleOrchestrator implements ScreenLifecycleOrchestratorInterfac
      *
      * Automatically detects changes by comparing UI state, stores updated UI,
      * and records formatted response in changes collector.
+     *
+     * @param  array<int|string, mixed>  $params
      */
-    public function finalizeEventContext(Screen $screen, bool $reload = false): void
+    public function finalizeEventContext(Screen $screen, bool $reload = false, array $params = []): void
     {
         if ($reload) {
-            $screen->callPostLoadUI();
+            $screen->callPostLoadUI($params);
         }
 
         $container = $screen->getContainer();
@@ -590,14 +592,17 @@ class ScreenLifecycleOrchestrator implements ScreenLifecycleOrchestratorInterfac
                 $instance->clearCachedScreenSnapshot();
             }
 
+            $normalizedBuildParams = Screen::normalizeParamsForUrl($buildParams);
+            $effectiveQueryParams = array_merge(Screen::getCurrentQueryParams(), $normalizedBuildParams);
+
             $this->initializeEventContext(
                 screen: $instance,
                 incomingStorage: Screen::getCurrentIncomingStorage(),
-                queryParams: Screen::getCurrentQueryParams(),
+                queryParams: $effectiveQueryParams,
                 parent: $parentId,
                 buildParams: $buildParams
             );
-            $instance->callPostLoadUI();
+            $instance->callPostLoadUI($buildParams);
 
             $container = $instance->getContainer();
             if ($container !== null) {

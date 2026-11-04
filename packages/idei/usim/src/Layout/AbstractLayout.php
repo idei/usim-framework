@@ -145,8 +145,6 @@ abstract class AbstractLayout extends Screen implements LayoutInterface
 
     protected function postLoadUI(): void
     {
-        parent::postLoadUI();
-
         if (! empty($this->state_active_screens)) {
             $this->activeScreens = array_merge($this->activeScreens, $this->state_active_screens);
         }
@@ -325,11 +323,7 @@ abstract class AbstractLayout extends Screen implements LayoutInterface
         $routeSlug = Screen::resolveScreenSlug($targetClass);
         if ($updateBrowserUrl && in_array($effectiveSlot, ['main', 'content', 'center'], true)) {
             $routePath = $targetClass::getRoutePath();
-            $queryParams = array_filter(
-                $params,
-                static fn ($value, $key) => is_string($key) && (is_scalar($value) || $value instanceof \Stringable),
-                ARRAY_FILTER_USE_BOTH
-            );
+            $queryParams = Screen::normalizeParamsForUrl($params);
             $navigateUrl = ! empty($queryParams)
                 ? $routePath.'?'.http_build_query($queryParams)
                 : $routePath;

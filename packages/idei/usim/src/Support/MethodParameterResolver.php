@@ -33,11 +33,12 @@ class MethodParameterResolver
      *
      * @param  ReflectionMethod  $reflectionMethod
      * @param  Screen  $screen
-     * @param  array<string, mixed>  $parameters
+     * @param  array<int|string, mixed>  $parameters
      * @param  array<string, mixed>  $queryParams
      * @param  array<string, mixed>  $incomingStorage
      * @param  int|null  $triggerComponentId
-     * @return array<int, mixed>
+     * @param  array<string, mixed>  $provided
+     * @return array<int|string, mixed>
      *
      * @throws ValidationException
      */
@@ -47,15 +48,19 @@ class MethodParameterResolver
         array $parameters = [],
         array $queryParams = [],
         array $incomingStorage = [],
-        ?int $triggerComponentId = null
+        ?int $triggerComponentId = null,
+        array $provided = []
     ): array {
         if ($reflectionMethod->getNumberOfParameters() === 0) {
             return [];
         }
 
+        $paramsList = $reflectionMethod->getParameters();
+        $totalParams = count($paramsList);
+
         // Backward compatibility: single legacy array/untyped parameter ($params, $parameters, etc.)
-        if ($reflectionMethod->getNumberOfParameters() === 1) {
-            $firstParam = $reflectionMethod->getParameters()[0];
+        if ($totalParams === 1 && empty($provided)) {
+            $firstParam = $paramsList[0];
             $paramName = $firstParam->getName();
             $paramType = $firstParam->getType();
 
@@ -73,14 +78,28 @@ class MethodParameterResolver
         }
 
         $resolvedArgs = [];
-        foreach ($reflectionMethod->getParameters() as $param) {
+        foreach ($paramsList as $param) {
+            if ($param->isVariadic()) {
+                if (! empty($parameters)) {
+                    foreach ($parameters as $k => $val) {
+                        if (is_string($k)) {
+                            $resolvedArgs[$k] = $val;
+                        } else {
+                            $resolvedArgs[] = $val;
+                        }
+                    }
+                }
+                break;
+            }
+
             $resolvedArgs[] = $this->resolveParameter(
                 $param,
                 $screen,
                 $parameters,
                 $queryParams,
                 $incomingStorage,
-                $triggerComponentId
+                $triggerComponentId,
+                $provided
             );
         }
 
@@ -90,9 +109,10 @@ class MethodParameterResolver
     /**
      * Resolve a single parameter.
      *
-     * @param  array<string, mixed>  $parameters
+     * @param  array<int|string, mixed>  $parameters
      * @param  array<string, mixed>  $queryParams
      * @param  array<string, mixed>  $incomingStorage
+     * @param  array<string, mixed>  $provided
      */
     protected function resolveParameter(
         ReflectionParameter $param,
@@ -100,19 +120,39 @@ class MethodParameterResolver
         array $parameters,
         array $queryParams,
         array $incomingStorage,
-        ?int $triggerComponentId
+        ?int $triggerComponentId,
+        array $provided = []
     ): mixed {
         $paramName = $param->getName();
         $type = $param->getType();
+
+        // 0. Check explicitly provided dependencies (e.g. Container $container)
+        if (array_key_exists($paramName, $provided)) {
+            return $provided[$paramName];
+        }
+
+        if ($type instanceof ReflectionNamedType && ! $type->isBuiltin()) {
+            $typeName = $type->getName();
+            if (array_key_exists($typeName, $provided)) {
+                return $provided[$typeName];
+            }
+            foreach ($provided as $provInstance) {
+                if (is_object($provInstance) && is_a($provInstance, $typeName)) {
+                    return $provInstance;
+                }
+            }
+        }
 
         // 1. UIRequest dependency injection
         if ($type instanceof ReflectionNamedType && ! $type->isBuiltin() && is_subclass_of($type->getName(), UIRequest::class)) {
             $requestClass = $type->getName();
             /** @var UIRequest $uiRequest */
             $uiRequest = app($requestClass);
+            /** @var array<string, mixed> $stringKeyParams */
+            $stringKeyParams = array_filter($parameters, static fn ($k) => is_string($k), ARRAY_FILTER_USE_KEY);
             $uiRequest->initialize(
                 screen: $screen,
-                parameters: $parameters,
+                parameters: $stringKeyParams,
                 incomingStorage: $incomingStorage,
                 queryParams: $queryParams,
                 triggerComponentId: $triggerComponentId
@@ -132,7 +172,7 @@ class MethodParameterResolver
     /**
      * Extract raw value by checking parameters, queryParams, and incomingStorage.
      *
-     * @param  array<string, mixed>  $parameters
+     * @param  array<int|string, mixed>  $parameters
      * @param  array<string, mixed>  $queryParams
      * @param  array<string, mixed>  $incomingStorage
      * @return array{0: bool, 1: mixed} [found, value]
@@ -182,13 +222,22 @@ class MethodParameterResolver
             }
         }
 
+        // Priority 5: Positional argument in parameters
+        $position = $param->getPosition();
+        if (array_key_exists($position, $parameters)) {
+            return [true, $parameters[$position]];
+        }
+        if ($position > 0 && array_key_exists($position - 1, $parameters)) {
+            return [true, $parameters[$position - 1]];
+        }
+
         return [false, null];
     }
 
     /**
      * Search for a key in an array respecting snake_case and camelCase variants.
      *
-     * @param  array<string, mixed>  $source
+     * @param  array<int|string, mixed>  $source
      * @return array{0: bool, 1: mixed}
      */
     protected function findInArray(string $key, array $source): array
@@ -313,7 +362,16 @@ class MethodParameterResolver
 
         // Eloquent Model
         if (is_subclass_of($typeName, Model::class)) {
-            $model = $typeName::find($rawValue);
+            if ($rawValue instanceof $typeName) {
+                return $rawValue;
+            }
+            if ($rawValue instanceof Model) {
+                $rawValue = $rawValue->getKey();
+            }
+            if (is_array($rawValue) && isset($rawValue['id'])) {
+                $rawValue = $rawValue['id'];
+            }
+            $model = (is_scalar($rawValue) || $rawValue instanceof \Stringable) ? $typeName::find($rawValue) : null;
             if ($model !== null) {
                 return $model;
             }
