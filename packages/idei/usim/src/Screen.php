@@ -131,7 +131,7 @@ abstract class Screen
     public function getContextIdentifier(): string
     {
         if ($this->modalLayerIndex > 0) {
-            return static::class.'@'.$this->modalLayerIndex;
+            return static::class . '@' . $this->modalLayerIndex;
         }
 
         return static::class;
@@ -356,7 +356,7 @@ abstract class Screen
      */
     public static function getMenuLabel(): string
     {
-        return t('screens.'.static::getScreenSlug().'.menu_title');
+        return t('screens.' . static::getScreenSlug() . '.menu_title');
     }
 
     /**
@@ -365,7 +365,7 @@ abstract class Screen
      */
     public static function getMenuIcon(): ?string
     {
-        return t('screens.'.static::getScreenSlug().'.icon');
+        return t('screens.' . static::getScreenSlug() . '.icon');
     }
 
     /**
@@ -382,9 +382,9 @@ abstract class Screen
         if (str_starts_with($class, $prefix)) {
             $relative = substr($class, strlen($prefix));
             $segments = explode('\\', trim($relative, '\\'));
-            $urlSegments = array_map(fn ($s) => Str::kebab($s), $segments);
+            $urlSegments = array_map(fn($s) => Str::kebab($s), $segments);
 
-            return '/'.implode('/', $urlSegments);
+            return '/' . implode('/', $urlSegments);
         }
 
         return '/';
@@ -607,10 +607,43 @@ abstract class Screen
 
             $reflectionMethod->invokeArgs($this, $arguments);
         } else {
-            throw new \LogicException(sprintf('Screen [%s] must implement buildBaseUI(Container $container, ...).', static::class));
+            $staticUI = $this->callStartingUI(...$params);
+            if ($staticUI) {
+                $container->add($staticUI);
+            } else {
+                throw new \LogicException(sprintf('Screen [%s] must implement startingUI():Container method.', static::class));
+            }
         }
 
         $this->reconcileComponentProperties($container);
+    }
+
+    private function callStartingUI(mixed ...$params): ?Container
+    {
+        if (method_exists($this, 'startingUI')) {
+            $reflectionMethod = new \ReflectionMethod($this, 'startingUI');
+            // Check the method return type to ensure it returns a ONLY a not null Container
+            $returnType = $reflectionMethod->getReturnType();
+            if ($returnType && $returnType->getName() !== Container::class) {
+                throw new \LogicException(sprintf('Screen [%s] startingUI() method must return a Container.', static::class));
+            }
+            $unpackedParams = (count($params) === 1 && isset($params[0]) && is_array($params[0])) ? $params[0] : $params;
+
+            /** @var MethodParameterResolver $resolver */
+            $resolver = app(MethodParameterResolver::class);
+            $arguments = $resolver->resolve(
+                reflectionMethod: $reflectionMethod,
+                screen: $this,
+                parameters: $unpackedParams,
+                queryParams: static::getCurrentQueryParams(),
+                incomingStorage: static::getCurrentIncomingStorage(),
+                provided: []
+            );
+
+            return $reflectionMethod->invokeArgs($this, $arguments);
+        }
+
+        return null;
     }
 
     /**
@@ -788,7 +821,7 @@ abstract class Screen
             return $action;
         }
 
-        return 'on'.Str::studly($action);
+        return 'on' . Str::studly($action);
     }
 
     /**
@@ -805,13 +838,13 @@ abstract class Screen
             return $studlyAction;
         }
 
-        $legacyAction = 'on'.Str::studly($action);
+        $legacyAction = 'on' . Str::studly($action);
         if (method_exists($this, $legacyAction)) {
             return $legacyAction;
         }
 
         throw new \BadMethodCallException(
-            "Action [{$action}] (or method [{$studlyAction}]) does not exist on screen [".static::class.'].'
+            "Action [{$action}] (or method [{$studlyAction}]) does not exist on screen [" . static::class . '].'
         );
     }
 
@@ -829,7 +862,7 @@ abstract class Screen
 
         $candidateMethod = method_exists($this, $name) ? $name : static::actionToMethodName($name);
         if (! method_exists($this, $candidateMethod)) {
-            $candidateMethod = 'on'.Str::studly($name);
+            $candidateMethod = 'on' . Str::studly($name);
         }
 
         if (method_exists($this, $candidateMethod)) {
@@ -848,7 +881,7 @@ abstract class Screen
             );
         }
 
-        throw new \BadMethodCallException("Method [{$name}] does not exist on screen [".static::class.'].');
+        throw new \BadMethodCallException("Method [{$name}] does not exist on screen [" . static::class . '].');
     }
 
     /**

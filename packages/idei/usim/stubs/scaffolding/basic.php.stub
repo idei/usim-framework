@@ -3,40 +3,57 @@
 namespace {{ namespace }};
 
 use Idei\Usim\Components\Button;
+use Idei\Usim\Components\Input;
 use Idei\Usim\Components\Container;
-use Idei\Usim\Components\Label;
+use Idei\Usim\Components\NewLabel;
+use Idei\Usim\Enums\Style;
+use Idei\Usim\Enums\TextSize;
 use Idei\Usim\Enums\Visibility;
 use Idei\Usim\Screen;
 use Idei\Usim\UI;
 
 class {{ name }} extends Screen
 {
+    private const string ErrorMessage = "Name with at least 6 characters is required.";
     public static Visibility $visibility = Visibility::PUBLIC;
-
     protected Button $button;
-    protected Label $label;
+    protected NewLabel $label;
+    protected Input $inputName;
 
-    protected function buildBaseUI(Container $container, ...$params): void
+    protected function startingUI(): Container
     {
-        $wrapper = UI::container()->card();
-
-        $wrapper->add(
-            $this->label
-                ->text("Click the button below to see the action in effect.")
-                ->style('h4')
-        );
-        $wrapper->add(
-            $this->button
-                ->label("Click me!")
-                ->action("buttonClicked")
-        );
-
-        $container->add($wrapper);
+        return UI::container('{{ name }}-container', width : 400)
+            ->add(
+                $this->label
+                    ->text("Enter your name below and click the button!")
+                    ->style(Style::DEFAULT)
+                    ->size(TextSize::LARGE)
+            )->add(
+                $this->inputName
+                    ->placeholder("Your name...")
+                    ->label("Name")
+                    ->required()
+                    ->error(self::ErrorMessage)
+                    ->onInput("textChanged")
+            )->add(
+                $this->button
+                    ->label("Click me!")
+                    ->disabled()
+                    ->action("buttonClicked")
+            );
     }
 
-    public function buttonClicked(): void
+    public function buttonClicked(string $inputName = ''): void
     {
-        $this->label->text("Hello {{ name }}!");
+        $this->label->text("Hello $inputName!!")->style(Style::SUCCESS)->center();
+        $this->inputName->disabled();
         $this->button->label("Clicked!")->disabled();
+    }
+
+    public function textChanged(string $inputName = ''): void
+    {
+        $inputLength = \strlen(\trim($inputName));
+        $this->inputName->error($inputLength <= 5 ? self::ErrorMessage : "");
+        $this->button->enabled($inputLength > 5);
     }
 }

@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -23,17 +24,28 @@
             return file_exists($absolutePath) ? (int) filemtime($absolutePath) : time();
         };
     @endphp
-    <link rel="stylesheet" href="{{ asset('vendor/idei/usim/css/ui-theme-tokens.css') }}?v={{ $usimAssetVersion('vendor/idei/usim/css/ui-theme-tokens.css') }}">
-    <link rel="stylesheet" href="{{ asset('vendor/idei/usim/css/ui-components.css') }}?v={{ $usimAssetVersion('vendor/idei/usim/css/ui-components.css') }}">
-    <link rel="stylesheet" href="{{ asset('vendor/idei/usim/css/components/uploader/index.css') }}?v={{ $usimAssetVersion('vendor/idei/usim/css/components/uploader/index.css') }}">
-    <link rel="stylesheet" href="{{ asset('vendor/idei/usim/css/components/carousel/index.css') }}?v={{ $usimAssetVersion('vendor/idei/usim/css/components/carousel/index.css') }}">
-    <link rel="stylesheet" href="{{ asset('vendor/idei/usim/css/components/image-crop-editor/index.css') }}?v={{ $usimAssetVersion('vendor/idei/usim/css/components/image-crop-editor/index.css') }}">
-    <link rel="stylesheet" href="{{ asset('vendor/idei/usim/css/components/textarea/index.css') }}?v={{ $usimAssetVersion('vendor/idei/usim/css/components/textarea/index.css') }}">
-    <link rel="stylesheet" href="{{ asset('vendor/idei/usim/css/components/split/index.css') }}?v={{ $usimAssetVersion('vendor/idei/usim/css/components/split/index.css') }}">
-    <link rel="stylesheet" href="{{ asset('vendor/idei/usim/css/components/container/index.css') }}?v={{ $usimAssetVersion('vendor/idei/usim/css/components/container/index.css') }}">
+    <link rel="stylesheet"
+        href="{{ asset('vendor/idei/usim/css/ui-theme-tokens.css') }}?v={{ $usimAssetVersion('vendor/idei/usim/css/ui-theme-tokens.css') }}">
+    <link rel="stylesheet"
+        href="{{ asset('vendor/idei/usim/css/ui-components.css') }}?v={{ $usimAssetVersion('vendor/idei/usim/css/ui-components.css') }}">
+    <link rel="stylesheet"
+        href="{{ asset('vendor/idei/usim/css/components/uploader/index.css') }}?v={{ $usimAssetVersion('vendor/idei/usim/css/components/uploader/index.css') }}">
+    <link rel="stylesheet"
+        href="{{ asset('vendor/idei/usim/css/components/carousel/index.css') }}?v={{ $usimAssetVersion('vendor/idei/usim/css/components/carousel/index.css') }}">
+    <link rel="stylesheet"
+        href="{{ asset('vendor/idei/usim/css/components/image-crop-editor/index.css') }}?v={{ $usimAssetVersion('vendor/idei/usim/css/components/image-crop-editor/index.css') }}">
+    <link rel="stylesheet"
+        href="{{ asset('vendor/idei/usim/css/components/textarea/index.css') }}?v={{ $usimAssetVersion('vendor/idei/usim/css/components/textarea/index.css') }}">
+    <link rel="stylesheet"
+        href="{{ asset('vendor/idei/usim/css/components/split/index.css') }}?v={{ $usimAssetVersion('vendor/idei/usim/css/components/split/index.css') }}">
+    <link rel="stylesheet"
+        href="{{ asset('vendor/idei/usim/css/components/container/index.css') }}?v={{ $usimAssetVersion('vendor/idei/usim/css/components/container/index.css') }}">
 </head>
+
 <body>
-    <button id="reset-btn" style="position: fixed; left: 16px; bottom: 16px; z-index: 9999; width: 32px; height: 32px; border: 1px solid rgba(255, 255, 255, 0.0); border-radius: 50%; display: flex; align-items: center; justify-content: center; background: rgba(239, 68, 68, 0.55); color: #fff; font-weight: 700; box-shadow: 0 4px 10px rgba(127, 29, 29, 0.35); cursor: pointer;" onclick="location.href='?reset=true'">R</button>
+    <button id="reset-btn"
+        style="position: fixed; left: 16px; bottom: 16px; z-index: 9999; width: 32px; height: 32px; border: 1px solid rgba(255, 255, 255, 0.0); border-radius: 50%; display: flex; align-items: center; justify-content: center; background: rgba(239, 68, 68, 0.55); color: #fff; font-weight: 700; box-shadow: 0 4px 10px rgba(127, 29, 29, 0.35); cursor: pointer;"
+        onclick="(function(){const params=new URLSearchParams(window.location.search);params.set('reset','true');location.href=window.location.pathname+'?'+params.toString()})()">R</button>
     <main id="main"></main>
     <div id="modal-root"></div>
 
@@ -45,6 +57,9 @@
         // Crear un array con prefijo "route_" para diferenciarlos de query params
         $prefixedRouteParams = [];
         foreach ($routeParams as $key => $value) {
+            if ($key === 'screen') {
+                continue;
+            }
             $prefixedRouteParams["route_$key"] = $value;
         }
 
@@ -59,32 +74,87 @@
         window.PARAMS = @json($allParams);
         window.QUERY_PARAMS = new URLSearchParams(window.location.search);
     </script>
-    <script src="{{ asset('vendor/idei/usim/js/component-registry.js') }}?v={{ $usimAssetVersion('vendor/idei/usim/js/component-registry.js') }}"></script>
-    <script src="{{ asset('vendor/idei/usim/js/ui-renderer.js') }}?v={{ $usimAssetVersion('vendor/idei/usim/js/ui-renderer.js') }}"></script>
-    <script src="{{ asset('vendor/idei/usim/js/components/shared/ui-event.js') }}?v={{ $usimAssetVersion('vendor/idei/usim/js/components/shared/ui-event.js') }}"></script>
-    <script src="{{ asset('vendor/idei/usim/js/components/shared/content-render.js') }}?v={{ $usimAssetVersion('vendor/idei/usim/js/components/shared/content-render.js') }}"></script>
-    <script src="{{ asset('vendor/idei/usim/js/components/container/index.js') }}?v={{ $usimAssetVersion('vendor/idei/usim/js/components/container/index.js') }}"></script>
-    <script src="{{ asset('vendor/idei/usim/js/components/label/index.js') }}?v={{ $usimAssetVersion('vendor/idei/usim/js/components/label/index.js') }}"></script>
-    <script src="{{ asset('vendor/idei/usim/js/components/button/index.js') }}?v={{ $usimAssetVersion('vendor/idei/usim/js/components/button/index.js') }}"></script>
-    <script src="{{ asset('vendor/idei/usim/js/components/input/index.js') }}?v={{ $usimAssetVersion('vendor/idei/usim/js/components/input/index.js') }}"></script>
-    <script src="{{ asset('vendor/idei/usim/js/components/select/index.js') }}?v={{ $usimAssetVersion('vendor/idei/usim/js/components/select/index.js') }}"></script>
-    <script src="{{ asset('vendor/idei/usim/js/components/checkbox/index.js') }}?v={{ $usimAssetVersion('vendor/idei/usim/js/components/checkbox/index.js') }}"></script>
-    <script src="{{ asset('vendor/idei/usim/js/components/storage/index.js') }}?v={{ $usimAssetVersion('vendor/idei/usim/js/components/storage/index.js') }}"></script>
-    <script src="{{ asset('vendor/idei/usim/js/components/card/index.js') }}?v={{ $usimAssetVersion('vendor/idei/usim/js/components/card/index.js') }}"></script>
-    <script src="{{ asset('vendor/idei/usim/js/components/menudropdown/index.js') }}?v={{ $usimAssetVersion('vendor/idei/usim/js/components/menudropdown/index.js') }}"></script>
-    <script src="{{ asset('vendor/idei/usim/js/components/table/index.js') }}?v={{ $usimAssetVersion('vendor/idei/usim/js/components/table/index.js') }}"></script>
-    <script src="{{ asset('vendor/idei/usim/js/components/tableheaderrow/index.js') }}?v={{ $usimAssetVersion('vendor/idei/usim/js/components/tableheaderrow/index.js') }}"></script>
-    <script src="{{ asset('vendor/idei/usim/js/components/tablerow/index.js') }}?v={{ $usimAssetVersion('vendor/idei/usim/js/components/tablerow/index.js') }}"></script>
-    <script src="{{ asset('vendor/idei/usim/js/components/tablecell/index.js') }}?v={{ $usimAssetVersion('vendor/idei/usim/js/components/tablecell/index.js') }}"></script>
-    <script src="{{ asset('vendor/idei/usim/js/components/tableheadercell/index.js') }}?v={{ $usimAssetVersion('vendor/idei/usim/js/components/tableheadercell/index.js') }}"></script>
-    <script src="{{ asset('vendor/idei/usim/js/components/image-crop-editor/index.js') }}?v={{ $usimAssetVersion('vendor/idei/usim/js/components/image-crop-editor/index.js') }}"></script>
-    <script src="{{ asset('vendor/idei/usim/js/components/image/index.js') }}?v={{ $usimAssetVersion('vendor/idei/usim/js/components/image/index.js') }}"></script>
-    <script src="{{ asset('vendor/idei/usim/js/components/uploader/index.js') }}?v={{ $usimAssetVersion('vendor/idei/usim/js/components/uploader/index.js') }}"></script>
-    <script src="{{ asset('vendor/idei/usim/js/components/calendar/index.js') }}?v={{ $usimAssetVersion('vendor/idei/usim/js/components/calendar/index.js') }}"></script>
-    <script src="{{ asset('vendor/idei/usim/js/components/carousel/index.js') }}?v={{ $usimAssetVersion('vendor/idei/usim/js/components/carousel/index.js') }}"></script>
-    <script src="{{ asset('vendor/idei/usim/js/lib/marked.min.js') }}?v={{ $usimAssetVersion('vendor/idei/usim/js/lib/marked.min.js') }}"></script>
-    <script src="{{ asset('vendor/idei/usim/js/components/textarea/index.js') }}?v={{ $usimAssetVersion('vendor/idei/usim/js/components/textarea/index.js') }}"></script>
-    <script src="{{ asset('vendor/idei/usim/js/components/split/index.js') }}?v={{ $usimAssetVersion('vendor/idei/usim/js/components/split/index.js') }}"></script>
-    <script src="{{ asset('vendor/idei/usim/js/components/timer/index.js') }}?v={{ $usimAssetVersion('vendor/idei/usim/js/components/timer/index.js') }}"></script>
+    <script
+        src="{{ asset('vendor/idei/usim/js/component-registry.js') }}?v={{ $usimAssetVersion('vendor/idei/usim/js/component-registry.js') }}">
+    </script>
+    <script
+        src="{{ asset('vendor/idei/usim/js/ui-renderer.js') }}?v={{ $usimAssetVersion('vendor/idei/usim/js/ui-renderer.js') }}">
+    </script>
+    <script
+        src="{{ asset('vendor/idei/usim/js/components/shared/ui-event.js') }}?v={{ $usimAssetVersion('vendor/idei/usim/js/components/shared/ui-event.js') }}">
+    </script>
+    <script
+        src="{{ asset('vendor/idei/usim/js/components/shared/content-render.js') }}?v={{ $usimAssetVersion('vendor/idei/usim/js/components/shared/content-render.js') }}">
+    </script>
+    <script
+        src="{{ asset('vendor/idei/usim/js/components/container/index.js') }}?v={{ $usimAssetVersion('vendor/idei/usim/js/components/container/index.js') }}">
+    </script>
+    <script
+        src="{{ asset('vendor/idei/usim/js/components/label/index.js') }}?v={{ $usimAssetVersion('vendor/idei/usim/js/components/label/index.js') }}">
+    </script>
+    <script
+        src="{{ asset('vendor/idei/usim/js/components/button/index.js') }}?v={{ $usimAssetVersion('vendor/idei/usim/js/components/button/index.js') }}">
+    </script>
+    <script
+        src="{{ asset('vendor/idei/usim/js/components/input/index.js') }}?v={{ $usimAssetVersion('vendor/idei/usim/js/components/input/index.js') }}">
+    </script>
+    <script
+        src="{{ asset('vendor/idei/usim/js/components/select/index.js') }}?v={{ $usimAssetVersion('vendor/idei/usim/js/components/select/index.js') }}">
+    </script>
+    <script
+        src="{{ asset('vendor/idei/usim/js/components/checkbox/index.js') }}?v={{ $usimAssetVersion('vendor/idei/usim/js/components/checkbox/index.js') }}">
+    </script>
+    <script
+        src="{{ asset('vendor/idei/usim/js/components/storage/index.js') }}?v={{ $usimAssetVersion('vendor/idei/usim/js/components/storage/index.js') }}">
+    </script>
+    <script
+        src="{{ asset('vendor/idei/usim/js/components/card/index.js') }}?v={{ $usimAssetVersion('vendor/idei/usim/js/components/card/index.js') }}">
+    </script>
+    <script
+        src="{{ asset('vendor/idei/usim/js/components/menudropdown/index.js') }}?v={{ $usimAssetVersion('vendor/idei/usim/js/components/menudropdown/index.js') }}">
+    </script>
+    <script
+        src="{{ asset('vendor/idei/usim/js/components/table/index.js') }}?v={{ $usimAssetVersion('vendor/idei/usim/js/components/table/index.js') }}">
+    </script>
+    <script
+        src="{{ asset('vendor/idei/usim/js/components/tableheaderrow/index.js') }}?v={{ $usimAssetVersion('vendor/idei/usim/js/components/tableheaderrow/index.js') }}">
+    </script>
+    <script
+        src="{{ asset('vendor/idei/usim/js/components/tablerow/index.js') }}?v={{ $usimAssetVersion('vendor/idei/usim/js/components/tablerow/index.js') }}">
+    </script>
+    <script
+        src="{{ asset('vendor/idei/usim/js/components/tablecell/index.js') }}?v={{ $usimAssetVersion('vendor/idei/usim/js/components/tablecell/index.js') }}">
+    </script>
+    <script
+        src="{{ asset('vendor/idei/usim/js/components/tableheadercell/index.js') }}?v={{ $usimAssetVersion('vendor/idei/usim/js/components/tableheadercell/index.js') }}">
+    </script>
+    <script
+        src="{{ asset('vendor/idei/usim/js/components/image-crop-editor/index.js') }}?v={{ $usimAssetVersion('vendor/idei/usim/js/components/image-crop-editor/index.js') }}">
+    </script>
+    <script
+        src="{{ asset('vendor/idei/usim/js/components/image/index.js') }}?v={{ $usimAssetVersion('vendor/idei/usim/js/components/image/index.js') }}">
+    </script>
+    <script
+        src="{{ asset('vendor/idei/usim/js/components/uploader/index.js') }}?v={{ $usimAssetVersion('vendor/idei/usim/js/components/uploader/index.js') }}">
+    </script>
+    <script
+        src="{{ asset('vendor/idei/usim/js/components/calendar/index.js') }}?v={{ $usimAssetVersion('vendor/idei/usim/js/components/calendar/index.js') }}">
+    </script>
+    <script
+        src="{{ asset('vendor/idei/usim/js/components/carousel/index.js') }}?v={{ $usimAssetVersion('vendor/idei/usim/js/components/carousel/index.js') }}">
+    </script>
+    <script
+        src="{{ asset('vendor/idei/usim/js/lib/marked.min.js') }}?v={{ $usimAssetVersion('vendor/idei/usim/js/lib/marked.min.js') }}">
+    </script>
+    <script
+        src="{{ asset('vendor/idei/usim/js/components/textarea/index.js') }}?v={{ $usimAssetVersion('vendor/idei/usim/js/components/textarea/index.js') }}">
+    </script>
+    <script
+        src="{{ asset('vendor/idei/usim/js/components/split/index.js') }}?v={{ $usimAssetVersion('vendor/idei/usim/js/components/split/index.js') }}">
+    </script>
+    <script
+        src="{{ asset('vendor/idei/usim/js/components/timer/index.js') }}?v={{ $usimAssetVersion('vendor/idei/usim/js/components/timer/index.js') }}">
+    </script>
 </body>
+
 </html>

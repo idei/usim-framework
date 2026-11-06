@@ -33,7 +33,6 @@ use Idei\Usim\Contracts\UIStateRepositoryInterface;
 use Idei\Usim\Enums\LayoutType;
 use Idei\Usim\Exceptions\UIRequestValidationException;
 use Idei\Usim\Exceptions\UsimReadOnlyLifecycleException;
-use Idei\Usim\Http\Requests\UIRequest;
 use Idei\Usim\Layout\AbstractLayout;
 use Idei\Usim\Layout\LayoutInterface;
 use Idei\Usim\Screen;
@@ -46,6 +45,7 @@ use ReflectionMethod;
 use ReflectionNamedType;
 use ReflectionProperty;
 use RuntimeException;
+use Illuminate\Support\Facades\Log;
 
 /**
  * Orchestrates the full lifecycle of a Screen:
@@ -163,9 +163,6 @@ class ScreenLifecycleOrchestrator implements ScreenLifecycleOrchestratorInterfac
                 }
             }
 
-            if (! empty($buildParams)) {
-                $screen->clearCachedScreenSnapshot();
-            }
 
             $this->initializeEventContext(
                 screen: $screen,
@@ -307,7 +304,7 @@ class ScreenLifecycleOrchestrator implements ScreenLifecycleOrchestratorInterfac
             }
 
             if (! method_exists($screen, $method)) {
-                throw new \BadMethodCallException("Query method [{$method}] does not exist on screen [".get_class($screen).'].');
+                throw new \BadMethodCallException("Query method [{$method}] does not exist on screen [" . get_class($screen) . '].');
             }
 
             $reflectionMethod = new ReflectionMethod($screen, $method);
@@ -326,9 +323,9 @@ class ScreenLifecycleOrchestrator implements ScreenLifecycleOrchestratorInterfac
                 $dirtyChanges = $this->collectDirtyComponentChanges($container);
                 if (! empty($dirtyChanges)) {
                     throw new UsimReadOnlyLifecycleException(
-                        'Component tree mutations are not permitted inside GET query methods ['.get_class($screen)."::{$method}()]. ".
-                        'GET methods are reserved exclusively for delivering data/media payloads to components. '.
-                        'If you need to mutate the UI, use a POST event action [on*()] instead.'
+                        'Component tree mutations are not permitted inside GET query methods [' . get_class($screen) . "::{$method}()]. " .
+                            'GET methods are reserved exclusively for delivering data/media payloads to components. ' .
+                            'If you need to mutate the UI, use a POST event action [on*()] instead.'
                     );
                 }
             }
@@ -462,6 +459,8 @@ class ScreenLifecycleOrchestrator implements ScreenLifecycleOrchestratorInterfac
                 $screen->injectStateVariables($cachedState);
             }
 
+            Log::debug("Displaying Snapshot of [" . get_class($screen) . "]");
+
             return $cachedUI;
         }
 
@@ -471,11 +470,10 @@ class ScreenLifecycleOrchestrator implements ScreenLifecycleOrchestratorInterfac
 
         $currentClass = $screen::class;
         $currentClassSlug = strtolower(str_replace('\\', '_', $currentClass))
-            .($screen->modalLayerIndex > 0 ? "_{$screen->modalLayerIndex}" : '');
+            . ($screen->modalLayerIndex > 0 ? "_{$screen->modalLayerIndex}" : '');
         $container = UI::container($currentClassSlug, $contextKey)
             ->parent($screen->parent)
             ->modalLayerIndex($screen->modalLayerIndex)
-            ->padding(Spacing::px(5))
             ->layout(LayoutType::VERTICAL)
             ->justifyContent('center')
             ->alignItems('center');
@@ -588,7 +586,8 @@ class ScreenLifecycleOrchestrator implements ScreenLifecycleOrchestratorInterfac
                 $instance->onResetScreen();
             }
 
-            if (! empty($buildParams)) {
+
+            if (! empty($buildParams) && AbstractLayout::getActiveHostScreen() !== $instance::class) {
                 $instance->clearCachedScreenSnapshot();
             }
 
@@ -734,7 +733,7 @@ class ScreenLifecycleOrchestrator implements ScreenLifecycleOrchestratorInterfac
                 } elseif (! $propertyType->allowsNull()) {
                     $className = $screen::class;
                     throw new RuntimeException(
-                        "Component '{$componentName}' not found in {$className}. ".
+                        "Component '{$componentName}' not found in {$className}. " .
                             "Make sure the component exists or make the property nullable: protected ?{$typeName} \${$componentName};"
                     );
                 }

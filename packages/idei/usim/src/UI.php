@@ -21,6 +21,7 @@ use Idei\Usim\Components\TableRow;
 use Idei\Usim\Components\Textarea;
 use Idei\Usim\Components\Timer;
 use Idei\Usim\Components\Uploader;
+use Idei\Usim\ValueObjects\Size;
 
 /**
  * UI component factory
@@ -139,10 +140,24 @@ class UI
      * Create a new container component
      *
      * @param  string|null  $name  The optional semantic name for the container
+     * @param  string|null  $context  The context for the container
+     * @param  int|null  $width  The width of the container
+     * @param  int|null  $height  The height of the container
      */
-    public static function container(?string $name = null, ?string $context = null): Container
-    {
-        return new Container($name, $context);
+    public static function container(
+        ?string $name = null,
+        ?string $context = null,
+        ?int $width = null,
+        ?int $height = null
+    ): Container {
+        $container = new Container($name, $context);
+        if ($width !== null) {
+            $container->width(Size::px($width));
+        }
+        if ($height !== null) {
+            $container->height(Size::px($height));
+        }
+        return $container;
     }
 
     /**

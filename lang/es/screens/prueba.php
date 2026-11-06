@@ -1,6 +1,6 @@
 <?php
 
 return [
-    'menu_title' => 'Pepito',
+    'menu_title' => 'Prueba',
     'icon' => '',
 ];

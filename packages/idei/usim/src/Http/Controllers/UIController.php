@@ -45,7 +45,7 @@ class UIController extends Controller
         $parentQuery = request()->query('parent', 'main');
         $parent = is_string($parentQuery) && $parentQuery !== '' ? $parentQuery : 'main';
 
-        $buildParams = array_diff_key($requestData['queryParams'], array_flip(['reset', 'parent']));
+        $buildParams = array_diff_key($requestData['queryParams'], array_flip(['reset', 'parent', 'route_screen', 'screen']));
 
         $screen->render(
             incomingStorage: $requestData['storage'],
