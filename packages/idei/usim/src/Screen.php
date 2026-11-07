@@ -11,9 +11,11 @@ use Idei\Usim\Contracts\ScreenLifecycleOrchestratorInterface;
 use Idei\Usim\Contracts\UIElement;
 use Idei\Usim\Layout\AbstractLayout;
 use Idei\Usim\Support\MethodParameterResolver;
+use Idei\Usim\Support\Translation\TranslationResolver;
 use Idei\Usim\Support\UIIdGenerator;
 use Idei\Usim\Support\UIStateManager;
 use Idei\Usim\Support\UsimConfig;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Str;
 use ReflectionClass;
 use RuntimeException;
@@ -131,7 +133,7 @@ abstract class Screen
     public function getContextIdentifier(): string
     {
         if ($this->modalLayerIndex > 0) {
-            return static::class . '@' . $this->modalLayerIndex;
+            return static::class.'@'.$this->modalLayerIndex;
         }
 
         return static::class;
@@ -356,7 +358,7 @@ abstract class Screen
      */
     public static function getMenuLabel(): string
     {
-        return t('screens.' . static::getScreenSlug() . '.menu_title');
+        return t('screens.'.static::getScreenSlug().'.menu_title');
     }
 
     /**
@@ -365,7 +367,22 @@ abstract class Screen
      */
     public static function getMenuIcon(): ?string
     {
-        return t('screens.' . static::getScreenSlug() . '.icon');
+        return t('screens.'.static::getScreenSlug().'.icon');
+    }
+
+    /**
+     * Resolve translated string, supporting relative keys (e.g. '.labels.intro').
+     *
+     * @param  array<string, mixed>  $params
+     */
+    public function t(string $key, array $params = [], ?string $language = null): string
+    {
+        if (str_starts_with($key, '.')) {
+            $prefix = TranslationResolver::resolveClassPrefix(static::class);
+            $key = $prefix !== null ? $prefix.$key : $key;
+        }
+
+        return t($key, $params, $language);
     }
 
     /**
@@ -382,9 +399,9 @@ abstract class Screen
         if (str_starts_with($class, $prefix)) {
             $relative = substr($class, strlen($prefix));
             $segments = explode('\\', trim($relative, '\\'));
-            $urlSegments = array_map(fn($s) => Str::kebab($s), $segments);
+            $urlSegments = array_map(fn ($s) => Str::kebab($s), $segments);
 
-            return '/' . implode('/', $urlSegments);
+            return '/'.implode('/', $urlSegments);
         }
 
         return '/';
@@ -404,7 +421,7 @@ abstract class Screen
             if (! is_string($key)) {
                 continue;
             }
-            if ($value instanceof \Illuminate\Database\Eloquent\Model) {
+            if ($value instanceof Model) {
                 $keyVal = $value->getKey();
                 if (is_scalar($keyVal)) {
                     $normalized[$key] = $keyVal;
@@ -624,7 +641,7 @@ abstract class Screen
             $reflectionMethod = new \ReflectionMethod($this, 'startingUI');
             // Check the method return type to ensure it returns a ONLY a not null Container
             $returnType = $reflectionMethod->getReturnType();
-            if ($returnType && $returnType->getName() !== Container::class) {
+            if ($returnType instanceof \ReflectionNamedType && $returnType->getName() !== Container::class) {
                 throw new \LogicException(sprintf('Screen [%s] startingUI() method must return a Container.', static::class));
             }
             $unpackedParams = (count($params) === 1 && isset($params[0]) && is_array($params[0])) ? $params[0] : $params;
@@ -640,7 +657,9 @@ abstract class Screen
                 provided: []
             );
 
-            return $reflectionMethod->invokeArgs($this, $arguments);
+            $result = $reflectionMethod->invokeArgs($this, $arguments);
+
+            return $result instanceof Container ? $result : null;
         }
 
         return null;
@@ -821,7 +840,7 @@ abstract class Screen
             return $action;
         }
 
-        return 'on' . Str::studly($action);
+        return 'on'.Str::studly($action);
     }
 
     /**
@@ -838,13 +857,13 @@ abstract class Screen
             return $studlyAction;
         }
 
-        $legacyAction = 'on' . Str::studly($action);
+        $legacyAction = 'on'.Str::studly($action);
         if (method_exists($this, $legacyAction)) {
             return $legacyAction;
         }
 
         throw new \BadMethodCallException(
-            "Action [{$action}] (or method [{$studlyAction}]) does not exist on screen [" . static::class . '].'
+            "Action [{$action}] (or method [{$studlyAction}]) does not exist on screen [".static::class.'].'
         );
     }
 
@@ -862,7 +881,7 @@ abstract class Screen
 
         $candidateMethod = method_exists($this, $name) ? $name : static::actionToMethodName($name);
         if (! method_exists($this, $candidateMethod)) {
-            $candidateMethod = 'on' . Str::studly($name);
+            $candidateMethod = 'on'.Str::studly($name);
         }
 
         if (method_exists($this, $candidateMethod)) {
@@ -881,7 +900,7 @@ abstract class Screen
             );
         }
 
-        throw new \BadMethodCallException("Method [{$name}] does not exist on screen [" . static::class . '].');
+        throw new \BadMethodCallException("Method [{$name}] does not exist on screen [".static::class.'].');
     }
 
     /**

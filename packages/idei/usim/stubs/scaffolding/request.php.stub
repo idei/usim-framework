@@ -1,0 +1,159 @@
+<?php
+
+namespace {{ namespace }};
+
+use Idei\Usim\Http\Requests\UIRequest;
+
+class {{ name }} extends UIRequest
+{
+    /**
+     * Propiedades tipadas (DTO) con auto-hidratación:
+     * -------------------------------------------------------------------------
+     * USIM hidrata automáticamente las propiedades declaradas (públicas o con
+     * visibilidad asimétrica 'public protected(set)') una vez superada la validación.
+     *
+     * Esto te permite acceder a los datos directamente en el Screen handler con
+     * tipado fuerte y autocompletado en el IDE:
+     *
+     * public function onSave({{ name }} $request): void
+     * {
+     *     $name = $request->name;
+     * }
+     */
+    // public protected(set) string $name = '';
+    // public protected(set) string $email = '';
+    // public protected(set) ?string $description = null;
+
+    /**
+     * Mapeo de nombres de componentes visuales a atributos limpios de backend:
+     * -------------------------------------------------------------------------
+     * ¿Para qué sirve?
+     * En tus Screens, los componentes visuales suelen nombrarse 'input_name' o
+     * 'select_role_id'. Con este mapa defines un alias limpio ('name', 'role_id')
+     * para usar en tus reglas de validación y en tus propiedades DTO.
+     *
+     * Además, si la validación falla en 'name', USIM enlaza automáticamente el
+     * mensaje de error al componente visual 'input_name' en la pantalla del usuario.
+     *
+     * @var array<string, string>
+     */
+    protected array $map = [
+        // 'name'    => 'input_name',
+        // 'email'   => 'input_email',
+        // 'role_id' => 'select_role',
+    ];
+
+    /**
+     * Autorización de la solicitud:
+     * -------------------------------------------------------------------------
+     * ¿Para qué sirve?
+     * Determina si el usuario autenticado tiene permisos para ejecutar esta acción.
+     * Si retorna `false`, USIM detiene la ejecución inmediatamente y devuelve un
+     * error HTTP 403 (Forbidden).
+     *
+     * Ejemplos:
+     * - return auth()->check() && auth()->user()->can('manage-users');
+     * - return $this->screen?->canAccess() ?? true;
+     */
+    public function authorize(): bool
+    {
+        return true;
+    }
+
+    /**
+     * Sanitización y normalización previa a la validación:
+     * -------------------------------------------------------------------------
+     * ¿Para qué sirve?
+     * Permite limpiar espacios (trim), forzar mayúsculas/minúsculas, eliminar
+     * caracteres no deseados o asignar valores predeterminados antes de que se
+     * evalúen las reglas de validación.
+     *
+     * Ejemplo:
+     * $this->merge([
+     *     'name'  => trim((string) $this->input('name')),
+     *     'email' => strtolower(trim((string) $this->input('email'))),
+     * ]);
+     */
+    protected function prepareForValidation(): void
+    {
+        //
+    }
+
+    /**
+     * Reglas de validación:
+     * -------------------------------------------------------------------------
+     * ¿Para qué sirve?
+     * Define las restricciones estándar de Laravel (required, email, min, max, exists, etc.).
+     * Los errores producidos se enlazarán automáticamente a los componentes en
+     * pantalla según el arreglo `$map`.
+     *
+     * Ejemplo:
+     * return [
+     *     'name'    => 'required|string|min:3|max:100',
+     *     'email'   => 'required|email|max:255',
+     *     'role_id' => 'required|exists:roles,id',
+     * ];
+     *
+     * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
+     */
+    public function rules(): array
+    {
+        return [
+            //
+        ];
+    }
+
+    /**
+     * Mensajes de error personalizados:
+     * -------------------------------------------------------------------------
+     * ¿Para qué sirve?
+     * Personaliza los mensajes mostrados al usuario cuando falla una regla específica.
+     * Puedes usar el helper t() con clave relativa comenzando con '.' (ej. t('.validation.name_required'))
+     * o texto directo/absoluto.
+     *
+     * Ejemplo:
+     * return [
+     *     'name.required' => t('.validation.name_required'),
+     *     'email.email'   => 'El formato del correo electrónico no es válido.',
+     * ];
+     *
+     * @return array<string, string>
+     */
+    public function messages(): array
+    {
+        return [
+            //
+        ];
+    }
+
+    /**
+     * Nombres legibles para los atributos en mensajes genéricos:
+     * -------------------------------------------------------------------------
+     * Ejemplo:
+     * return [
+     *     'name'    => 'nombre completo',
+     *     'role_id' => 'rol asignado',
+     * ];
+     *
+     * @return array<string, string>
+     */
+    public function attributes(): array
+    {
+        return [
+            //
+        ];
+    }
+
+    /**
+     * Notificación Toast opcional en caso de error de validación:
+     * -------------------------------------------------------------------------
+     * Puedes personalizar el mensaje emergente mostrado si hay errores, o retornar
+     * null para desactivar el Toast y únicamente marcar los inputs en rojo.
+     *
+     * Ejemplo:
+     * public function errorToastMessage(): ?string
+     * {
+     *     return t('screens.form.errors_found');
+     * }
+     */
+}

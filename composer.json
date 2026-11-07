@@ -9,7 +9,7 @@
     ],
     "license": "MIT",
     "require": {
-        "php": "^8.2",
+        "php": "^8.5",
         "fakerphp/faker": "^1.23",
         "idei/usim": "@dev",
         "laravel/framework": "^12.0",

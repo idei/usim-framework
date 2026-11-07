@@ -61,9 +61,11 @@ class MenuDropdown extends UIComponent
         /** @var MenuDropdown $component */
         $component = parent::deserialize($id, $config);
         if (isset($config['items']) && is_array($config['items'])) {
+            /** @var list<array<string, mixed>> $items */
             $items = [];
             foreach ($config['items'] as $item) {
                 if (is_array($item)) {
+                    /** @var array<string, mixed> $item */
                     $items[] = $item;
                 }
             }

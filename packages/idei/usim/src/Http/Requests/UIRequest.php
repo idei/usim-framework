@@ -7,6 +7,7 @@ use Idei\Usim\Contracts\UIElement;
 use Idei\Usim\Contracts\UsimTranslatorInterface;
 use Idei\Usim\Exceptions\UIRequestValidationException;
 use Idei\Usim\Screen;
+use Idei\Usim\Support\Translation\TranslationResolver;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Contracts\Support\MessageBag;
 use Illuminate\Contracts\Validation\Validator;
@@ -380,6 +381,21 @@ abstract class UIRequest implements ArrayAccess
         }
 
         return null;
+    }
+
+    /**
+     * Resolve translated string, supporting relative keys (e.g. '.validation.name_required').
+     *
+     * @param  array<string, mixed>  $params
+     */
+    public function t(string $key, array $params = [], ?string $language = null): string
+    {
+        if (str_starts_with($key, '.')) {
+            $prefix = TranslationResolver::resolveClassPrefix(static::class);
+            $key = $prefix !== null ? $prefix.$key : $key;
+        }
+
+        return t($key, $params, $language);
     }
 
     /**

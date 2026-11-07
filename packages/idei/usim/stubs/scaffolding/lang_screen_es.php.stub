@@ -1,0 +1,25 @@
+<?php
+
+return [
+    'title' => '{{ humanName }}',
+    'menu_title' => '{{ humanName }}',
+    'icon' => '📄',
+    'description' => 'Pantalla {{ humanName }}',
+    'labels' => [
+        'intro' => '¡Ingresa tu nombre y haz clic en el botón!',
+    ],
+    'inputs' => [
+        'name' => [
+            'label' => 'Nombre',
+            'placeholder' => 'Tu nombre...',
+            'error' => 'Se requiere un nombre con al menos 6 caracteres.',
+        ],
+    ],
+    'buttons' => [
+        'click_me' => '¡Haz clic aquí!',
+        'clicked' => '¡Clic hecho!',
+    ],
+    'messages' => [
+        'hello' => '¡Hola :name!!',
+    ],
+];

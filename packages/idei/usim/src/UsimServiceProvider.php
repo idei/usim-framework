@@ -4,7 +4,8 @@ namespace Idei\Usim;
 
 use Idei\Usim\Console\Commands\DiscoverScreensCommand;
 use Idei\Usim\Console\Commands\InstallCommand;
-use Idei\Usim\Console\Commands\UsimScaffold;
+use Idei\Usim\Console\Commands\UsimRequestScaffoldCommand;
+use Idei\Usim\Console\Commands\UsimScreenScaffoldCommand;
 use Idei\Usim\Console\Commands\UsimSyncCommand;
 use Idei\Usim\Contracts\ComponentIdGeneratorInterface;
 use Idei\Usim\Contracts\DeviceSecurityGuardInterface;
@@ -31,6 +32,7 @@ use Idei\Usim\Support\ComponentDiffer;
 use Idei\Usim\Support\ComponentIdGenerator;
 use Idei\Usim\Support\DeviceSecurityGuard;
 use Idei\Usim\Support\FileScreenDiscoveryScanner;
+use Idei\Usim\Support\MethodParameterResolver;
 use Idei\Usim\Support\ScreenLifecycleOrchestrator;
 use Idei\Usim\Support\SpatieScreenAuthorizer;
 use Idei\Usim\Support\Translation\TranslationDatasetQuery;
@@ -86,7 +88,7 @@ class UsimServiceProvider extends ServiceProvider
             ScreenLifecycleOrchestrator::class
         );
 
-        $this->app->singleton(\Idei\Usim\Support\MethodParameterResolver::class);
+        $this->app->singleton(MethodParameterResolver::class);
 
         $this->app->singleton(TranslationService::class, function ($app) {
             return new TranslationService(
@@ -193,7 +195,8 @@ class UsimServiceProvider extends ServiceProvider
             DiscoverScreensCommand::class,
             InstallCommand::class,
             UsimSyncCommand::class,
-            UsimScaffold::class,
+            UsimScreenScaffoldCommand::class,
+            UsimRequestScaffoldCommand::class,
         ]);
     }
 

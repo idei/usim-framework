@@ -23,7 +23,7 @@
         "source": "https://github.com/idei/usim"
     },
     "require": {
-        "php": "^8.2",
+        "php": "^8.5",
         "illuminate/console": "^10.0|^11.0|^12.0|^13.0",
         "illuminate/filesystem": "^10.0|^11.0|^12.0|^13.0",
         "illuminate/support": "^10.0|^11.0|^12.0|^13.0",

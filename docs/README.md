@@ -37,7 +37,7 @@ docs/
 
 ### 🚀 Para Empezar (Tutorial)
 
-| **[TUTORIAL_CREAR_APP_CON_USIM.md](TUTORIAL_CREAR_APP_CON_USIM.md)** 🚀 | **Guía paso a paso para desarrolladores**: Instalación con `composer require idei/usim`, `usim:install`, scaffolding con `usim:scaf`, construcción de Screens declarativas, eventos reactivos (`onAction`), navegación y testing headless con Pest en < 10ms | 10K |
+| **[TUTORIAL_CREAR_APP_CON_USIM.md](TUTORIAL_CREAR_APP_CON_USIM.md)** 🚀 | **Guía paso a paso para desarrolladores**: Instalación con `composer require idei/usim`, `usim:install`, scaffolding con `usim:screen` y `usim:request`, construcción de Screens declarativas, eventos reactivos (`onAction`), navegación y testing headless con Pest en < 10ms | 10K |
 
 ---
 

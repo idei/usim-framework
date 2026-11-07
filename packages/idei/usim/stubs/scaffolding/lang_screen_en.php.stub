@@ -1,0 +1,25 @@
+<?php
+
+return [
+    'title' => '{{ humanName }}',
+    'menu_title' => '{{ humanName }}',
+    'icon' => '📄',
+    'description' => '{{ humanName }} Screen',
+    'labels' => [
+        'intro' => 'Enter your name and click the button!',
+    ],
+    'inputs' => [
+        'name' => [
+            'label' => 'Name',
+            'placeholder' => 'Your name...',
+            'error' => 'Name with at least 6 characters is required.',
+        ],
+    ],
+    'buttons' => [
+        'click_me' => 'Click me!',
+        'clicked' => 'Clicked!',
+    ],
+    'messages' => [
+        'hello' => 'Hello :name!!',
+    ],
+];

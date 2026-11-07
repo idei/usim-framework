@@ -40,6 +40,25 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | UI Requests Namespace
+    |--------------------------------------------------------------------------
+    |
+    | Namespace base donde se generan y buscan los UIRequests.
+    */
+    'requests_namespace' => 'App\\UI\\Requests',
+
+    /*
+    |--------------------------------------------------------------------------
+    | UI Requests Path
+    |--------------------------------------------------------------------------
+    |
+    | Ruta absoluta donde se encuentran los archivos de los UIRequests.
+    | Por defecto: app_path('UI/Requests')
+    */
+    'requests_path' => app_path('UI/Requests'),
+
+    /*
+    |--------------------------------------------------------------------------
     | Default Layout
     |--------------------------------------------------------------------------
     |

@@ -1,0 +1,17 @@
+<?php
+
+return [
+    'validation' => [
+        'name_required' => 'El campo :attribute es obligatorio.',
+        'name_min' => 'El campo :attribute debe tener al menos :min caracteres.',
+        'email_required' => 'El correo electrónico es obligatorio.',
+        'email_invalid' => 'El formato del correo electrónico no es válido.',
+    ],
+    'attributes' => [
+        'name' => 'nombre',
+        'email' => 'correo electrónico',
+    ],
+    'toast' => [
+        'fix_errors' => 'Por favor corrige los errores del formulario.',
+    ],
+];

@@ -12,9 +12,9 @@ use Idei\Usim\Contracts\UserMutationServiceInterface;
 use Idei\Usim\DTOs\AuthResult;
 use Idei\Usim\DTOs\PasswordResetResult;
 use Idei\Usim\Enums\AuthStatus;
+use Idei\Usim\Events\UsimEvent;
 use Idei\Usim\Screen;
 use Idei\Usim\Testing\ScreenTestHarness;
-use Mockery;
 
 it('navigates via redirect using direct Screen and custom expectations', function () {
     /** @var Login $screen */
@@ -30,7 +30,7 @@ it('submits login and updates UI on success using direct Screen and custom expec
     $loginAction->shouldReceive('execute')
         ->once()
         ->andReturnUsing(function () {
-            event(new \Idei\Usim\Events\UsimEvent('logged_user', [
+            event(new UsimEvent('logged_user', [
                 'token' => 'mock-jwt-token',
                 'message' => 'Login successful',
             ]));
@@ -62,7 +62,7 @@ it('handles login failure and produces error toast using ScreenTestHarness', fun
     $loginAction->shouldReceive('execute')
         ->once()
         ->andReturnUsing(function () {
-            event(new \Idei\Usim\Events\UsimEvent('login_failed', [
+            event(new UsimEvent('login_failed', [
                 'message' => 'Invalid credentials',
             ]));
 

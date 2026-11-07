@@ -212,6 +212,6 @@ class TranslationService
 
         array_pop($segments);
 
-        return $segments === [] ? null : implode('.', $segments);
+        return implode('.', $segments);
     }
 }

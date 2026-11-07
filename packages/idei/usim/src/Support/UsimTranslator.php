@@ -48,6 +48,8 @@ class UsimTranslator implements UsimTranslatorInterface
      */
     public function get(string $key, array $replace = [], ?string $locale = null): string
     {
+        $key = TranslationResolver::resolveKey($key);
+
         return $this->resolveFromLaravel($key, $replace, $locale)
             ?? $this->resolveFromDatabase($key, $replace, $locale)
             ?? $key;
@@ -58,6 +60,8 @@ class UsimTranslator implements UsimTranslatorInterface
      */
     public function has(string $key, ?string $locale = null): bool
     {
+        $key = TranslationResolver::resolveKey($key);
+
         return $this->hasInLaravel($key, $locale)
             || $this->hasInDatabase($key, $locale);
     }

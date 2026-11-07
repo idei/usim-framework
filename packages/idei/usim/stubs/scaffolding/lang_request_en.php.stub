@@ -1,0 +1,17 @@
+<?php
+
+return [
+    'validation' => [
+        'name_required' => 'The :attribute field is required.',
+        'name_min' => 'The :attribute must be at least :min characters.',
+        'email_required' => 'The email field is required.',
+        'email_invalid' => 'The email format is invalid.',
+    ],
+    'attributes' => [
+        'name' => 'name',
+        'email' => 'email',
+    ],
+    'toast' => [
+        'fix_errors' => 'Please correct the form errors above.',
+    ],
+];

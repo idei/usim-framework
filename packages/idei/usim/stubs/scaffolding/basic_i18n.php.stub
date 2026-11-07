@@ -1,0 +1,65 @@
+<?php
+
+namespace {{ namespace }};
+
+use Idei\Usim\Components\Button;
+use Idei\Usim\Components\Container;
+use Idei\Usim\Components\Input;
+use Idei\Usim\Components\NewLabel;
+use Idei\Usim\Enums\Style;
+use Idei\Usim\Enums\TextSize;
+use Idei\Usim\Enums\Visibility;
+use Idei\Usim\Screen;
+use Idei\Usim\UI;
+use Idei\Usim\ValueObjects\Spacing;
+
+class {{ name }} extends Screen
+{
+    public static Visibility $visibility = Visibility::PUBLIC;
+
+    protected Button $button;
+
+    protected NewLabel $label;
+
+    protected Input $inputName;
+
+    protected function startingUI(): Container
+    {
+        return UI::container('{{ name }}-container', width: 450)
+            ->card()
+            ->padding(Spacing::px(20))
+            ->gap(Spacing::px(20))
+            ->add(
+                $this->label
+                    ->text(t('.labels.intro'))
+                    ->style(Style::DEFAULT)
+                    ->size(TextSize::LARGE)
+            )->add(
+                $this->inputName
+                    ->placeholder(t('.inputs.name.placeholder'))
+                    ->label(t('.inputs.name.label'))
+                    ->required()
+                    ->error(t('.inputs.name.error'))
+                    ->onInput('textChanged')
+            )->add(
+                $this->button
+                    ->label(t('.buttons.click_me'))
+                    ->disabled()
+                    ->action('buttonClicked')
+            );
+    }
+
+    public function buttonClicked(string $inputName = ''): void
+    {
+        $this->label->text(t('.messages.hello', ['name' => $inputName]))->style(Style::SUCCESS)->center();
+        $this->inputName->disabled();
+        $this->button->label(t('.buttons.clicked'))->disabled();
+    }
+
+    public function textChanged(string $inputName = ''): void
+    {
+        $inputLength = \strlen(\trim($inputName));
+        $this->inputName->error($inputLength <= 5 ? t('.inputs.name.error') : '');
+        $this->button->enabled($inputLength > 5);
+    }
+}

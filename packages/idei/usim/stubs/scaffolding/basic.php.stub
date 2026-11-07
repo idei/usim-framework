@@ -11,6 +11,7 @@ use Idei\Usim\Enums\TextSize;
 use Idei\Usim\Enums\Visibility;
 use Idei\Usim\Screen;
 use Idei\Usim\UI;
+use Idei\Usim\ValueObjects\Spacing;
 
 class {{ name }} extends Screen
 {
@@ -23,6 +24,9 @@ class {{ name }} extends Screen
     protected function startingUI(): Container
     {
         return UI::container('{{ name }}-container', width : 400)
+            ->card()
+            ->padding(Spacing::px(20))
+            ->gap(Spacing::px(20))
             ->add(
                 $this->label
                     ->text("Enter your name below and click the button!")

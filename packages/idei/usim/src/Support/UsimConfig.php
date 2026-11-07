@@ -27,6 +27,10 @@ final class UsimConfig
 
     public private(set) string $screensPath;
 
+    public private(set) string $requestsNamespace;
+
+    public private(set) string $requestsPath;
+
     public private(set) string $uploadDisk;
 
     public private(set) bool $headlessMode;
@@ -81,6 +85,8 @@ final class UsimConfig
         $this->frontStoreKey = \is_string($raw['front_store_key'] ?? null) ? $raw['front_store_key'] : 'usim';
         $this->screensNamespace = \is_string($raw['screens_namespace'] ?? null) ? $raw['screens_namespace'] : 'App\\UI\\Screens';
         $this->screensPath = \is_string($raw['screens_path'] ?? null) ? $raw['screens_path'] : app_path('UI/Screens');
+        $this->requestsNamespace = \is_string($raw['requests_namespace'] ?? null) ? $raw['requests_namespace'] : 'App\\UI\\Requests';
+        $this->requestsPath = \is_string($raw['requests_path'] ?? null) ? $raw['requests_path'] : app_path('UI/Requests');
         $this->uploadDisk = \is_string($raw['upload_disk'] ?? null) ? $raw['upload_disk'] : 'local';
         $this->headlessMode = \is_bool($raw['headless_mode'] ?? null) ? $raw['headless_mode'] : false;
         $this->defaultRegisteringRole = \is_string($raw['default_registering_role'] ?? null) ? $raw['default_registering_role'] : 'registered';

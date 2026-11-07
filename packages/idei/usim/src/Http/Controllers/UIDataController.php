@@ -253,7 +253,6 @@ class UIDataController extends Controller
         if (
             is_array($result) ||
             $result instanceof JsonSerializable ||
-            $result instanceof Collection ||
             $result instanceof \stdClass
         ) {
             return response()->json($result);

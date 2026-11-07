@@ -1,0 +1,107 @@
+<?php
+
+namespace {{ namespace }};
+
+use Idei\Usim\Http\Requests\UIRequest;
+
+class {{ name }} extends UIRequest
+{
+    /**
+     * Propiedades tipadas (DTO) con auto-hidratación:
+     * -------------------------------------------------------------------------
+     * USIM hidrata automáticamente las propiedades declaradas una vez superada
+     * la validación, permitiendo acceso fuertemente tipado en los Screen handlers:
+     *
+     * public function onSave({{ name }} $request): void
+     * {
+     *     $name = $request->name;
+     * }
+     */
+    // public protected(set) string $name = '';
+    // public protected(set) string $email = '';
+    // public protected(set) ?string $description = null;
+
+    /**
+     * Mapeo de nombres de componentes visuales a atributos limpios de backend:
+     * -------------------------------------------------------------------------
+     * Enlaza errores de validación directamente al componente visual en pantalla.
+     *
+     * @var array<string, string>
+     */
+    protected array $map = [
+        // 'name'  => 'input_name',
+        // 'email' => 'input_email',
+    ];
+
+    /**
+     * Autorización de la solicitud:
+     * -------------------------------------------------------------------------
+     * Si retorna false, USIM responderá inmediatamente con HTTP 403 Forbidden.
+     */
+    public function authorize(): bool
+    {
+        return true;
+    }
+
+    /**
+     * Sanitización y normalización previa a la validación:
+     * -------------------------------------------------------------------------
+     */
+    protected function prepareForValidation(): void
+    {
+        //
+    }
+
+    /**
+     * Reglas de validación:
+     * -------------------------------------------------------------------------
+     *
+     * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
+     */
+    public function rules(): array
+    {
+        return [
+            // 'name'  => 'required|string|min:3|max:100',
+            // 'email' => 'required|email|max:255',
+        ];
+    }
+
+    /**
+     * Mensajes de error personalizados con claves relativas (macro t('.')):
+     * -------------------------------------------------------------------------
+     *
+     * @return array<string, string>
+     */
+    public function messages(): array
+    {
+        return [
+            'name.required' => t('.validation.name_required'),
+            'name.min' => t('.validation.name_min'),
+            'email.required' => t('.validation.email_required'),
+            'email.email' => t('.validation.email_invalid'),
+        ];
+    }
+
+    /**
+     * Nombres legibles para los atributos en mensajes genéricos:
+     * -------------------------------------------------------------------------
+     *
+     * @return array<string, string>
+     */
+    public function attributes(): array
+    {
+        return [
+            'name' => t('.attributes.name'),
+            'email' => t('.attributes.email'),
+        ];
+    }
+
+    /**
+     * Notificación Toast mostrada en caso de error de validación:
+     * -------------------------------------------------------------------------
+     */
+    public function errorToastMessage(): ?string
+    {
+        return t('.toast.fix_errors');
+    }
+}
