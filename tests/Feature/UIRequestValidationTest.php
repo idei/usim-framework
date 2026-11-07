@@ -174,6 +174,44 @@ it('auto-binds component errors and returns UI diff on POST /api/ui-event valida
     expect($diff['toast']['type'])->toBe('error');
 });
 
+it('clears error on fields that become valid when subsequent submit still has other validation errors', function () {
+    /** @var TestCase $this */
+    $screen = Screen::make(UIRequestFeatureScreen::class);
+    $screen->render();
+
+    $btnId = UIIdGenerator::generateFromName(UIRequestFeatureScreen::class, 'btn_save');
+    $codeId = UIIdGenerator::generateFromName(UIRequestFeatureScreen::class, 'input_code');
+    $titleId = UIIdGenerator::generateFromName(UIRequestFeatureScreen::class, 'input_title');
+
+    // 1st submit: both fields invalid
+    $resp1 = $this->postJson('/api/ui-event', [
+        'component_id' => $btnId,
+        'event' => 'click',
+        'action' => 'submit_save',
+        'parameters' => [
+            'input_code' => 'abc', // invalid digits:4
+            'input_title' => 'X',   // invalid min:3
+        ],
+    ]);
+    $resp1->assertOk();
+    expect($resp1->json((string) $codeId . '.error'))->not->toBeNull();
+    expect($resp1->json((string) $titleId . '.error'))->not->toBeNull();
+
+    // 2nd submit: input_code is now valid (1234), but input_title is still invalid (X)
+    $resp2 = $this->postJson('/api/ui-event', [
+        'component_id' => $btnId,
+        'event' => 'click',
+        'action' => 'submit_save',
+        'parameters' => [
+            'input_code' => '1234', // valid digits:4
+            'input_title' => 'X',    // still invalid min:3
+        ],
+    ]);
+    $resp2->assertOk();
+    expect($resp2->json((string) $codeId . '.error'))->toBeNull();
+    expect($resp2->json((string) $titleId . '.error'))->not->toBeNull();
+});
+
 it('returns 422 JSON when autoBindComponentErrors is false on POST /api/ui-event', function () {
     /** @var TestCase $this */
     $screen = Screen::make(UIRequestFeatureScreen::class);

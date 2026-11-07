@@ -42,8 +42,26 @@ it('loads form demo with expected defaults', function () {
     app()->setLocale($originalLocale);
 });
 
+it('clears error when field becomes valid on subsequent submit', function () {
+    $ui = uiScenario($this, FormDemo::class, ['reset' => true]);
+
+    $resp1 = $ui->click('btn_submit', [
+        'input_name' => '',
+        'input_email' => '',
+    ]);
+
+    $ui->component('input_name')->expect('error')->not->toBeNull();
+
+    $resp2 = $ui->click('btn_submit', [
+        'input_name' => 'Popitossssss',
+        'input_email' => '',
+    ]);
+
+    dump('resp2 json:', $resp2->json());
+    dump('input_name error:', $ui->component('input_name')->data()['error'] ?? null);
+});
+
 it('shows required errors when submitting empty form', function () {
-    $originalLocale = app()->getLocale();
 
     foreach (['en', 'es'] as $locale) {
         app()->setLocale($locale);

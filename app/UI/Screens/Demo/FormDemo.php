@@ -6,9 +6,10 @@ use App\UI\Requests\Demo\FormDemoRequest;
 use Idei\Usim\Components\Button;
 use Idei\Usim\Components\Container;
 use Idei\Usim\Components\Input;
-use Idei\Usim\Components\Label;
+use Idei\Usim\Components\NewLabel;
 use Idei\Usim\Components\Textarea;
 use Idei\Usim\Enums\Visibility;
+use Idei\Usim\Enums\Style;
 use Idei\Usim\Http\Requests\UIRequest;
 use Idei\Usim\Screen;
 use Idei\Usim\UI;
@@ -20,7 +21,7 @@ class FormDemo extends Screen
 {
     public static Visibility $visibility = Visibility::PUBLIC;
 
-    protected Label $lbl_instruction;
+    protected NewLabel $lbl_instruction;
 
     protected Input $input_name;
 
@@ -30,7 +31,7 @@ class FormDemo extends Screen
 
     protected Button $btn_submit;
 
-    protected Label $lbl_result;
+    protected NewLabel $lbl_result;
 
     protected function buildBaseUI(Container $container, ...$params): void
     {
@@ -44,7 +45,7 @@ class FormDemo extends Screen
             $this->lbl_instruction
                 ->text(t('screens.demo.form_demo.instruction'))
                 ->center()
-                ->style('h3')
+                ->style(Style::INFO)
         );
 
         $wrapper->add(
@@ -52,6 +53,7 @@ class FormDemo extends Screen
                 ->label(t('screens.demo.form_demo.name.label'))
                 ->placeholder(t('screens.demo.form_demo.name.placeholder'))
                 ->value('')
+                ->helpText(t('screens.demo.form_demo.validation.name_required'))
                 ->required(true)
                 ->type('text')
                 ->width(Size::full())
@@ -62,6 +64,7 @@ class FormDemo extends Screen
                 ->label(t('screens.demo.form_demo.email.label'))
                 ->placeholder(t('screens.demo.form_demo.email.placeholder'))
                 ->value('')
+                ->helpText(t('screens.demo.form_demo.validation.email_required'))
                 ->required(true)
                 ->type('email')
                 ->width(Size::full())
@@ -70,6 +73,7 @@ class FormDemo extends Screen
             $this->input_message
                 ->label(t('screens.demo.form_demo.message.label'))
                 ->placeholder(t('screens.demo.form_demo.message.placeholder'))
+                ->helpText(t('screens.demo.form_demo.validation.message_required'))
                 ->value('Una situación pendular...\n\tY poco convencional.')
                 ->required(true)
                 ->width(Size::full())
@@ -99,7 +103,7 @@ class FormDemo extends Screen
         $this->input_message->value('')->error(null);
         $this->lbl_result
             ->text(t('screens.demo.form_demo.result.initial'))
-            ->style('secondary');
+            ->style(Style::SECONDARY);
     }
 
     /**
@@ -128,6 +132,6 @@ class FormDemo extends Screen
     {
         $this->lbl_result
             ->text(t('screens.demo.form_demo.result.errors'))
-            ->style('danger');
+            ->style(Style::DANGER);
     }
 }

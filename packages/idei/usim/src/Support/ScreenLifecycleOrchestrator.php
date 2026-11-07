@@ -38,14 +38,12 @@ use Idei\Usim\Layout\LayoutInterface;
 use Idei\Usim\Screen;
 use Idei\Usim\UI;
 use Idei\Usim\UIChangesCollector;
-use Idei\Usim\ValueObjects\Spacing;
 use Illuminate\Support\Str;
 use ReflectionClass;
 use ReflectionMethod;
 use ReflectionNamedType;
 use ReflectionProperty;
 use RuntimeException;
-use Illuminate\Support\Facades\Log;
 
 /**
  * Orchestrates the full lifecycle of a Screen:
@@ -458,9 +456,6 @@ class ScreenLifecycleOrchestrator implements ScreenLifecycleOrchestratorInterfac
             if (! empty($cachedState)) {
                 $screen->injectStateVariables($cachedState);
             }
-
-            Log::debug("Displaying Snapshot of [" . get_class($screen) . "]");
-
             return $cachedUI;
         }
 

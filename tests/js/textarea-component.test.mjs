@@ -20,6 +20,7 @@ function createDomEnvironment() {
         'packages/idei/usim/resources/assets/js/ui-renderer.js',
         'packages/idei/usim/resources/assets/js/components/shared/ui-event.js',
         'packages/idei/usim/resources/assets/js/components/button/index.js',
+        'packages/idei/usim/resources/assets/js/components/input/index.js',
         'packages/idei/usim/resources/assets/js/components/textarea/index.js',
     ];
 
@@ -198,5 +199,74 @@ test('Textarea: assigns name attribute to DOM element and is collected by button
     const collected = buttonComp.collectContextValues();
     assert.equal(collected.input_message, 'Hola mundo desde el textarea', 'collectContextValues must include textarea value under its name');
 });
+
+test('Textarea: error renders error icon with tooltip matching input style, without footer error text', () => {
+    const dom = createDomEnvironment();
+
+    const textareaComp = dom.window.USIM_COMPONENTS.create('textarea', 301, {
+        name: 'message',
+        label: 'Mensaje',
+        error: 'El mensaje es obligatorio',
+    });
+
+    const el = textareaComp.render();
+    dom.window.document.body.appendChild(el);
+
+    assert.ok(el.classList.contains('has-error'), 'Wrapper must have has-error class');
+
+    const errorIcon = el.querySelector('.usim-textarea-error-icon');
+    assert.ok(errorIcon, 'Error icon must exist inside textarea');
+    assert.ok(errorIcon.classList.contains('ui-input-error-icon'), 'Error icon must share ui-input-error-icon class');
+    assert.equal(errorIcon.getAttribute('data-tooltip'), 'El mensaje es obligatorio');
+
+    const footerErrMsg = el.querySelector('.usim-textarea-error-msg');
+    assert.equal(footerErrMsg, null, 'Footer error text must not be rendered');
+
+    // Test dynamic clearing of error
+    textareaComp.update({ error: null });
+    assert.equal(el.classList.contains('has-error'), false);
+    assert.equal(el.querySelector('.usim-textarea-error-icon'), null);
+
+    // Test dynamic setting of error
+    textareaComp.update({ error: 'Nuevo error' });
+    assert.ok(el.classList.contains('has-error'));
+    const newIcon = el.querySelector('.usim-textarea-error-icon');
+    assert.ok(newIcon);
+    assert.equal(newIcon.getAttribute('data-tooltip'), 'Nuevo error');
+});
+
+test('Input: renders helpText matching textarea help icon style and updates dynamically', () => {
+    const dom = createDomEnvironment();
+
+    const inputComp = dom.window.USIM_COMPONENTS.create('input', 302, {
+        name: 'user_name',
+        label: 'Nombre',
+        help_text: 'El nombre es obligatorio',
+        error: 'Nombre demasiado corto',
+    });
+
+    const el = inputComp.render();
+    dom.window.document.body.appendChild(el);
+
+    const helpIcon = el.querySelector('.ui-input-help-icon');
+    assert.ok(helpIcon, 'Help icon must exist in input');
+    assert.equal(helpIcon.textContent, '?');
+    assert.equal(helpIcon.getAttribute('data-tooltip'), 'El nombre es obligatorio');
+
+    const errorIcon = el.querySelector('.ui-input-error-icon');
+    assert.ok(errorIcon, 'Error icon must exist in input');
+    assert.equal(errorIcon.getAttribute('data-tooltip'), 'Nombre demasiado corto');
+
+    // Test dynamic update of help_text
+    inputComp.update({ help_text: 'Texto de ayuda actualizado' });
+    const updatedHelpIcon = el.querySelector('.ui-input-help-icon');
+    assert.ok(updatedHelpIcon);
+    assert.equal(updatedHelpIcon.getAttribute('data-tooltip'), 'Texto de ayuda actualizado');
+
+    // Test dynamic clearing of help_text
+    inputComp.update({ help_text: null });
+    assert.equal(el.querySelector('.ui-input-help-icon'), null);
+});
+
 
 

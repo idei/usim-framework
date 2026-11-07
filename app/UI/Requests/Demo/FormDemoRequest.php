@@ -52,9 +52,9 @@ class FormDemoRequest extends UIRequest
     public function rules(): array
     {
         return [
-            'name' => 'required|min:2',
+            'name' => 'required|min:10',
             'email' => 'required|email',
-            'message' => 'nullable|string',
+            'message' => 'sometimes|string|min:50',
         ];
     }
 
@@ -70,6 +70,7 @@ class FormDemoRequest extends UIRequest
             'name.min' => t('screens.demo.form_demo.validation.name_min'),
             'email.required' => t('screens.demo.form_demo.validation.email_required'),
             'email.email' => t('screens.demo.form_demo.validation.email_invalid'),
+            'message.min' => t('screens.demo.form_demo.validation.message_min'),
         ];
     }
 

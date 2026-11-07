@@ -497,8 +497,30 @@ abstract class UIRequest implements ArrayAccess
      */
     public function bindErrorsToScreen(Screen $screen, MessageBag $errors): void
     {
+        $this->screen = $screen;
         $this->unboundErrors = [];
         $inverseMap = array_flip($this->map());
+
+        // Clear previous error state on all managed fields that passed validation
+        $managedFields = array_unique(array_merge(array_keys($this->rules()), array_keys($this->map())));
+        foreach ($managedFields as $field) {
+            if (! $errors->has($field)) {
+                $componentName = $this->map()[$field] ?? $field;
+                $component = $this->findComponent($componentName);
+
+                if ($component === null && isset($inverseMap[$field])) {
+                    $component = $this->findComponent($inverseMap[$field]);
+                }
+
+                if ($component !== null) {
+                    if (method_exists($component, 'error')) {
+                        $component->error(null);
+                    } elseif (method_exists($component, 'errorMessage')) {
+                        $component->errorMessage(null);
+                    }
+                }
+            }
+        }
 
         foreach ($errors->getMessages() as $field => $messages) {
             $componentName = $this->map()[$field] ?? $field;
