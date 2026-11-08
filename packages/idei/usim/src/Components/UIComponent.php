@@ -222,9 +222,7 @@ abstract class UIComponent implements Marginable, Sizeable, UIElement
      */
     public function setVisible(bool $visible): static
     {
-        $this->config['visible'] = $visible;
-
-        return $this;
+        return $this->setConfig('visible', $visible);
     }
 
     /**

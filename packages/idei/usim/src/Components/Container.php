@@ -273,9 +273,7 @@ class Container implements Gapable, Marginable, Paddable, Sizeable, UIElement
      */
     public function setVisible(bool $visible): self
     {
-        $this->config['visible'] = $visible;
-
-        return $this;
+        return $this->setConfig('visible', $visible);
     }
 
     /**
