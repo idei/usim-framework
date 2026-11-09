@@ -11,6 +11,7 @@ use Idei\Usim\Components\Container;
 use Idei\Usim\Components\Form;
 use Idei\Usim\Components\Image;
 use Idei\Usim\Components\Input;
+use Idei\Usim\Components\ItemList;
 use Idei\Usim\Components\Label;
 use Idei\Usim\Components\MenuDropdown;
 use Idei\Usim\Components\NewLabel;
@@ -640,6 +641,12 @@ class ScreenLifecycleOrchestrator implements ScreenLifecycleOrchestratorInterfac
                     }
                 } elseif ($type === 'checkbox' && array_key_exists('checked', $eventParameters)) {
                     $triggerElement->syncClientConfig('checked', (bool) $eventParameters['checked']);
+                } elseif (in_array($type, ['item_list', 'itemlist'], true) && array_key_exists('selected', $eventParameters)) {
+                    $selectedVal = $eventParameters['selected'];
+                    $normalizedSelected = is_array($selectedVal)
+                        ? array_values(array_filter($selectedVal, static fn (mixed $v): bool => is_int($v) || is_string($v)))
+                        : ((is_int($selectedVal) || is_string($selectedVal)) && $selectedVal !== '' ? [$selectedVal] : []);
+                    $triggerElement->syncClientConfig('selected_items', $normalizedSelected);
                 }
             }
         }
@@ -667,6 +674,11 @@ class ScreenLifecycleOrchestrator implements ScreenLifecycleOrchestratorInterfac
                 } elseif (is_array($paramValue)) {
                     $element->syncClientConfig('selected_values', $paramValue);
                 }
+            } elseif (in_array($type, ['item_list', 'itemlist'], true)) {
+                $normalizedSelected = is_array($paramValue)
+                    ? array_values(array_filter($paramValue, static fn (mixed $v): bool => is_int($v) || is_string($v)))
+                    : ((is_int($paramValue) || is_string($paramValue)) && $paramValue !== '' ? [$paramValue] : []);
+                $element->syncClientConfig('selected_items', $normalizedSelected);
             }
         }
     }
@@ -869,6 +881,7 @@ class ScreenLifecycleOrchestrator implements ScreenLifecycleOrchestratorInterfac
             'textarea' => Textarea::class,
             'split' => Split::class,
             'timer' => Timer::class,
+            'item_list', 'itemlist' => ItemList::class,
             default => null,
         };
     }

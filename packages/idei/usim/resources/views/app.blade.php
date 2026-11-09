@@ -40,6 +40,8 @@
         href="{{ asset('vendor/idei/usim/css/components/split/index.css') }}?v={{ $usimAssetVersion('vendor/idei/usim/css/components/split/index.css') }}">
     <link rel="stylesheet"
         href="{{ asset('vendor/idei/usim/css/components/container/index.css') }}?v={{ $usimAssetVersion('vendor/idei/usim/css/components/container/index.css') }}">
+    <link rel="stylesheet"
+        href="{{ asset('vendor/idei/usim/css/components/item-list/index.css') }}?v={{ $usimAssetVersion('vendor/idei/usim/css/components/item-list/index.css') }}">
 </head>
 
 <body>
@@ -154,6 +156,9 @@
     </script>
     <script
         src="{{ asset('vendor/idei/usim/js/components/timer/index.js') }}?v={{ $usimAssetVersion('vendor/idei/usim/js/components/timer/index.js') }}">
+    </script>
+    <script
+        src="{{ asset('vendor/idei/usim/js/components/item-list/index.js') }}?v={{ $usimAssetVersion('vendor/idei/usim/js/components/item-list/index.js') }}">
     </script>
 </body>
 

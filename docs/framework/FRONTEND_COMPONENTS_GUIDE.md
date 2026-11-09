@@ -43,6 +43,8 @@ resources/assets/
 │       ├── button/index.js
 │       ├── image/index.js
 │       ├── input/index.js
+│       ├── item-list/index.js
+│       ├── select/index.js
 │       ├── table/index.js
 │       ├── timer/index.js
 │       ├── shared/ui-event.js
@@ -51,6 +53,7 @@ resources/assets/
     ├── ui-components.css
     ├── ui-theme-tokens.css
     └── components/
+        ├── item-list/index.css
         ├── uploader/index.css
         ├── carousel/index.css
         └── image-crop-editor/index.css

@@ -8,6 +8,7 @@ use App\UI\Screens\Demo\CheckboxDemo;
 use App\UI\Screens\Demo\FormDemo;
 use App\UI\Screens\Demo\ImageDemo;
 use App\UI\Screens\Demo\InputDemo;
+use App\UI\Screens\Demo\ItemListDemo;
 use App\UI\Screens\Demo\ModalDemo;
 use App\UI\Screens\Demo\NewLabelDemo;
 use App\UI\Screens\Demo\SelectDemo;
@@ -26,6 +27,7 @@ class DemosMenuProvider implements MenuProviderInterface
             $submenu->screenShow(ButtonDemo::class);
             $submenu->screenShow(NewLabelDemo::class);
             $submenu->screenShow(TableDemo::class);
+            $submenu->screenShow(ItemListDemo::class);
             $submenu->screenShow(ModalDemo::class);
             $submenu->action(t('screens.menu.demos.abort_error'), 'show_error_info', [], '❌');
             $submenu->screenShow(FormDemo::class);

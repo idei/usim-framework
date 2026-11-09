@@ -306,11 +306,14 @@ Use `_crypt` only when the value should not be readable from client storage.
 | `UI::label()` | `Label` | Text labels, headings, paragraphs |
 | `UI::button()` | `Button` | Action buttons with styles |
 | `UI::input()` | `Input` | Text, email, password, hidden inputs |
-| `UI::select()` | `Select` | Dropdown selects |
+| `UI::textarea()` | `Textarea` | Multi-line text and Markdown editor with live preview |
+| `UI::select()` | `Select` | Dropdown selects with static or dynamic `/api/ui-data` options |
+| `UI::itemList()` / `UI::list()` | `ItemList` | Vertical interactive list with single/multiple selection, live `/api/ui-data` search, and inline/delegated CRUD |
 | `UI::checkbox()` | `Checkbox` | Checkboxes and toggles |
 | `UI::form()` | `Form` | Form grouping |
 | `UI::table()` | `Table` | Data tables with pagination |
 | `UI::card()` | `Card` | Cards with title, description, actions |
+| `UI::image()` | `Image` | Static or dynamic `/api/ui-data` images with placeholders and loading state |
 | `UI::container()` | `Container` | Layout container (vertical/horizontal/grid) with `card()` / `plain()` appearance and optional server-driven tabs |
 | `UI::menuDropdown()` | `MenuDropdown` | Navigation dropdown menus |
 | `UI::uploader()` | `Uploader` | File upload with preview and crop |
@@ -696,6 +699,35 @@ $dataModel = new ProductsTable($table);
 // configure columns, pagination, etc.
 $container->add($table);
 ```
+
+---
+
+## Interactive Lists (`ItemList`)
+
+Use `UI::itemList()` (or alias `UI::list()`) for vertical item lists that support `SelectionMode` (`NONE`, `SINGLE`, `MULTIPLE`), live search via `GET /api/ui-data`, and inline or modal CRUD operations:
+
+```php
+use Idei\Usim\UI;
+
+$list = UI::itemList('invited_users')
+    ->label('Invite Users')
+    ->multipleSelect()
+    ->keepSelectedVisible(true)
+    ->searchable(true, 'Search by name or email...')
+    ->minSearchChars(0)
+    ->debounce(250)
+    ->action('getUsers', ['limit' => 25]) // Calls Screen::getUsers(string $search = '', int $limit = 25) via GET /api/ui-data
+    ->crud(creatable: true, editable: true, deletable: true)
+    ->onSelect('select_user')
+    ->onCreate('create_user')
+    ->onUpdate('update_user')
+    ->onDelete('delete_user')
+    ->onBulkDelete('bulk_delete_users');
+
+$container->add($list);
+```
+
+Selected IDs are automatically synchronized into hidden inputs (`invited_users[]` in multiple mode or `invited_users` in single mode) so any form submission button collects them without extra wiring, and items selected in previous searches remain pinned and visible across subsequent queries.
 
 ---
 

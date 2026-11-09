@@ -11,6 +11,7 @@ use Idei\Usim\Components\Container;
 use Idei\Usim\Components\Form;
 use Idei\Usim\Components\Image;
 use Idei\Usim\Components\Input;
+use Idei\Usim\Components\ItemList;
 use Idei\Usim\Components\Label;
 use Idei\Usim\Components\MenuDropdown;
 use Idei\Usim\Components\NewLabel;
@@ -238,5 +239,25 @@ class UI
     public static function timer(?string $name = null): Timer
     {
         return new Timer($name);
+    }
+
+    /**
+     * Create a new item list component
+     *
+     * @param  string|null  $name  The optional semantic name for the item list
+     */
+    public static function itemList(?string $name = null): ItemList
+    {
+        return new ItemList($name);
+    }
+
+    /**
+     * Alias for UI::itemList()
+     *
+     * @param  string|null  $name  The optional semantic name for the list
+     */
+    public static function list(?string $name = null): ItemList
+    {
+        return new ItemList($name);
     }
 }

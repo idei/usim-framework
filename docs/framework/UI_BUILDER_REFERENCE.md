@@ -100,6 +100,30 @@ UI::image('id')
 
 > **Obtención Dinámica de Datos (`GET /api/ui-data`)**: Los componentes que definen `->action(...)` para consulta consumen el canal `GET /api/ui-data`. En el frontend, el componente muestra automáticamente un estado de carga (`.ui-is-loading` con spinner) mientras se resuelve la petición, soportando imágenes binarias, SVG, URLs o datos JSON.
 
+### ItemList
+```php
+use Idei\Usim\Enums\SelectionMode;
+
+UI::itemList('movies_list') // Alias: UI::list('movies_list')
+    ->label('Catálogo de Películas')
+    ->selectionMode(SelectionMode::MULTIPLE) // O ->singleSelect(), ->multipleSelect(), ->noSelection()
+    ->keepSelectedVisible(true)
+    ->searchable(true, 'Buscar por título, director o género...')
+    ->minSearchChars(0)
+    ->debounce(250)
+    ->action('getMovies', ['limit' => 25]) // Consulta asíncrona GET /api/ui-data (Screen@getMovies)
+    ->crud(creatable: true, editable: true, deletable: true)
+    ->onSelect('select_movie')
+    ->onCreate('create_movie')
+    ->onUpdate('update_movie')
+    ->onDelete('delete_movie')
+    ->onBulkDelete('bulk_delete_movies')
+    ->maxHeight('420px')
+    ->build();
+```
+
+> **Persistencia de selección y formularios**: `ItemList` sincroniza automáticamente inputs ocultos (`name="field[]"` en modo múltiple o `name="field"` en modo simple) para que cualquier `Button` recolecte los IDs seleccionados al enviar el formulario, y preserva visibles los ítems seleccionados aunque una búsqueda posterior en `/api/ui-data` ya no los incluya en los resultados filtrados.
+
 
 ## 🌳 Manipulación de Árbol
 
@@ -169,7 +193,8 @@ UIElement (interface)
 │   ├── Button
 │   ├── Label
 │   ├── Table
-│   └── Image
+│   ├── Image
+│   └── ItemList
 └── Container (composite) - Contenedores
     └── Métodos: add, remove, update, find, etc.
 ```

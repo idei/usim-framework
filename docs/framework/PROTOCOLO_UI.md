@@ -45,7 +45,7 @@ TypeAttr        ::= '"type"' ":" '"' ComponentType '"'
 ParentAttr      ::= '"parent"' ":" ParentValue
 
 (* Valores de Atributos *)
-ComponentType   ::= "container" | "button" | "input" | "select" | "checkbox" | "card" | "table" | "tablerow" | "tablecell" | "tableheadercell" | "form" | "tableheaderrow" | "menudropdown" | "uploader" | "calendar" | "carousel" | "textarea" | "split" | "label" | CustomType
+ComponentType   ::= "container" | "button" | "input" | "select" | "item_list" | "checkbox" | "card" | "table" | "tablerow" | "tablecell" | "tableheadercell" | "form" | "tableheaderrow" | "menudropdown" | "uploader" | "calendar" | "carousel" | "textarea" | "split" | "image" | "label" | CustomType
 ParentValue     ::= '"' ComponentID '"' | '"' AnchorKeyword '"' | "null"
 GenericAttr     ::= StringLiteral ":" ValueLiteral
 

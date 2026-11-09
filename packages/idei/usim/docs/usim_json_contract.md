@@ -328,6 +328,34 @@ Campos soportados:
 - `auto_fetch` (bool, opcional): Si es `true` y tiene `action`, el frontend ejecuta automáticamente `fetchData()` al montarse.
 - `fallback_src` (string, opcional): Imagen o SVG de respaldo en caso de error de red o timeout.
 
+## 5.4 Componente `item_list`
+
+Representa una lista vertical interactiva de elementos con soporte para selección (`none`, `single`, `multiple`), búsqueda local o remota (`GET /api/ui-data` con indicador de carga) y operaciones CRUD (inline o delegadas a modales).
+
+Campos soportados:
+
+- `type` (string): `"item_list"` (alias soportado: `"itemlist"`).
+- `parent` (string|int): ID del contenedor padre.
+- `name` (string): Identificador funcional y nombre del campo para recolección automática en formularios (`name` en selección simple, `name[]` en selección múltiple).
+- `label` (string, opcional): Título del componente.
+- `items` (array, opcional): Lista de objetos de ítem `{ id, label, subtitle?, badge?, badge_style?, icon?, avatar?, disabled?, actions?, meta? }`.
+- `selection_mode` (string, opcional): `"none"` | `"single"` | `"multiple"` (default: `"none"`).
+- `selected_items` (array, opcional): Lista de IDs seleccionados (`list<int|string>`).
+- `keep_selected_visible` (bool, opcional): Si es `true`, mantiene visibles y fijados los ítems seleccionados aunque una búsqueda posterior en `/api/ui-data` no los devuelva.
+- `show_select_all` (bool, opcional): Muestra el control de seleccionar/deseleccionar todos en modo `"multiple"`.
+- `searchable` (bool, opcional): Habilita la barra de búsqueda integrada.
+- `search_placeholder` (string, opcional): Placeholder del campo de búsqueda.
+- `search_term` (string, opcional): Término de búsqueda inicial o actual.
+- `min_search_chars` (int, opcional): Mínimo de caracteres antes de disparar consulta remota (default: `0`).
+- `debounce` (int, opcional): Tiempo de espera en ms al escribir en el buscador (default: `250`).
+- `action` (string, opcional): Nombre de la acción de consulta (invoca `Screen::get<Action>()` vía `GET /api/ui-data` pasando `{ search, ...parameters }`).
+- `parameters` (object, opcional): Parámetros adicionales enviados en la consulta HTTP GET.
+- `auto_fetch` (bool, opcional): Si es `true` y tiene `action`, consulta `GET /api/ui-data` al montarse si `items` está vacío.
+- `reload` (bool, opcional): Si se envía `true` en un delta, fuerza al frontend a re-ejecutar `fetchData()` contra `GET /api/ui-data`.
+- `creatable`, `editable`, `deletable` (bool, opcional): Habilitan las operaciones CRUD en la lista.
+- `inline_create`, `inline_edit` (bool, opcional): Controlan si el alta y la edición se realizan mediante inputs inline dentro del componente (`true`) o disparan directamente el evento al backend para abrir un modal (`false`).
+- `on_select`, `on_create`, `on_update`, `on_edit`, `on_delete`, `on_bulk_delete`, `on_search` (string, opcional): Nombres de las acciones (`snake_case`) invocadas vía `POST /api/ui-event`.
+
 ## 6. Snapshot inicial vs delta
 
 USIM puede responder de dos formas:
