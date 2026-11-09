@@ -15,6 +15,7 @@ use Idei\Usim\Enums\AlignItems;
 use Idei\Usim\Enums\JustifyContent;
 use Idei\Usim\Enums\LayoutType;
 use Idei\Usim\Screen;
+use Idei\Usim\Support\ContainerLayoutLoader;
 use Idei\Usim\Support\UIIdGenerator;
 use Idei\Usim\ValueObjects\Size;
 
@@ -47,6 +48,9 @@ class Container implements Gapable, Marginable, Paddable, Sizeable, UIElement
 
     /** @var array<string, mixed>|null Legacy elements array for backward compatibility */
     public ?array $legacyElements = null;
+
+    /** @var array<string, mixed>|null Declarative layout definition (.layout.yaml) */
+    protected ?array $layoutDefinition = null;
 
     public function __construct(?string $name = null, ?string $context = null)
     {
@@ -112,6 +116,8 @@ class Container implements Gapable, Marginable, Paddable, Sizeable, UIElement
             'grid_column' => null,
             'grid_row' => null,
             'grid_area' => null,
+            'justify_self' => null,
+            'align_self' => null,
 
             // Gap/Spacing
             'gap' => null,
@@ -446,16 +452,209 @@ class Container implements Gapable, Marginable, Paddable, Sizeable, UIElement
     }
 
     /**
-     * Set the layout type for this container
+     * Assign this container to a specific layout slot by name or 1-based position within a parent container.
      *
-     * @param  LayoutType  $layout  The layout type (VERTICAL or HORIZONTAL)
-     * @return self For method chaining
+     * @param  int|string|null  $slot  Target slot name or 1-based position, or null to clear it
      */
-    public function layout(LayoutType $layout): self
+    public function slot(int|string|null $slot): self
     {
-        $this->config['layout'] = $layout->value;
+        if ($slot === null) {
+            unset($this->config['slot']);
+
+            return $this;
+        }
+
+        $this->config['slot'] = is_string($slot) ? trim($slot) : $slot;
 
         return $this;
+    }
+
+    /**
+     * Get the explicitly assigned layout slot, if any.
+     */
+    public function getSlot(): int|string|null
+    {
+        $slot = $this->config['slot'] ?? null;
+
+        return is_int($slot) || is_string($slot) ? $slot : null;
+    }
+
+    /**
+     * Set the layout type or load a declarative YAML layout file for this container.
+     *
+     * @param  LayoutType|string  $layout  LayoutType enum or path/name of a .layout.yaml file
+     * @return self For method chaining
+     */
+    public function layout(LayoutType|string $layout): self
+    {
+        if ($layout instanceof LayoutType) {
+            $this->config['layout'] = $layout->value;
+
+            return $this;
+        }
+
+        $enumCase = LayoutType::tryFrom(strtolower(trim($layout)));
+        if ($enumCase !== null) {
+            $this->config['layout'] = $enumCase->value;
+
+            return $this;
+        }
+
+        return $this->layoutFile($layout);
+    }
+
+    /**
+     * Load and apply a declarative YAML layout definition (.layout.yaml) to this container.
+     * When $path is null, resolves `<kebab-screen-name>.layout.yaml` in the calling Screen's directory.
+     */
+    public function layoutFile(?string $path = null): self
+    {
+        $callingContext = UIIdGenerator::getCurrentContext() ?? $this->detectCallingContext();
+        $definition = ContainerLayoutLoader::loadFile($path, $callingContext);
+
+        return $this->layoutDefinition($definition);
+    }
+
+    /**
+     * Apply a declarative layout definition array to this container.
+     *
+     * @param  array<string, mixed>  $definition
+     */
+    public function layoutDefinition(array $definition): self
+    {
+        $this->layoutDefinition = $definition;
+        ContainerLayoutLoader::applyContainerConfig($this, $definition);
+
+        if ($this->children !== []) {
+            ContainerLayoutLoader::applyToContainer($this, $definition);
+        }
+
+        return $this;
+    }
+
+    /**
+     * Get the declarative layout definition attached to this container, if any.
+     *
+     * @return array<string, mixed>|null
+     */
+    public function getLayoutDefinition(): ?array
+    {
+        return $this->layoutDefinition;
+    }
+
+    /**
+     * Materialize the attached declarative layout definition onto this container and its children.
+     */
+    public function applyLayoutDefinition(): self
+    {
+        if ($this->layoutDefinition !== null) {
+            ContainerLayoutLoader::applyToContainer($this, $this->layoutDefinition);
+        }
+
+        return $this;
+    }
+
+    /**
+     * Reorder direct child components to match the provided list of slot/component names.
+     * Prioritizes explicit child->getSlot() (by name or 1-based index), then child->getName(),
+     * and fills remaining open slots with untargeted children in their relative order.
+     *
+     * @param  list<string>  $orderedNames
+     */
+    public function reorderChildrenByNames(array $orderedNames): void
+    {
+        if ($orderedNames === [] || count($this->children) <= 1) {
+            return;
+        }
+
+        $slotCount = count($orderedNames);
+        $slotIndexByName = [];
+        foreach ($orderedNames as $sIdx => $slotName) {
+            if ($slotName !== '') {
+                $slotIndexByName[$slotName] = $sIdx;
+            }
+        }
+
+        $currentChildren = array_values($this->children);
+        /** @var array<int, UIElement> $assignedSlots */
+        $assignedSlots = [];
+        /** @var array<int, bool> $usedChildIndices */
+        $usedChildIndices = [];
+
+        // Pass 1: Explicit slot assignment (->slot(...) / addToSlot(...))
+        foreach ($currentChildren as $cIdx => $child) {
+            $explicitSlot = ($child instanceof UIComponent || $child instanceof self) ? $child->getSlot() : null;
+            if ($explicitSlot === null) {
+                continue;
+            }
+
+            $targetSlotIdx = null;
+            if (is_int($explicitSlot) || ctype_digit(trim($explicitSlot))) {
+                $posCandidate = (int) $explicitSlot;
+                if ($posCandidate >= 1 && $posCandidate <= $slotCount) {
+                    $targetSlotIdx = $posCandidate - 1;
+                }
+            } elseif (isset($slotIndexByName[trim($explicitSlot)])) {
+                $targetSlotIdx = $slotIndexByName[trim($explicitSlot)];
+            }
+
+            if ($targetSlotIdx !== null && ! isset($assignedSlots[$targetSlotIdx])) {
+                $assignedSlots[$targetSlotIdx] = $child;
+                $usedChildIndices[$cIdx] = true;
+            }
+        }
+
+        // Pass 2: Match by component name
+        foreach ($currentChildren as $cIdx => $child) {
+            if (isset($usedChildIndices[$cIdx])) {
+                continue;
+            }
+
+            $explicitSlot = ($child instanceof UIComponent || $child instanceof self) ? $child->getSlot() : null;
+            if ($explicitSlot !== null) {
+                continue;
+            }
+
+            $name = $child->getName();
+            if ($name !== null && isset($slotIndexByName[$name])) {
+                $targetSlotIdx = $slotIndexByName[$name];
+                if (! isset($assignedSlots[$targetSlotIdx])) {
+                    $assignedSlots[$targetSlotIdx] = $child;
+                    $usedChildIndices[$cIdx] = true;
+                }
+            }
+        }
+
+        // Pass 3: Fill remaining open slots with untargeted children in their relative order
+        foreach ($currentChildren as $cIdx => $child) {
+            if (isset($usedChildIndices[$cIdx])) {
+                continue;
+            }
+
+            for ($sIdx = 0; $sIdx < $slotCount; $sIdx++) {
+                if (! isset($assignedSlots[$sIdx])) {
+                    $assignedSlots[$sIdx] = $child;
+                    $usedChildIndices[$cIdx] = true;
+                    break;
+                }
+            }
+        }
+
+        ksort($assignedSlots);
+
+        $reordered = [];
+        foreach ($assignedSlots as $child) {
+            $reordered[(string) $child->getId()] = $child;
+        }
+
+        foreach ($this->children as $key => $child) {
+            $strKey = (string) $key;
+            if (! array_key_exists($strKey, $reordered)) {
+                $reordered[$strKey] = $child;
+            }
+        }
+
+        $this->children = $reordered;
     }
 
     public function width(Size $width): static
@@ -541,12 +740,18 @@ class Container implements Gapable, Marginable, Paddable, Sizeable, UIElement
      *
      * @param  UIElement  $element  The element to add
      * @param  bool  $result  Reference parameter to indicate if the element was added (true) or ignored due to duplicate ID (false)
+     * @param  int|string|null  $tab  Optional target tab id or name
+     * @param  int|string|null  $slot  Optional target layout slot name or 1-based position
      * @return static For method chaining
      *
      * @throws \InvalidArgumentException If element with same ID already exists
      */
-    public function add(UIElement $element, ?bool &$result = null, int|string|null $tab = null): static
-    {
+    public function add(
+        UIElement $element,
+        ?bool &$result = null,
+        int|string|null $tab = null,
+        int|string|null $slot = null
+    ): static {
         $elementId = (string) $element->getId();
 
         if (array_key_exists($elementId, $this->children)) {
@@ -557,6 +762,10 @@ class Container implements Gapable, Marginable, Paddable, Sizeable, UIElement
 
         if ($tab !== null) {
             $this->assignElementToTab($element, $tab);
+        }
+
+        if ($slot !== null && ($element instanceof UIComponent || $element instanceof self)) {
+            $element->slot($slot);
         }
 
         // Automatically set the child's parent to this container's ID
@@ -578,6 +787,30 @@ class Container implements Gapable, Marginable, Paddable, Sizeable, UIElement
     public function addToTab(UIElement $element, int|string $tab, ?bool &$result = null): self
     {
         return $this->add($element, $result, $tab);
+    }
+
+    /**
+     * Add a child element directly to a target layout slot.
+     * Supports both argument orders: addToSlot($slot, $element) and addToSlot($element, $slot).
+     *
+     * @param  UIElement|int|string  $slotOrElement  Target slot identifier or element to add
+     * @param  UIElement|int|string  $elementOrSlot  Element to add or target slot identifier
+     * @param  bool|null  $result  Set to true when added, false when ignored due to duplicate ID
+     */
+    public function addToSlot(
+        UIElement|int|string $slotOrElement,
+        UIElement|int|string $elementOrSlot,
+        ?bool &$result = null
+    ): self {
+        if ($slotOrElement instanceof UIElement && (is_int($elementOrSlot) || is_string($elementOrSlot))) {
+            return $this->add($slotOrElement, $result, null, $elementOrSlot);
+        }
+
+        if ((is_int($slotOrElement) || is_string($slotOrElement)) && $elementOrSlot instanceof UIElement) {
+            return $this->add($elementOrSlot, $result, null, $slotOrElement);
+        }
+
+        throw new \InvalidArgumentException('Container::addToSlot expects one UIElement and one int|string slot identifier.');
     }
 
     /**
@@ -750,18 +983,134 @@ class Container implements Gapable, Marginable, Paddable, Sizeable, UIElement
     }
 
     /**
-     * Clear this container and embed a Screen inside it.
+     * Remove any direct child elements currently occupying the specified layout slot.
+     *
+     * @param  int|string  $slot  Target slot name or 1-based position
+     * @return list<UIElement> Removed elements
+     */
+    public function clearSlot(int|string $slot): array
+    {
+        $slotStr = trim((string) $slot);
+        if ($slotStr === '') {
+            return [];
+        }
+
+        $matchingSlotKeys = [$slotStr];
+        if (
+            $this->layoutDefinition !== null
+            && isset($this->layoutDefinition['grid'])
+            && is_array($this->layoutDefinition['grid'])
+            && isset($this->layoutDefinition['grid']['children'])
+            && is_array($this->layoutDefinition['grid']['children'])
+        ) {
+            foreach (array_values($this->layoutDefinition['grid']['children']) as $idx => $entry) {
+                $posStr = (string) ($idx + 1);
+                $entrySlot = (is_array($entry) && isset($entry['slot']) && (is_string($entry['slot']) || is_int($entry['slot'])))
+                    ? trim((string) $entry['slot'])
+                    : $posStr;
+
+                if ($slotStr === $posStr || $slotStr === $entrySlot) {
+                    $matchingSlotKeys[] = $posStr;
+                    $matchingSlotKeys[] = $entrySlot;
+                }
+            }
+        }
+
+        $removed = [];
+        foreach ($this->children as $key => $child) {
+            $childSlot = ($child instanceof UIComponent || $child instanceof self) ? $child->getSlot() : null;
+            $childName = $child->getName();
+
+            $matchesExplicitSlot = $childSlot !== null && in_array(trim((string) $childSlot), $matchingSlotKeys, true);
+            $matchesNameSlot = $childSlot === null && $childName !== null && in_array($childName, $matchingSlotKeys, true);
+
+            if ($matchesExplicitSlot || $matchesNameSlot) {
+                $child->setParent(null);
+                unset($this->children[$key]);
+                $removed[] = $child;
+            }
+        }
+
+        return $removed;
+    }
+
+    /**
+     * Get the 1-based visual order index of a direct child element.
+     */
+    public function getChildOrder(int|string $elementId): ?int
+    {
+        $targetKey = (string) $elementId;
+        $order = 1;
+        foreach ($this->children as $key => $child) {
+            if ((string) $key === $targetKey || (string) $child->getId() === $targetKey) {
+                return $order;
+            }
+            $order++;
+        }
+
+        return null;
+    }
+
+    /**
+     * Embed a Screen inside this container.
+     * When $slot is null, clears all existing children first.
+     * When $slot is provided, replaces only the occupant of that slot.
      *
      * @param  class-string<Screen>  $screenClass
      * @param  array<int|string, mixed>  $params
+     * @param  int|string|null  $slot  Optional target layout slot name or 1-based position
      * @return static For method chaining
      */
-    public function embed(string $screenClass, array $params = []): static
+    public function embed(string $screenClass, array $params = [], int|string|null $slot = null): static
     {
-        $this->clear();
-        Screen::embedInto($screenClass, $this, $params);
+        if ($slot === null) {
+            $this->clear();
+        }
+
+        Screen::embedInto($screenClass, $this, $params, $slot);
 
         return $this;
+    }
+
+    /**
+     * Embed a Screen into a specific layout slot of this container without clearing other slots.
+     * Supports both argument orders: embedToSlot($slot, $screenClass, $params) and embedToSlot($screenClass, $slot, $params).
+     *
+     * @param  int|string  $slotOrScreen  Target slot identifier or Screen class name
+     * @param  int|string  $screenOrSlot  Screen class name or target slot identifier
+     * @param  array<int|string, mixed>  $params
+     */
+    public function embedToSlot(
+        int|string $slotOrScreen,
+        int|string $screenOrSlot,
+        array $params = []
+    ): static {
+        if (is_int($slotOrScreen) && is_string($screenOrSlot)) {
+            /** @var class-string<Screen> $screenClass */
+            $screenClass = $screenOrSlot;
+
+            return $this->embed($screenClass, $params, $slotOrScreen);
+        }
+
+        if (is_string($slotOrScreen) && is_int($screenOrSlot)) {
+            /** @var class-string<Screen> $screenClass */
+            $screenClass = $slotOrScreen;
+
+            return $this->embed($screenClass, $params, $screenOrSlot);
+        }
+
+        if (is_string($slotOrScreen) && is_string($screenOrSlot)) {
+            if (class_exists($slotOrScreen) && is_subclass_of($slotOrScreen, Screen::class)) {
+                return $this->embed($slotOrScreen, $params, $screenOrSlot);
+            }
+
+            /** @var class-string<Screen> $screenClass */
+            $screenClass = $screenOrSlot;
+
+            return $this->embed($screenClass, $params, $slotOrScreen);
+        }
+
+        throw new \InvalidArgumentException('Container::embedToSlot expects a Screen class name and a slot identifier.');
     }
 
     // ========================================================================
@@ -1009,6 +1358,46 @@ class Container implements Gapable, Marginable, Paddable, Sizeable, UIElement
     public function gridArea(string $area): self
     {
         $this->config['grid_area'] = $area;
+
+        return $this;
+    }
+
+    /**
+     * Set number of grid columns this container spans when placed inside a parent grid.
+     */
+    public function columnSpan(int|string $span): self
+    {
+        $this->config['grid_column'] = is_int($span) || ctype_digit((string) $span) ? "span {$span}" : (string) $span;
+
+        return $this;
+    }
+
+    /**
+     * Set number of grid rows this container spans when placed inside a parent grid.
+     */
+    public function rowSpan(int|string $span): self
+    {
+        $this->config['grid_row'] = is_int($span) || ctype_digit((string) $span) ? "span {$span}" : (string) $span;
+
+        return $this;
+    }
+
+    /**
+     * Set inline-axis self alignment within a parent grid cell.
+     */
+    public function justifySelf(?string $justify): self
+    {
+        $this->config['justify_self'] = $justify;
+
+        return $this;
+    }
+
+    /**
+     * Set block-axis self alignment within a parent grid/flex cell.
+     */
+    public function alignSelf(?string $align): self
+    {
+        $this->config['align_self'] = $align;
 
         return $this;
     }
@@ -1926,6 +2315,10 @@ class Container implements Gapable, Marginable, Paddable, Sizeable, UIElement
      */
     public function toJson(?int $order = null): array
     {
+        if ($this->layoutDefinition !== null) {
+            $this->applyLayoutDefinition();
+        }
+
         // Filter out null values from config including empty arrays (like 'tabs' when no tabs are defined)
         $config = array_filter($this->config, fn ($value) => $value !== null && $value !== []);
 

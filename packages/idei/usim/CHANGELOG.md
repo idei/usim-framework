@@ -7,6 +7,19 @@ The format is based on Keep a Changelog, and this project follows Semantic Versi
 ## [Unreleased]
 
 ### Added
+- Declarative YAML Container Layouts (`.layout.yaml`) via `Idei\Usim\Support\ContainerLayoutLoader`, `Container::layoutFile(?string $path = null)`, `Container::layoutDefinition(array $definition)`, and `Container::layout('file.layout.yaml')`:
+  - Supports CSS Grid auto-flow definitions (`grid.cols`, `grid.rows`, `grid.gap`, `grid.row_gap`, `grid.column_gap`, `grid.padding`, `grid.max_width`, `grid.appearance`, `grid.default_span`, `grid.align`, `grid.justify`) and ordered `grid.children` slot rules (`slot`, `span`, `at`, `row` / `row_height`, `align`, `justify`), plus Flex (`flex`) and Stack (`vertical` / `horizontal`) layouts.
+  - Automatically computes `grid_template_rows` when any child slot defines a row track (`row: 1fr`, `row_height: 120px`, etc.) and stretches `Textarea` bodies inside flexible grid rows.
+  - Automatically mounts unparented `Screen` component properties referenced in `grid.children` slots during `HandlesScreenProperties::reconcileComponentProperties()`.
+- Explicit Layout Slot API on `UIComponent` and `Container`:
+  - Added `->slot(int|string|null $slot)` and `->getSlot(): int|string|null` on `UIComponent` and `Container`.
+  - Updated `Container::add()` with an optional `$slot` parameter (`$container->add($element, slot: 'slot_name')`) and added `Container::addToSlot($slot, $element)` (supporting both argument orders).
+  - Updated `Container::reorderChildrenByNames()` and `ContainerLayoutLoader::applyGridChildrenConfig()` to resolve slot placement and rules by priority: explicit `getSlot()` (by slot name or 1-based position) -> component `getName()` -> insertion order `1..N`.
+- Slot-aware Screen Embedding (`Container::embed()`, `Container::embedToSlot()`, `Screen::embedInto()`):
+  - `Container::embed(string $screenClass, array $params = [], int|string|null $slot = null)` and `Container::embedToSlot($slot, $screenClass, $params)` allow embedding multiple nested `Screen` instances into specific layout slots of a single `Container`.
+  - Added `Container::clearSlot(int|string $slot)` and `Container::getChildOrder(int|string $elementId)`: when embedding into a specific `$slot`, only the previous occupant of that slot is removed (emitting `parent => null` for clean DOM unmounting on hot swaps), preserving sibling components and other embedded screens, re-applying the parent's layout definition, and persisting the embedded screen's snapshot with its resolved slot/grid configuration.
+- Grid item placement helpers on `UIComponent` and `Container`: `gridColumn()`, `gridRow()`, `gridArea()`, `columnSpan()`, `rowSpan()`, `justifySelf()`, and `alignSelf()`, along with `justify_self` and `align_self` rendering in `ui-renderer.js`.
+- Updated `FormDemo` (`App\UI\Screens\Demo\FormDemo` and `app/UI/Screens/Demo/form-demo.layout.yaml`) to use declarative YAML grid layout and added a `btn_reset` (`onResetForm`) action next to `btn_submit`.
 - New `ItemList` component (`Idei\Usim\Components\ItemList`, `UI::itemList()` / `UI::list()`, `UsimItemListComponent`, and `css/components/item-list/index.css`) for vertical interactive item lists with:
   - Selection modes via `SelectionMode` (`NONE`, `SINGLE`, `MULTIPLE`), "Select All" support, and automatic hidden input synchronization (`name="field[]"` / `name="field"`) for form submission via `UsimButtonComponent`.
   - Live search (`searchable()`, `minSearchChars()`, `debounce()`) and asynchronous data querying over `GET /api/ui-data` (`action()`, `parameters()`, `autoFetch()`, `reload()`) with non-intrusive body loading spinner (`.ui-component-spinner`) that preserves search input focus while typing and pins previously selected items (`keepSelectedVisible()`).

@@ -564,10 +564,20 @@ class ScreenLifecycleOrchestrator implements ScreenLifecycleOrchestratorInterfac
      *
      * @param  class-string<Screen>  $screenClass
      * @param  array<int|string, mixed>  $buildParams
+     * @param  int|string|null  $slot  Optional target layout slot name or 1-based position
      */
-    public function embedInto(string $screenClass, Container $parent, array $buildParams = []): void
-    {
+    public function embedInto(
+        string $screenClass,
+        Container $parent,
+        array $buildParams = [],
+        int|string|null $slot = null
+    ): void {
         $parentId = $parent->getId();
+
+        $removedElements = [];
+        if ($slot !== null) {
+            $removedElements = $parent->clearSlot($slot);
+        }
 
         $instance = Screen::make($screenClass);
         $instance->setParent($parentId);
@@ -581,7 +591,6 @@ class ScreenLifecycleOrchestrator implements ScreenLifecycleOrchestratorInterfac
             if ($shouldReset) {
                 $instance->onResetScreen();
             }
-
 
             if (! empty($buildParams) && AbstractLayout::getActiveHostScreen() !== $instance::class) {
                 $instance->clearCachedScreenSnapshot();
@@ -601,17 +610,40 @@ class ScreenLifecycleOrchestrator implements ScreenLifecycleOrchestratorInterfac
 
             $container = $instance->getContainer();
             if ($container !== null) {
-                // Store the child screen's own snapshot with root=true and parent=$parentId
-                // so direct events on the child screen can reconstruct its tree.
-                $container->root(true);
-                $this->cacheScreenSnapshot($instance, $container);
+                if ($slot !== null) {
+                    $container->slot($slot);
+                }
 
                 // Attach to the host screen's container with root=false so it does not
                 // collide with the host screen's root container.
                 $container->root(false);
-                $parent->add($container);
+                $parent->add($container, slot: $slot);
 
-                $this->changesCollector->add($container->toJson());
+                if ($parent->getLayoutDefinition() !== null) {
+                    $parent->applyLayoutDefinition();
+                }
+
+                $childOrder = $parent->getChildOrder($container->getId());
+                $embeddedJson = $container->toJson($childOrder);
+
+                // Store the child screen's own snapshot with root=true and parent=$parentId
+                // so direct events on the child screen can reconstruct its tree (including its slot/grid config).
+                $container->root(true);
+                $this->cacheScreenSnapshot($instance, $container);
+                $container->root(false);
+
+                foreach ($removedElements as $removed) {
+                    if ($removed->getId() !== $container->getId()) {
+                        $this->changesCollector->add([
+                            $removed->getId() => [
+                                'type' => $removed->getType(),
+                                'parent' => null,
+                            ],
+                        ]);
+                    }
+                }
+
+                $this->changesCollector->add($embeddedJson);
             }
 
             $this->changesCollector->setStorage($instance->getStorageVariables());

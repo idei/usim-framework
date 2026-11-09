@@ -52,6 +52,7 @@ A **Server-Driven UI** framework for Laravel. Define your entire user interface 
 | laravel/sanctum | `^3.0` / `^4.0` |
 | spatie/laravel-permission | ^6.0 |
 | symfony/finder | `^6.0` / `^7.0` |
+| symfony/yaml | `^6.0` / `^7.0` / `^8.0` |
 | nikic/php-parser | ^5.7 |
 | symfony/var-dumper | `^6.0` / `^7.0` |
 | illuminate/contracts | `^10.0` / `^11.0` / `^12.0` / `^13.0` |
@@ -224,6 +225,51 @@ $tabs->add(UI::label('overview_copy')->text('Overview content'), tab: 'overview'
 $tabs->add(UI::label('reports_copy')->text('Reports content'), tab: 'Reports');
 
 $container->add($tabs);
+```
+
+### Declarative Container Layouts (`.layout.yaml`) & Slots
+
+Containers can separate visual geometry (CSS Grid tracks, gaps, spans, alignment, and slot ordering) into a companion `.layout.yaml` file while keeping component behavior in PHP:
+
+```yaml
+# app/UI/Screens/Demo/form-demo.layout.yaml
+grid:
+  cols: [1fr, 1fr]
+  gap: 24
+  padding: 24
+  default_span: 2
+  children:
+    - slot: lbl_instruction
+      justify: center
+    - slot: input_name
+    - slot: input_email
+    - slot: input_message
+      row: 1fr
+    - slot: btn_submit
+      span: 1
+      justify: end
+    - slot: btn_reset
+      span: 1
+      justify: start
+    - slot: lbl_result
+```
+
+In your `Screen`, load the layout with `->layoutFile()` (or `->layout('form-demo.layout.yaml')`). Protected component properties whose names match a `slot` in `children` are automatically mounted and ordered:
+
+```php
+$wrapper = UI::container('form_wrapper')
+    ->card()
+    ->layoutFile('form-demo.layout.yaml');
+
+//Explicit slot targeting when component name differs from slot name:
+$this->btn_limpiar = UI::button('btn_limpiar')->label('Reset')->slot('btn_reset');
+// Or when adding to the container:
+$wrapper->add($this->btn_limpiar, slot: 'btn_reset');
+$wrapper->addToSlot('btn_reset', $this->btn_limpiar);
+
+// Embedding nested Screens into specific layout slots (replaces only the target slot):
+$wrapper->embed(StatsScreen::class, $params, slot: 'left_panel');
+$wrapper->embedToSlot('right_panel', ActivityScreen::class, $params);
 ```
 
 ### Event Handlers

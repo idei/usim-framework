@@ -35,9 +35,13 @@ $json = $screen->build();
 ### Container
 ```php
 UI::container('id')
-    ->slot('canvas')
-    ->layout(LayoutType::VERTICAL) // or HORIZONTAL
+    ->layout(LayoutType::VERTICAL) // VERTICAL, HORIZONTAL, GRID, FLEX, o ruta '.layout.yaml'
+    ->layoutFile('form-demo.layout.yaml') // Carga layout declarativo YAML
     ->add($element)
+    ->add($otherElement, slot: 'btn_reset') // Asignación explícita de slot al agregar
+    ->addToSlot('btn_reset', $otherElement) // Helper directo a un slot por nombre o índice 1..N
+    ->embed(ChildScreen::class, $params, slot: 'left_panel') // Embebe un Screen en un slot sin limpiar los demás
+    ->embedToSlot('right_panel', OtherScreen::class, $params)
     ->build();
 ```
 

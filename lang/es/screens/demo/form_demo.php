@@ -5,6 +5,7 @@ return [
     'icon' => '📝',
     'actions' => [
         'submit' => 'Enviar Formulario',
+        'reset' => 'Limpiar',
     ],
     'email' => [
         'label' => 'Correo',

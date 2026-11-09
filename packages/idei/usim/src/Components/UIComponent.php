@@ -322,6 +322,34 @@ abstract class UIComponent implements Marginable, Sizeable, UIElement
     }
 
     /**
+     * Assign this component to a specific layout slot by name or 1-based position.
+     *
+     * @param  int|string|null  $slot  Target slot name or 1-based position, or null to clear it
+     */
+    public function slot(int|string|null $slot): static
+    {
+        if ($slot === null) {
+            unset($this->config['slot']);
+
+            return $this;
+        }
+
+        $this->config['slot'] = is_string($slot) ? trim($slot) : $slot;
+
+        return $this;
+    }
+
+    /**
+     * Get the explicitly assigned layout slot, if any.
+     */
+    public function getSlot(): int|string|null
+    {
+        $slot = $this->config['slot'] ?? null;
+
+        return is_int($slot) || is_string($slot) ? $slot : null;
+    }
+
+    /**
      * {@inheritDoc}
      *
      * For leaf components, returns the configuration wrapped in the component ID
@@ -529,5 +557,65 @@ abstract class UIComponent implements Marginable, Sizeable, UIElement
     public function zIndex(int|string $zIndex): static
     {
         return $this->setConfig('z_index', $zIndex);
+    }
+
+    // ========================================================================
+    // GRID ITEM PLACEMENT METHODS
+    // ========================================================================
+
+    /**
+     * Set grid column placement or span (e.g. '1 / 3', 'span 2').
+     */
+    public function gridColumn(?string $column): static
+    {
+        return $this->setConfig('grid_column', $column);
+    }
+
+    /**
+     * Set grid row placement or span (e.g. '1 / 2', 'span 2').
+     */
+    public function gridRow(?string $row): static
+    {
+        return $this->setConfig('grid_row', $row);
+    }
+
+    /**
+     * Set grid area name.
+     */
+    public function gridArea(?string $area): static
+    {
+        return $this->setConfig('grid_area', $area);
+    }
+
+    /**
+     * Set number of grid columns this component spans.
+     */
+    public function columnSpan(int|string $span): static
+    {
+        return $this->setConfig('grid_column', is_int($span) || ctype_digit((string) $span) ? "span {$span}" : (string) $span);
+    }
+
+    /**
+     * Set number of grid rows this component spans.
+     */
+    public function rowSpan(int|string $span): static
+    {
+        return $this->setConfig('grid_row', is_int($span) || ctype_digit((string) $span) ? "span {$span}" : (string) $span);
+    }
+
+    /**
+     * Set inline-axis self alignment within a grid cell (start, end, center, stretch).
+     */
+    public function justifySelf(?string $justify): static
+    {
+        return $this->setConfig('justify_self', $justify);
+    }
+
+    /**
+     * Set block-axis self alignment within a grid/flex cell (start, end, center, stretch, baseline).
+     */
+    public function alignSelf(?string $align): static
+    {
+        return $this->setConfig('align_self', $align);
     }
 }

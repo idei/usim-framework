@@ -121,6 +121,12 @@ interface ScreenLifecycleOrchestratorInterface
      *
      * @param  class-string<Screen>  $screenClass
      * @param  array<int|string, mixed>  $buildParams
+     * @param  int|string|null  $slot
      */
-    public function embedInto(string $screenClass, Container $parent, array $buildParams = []): void;
+    public function embedInto(
+        string $screenClass,
+        Container $parent,
+        array $buildParams = [],
+        int|string|null $slot = null
+    ): void;
 }

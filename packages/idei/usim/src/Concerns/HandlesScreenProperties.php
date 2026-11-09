@@ -3,9 +3,11 @@
 namespace Idei\Usim\Concerns;
 
 use Idei\Usim\Components\Container;
+use Idei\Usim\Components\UIComponent;
 use Idei\Usim\Contracts\UIElement;
 use Idei\Usim\Layout\AbstractLayout;
 use Idei\Usim\Screen;
+use Idei\Usim\Support\ContainerLayoutLoader;
 use Idei\Usim\Support\UIIdGenerator;
 use Idei\Usim\Support\UIStateManager;
 use Illuminate\Contracts\Encryption\DecryptException;
@@ -341,6 +343,9 @@ trait HandlesScreenProperties
         }
 
         try {
+            /** @var array<string, UIElement> $screenElementsByName */
+            $screenElementsByName = [];
+
             foreach ($reflection->getProperties(ReflectionProperty::IS_PROTECTED) as $property) {
                 // Skip properties declared in Screen base class or AbstractLayout
                 $declaringClass = $property->getDeclaringClass()->getName();
@@ -390,10 +395,60 @@ trait HandlesScreenProperties
                         "Either remove the explicit string name to enable auto-naming, or ensure the property name and component name match."
                     );
                 }
+
+                $screenElementsByName[$propertyName] = $value;
             }
+
+            $this->reconcileLayoutContainers($container, $screenElementsByName);
         } finally {
             if ($pushed) {
                 UIIdGenerator::popCurrentContext();
+            }
+        }
+    }
+
+    /**
+     * Auto-mounts unparented Screen UIElement properties referenced by a Container's declarative
+     * layout definition (`children` slots) and applies the layout rules to the container tree.
+     *
+     * @param  array<string, UIElement>  $screenElementsByName
+     */
+    private function reconcileLayoutContainers(Container $container, array $screenElementsByName): void
+    {
+        $layoutDef = $container->getLayoutDefinition();
+        if ($layoutDef !== null) {
+            /** @var array<string, UIElement> $elementsByExplicitSlot */
+            $elementsByExplicitSlot = [];
+            foreach ($screenElementsByName as $candidate) {
+                $slot = ($candidate instanceof UIComponent || $candidate instanceof Container)
+                    ? $candidate->getSlot()
+                    : null;
+                if ($slot !== null && (string) $slot !== '') {
+                    $elementsByExplicitSlot[(string) $slot] = $candidate;
+                }
+            }
+
+            foreach (ContainerLayoutLoader::extractChildSlotNames($layoutDef) as $idx => $slotName) {
+                $positionKey = (string) ($idx + 1);
+                $element = $elementsByExplicitSlot[$slotName]
+                    ?? $elementsByExplicitSlot[$positionKey]
+                    ?? ($screenElementsByName[$slotName] ?? null);
+
+                if ($element === null) {
+                    continue;
+                }
+
+                if ($element->getParent() === null && ! $container->has($element->getId())) {
+                    $container->add($element);
+                }
+            }
+
+            $container->applyLayoutDefinition();
+        }
+
+        foreach ($container->getChildren() as $child) {
+            if ($child instanceof Container) {
+                $this->reconcileLayoutContainers($child, $screenElementsByName);
             }
         }
     }

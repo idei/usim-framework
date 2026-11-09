@@ -955,10 +955,15 @@ abstract class Screen
      *
      * @param  class-string<Screen>  $class
      * @param  array<int|string, mixed>  $params
+     * @param  int|string|null  $slot  Optional target layout slot name or 1-based position
      */
-    public static function embedInto(string $class, Container $parent, array $params = []): void
-    {
-        static::getLifecycleOrchestrator()->embedInto($class, $parent, $params);
+    public static function embedInto(
+        string $class,
+        Container $parent,
+        array $params = [],
+        int|string|null $slot = null
+    ): void {
+        static::getLifecycleOrchestrator()->embedInto($class, $parent, $params, $slot);
     }
 
     /**

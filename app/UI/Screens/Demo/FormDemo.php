@@ -14,7 +14,6 @@ use Idei\Usim\Http\Requests\UIRequest;
 use Idei\Usim\Screen;
 use Idei\Usim\UI;
 use Idei\Usim\ValueObjects\Size;
-use Idei\Usim\ValueObjects\Spacing;
 use Illuminate\Contracts\Validation\Validator;
 
 class FormDemo extends Screen
@@ -31,29 +30,31 @@ class FormDemo extends Screen
 
     protected Button $btn_submit;
 
+    protected Button $btn_reset;
+
     protected NewLabel $lbl_result;
 
     protected function buildBaseUI(Container $container, ...$params): void
     {
-        $wrapper = UI::container()
+        $wrapper = UI::container('form_wrapper')
             ->card()
             ->maxWidth(Size::px(500))
             ->centerHorizontal()
-            ->padding(Spacing::px(10));
+            ->layoutFile('form-demo.layout.yaml');
 
         $wrapper->add(
             $this->lbl_instruction
-                ->text(t('screens.demo.form_demo.instruction'))
+                ->text(t('.instruction'))
                 ->center()
                 ->style(Style::INFO)
         );
 
         $wrapper->add(
             $this->input_name
-                ->label(t('screens.demo.form_demo.name.label'))
-                ->placeholder(t('screens.demo.form_demo.name.placeholder'))
+                ->label(t('.name.label'))
+                ->placeholder(t('.name.placeholder'))
                 ->value('')
-                ->helpText(t('screens.demo.form_demo.validation.name_required'))
+                ->helpText(t('.validation.name_required'))
                 ->required(true)
                 ->type('text')
                 ->width(Size::full())
@@ -61,34 +62,42 @@ class FormDemo extends Screen
 
         $wrapper->add(
             $this->input_email
-                ->label(t('screens.demo.form_demo.email.label'))
-                ->placeholder(t('screens.demo.form_demo.email.placeholder'))
+                ->label(t('.email.label'))
+                ->placeholder(t('.email.placeholder'))
                 ->value('')
-                ->helpText(t('screens.demo.form_demo.validation.email_required'))
+                ->helpText(t('.validation.email_required'))
                 ->required(true)
                 ->type('email')
                 ->width(Size::full())
         );
         $wrapper->add(
             $this->input_message
-                ->label(t('screens.demo.form_demo.message.label'))
-                ->placeholder(t('screens.demo.form_demo.message.placeholder'))
-                ->helpText(t('screens.demo.form_demo.validation.message_required'))
-                ->value('Una situación pendular...\n\tY poco convencional.')
+                ->label(t('.message.label'))
+                ->placeholder(t('.message.placeholder'))
+                ->helpText(t('.validation.message_required'))
                 ->required(true)
                 ->width(Size::full())
         );
 
         $wrapper->add(
             $this->btn_submit
-                ->label(t('screens.demo.form_demo.actions.submit'))
+                ->label(t('.actions.submit'))
                 ->action('submit_form')
                 ->style('primary')
+                ->width(Size::full())
+        );
+
+        $wrapper->add(
+            $this->btn_reset
+                ->label(t('.actions.reset'))
+                ->action('reset_form')
+                ->style('secondary')
+                ->width(Size::full())
         );
 
         $wrapper->add(
             $this->lbl_result
-                ->text(t('screens.demo.form_demo.result.initial'))
+                ->text(t('.result.initial'))
                 ->style('secondary')
                 ->width(Size::full())
         );
@@ -112,7 +121,7 @@ class FormDemo extends Screen
     public function onSubmitForm(FormDemoRequest $request): void
     {
         $this->lbl_result
-            ->text(t('screens.demo.form_demo.result.success', [
+            ->text(t('.result.success', [
                 'name' => $request->name,
                 'email' => $request->email,
                 'message' => $request->message ?? '',
@@ -126,12 +135,20 @@ class FormDemo extends Screen
     }
 
     /**
+     * Reset form fields and validation state to initial defaults.
+     */
+    public function onResetForm(): void
+    {
+        $this->postLoadUI();
+    }
+
+    /**
      * Update result label when form validation fails.
      */
     public function onValidationFailed(UIRequest $request, Validator $validator): void
     {
         $this->lbl_result
-            ->text(t('screens.demo.form_demo.result.errors'))
+            ->text(t('.result.errors'))
             ->style(Style::DANGER);
     }
 }

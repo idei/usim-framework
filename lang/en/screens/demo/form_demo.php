@@ -5,6 +5,7 @@ return [
     'icon' => '📝',
     'actions' => [
         'submit' => 'Submit Form',
+        'reset' => 'Reset',
     ],
     'email' => [
         'label' => 'Email',
