@@ -79,6 +79,7 @@ class ItemList extends UIComponent
             'min_chars_message' => 'Escribe al menos :count caracteres para buscar...',
             'max_height' => '420px',
             'min_height' => null,
+            'scrollbar' => 'auto',
             'variant' => 'outlined',
             'density' => 'comfortable',
             'show_dividers' => true,
@@ -839,6 +840,34 @@ class ItemList extends UIComponent
         }
 
         return $this->setConfig('min_height', $height);
+    }
+
+    /**
+     * Configure scrollbar mode for the list body ('auto', 'always', 'hidden', or boolean).
+     *
+     * - 'auto': Show scrollbar automatically when content overflows (default).
+     * - 'always' | true: Keep scrollbar always visible (overflow-y: scroll).
+     * - 'hidden' | false: Allow scrolling with wheel/touch, but hide visual scrollbar track.
+     */
+    public function scrollbar(string|bool $mode = 'auto'): static
+    {
+        return $this->setConfig('scrollbar', $mode);
+    }
+
+    /**
+     * Always display the scrollbar on the list body.
+     */
+    public function showScrollbar(): static
+    {
+        return $this->scrollbar('always');
+    }
+
+    /**
+     * Hide the visual scrollbar while keeping the list body scrollable.
+     */
+    public function hideScrollbar(): static
+    {
+        return $this->scrollbar('hidden');
     }
 
     /**

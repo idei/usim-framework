@@ -34,78 +34,37 @@ class FormDemo extends Screen
 
     protected NewLabel $lbl_result;
 
-    protected function buildBaseUI(Container $container, ...$params): void
+    protected function startingUI(): Container
     {
-        $wrapper = UI::container('form_wrapper')
+        $this->lbl_instruction->text(t('.instruction'));
+
+        $this->input_name
+            ->label(t('.name.label'))
+            ->placeholder(t('.name.placeholder'))
+            ->helpText(t('.validation.name_required'));
+
+        $this->input_email
+            ->label(t('.email.label'))
+            ->placeholder(t('.email.placeholder'))
+            ->helpText(t('.validation.email_required'));
+
+        $this->input_message
+            ->label(t('.message.label'))
+            ->placeholder(t('.message.placeholder'))
+            ->helpText(t('.validation.message_required'));
+
+        $this->btn_submit->label(t('.actions.submit'));
+        $this->btn_reset->label(t('.actions.reset'));
+        $this->lbl_result->text(t('.result.initial'));
+
+        return UI::container('form_wrapper')
             ->card()
             ->maxWidth(Size::px(500))
             ->centerHorizontal()
             ->layoutFile('form-demo.layout.yaml');
-
-        $wrapper->add(
-            $this->lbl_instruction
-                ->text(t('.instruction'))
-                ->center()
-                ->style(Style::INFO)
-        );
-
-        $wrapper->add(
-            $this->input_name
-                ->label(t('.name.label'))
-                ->placeholder(t('.name.placeholder'))
-                ->value('')
-                ->helpText(t('.validation.name_required'))
-                ->required(true)
-                ->type('text')
-                ->width(Size::full())
-        );
-
-        $wrapper->add(
-            $this->input_email
-                ->label(t('.email.label'))
-                ->placeholder(t('.email.placeholder'))
-                ->value('')
-                ->helpText(t('.validation.email_required'))
-                ->required(true)
-                ->type('email')
-                ->width(Size::full())
-        );
-        $wrapper->add(
-            $this->input_message
-                ->label(t('.message.label'))
-                ->placeholder(t('.message.placeholder'))
-                ->helpText(t('.validation.message_required'))
-                ->required(true)
-                ->width(Size::full())
-        );
-
-        $wrapper->add(
-            $this->btn_submit
-                ->label(t('.actions.submit'))
-                ->action('submit_form')
-                ->style('primary')
-                ->width(Size::full())
-        );
-
-        $wrapper->add(
-            $this->btn_reset
-                ->label(t('.actions.reset'))
-                ->action('reset_form')
-                ->style('secondary')
-                ->width(Size::full())
-        );
-
-        $wrapper->add(
-            $this->lbl_result
-                ->text(t('.result.initial'))
-                ->style('secondary')
-                ->width(Size::full())
-        );
-
-        $container->add($wrapper);
     }
 
-    protected function postLoadUI(): void
+    protected function updateUI(): void
     {
         $this->input_name->value('')->error(null);
         $this->input_email->value('')->error(null);
@@ -139,7 +98,7 @@ class FormDemo extends Screen
      */
     public function onResetForm(): void
     {
-        $this->postLoadUI();
+        $this->updateUI();
     }
 
     /**

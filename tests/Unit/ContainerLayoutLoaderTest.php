@@ -263,3 +263,76 @@ it('embeds multiple screens into specific layout slots and replaces only the tar
         ->and($changes[$updatedChildren[1]->getId()]['_order'])->toBe(2)
         ->and($changes[$updatedChildren[1]->getId()]['grid_column'])->toBe('span 1');
 });
+
+it('supports clean slot-free YAML syntax with bare strings and key-value entries', function () {
+    $container = UI::container('clean_grid')->layoutDefinition([
+        'grid' => [
+            'cols' => ['1fr', '1fr'],
+            'gap' => 'm',
+            'padding' => 'l',
+            'default_span' => 2,
+            'children' => [
+                ['lbl_title' => ['justify' => 'center', 'style' => 'info']],
+                'input_name',
+                ['btn_submit' => ['span' => 1, 'justify' => 'start', 'style' => 'primary', 'action' => 'submit_form']],
+                ['btn_reset' => ['span' => 1, 'justify' => 'end', 'style' => 'secondary']],
+            ],
+        ],
+    ]);
+
+    $lblTitle = UI::newLabel('lbl_title')->text('Title');
+    $inputName = UI::input('input_name');
+    $btnSubmit = UI::button('btn_submit')->label('Submit');
+    $btnReset = UI::button('btn_reset')->label('Reset');
+
+    $container->addMany([$btnReset, $lblTitle, $btnSubmit, $inputName]);
+
+    $json = $container->toJson();
+
+    // Check semantic spacing
+    expect($json[$container->getId()]['gap'])->toBe('16px')
+        ->and($json[$container->getId()]['padding'])->toBe('24px');
+
+    // Check order and placement
+    expect($json[$lblTitle->getId()]['_order'])->toBe(1)
+        ->and($json[$lblTitle->getId()]['grid_column'])->toBe('span 2')
+        ->and($json[$lblTitle->getId()]['justify_self'])->toBe('center')
+        ->and($json[$lblTitle->getId()]['style'])->toBe('info');
+
+    expect($json[$inputName->getId()]['_order'])->toBe(2)
+        ->and($json[$inputName->getId()]['grid_column'])->toBe('span 2');
+
+    expect($json[$btnSubmit->getId()]['_order'])->toBe(3)
+        ->and($json[$btnSubmit->getId()]['grid_column'])->toBe('span 1')
+        ->and($json[$btnSubmit->getId()]['justify_self'])->toBe('start')
+        ->and($json[$btnSubmit->getId()]['style'])->toBe('primary')
+        ->and($json[$btnSubmit->getId()]['action'])->toBe('submit_form');
+
+    expect($json[$btnReset->getId()]['_order'])->toBe(4)
+        ->and($json[$btnReset->getId()]['grid_column'])->toBe('span 1')
+        ->and($json[$btnReset->getId()]['justify_self'])->toBe('end')
+        ->and($json[$btnReset->getId()]['style'])->toBe('secondary');
+});
+
+it('supports children as an associative dictionary mapping slot names to rules', function () {
+    $container = UI::container('map_grid')->layoutDefinition([
+        'grid' => [
+            'cols' => ['1fr', '1fr'],
+            'children' => [
+                'header' => ['justify' => 'center'],
+                'body' => null,
+            ],
+        ],
+    ]);
+
+    $body = UI::container('body');
+    $header = UI::container('header');
+
+    $container->addMany([$body, $header]);
+
+    $json = $container->toJson();
+    expect($json[$header->getId()]['_order'])->toBe(1)
+        ->and($json[$header->getId()]['justify_self'])->toBe('center');
+
+    expect($json[$body->getId()]['_order'])->toBe(2);
+});

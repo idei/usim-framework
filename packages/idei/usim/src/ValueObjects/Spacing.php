@@ -6,9 +6,76 @@ namespace Idei\Usim\ValueObjects;
 
 final class Spacing
 {
+    public const array SCALE = [
+        'none' => '0',
+        '0' => '0',
+        'xs' => '4px',
+        's' => '8px',
+        'sm' => '8px',
+        'm' => '16px',
+        'md' => '16px',
+        'l' => '24px',
+        'lg' => '24px',
+        'xl' => '32px',
+        '2xl' => '48px',
+        'xxl' => '48px',
+        '3xl' => '64px',
+        'xxxl' => '64px',
+    ];
+
     private function __construct(private readonly string $value) {}
 
     // Factory methods
+    public static function none(): self
+    {
+        return new self(self::SCALE['none']);
+    }
+
+    public static function xs(): self
+    {
+        return new self(self::SCALE['xs']);
+    }
+
+    public static function s(): self
+    {
+        return new self(self::SCALE['s']);
+    }
+
+    public static function sm(): self
+    {
+        return new self(self::SCALE['sm']);
+    }
+
+    public static function m(): self
+    {
+        return new self(self::SCALE['m']);
+    }
+
+    public static function md(): self
+    {
+        return new self(self::SCALE['md']);
+    }
+
+    public static function l(): self
+    {
+        return new self(self::SCALE['l']);
+    }
+
+    public static function lg(): self
+    {
+        return new self(self::SCALE['lg']);
+    }
+
+    public static function xl(): self
+    {
+        return new self(self::SCALE['xl']);
+    }
+
+    public static function xxl(): self
+    {
+        return new self(self::SCALE['xxl']);
+    }
+
     public static function px(int $value): self
     {
         return new self("{$value}px");
@@ -67,10 +134,19 @@ final class Spacing
     }
 
     // Resolver universal — igual que Size
-    public static function from(Spacing|string $value): self
+    public static function from(Spacing|string|int $value): self
     {
         if ($value instanceof self) {
             return $value;
+        }
+
+        if (is_int($value)) {
+            return self::px($value);
+        }
+
+        $trimmed = strtolower(trim($value));
+        if (isset(self::SCALE[$trimmed])) {
+            return new self(self::SCALE[$trimmed]);
         }
 
         return new self($value);

@@ -166,3 +166,37 @@ test('ItemListDemo handles inline create, update, single delete, bulk delete and
     $moviesList = $harness->getComponent('movies_list');
     expect($moviesList->selectionMode())->toBe('single');
 });
+
+test('ItemList supports scrollbar configuration and maxHeight constraints', function () {
+    $list = UI::itemList('scroll_list')
+        ->maxHeight('350px')
+        ->minHeight('150px')
+        ->scrollbar('always');
+
+    expect($list->get('max_height'))->toBe('350px')
+        ->and($list->get('min_height'))->toBe('150px')
+        ->and($list->get('scrollbar'))->toBe('always');
+
+    $list->hideScrollbar();
+    expect($list->get('scrollbar'))->toBe('hidden');
+
+    $list->showScrollbar();
+    expect($list->get('scrollbar'))->toBe('always');
+
+    $list->scrollbar('auto');
+    expect($list->get('scrollbar'))->toBe('auto');
+
+    $list->scrollbar(false);
+    expect($list->get('scrollbar'))->toBeFalse();
+});
+
+test('ItemListDemo layout configures movies_list scrollbar and max_height correctly', function () {
+    $harness = ScreenTestHarness::for(ItemListDemo::class);
+    $harness->render();
+
+    /** @var ItemList $moviesList */
+    $moviesList = $harness->getComponent('movies_list');
+
+    expect($moviesList->get('scrollbar'))->toBe('always')
+        ->and($moviesList->get('max_height'))->toBe('320px');
+});

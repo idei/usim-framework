@@ -125,17 +125,109 @@ class ContainerLayoutLoader
         }
 
         $slotNames = [];
-        foreach ($children as $entry) {
-            if (! is_array($entry)) {
-                continue;
-            }
-            $slot = $entry['slot'] ?? null;
+        $idx = 0;
+        foreach ($children as $key => $entry) {
+            $idx++;
+            $normalized = self::normalizeChildEntry($key, $entry, $idx);
+            $slot = $normalized['slot'];
             if (is_string($slot) && trim($slot) !== '' && ! is_numeric($slot)) {
                 $slotNames[] = trim($slot);
             }
         }
 
         return $slotNames;
+    }
+
+    /**
+     * Normalize a child entry from the YAML definition into [slot, rule].
+     *
+     * Supports:
+     * - "input_name" (bare string)
+     * - ["btn_submit" => ["span" => 1, ...]] (key-value pair)
+     * - ["btn_submit" => null] (key without options)
+     * - ["slot" => "btn_submit", "span" => 1, ...] (legacy explicit slot)
+     *
+     * @param  mixed  $key  Key from the children array (index or associative slot name)
+     * @param  mixed  $entry  Raw entry from YAML definition
+     * @param  int  $position  1-based position in children list
+     * @return array{slot: string|int, rule: array<string, mixed>}
+     */
+    public static function normalizeChildEntry(mixed $key, mixed $entry, int $position): array
+    {
+        // 1. Bare string: - input_name
+        if (is_string($entry) && trim($entry) !== '') {
+            $slot = trim($entry);
+
+            return [
+                'slot' => $slot,
+                'rule' => ['slot' => $slot],
+            ];
+        }
+
+        // 2. Associative entry when children is a map: children: { input_name: { span: 2 } }
+        if (is_string($key) && trim($key) !== '' && ! ctype_digit(trim($key))) {
+            $slot = trim($key);
+            $rule = is_array($entry) ? $entry : [];
+            $rule['slot'] = $rule['slot'] ?? $slot;
+
+            return [
+                'slot' => $slot,
+                'rule' => $rule,
+            ];
+        }
+
+        if (! is_array($entry)) {
+            return [
+                'slot' => $position,
+                'rule' => ['slot' => $position],
+            ];
+        }
+
+        // 3. Explicit slot in array: - { slot: btn_submit, ... }
+        if (isset($entry['slot'])) {
+            /** @var array<string, mixed> $normalizedRule */
+            $normalizedRule = [];
+            foreach ($entry as $k => $v) {
+                $normalizedRule[(string) $k] = $v;
+            }
+
+            return [
+                'slot' => (is_string($entry['slot']) || is_int($entry['slot'])) ? $entry['slot'] : $position,
+                'rule' => $normalizedRule,
+            ];
+        }
+
+        // 4. Single-key mapping: - btn_submit: { span: 1, ... } or - btn_submit:
+        if (count($entry) === 1) {
+            $entryKey = array_key_first($entry);
+            if (is_string($entryKey) && trim($entryKey) !== '') {
+                $slot = trim($entryKey);
+                $rule = is_array($entry[$entryKey]) ? $entry[$entryKey] : [];
+                $rule['slot'] = $rule['slot'] ?? $slot;
+
+                /** @var array<string, mixed> $normalizedRule */
+                $normalizedRule = [];
+                foreach ($rule as $k => $v) {
+                    $normalizedRule[(string) $k] = $v;
+                }
+
+                return [
+                    'slot' => $slot,
+                    'rule' => $normalizedRule,
+                ];
+            }
+        }
+
+        /** @var array<string, mixed> $normalizedRule */
+        $normalizedRule = [];
+        foreach ($entry as $k => $v) {
+            $normalizedRule[(string) $k] = $v;
+        }
+
+        return [
+            'slot' => $position,
+            'rule' => $normalizedRule,
+        ];
     }
 
     /**
@@ -193,19 +285,19 @@ class ContainerLayoutLoader
         }
 
         if (isset($props['padding']) && (is_int($props['padding']) || is_string($props['padding']))) {
-            $container->padding(is_int($props['padding']) ? Spacing::px($props['padding']) : Spacing::from($props['padding']));
+            $container->padding(Spacing::from($props['padding']));
         }
 
         if (isset($props['gap']) && (is_int($props['gap']) || is_string($props['gap']))) {
-            $container->gap(is_int($props['gap']) ? Spacing::px($props['gap']) : Spacing::from($props['gap']));
+            $container->gap(Spacing::from($props['gap']));
         }
 
         if (isset($props['row_gap']) && (is_int($props['row_gap']) || is_string($props['row_gap']))) {
-            $container->rowGap(is_int($props['row_gap']) ? Spacing::px($props['row_gap']) : Spacing::from($props['row_gap']));
+            $container->rowGap(Spacing::from($props['row_gap']));
         }
 
         if (isset($props['column_gap']) && (is_int($props['column_gap']) || is_string($props['column_gap']))) {
-            $container->columnGap(is_int($props['column_gap']) ? Spacing::px($props['column_gap']) : Spacing::from($props['column_gap']));
+            $container->columnGap(Spacing::from($props['column_gap']));
         }
     }
 
@@ -251,14 +343,13 @@ class ContainerLayoutLoader
         $orderedSlotNames = [];
 
         if (isset($grid['children']) && is_array($grid['children'])) {
-            foreach (array_values($grid['children']) as $idx => $entry) {
-                if (! is_array($entry)) {
-                    continue;
-                }
-                /** @var array<string, mixed> $rule */
-                $rule = $entry;
-                $position = $idx + 1;
-                $slot = $rule['slot'] ?? $position;
+            $idx = 0;
+            foreach ($grid['children'] as $key => $entry) {
+                $idx++;
+                $normalized = self::normalizeChildEntry($key, $entry, $idx);
+                $slot = $normalized['slot'];
+                $rule = $normalized['rule'];
+                $position = $idx;
 
                 if (is_int($slot) || (is_string($slot) && ctype_digit(trim($slot)))) {
                     $slotPos = (int) $slot;
@@ -377,7 +468,7 @@ class ContainerLayoutLoader
                 ? trim($rule['justify'])
                 : $defaultJustify;
 
-            self::applyPlacementToElement($child, $gridCol, $gridRow, $align, $justify);
+            self::applyPlacementToElement($child, $gridCol, $gridRow, $align, $justify, $rule);
 
             // Track auto-flow rows to compute grid_template_rows when any child defines `row` / `row_height`
             if (! $hasExplicitContainerRows && $child->isVisible()) {
@@ -413,12 +504,16 @@ class ContainerLayoutLoader
         }
     }
 
+    /**
+     * @param  array<string, mixed>  $rule
+     */
     protected static function applyPlacementToElement(
         UIElement $element,
         string $gridColumn,
         ?string $gridRow,
         ?string $alignSelf,
-        ?string $justifySelf
+        ?string $justifySelf,
+        array $rule = []
     ): void {
         if ($element instanceof UIComponent || $element instanceof Container) {
             $element->gridColumn($gridColumn);
@@ -433,6 +528,58 @@ class ContainerLayoutLoader
 
             if ($justifySelf !== null && $justifySelf !== '') {
                 $element->justifySelf($justifySelf);
+            }
+
+            self::applyElementCustomProperties($element, $rule);
+        }
+    }
+
+    /**
+     * @param  array<string, mixed>  $rule
+     */
+    protected static function applyElementCustomProperties(UIElement $element, array $rule): void
+    {
+        $ignoredKeys = [
+            'slot', 'span', 'at', 'row', 'row_height', 'align', 'justify',
+        ];
+
+        foreach ($rule as $key => $value) {
+            if (in_array($key, $ignoredKeys, true) || $value === null) {
+                continue;
+            }
+
+            // Dimension helpers
+            if ($key === 'width' && ($element instanceof UIComponent || $element instanceof Container)) {
+                if ($value === 'full') {
+                    $element->width(Size::full());
+                } elseif (is_string($value) || is_int($value) || $value instanceof Size) {
+                    $element->width(Size::from($value));
+                }
+
+                continue;
+            }
+
+            if ($key === 'height' && ($element instanceof UIComponent || $element instanceof Container)) {
+                if ($value === 'full') {
+                    $element->height(Size::full());
+                } elseif (is_string($value) || is_int($value) || $value instanceof Size) {
+                    $element->height(Size::from($value));
+                }
+
+                continue;
+            }
+
+            // Boolean convenience methods (e.g. center: true)
+            if ($key === 'center' && $value === true && method_exists($element, 'center')) {
+                $element->center();
+
+                continue;
+            }
+
+            // Direct fluent methods (style, action, required, type, placeholder, label, text, helpText)
+            $methodName = Str::camel($key);
+            if (method_exists($element, $methodName)) {
+                $element->{$methodName}($value);
             }
         }
     }

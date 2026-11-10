@@ -30,8 +30,9 @@ use RuntimeException;
  * - response formatting
  *
  * Child classes only need to:
- * 1. Implement buildBaseUI() to define the component structure
- * 2. Implement event handlers that modify components (no return needed)
+ * 1. Implement startingUI() or buildBaseUI() to define the component structure
+ * 2. Optionally implement updateUI() or postLoadUI() to populate or refresh dynamic state
+ * 3. Implement event handlers that modify components (no return needed)
  *
  * The lifecycle is managed by UIEventController:
  * - initializeEventContext() - Called before event handler
@@ -39,7 +40,9 @@ use RuntimeException;
  * - finalizeEventContext() - Called after event handler, returns formatted response
  *
  * @method void buildBaseUI(Container $container, mixed ...$params)
+ * @method Container startingUI(mixed ...$params)
  * @method void postLoadUI(mixed ...$params)
+ * @method void updateUI(mixed ...$params)
  */
 abstract class Screen
 {
@@ -133,7 +136,7 @@ abstract class Screen
     public function getContextIdentifier(): string
     {
         if ($this->modalLayerIndex > 0) {
-            return static::class.'@'.$this->modalLayerIndex;
+            return static::class . '@' . $this->modalLayerIndex;
         }
 
         return static::class;
@@ -358,7 +361,7 @@ abstract class Screen
      */
     public static function getMenuLabel(): string
     {
-        return t('screens.'.static::getScreenSlug().'.menu_title');
+        return t('screens.' . static::getScreenSlug() . '.menu_title');
     }
 
     /**
@@ -367,7 +370,7 @@ abstract class Screen
      */
     public static function getMenuIcon(): ?string
     {
-        return t('screens.'.static::getScreenSlug().'.icon');
+        return t('screens.' . static::getScreenSlug() . '.icon');
     }
 
     /**
@@ -379,7 +382,7 @@ abstract class Screen
     {
         if (str_starts_with($key, '.')) {
             $prefix = TranslationResolver::resolveClassPrefix(static::class);
-            $key = $prefix !== null ? $prefix.$key : $key;
+            $key = $prefix !== null ? $prefix . $key : $key;
         }
 
         return t($key, $params, $language);
@@ -399,9 +402,9 @@ abstract class Screen
         if (str_starts_with($class, $prefix)) {
             $relative = substr($class, strlen($prefix));
             $segments = explode('\\', trim($relative, '\\'));
-            $urlSegments = array_map(fn ($s) => Str::kebab($s), $segments);
+            $urlSegments = array_map(fn($s) => Str::kebab($s), $segments);
 
-            return '/'.implode('/', $urlSegments);
+            return '/' . implode('/', $urlSegments);
         }
 
         return '/';
@@ -670,30 +673,76 @@ abstract class Screen
      */
     public function callPostLoadUI(array $params = []): void
     {
-        if (method_exists($this, 'postLoadUI')) {
-            $reflectionMethod = new \ReflectionMethod($this, 'postLoadUI');
-            if ($reflectionMethod->getNumberOfParameters() === 0) {
-                $reflectionMethod->invoke($this);
+        $methodsToCall = [];
 
-                return;
+        $hasUpdateUI = method_exists($this, 'updateUI');
+        $hasPostLoadUI = method_exists($this, 'postLoadUI');
+
+        if ($hasPostLoadUI && $hasUpdateUI) {
+            $postLoadDeclaringClass = (new \ReflectionMethod($this, 'postLoadUI'))->getDeclaringClass()->getName();
+            $updateUIDeclaringClass = (new \ReflectionMethod($this, 'updateUI'))->getDeclaringClass()->getName();
+
+            if ($postLoadDeclaringClass !== $updateUIDeclaringClass) {
+                // If one is declared in parent (e.g. AbstractLayout) and the other in child, run parent first, then child
+                if (is_subclass_of($updateUIDeclaringClass, $postLoadDeclaringClass)) {
+                    $methodsToCall = ['postLoadUI', 'updateUI'];
+                } elseif (is_subclass_of($postLoadDeclaringClass, $updateUIDeclaringClass)) {
+                    $methodsToCall = ['updateUI', 'postLoadUI'];
+                } else {
+                    $methodsToCall = ['updateUI'];
+                }
+            } else {
+                // Both declared on the same class; prefer updateUI to avoid duplicate runs
+                $methodsToCall = ['updateUI'];
             }
-
-            /** @var MethodParameterResolver $resolver */
-            $resolver = app(MethodParameterResolver::class);
-            $arguments = $resolver->resolve(
-                reflectionMethod: $reflectionMethod,
-                screen: $this,
-                parameters: $params,
-                queryParams: static::getCurrentQueryParams(),
-                incomingStorage: static::getCurrentIncomingStorage(),
-                provided: [
-                    Container::class => $this->container ?? null,
-                    'container' => $this->container ?? null,
-                ]
-            );
-
-            $reflectionMethod->invokeArgs($this, $arguments);
+        } elseif ($hasUpdateUI) {
+            $methodsToCall = ['updateUI'];
+        } elseif ($hasPostLoadUI) {
+            $methodsToCall = ['postLoadUI'];
         }
+
+        foreach ($methodsToCall as $method) {
+            $this->invokeLifecycleMethod($method, $params);
+        }
+    }
+
+    /**
+     * Alias for callPostLoadUI.
+     *
+     * @param  array<string|int, mixed>  $params
+     */
+    public function callUpdateUI(array $params = []): void
+    {
+        $this->callPostLoadUI($params);
+    }
+
+    /**
+     * @param  array<string|int, mixed>  $params
+     */
+    private function invokeLifecycleMethod(string $method, array $params = []): void
+    {
+        $reflectionMethod = new \ReflectionMethod($this, $method);
+        if ($reflectionMethod->getNumberOfParameters() === 0) {
+            $reflectionMethod->invoke($this);
+
+            return;
+        }
+
+        /** @var MethodParameterResolver $resolver */
+        $resolver = app(MethodParameterResolver::class);
+        $arguments = $resolver->resolve(
+            reflectionMethod: $reflectionMethod,
+            screen: $this,
+            parameters: $params,
+            queryParams: static::getCurrentQueryParams(),
+            incomingStorage: static::getCurrentIncomingStorage(),
+            provided: [
+                Container::class => $this->container ?? null,
+                'container' => $this->container ?? null,
+            ]
+        );
+
+        $reflectionMethod->invokeArgs($this, $arguments);
     }
 
     /**
@@ -840,7 +889,7 @@ abstract class Screen
             return $action;
         }
 
-        return 'on'.Str::studly($action);
+        return 'on' . Str::studly($action);
     }
 
     /**
@@ -857,13 +906,13 @@ abstract class Screen
             return $studlyAction;
         }
 
-        $legacyAction = 'on'.Str::studly($action);
+        $legacyAction = 'on' . Str::studly($action);
         if (method_exists($this, $legacyAction)) {
             return $legacyAction;
         }
 
         throw new \BadMethodCallException(
-            "Action [{$action}] (or method [{$studlyAction}]) does not exist on screen [".static::class.'].'
+            "Action [{$action}] (or method [{$studlyAction}]) does not exist on screen [" . static::class . '].'
         );
     }
 
@@ -875,13 +924,29 @@ abstract class Screen
      */
     public function __call(string $name, array $arguments): mixed
     {
-        if (in_array($name, ['buildBaseUI', 'postLoadUI'], true)) {
+        if ($name === 'postLoadUI') {
+            if (method_exists($this, 'updateUI')) {
+                $this->{'updateUI'}(...$arguments);
+            }
+
+            return null;
+        }
+
+        if ($name === 'updateUI') {
+            if (method_exists($this, 'postLoadUI')) {
+                $this->{'postLoadUI'}(...$arguments);
+            }
+
+            return null;
+        }
+
+        if (in_array($name, ['buildBaseUI', 'startingUI'], true)) {
             return null;
         }
 
         $candidateMethod = method_exists($this, $name) ? $name : static::actionToMethodName($name);
         if (! method_exists($this, $candidateMethod)) {
-            $candidateMethod = 'on'.Str::studly($name);
+            $candidateMethod = 'on' . Str::studly($name);
         }
 
         if (method_exists($this, $candidateMethod)) {
@@ -900,7 +965,7 @@ abstract class Screen
             );
         }
 
-        throw new \BadMethodCallException("Method [{$name}] does not exist on screen [".static::class.'].');
+        throw new \BadMethodCallException("Method [{$name}] does not exist on screen [" . static::class . '].');
     }
 
     /**

@@ -1,14 +1,14 @@
 grid:
   cols: [1fr, 1fr]
   gap: 14
-  padding: 24
+  padding: l
   default_span: 2
 
   children:
-    - { slot: lbl_instruction, justify: center }          # Fila 1 (automática, span 2)
-    - { slot: input_name }                                # Fila 2 (automática, span 2)
-    - { slot: input_email }                               # Fila 3 (automática, span 2)
-    - { slot: input_message,   row: 1fr }                 # Fila 4 (automática, span 2, absorbe alto)
-    - { slot: btn_submit,      span: 1, justify: start }  # Fila 5, Col 1 (automática)
-    - { slot: btn_reset,       span: 1, justify: end }    # Fila 5, Col 2 (entra al lado porque sobra 1 col)
-    - { slot: lbl_result,      justify: center }          # Fila 6 (automática, span 2)
+    - lbl_instruction: { justify: center, style: info, center: true }
+    - input_name:      { type: text,  required: true, width: full }
+    - input_email:     { type: email, required: true, width: full }
+    - input_message:   { row: 1fr,    required: true, width: full }
+    - btn_submit:      { span: 1, justify: start, style: primary,   action: submit_form, width: full }
+    - btn_reset:       { span: 1, justify: end,   style: secondary, action: reset_form,  width: full }
+    - lbl_result:      { justify: center, style: secondary, width: full }

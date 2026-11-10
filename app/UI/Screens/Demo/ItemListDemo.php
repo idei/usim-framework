@@ -8,17 +8,15 @@ use Idei\Usim\Components\Button;
 use Idei\Usim\Components\Checkbox;
 use Idei\Usim\Components\Container;
 use Idei\Usim\Components\ItemList;
-use Idei\Usim\Components\Label;
+use Idei\Usim\Components\NewLabel;
 use Idei\Usim\Components\Select;
 use Idei\Usim\Enums\DialogType;
-use Idei\Usim\Enums\LayoutType;
 use Idei\Usim\Enums\SelectionMode;
 use Idei\Usim\Enums\Visibility;
 use Idei\Usim\Modals\ConfirmDialog;
 use Idei\Usim\Screen;
 use Idei\Usim\UI;
 use Idei\Usim\ValueObjects\Size;
-use Idei\Usim\ValueObjects\Spacing;
 use Throwable;
 
 /**
@@ -35,17 +33,21 @@ class ItemListDemo extends Screen
 {
     public static Visibility $visibility = Visibility::PUBLIC;
 
-    protected ItemList $movies_list;
+    protected NewLabel $item_list_demo_title;
+
+    protected NewLabel $item_list_demo_intro;
 
     protected Select $sel_selection_mode;
 
     protected Checkbox $chk_confirm_delete;
 
-    protected Label $lbl_selection_summary;
+    protected Button $btn_reset_catalog;
+
+    protected ItemList $movies_list;
+
+    protected NewLabel $lbl_selection_summary;
 
     protected Button $btn_confirm_marathon;
-
-    protected Button $btn_reset_catalog;
 
     /**
      * Persisted movie catalog in screen state so CRUD mutations work seamlessly
@@ -74,40 +76,15 @@ class ItemListDemo extends Screen
         return '📋';
     }
 
-    protected function buildBaseUI(Container $container, ...$params): void
+    protected function startingUI(): Container
     {
         $this->ensureCatalogLoaded();
 
-        $wrapper = UI::container('item_list_demo_wrapper')
-            ->card()
-            ->maxWidth(Size::px(900))
-            ->width(Size::full())
-            ->centerHorizontal()
-            ->padding(Spacing::px(12))
-            ->gap(Spacing::px(12))
-            ->layout(LayoutType::VERTICAL);
+        $this->item_list_demo_title->text('🎬 Catálogo de Películas — ItemList Demo');
 
-        $wrapper->add(
-            UI::label('item_list_demo_title')
-                ->text('🎬 Catálogo de Películas — ItemList Demo')
-                ->style('h2')
-        );
+        $this->item_list_demo_intro->text('Explora búsqueda asíncrona vía GET /api/ui-data con estado de carga, selección simple/múltiple persistente entre búsquedas y operaciones CRUD inline.');
 
-        $wrapper->add(
-            UI::label('item_list_demo_intro')
-                ->text('Explora búsqueda asíncrona vía GET /api/ui-data con estado de carga, selección simple/múltiple persistente entre búsquedas y operaciones CRUD inline.')
-                ->style('info')
-                ->width(Size::full())
-        );
-
-        // Controls bar: Selection Mode + Confirm Delete toggle + Reset Catalog
-        $controlsBar = UI::container('item_list_controls_bar')
-            ->plain()
-            ->layout(LayoutType::HORIZONTAL)
-            ->fullWidth()
-            ->gap(Spacing::px(12));
-
-        $this->sel_selection_mode = UI::select('sel_selection_mode')
+        $this->sel_selection_mode
             ->label('Modo de Selección')
             ->options([
                 ['value' => SelectionMode::MULTIPLE->value, 'label' => 'Múltiple (Checkboxes + Selección masiva)'],
@@ -115,42 +92,21 @@ class ItemListDemo extends Screen
                 ['value' => SelectionMode::NONE->value, 'label' => 'Sin selección (Solo lectura / CRUD)'],
             ])
             ->value($this->store_selection_mode)
-            ->onChange('selection_mode_changed')
-            ->width(Size::px(320));
+            ->onChange('selection_mode_changed');
 
-        $this->chk_confirm_delete = UI::checkbox('chk_confirm_delete')
+        $this->chk_confirm_delete
             ->label('Confirmar antes de eliminar')
             ->checked($this->store_confirm_delete)
             ->onChange('toggle_confirm_delete');
 
-        $this->btn_reset_catalog = UI::button('btn_reset_catalog')
-            ->label('Restaurar catálogo')
-            ->icon('refresh')
-            ->style('secondary')
-            ->action('reset_catalog');
+        $this->btn_reset_catalog->label('Restaurar catálogo');
 
-        $controlsBar
-            ->add($this->sel_selection_mode)
-            ->add($this->chk_confirm_delete)
-            ->add($this->btn_reset_catalog);
-
-        $wrapper->add($controlsBar);
-
-        // Main ItemList Component (populated via GET /api/ui-data?action=movies and initial items)
         $initialSelected = $this->store_movies !== [] ? [$this->store_movies[0]['id']] : [];
 
-        $this->movies_list = UI::itemList('movies_list')
-            ->title('Películas Disponibles')
-            ->label('Selecciona películas para tu maratón o administra el catálogo')
-            ->helpText('Usa el buscador para filtrar vía /api/ui-data. Las películas seleccionadas se conservan visibles aunque cambies la búsqueda.')
+        $this->movies_list
             ->items($this->store_movies)
-            ->action('movies')
-            ->autoFetch(true)
             ->selectionMode(SelectionMode::from($this->store_selection_mode))
             ->select($initialSelected)
-            ->keepSelectedVisible(true)
-            ->searchable(true, 'Buscar película por título, género, año o reparto...')
-            ->debounce(250)
             ->creatable(
                 creatable: true,
                 inline: true,
@@ -158,41 +114,17 @@ class ItemListDemo extends Screen
                 buttonLabel: 'Agregar Película'
             )
             ->editable(editable: true, inline: true)
-            ->deletable(deletable: true, allowBulk: true, bulkLabel: 'Eliminar seleccionadas')
-            ->onSelect('movie_selected')
-            ->onCreate('movie_created')
-            ->onUpdate('movie_updated')
-            ->onDelete('movie_deleted')
-            ->onBulkDelete('movies_bulk_deleted')
-            ->maxHeight(Size::px(420))
-            ->variant('card');
+            ->deletable(deletable: true, allowBulk: true, bulkLabel: 'Eliminar seleccionadas');
 
-        $wrapper->add($this->movies_list);
+        $this->lbl_selection_summary->text($this->formatSelectionSummary($initialSelected));
 
-        // Footer bar: Selection summary + Form submit button demonstrating collectContextValues()
-        $footerBar = UI::container('item_list_footer_bar')
-            ->plain()
-            ->layout(LayoutType::HORIZONTAL)
-            ->fullWidth()
-            ->gap(Spacing::px(12));
+        $this->btn_confirm_marathon->label('🎬 Confirmar Maratón');
 
-        $this->lbl_selection_summary = UI::label('lbl_selection_summary')
-            ->text($this->formatSelectionSummary($initialSelected))
-            ->style('default')
-            ->width(Size::full());
-
-        $this->btn_confirm_marathon = UI::button('btn_confirm_marathon')
-            ->label('🎬 Confirmar Maratón')
-            ->style('primary')
-            ->action('confirm_marathon');
-
-        $footerBar
-            ->add($this->lbl_selection_summary)
-            ->add($this->btn_confirm_marathon);
-
-        $wrapper->add($footerBar);
-
-        $container->add($wrapper);
+        return UI::container('item_list_demo_wrapper')
+            ->card()
+            ->maxWidth(Size::px(900))
+            ->centerHorizontal()
+            ->layoutFile('item-list-demo.layout.yaml');
     }
 
     /**
