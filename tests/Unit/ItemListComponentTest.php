@@ -200,3 +200,91 @@ test('ItemListDemo layout configures movies_list scrollbar and max_height correc
     expect($moviesList->get('scrollbar'))->toBe('always')
         ->and($moviesList->get('max_height'))->toBe('320px');
 });
+
+test('ItemList supports granular CRUD label and flag setters regardless of YAML rule order', function () {
+    $list = UI::itemList('ordered_list')
+        ->createPlaceholder('Write item...')
+        ->createButtonLabel('Insert')
+        ->createInline(false)
+        ->editInline(false)
+        ->allowBulkDelete(false)
+        ->bulkDeleteLabel('Purge');
+
+    expect($list->get('create_placeholder'))->toBe('Write item...')
+        ->and($list->get('create_button_label'))->toBe('Insert')
+        ->and($list->get('create_inline'))->toBeFalse()
+        ->and($list->get('edit_inline'))->toBeFalse()
+        ->and($list->get('bulk_deletable'))->toBeFalse()
+        ->and($list->get('bulk_delete_label'))->toBe('Purge');
+
+    $container = UI::container('item_list_yaml_order')->layoutDefinition([
+        'grid' => [
+            'cols' => 1,
+            'children' => [
+                'ordered_list' => [
+                    'create_inline' => false,
+                    'edit_inline' => false,
+                    'allow_bulk_delete' => false,
+                    'creatable' => true,
+                    'editable' => true,
+                    'deletable' => true,
+                    'create_placeholder' => 'Type title...',
+                    'create_button_label' => 'Save New',
+                    'bulk_delete_label' => 'Delete Checked',
+                ],
+            ],
+        ],
+    ]);
+
+    $yamlList = UI::itemList('ordered_list');
+    $container->add($yamlList);
+    $json = $container->toJson();
+    $cfg = $json[$yamlList->getId()];
+
+    expect($cfg['creatable'])->toBeTrue()
+        ->and($cfg['create_inline'])->toBeFalse()
+        ->and($cfg['editable'])->toBeTrue()
+        ->and($cfg['edit_inline'])->toBeFalse()
+        ->and($cfg['deletable'])->toBeTrue()
+        ->and($cfg['bulk_deletable'])->toBeFalse()
+        ->and($cfg['create_placeholder'])->toBe('Type title...')
+        ->and($cfg['create_button_label'])->toBe('Save New')
+        ->and($cfg['bulk_delete_label'])->toBe('Delete Checked');
+});
+
+test('ItemListDemo auto-hydrates translations from lang files across locales via layoutContainer()', function () {
+    $originalLocale = app()->getLocale();
+
+    foreach (['es', 'en'] as $locale) {
+        app()->setLocale($locale);
+
+        $harness = ScreenTestHarness::for(ItemListDemo::class);
+        $harness->render(shouldReset: true);
+
+        $harness->assertHasComponent('item_list_demo_wrapper');
+
+        /** @var ItemList $moviesList */
+        $moviesList = $harness->getComponent('movies_list');
+
+        expect($harness->getComponent('item_list_demo_title')->get('text'))
+            ->toBe(t('screens.demo.item_list_demo.item_list_demo_title'))
+            ->and($harness->getComponent('sel_selection_mode')->get('label'))
+            ->toBe(t('screens.demo.item_list_demo.selection_mode.label'))
+            ->and($harness->getComponent('chk_confirm_delete')->get('label'))
+            ->toBe(t('screens.demo.item_list_demo.confirm_delete.label'))
+            ->and($harness->getComponent('btn_reset_catalog')->get('label'))
+            ->toBe(t('screens.demo.item_list_demo.actions.reset_catalog'))
+            ->and($harness->getComponent('btn_confirm_marathon')->get('label'))
+            ->toBe(t('screens.demo.item_list_demo.actions.confirm_marathon'))
+            ->and($moviesList->get('title'))
+            ->toBe(t('screens.demo.item_list_demo.movies_list.title'))
+            ->and($moviesList->get('search_placeholder'))
+            ->toBe(t('screens.demo.item_list_demo.movies_list.search_placeholder'))
+            ->and($moviesList->get('create_button_label'))
+            ->toBe(t('screens.demo.item_list_demo.movies_list.create_button_label'))
+            ->and($moviesList->get('bulk_delete_label'))
+            ->toBe(t('screens.demo.item_list_demo.movies_list.bulk_delete_label'));
+    }
+
+    app()->setLocale($originalLocale);
+});

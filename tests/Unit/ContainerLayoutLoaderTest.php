@@ -1,10 +1,13 @@
 <?php
 
+use App\UI\Screens\Demo\FormDemo;
 use Idei\Usim\Components\Button;
 use Idei\Usim\Components\Container;
 use Idei\Usim\Components\Input;
 use Idei\Usim\Components\NewLabel;
+use Idei\Usim\Components\Textarea;
 use Idei\Usim\Screen;
+use Idei\Usim\Testing\ScreenTestHarness;
 use Idei\Usim\UI;
 use Idei\Usim\UIChangesCollector;
 
@@ -335,4 +338,147 @@ it('supports children as an associative dictionary mapping slot names to rules',
         ->and($json[$header->getId()]['justify_self'])->toBe('center');
 
     expect($json[$body->getId()]['_order'])->toBe(2);
+});
+
+class TestNoStartingUIOrLayoutScreen extends Screen {}
+
+class TestDeclarativeStaticLayoutScreen extends Screen
+{
+    protected static ?string $layoutFile = 'app/UI/Screens/Demo/form-demo.layout.yaml';
+
+    protected static bool $autoTranslate = true;
+
+    protected NewLabel $lbl_instruction;
+
+    protected Input $input_name;
+
+    protected Input $input_email;
+
+    protected Textarea $input_message;
+
+    protected Button $btn_submit;
+
+    protected Button $btn_reset;
+
+    protected NewLabel $lbl_result;
+}
+
+it('applies card and center_horizontal container box properties from layout definition', function () {
+    $container = UI::container('box_props')->layoutDefinition([
+        'card' => true,
+        'center_horizontal' => true,
+        'max_width' => 640,
+        'grid' => [
+            'cols' => 1,
+            'children' => ['lbl_only'],
+        ],
+    ]);
+
+    $container->add(UI::newLabel('lbl_only')->text('Hello'));
+
+    $json = $container->toJson();
+    $data = $json[$container->getId()];
+
+    expect($data['appearance'])->toBe('card')
+        ->and($data['margin_left'])->toBe('auto')
+        ->and($data['margin_right'])->toBe('auto')
+        ->and($data['max_width'])->toBe('640px');
+});
+
+it('resolves explicit relative and global i18n keys and preserves literals in layout rules', function () {
+    $translator = app('translator');
+    $translator->addLines([
+        'screens.demo.form_demo.custom_literal_check' => 'Resolved Relative Text',
+        'global_badge.reset' => 'Global Reset Label',
+    ], app()->getLocale());
+
+    $container = UI::container('i18n_rules')->layoutDefinition([
+        'grid' => [
+            'cols' => 1,
+            'children' => [
+                ['lbl_rel' => ['text' => '.custom_literal_check']],
+                ['btn_global' => ['label' => 't:global_badge.reset']],
+                ['input_lit' => ['placeholder' => '...']],
+            ],
+        ],
+    ], callingContext: FormDemo::class);
+
+    $lbl = UI::newLabel('lbl_rel');
+    $btn = UI::button('btn_global');
+    $input = UI::input('input_lit');
+
+    $container->addMany([$lbl, $btn, $input]);
+    $json = $container->toJson();
+
+    expect($json[$lbl->getId()]['text'])->toBe('Resolved Relative Text')
+        ->and($json[$btn->getId()]['label'])->toBe('Global Reset Label')
+        ->and($json[$input->getId()]['placeholder'])->toBe('...');
+});
+
+it('respects PHP > YAML > i18n auto-hydration priority and translates untouched defaults like Select placeholder', function () {
+    $locale = app()->getLocale();
+    app('translator')->addLines([
+        'screens.demo.form_demo.country.label' => 'Auto Country',
+        'screens.demo.form_demo.country.placeholder' => 'Select Country Auto',
+    ], $locale);
+
+    $container = UI::container('priority_grid')->layoutDefinition([
+        'i18n' => 'auto',
+        'grid' => [
+            'cols' => 1,
+            'children' => [
+                ['lbl_instruction' => ['text' => 'Explicit YAML Wins Auto']],
+                ['input_name'],
+                ['sel_country'],
+                ['btn_submit'],
+            ],
+        ],
+    ], callingContext: FormDemo::class);
+
+    $lbl = UI::newLabel('lbl_instruction');
+    $inputName = UI::input('input_name')->placeholder('Explicit PHP Placeholder');
+    $select = UI::select('sel_country');
+    $btn = UI::button('btn_submit');
+
+    $container->addMany([$lbl, $inputName, $select, $btn]);
+    $json = $container->toJson();
+
+    // YAML > Auto
+    expect($json[$lbl->getId()]['text'])->toBe('Explicit YAML Wins Auto');
+
+    // PHP > Auto (placeholder set in PHP kept, label auto-hydrated)
+    expect($json[$inputName->getId()]['placeholder'])->toBe('Explicit PHP Placeholder')
+        ->and($json[$inputName->getId()]['label'])->toBe(t('screens.demo.form_demo.name.label'));
+
+    // Non-empty default Select placeholder still gets hydrated when untouched
+    expect($json[$select->getId()]['label'])->toBe('Auto Country')
+        ->and($json[$select->getId()]['placeholder'])->toBe('Select Country Auto');
+
+    // Button group alias ('actions.submit') resolves cleanly
+    expect($json[$btn->getId()]['label'])->toBe(t('screens.demo.form_demo.actions.submit'));
+});
+
+it('allows omitting startingUI when Screen has a default or declared .layout.yaml and FormDemo uses auto layout', function () {
+    expect(method_exists(FormDemo::class, 'startingUI'))->toBeFalse();
+
+    $harness = ScreenTestHarness::for(FormDemo::class);
+    $harness->render();
+
+    $harness->assertHasComponent('form_wrapper')
+        ->assertHasComponent('input_name')
+        ->assertHasComponent('btn_submit');
+
+    expect($harness->getComponent('input_name')->get('label'))->toBe(t('screens.demo.form_demo.name.label'))
+        ->and($harness->getComponent('input_name')->get('help_text'))->toBe(t('screens.demo.form_demo.validation.name_required'))
+        ->and($harness->getComponent('btn_submit')->get('label'))->toBe(t('screens.demo.form_demo.actions.submit'));
+
+    // Also verifies static $layoutFile fallback works without startingUI()
+    $staticHarness = ScreenTestHarness::for(TestDeclarativeStaticLayoutScreen::class);
+    $staticHarness->render();
+    $staticHarness->assertHasComponent('form_wrapper')
+        ->assertHasComponent('input_name');
+
+    // Screen without startingUI, buildBaseUI, or any .layout.yaml still throws LogicException
+    expect(fn () => ScreenTestHarness::for(TestNoStartingUIOrLayoutScreen::class)->render())
+        ->toThrow(LogicException::class);
 });

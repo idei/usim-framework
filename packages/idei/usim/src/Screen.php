@@ -10,6 +10,7 @@ use Idei\Usim\Concerns\HandlesScreenProperties;
 use Idei\Usim\Contracts\ScreenLifecycleOrchestratorInterface;
 use Idei\Usim\Contracts\UIElement;
 use Idei\Usim\Layout\AbstractLayout;
+use Idei\Usim\Support\ContainerLayoutLoader;
 use Idei\Usim\Support\MethodParameterResolver;
 use Idei\Usim\Support\Translation\TranslationResolver;
 use Idei\Usim\Support\UIIdGenerator;
@@ -149,6 +150,16 @@ abstract class Screen
      * @var class-string<AbstractLayout>|string|null
      */
     public static ?string $layout = 'default';
+
+    /**
+     * Optional declarative YAML container layout file (.layout.yaml) for automatic startingUI().
+     */
+    protected static ?string $layoutFile = null;
+
+    /**
+     * Enable convention-based auto-translation for empty component textual properties.
+     */
+    protected static bool $autoTranslate = false;
 
     /**
      * Default layout slot where this screen is mounted (e.g. 'main', 'center', 'right_panel').
@@ -630,12 +641,37 @@ abstract class Screen
             $staticUI = $this->callStartingUI(...$params);
             if ($staticUI) {
                 $container->add($staticUI);
+            } elseif (static::$layoutFile !== null || ContainerLayoutLoader::hasDefaultLayout(static::class)) {
+                $container->add($this->layoutContainer(static::$layoutFile));
             } else {
-                throw new \LogicException(sprintf('Screen [%s] must implement startingUI():Container method.', static::class));
+                throw new \LogicException(sprintf('Screen [%s] must implement startingUI():Container method or provide a .layout.yaml file.', static::class));
             }
         }
 
         $this->reconcileComponentProperties($container);
+    }
+
+    /**
+     * Build a root Container configured from a declarative .layout.yaml file.
+     * Defaults to "<kebab-class-name>.layout.yaml" in the same directory as the Screen.
+     */
+    protected function layoutContainer(?string $path = null, ?string $name = null): Container
+    {
+        $resolvedPath = $path ?? static::$layoutFile;
+        $definition = ContainerLayoutLoader::loadFile($resolvedPath, static::class);
+
+        $wrapperName = $name;
+        if ($wrapperName === null || trim($wrapperName) === '') {
+            $yamlName = $definition['name'] ?? null;
+            $wrapperName = is_string($yamlName) && trim($yamlName) !== ''
+                ? trim($yamlName)
+                : Str::snake(class_basename(static::class)).'_wrapper';
+        }
+
+        $containerContext = UIIdGenerator::getCurrentContext() ?? $this->getContextIdentifier();
+
+        return UI::container($wrapperName, $containerContext)
+            ->layoutDefinition($definition, static::class, static::$autoTranslate);
     }
 
     private function callStartingUI(mixed ...$params): ?Container

@@ -2,12 +2,24 @@
 
 namespace Idei\Usim\Support;
 
+use Idei\Usim\Components\Button;
+use Idei\Usim\Components\Card;
+use Idei\Usim\Components\Checkbox;
 use Idei\Usim\Components\Container;
+use Idei\Usim\Components\Input;
+use Idei\Usim\Components\ItemList;
+use Idei\Usim\Components\Label;
+use Idei\Usim\Components\NewLabel;
+use Idei\Usim\Components\Select;
+use Idei\Usim\Components\Table;
+use Idei\Usim\Components\Textarea;
 use Idei\Usim\Components\UIComponent;
 use Idei\Usim\Contracts\UIElement;
 use Idei\Usim\Enums\LayoutType;
+use Idei\Usim\Support\Translation\TranslationResolver;
 use Idei\Usim\ValueObjects\Size;
 use Idei\Usim\ValueObjects\Spacing;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Str;
 use InvalidArgumentException;
 use ReflectionClass;
@@ -19,6 +31,52 @@ use Symfony\Component\Yaml\Yaml;
  */
 class ContainerLayoutLoader
 {
+    /**
+     * Component property keys whose string values accept declarative i18n notation (`.key` or `t:key`).
+     *
+     * @var list<string>
+     */
+    protected const TRANSLATABLE_TEXT_PROPERTIES = [
+        'text',
+        'label',
+        'placeholder',
+        'help_text',
+        'title',
+        'description',
+        'empty_message',
+        'no_results_message',
+        'min_chars_message',
+        'search_placeholder',
+        'create_placeholder',
+        'create_button_label',
+        'bulk_delete_label',
+        'save_button_label',
+        'cancel_button_label',
+        'tooltip',
+    ];
+
+    /**
+     * Common USIM component prefixes stripped when resolving convention-based translation keys.
+     *
+     * @var list<string>
+     */
+    protected const COMPONENT_PREFIXES = [
+        'input_',
+        'btn_',
+        'lbl_',
+        'sel_',
+        'chk_',
+        'txt_',
+        'tbl_',
+        'lst_',
+        'img_',
+        'cal_',
+        'car_',
+        'upl_',
+        'crd_',
+        'cnt_',
+    ];
+
     /**
      * In-memory cache of parsed YAML layout files keyed by "realPath:mtime".
      *
@@ -52,6 +110,21 @@ class ContainerLayoutLoader
         $normalized = $parsed;
 
         return self::$parsedCache[$cacheKey] = $normalized;
+    }
+
+    /**
+     * Determine whether a sibling "<kebab-class-name>.layout.yaml" exists for the given Screen class.
+     */
+    public static function hasDefaultLayout(?string $callingContext): bool
+    {
+        $contextDir = self::resolveContextDirectory($callingContext);
+        if ($callingContext === null || $contextDir === null) {
+            return false;
+        }
+
+        $defaultFile = $contextDir.'/'.Str::kebab(class_basename($callingContext)).'.layout.yaml';
+
+        return is_file($defaultFile);
     }
 
     /**
@@ -252,14 +325,22 @@ class ContainerLayoutLoader
      *
      * @param  array<string, mixed>  $definition
      */
-    public static function applyToContainer(Container $container, array $definition): void
-    {
+    public static function applyToContainer(
+        Container $container,
+        array $definition,
+        ?string $callingContext = null,
+        bool $autoTranslate = false
+    ): void {
         self::applyContainerConfig($container, $definition);
+
+        $effectiveAutoTranslate = $autoTranslate || self::isAutoTranslateDefinition($definition);
 
         if (isset($definition['grid']) && is_array($definition['grid'])) {
             /** @var array<string, mixed> $grid */
             $grid = $definition['grid'];
-            self::applyGridChildrenConfig($container, $grid);
+            self::applyGridChildrenConfig($container, $grid, $callingContext, $effectiveAutoTranslate);
+        } elseif ($effectiveAutoTranslate && $callingContext !== null) {
+            self::autoHydrateContainerChildren($container, $callingContext);
         }
     }
 
@@ -268,8 +349,16 @@ class ContainerLayoutLoader
      */
     protected static function applyBoxProperties(Container $container, array $props): void
     {
+        if (($props['card'] ?? false) === true) {
+            $container->card();
+        }
+
         if (isset($props['appearance']) && is_string($props['appearance'])) {
             $container->appearance($props['appearance']);
+        }
+
+        if (($props['center_horizontal'] ?? false) === true || ($props['center'] ?? false) === true) {
+            $container->centerHorizontal();
         }
 
         if (isset($props['max_width']) && (is_int($props['max_width']) || is_string($props['max_width']))) {
@@ -331,8 +420,16 @@ class ContainerLayoutLoader
      *
      * @param  array<string, mixed>  $grid
      */
-    protected static function applyGridChildrenConfig(Container $container, array $grid): void
-    {
+    protected static function applyGridChildrenConfig(
+        Container $container,
+        array $grid,
+        ?string $callingContext = null,
+        bool $autoTranslate = false
+    ): void {
+        $translationTree = ($autoTranslate && $callingContext !== null)
+            ? TranslationResolver::resolveScreenTranslationTree($callingContext)
+            : [];
+
         $columnCount = self::resolveColumnCount($grid['cols'] ?? $grid['columns'] ?? 1);
         $defaultSpan = self::resolveDefaultColSpan($grid['default_span'] ?? 1, $columnCount);
         $defaultAlign = isset($grid['align']) && is_string($grid['align']) ? trim($grid['align']) : null;
@@ -468,7 +565,16 @@ class ContainerLayoutLoader
                 ? trim($rule['justify'])
                 : $defaultJustify;
 
-            self::applyPlacementToElement($child, $gridCol, $gridRow, $align, $justify, $rule);
+            self::applyPlacementToElement($child, $gridCol, $gridRow, $align, $justify, $rule, $callingContext);
+
+            if ($translationTree !== []) {
+                $resolvedSlot = $rule['slot'] ?? $explicitSlot ?? $childName;
+                self::autoHydrateElementTranslations(
+                    $child,
+                    is_int($resolvedSlot) || is_string($resolvedSlot) ? $resolvedSlot : null,
+                    $translationTree
+                );
+            }
 
             // Track auto-flow rows to compute grid_template_rows when any child defines `row` / `row_height`
             if (! $hasExplicitContainerRows && $child->isVisible()) {
@@ -513,7 +619,8 @@ class ContainerLayoutLoader
         ?string $gridRow,
         ?string $alignSelf,
         ?string $justifySelf,
-        array $rule = []
+        array $rule = [],
+        ?string $callingContext = null
     ): void {
         if ($element instanceof UIComponent || $element instanceof Container) {
             $element->gridColumn($gridColumn);
@@ -530,20 +637,23 @@ class ContainerLayoutLoader
                 $element->justifySelf($justifySelf);
             }
 
-            self::applyElementCustomProperties($element, $rule);
+            self::applyElementCustomProperties($element, $rule, $callingContext);
         }
     }
 
     /**
      * @param  array<string, mixed>  $rule
      */
-    protected static function applyElementCustomProperties(UIElement $element, array $rule): void
-    {
+    protected static function applyElementCustomProperties(
+        UIElement $element,
+        array $rule,
+        ?string $callingContext = null
+    ): void {
         $ignoredKeys = [
             'slot', 'span', 'at', 'row', 'row_height', 'align', 'justify',
         ];
 
-        foreach ($rule as $key => $value) {
+        foreach (self::orderCustomRuleProperties($rule) as $key => $value) {
             if (in_array($key, $ignoredKeys, true) || $value === null) {
                 continue;
             }
@@ -576,12 +686,249 @@ class ContainerLayoutLoader
                 continue;
             }
 
+            if (is_string($value) && in_array($key, self::TRANSLATABLE_TEXT_PROPERTIES, true)) {
+                $value = TranslationResolver::resolveText($value, $callingContext);
+            }
+
             // Direct fluent methods (style, action, required, type, placeholder, label, text, helpText)
             $methodName = Str::camel($key);
             if (method_exists($element, $methodName)) {
                 $element->{$methodName}($value);
             }
         }
+    }
+
+    /**
+     * Order composite CRUD flags before granular modifiers so YAML key order never clobbers overrides.
+     *
+     * @param  array<string, mixed>  $rule
+     * @return array<string, mixed>
+     */
+    protected static function orderCustomRuleProperties(array $rule): array
+    {
+        $priorityKeys = ['creatable', 'editable', 'deletable'];
+        $ordered = [];
+
+        foreach ($priorityKeys as $priorityKey) {
+            if (array_key_exists($priorityKey, $rule)) {
+                $ordered[$priorityKey] = $rule[$priorityKey];
+            }
+        }
+
+        foreach ($rule as $key => $value) {
+            if (! array_key_exists($key, $ordered)) {
+                $ordered[$key] = $value;
+            }
+        }
+
+        return $ordered;
+    }
+
+    /**
+     * Determine whether a layout definition enables convention-based auto-translation.
+     *
+     * @param  array<string, mixed>  $definition
+     */
+    protected static function isAutoTranslateDefinition(array $definition): bool
+    {
+        $topFlag = $definition['i18n'] ?? null;
+        $grid = isset($definition['grid']) && is_array($definition['grid']) ? $definition['grid'] : [];
+        $gridFlag = $grid['i18n'] ?? null;
+
+        return in_array($topFlag, ['auto', true], true) || in_array($gridFlag, ['auto', true], true);
+    }
+
+    /**
+     * Auto-hydrate translations for non-grid direct children of a Container.
+     */
+    protected static function autoHydrateContainerChildren(Container $container, string $callingContext): void
+    {
+        $translationTree = TranslationResolver::resolveScreenTranslationTree($callingContext);
+        if ($translationTree === []) {
+            return;
+        }
+
+        foreach ($container->getChildren() as $child) {
+            $slot = ($child instanceof UIComponent || $child instanceof Container) ? $child->getSlot() : null;
+            self::autoHydrateElementTranslations($child, $slot ?? $child->getName(), $translationTree);
+        }
+    }
+
+    /**
+     * Populate untouched textual properties on a component from the Screen translation dictionary.
+     *
+     * @param  array<string, mixed>  $translationTree
+     */
+    protected static function autoHydrateElementTranslations(
+        UIElement $element,
+        int|string|null $slot,
+        array $translationTree
+    ): void {
+        if (! ($element instanceof UIComponent) || ! is_string($slot) || trim($slot) === '' || ctype_digit(trim($slot))) {
+            return;
+        }
+
+        $nameCandidates = self::extractNameCandidates(trim($slot));
+        $schema = self::resolveComponentTranslationSchema($element);
+
+        foreach ($schema['attributes'] as $attrKey) {
+            if (! $element->isConfigDefault($attrKey)) {
+                continue;
+            }
+
+            $methodName = Str::camel($attrKey);
+            if (! method_exists($element, $methodName)) {
+                continue;
+            }
+
+            $isPrimary = $attrKey === $schema['primary'];
+            $translated = self::findTranslationValueForAttribute(
+                $translationTree,
+                $nameCandidates,
+                $schema['groups'],
+                $attrKey,
+                $isPrimary
+            );
+
+            if ($translated !== null) {
+                $element->{$methodName}($translated);
+            }
+        }
+    }
+
+    /**
+     * @return array{primary: string|null, groups: list<string>, attributes: list<string>}
+     */
+    protected static function resolveComponentTranslationSchema(UIComponent $element): array
+    {
+        return match (true) {
+            $element instanceof NewLabel, $element instanceof Label => [
+                'primary' => 'text',
+                'groups' => ['labels'],
+                'attributes' => ['text', 'tooltip'],
+            ],
+            $element instanceof Button => [
+                'primary' => 'label',
+                'groups' => ['actions', 'buttons'],
+                'attributes' => ['label', 'tooltip', 'title'],
+            ],
+            $element instanceof Input, $element instanceof Textarea => [
+                'primary' => 'label',
+                'groups' => ['inputs', 'fields'],
+                'attributes' => ['label', 'placeholder', 'help_text', 'tooltip'],
+            ],
+            $element instanceof Select => [
+                'primary' => 'label',
+                'groups' => ['selects', 'inputs', 'fields'],
+                'attributes' => ['label', 'placeholder', 'help_text', 'empty_message', 'tooltip'],
+            ],
+            $element instanceof Checkbox => [
+                'primary' => 'label',
+                'groups' => ['checkboxes', 'inputs', 'fields'],
+                'attributes' => ['label', 'description', 'help_text', 'tooltip'],
+            ],
+            $element instanceof ItemList => [
+                'primary' => 'title',
+                'groups' => ['lists'],
+                'attributes' => [
+                    'title',
+                    'label',
+                    'help_text',
+                    'empty_message',
+                    'no_results_message',
+                    'search_placeholder',
+                    'create_placeholder',
+                    'create_button_label',
+                    'bulk_delete_label',
+                ],
+            ],
+            $element instanceof Table => [
+                'primary' => 'title',
+                'groups' => ['tables'],
+                'attributes' => ['title', 'empty_message'],
+            ],
+            $element instanceof Card => [
+                'primary' => 'title',
+                'groups' => ['cards'],
+                'attributes' => ['title', 'description'],
+            ],
+            default => [
+                'primary' => 'label',
+                'groups' => [],
+                'attributes' => ['label', 'title', 'text', 'placeholder', 'help_text'],
+            ],
+        };
+    }
+
+    /**
+     * @return list<string>
+     */
+    protected static function extractNameCandidates(string $slotName): array
+    {
+        $candidates = [$slotName];
+
+        foreach (self::COMPONENT_PREFIXES as $prefix) {
+            if (str_starts_with($slotName, $prefix) && strlen($slotName) > strlen($prefix)) {
+                $stripped = substr($slotName, strlen($prefix));
+                if ($stripped !== '') {
+                    $candidates[] = $stripped;
+                }
+                break;
+            }
+        }
+
+        return array_values(array_unique($candidates));
+    }
+
+    /**
+     * @param  array<string, mixed>  $tree
+     * @param  list<string>  $nameCandidates
+     * @param  list<string>  $groups
+     */
+    protected static function findTranslationValueForAttribute(
+        array $tree,
+        array $nameCandidates,
+        array $groups,
+        string $attribute,
+        bool $isPrimary
+    ): ?string {
+        foreach ($nameCandidates as $name) {
+            $value = Arr::get($tree, "{$name}.{$attribute}");
+            if (is_string($value) && $value !== '') {
+                return $value;
+            }
+        }
+
+        foreach ($groups as $group) {
+            foreach ($nameCandidates as $name) {
+                $value = Arr::get($tree, "{$group}.{$name}.{$attribute}");
+                if (is_string($value) && $value !== '') {
+                    return $value;
+                }
+            }
+        }
+
+        if (! $isPrimary) {
+            return null;
+        }
+
+        foreach ($nameCandidates as $name) {
+            $value = Arr::get($tree, $name);
+            if (is_string($value) && $value !== '') {
+                return $value;
+            }
+        }
+
+        foreach ($groups as $group) {
+            foreach ($nameCandidates as $name) {
+                $value = Arr::get($tree, "{$group}.{$name}");
+                if (is_string($value) && $value !== '') {
+                    return $value;
+                }
+            }
+        }
+
+        return null;
     }
 
     /**

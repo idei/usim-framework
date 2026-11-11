@@ -451,6 +451,21 @@ abstract class UIComponent implements Marginable, Sizeable, UIElement
     }
 
     /**
+     * Determine whether a configuration key still holds its untouched default value.
+     */
+    public function isConfigDefault(string $key): bool
+    {
+        if (isset($this->dirtyKeys[$key])) {
+            return false;
+        }
+
+        $defaults = $this->getDefaultConfig();
+
+        return ! array_key_exists($key, $this->config)
+            || $this->config[$key] === ($defaults[$key] ?? null);
+    }
+
+    /**
      * Get a configuration value
      *
      * Allows reading component properties from event handlers.

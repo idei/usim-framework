@@ -15,6 +15,7 @@ docs/
 │   ├── PROTOCOLO_UI.md               # 📜 Especificación formal del protocolo USIM
 │   ├── USIM_ACADEMIC_REPORT.md       # ⭐ Documentación principal
 │   ├── UI_BUILDER_REFERENCE.md       # Referencia de UI API
+│   ├── DECLARATIVE_LAYOUTS_AND_I18N.md # 📐 Sintaxis de .layout.yaml, slots, grids e i18n en 2 niveles
 │   ├── CONTAINER_ALIGNMENT_GUIDE.md  # Guía de alineación de contenedores
 │   └── TECHNICAL_COMPONENTS_README.md# Sistema CSS y componentes técnicos
 │
@@ -48,6 +49,7 @@ docs/
 | **[PROTOCOLO_UI.md](framework/PROTOCOLO_UI.md)** 📜 | Especificación formal del protocolo USIM (Server-Driven UI), gramática EBNF, endpoints, ciclo de vida de Screen y meta-acciones | 22K |
 | **[USIM_ACADEMIC_REPORT.md](framework/USIM_ACADEMIC_REPORT.md)** ⭐ | Documentación académica completa del framework. Arquitectura, características, ejemplos de servicios reales y comparativas con stack tradicional | 41K |
 | **[UI_BUILDER_REFERENCE.md](framework/UI_BUILDER_REFERENCE.md)** | Referencia técnica de UI. Patrón Composite, manipulación de árbol, todos los componentes disponibles | 13K |
+| **[DECLARATIVE_LAYOUTS_AND_I18N.md](framework/DECLARATIVE_LAYOUTS_AND_I18N.md)** 📐 | Especificación completa de archivos `.layout.yaml`, escala `Spacing`, CSS Grid, slots, `Screen::layoutContainer()` e i18n en dos niveles (`t:` / `.clave` y `i18n: auto`) | 30K |
 | **[FRONTEND_COMPONENTS_GUIDE.md](framework/FRONTEND_COMPONENTS_GUIDE.md)** | Guía operativa para agregar, modificar y fixear componentes frontend del renderer modular actual | 15K |
 | **[CONTAINER_ALIGNMENT_GUIDE.md](framework/CONTAINER_ALIGNMENT_GUIDE.md)** | Guía específica de alineación de contenedores horizontales con ejemplos | 5.2K |
 | **[TECHNICAL_COMPONENTS_README.md](framework/TECHNICAL_COMPONENTS_README.md)** | Sistema CSS modular, variables, temas y personalización | 13K |

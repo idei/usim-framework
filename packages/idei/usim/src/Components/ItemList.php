@@ -699,6 +699,54 @@ class ItemList extends UIComponent
     }
 
     /**
+     * Configure inline creation mode without altering creatable flag.
+     */
+    public function createInline(bool $inline = true): static
+    {
+        return $this->setConfig('create_inline', $inline);
+    }
+
+    /**
+     * Set placeholder text for the inline creation input.
+     */
+    public function createPlaceholder(string $placeholder): static
+    {
+        return $this->setConfig('create_placeholder', $placeholder);
+    }
+
+    /**
+     * Set label for the create button.
+     */
+    public function createButtonLabel(string $label): static
+    {
+        return $this->setConfig('create_button_label', $label);
+    }
+
+    /**
+     * Configure inline editing mode without altering editable flag.
+     */
+    public function editInline(bool $inline = true): static
+    {
+        return $this->setConfig('edit_inline', $inline);
+    }
+
+    /**
+     * Enable or disable bulk deletion of selected items.
+     */
+    public function allowBulkDelete(bool $allow = true): static
+    {
+        return $this->setConfig('bulk_deletable', $allow);
+    }
+
+    /**
+     * Set custom label for the bulk delete action button.
+     */
+    public function bulkDeleteLabel(string $label): static
+    {
+        return $this->setConfig('bulk_delete_label', $label);
+    }
+
+    /**
      * Trigger a backend action when selection changes.
      *
      * @param  array<string, mixed>  $parameters

@@ -52,6 +52,12 @@ class Container implements Gapable, Marginable, Paddable, Sizeable, UIElement
     /** @var array<string, mixed>|null Declarative layout definition (.layout.yaml) */
     protected ?array $layoutDefinition = null;
 
+    /** @var string|null Screen or class context used to resolve relative i18n keys in layouts */
+    protected ?string $layoutContext = null;
+
+    /** @var bool Whether convention-based auto-translation is enabled for this container's layout */
+    protected bool $layoutAutoTranslate = false;
+
     public function __construct(?string $name = null, ?string $context = null)
     {
         $this->name = $name;
@@ -507,12 +513,12 @@ class Container implements Gapable, Marginable, Paddable, Sizeable, UIElement
      * Load and apply a declarative YAML layout definition (.layout.yaml) to this container.
      * When $path is null, resolves `<kebab-screen-name>.layout.yaml` in the calling Screen's directory.
      */
-    public function layoutFile(?string $path = null): self
+    public function layoutFile(?string $path = null, ?string $callingContext = null): self
     {
-        $callingContext = UIIdGenerator::getCurrentContext() ?? $this->detectCallingContext();
-        $definition = ContainerLayoutLoader::loadFile($path, $callingContext);
+        $resolvedContext = $callingContext ?? UIIdGenerator::getCurrentContext() ?? $this->detectCallingContext();
+        $definition = ContainerLayoutLoader::loadFile($path, $resolvedContext);
 
-        return $this->layoutDefinition($definition);
+        return $this->layoutDefinition($definition, $resolvedContext);
     }
 
     /**
@@ -520,13 +526,25 @@ class Container implements Gapable, Marginable, Paddable, Sizeable, UIElement
      *
      * @param  array<string, mixed>  $definition
      */
-    public function layoutDefinition(array $definition): self
+    public function layoutDefinition(array $definition, ?string $callingContext = null, bool $autoTranslate = false): self
     {
         $this->layoutDefinition = $definition;
+        if ($callingContext !== null) {
+            $this->layoutContext = $callingContext;
+        }
+        if ($autoTranslate) {
+            $this->layoutAutoTranslate = true;
+        }
+
         ContainerLayoutLoader::applyContainerConfig($this, $definition);
 
         if ($this->children !== []) {
-            ContainerLayoutLoader::applyToContainer($this, $definition);
+            ContainerLayoutLoader::applyToContainer(
+                $this,
+                $definition,
+                $this->layoutContext,
+                $this->layoutAutoTranslate
+            );
         }
 
         return $this;
@@ -545,10 +563,22 @@ class Container implements Gapable, Marginable, Paddable, Sizeable, UIElement
     /**
      * Materialize the attached declarative layout definition onto this container and its children.
      */
-    public function applyLayoutDefinition(): self
+    public function applyLayoutDefinition(?string $callingContext = null, ?bool $autoTranslate = null): self
     {
+        if ($callingContext !== null) {
+            $this->layoutContext = $callingContext;
+        }
+        if ($autoTranslate !== null) {
+            $this->layoutAutoTranslate = $autoTranslate;
+        }
+
         if ($this->layoutDefinition !== null) {
-            ContainerLayoutLoader::applyToContainer($this, $this->layoutDefinition);
+            ContainerLayoutLoader::applyToContainer(
+                $this,
+                $this->layoutDefinition,
+                $this->layoutContext,
+                $this->layoutAutoTranslate
+            );
         }
 
         return $this;

@@ -15,8 +15,6 @@ use Idei\Usim\Enums\SelectionMode;
 use Idei\Usim\Enums\Visibility;
 use Idei\Usim\Modals\ConfirmDialog;
 use Idei\Usim\Screen;
-use Idei\Usim\UI;
-use Idei\Usim\ValueObjects\Size;
 use Throwable;
 
 /**
@@ -66,65 +64,40 @@ class ItemListDemo extends Screen
 
     protected bool $store_confirm_delete = false;
 
-    public static function getMenuLabel(): string
-    {
-        return 'ItemList Demo';
-    }
+    // public static function getMenuLabel(): string
+    // {
+    //     return 'ItemList Demo';
+    // }
 
-    public static function getMenuIcon(): ?string
-    {
-        return '📋';
-    }
+    // public static function getMenuIcon(): ?string
+    // {
+    //     return '📋';
+    // }
 
     protected function startingUI(): Container
     {
         $this->ensureCatalogLoaded();
 
-        $this->item_list_demo_title->text('🎬 Catálogo de Películas — ItemList Demo');
-
-        $this->item_list_demo_intro->text('Explora búsqueda asíncrona vía GET /api/ui-data con estado de carga, selección simple/múltiple persistente entre búsquedas y operaciones CRUD inline.');
-
         $this->sel_selection_mode
-            ->label('Modo de Selección')
             ->options([
-                ['value' => SelectionMode::MULTIPLE->value, 'label' => 'Múltiple (Checkboxes + Selección masiva)'],
-                ['value' => SelectionMode::SINGLE->value, 'label' => 'Simple (Radio visual)'],
-                ['value' => SelectionMode::NONE->value, 'label' => 'Sin selección (Solo lectura / CRUD)'],
+                ['value' => SelectionMode::MULTIPLE->value, 'label' => $this->t('.selection_mode.options.multiple')],
+                ['value' => SelectionMode::SINGLE->value, 'label' => $this->t('.selection_mode.options.single')],
+                ['value' => SelectionMode::NONE->value, 'label' => $this->t('.selection_mode.options.none')],
             ])
-            ->value($this->store_selection_mode)
-            ->onChange('selection_mode_changed');
+            ->value($this->store_selection_mode);
 
-        $this->chk_confirm_delete
-            ->label('Confirmar antes de eliminar')
-            ->checked($this->store_confirm_delete)
-            ->onChange('toggle_confirm_delete');
-
-        $this->btn_reset_catalog->label('Restaurar catálogo');
+        $this->chk_confirm_delete->checked($this->store_confirm_delete);
 
         $initialSelected = $this->store_movies !== [] ? [$this->store_movies[0]['id']] : [];
 
         $this->movies_list
             ->items($this->store_movies)
             ->selectionMode(SelectionMode::from($this->store_selection_mode))
-            ->select($initialSelected)
-            ->creatable(
-                creatable: true,
-                inline: true,
-                placeholder: 'Ej: Dune: Parte Dos (2024) - Ciencia Ficción...',
-                buttonLabel: 'Agregar Película'
-            )
-            ->editable(editable: true, inline: true)
-            ->deletable(deletable: true, allowBulk: true, bulkLabel: 'Eliminar seleccionadas');
+            ->select($initialSelected);
 
         $this->lbl_selection_summary->text($this->formatSelectionSummary($initialSelected));
 
-        $this->btn_confirm_marathon->label('🎬 Confirmar Maratón');
-
-        return UI::container('item_list_demo_wrapper')
-            ->card()
-            ->maxWidth(Size::px(900))
-            ->centerHorizontal()
-            ->layoutFile('item-list-demo.layout.yaml');
+        return $this->layoutContainer();
     }
 
     /**

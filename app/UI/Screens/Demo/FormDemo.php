@@ -4,7 +4,6 @@ namespace App\UI\Screens\Demo;
 
 use App\UI\Requests\Demo\FormDemoRequest;
 use Idei\Usim\Components\Button;
-use Idei\Usim\Components\Container;
 use Idei\Usim\Components\Input;
 use Idei\Usim\Components\NewLabel;
 use Idei\Usim\Components\Textarea;
@@ -12,8 +11,6 @@ use Idei\Usim\Enums\Visibility;
 use Idei\Usim\Enums\Style;
 use Idei\Usim\Http\Requests\UIRequest;
 use Idei\Usim\Screen;
-use Idei\Usim\UI;
-use Idei\Usim\ValueObjects\Size;
 use Illuminate\Contracts\Validation\Validator;
 
 class FormDemo extends Screen
@@ -34,37 +31,7 @@ class FormDemo extends Screen
 
     protected NewLabel $lbl_result;
 
-    protected function startingUI(): Container
-    {
-        $this->lbl_instruction->text(t('.instruction'));
-
-        $this->input_name
-            ->label(t('.name.label'))
-            ->placeholder(t('.name.placeholder'))
-            ->helpText(t('.validation.name_required'));
-
-        $this->input_email
-            ->label(t('.email.label'))
-            ->placeholder(t('.email.placeholder'))
-            ->helpText(t('.validation.email_required'));
-
-        $this->input_message
-            ->label(t('.message.label'))
-            ->placeholder(t('.message.placeholder'))
-            ->helpText(t('.validation.message_required'));
-
-        $this->btn_submit->label(t('.actions.submit'));
-        $this->btn_reset->label(t('.actions.reset'));
-        $this->lbl_result->text(t('.result.initial'));
-
-        return UI::container('form_wrapper')
-            ->card()
-            ->maxWidth(Size::px(500))
-            ->centerHorizontal()
-            ->layoutFile('form-demo.layout.yaml');
-    }
-
-    protected function updateUI(): void
+    protected function resetUI(): void
     {
         $this->input_name->value('')->error(null);
         $this->input_email->value('')->error(null);
@@ -98,7 +65,7 @@ class FormDemo extends Screen
      */
     public function onResetForm(): void
     {
-        $this->updateUI();
+        $this->resetUI();
     }
 
     /**

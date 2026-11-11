@@ -1,3 +1,9 @@
+name: item_list_demo_wrapper
+appearance: card
+max_width: 900
+center_horizontal: true
+i18n: auto
+
 grid:
   cols: 12
   gap: m
@@ -7,22 +13,24 @@ grid:
   children:
     - item_list_demo_title:   { style: default }
     - item_list_demo_intro:   { style: info }
-    - sel_selection_mode:     { span: 5 }
-    - chk_confirm_delete:     { span: 4, align: center }
+    - sel_selection_mode:     { span: 5, on_change: selection_mode_changed }
+    - chk_confirm_delete:     { span: 4, align: center, on_change: toggle_confirm_delete }
     - btn_reset_catalog:      { span: 3, justify: end, align: center, style: secondary, icon: refresh, action: reset_catalog }
     - movies_list:
         action: movies
         auto_fetch: true
         keep_selected_visible: true
         searchable: true
-        search_placeholder: "Buscar película por título, género, año o reparto..."
         debounce: 250
         max_height: 320
         scrollbar: always
         variant: card
-        title: "Películas Disponibles"
-        label: "Selecciona películas para tu maratón o administra el catálogo"
-        help_text: "Usa el buscador para filtrar vía /api/ui-data. Las películas seleccionadas se conservan visibles aunque cambies la búsqueda."
+        creatable: true
+        create_inline: true
+        editable: true
+        edit_inline: true
+        deletable: true
+        allow_bulk_delete: true
         on_select: movie_selected
         on_create: movie_created
         on_update: movie_updated

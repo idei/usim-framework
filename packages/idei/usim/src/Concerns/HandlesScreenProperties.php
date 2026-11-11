@@ -443,7 +443,7 @@ trait HandlesScreenProperties
                 }
             }
 
-            $container->applyLayoutDefinition();
+            $container->applyLayoutDefinition(static::class, static::$autoTranslate);
         }
 
         foreach ($container->getChildren() as $child) {

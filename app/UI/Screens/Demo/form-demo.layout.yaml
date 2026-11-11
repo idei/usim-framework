@@ -1,14 +1,20 @@
+name: form_wrapper
+appearance: card
+max_width: 500
+center_horizontal: true
+i18n: auto
+
 grid:
   cols: [1fr, 1fr]
-  gap: 14
+  gap: m
   padding: l
   default_span: 2
 
   children:
     - lbl_instruction: { justify: center, style: info, center: true }
-    - input_name:      { type: text,  required: true, width: full }
-    - input_email:     { type: email, required: true, width: full }
-    - input_message:   { row: 1fr,    required: true, width: full }
+    - input_name:      { type: text,  required: true, width: full, help_text: .validation.name_required }
+    - input_email:     { type: email, required: true, width: full, help_text: .validation.email_required }
+    - input_message:   { row: 1fr,    required: true, width: full, help_text: .validation.message_required, max_length: 50, counter: true }
     - btn_submit:      { span: 1, justify: start, style: primary,   action: submit_form, width: full }
     - btn_reset:       { span: 1, justify: end,   style: secondary, action: reset_form,  width: full }
-    - lbl_result:      { justify: center, style: secondary, width: full }
+    - lbl_result:      { text: .result.initial, justify: center, style: secondary, width: full }
