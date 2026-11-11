@@ -210,6 +210,10 @@ class UsimServiceProvider extends ServiceProvider
             $this->publishes([
                 __DIR__.'/../resources/assets' => public_path('vendor/idei/usim'),
             ], 'usim-assets');
+
+            $this->publishes([
+                __DIR__.'/../docs' => base_path('docs/usim'),
+            ], 'usim-docs');
         }
 
         // Programar limpieza de archivos temporales (Self-healing maintenance)

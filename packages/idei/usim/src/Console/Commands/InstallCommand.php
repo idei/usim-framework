@@ -575,6 +575,7 @@ class InstallCommand extends Command
         $steps[] = "Run <fg=yellow>./start.sh [-r]</> to start the development server.\n".
             '     <fg=gray>Note: -r option removes database and starts fresh)</fg=gray>';
         $steps[] = "Installer state is tracked at <fg=yellow>{$this->installStateManager->getPath()}</>";
+        $steps[] = "Framework docs are available in <fg=yellow>vendor/idei/usim/docs/README.md</> (publish to <fg=yellow>docs/usim/</> with <fg=gray>php artisan vendor:publish --tag=usim-docs --force</fg=gray>)";
         $unitsCount = $this->syncStats['units_total'] ?? 0;
         $unitsCreated = $this->syncStats['units_created'] ?? 0;
         $unitsUpdated = $this->syncStats['units_updated'] ?? 0;

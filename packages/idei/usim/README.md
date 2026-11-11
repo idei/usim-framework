@@ -8,6 +8,7 @@ A **Server-Driven UI** framework for Laravel. Define your entire user interface 
 - [What Is New Since 0.5.0](#what-is-new-since-050)
 - [Installation](#installation)
     - [Quick Start](#quick-start)
+- [Documentation](#documentation)
 - [Core Concepts](#core-concepts)
   - [Screens](#screens)
     - [Screen Operational Model](#screen-operational-model)
@@ -93,6 +94,22 @@ Then follow the printed instructions:
 php artisan migrate
 ./start.sh [-r]
 ```
+
+## Documentation
+
+Complete framework documentation ships with the package inside `vendor/idei/usim/docs/` ([index](docs/README.md)). You can also publish a copy directly into your application's `docs/usim/` directory:
+
+```bash
+php artisan vendor:publish --tag=usim-docs --force
+```
+
+Key guides included:
+
+- [Declarative Layouts & i18n](docs/DECLARATIVE_LAYOUTS_AND_I18N.md) — `.layout.yaml` syntax, CSS Grid, slots, `Spacing`, `Screen::layoutContainer()`, optional `startingUI()`, and two-level i18n (`t:` / `.key` & `i18n: auto`)
+- [Events System](docs/USIM_EVENTS_SYSTEM.md) — UI & domain event lifecycle, handlers, and diffs
+- [Screen Testing Guide](docs/SCREEN_TESTING_GUIDE.md) — Testing screens with `ScreenTestHarness`, `uiScenario()`, and Pest
+- [USIM JSON Contract](docs/usim_json_contract.md) — Protocol specification for client renderers
+- [Consumer Upgrade Guide](docs/package-update-and-consumer-upgrade-guide.md) — Safe upgrade steps across package versions
 
 ## Starting the Application
 
@@ -1094,6 +1111,7 @@ The client-side JavaScript (`ui-renderer.js`) handles these calls automatically.
 | `php artisan usim:discover` | Scan screens directory and generate manifest cache |
 | `php artisan usim:install` | Scaffold a complete USIM application (screens, auth, admin, tests) |
 | `php artisan usim:install --force` | Overwrite existing files |
+| `php artisan vendor:publish --tag=usim-docs` | Publish package documentation into `docs/usim/` |
 
 ---
 
