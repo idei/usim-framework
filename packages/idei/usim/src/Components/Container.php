@@ -12,6 +12,7 @@ use Idei\Usim\Contracts\Paddable;
 use Idei\Usim\Contracts\Sizeable;
 use Idei\Usim\Contracts\UIElement;
 use Idei\Usim\Enums\AlignItems;
+use Idei\Usim\Enums\ContainerAppearance;
 use Idei\Usim\Enums\JustifyContent;
 use Idei\Usim\Enums\LayoutType;
 use Idei\Usim\Screen;
@@ -1756,17 +1757,23 @@ class Container implements Gapable, Marginable, Paddable, Sizeable, UIElement
     // ========================================================================
 
     /**
-     * Add custom CSS class
+     * Set the container's semantic visual appearance.
      *
-     * @param  string  $appearance  CSS class name
+     * Supported values: plain, subtle, card, elevated, highlight, contrast.
+     *
+     * @param  ContainerAppearance|string  $appearance  Semantic appearance name or enum
      * @return static For method chaining
      */
-    public function appearance(string $appearance): static
+    public function appearance(ContainerAppearance|string $appearance): static
     {
-        $normalized = strtolower(trim($appearance));
-        $this->config['appearance'] = in_array($normalized, ['card', 'plain'], true)
-            ? $normalized
-            : 'card';
+        if ($appearance instanceof ContainerAppearance) {
+            $this->config['appearance'] = $appearance->value;
+
+            return $this;
+        }
+
+        $normalized = ContainerAppearance::tryFrom(strtolower(trim($appearance)));
+        $this->config['appearance'] = ($normalized ?? ContainerAppearance::CARD)->value;
 
         return $this;
     }
@@ -1778,7 +1785,7 @@ class Container implements Gapable, Marginable, Paddable, Sizeable, UIElement
      */
     public function card(): static
     {
-        $this->config['appearance'] = 'card';
+        $this->config['appearance'] = ContainerAppearance::CARD->value;
 
         return $this;
     }
@@ -1790,7 +1797,55 @@ class Container implements Gapable, Marginable, Paddable, Sizeable, UIElement
      */
     public function plain(): static
     {
-        $this->config['appearance'] = 'plain';
+        $this->config['appearance'] = ContainerAppearance::PLAIN->value;
+
+        return $this;
+    }
+
+    /**
+     * Render container with a soft muted surface for secondary grouping.
+     *
+     * @return static For method chaining
+     */
+    public function subtle(): static
+    {
+        $this->config['appearance'] = ContainerAppearance::SUBTLE->value;
+
+        return $this;
+    }
+
+    /**
+     * Render container with stronger elevation/shadow to signal higher hierarchy.
+     *
+     * @return static For method chaining
+     */
+    public function elevated(): static
+    {
+        $this->config['appearance'] = ContainerAppearance::ELEVATED->value;
+
+        return $this;
+    }
+
+    /**
+     * Render container with theme accent emphasis to draw visual focus.
+     *
+     * @return static For method chaining
+     */
+    public function highlight(): static
+    {
+        $this->config['appearance'] = ContainerAppearance::HIGHLIGHT->value;
+
+        return $this;
+    }
+
+    /**
+     * Render container with high-contrast surface adapted to the active theme.
+     *
+     * @return static For method chaining
+     */
+    public function contrast(): static
+    {
+        $this->config['appearance'] = ContainerAppearance::CONTRAST->value;
 
         return $this;
     }
