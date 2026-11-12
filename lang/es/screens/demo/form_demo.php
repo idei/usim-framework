@@ -38,7 +38,7 @@ Mensaje: :message',
         'email_required' => 'El correo es obligatorio',
         'name_min' => 'El nombre debe tener al menos 10 caracteres',
         'name_required' => 'El nombre es obligatorio',
-        'message_min' => 'El mensaje debe tener al menos 50 caracteres',
+        'message_min' => 'El mensaje debe tener al menos 10 caracteres',
         'message_required' => 'El mensaje es obligatorio',
     ],
 ];

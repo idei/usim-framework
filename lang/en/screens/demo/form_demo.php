@@ -38,7 +38,7 @@ Message: :message',
         'email_required' => 'Email is required',
         'name_min' => 'Name must be at least 10 characters',
         'name_required' => 'Name is required',
-        'message_min' => 'Message must be at least 50 characters',
+        'message_min' => 'Message must be at least 10 characters',
         'message_required' => 'Message is required',
     ],
 ];

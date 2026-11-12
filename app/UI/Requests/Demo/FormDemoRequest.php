@@ -54,7 +54,7 @@ class FormDemoRequest extends UIRequest
         return [
             'name' => 'required|min:10',
             'email' => 'required|email',
-            'message' => 'sometimes|string|min:50',
+            'message' => 'sometimes|string|min:10|max:50',
         ];
     }
 

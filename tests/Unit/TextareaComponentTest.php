@@ -62,6 +62,24 @@ test('UI::textarea() returns a concrete Textarea instance with fluent builder AP
         ->and($textarea->getName())->toBe('test_notes');
 });
 
+test('Textarea serializes minLength and maxLength into JSON config', function () {
+    $textarea = UI::textarea('bio')
+        ->minLength(50)
+        ->maxLength(100);
+
+    $json = $textarea->toJson();
+    $config = $json[$textarea->getId()];
+
+    expect($config['min_length'])->toBe(50)
+        ->and($config['max_length'])->toBe(100);
+
+    $textarea->minLength(null);
+    $updatedConfig = $textarea->toJson()[$textarea->getId()];
+
+    expect(array_key_exists('min_length', $updatedConfig))->toBeFalse()
+        ->and($updatedConfig['max_length'])->toBe(100);
+});
+
 test('Container::reindexChild() preserves original insertion order of children', function () {
     $container = UI::container('test_card');
     $title = UI::input('title');

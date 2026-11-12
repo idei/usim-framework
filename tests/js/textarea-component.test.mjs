@@ -15,6 +15,17 @@ function createDomEnvironment() {
         json: async () => ({})
     });
 
+    dom.window.matchMedia = dom.window.matchMedia || (() => ({
+        matches: false,
+        media: '',
+        onchange: null,
+        addListener: () => {},
+        removeListener: () => {},
+        addEventListener: () => {},
+        removeEventListener: () => {},
+        dispatchEvent: () => false,
+    }));
+
     const scriptFiles = [
         'packages/idei/usim/resources/assets/js/component-registry.js',
         'packages/idei/usim/resources/assets/js/ui-renderer.js',
@@ -266,6 +277,168 @@ test('Input: renders helpText matching textarea help icon style and updates dyna
     // Test dynamic clearing of help_text
     inputComp.update({ help_text: null });
     assert.equal(el.querySelector('.ui-input-help-icon'), null);
+});
+
+test('Textarea: removes footer and renders subtle top-right in-field counter for min_length and max_length', () => {
+    const dom = createDomEnvironment();
+
+    const textareaComp = dom.window.USIM_COMPONENTS.create('textarea', 401, {
+        name: 'summary',
+        min_length: 50,
+        max_length: 100,
+        value: 'a'.repeat(40),
+    });
+
+    const el = textareaComp.render();
+    dom.window.document.body.appendChild(el);
+
+    assert.equal(el.querySelector('.usim-textarea-footer'), null, 'div.usim-textarea-footer must not exist');
+
+    const field = el.querySelector('.usim-textarea-field');
+    const ta = field?.querySelector('textarea');
+    const counter = field?.querySelector('.usim-textarea-counter');
+
+    assert.ok(field, 'Field wrapper should exist');
+    assert.ok(ta, 'Textarea should live inside .usim-textarea-field');
+    assert.ok(counter, 'Counter should live inside .usim-textarea-field');
+    assert.equal(ta.getAttribute('minlength'), '50');
+    assert.equal(ta.getAttribute('maxlength'), '100');
+
+    // 40 chars out of min 50 -> -10 in error color
+    assert.equal(counter.hidden, false);
+    assert.equal(counter.textContent, '-10');
+    assert.ok(counter.classList.contains('is-error'));
+    assert.equal(counter.classList.contains('is-warning'), false);
+
+    // 50 chars -> remaining until 100 is 50 in normal color
+    ta.value = 'a'.repeat(50);
+    ta.dispatchEvent(new dom.window.Event('input'));
+    assert.equal(counter.textContent, '50');
+    assert.equal(counter.classList.contains('is-error'), false);
+    assert.equal(counter.classList.contains('is-warning'), false);
+
+    // 75 chars -> remaining until 100 is 25 in normal color
+    ta.value = 'a'.repeat(75);
+    ta.dispatchEvent(new dom.window.Event('input'));
+    assert.equal(counter.textContent, '25');
+    assert.equal(counter.classList.contains('is-error'), false);
+
+    // 100 chars -> 0 in normal color
+    ta.value = 'a'.repeat(100);
+    ta.dispatchEvent(new dom.window.Event('input'));
+    assert.equal(counter.textContent, '0');
+    assert.equal(counter.classList.contains('is-error'), false);
+});
+
+test('Textarea: hides counter once min_length is met when max_length is omitted', () => {
+    const dom = createDomEnvironment();
+
+    const textareaComp = dom.window.USIM_COMPONENTS.create('textarea', 402, {
+        name: 'notes',
+        min_length: 50,
+        value: 'a'.repeat(40),
+    });
+
+    const el = textareaComp.render();
+    dom.window.document.body.appendChild(el);
+
+    const ta = el.querySelector('textarea');
+    const counter = el.querySelector('.usim-textarea-counter');
+    assert.ok(counter);
+    assert.equal(counter.hidden, false);
+    assert.equal(counter.textContent, '-10');
+    assert.ok(counter.classList.contains('is-error'));
+
+    // Passing min_length without max_length hides the indicator
+    ta.value = 'a'.repeat(50);
+    ta.dispatchEvent(new dom.window.Event('input'));
+    assert.equal(counter.hidden, true);
+    assert.equal(counter.style.display, 'none');
+
+    // Dropping back below min_length reveals it again
+    ta.value = 'a'.repeat(49);
+    ta.dispatchEvent(new dom.window.Event('input'));
+    assert.equal(counter.hidden, false);
+    assert.equal(counter.textContent, '-1');
+    assert.ok(counter.classList.contains('is-error'));
+});
+
+test('Textarea: shows remaining count when only max_length is defined', () => {
+    const dom = createDomEnvironment();
+
+    const textareaComp = dom.window.USIM_COMPONENTS.create('textarea', 403, {
+        name: 'bio',
+        max_length: 100,
+        value: 'a'.repeat(25),
+    });
+
+    const el = textareaComp.render();
+    const counter = el.querySelector('.usim-textarea-counter');
+    assert.ok(counter);
+    assert.equal(counter.hidden, false);
+    assert.equal(counter.textContent, '75');
+    assert.equal(counter.classList.contains('is-error'), false);
+    assert.equal(counter.classList.contains('is-warning'), false);
+});
+
+test('Textarea: ignores invalid bounds (min_length >= max_length) and displays warning ?', () => {
+    const dom = createDomEnvironment();
+
+    for (const [id, minLen, maxLen] of [[404, 50, 50], [405, 80, 50], [406, 0, 0]]) {
+        const comp = dom.window.USIM_COMPONENTS.create('textarea', id, {
+            name: `field_${id}`,
+            min_length: minLen,
+            max_length: maxLen,
+            value: 'hola',
+        });
+
+        const el = comp.render();
+        const ta = el.querySelector('textarea');
+        const counter = el.querySelector('.usim-textarea-counter');
+
+        assert.equal(ta.getAttribute('minlength'), null, `minlength must be ignored for (${minLen}, ${maxLen})`);
+        assert.equal(ta.getAttribute('maxlength'), null, `maxlength must be ignored for (${minLen}, ${maxLen})`);
+        assert.ok(counter, 'Warning indicator must be rendered');
+        assert.equal(counter.hidden, false);
+        assert.equal(counter.textContent, '?');
+        assert.ok(counter.classList.contains('is-warning'));
+        assert.equal(counter.classList.contains('is-error'), false);
+    }
+});
+
+test('Textarea: supports in-field counter in markdown mode and dynamic update()', () => {
+    const dom = createDomEnvironment();
+
+    const comp = dom.window.USIM_COMPONENTS.create('textarea', 407, {
+        name: 'md_notes',
+        mode: 'markdown',
+        min_length: 10,
+        max_length: 30,
+        value: '12345',
+    });
+
+    const el = comp.render();
+    assert.equal(el.querySelector('.usim-textarea-footer'), null);
+
+    const editorField = el.querySelector('.usim-textarea-editor-pane .usim-textarea-field');
+    assert.ok(editorField, 'Markdown editor pane should wrap textarea in .usim-textarea-field');
+
+    const counter = editorField.querySelector('.usim-textarea-counter');
+    const ta = editorField.querySelector('textarea');
+    assert.equal(counter.textContent, '-5');
+    assert.ok(counter.classList.contains('is-error'));
+
+    // Dynamic update into invalid bounds
+    comp.update({ min_length: 30 });
+    assert.equal(counter.textContent, '?');
+    assert.ok(counter.classList.contains('is-warning'));
+    assert.equal(ta.getAttribute('minlength'), null);
+    assert.equal(ta.getAttribute('maxlength'), null);
+
+    // Dynamic update clearing limits
+    comp.update({ min_length: null, max_length: null });
+    assert.equal(counter.hidden, true);
+    assert.equal(counter.style.display, 'none');
 });
 
 

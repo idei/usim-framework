@@ -17,6 +17,7 @@ class Textarea extends UIComponent
             'value' => null,
             'width' => null,
             'height' => null,
+            'min_length' => null,
             'max_length' => null,
             'mode' => 'plain',   // 'plain' | 'markdown'
             'required' => false,
@@ -62,6 +63,15 @@ class Textarea extends UIComponent
         $value = $this->getConfig()['value'] ?? '';
 
         return \is_string($value) ? $value : '';
+    }
+
+    /**
+     * Set the minimum number of characters required.
+     * Pass null to remove the limit.
+     */
+    public function minLength(?int $minLength): self
+    {
+        return $this->setConfig('min_length', $minLength);
     }
 
     /**

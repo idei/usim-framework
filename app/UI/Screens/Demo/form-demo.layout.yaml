@@ -14,7 +14,7 @@ grid:
     - lbl_instruction: { justify: center, style: info, center: true }
     - input_name:      { type: text,  required: true, width: full, help_text: .validation.name_required }
     - input_email:     { type: email, required: true, width: full, help_text: .validation.email_required }
-    - input_message:   { row: 1fr,    required: true, width: full, help_text: .validation.message_required, max_length: 50, counter: true }
+    - input_message:   { row: 1fr,    required: true, width: full, help_text: .validation.message_required, min_length: 10, max_length: 50, counter: true }
     - btn_submit:      { span: 1, justify: start, style: primary,   action: submit_form, width: full }
     - btn_reset:       { span: 1, justify: end,   style: secondary, action: reset_form,  width: full }
     - lbl_result:      { text: .result.initial, justify: center, style: secondary, width: full }
