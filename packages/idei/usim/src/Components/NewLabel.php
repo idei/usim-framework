@@ -2,6 +2,7 @@
 
 namespace Idei\Usim\Components;
 
+use Idei\Usim\Concerns\HasIcon;
 use Idei\Usim\Enums\Align;
 use Idei\Usim\Enums\Animation;
 use Idei\Usim\Enums\FontWeight;
@@ -29,6 +30,8 @@ use Idei\Usim\Enums\Variant;
  */
 class NewLabel extends UIComponent
 {
+    use HasIcon;
+
     protected function getDefaultConfig(): array
     {
         return [
@@ -407,22 +410,6 @@ class NewLabel extends UIComponent
     public function maxLines(int $lines): static
     {
         return $this->setConfig('max_lines', $lines);
-    }
-
-    /**
-     * Set an icon
-     *
-     * @param  string  $icon  The icon name
-     * @param  Align|string  $position  The position (left, right)
-     * @return static For method chaining
-     */
-    public function icon(string $icon, Align|string $position = Align::LEFT): static
-    {
-        $pos = $position instanceof Align ? $position->value : $position;
-        $this->setConfig('icon', $icon);
-        $this->setConfig('icon_position', $pos);
-
-        return $this;
     }
 
     /**

@@ -217,11 +217,9 @@ SVG;
 
             $rowData['edit'] = [
                 'button' => [
-                    'label' => t('datatable.translation_keys.actions.edit.label'),
+                    'aria_label' => t('datatable.translation_keys.actions.edit.label'),
                     'icon' => $this->svgDataUri(self::EDIT_ICON_SVG),
-                    'icon_only' => true,
                     'tooltip' => t('datatable.translation_keys.actions.edit.tooltip'),
-                    'icon_size' => 16,
                     'action' => 'edit_translation',
                     'style' => 'secondary',
                     'parameters' => [
@@ -233,11 +231,9 @@ SVG;
 
             $rowData['delete'] = [
                 'button' => [
-                    'label' => t('datatable.translation_keys.actions.delete.label'),
+                    'aria_label' => t('datatable.translation_keys.actions.delete.label'),
                     'icon' => $this->svgDataUri(self::DELETE_ICON_SVG),
-                    'icon_only' => true,
                     'tooltip' => t('datatable.translation_keys.actions.delete.tooltip'),
-                    'icon_size' => 16,
                     'action' => 'delete_translation',
                     'style' => 'danger',
                     'parameters' => [

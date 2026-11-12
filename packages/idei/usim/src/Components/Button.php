@@ -2,13 +2,16 @@
 
 namespace Idei\Usim\Components;
 
+use Idei\Usim\Concerns\HasIcon;
+use Idei\Usim\Enums\TextSize;
+
 /**
  * Button UI Component Builder
  *
  * Fluent builder for creating interactive buttons with support for:
  * - Multiple styles (primary, secondary, success, danger, etc.)
  * - Visual variants (solid, outline, ghost, link)
- * - Icons with customizable position, size, and color
+ * - Agnostic icons by name, emoji, or explicit SVG/PNG source
  * - Loading states with custom text and icons
  * - Confirmation dialogs before action execution
  * - Accessibility features (ARIA labels, keyboard shortcuts)
@@ -17,6 +20,8 @@ namespace Idei\Usim\Components;
  */
 class Button extends UIComponent
 {
+    use HasIcon;
+
     protected function getDefaultConfig(): array
     {
         return [
@@ -41,10 +46,7 @@ class Button extends UIComponent
 
             // Icon
             'icon' => null,
-            'icon_color' => null,
-            'icon_size' => null,
             'icon_position' => 'left', // left, right, top, bottom
-            'icon_only' => false,
 
             // Interaction
             'tooltip' => null,
@@ -96,39 +98,6 @@ class Button extends UIComponent
         $this->setConfig('parameters', $parameters);
 
         return $this;
-    }
-
-    /**
-     * Set the button icon
-     *
-     * @param  string  $icon  The icon name
-     * @return static For method chaining
-     */
-    public function icon(string $icon): static
-    {
-        return $this->setConfig('icon', $icon);
-    }
-
-    /**
-     * Set icon color for SVG icons
-     *
-     * @param  string|null  $color  CSS color value (e.g. #ffffff, rgb(255,255,255), var(--color))
-     * @return static For method chaining
-     */
-    public function iconColor(?string $color): static
-    {
-        return $this->setConfig('icon_color', $color);
-    }
-
-    /**
-     * Set icon size for button icon
-     *
-     * @param  string|int|null  $size  CSS size value (e.g. 16, "20px", "1.25rem")
-     * @return static For method chaining
-     */
-    public function iconSize(string|int|null $size): static
-    {
-        return $this->setConfig('icon_size', $size);
     }
 
     /**
@@ -192,12 +161,14 @@ class Button extends UIComponent
     /**
      * Set the button size
      *
-     * @param  string  $size  The size (xs, small, medium, large, xl)
+     * @param  TextSize|string  $size  The size (xs, small, medium, large, xl)
      * @return static For method chaining
      */
-    public function size(string $size): static
+    public function size(TextSize|string $size): static
     {
-        return $this->setConfig('size', $size);
+        $value = $size instanceof TextSize ? $size->value : $size;
+
+        return $this->setConfig('size', $value);
     }
 
     /**
@@ -256,28 +227,6 @@ class Button extends UIComponent
     public function shape(string $shape): static
     {
         return $this->setConfig('shape', $shape);
-    }
-
-    /**
-     * Set the icon position
-     *
-     * @param  string  $position  The position (left, right, top, bottom)
-     * @return static For method chaining
-     */
-    public function iconPosition(string $position): static
-    {
-        return $this->setConfig('icon_position', $position);
-    }
-
-    /**
-     * Make this an icon-only button (no label)
-     *
-     * @param  bool  $iconOnly  True for icon-only button
-     * @return static For method chaining
-     */
-    public function iconOnly(bool $iconOnly = true): static
-    {
-        return $this->setConfig('icon_only', $iconOnly);
     }
 
     /**

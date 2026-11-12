@@ -42,6 +42,7 @@ use Idei\Usim\Support\TranslationService;
 use Idei\Usim\Support\UIIdGenerator;
 use Idei\Usim\Support\UIStateRepository;
 use Idei\Usim\Support\UsimConfig;
+use Idei\Usim\Support\UsimIconRegistry;
 use Idei\Usim\Support\UsimTranslator;
 use Idei\Usim\Sync\Handlers\DeviceSyncHandler;
 use Idei\Usim\Sync\Handlers\LangSyncHandler;
@@ -109,6 +110,10 @@ class UsimServiceProvider extends ServiceProvider
 
         $this->app->singleton(UsimConfig::class, function () {
             return new UsimConfig;
+        });
+
+        $this->app->singleton(UsimIconRegistry::class, function () {
+            return new UsimIconRegistry;
         });
 
         $this->app->singleton(
@@ -210,6 +215,10 @@ class UsimServiceProvider extends ServiceProvider
             $this->publishes([
                 __DIR__.'/../resources/assets' => public_path('vendor/idei/usim'),
             ], 'usim-assets');
+
+            $this->publishes([
+                __DIR__.'/../resources/icons' => public_path('vendor/idei/usim/icons'),
+            ], 'usim-icons');
 
             $this->publishes([
                 __DIR__.'/../docs' => base_path('docs/usim'),

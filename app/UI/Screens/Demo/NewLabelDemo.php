@@ -135,6 +135,8 @@ class NewLabelDemo extends Screen
 
         $effectsRow->add(UI::newLabel()->text('Con Icono Izq')->icon('🚀', Align::LEFT)->pill()->primary());
         $effectsRow->add(UI::newLabel()->text('Con Icono Der')->icon('⭐', Align::RIGHT)->pill()->warning());
+        $effectsRow->add(UI::newLabel()->text('Icono por Nombre')->icon('check', Align::LEFT)->pill()->success());
+        $effectsRow->add(UI::newLabel()->text('Icono Config')->icon('settings', Align::RIGHT)->outlined()->info());
         $effectsRow->add(UI::newLabel()->text('Con Sombra')->shadow()->chip()->success());
         $effectsRow->add(UI::newLabel()->text('Con Glow')->glow()->chip()->info());
         $wrapper->add($effectsRow);

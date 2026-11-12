@@ -2,6 +2,8 @@
 
 namespace Idei\Usim\Components;
 
+use Idei\Usim\Concerns\HasIcon;
+
 /**
  * Builder for Label UI components
  *
@@ -24,6 +26,8 @@ namespace Idei\Usim\Components;
  */
 class Label extends UIComponent
 {
+    use HasIcon;
+
     protected function getDefaultConfig(): array
     {
         return [
@@ -54,7 +58,6 @@ class Label extends UIComponent
             // Icon
             'icon' => null,
             'icon_position' => 'left', // left, right
-            'icon_color' => null,
 
             // Badge/Counter
             'badge' => null, // Show a small badge/counter
@@ -415,32 +418,6 @@ class Label extends UIComponent
     public function borderColor(string $color): static
     {
         return $this->setConfig('border_color', $color);
-    }
-
-    /**
-     * Set an icon
-     *
-     * @param  string  $icon  The icon name
-     * @param  string  $position  The position (left, right)
-     * @return static For method chaining
-     */
-    public function icon(string $icon, string $position = 'left'): static
-    {
-        $this->setConfig('icon', $icon);
-        $this->setConfig('icon_position', $position);
-
-        return $this;
-    }
-
-    /**
-     * Set icon color
-     *
-     * @param  string  $color  The icon color
-     * @return static For method chaining
-     */
-    public function iconColor(string $color): self
-    {
-        return $this->setConfig('icon_color', $color);
     }
 
     /**

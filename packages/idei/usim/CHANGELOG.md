@@ -7,6 +7,15 @@ The format is based on Keep a Changelog, and this project follows Semantic Versi
 ## [Unreleased]
 
 ### Added
+- Agnostic Icon System (`Idei\Usim\Concerns\HasIcon`, `Idei\Usim\Support\UsimIconRegistry`) supporting semantic icon names, `BackedEnum`, emojis, or explicit SVG/PNG URLs across `Button`, `NewLabel`, `Label`, and `Table` cell buttons.
+- Standard publishable library of **48 SVG icons** (`packages/idei/usim/resources/icons/`) via `php artisan vendor:publish --tag=usim-icons` (`public/vendor/idei/usim/icons/`), plus user-defined overrides/custom icons in `public/images/icons/`, optional `-light`/`-dark` theme variants, and `usim.icons.paths` / `usim.icons.aliases` configuration in `config/usim.php`.
+- Automatic client theme, `style`, `variant`, and `ContainerAppearance` (`plain`, `subtle`, `card`, `elevated`, `highlight`, `contrast`) adaptation via CSS `mask-image` + `currentColor` (`1.2em` proportional sizing), automatic *icon-only* detection on `Button` when `label` is empty, and Unicode fallback when the icon pack is not published.
+- Framework icon documentation in `packages/idei/usim/docs/ICONS_GUIDE.md` and `IconSystemTest`.
+
+### Removed (Breaking)
+- Removed `iconColor()`, `iconSize()`, and `iconOnly()` builder methods (and `icon_color`, `icon_size`, `icon_only` serialized keys) from `Button`, `NewLabel`, and `Label` to preserve client agnosticism and centralize styling in themes and container appearances.
+
+### Added (Earlier Unreleased)
 - Declarative YAML Container Layouts (`.layout.yaml`) via `Idei\Usim\Support\ContainerLayoutLoader`, `Container::layoutFile(?string $path = null)`, `Container::layoutDefinition(array $definition)`, and `Container::layout('file.layout.yaml')`:
   - Supports CSS Grid auto-flow definitions (`grid.cols`, `grid.rows`, `grid.gap`, `grid.row_gap`, `grid.column_gap`, `grid.padding`, `grid.max_width`, `grid.appearance`, `grid.default_span`, `grid.align`, `grid.justify`) and ordered `grid.children` slot rules (`slot`, `span`, `at`, `row` / `row_height`, `align`, `justify`), plus Flex (`flex`) and Stack (`vertical` / `horizontal`) layouts.
   - Automatically computes `grid_template_rows` when any child slot defines a row track (`row: 1fr`, `row_height: 120px`, etc.) and stretches `Textarea` bodies inside flexible grid rows.

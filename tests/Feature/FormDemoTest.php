@@ -38,8 +38,10 @@ it('loads form demo with expected defaults', function () {
 
         $message->expect('type')->toBe('textarea');
         $message->expect('required')->toBeTrue();
-        $message->expect('value')->toBe('');
+        $message->expect('value')->toBeNull();
         $message->expect('error')->toBeNull();
+        $message->expect('min_length')->toBe(10);
+        $message->expect('max_length')->toBe(50);
         $message->expect('grid_column')->toBe('span 2');
 
         $submit->expect('type')->toBe('button');
@@ -61,7 +63,7 @@ it('loads form demo with expected defaults', function () {
         $wrapper->expect('layout')->toBe('grid');
         $wrapper->expect('grid_template_columns')->toBe('1fr 1fr');
         $wrapper->expect('grid_template_rows')->toBe('auto auto auto 1fr auto auto');
-        $wrapper->expect('gap')->toBe('14px');
+        $wrapper->expect('gap')->toBe('16px');
         $wrapper->expect('padding')->toBe('24px');
 
         $ui->assertNoIssues();
@@ -128,7 +130,7 @@ it('shows format and min-length errors for invalid values', function () {
         $response = $ui->click('btn_submit', [
             'input_name' => 'A',
             'input_email' => 'not-an-email',
-            'input_message' => 'Short message',
+            'input_message' => 'Short',
         ]);
 
         $response->assertOk();
@@ -157,7 +159,7 @@ it('submits successfully and clears inputs for valid values', function () {
 
         $name = 'Alice Wonderland';
         $email = 'alice@example.com';
-        $message = 'This is a valid test message that exceeds fifty characters in total length.';
+        $message = 'This is a valid test message.';
 
         $response = $ui->click('btn_submit', [
             'input_name' => $name,

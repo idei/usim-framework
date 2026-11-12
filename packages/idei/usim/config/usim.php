@@ -399,6 +399,25 @@ return [
     ],
 
     /*
+    |--------------------------------------------------------------------------
+    | Icons Registry
+    |--------------------------------------------------------------------------
+    |
+    | Directorios públicos (en orden de prioridad) donde el cliente web busca
+    | íconos SVG o PNG referenciados por nombre. Los íconos propios de la app
+    | en public/images/icons sobrescriben la biblioteca estándar publicada
+    | mediante `php artisan vendor:publish --tag=usim-icons`.
+    |
+    */
+    'icons' => [
+        'paths' => [
+            'images/icons',
+            'vendor/idei/usim/icons',
+        ],
+        'aliases' => [],
+    ],
+
+    /*
      |--------------------------------------------------------------------------
      | Headless Mode
      |--------------------------------------------------------------------------

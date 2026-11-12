@@ -96,7 +96,9 @@ it('returns menu screen for guests with settings trigger and register option', f
         expect($userMenu['trigger']['label'] ?? null)->toBe('⚙️');
         expect(menuItemsContainLabel($userMenu['items'] ?? [], t('screens.menu.items.register', [], $menuLang)))->toBeTrue();
         expect(menuItemsContainLabel($userMenu['items'] ?? [], t('screens.menu.items.logout', [], $menuLang)))->toBeFalse();
-        expect($themeToggle['icon_color'] ?? null)->toBe('var(--usim-menu-trigger-text)');
+        expect($themeToggle['icon_color'] ?? null)->toBeNull();
+        expect($themeToggle['icon_size'] ?? null)->toBeNull();
+        expect($themeToggle['icon'] ?? '')->toContain('theme-icon-');
 
         $ui->assertNoIssues();
     }

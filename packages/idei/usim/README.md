@@ -106,6 +106,7 @@ php artisan vendor:publish --tag=usim-docs --force
 Key guides included:
 
 - [Declarative Layouts & i18n](docs/DECLARATIVE_LAYOUTS_AND_I18N.md) — `.layout.yaml` syntax, CSS Grid, slots, `Spacing`, `Screen::layoutContainer()`, optional `startingUI()`, and two-level i18n (`t:` / `.key` & `i18n: auto`)
+- [Icons Guide](docs/ICONS_GUIDE.md) — Agnostic icon API (`HasIcon`), standard 48-SVG library (`--tag=usim-icons`), custom user icons (`public/images/icons/`), theme/container adaptation, and full icon catalog
 - [Events System](docs/USIM_EVENTS_SYSTEM.md) — UI & domain event lifecycle, handlers, and diffs
 - [Screen Testing Guide](docs/SCREEN_TESTING_GUIDE.md) — Testing screens with `ScreenTestHarness`, `uiScenario()`, and Pest
 - [USIM JSON Contract](docs/usim_json_contract.md) — Protocol specification for client renderers
@@ -200,11 +201,12 @@ Then visit `/hello-screen` in your browser.
 
 ```php
 // Labels
-UI::label('greeting')->text('Hello World')->style('h2')->center();
+UI::newLabel('greeting')->text('Hello World')->h2()->center()->icon('star', Align::LEFT);
 UI::label('legal_copy')->html('legal.terms-snippet');
 
-// Buttons
-UI::button('save')->label('Save')->style('primary')->action('save_form');
+// Buttons (with semantic icon name, emoji, or icon-only auto-detection)
+UI::button('save')->label('Save')->icon('save', Align::LEFT)->style('primary')->action('save_form');
+UI::button('settings_btn')->icon('settings')->tooltip('Settings')->action('open_settings');
 UI::button('floating_help')
     ->label('Help')
     ->style('secondary')
@@ -366,8 +368,8 @@ Use `_crypt` only when the value should not be readable from client storage.
 
 | Factory Method | Builder Class | Description |
 |---|---|---|
-| `UI::label()` | `Label` | Text labels, headings, paragraphs |
-| `UI::button()` | `Button` | Action buttons with styles |
+| `UI::newLabel()` / `UI::label()` | `NewLabel` / `Label` | Text labels, headings, pills, badges, markdown/HTML, and agnostic icons |
+| `UI::button()` | `Button` | Action buttons with styles, variants, and agnostic/auto icon-only icons |
 | `UI::input()` | `Input` | Text, email, password, hidden inputs |
 | `UI::textarea()` | `Textarea` | Multi-line text and Markdown editor with live preview |
 | `UI::select()` | `Select` | Dropdown selects with static or dynamic `/api/ui-data` options |
@@ -1013,6 +1015,13 @@ return [
         'default_locale'  => env('USIM_DEFAULT_LOCALE', env('APP_LOCALE', 'en')),
         'fallback_locale' => env('USIM_FALLBACK_LOCALE', 'en'),
     ],
+    'icons'             => [
+        'paths'   => [
+            'images/icons',           // App overrides & custom SVG/PNG icons
+            'vendor/idei/usim/icons', // Standard library published via --tag=usim-icons
+        ],
+        'aliases' => [],
+    ],
 ];
 ```
 
@@ -1026,6 +1035,8 @@ return [
 | `users.roles` | Role metadata and default seeded users | `admin` / `user` roles scaffold |
 | `i18n.default_locale` | Preferred locale for DB translation lookup | `APP_LOCALE` or `en` |
 | `i18n.fallback_locale` | Fallback locale for DB translations | `en` |
+| `icons.paths` | Public directories scanned in priority order for named SVG/PNG icons (`UsimIconRegistry`) | `['images/icons', 'vendor/idei/usim/icons']` |
+| `icons.aliases` | Explicit semantic name-to-URL icon overrides | `[]` |
 ---
 
 ## Headless Mode
@@ -1111,7 +1122,9 @@ The client-side JavaScript (`ui-renderer.js`) handles these calls automatically.
 | `php artisan usim:discover` | Scan screens directory and generate manifest cache |
 | `php artisan usim:install` | Scaffold a complete USIM application (screens, auth, admin, tests) |
 | `php artisan usim:install --force` | Overwrite existing files |
+| `php artisan vendor:publish --tag=usim-icons` | Publish the standard 48-SVG icon library to `public/vendor/idei/usim/icons/` |
 | `php artisan vendor:publish --tag=usim-docs` | Publish package documentation into `docs/usim/` |
+| `php artisan vendor:publish --tag=usim-assets --force` | Publish updated frontend JS/CSS assets to `public/vendor/idei/usim/` |
 
 ---
 

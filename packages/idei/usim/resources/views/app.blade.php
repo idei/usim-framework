@@ -75,6 +75,7 @@
         window.RESET_STATE = {{ $reset ? 'true' : 'false' }};
         window.PARAMS = @json($allParams);
         window.QUERY_PARAMS = new URLSearchParams(window.location.search);
+        window.USIM_ICONS = @json(app(\Idei\Usim\Support\UsimIconRegistry::class)->getManifest());
     </script>
     <script
         src="{{ asset('vendor/idei/usim/js/component-registry.js') }}?v={{ $usimAssetVersion('vendor/idei/usim/js/component-registry.js') }}">
