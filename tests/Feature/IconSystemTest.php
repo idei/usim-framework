@@ -110,10 +110,17 @@ it('publishes standard icon library with vendor:publish tag=usim-icons', functio
             ->and(File::exists($publishedDir.'/check.svg'))->toBeTrue()
             ->and(File::exists($publishedDir.'/user.svg'))->toBeTrue()
             ->and(File::exists($publishedDir.'/sun.svg'))->toBeTrue()
-            ->and(File::exists($publishedDir.'/moon.svg'))->toBeTrue();
+            ->and(File::exists($publishedDir.'/moon.svg'))->toBeTrue()
+            ->and(File::exists($publishedDir.'/sparkles.svg'))->toBeTrue()
+            ->and(File::exists($publishedDir.'/bot.svg'))->toBeTrue()
+            ->and(File::exists($publishedDir.'/key.svg'))->toBeTrue()
+            ->and(File::exists($publishedDir.'/shield-check.svg'))->toBeTrue()
+            ->and(File::exists($publishedDir.'/grip-vertical.svg'))->toBeTrue();
 
         $manifest = app(UsimIconRegistry::class)->getManifest();
-        expect($manifest['settings'] ?? null)->toBe('/vendor/idei/usim/icons/settings.svg');
+        expect($manifest['settings'] ?? null)->toBe('/vendor/idei/usim/icons/settings.svg')
+            ->and($manifest['sparkles'] ?? null)->toBe('/vendor/idei/usim/icons/sparkles.svg')
+            ->and($manifest['bot'] ?? null)->toBe('/vendor/idei/usim/icons/bot.svg');
     } finally {
         File::deleteDirectory($publishedDir);
         if ($existedBefore && File::isDirectory($backupDir)) {

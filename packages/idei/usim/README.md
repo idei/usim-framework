@@ -106,7 +106,7 @@ php artisan vendor:publish --tag=usim-docs --force
 Key guides included:
 
 - [Declarative Layouts & i18n](docs/DECLARATIVE_LAYOUTS_AND_I18N.md) — `.layout.yaml` syntax, CSS Grid, slots, `Spacing`, `Screen::layoutContainer()`, optional `startingUI()`, and two-level i18n (`t:` / `.key` & `i18n: auto`)
-- [Icons Guide](docs/ICONS_GUIDE.md) — Agnostic icon API (`HasIcon`), standard 48-SVG library (`--tag=usim-icons`), custom user icons (`public/images/icons/`), theme/container adaptation, and full icon catalog
+- [Icons Guide](docs/ICONS_GUIDE.md) — Agnostic icon API (`HasIcon`), standard 80-SVG library (`--tag=usim-icons`), custom user icons (`public/images/icons/`), theme/container adaptation, and full icon catalog
 - [Events System](docs/USIM_EVENTS_SYSTEM.md) — UI & domain event lifecycle, handlers, and diffs
 - [Screen Testing Guide](docs/SCREEN_TESTING_GUIDE.md) — Testing screens with `ScreenTestHarness`, `uiScenario()`, and Pest
 - [USIM JSON Contract](docs/usim_json_contract.md) — Protocol specification for client renderers
@@ -1122,7 +1122,7 @@ The client-side JavaScript (`ui-renderer.js`) handles these calls automatically.
 | `php artisan usim:discover` | Scan screens directory and generate manifest cache |
 | `php artisan usim:install` | Scaffold a complete USIM application (screens, auth, admin, tests) |
 | `php artisan usim:install --force` | Overwrite existing files |
-| `php artisan vendor:publish --tag=usim-icons` | Publish the standard 48-SVG icon library to `public/vendor/idei/usim/icons/` |
+| `php artisan vendor:publish --tag=usim-icons` | Publish the standard 80-SVG icon library to `public/vendor/idei/usim/icons/` |
 | `php artisan vendor:publish --tag=usim-docs` | Publish package documentation into `docs/usim/` |
 | `php artisan vendor:publish --tag=usim-assets --force` | Publish updated frontend JS/CSS assets to `public/vendor/idei/usim/` |
 

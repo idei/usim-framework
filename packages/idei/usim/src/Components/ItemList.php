@@ -236,7 +236,7 @@ class ItemList extends UIComponent
      */
     public function removeItems(array $ids): static
     {
-        $removeSet = array_map(static fn (int|string $val): string => (string) $val, $ids);
+        $removeSet = array_map(static fn(int|string $val): string => (string) $val, $ids);
         $items = array_values(array_filter(
             $this->getItems(),
             static function (array $item) use ($removeSet): bool {
@@ -253,7 +253,7 @@ class ItemList extends UIComponent
         $selected = $this->getSelectedIds();
         $remainingSelected = array_values(array_filter(
             $selected,
-            static fn (int|string $selId): bool => ! in_array((string) $selId, $removeSet, true)
+            static fn(int|string $selId): bool => ! in_array((string) $selId, $removeSet, true)
         ));
 
         if (count($remainingSelected) !== count($selected)) {
@@ -301,7 +301,7 @@ class ItemList extends UIComponent
      *
      * @return ($mode is null ? string : static)
      */
-    public function selectionMode(?SelectionMode $mode = null): static|string
+    public function selectionMode(SelectionMode|string|null $mode = null): static|string
     {
         if ($mode === null) {
             $selectionMode = $this->config['selection_mode'] ?? null;
@@ -311,13 +311,17 @@ class ItemList extends UIComponent
                 : SelectionMode::NONE->value;
         }
 
+        if (\is_string($mode)) {
+            $mode = SelectionMode::tryFrom(strtolower(trim($mode))) ?? SelectionMode::NONE;
+        }
+
         $this->setConfig('selection_mode', $mode->value);
 
         if ($mode === SelectionMode::NONE) {
             $this->setConfig('selected_items', []);
         } elseif ($mode === SelectionMode::SINGLE) {
             $selected = $this->getSelectedIds();
-            if (count($selected) > 1) {
+            if (\count($selected) > 1) {
                 $this->setConfig('selected_items', [$selected[0]]);
             }
         }
