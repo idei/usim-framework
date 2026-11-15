@@ -794,6 +794,18 @@ $container->add($list);
 
 Selected IDs are automatically synchronized into hidden inputs (`invited_users[]` in multiple mode or `invited_users` in single mode) so any form submission button collects them without extra wiring, and items selected in previous searches remain pinned and visible across subsequent queries.
 
+You can also bind an `ItemList` directly to a capability-based service implementing one or more contracts under `Idei\Usim\Contracts\ItemList` (`Listable`, `Creatable`, `Updatable`, `Deletable`, `BulkDeletable`) via `->service(...)` or `service:` in `.layout.yaml`, automatically inferring CRUD flags and routing `GET /api/ui-data` and `POST /api/ui-event` actions without writing pass-through methods on the `Screen`:
+
+```php
+$list = UI::itemList('movies_list')
+    ->service(\App\Services\Movie\SessionMovieCatalogService::class)
+    ->searchable(true)
+    ->multipleSelect()
+    ->onServiceMutated('catalog_mutated');
+```
+
+See [ITEM_LIST_SERVICE_WIRING.md](docs/ITEM_LIST_SERVICE_WIRING.md) for the full contracts reference and partial override hooks (such as `ConfirmDialog` deletion confirmation).
+
 ---
 
 ## File Uploads

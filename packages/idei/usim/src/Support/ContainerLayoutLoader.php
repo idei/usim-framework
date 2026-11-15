@@ -706,7 +706,7 @@ class ContainerLayoutLoader
      */
     protected static function orderCustomRuleProperties(array $rule): array
     {
-        $priorityKeys = ['creatable', 'editable', 'deletable'];
+        $priorityKeys = ['service', 'creatable', 'editable', 'deletable'];
         $ordered = [];
 
         foreach ($priorityKeys as $priorityKey) {

@@ -258,6 +258,8 @@ class ScreenLifecycleOrchestrator implements ScreenLifecycleOrchestratorInterfac
                         throw $validationException;
                     }
                 }
+            } elseif (($binding = $this->resolveScreenComponentBinding($screen, $triggerComponentId, $method, queryOnly: false)) !== null) {
+                $binding['component']->handleServiceAction($binding['operation'], $parameters, $screen);
             }
 
             $this->finalizeEventContext(screen: $screen, reload: false);
@@ -302,21 +304,26 @@ class ScreenLifecycleOrchestrator implements ScreenLifecycleOrchestratorInterfac
                 $this->clearContainerDirtyState($container);
             }
 
-            if (! method_exists($screen, $method)) {
+            if (method_exists($screen, $method)) {
+                $reflectionMethod = new ReflectionMethod($screen, $method);
+                $arguments = $this->parameterResolver->resolve(
+                    reflectionMethod: $reflectionMethod,
+                    screen: $screen,
+                    parameters: $parameters,
+                    queryParams: $queryParams,
+                    incomingStorage: $incomingStorage,
+                    triggerComponentId: $triggerComponentId
+                );
+
+                $result = $reflectionMethod->invokeArgs($screen, $arguments);
+            } elseif (($binding = $this->resolveScreenComponentBinding($screen, $triggerComponentId, $method, queryOnly: true)) !== null) {
+                $rawSearch = $parameters['search'] ?? $queryParams['search'] ?? '';
+                $search = is_scalar($rawSearch) ? (string) $rawSearch : '';
+
+                $result = $binding['component']->queryServiceItems($search, $parameters);
+            } else {
                 throw new \BadMethodCallException("Query method [{$method}] does not exist on screen [" . get_class($screen) . '].');
             }
-
-            $reflectionMethod = new ReflectionMethod($screen, $method);
-            $arguments = $this->parameterResolver->resolve(
-                reflectionMethod: $reflectionMethod,
-                screen: $screen,
-                parameters: $parameters,
-                queryParams: $queryParams,
-                incomingStorage: $incomingStorage,
-                triggerComponentId: $triggerComponentId
-            );
-
-            $result = $reflectionMethod->invokeArgs($screen, $arguments);
 
             if ($container !== null) {
                 $dirtyChanges = $this->collectDirtyComponentChanges($container);
@@ -333,6 +340,114 @@ class ScreenLifecycleOrchestrator implements ScreenLifecycleOrchestratorInterfac
         } finally {
             $this->idGenerator->popCurrentContext();
         }
+    }
+
+    public function supportsComponentHandler(
+        Screen $screen,
+        ?int $componentId,
+        string $action,
+        bool $queryOnly = false
+    ): bool {
+        $this->idGenerator->pushCurrentContext($screen->getContextIdentifier());
+        try {
+            $container = $screen->getContainer() ?? $this->reconstructScreenTree($screen);
+
+            return $this->resolveItemListServiceBinding($container, $componentId, $action, $queryOnly) !== null;
+        } catch (\Throwable) {
+            return false;
+        } finally {
+            $this->idGenerator->popCurrentContext();
+        }
+    }
+
+    /**
+     * Resolve an ItemList component binding from an already-initialized screen container.
+     *
+     * @return array{component: ItemList, operation: string}|null
+     */
+    protected function resolveScreenComponentBinding(
+        Screen $screen,
+        ?int $componentId,
+        string $action,
+        bool $queryOnly
+    ): ?array {
+        $container = $screen->getContainer();
+
+        return $container !== null
+            ? $this->resolveItemListServiceBinding($container, $componentId, $action, $queryOnly)
+            : null;
+    }
+
+    /**
+     * Resolve an ItemList component and operation for a service-wired query or mutation action.
+     *
+     * @return array{component: ItemList, operation: string}|null
+     */
+    protected function resolveItemListServiceBinding(
+        Container $container,
+        ?int $componentId,
+        string $action,
+        bool $queryOnly
+    ): ?array {
+        $parsed = ItemList::parseServiceAction($action);
+
+        $component = $componentId !== null ? $container->findById($componentId) : null;
+        if (! ($component instanceof ItemList) && $parsed !== null) {
+            $target = $parsed['target'];
+            $component = $container->findByName($target)
+                ?? (ctype_digit($target) ? $container->findById((int) $target) : null);
+        }
+
+        if (! ($component instanceof ItemList)) {
+            return null;
+        }
+
+        $operation = $parsed['operation'] ?? null;
+
+        if ($operation === null) {
+            if ($queryOnly) {
+                if ($component->get('action') === $action) {
+                    $operation = 'list';
+                }
+            } else {
+                $eventMap = [
+                    'on_create' => 'create',
+                    'on_update' => 'update',
+                    'on_delete' => 'delete',
+                    'on_bulk_delete' => 'bulk_delete',
+                ];
+
+                foreach ($eventMap as $configKey => $candidateOp) {
+                    $cfg = $component->get($configKey);
+                    $configuredAction = is_array($cfg) ? ($cfg['action'] ?? null) : (is_string($cfg) ? $cfg : null);
+                    if ($configuredAction === $action) {
+                        $operation = $candidateOp;
+                        break;
+                    }
+                }
+            }
+        }
+
+        if ($operation === null) {
+            return null;
+        }
+
+        if ($queryOnly && $operation !== 'list') {
+            return null;
+        }
+
+        if (! $queryOnly && ! in_array($operation, ['create', 'update', 'delete', 'bulk_delete'], true)) {
+            return null;
+        }
+
+        if (! $component->supportsServiceOperation($operation)) {
+            return null;
+        }
+
+        return [
+            'component' => $component,
+            'operation' => $operation,
+        ];
     }
 
     /**

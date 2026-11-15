@@ -4,7 +4,7 @@ return [
     'menu_title' => 'Lista de Ítems',
     'icon' => '📋',
     'item_list_demo_title' => '🎬 Catálogo de Películas — ItemList Demo',
-    'item_list_demo_intro' => 'Explora búsqueda asíncrona vía GET /api/ui-data con estado de carga, selección simple/múltiple persistente entre búsquedas y operaciones CRUD inline.',
+    'item_list_demo_intro' => 'ItemList conectado a un servicio por contratos (Listable, Creatable, Updatable, Deletable, BulkDeletable) respaldado en sesión, con búsqueda vía GET /api/ui-data, selección persistente y CRUD inline.',
     'selection_mode' => [
         'label' => 'Modo de Selección',
         'options' => [

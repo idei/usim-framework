@@ -86,7 +86,7 @@ test('ItemList supports item CRUD mutations and selection mode transitions in PH
         ->and($list->getSelectedIds())->toBe([]);
 });
 
-test('ItemListDemo renders initial movies catalog and supports GET /api/ui-data search', function () {
+test('ItemListDemo renders initial movies catalog from SessionMovieCatalogService and supports GET /api/ui-data search', function () {
     $harness = ScreenTestHarness::for(ItemListDemo::class);
     $harness->render();
 
@@ -99,14 +99,23 @@ test('ItemListDemo renders initial movies catalog and supports GET /api/ui-data 
     $initialItems = $moviesList->getItems();
 
     expect($initialItems)->not->toBeEmpty()
-        ->and($moviesList->get('action'))->toBe('movies')
-        ->and($moviesList->selectionMode())->toBe('multiple');
+        ->and($moviesList->get('action'))->toBe($moviesList->serviceActionFor('list'))
+        ->and($moviesList->selectionMode())->toBe('multiple')
+        ->and($moviesList->get('creatable'))->toBeTrue()
+        ->and($moviesList->get('editable'))->toBeTrue()
+        ->and($moviesList->get('deletable'))->toBeTrue()
+        ->and($moviesList->get('bulk_deletable'))->toBeTrue();
 
-    // Test GET /api/ui-data query handler directly on screen
-    /** @var ItemListDemo $screen */
-    $screen = $harness->getScreen();
-    $allMovies = $screen->getMovies();
-    $filtered = $screen->getMovies('Matrix');
+    // Test read-only service query directly via Screen::handleQuery
+    $allMovies = $harness->getScreen()->handleQuery(
+        method: (string) $moviesList->get('action'),
+        triggerComponentId: $moviesList->getId()
+    );
+    $filtered = $harness->getScreen()->handleQuery(
+        method: (string) $moviesList->get('action'),
+        parameters: ['search' => 'Matrix'],
+        triggerComponentId: $moviesList->getId()
+    );
 
     expect($allMovies)->not->toBeEmpty()
         ->and($filtered)->not->toBeEmpty()
@@ -114,7 +123,7 @@ test('ItemListDemo renders initial movies catalog and supports GET /api/ui-data 
         ->and($filtered[0]['label'])->toContain('Matrix');
 });
 
-test('ItemListDemo handles inline create, update, single delete, bulk delete and selection mode changes', function () {
+test('ItemListDemo handles service-wired create, update, single delete, bulk delete, confirm dialog, and reset', function () {
     $harness = ScreenTestHarness::for(ItemListDemo::class);
     $harness->render();
 
@@ -122,8 +131,8 @@ test('ItemListDemo handles inline create, update, single delete, bulk delete and
     $moviesList = $harness->getComponent('movies_list');
     $initialCount = count($moviesList->getItems());
 
-    // 1. Create a new movie inline
-    $harness->call('movie_created', ['value' => 'Dune: Parte Dos (2024)']);
+    // 1. Create a new movie inline via auto-wired Creatable service action
+    $harness->call($moviesList->serviceActionFor('create'), ['value' => 'Dune: Parte Dos (2024)']);
 
     /** @var ItemList $moviesList */
     $moviesList = $harness->getComponent('movies_list');
@@ -133,8 +142,8 @@ test('ItemListDemo handles inline create, update, single delete, bulk delete and
 
     $createdId = $itemsAfterCreate[0]['id'];
 
-    // 2. Update the created movie inline
-    $harness->call('movie_updated', [
+    // 2. Update the created movie inline via auto-wired Updatable service action
+    $harness->call($moviesList->serviceActionFor('update'), [
         'id' => $createdId,
         'value' => 'Dune: Parte Dos — Edición IMAX (2024)',
     ]);
@@ -143,24 +152,30 @@ test('ItemListDemo handles inline create, update, single delete, bulk delete and
     $moviesList = $harness->getComponent('movies_list');
     expect($moviesList->findItem($createdId)['label'] ?? null)->toBe('Dune: Parte Dos — Edición IMAX (2024)');
 
-    // 3. Delete the created movie
-    $harness->call('movie_deleted', ['id' => $createdId]);
+    // 3. Delete the created movie via auto-wired Deletable service action
+    $harness->call($moviesList->serviceActionFor('delete'), ['id' => $createdId]);
 
     /** @var ItemList $moviesList */
     $moviesList = $harness->getComponent('movies_list');
     expect($moviesList->getItems())->toHaveCount($initialCount)
         ->and($moviesList->findItem($createdId))->toBeNull();
 
-    // 4. Bulk delete 2 movies
+    // 4. Bulk delete 2 movies via auto-wired BulkDeletable service action
     $remainingItems = $moviesList->getItems();
     $bulkIds = [$remainingItems[0]['id'], $remainingItems[1]['id']];
-    $harness->call('movies_bulk_deleted', ['ids' => $bulkIds]);
+    $harness->call($moviesList->serviceActionFor('bulk_delete'), ['ids' => $bulkIds]);
 
     /** @var ItemList $moviesList */
     $moviesList = $harness->getComponent('movies_list');
     expect($moviesList->getItems())->toHaveCount($initialCount - 2);
 
-    // 5. Switch selection mode to single
+    // 5. Reset catalog restores initial items
+    $harness->call('reset_catalog');
+    /** @var ItemList $moviesList */
+    $moviesList = $harness->getComponent('movies_list');
+    expect($moviesList->getItems())->toHaveCount($initialCount);
+
+    // 6. Switch selection mode to single
     $harness->call('selection_mode_changed', ['value' => 'single']);
     /** @var ItemList $moviesList */
     $moviesList = $harness->getComponent('movies_list');
@@ -198,7 +213,7 @@ test('ItemListDemo layout configures movies_list scrollbar and max_height correc
     $moviesList = $harness->getComponent('movies_list');
 
     expect($moviesList->get('scrollbar'))->toBe('always')
-        ->and($moviesList->get('max_height'))->toBe('320px');
+        ->and($moviesList->get('max_height'))->toBe('420px');
 });
 
 test('ItemList supports granular CRUD label and flag setters regardless of YAML rule order', function () {

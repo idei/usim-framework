@@ -69,7 +69,7 @@ class UIEventController extends Controller
 
             $screen = Screen::make($screenClass);
 
-            $method = $this->resolveActionHandler($screen, $action);
+            $method = $this->resolveActionHandler($screen, $action, $componentId);
             if ($method === null) {
                 // If this screen is an active modal that does not implement the action,
                 // fall back to the caller screen if the caller implements the action.
@@ -79,7 +79,7 @@ class UIEventController extends Controller
                         $callerClass = $modalMeta['caller_screen_class'];
                         if (class_exists($callerClass) && is_a($callerClass, Screen::class, true)) {
                             $callerScreen = Screen::make($callerClass);
-                            $callerMethod = $this->resolveActionHandler($callerScreen, $action);
+                            $callerMethod = $this->resolveActionHandler($callerScreen, $action, $componentId);
                             if ($callerMethod !== null) {
                                 $screen = $callerScreen;
                                 $screenClass = $callerClass;
@@ -238,7 +238,7 @@ class UIEventController extends Controller
         ], 500);
     }
 
-    private function resolveActionHandler(Screen $screen, string $action): ?string
+    private function resolveActionHandler(Screen $screen, string $action, ?int $componentId = null): ?string
     {
         $method = $this->actionToMethodName($action);
 
@@ -258,6 +258,10 @@ class UIEventController extends Controller
         $legacyMethod = 'on'.Str::studly($action);
         if (method_exists($screen, $legacyMethod)) {
             return $legacyMethod;
+        }
+
+        if (Screen::getLifecycleOrchestrator()->supportsComponentHandler($screen, $componentId, $action, queryOnly: false)) {
+            return $action;
         }
 
         return null;

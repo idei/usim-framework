@@ -63,6 +63,16 @@ interface ScreenLifecycleOrchestratorInterface
     ): mixed;
 
     /**
+     * Determine whether a component-bound service handler can resolve the given action or query.
+     */
+    public function supportsComponentHandler(
+        Screen $screen,
+        ?int $componentId,
+        string $action,
+        bool $queryOnly = false
+    ): bool;
+
+    /**
      * Initialize event context before invoking action or render.
      *
      * @param  array<string, mixed>  $incomingStorage

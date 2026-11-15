@@ -128,6 +128,8 @@ UI::itemList('movies_list') // Alias: UI::list('movies_list')
 
 > **Persistencia de selección y formularios**: `ItemList` sincroniza automáticamente inputs ocultos (`name="field[]"` en modo múltiple o `name="field"` en modo simple) para que cualquier `Button` recolecte los IDs seleccionados al enviar el formulario, y preserva visibles los ítems seleccionados aunque una búsqueda posterior en `/api/ui-data` ya no los incluya en los resultados filtrados.
 
+> **Cableado automático por capacidades (`->service(...)`)**: En lugar de declarar handlers manuales (`action`, `onCreate`, `onUpdate`, `onDelete`, `onBulkDelete`) en la `Screen`, podés vincular un servicio con `->service(MyCatalogService::class)` que implemente `Listable`, `Creatable`, `Updatable`, `Deletable` y/o `BulkDeletable` (`Idei\Usim\Contracts\ItemList\*`). Opcionalmente agregá `->onServiceMutated('catalog_mutated')` para sincronizar resúmenes en la `Screen`. Ver [ITEM_LIST_SERVICE_WIRING.md](../../packages/idei/usim/docs/ITEM_LIST_SERVICE_WIRING.md).
+
 
 ## 🌳 Manipulación de Árbol
 

@@ -2,8 +2,7 @@
 
 namespace App\UI\Screens\Demo;
 
-use App\Models\Movie;
-use App\Services\Movie\MovieListingService;
+use App\Services\Movie\SessionMovieCatalogService;
 use Idei\Usim\Components\Button;
 use Idei\Usim\Components\Checkbox;
 use Idei\Usim\Components\Container;
@@ -19,11 +18,11 @@ use Idei\Usim\Screen;
 /**
  * ItemList Demo Screen
  *
- * Demonstrates the vertical ItemList component using the Movies catalog:
- * - Asynchronous data loading & search via GET /api/ui-data (getMovies) with loading state
+ * Demonstrates the vertical ItemList component wired to a capability-based service
+ * (SessionMovieCatalogService implementing Listable, Creatable, Updatable, Deletable, BulkDeletable):
+ * - Automatic CRUD & search wiring from service contracts via `service` in .layout.yaml
  * - Single, Multiple, and None selection modes (preserving selected movies across searches)
- * - Inline CRUD operations (Create, Update, Delete & Bulk Delete)
- * - Optional ConfirmDialog integration on Delete
+ * - Optional Screen override for ConfirmDialog on Delete / Bulk Delete
  * - Form context value collection when clicking a submit button
  */
 class ItemListDemo extends Screen
@@ -47,14 +46,6 @@ class ItemListDemo extends Screen
     protected Button $btn_confirm_marathon;
 
     /**
-     * Persisted movie catalog in screen state so CRUD mutations work seamlessly
-     * with GET /api/ui-data without mutating the shared read-only demo database.
-     *
-     * @var list<array{id: int|string, label: string, subtitle: string, icon: string, badge: string, badge_style: string}>
-     */
-    protected array $store_movies = [];
-
-    /**
      * @var list<int|string>
      */
     protected array $store_pending_delete_ids = [];
@@ -65,8 +56,6 @@ class ItemListDemo extends Screen
 
     protected function startingUI(): Container
     {
-        $this->ensureCatalogLoaded();
-
         $this->sel_selection_mode
             ->options([
                 ['value' => SelectionMode::MULTIPLE->value, 'label' => $this->t('.selection_mode.options.multiple')],
@@ -77,45 +66,24 @@ class ItemListDemo extends Screen
 
         $this->chk_confirm_delete->checked($this->store_confirm_delete);
 
-        $initialSelected = $this->store_movies !== [] ? [$this->store_movies[0]['id']] : [];
+        $items = $this->movies_list->getItems();
+        $firstRawId = $items[0]['id'] ?? null;
+        /** @var list<int|string> $initialSelected */
+        $initialSelected = (is_int($firstRawId) || is_string($firstRawId)) ? [$firstRawId] : [];
 
         $this->movies_list
-            ->items($this->store_movies)
             ->selectionMode(SelectionMode::from($this->store_selection_mode))
             ->select($initialSelected);
+
+        if ($this->store_confirm_delete) {
+            $this->movies_list
+                ->onDelete('movie_deleted')
+                ->onBulkDelete('movies_bulk_deleted');
+        }
 
         $this->lbl_selection_summary->text($this->formatSelectionSummary($initialSelected));
 
         return $this->layoutContainer();
-    }
-
-    /**
-     * Read-only Query Handler invoked via GET /api/ui-data?action=movies.
-     *
-     * @param  array<string, mixed>  $params
-     * @return list<array{id: int|string, label: string, subtitle: string, icon: string, badge: string, badge_style: string}>
-     */
-    public function getMovies(string $search = '', array $params = []): array
-    {
-        $this->ensureCatalogLoaded();
-
-        $rawSearch = $search !== '' ? $search : ($params['search'] ?? '');
-        $term = is_string($rawSearch) ? mb_strtolower(trim($rawSearch)) : '';
-
-        if ($term === '') {
-            return $this->store_movies;
-        }
-
-        return array_values(array_filter(
-            $this->store_movies,
-            static function (array $movie) use ($term): bool {
-                $haystack = mb_strtolower(
-                    $movie['label'] . ' ' . $movie['subtitle'] . ' ' . $movie['badge']
-                );
-
-                return str_contains($haystack, $term);
-            }
-        ));
     }
 
     /**
@@ -141,7 +109,7 @@ class ItemListDemo extends Screen
     }
 
     /**
-     * Handle toggle for ConfirmDialog on delete.
+     * Toggle between direct service deletion and ConfirmDialog interception.
      *
      * @param  array<string, mixed>  $params
      */
@@ -150,6 +118,14 @@ class ItemListDemo extends Screen
         $checked = (bool) ($params['checked'] ?? false);
         $this->store_confirm_delete = $checked;
         $this->chk_confirm_delete->checked($checked);
+
+        if ($checked) {
+            $this->movies_list
+                ->onDelete('movie_deleted')
+                ->onBulkDelete('movies_bulk_deleted');
+        } else {
+            $this->movies_list->useServiceDeleteHandlers();
+        }
     }
 
     /**
@@ -161,7 +137,7 @@ class ItemListDemo extends Screen
     {
         $rawSelected = $params['selected'] ?? [];
         $selectedIds = is_array($rawSelected)
-            ? array_values(array_filter($rawSelected, static fn(mixed $v): bool => is_int($v) || is_string($v)))
+            ? array_values(array_filter($rawSelected, static fn (mixed $v): bool => is_int($v) || is_string($v)))
             : [];
 
         $this->movies_list->select($selectedIds);
@@ -169,86 +145,22 @@ class ItemListDemo extends Screen
     }
 
     /**
-     * Handle inline creation of a new movie.
-     *
-     * @param  array<string, mixed>  $params
+     * Keep selection summary synchronized after service-driven CRUD mutations.
      */
-    public function onMovieCreated(array $params): void
+    public function onCatalogMutated(): void
     {
-        $rawTitle = $params['value'] ?? $params['label'] ?? '';
-        $title = is_string($rawTitle) ? trim($rawTitle) : '';
-
-        if ($title === '') {
-            $this->toast('El título de la película es obligatorio', 'warning');
-
-            return;
-        }
-
-        $this->ensureCatalogLoaded();
-
-        $nextId = 'custom_' . (count($this->store_movies) + 1) . '_' . substr(md5($title . (string) microtime(true)), 0, 5);
-        $year = (int) date('Y');
-
-        $newMovie = [
-            'id' => $nextId,
-            'label' => $title,
-            'subtitle' => "Año {$year} • Agregada manualmente al catálogo",
-            'icon' => '🍿',
-            'badge' => 'Nueva',
-            'badge_style' => 'success',
-        ];
-
-        array_unshift($this->store_movies, $newMovie);
-
-        $this->movies_list->items($this->store_movies);
-        $this->movies_list->reload();
-
-        $this->toast("Película \"{$title}\" agregada al catálogo", 'success');
-    }
-
-    /**
-     * Handle inline update of a movie title.
-     *
-     * @param  array<string, mixed>  $params
-     */
-    public function onMovieUpdated(array $params): void
-    {
-        $rawId = $params['id'] ?? null;
-        $rawValue = $params['value'] ?? $params['label'] ?? '';
-        $newTitle = is_string($rawValue) ? trim($rawValue) : '';
-
-        if (($rawId === null || $rawId === '') || $newTitle === '') {
-            return;
-        }
-
-        if (!is_int($rawId) && !is_string($rawId)) {
-            return;
-        }
-
-        $this->ensureCatalogLoaded();
-        $targetId = (string) $rawId;
-
-        foreach ($this->store_movies as $index => $movie) {
-            if ((string) $movie['id'] === $targetId) {
-                $this->store_movies[$index]['label'] = $newTitle;
-                break;
-            }
-        }
-
-        $this->movies_list->updateItem($rawId, ['label' => $newTitle]);
         $this->lbl_selection_summary->text($this->formatSelectionSummary($this->movies_list->getSelectedIds()));
-        $this->toast("Película actualizada a \"{$newTitle}\"", 'success');
     }
 
     /**
-     * Handle single movie deletion.
+     * Optional ConfirmDialog interception for single movie deletion.
      *
      * @param  array<string, mixed>  $params
      */
     public function onMovieDeleted(array $params): void
     {
         $rawId = $params['id'] ?? null;
-        if (!is_int($rawId) && !is_string($rawId)) {
+        if (! is_int($rawId) && ! is_string($rawId)) {
             return;
         }
 
@@ -271,23 +183,23 @@ class ItemListDemo extends Screen
             return;
         }
 
-        $this->deleteMoviesByIds([$rawId]);
+        $this->movies_list->performServiceDelete($rawId, $this);
     }
 
     /**
-     * Handle bulk deletion of selected movies.
+     * Optional ConfirmDialog interception for bulk deletion of selected movies.
      *
      * @param  array<string, mixed>  $params
      */
     public function onMoviesBulkDeleted(array $params): void
     {
         $rawIds = $params['ids'] ?? $params['selected'] ?? [];
-        if (!is_array($rawIds) || $rawIds === []) {
+        if (! is_array($rawIds) || $rawIds === []) {
             return;
         }
 
         /** @var list<int|string> $ids */
-        $ids = array_values(array_filter($rawIds, static fn(mixed $v): bool => is_int($v) || is_string($v)));
+        $ids = array_values(array_filter($rawIds, static fn (mixed $v): bool => is_int($v) || is_string($v)));
         if ($ids === []) {
             return;
         }
@@ -308,7 +220,7 @@ class ItemListDemo extends Screen
             return;
         }
 
-        $this->deleteMoviesByIds($ids);
+        $this->movies_list->performServiceBulkDelete($ids, $this);
     }
 
     /**
@@ -320,8 +232,14 @@ class ItemListDemo extends Screen
         $this->store_pending_delete_ids = [];
         $this->closeModal();
 
-        if ($ids !== []) {
-            $this->deleteMoviesByIds($ids);
+        if ($ids === []) {
+            return;
+        }
+
+        if (count($ids) === 1) {
+            $this->movies_list->performServiceDelete($ids[0], $this);
+        } else {
+            $this->movies_list->performServiceBulkDelete($ids, $this);
         }
     }
 
@@ -362,104 +280,30 @@ class ItemListDemo extends Screen
     }
 
     /**
-     * Restore initial catalog from MovieListingService.
+     * Restore initial catalog in the session-backed service.
      */
     public function onResetCatalog(): void
     {
-        $this->store_movies = $this->loadInitialMoviesCatalog();
-        $firstId = $this->store_movies !== [] ? [$this->store_movies[0]['id']] : [];
+        $service = $this->movies_list->getService();
+        if ($service instanceof SessionMovieCatalogService) {
+            $service->reset();
+        }
 
         $this->movies_list
             ->error(null)
-            ->items($this->store_movies)
-            ->select($firstId)
-            ->reload();
+            ->refreshFromService();
+
+        $items = $this->movies_list->getItems();
+        $firstRawId = $items[0]['id'] ?? null;
+        /** @var list<int|string> $firstId */
+        $firstId = (is_int($firstRawId) || is_string($firstRawId)) ? [$firstRawId] : [];
+        $this->movies_list->select($firstId);
 
         $this->lbl_selection_summary
             ->text($this->formatSelectionSummary($this->movies_list->getSelectedIds()))
             ->style('default');
 
         $this->toast('Catálogo de películas restaurado', 'info');
-    }
-
-    /**
-     * @param  list<int|string>  $ids
-     */
-    private function deleteMoviesByIds(array $ids): void
-    {
-        $this->ensureCatalogLoaded();
-        $removeSet = array_map(static fn(int|string $id): string => (string) $id, $ids);
-
-        $this->store_movies = array_values(array_filter(
-            $this->store_movies,
-            static fn(array $movie): bool => !in_array((string) $movie['id'], $removeSet, true)
-        ));
-
-        $this->movies_list->removeItems($ids);
-        $this->movies_list->reload();
-
-        $this->lbl_selection_summary->text($this->formatSelectionSummary($this->movies_list->getSelectedIds()));
-
-        $count = count($ids);
-        $msg = $count === 1 ? 'Película eliminada del catálogo' : "{$count} películas eliminadas del catálogo";
-        $this->toast($msg, 'success');
-    }
-
-    private function ensureCatalogLoaded(): void
-    {
-        if ($this->store_movies === []) {
-            $this->store_movies = $this->loadInitialMoviesCatalog();
-        }
-    }
-
-    /**
-     * Load movies from MovieListingService (same source as TableDemo), with a safe fallback
-     * if the database is not seeded in an isolated unit test environment.
-     *
-     * @return list<array{id: int|string, label: string, subtitle: string, icon: string, badge: string, badge_style: string}>
-     */
-    private function loadInitialMoviesCatalog(): array
-    {
-        /** @var MovieListingService $service */
-        $service = app(MovieListingService::class);
-        $result = $service->paginate(page: 1, perPage: 20, sortField: 'title', sortDirection: 'asc');
-        /** @var list<Movie> $movies */
-        $movies = array_values($result['items']);
-
-        $items = [];
-        foreach ($movies as $movie) {
-            $title = t((string) $movie->title);
-            $genreRaw = $movie->genre->name ?? 'genre.unknown';
-            $genre = t((string) $genreRaw);
-            $year = (string) $movie->release_year;
-            $cast = (string) $movie->cast_members;
-
-            $items[] = [
-                'id' => $movie->id,
-                'label' => "{$title} ({$year})",
-                'subtitle' => "Reparto: {$cast}",
-                'icon' => $this->resolveGenreIcon((string) $genreRaw),
-                'badge' => $genre,
-                'badge_style' => 'primary',
-            ];
-        }
-
-        return $items;
-    }
-
-    private function resolveGenreIcon(string $genreKey): string
-    {
-        return match ($genreKey) {
-            'genre.sci-fi' => '🚀',
-            'genre.action' => '💥',
-            'genre.crime' => '🕵️',
-            'genre.drama' => '🎭',
-            'genre.fantasy' => '🧙',
-            'genre.animation' => '🎨',
-            'genre.romance' => '❤️',
-            'genre.thriller' => '🔪',
-            default => '🎬',
-        };
     }
 
     /**
@@ -475,12 +319,18 @@ class ItemListDemo extends Screen
             return 'Ninguna película seleccionada.';
         }
 
-        $selectedSet = array_map(static fn(int|string $id): string => (string) $id, $selectedIds);
+        $selectedSet = array_map(static fn (int|string $id): string => (string) $id, $selectedIds);
+        /** @var list<string> $labels */
         $labels = [];
 
-        foreach ($this->store_movies as $movie) {
-            if (in_array((string) $movie['id'], $selectedSet, true)) {
-                $labels[] = $movie['label'];
+        foreach ($this->movies_list->getItems() as $movie) {
+            $movieId = $movie['id'] ?? null;
+            $movieLabel = $movie['label'] ?? null;
+            if ((is_int($movieId) || is_string($movieId))
+                && is_string($movieLabel)
+                && in_array((string) $movieId, $selectedSet, true)
+            ) {
+                $labels[] = $movieLabel;
             }
         }
 

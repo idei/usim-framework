@@ -7,6 +7,13 @@ The format is based on Keep a Changelog, and this project follows Semantic Versi
 ## [Unreleased]
 
 ### Added
+- Capability-based Service Wiring for `ItemList`:
+  - Added segregated contracts under `Idei\Usim\Contracts\ItemList`: `Listable`, `Creatable`, `Updatable`, `Deletable`, and `BulkDeletable`.
+  - Added `ItemList::service(object|string $service)`, `getService()`, `serviceFeedback()`, `onServiceMutated()`, `useServiceDeleteHandlers()`, `serviceActionFor()`, `supportsServiceOperation()`, `queryServiceItems()`, `refreshFromService()`, `handleServiceAction()`, `performServiceDelete()`, and `performServiceBulkDelete()`.
+  - Automatically infers CRUD flags and default internal service actions (`__usim_item_list_service__:<target>:<op>`) from the contracts implemented by the bound service, without clobbering explicit PHP or `.layout.yaml` overrides.
+  - Added priority ordering for the `service` key in `ContainerLayoutLoader::orderCustomRuleProperties()`.
+  - Added `ScreenLifecycleOrchestratorInterface::supportsComponentHandler()` and unified component-bound service resolution inside `ScreenLifecycleOrchestrator::handleAction()`, `ScreenLifecycleOrchestrator::handleQuery()`, `UIDataController`, `UIEventController`, and `Screen::callAction()`.
+  - Added `SessionMovieCatalogService` (`App\Services\Movie\SessionMovieCatalogService`) implementing all five `ItemList` contracts with session-isolated demo data, updated `ItemListDemo` / `item-list-demo.layout.yaml` / demo translations, and documented the feature in `packages/idei/usim/docs/ITEM_LIST_SERVICE_WIRING.md` and `ItemListServiceWiringTest`.
 - Agnostic Icon System (`Idei\Usim\Concerns\HasIcon`, `Idei\Usim\Support\UsimIconRegistry`) supporting semantic icon names, `BackedEnum`, emojis, or explicit SVG/PNG URLs across `Button`, `NewLabel`, `Label`, and `Table` cell buttons.
 - Standard publishable library of **48 SVG icons** (`packages/idei/usim/resources/icons/`) via `php artisan vendor:publish --tag=usim-icons` (`public/vendor/idei/usim/icons/`), plus user-defined overrides/custom icons in `public/images/icons/`, optional `-light`/`-dark` theme variants, and `usim.icons.paths` / `usim.icons.aliases` configuration in `config/usim.php`.
 - Automatic client theme, `style`, `variant`, and `ContainerAppearance` (`plain`, `subtle`, `card`, `elevated`, `highlight`, `contrast`) adaptation via CSS `mask-image` + `currentColor` (`1.2em` proportional sizing), automatic *icon-only* detection on `Button` when `label` is empty, and Unicode fallback when the icon pack is not published.

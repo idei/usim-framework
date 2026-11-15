@@ -53,7 +53,7 @@ class UIDataController extends Controller
 
             $screen = Screen::make($screenClass);
 
-            $method = $this->resolveQueryHandler($screen, $action);
+            $method = $this->resolveQueryHandler($screen, $action, $componentId);
             if ($method === null) {
                 // If this screen is an active modal that does not implement the query,
                 // fall back to the caller screen if the caller implements the query.
@@ -63,7 +63,7 @@ class UIDataController extends Controller
                         $callerClass = $modalMeta['caller_screen_class'];
                         if (class_exists($callerClass) && is_a($callerClass, Screen::class, true)) {
                             $callerScreen = Screen::make($callerClass);
-                            $callerMethod = $this->resolveQueryHandler($callerScreen, $action);
+                            $callerMethod = $this->resolveQueryHandler($callerScreen, $action, $componentId);
                             if ($callerMethod !== null) {
                                 $screen = $callerScreen;
                                 $screenClass = $callerClass;
@@ -189,7 +189,7 @@ class UIDataController extends Controller
     /**
      * Resolve action string to matching query method on the Screen.
      */
-    public function resolveQueryHandler(Screen $screen, string $action): ?string
+    public function resolveQueryHandler(Screen $screen, string $action, ?int $componentId = null): ?string
     {
         $candidateMethods = $this->candidateQueryMethodNames($action);
 
@@ -197,6 +197,10 @@ class UIDataController extends Controller
             if (method_exists($screen, $method)) {
                 return $method;
             }
+        }
+
+        if (Screen::getLifecycleOrchestrator()->supportsComponentHandler($screen, $componentId, $action, queryOnly: true)) {
+            return $action;
         }
 
         return null;

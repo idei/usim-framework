@@ -891,7 +891,15 @@ abstract class Screen
         int|string|null $parent = null,
         ?int $triggerComponentId = null
     ): static {
-        $method = $this->resolveActionMethod($action);
+        try {
+            $method = $this->resolveActionMethod($action);
+        } catch (\BadMethodCallException $exception) {
+            if (! static::getLifecycleOrchestrator()->supportsComponentHandler($this, $triggerComponentId, $action)) {
+                throw $exception;
+            }
+
+            $method = $action;
+        }
 
         $this->handleAction(
             method: $method,

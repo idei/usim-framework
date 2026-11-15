@@ -2,8 +2,16 @@
 
 namespace Idei\Usim\Components;
 
+use Idei\Usim\Contracts\ItemList\BulkDeletable;
+use Idei\Usim\Contracts\ItemList\Creatable;
+use Idei\Usim\Contracts\ItemList\Deletable;
+use Idei\Usim\Contracts\ItemList\Listable;
+use Idei\Usim\Contracts\ItemList\Updatable;
 use Idei\Usim\Enums\SelectionMode;
+use Idei\Usim\Screen;
+use Idei\Usim\Support\MethodParameterResolver;
 use Idei\Usim\ValueObjects\Size;
+use ReflectionMethod;
 
 /**
  * Builder for ItemList UI components.
@@ -17,6 +25,10 @@ use Idei\Usim\ValueObjects\Size;
  */
 class ItemList extends UIComponent
 {
+    public const SERVICE_ACTION_PREFIX = '__usim_item_list:';
+
+    protected ?object $serviceInstance = null;
+
     public function __construct(?string $name = null)
     {
         parent::__construct($name);
@@ -52,6 +64,11 @@ class ItemList extends UIComponent
             'auto_fetch' => true,
             'reload_token' => 0,
             'loading' => false,
+
+            // Service Binding (Listable / Creatable / Updatable / Deletable / BulkDeletable)
+            'service' => null,
+            'service_feedback' => true,
+            'on_service_mutated' => null,
 
             // CRUD: Create
             'creatable' => false,
@@ -624,6 +641,545 @@ class ItemList extends UIComponent
     public function loading(bool $loading = true): static
     {
         return $this->setConfig('loading', $loading);
+    }
+
+    /**
+     * Bind a capability-based service (Listable, Creatable, Updatable, Deletable, BulkDeletable)
+     * and auto-wire matching UI capabilities and default endpoints.
+     *
+     * @param  object|class-string  $service
+     */
+    public function service(object|string $service): static
+    {
+        $instance = $this->resolveServiceArgument($service);
+
+        if (! self::implementsAnyServiceContract($instance)) {
+            throw new \InvalidArgumentException(
+                sprintf(
+                    'ItemList service [%s] must implement at least one of Listable, Creatable, Updatable, Deletable, or BulkDeletable.',
+                    $instance::class
+                )
+            );
+        }
+
+        $this->serviceInstance = $instance;
+        $this->setConfig('service', $instance::class);
+
+        if ($instance instanceof Listable) {
+            if ($this->isConfigDefault('action')) {
+                $this->action($this->serviceActionFor('list'));
+            }
+
+            if ($this->isConfigDefault('items')) {
+                $search = (string) ($this->getSearchTerm() ?? '');
+                $this->items($instance->list($search, $this->getServiceContext()));
+            }
+        }
+
+        if ($instance instanceof Creatable) {
+            if ($this->isConfigDefault('creatable')) {
+                $this->creatable(true);
+            }
+            if ($this->isConfigDefault('on_create')) {
+                $this->setConfig('on_create', [
+                    'action' => $this->serviceActionFor('create'),
+                    'parameters' => [],
+                ]);
+            }
+        }
+
+        if ($instance instanceof Updatable) {
+            if ($this->isConfigDefault('editable')) {
+                $this->editable(true);
+            }
+            if ($this->isConfigDefault('on_update')) {
+                $this->setConfig('on_update', [
+                    'action' => $this->serviceActionFor('update'),
+                    'parameters' => [],
+                ]);
+            }
+        }
+
+        if ($instance instanceof Deletable) {
+            if ($this->isConfigDefault('deletable')) {
+                $this->setConfig('deletable', true);
+            }
+            if ($this->isConfigDefault('on_delete')) {
+                $this->setConfig('on_delete', [
+                    'action' => $this->serviceActionFor('delete'),
+                    'parameters' => [],
+                ]);
+            }
+        }
+
+        if ($instance instanceof BulkDeletable || $instance instanceof Deletable) {
+            if ($this->isConfigDefault('bulk_deletable')) {
+                $this->setConfig('bulk_deletable', true);
+            }
+            if ($this->isConfigDefault('on_bulk_delete')) {
+                $this->setConfig('on_bulk_delete', [
+                    'action' => $this->serviceActionFor('bulk_delete'),
+                    'parameters' => [],
+                ]);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * Resolve the bound service instance if configured.
+     */
+    public function getService(): ?object
+    {
+        if ($this->serviceInstance !== null) {
+            return $this->serviceInstance;
+        }
+
+        $serviceClass = $this->config['service'] ?? null;
+        if (! is_string($serviceClass) || trim($serviceClass) === '') {
+            return null;
+        }
+
+        if (! class_exists($serviceClass) && ! app()->bound($serviceClass)) {
+            return null;
+        }
+
+        $resolved = app($serviceClass);
+        if (! self::implementsAnyServiceContract($resolved)) {
+            return null;
+        }
+
+        $this->serviceInstance = $resolved;
+
+        return $this->serviceInstance;
+    }
+
+    /**
+     * Enable or disable default toast feedback for service-handled CRUD mutations.
+     */
+    public function serviceFeedback(bool $enabled = true): static
+    {
+        return $this->setConfig('service_feedback', $enabled);
+    }
+
+    /**
+     * Register a Screen action to be notified after any service-driven mutation (create, update, delete, bulk_delete).
+     *
+     * @param  string|array<string, mixed>  $action
+     * @param  array<string, mixed>  $parameters
+     */
+    public function onServiceMutated(string|array $action, array $parameters = []): static
+    {
+        if (is_array($action)) {
+            $actionName = is_string($action['action'] ?? null) ? $action['action'] : '';
+            $actionParams = is_array($action['parameters'] ?? null) ? $action['parameters'] : $parameters;
+
+            return $this->setConfig('on_service_mutated', [
+                'action' => $actionName,
+                'parameters' => $actionParams,
+            ]);
+        }
+
+        return $this->setConfig('on_service_mutated', [
+            'action' => $action,
+            'parameters' => $parameters,
+        ]);
+    }
+
+    /**
+     * Restore default service-wired handlers for delete and bulk-delete actions.
+     */
+    public function useServiceDeleteHandlers(): static
+    {
+        $service = $this->getService();
+        if ($service instanceof Deletable) {
+            $this->setConfig('on_delete', [
+                'action' => $this->serviceActionFor('delete'),
+                'parameters' => [],
+            ]);
+        }
+
+        if ($service instanceof BulkDeletable || $service instanceof Deletable) {
+            $this->setConfig('on_bulk_delete', [
+                'action' => $this->serviceActionFor('bulk_delete'),
+                'parameters' => [],
+            ]);
+        }
+
+        return $this;
+    }
+
+    /**
+     * Build the deterministic internal action identifier for a service operation on this component.
+     */
+    public function serviceActionFor(string $operation): string
+    {
+        $target = $this->name !== null && trim($this->name) !== ''
+            ? trim($this->name)
+            : (string) $this->id;
+
+        return self::SERVICE_ACTION_PREFIX.$target.':'.$operation;
+    }
+
+    /**
+     * Parse an internal ItemList service action string.
+     *
+     * @return array{target: string, operation: string}|null
+     */
+    public static function parseServiceAction(string $action): ?array
+    {
+        if (! str_starts_with($action, self::SERVICE_ACTION_PREFIX)) {
+            return null;
+        }
+
+        $rest = substr($action, strlen(self::SERVICE_ACTION_PREFIX));
+        $lastColon = strrpos($rest, ':');
+        if ($lastColon === false || $lastColon === 0) {
+            return null;
+        }
+
+        $target = substr($rest, 0, $lastColon);
+        $operation = substr($rest, $lastColon + 1);
+        if ($target === '' || $operation === '') {
+            return null;
+        }
+
+        return [
+            'target' => $target,
+            'operation' => $operation,
+        ];
+    }
+
+    /**
+     * Determine whether this ItemList has a bound service capable of handling the given operation.
+     */
+    public function supportsServiceOperation(string $operation): bool
+    {
+        $service = $this->getService();
+        if ($service === null) {
+            return false;
+        }
+
+        return match ($operation) {
+            'list' => $service instanceof Listable,
+            'create' => $service instanceof Creatable,
+            'update' => $service instanceof Updatable,
+            'delete' => $service instanceof Deletable,
+            'bulk_delete' => $service instanceof BulkDeletable || $service instanceof Deletable,
+            default => false,
+        };
+    }
+
+    /**
+     * Execute a read-only Listable query without mutating component state.
+     *
+     * @param  array<string, mixed>  $parameters
+     * @return list<array<string, mixed>>
+     */
+    public function queryServiceItems(string $search = '', array $parameters = []): array
+    {
+        $service = $this->getService();
+        if (! ($service instanceof Listable)) {
+            throw new \BadMethodCallException('ItemList does not have a Listable service bound.');
+        }
+
+        $context = array_merge($this->getServiceContext(), $parameters);
+
+        return self::normalizeItems($service->list($search, $context));
+    }
+
+    /**
+     * Refresh component items from the bound Listable service and trigger a client reload.
+     *
+     * @param  array<string, mixed>  $context
+     */
+    public function refreshFromService(array $context = []): static
+    {
+        $service = $this->getService();
+        if ($service instanceof Listable) {
+            $search = (string) ($this->getSearchTerm() ?? '');
+            $mergedContext = array_merge($this->getServiceContext(), $context);
+            $this->items($service->list($search, $mergedContext));
+            $this->reload();
+        }
+
+        return $this;
+    }
+
+    /**
+     * Dispatch a service-backed CRUD mutation (create, update, delete, bulk_delete).
+     *
+     * @param  array<string, mixed>  $parameters
+     */
+    public function handleServiceAction(string $operation, array $parameters = [], ?Screen $screen = null): void
+    {
+        match ($operation) {
+            'create' => $this->executeServiceCreate($parameters, $screen),
+            'update' => $this->executeServiceUpdate($parameters, $screen),
+            'delete' => $this->executeServiceDeleteFromParams($parameters, $screen),
+            'bulk_delete' => $this->executeServiceBulkDeleteFromParams($parameters, $screen),
+            default => throw new \BadMethodCallException("Unsupported ItemList service operation [{$operation}]."),
+        };
+    }
+
+    /**
+     * Delete a single item via the bound Deletable service and synchronize list state.
+     */
+    public function performServiceDelete(int|string $id, ?Screen $screen = null): bool
+    {
+        $service = $this->getService();
+        if (! ($service instanceof Deletable)) {
+            throw new \BadMethodCallException('ItemList does not have a Deletable service bound.');
+        }
+
+        $deleted = $service->delete($id);
+        if (! $deleted) {
+            return false;
+        }
+
+        $this->removeItems([$id]);
+        $this->refreshFromService();
+        $this->emitServiceToast($screen, 'Elemento eliminado', 'success');
+        $this->notifyServiceMutated($screen, 'delete', ['id' => $id]);
+
+        return true;
+    }
+
+    /**
+     * Delete multiple items via the bound BulkDeletable (or Deletable fallback) service and synchronize list state.
+     *
+     * @param  list<int|string>  $ids
+     */
+    public function performServiceBulkDelete(array $ids, ?Screen $screen = null): int
+    {
+        if ($ids === []) {
+            return 0;
+        }
+
+        $service = $this->getService();
+        $deletedCount = 0;
+
+        if ($service instanceof BulkDeletable) {
+            $deletedCount = $service->deleteMany($ids);
+        } elseif ($service instanceof Deletable) {
+            foreach ($ids as $id) {
+                if ($service->delete($id)) {
+                    $deletedCount++;
+                }
+            }
+        } else {
+            throw new \BadMethodCallException('ItemList does not have a BulkDeletable or Deletable service bound.');
+        }
+
+        if ($deletedCount <= 0) {
+            return 0;
+        }
+
+        $this->removeItems($ids);
+        $this->refreshFromService();
+        $msg = $deletedCount === 1
+            ? 'Elemento eliminado'
+            : "{$deletedCount} elementos eliminados";
+        $this->emitServiceToast($screen, $msg, 'success');
+        $this->notifyServiceMutated($screen, 'bulk_delete', ['ids' => $ids, 'count' => $deletedCount]);
+
+        return $deletedCount;
+    }
+
+    /**
+     * @param  array<string, mixed>  $parameters
+     */
+    private function executeServiceCreate(array $parameters, ?Screen $screen): void
+    {
+        $service = $this->getService();
+        if (! ($service instanceof Creatable)) {
+            throw new \BadMethodCallException('ItemList does not have a Creatable service bound.');
+        }
+
+        $rawLabel = $parameters['value'] ?? $parameters['label'] ?? '';
+        $label = is_scalar($rawLabel) ? trim((string) $rawLabel) : '';
+        if ($label === '') {
+            $this->emitServiceToast($screen, 'El nombre del elemento es obligatorio', 'warning');
+
+            return;
+        }
+
+        $created = $service->create($label, $parameters);
+        $normalized = self::normalizeSingleItem($created, count($this->getItems()) + 1);
+        $displayLabel = is_string($normalized['label'] ?? null) ? $normalized['label'] : $label;
+
+        if ($service instanceof Listable) {
+            $this->refreshFromService();
+        } else {
+            $this->addItem($normalized, prepend: true);
+        }
+
+        $this->emitServiceToast($screen, "\"{$displayLabel}\" agregado", 'success');
+        $this->notifyServiceMutated($screen, 'create', ['item' => $normalized]);
+    }
+
+    /**
+     * @param  array<string, mixed>  $parameters
+     */
+    private function executeServiceUpdate(array $parameters, ?Screen $screen): void
+    {
+        $service = $this->getService();
+        if (! ($service instanceof Updatable)) {
+            throw new \BadMethodCallException('ItemList does not have an Updatable service bound.');
+        }
+
+        $rawId = $parameters['id'] ?? null;
+        $rawLabel = $parameters['value'] ?? $parameters['label'] ?? '';
+        $label = is_scalar($rawLabel) ? trim((string) $rawLabel) : '';
+
+        if ((! is_int($rawId) && ! is_string($rawId)) || $rawId === '' || $label === '') {
+            return;
+        }
+
+        $updated = $service->update($rawId, $label, $parameters);
+        if ($updated === null) {
+            return;
+        }
+
+        $normalized = self::normalizeSingleItem($updated, 0);
+        $displayLabel = is_string($normalized['label'] ?? null) ? $normalized['label'] : $label;
+        $this->updateItem($rawId, $normalized);
+
+        if ($service instanceof Listable) {
+            $search = (string) ($this->getSearchTerm() ?? '');
+            $this->items($service->list($search, $this->getServiceContext()));
+        }
+
+        $this->emitServiceToast($screen, "Actualizado a \"{$displayLabel}\"", 'success');
+        $this->notifyServiceMutated($screen, 'update', ['id' => $rawId, 'item' => $normalized]);
+    }
+
+    /**
+     * @param  array<string, mixed>  $parameters
+     */
+    private function executeServiceDeleteFromParams(array $parameters, ?Screen $screen): void
+    {
+        $rawId = $parameters['id'] ?? null;
+        if ((! is_int($rawId) && ! is_string($rawId)) || $rawId === '') {
+            return;
+        }
+
+        $this->performServiceDelete($rawId, $screen);
+    }
+
+    /**
+     * @param  array<string, mixed>  $parameters
+     */
+    private function executeServiceBulkDeleteFromParams(array $parameters, ?Screen $screen): void
+    {
+        $rawIds = $parameters['ids'] ?? $parameters['selected'] ?? [];
+        if (! is_array($rawIds) || $rawIds === []) {
+            return;
+        }
+
+        /** @var list<int|string> $ids */
+        $ids = array_values(array_filter(
+            $rawIds,
+            static fn (mixed $v): bool => (is_int($v) || is_string($v)) && $v !== ''
+        ));
+
+        if ($ids === []) {
+            return;
+        }
+
+        $this->performServiceBulkDelete($ids, $screen);
+    }
+
+    /**
+     * @param  array<string, mixed>  $eventPayload
+     */
+    private function notifyServiceMutated(?Screen $screen, string $operation, array $eventPayload = []): void
+    {
+        if ($screen === null) {
+            return;
+        }
+
+        $handlerConfig = $this->config['on_service_mutated'] ?? null;
+        $action = is_array($handlerConfig)
+            ? ($handlerConfig['action'] ?? null)
+            : (is_string($handlerConfig) ? $handlerConfig : null);
+        $baseParams = is_array($handlerConfig) && is_array($handlerConfig['parameters'] ?? null)
+            ? $handlerConfig['parameters']
+            : [];
+
+        if (! is_string($action) || trim($action) === '') {
+            return;
+        }
+
+        $method = method_exists($screen, $action) ? $action : Screen::actionToMethodName($action);
+        if (! method_exists($screen, $method)) {
+            return;
+        }
+
+        $params = array_merge($baseParams, $eventPayload, [
+            'operation' => $operation,
+            'selected' => $this->getSelectedIds(),
+        ]);
+
+        $reflectionMethod = new ReflectionMethod($screen, $method);
+        $arguments = app(MethodParameterResolver::class)->resolve(
+            reflectionMethod: $reflectionMethod,
+            screen: $screen,
+            parameters: $params,
+            triggerComponentId: $this->id
+        );
+
+        $reflectionMethod->invokeArgs($screen, $arguments);
+    }
+
+    private function emitServiceToast(?Screen $screen, string $message, string $type = 'info'): void
+    {
+        if ($screen === null || ! ($this->config['service_feedback'] ?? true)) {
+            return;
+        }
+
+        $screen->toast($message, $type);
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function getServiceContext(): array
+    {
+        $params = $this->config['parameters'] ?? [];
+
+        return is_array($params) ? $params : [];
+    }
+
+    /**
+     * @param  object|class-string  $service
+     */
+    private function resolveServiceArgument(object|string $service): object
+    {
+        if (is_object($service)) {
+            return $service;
+        }
+
+        if (! class_exists($service) && ! app()->bound($service)) {
+            throw new \InvalidArgumentException("ItemList service class [{$service}] does not exist.");
+        }
+
+        $resolved = app($service);
+        if (! is_object($resolved)) {
+            throw new \InvalidArgumentException("ItemList service [{$service}] did not resolve to an object.");
+        }
+
+        return $resolved;
+    }
+
+    private static function implementsAnyServiceContract(object $service): bool
+    {
+        return $service instanceof Listable
+            || $service instanceof Creatable
+            || $service instanceof Updatable
+            || $service instanceof Deletable
+            || $service instanceof BulkDeletable;
     }
 
     /**

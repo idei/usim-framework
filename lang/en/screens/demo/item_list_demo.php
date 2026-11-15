@@ -4,7 +4,7 @@ return [
     'menu_title' => 'Item List Demo',
     'icon' => '📋',
     'item_list_demo_title' => '🎬 Movies Catalog — ItemList Demo',
-    'item_list_demo_intro' => 'Explore async search via GET /api/ui-data with loading indicator, persistent single/multiple selection across searches, and inline CRUD actions.',
+    'item_list_demo_intro' => 'ItemList wired to a contract-based service (Listable, Creatable, Updatable, Deletable, BulkDeletable) backed by session, with GET /api/ui-data search, persistent selection, and inline CRUD.',
     'selection_mode' => [
         'label' => 'Selection Mode',
         'options' => [
