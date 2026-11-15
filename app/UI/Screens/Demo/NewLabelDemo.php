@@ -5,6 +5,7 @@ namespace App\UI\Screens\Demo;
 use Idei\Usim\Components\Container;
 use Idei\Usim\Components\NewLabel;
 use Idei\Usim\Enums\Align;
+use Idei\Usim\Enums\Animation;
 use Idei\Usim\Enums\FontWeight;
 use Idei\Usim\Enums\LayoutType;
 use Idei\Usim\Enums\Style;
@@ -141,6 +142,17 @@ class NewLabelDemo extends Screen
         $effectsRow->add(UI::newLabel()->text('Con Glow')->glow()->chip()->info());
         $wrapper->add($effectsRow);
 
+        $animationsRow = UI::container('animations_row')
+            ->layout(LayoutType::HORIZONTAL)
+            ->gap(Spacing::px(10))
+            ->plain();
+
+        $animationsRow->add(UI::newLabel('lbl_anim_fade')->text('Fade')->animation(Animation::FADE)->pill()->primary());
+        $animationsRow->add(UI::newLabel('lbl_anim_slide')->text('Slide')->animation(Animation::SLIDE)->pill()->info());
+        $animationsRow->add(UI::newLabel('lbl_anim_bounce')->text('Bounce')->animation(Animation::BOUNCE)->pill()->warning());
+        $animationsRow->add(UI::newLabel('lbl_anim_pulse')->text('Pulse')->animation(Animation::PULSE)->pill()->danger());
+        $wrapper->add($animationsRow);
+
         // 6. Markdown
         $wrapper->add($this->buildSectionHeader('6. Soporte Markdown'));
         $mdContainer = UI::container('md_container')
@@ -210,6 +222,49 @@ class NewLabelDemo extends Screen
         );
 
         $interactiveCard->add($controlsRow);
+
+        $animControlsRow = UI::container('anim_controls_row')
+            ->layout(LayoutType::HORIZONTAL)
+            ->gap(Spacing::px(8))
+            ->centerContent()
+            ->plain();
+
+        $animControlsRow->add(
+            UI::button('btn_anim_fade')
+                ->label('Anim: Fade')
+                ->action('set_animation', ['animation' => Animation::FADE->value])
+                ->style('primary')
+        );
+
+        $animControlsRow->add(
+            UI::button('btn_anim_slide')
+                ->label('Anim: Slide')
+                ->action('set_animation', ['animation' => Animation::SLIDE->value])
+                ->style('info')
+        );
+
+        $animControlsRow->add(
+            UI::button('btn_anim_bounce')
+                ->label('Anim: Bounce')
+                ->action('set_animation', ['animation' => Animation::BOUNCE->value])
+                ->style('warning')
+        );
+
+        $animControlsRow->add(
+            UI::button('btn_anim_pulse')
+                ->label('Anim: Pulse')
+                ->action('set_animation', ['animation' => Animation::PULSE->value])
+                ->style('danger')
+        );
+
+        $animControlsRow->add(
+            UI::button('btn_anim_none')
+                ->label('Sin animación')
+                ->action('set_animation', ['animation' => Animation::NONE->value])
+                ->style('secondary')
+        );
+
+        $interactiveCard->add($animControlsRow);
         $wrapper->add($interactiveCard);
 
         $container->add($wrapper);
@@ -250,6 +305,22 @@ class NewLabelDemo extends Screen
     }
 
     /**
+     * Cambia la animación del NewLabel interactivo.
+     *
+     * @param array<string, mixed> $params
+     */
+    public function onSetAnimation(array $params): void
+    {
+        $animation = isset($params['animation']) && is_string($params['animation'])
+            ? $params['animation']
+            : Animation::NONE->value;
+
+        $this->lbl_interactive->animation($animation);
+
+        $this->toast("Animación cambiada a '{$animation}'", 'info');
+    }
+
+    /**
      * Reinicia el estado interactivo del NewLabel.
      */
     public function onResetInteractive(): void
@@ -262,7 +333,8 @@ class NewLabelDemo extends Screen
             ->text('Estado inicial: 0 clics')
             ->style(Style::PRIMARY)
             ->variant(Variant::PILL)
-            ->icon('⚡', Align::LEFT);
+            ->icon('⚡', Align::LEFT)
+            ->animation(Animation::NONE);
 
         $this->toast('Estado interactivo reiniciado', 'success');
     }

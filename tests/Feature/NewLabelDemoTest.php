@@ -80,6 +80,11 @@ it('loads NewLabelDemo screen with all sections rendered', function () {
     expect($interactive->data()['type'])->toBe('newlabel');
     expect($interactive->data()['text'])->toBe('Estado inicial: 0 clics');
 
+    expect($ui->component('lbl_anim_fade')?->data()['animation'])->toBe('fade')
+        ->and($ui->component('lbl_anim_slide')?->data()['animation'])->toBe('slide')
+        ->and($ui->component('lbl_anim_bounce')?->data()['animation'])->toBe('bounce')
+        ->and($ui->component('lbl_anim_pulse')?->data()['animation'])->toBe('pulse');
+
     $ui->assertNoIssues();
 });
 
@@ -124,6 +129,16 @@ it('reactively updates NewLabel on NewLabelDemo screen events', function () {
     expect($interactive->data()['style'])->toBe('primary');
     expect($interactive->data()['variant'])->toBe('pill');
     expect($interactive->data()['text'])->toBe('Estado inicial: 0 clics');
+
+    // Animation updates
+    $ui->click('btn_anim_pulse')->assertOk();
+    expect($ui->component('lbl_interactive')?->data()['animation'])->toBe('pulse');
+
+    $ui->click('btn_anim_bounce')->assertOk();
+    expect($ui->component('lbl_interactive')?->data()['animation'])->toBe('bounce');
+
+    $ui->click('btn_anim_none')->assertOk();
+    expect($ui->component('lbl_interactive')?->data()['animation'])->toBe('none');
 
     $ui->assertNoIssues();
 });
