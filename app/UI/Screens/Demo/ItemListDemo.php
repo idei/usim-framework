@@ -15,7 +15,6 @@ use Idei\Usim\Enums\SelectionMode;
 use Idei\Usim\Enums\Visibility;
 use Idei\Usim\Modals\ConfirmDialog;
 use Idei\Usim\Screen;
-use Throwable;
 
 /**
  * ItemList Demo Screen
@@ -64,16 +63,6 @@ class ItemListDemo extends Screen
 
     protected bool $store_confirm_delete = false;
 
-    // public static function getMenuLabel(): string
-    // {
-    //     return 'ItemList Demo';
-    // }
-
-    // public static function getMenuIcon(): ?string
-    // {
-    //     return '📋';
-    // }
-
     protected function startingUI(): Container
     {
         $this->ensureCatalogLoaded();
@@ -121,7 +110,7 @@ class ItemListDemo extends Screen
             $this->store_movies,
             static function (array $movie) use ($term): bool {
                 $haystack = mb_strtolower(
-                    $movie['label'].' '.$movie['subtitle'].' '.$movie['badge']
+                    $movie['label'] . ' ' . $movie['subtitle'] . ' ' . $movie['badge']
                 );
 
                 return str_contains($haystack, $term);
@@ -172,7 +161,7 @@ class ItemListDemo extends Screen
     {
         $rawSelected = $params['selected'] ?? [];
         $selectedIds = is_array($rawSelected)
-            ? array_values(array_filter($rawSelected, static fn (mixed $v): bool => is_int($v) || is_string($v)))
+            ? array_values(array_filter($rawSelected, static fn(mixed $v): bool => is_int($v) || is_string($v)))
             : [];
 
         $this->movies_list->select($selectedIds);
@@ -197,7 +186,7 @@ class ItemListDemo extends Screen
 
         $this->ensureCatalogLoaded();
 
-        $nextId = 'custom_'.(count($this->store_movies) + 1).'_'.substr(md5($title.(string) microtime(true)), 0, 5);
+        $nextId = 'custom_' . (count($this->store_movies) + 1) . '_' . substr(md5($title . (string) microtime(true)), 0, 5);
         $year = (int) date('Y');
 
         $newMovie = [
@@ -232,7 +221,7 @@ class ItemListDemo extends Screen
             return;
         }
 
-        if (! is_int($rawId) && ! is_string($rawId)) {
+        if (!is_int($rawId) && !is_string($rawId)) {
             return;
         }
 
@@ -259,7 +248,7 @@ class ItemListDemo extends Screen
     public function onMovieDeleted(array $params): void
     {
         $rawId = $params['id'] ?? null;
-        if (! is_int($rawId) && ! is_string($rawId)) {
+        if (!is_int($rawId) && !is_string($rawId)) {
             return;
         }
 
@@ -293,12 +282,12 @@ class ItemListDemo extends Screen
     public function onMoviesBulkDeleted(array $params): void
     {
         $rawIds = $params['ids'] ?? $params['selected'] ?? [];
-        if (! is_array($rawIds) || $rawIds === []) {
+        if (!is_array($rawIds) || $rawIds === []) {
             return;
         }
 
         /** @var list<int|string> $ids */
-        $ids = array_values(array_filter($rawIds, static fn (mixed $v): bool => is_int($v) || is_string($v)));
+        $ids = array_values(array_filter($rawIds, static fn(mixed $v): bool => is_int($v) || is_string($v)));
         if ($ids === []) {
             return;
         }
@@ -399,11 +388,11 @@ class ItemListDemo extends Screen
     private function deleteMoviesByIds(array $ids): void
     {
         $this->ensureCatalogLoaded();
-        $removeSet = array_map(static fn (int|string $id): string => (string) $id, $ids);
+        $removeSet = array_map(static fn(int|string $id): string => (string) $id, $ids);
 
         $this->store_movies = array_values(array_filter(
             $this->store_movies,
-            static fn (array $movie): bool => ! in_array((string) $movie['id'], $removeSet, true)
+            static fn(array $movie): bool => !in_array((string) $movie['id'], $removeSet, true)
         ));
 
         $this->movies_list->removeItems($ids);
@@ -431,80 +420,31 @@ class ItemListDemo extends Screen
      */
     private function loadInitialMoviesCatalog(): array
     {
-        try {
-            /** @var MovieListingService $service */
-            $service = app(MovieListingService::class);
-            $result = $service->paginate(page: 1, perPage: 20, sortField: 'title', sortDirection: 'asc');
-            /** @var list<Movie> $movies */
-            $movies = array_values($result['items']);
+        /** @var MovieListingService $service */
+        $service = app(MovieListingService::class);
+        $result = $service->paginate(page: 1, perPage: 20, sortField: 'title', sortDirection: 'asc');
+        /** @var list<Movie> $movies */
+        $movies = array_values($result['items']);
 
-            if ($movies !== []) {
-                $items = [];
-                foreach ($movies as $movie) {
-                    $title = t((string) $movie->title);
-                    $genreRaw = $movie->genre->name ?? 'genre.unknown';
-                    $genre = t((string) $genreRaw);
-                    $year = (string) $movie->release_year;
-                    $cast = (string) $movie->cast_members;
+        $items = [];
+        foreach ($movies as $movie) {
+            $title = t((string) $movie->title);
+            $genreRaw = $movie->genre->name ?? 'genre.unknown';
+            $genre = t((string) $genreRaw);
+            $year = (string) $movie->release_year;
+            $cast = (string) $movie->cast_members;
 
-                    $items[] = [
-                        'id' => $movie->id,
-                        'label' => "{$title} ({$year})",
-                        'subtitle' => "Reparto: {$cast}",
-                        'icon' => $this->resolveGenreIcon((string) $genreRaw),
-                        'badge' => $genre,
-                        'badge_style' => 'primary',
-                    ];
-                }
-
-                return $items;
-            }
-        } catch (Throwable) {
-            // Fallback below when running in memory without DB migrations
+            $items[] = [
+                'id' => $movie->id,
+                'label' => "{$title} ({$year})",
+                'subtitle' => "Reparto: {$cast}",
+                'icon' => $this->resolveGenreIcon((string) $genreRaw),
+                'badge' => $genre,
+                'badge_style' => 'primary',
+            ];
         }
 
-        return [
-            [
-                'id' => 1,
-                'label' => 'Inception (2010)',
-                'subtitle' => 'Reparto: Leonardo DiCaprio, Joseph Gordon-Levitt, Ellen Page',
-                'icon' => '🚀',
-                'badge' => 'Sci-Fi',
-                'badge_style' => 'primary',
-            ],
-            [
-                'id' => 2,
-                'label' => 'The Dark Knight (2008)',
-                'subtitle' => 'Reparto: Christian Bale, Heath Ledger, Aaron Eckhart',
-                'icon' => '💥',
-                'badge' => 'Action',
-                'badge_style' => 'primary',
-            ],
-            [
-                'id' => 3,
-                'label' => 'The Matrix (1999)',
-                'subtitle' => 'Reparto: Keanu Reeves, Laurence Fishburne, Carrie-Anne Moss',
-                'icon' => '🚀',
-                'badge' => 'Sci-Fi',
-                'badge_style' => 'primary',
-            ],
-            [
-                'id' => 4,
-                'label' => 'The Godfather (1972)',
-                'subtitle' => 'Reparto: Marlon Brando, Al Pacino, James Caan',
-                'icon' => '🕵️',
-                'badge' => 'Crime',
-                'badge_style' => 'warning',
-            ],
-            [
-                'id' => 5,
-                'label' => 'Interstellar (2014)',
-                'subtitle' => 'Reparto: Matthew McConaughey, Anne Hathaway, Jessica Chastain',
-                'icon' => '🚀',
-                'badge' => 'Sci-Fi',
-                'badge_style' => 'primary',
-            ],
-        ];
+        return $items;
     }
 
     private function resolveGenreIcon(string $genreKey): string
@@ -535,7 +475,7 @@ class ItemListDemo extends Screen
             return 'Ninguna película seleccionada.';
         }
 
-        $selectedSet = array_map(static fn (int|string $id): string => (string) $id, $selectedIds);
+        $selectedSet = array_map(static fn(int|string $id): string => (string) $id, $selectedIds);
         $labels = [];
 
         foreach ($this->store_movies as $movie) {

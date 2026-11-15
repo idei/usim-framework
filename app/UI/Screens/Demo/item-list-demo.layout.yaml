@@ -6,13 +6,13 @@ i18n: auto
 
 grid:
   cols: 12
-  gap: m
+  gap: s
   padding: l
   default_span: 12
 
   children:
-    - item_list_demo_title:   { style: default }
-    - item_list_demo_intro:   { style: info }
+    - item_list_demo_title:   { style: default, text_align: center, size: xl, font_weight: bold }
+    - item_list_demo_intro:   { style: info, text_align: center, size: large, font_weight: normal }
     - sel_selection_mode:     { span: 5, on_change: selection_mode_changed }
     - chk_confirm_delete:     { span: 4, align: center, on_change: toggle_confirm_delete }
     - btn_reset_catalog:      { span: 3, justify: end, align: center, style: secondary, icon: refresh, action: reset_catalog }
@@ -22,9 +22,10 @@ grid:
         keep_selected_visible: true
         searchable: true
         debounce: 250
-        max_height: 320
+        max_height: 420
         scrollbar: always
-        variant: card
+        variant: plain
+        selection_mode: multiple
         creatable: true
         create_inline: true
         editable: true

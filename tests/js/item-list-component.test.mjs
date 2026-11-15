@@ -21,6 +21,7 @@ function createDomEnvironment() {
         'packages/idei/usim/resources/assets/js/component-registry.js',
         'packages/idei/usim/resources/assets/js/ui-renderer.js',
         'packages/idei/usim/resources/assets/js/components/shared/ui-event.js',
+        'packages/idei/usim/resources/assets/js/components/shared/content-render.js',
         'packages/idei/usim/resources/assets/js/components/button/index.js',
         'packages/idei/usim/resources/assets/js/components/item-list/index.js',
     ];
@@ -222,4 +223,34 @@ test('ItemList: supports inline Create, inline Update, and direct Delete events'
     assert.equal(events.length, 3);
     assert.equal(events[2].action, 'movie_deleted');
     assert.equal(events[2].parameters.id, 1);
+});
+
+test('ItemList: renders row edit and delete buttons with standard SVG icons when USIM_ICONS manifest is available', () => {
+    const dom = createDomEnvironment();
+    dom.window.USIM_ICONS = {
+        edit: '/vendor/idei/usim/icons/edit.svg',
+        trash: '/vendor/idei/usim/icons/trash.svg',
+    };
+
+    const listComp = dom.window.USIM_COMPONENTS.create('item_list', 701, {
+        name: 'movies_list',
+        editable: true,
+        deletable: true,
+        items: [
+            { id: 1, label: 'Interstellar' },
+        ],
+    });
+
+    const el = listComp.render();
+    const editIcon = el.querySelector('.usim-item-list-action-btn.edit .usim-item-list-action-icon');
+    const deleteIcon = el.querySelector('.usim-item-list-action-btn.delete .usim-item-list-action-icon');
+
+    assert.ok(editIcon, 'Edit action icon must exist');
+    assert.ok(deleteIcon, 'Delete action icon must exist');
+    assert.ok(editIcon.classList.contains('ui-icon-svg'));
+    assert.ok(deleteIcon.classList.contains('ui-icon-svg'));
+    assert.match(editIcon.style.maskImage, /edit\.svg/);
+    assert.match(deleteIcon.style.maskImage, /trash\.svg/);
+    assert.equal(editIcon.textContent, '');
+    assert.equal(deleteIcon.textContent, '');
 });
