@@ -6,6 +6,13 @@ The format is based on Keep a Changelog, and this project follows Semantic Versi
 
 ## [Unreleased]
 
+### Fixed
+- Fixed `ItemList` row icon rendering (`resources/assets/js/components/item-list/index.js` and `css/components/item-list/index.css`):
+  - Row icons (`item.icon`) now resolve dynamically via `helpers.createIconElement` into standard SVG (`span.ui-icon-svg`) or Unicode fallback elements rather than outputting raw icon name strings as plain text.
+  - Sized `.usim-item-list-row-icon` proportionally (`1.2em`) with muted color and primary accent when selected, and added infinite spin animation (`usimComponentSpin`) for `loader` and `refresh` row icons.
+  - Updated `createIconElement()` in `content-render.js` to preserve `data-usim-icon-name` attribute on SVG icons for icon-name-targeted CSS rules.
+  - Added `loader.svg`, `alert-circle.svg`, and `check-circle.svg` standard vector icons in `resources/icons/` along with Unicode fallback definitions (`loader: '⏳'`, `'alert-circle': '⚠️'`, `'check-circle': '✅'`).
+
 ### Added
 - Capability-based Service Wiring for `ItemList`:
   - Added `Idei\Usim\DTOs\ListItemDTO` (`make()`, `fromArray()`, `toArray()`, `jsonSerialize()`) to type visual row presentation (`id`, `label`, `subtitle`, `icon`, `badge`, `badgeStyle`, `style` via `Idei\Usim\Enums\Style`, `disabled`, `editable`, `deletable`, `meta`) while keeping selection state solely on `ItemList`, plus semantic `.style-*` row styling in `UsimItemListComponent` and `css/components/item-list/index.css`.

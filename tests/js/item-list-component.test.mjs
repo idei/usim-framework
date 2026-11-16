@@ -280,3 +280,73 @@ test('ItemList: applies semantic row style-* classes independently from disabled
     assert.equal(rows[2].classList.contains('is-disabled'), false);
     assert.ok(rows[3].classList.contains('style-success'));
 });
+
+test('ItemList: renders row icon as SVG with data-usim-icon-name when available in manifest', () => {
+    const dom = createDomEnvironment();
+
+    dom.window.USIM_ICONS = {
+        sparkles: '/vendor/idei/usim/icons/sparkles.svg',
+        loader: '/vendor/idei/usim/icons/loader.svg',
+    };
+
+    const listComp = dom.window.USIM_COMPONENTS.create('item_list', 703, {
+        name: 'icon_list',
+        items: [
+            { id: 1, label: 'Generative AI task', icon: 'sparkles' },
+            { id: 2, label: 'Processing row', icon: 'loader' },
+        ],
+    });
+
+    const el = listComp.render();
+    const rows = el.querySelectorAll('.usim-item-list-row');
+    assert.equal(rows.length, 2);
+
+    const sparklesIcon = rows[0].querySelector('.usim-item-list-row-icon');
+    assert.ok(sparklesIcon, 'First row must contain row icon');
+    assert.ok(sparklesIcon.classList.contains('ui-icon-svg'), 'Should be ui-icon-svg span');
+    assert.match(sparklesIcon.style.maskImage, /sparkles\.svg/);
+    assert.equal(sparklesIcon.getAttribute('data-usim-icon-name'), 'sparkles');
+    assert.equal(sparklesIcon.textContent, '');
+
+    const loaderIcon = rows[1].querySelector('.usim-item-list-row-icon');
+    assert.ok(loaderIcon, 'Second row must contain row icon');
+    assert.ok(loaderIcon.classList.contains('ui-icon-svg'), 'Should be ui-icon-svg span');
+    assert.match(loaderIcon.style.maskImage, /loader\.svg/);
+    assert.equal(loaderIcon.getAttribute('data-usim-icon-name'), 'loader');
+    assert.equal(loaderIcon.textContent, '');
+});
+
+test('ItemList: falls back to named Unicode icon or plain text when manifest is missing', () => {
+    const dom = createDomEnvironment();
+    // No USIM_ICONS manifest defined
+    dom.window.USIM_ICONS = null;
+
+    const listComp = dom.window.USIM_COMPONENTS.create('item_list', 704, {
+        name: 'fallback_icon_list',
+        items: [
+            { id: 1, label: 'Loading row', icon: 'loader' },
+            { id: 2, label: 'Warning row', icon: 'alert-circle' },
+            { id: 3, label: 'Done row', icon: 'check-circle' },
+            { id: 4, label: 'Rocket row', icon: '🚀' },
+        ],
+    });
+
+    const el = listComp.render();
+    const rows = el.querySelectorAll('.usim-item-list-row');
+
+    const loaderIcon = rows[0].querySelector('.usim-item-list-row-icon');
+    assert.ok(loaderIcon.classList.contains('ui-icon-text'));
+    assert.equal(loaderIcon.textContent, '⏳');
+
+    const alertIcon = rows[1].querySelector('.usim-item-list-row-icon');
+    assert.ok(alertIcon.classList.contains('ui-icon-text'));
+    assert.equal(alertIcon.textContent, '⚠️');
+
+    const checkIcon = rows[2].querySelector('.usim-item-list-row-icon');
+    assert.ok(checkIcon.classList.contains('ui-icon-text'));
+    assert.equal(checkIcon.textContent, '✅');
+
+    const rocketIcon = rows[3].querySelector('.usim-item-list-row-icon');
+    assert.ok(rocketIcon.classList.contains('ui-icon-text'));
+    assert.equal(rocketIcon.textContent, '🚀');
+});
