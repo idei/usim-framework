@@ -7,10 +7,14 @@ use Idei\Usim\Contracts\ItemList\Creatable;
 use Idei\Usim\Contracts\ItemList\Deletable;
 use Idei\Usim\Contracts\ItemList\Listable;
 use Idei\Usim\Contracts\ItemList\Updatable;
+use Idei\Usim\DTOs\ListItemDTO;
 use Idei\Usim\Enums\SelectionMode;
+use Idei\Usim\Enums\Style;
 use Idei\Usim\Screen;
 use Idei\Usim\Support\MethodParameterResolver;
 use Idei\Usim\ValueObjects\Size;
+use Illuminate\Contracts\Support\Arrayable;
+use Illuminate\Support\Collection;
 use ReflectionMethod;
 
 /**
@@ -157,13 +161,14 @@ class ItemList extends UIComponent
      *
      * Accepts:
      * - list of associative arrays: [['id' => 1, 'label' => 'Item', 'subtitle' => '...', 'icon' => '...', 'badge' => '...'], ...]
+     * - DTOs / Arrayable items: Collection<int, ListItemDTO> or ListItemDTO[]
      * - select-style options: [['value' => '1', 'label' => 'Item'], ...]
      * - key-value map: ['1' => 'Item 1', '2' => 'Item 2']
      * - simple scalar list: ['Item 1', 'Item 2']
      *
-     * @param  array<int|string, mixed>  $items
+     * @param  Collection<covariant int|string, covariant mixed>|array<int|string, mixed>  $items
      */
-    public function items(array $items): static
+    public function items(Collection|array $items): static
     {
         return $this->setConfig('items', self::normalizeItems($items));
     }
@@ -171,9 +176,9 @@ class ItemList extends UIComponent
     /**
      * Alias for items() to match Select API.
      *
-     * @param  array<int|string, mixed>  $options
+     * @param  Collection<covariant int|string, covariant mixed>|array<int|string, mixed>  $options
      */
-    public function options(array $options): static
+    public function options(Collection|array $options): static
     {
         return $this->items($options);
     }
@@ -196,9 +201,9 @@ class ItemList extends UIComponent
     /**
      * Add a single item to the list.
      *
-     * @param  array<string, mixed>|string  $item
+     * @param  ListItemDTO|array<string, mixed>|string  $item
      */
-    public function addItem(array|string $item, bool $prepend = false): static
+    public function addItem(ListItemDTO|array|string $item, bool $prepend = false): static
     {
         $items = $this->getItems();
         $normalized = self::normalizeSingleItem($item, count($items) + 1);
@@ -215,10 +220,11 @@ class ItemList extends UIComponent
     /**
      * Update an existing item by its ID.
      *
-     * @param  array<string, mixed>  $attributes
+     * @param  ListItemDTO|array<string, mixed>  $attributes
      */
-    public function updateItem(int|string $id, array $attributes): static
+    public function updateItem(int|string $id, ListItemDTO|array $attributes): static
     {
+        $resolvedAttributes = $attributes instanceof ListItemDTO ? $attributes->toArray() : $attributes;
         $targetId = (string) $id;
         $items = $this->getItems();
 
@@ -228,7 +234,7 @@ class ItemList extends UIComponent
                 : '';
 
             if ($itemId === $targetId) {
-                $merged = array_merge($item, $attributes);
+                $merged = array_merge($item, $resolvedAttributes);
                 $merged['id'] = $item['id'];
                 $items[$index] = self::normalizeSingleItem($merged, $index);
                 break;
@@ -1543,18 +1549,19 @@ class ItemList extends UIComponent
     }
 
     /**
-     * Normalize an arbitrary items array into a standard list of item objects.
+     * Normalize an arbitrary items Collection or array into a standard list of item arrays.
      *
-     * @param  array<int|string, mixed>  $items
+     * @param  Collection<covariant int|string, covariant mixed>|array<int|string, mixed>  $items
      * @return list<array<string, mixed>>
      */
-    public static function normalizeItems(array $items): array
+    public static function normalizeItems(Collection|array $items): array
     {
+        $rawItems = $items instanceof Collection ? $items->all() : $items;
         $normalized = [];
-        $isList = array_is_list($items);
+        $isList = array_is_list($rawItems);
         $index = 0;
 
-        foreach ($items as $key => $item) {
+        foreach ($rawItems as $key => $item) {
             if (! $isList && (is_scalar($item) || $item === null)) {
                 $normalized[] = [
                     'id' => $key,
@@ -1570,12 +1577,20 @@ class ItemList extends UIComponent
     }
 
     /**
-     * Normalize a single item entry.
+     * Normalize a single item entry (ListItemDTO, Arrayable, array, or scalar).
      *
      * @return array<string, mixed>
      */
     private static function normalizeSingleItem(mixed $item, int $fallbackIndex): array
     {
+        if ($item instanceof ListItemDTO) {
+            return $item->toArray();
+        }
+
+        if ($item instanceof Arrayable) {
+            $item = $item->toArray();
+        }
+
         if (is_array($item)) {
             $rawId = $item['id'] ?? $item['value'] ?? $item['_model_id'] ?? $fallbackIndex;
             $id = is_int($rawId) || is_string($rawId) ? $rawId : (string) $fallbackIndex;
@@ -1593,6 +1608,12 @@ class ItemList extends UIComponent
                 $normalized['subtitle'] = (string) $item['description'];
             }
 
+            foreach (['style', 'badge_style'] as $styleKey) {
+                if (isset($item[$styleKey])) {
+                    $normalized[$styleKey] = self::normalizeStyleToken($item[$styleKey]);
+                }
+            }
+
             return $normalized;
         }
 
@@ -1602,6 +1623,19 @@ class ItemList extends UIComponent
             'id' => $scalar,
             'label' => $scalar,
         ];
+    }
+
+    private static function normalizeStyleToken(mixed $style): string
+    {
+        if ($style instanceof Style) {
+            return $style->value;
+        }
+
+        if (is_string($style)) {
+            return (Style::tryFrom(strtolower(trim($style))) ?? Style::DEFAULT)->value;
+        }
+
+        return Style::DEFAULT->value;
     }
 
     /**

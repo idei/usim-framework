@@ -2,16 +2,17 @@
 
 namespace Idei\Usim\Contracts\ItemList;
 
+use Idei\Usim\DTOs\ListItemDTO;
+
 /**
  * Contract for services that support creating new items from an ItemList component.
  */
 interface Creatable
 {
     /**
-     * Create a new item from the given label and optional payload, returning the normalized item.
+     * Create a new item from the given label and optional payload, returning the item DTO.
      *
      * @param  array<string, mixed>  $payload
-     * @return array<string, mixed>
      */
-    public function create(string $label, array $payload = []): array;
+    public function create(string $label, array $payload = []): ListItemDTO;
 }

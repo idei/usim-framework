@@ -6,18 +6,21 @@ use Idei\Usim\Components\ItemList;
 use Idei\Usim\Contracts\ItemList\Creatable;
 use Idei\Usim\Contracts\ItemList\Deletable;
 use Idei\Usim\Contracts\ItemList\Listable;
+use Idei\Usim\DTOs\ListItemDTO;
+use Idei\Usim\Enums\Style;
 use Idei\Usim\Screen;
 use Idei\Usim\UI;
+use Illuminate\Support\Collection;
 
 it('infers ItemList UI capabilities strictly from implemented service contracts', function () {
     $readOnlyService = new class implements Listable
     {
-        public function list(string $search = '', array $context = []): array
+        public function list(string $search = '', array $context = []): Collection
         {
-            return [
-                ['id' => 1, 'label' => 'Alpha'],
-                ['id' => 2, 'label' => 'Beta'],
-            ];
+            return collect([
+                ListItemDTO::make(id: 1, label: 'Alpha', style: Style::INFO),
+                ListItemDTO::make(id: 2, label: 'Beta', disabled: true),
+            ]);
         }
     };
 
@@ -28,18 +31,20 @@ it('infers ItemList UI capabilities strictly from implemented service contracts'
         ->and($readOnlyList->get('deletable'))->toBeFalse()
         ->and($readOnlyList->get('bulk_deletable'))->toBeFalse()
         ->and($readOnlyList->get('action'))->toBe($readOnlyList->serviceActionFor('list'))
-        ->and($readOnlyList->getItems())->toHaveCount(2);
+        ->and($readOnlyList->getItems())->toHaveCount(2)
+        ->and($readOnlyList->getItems()[0]['style'])->toBe('info')
+        ->and($readOnlyList->getItems()[1]['disabled'])->toBeTrue();
 
     $createAndDeleteService = new class implements Creatable, Deletable, Listable
     {
-        public function list(string $search = '', array $context = []): array
+        public function list(string $search = '', array $context = []): Collection
         {
-            return [['id' => 1, 'label' => 'Item 1']];
+            return collect([ListItemDTO::make(id: 1, label: 'Item 1')]);
         }
 
-        public function create(string $label, array $payload = []): array
+        public function create(string $label, array $payload = []): ListItemDTO
         {
-            return ['id' => 2, 'label' => $label];
+            return ListItemDTO::make(id: 2, label: $label, style: Style::SUCCESS);
         }
 
         public function delete(int|string $id): bool
@@ -74,12 +79,12 @@ it('falls back to Deletable::delete when BulkDeletable is not implemented', func
             $this->deleted = &$deleted;
         }
 
-        public function list(string $search = '', array $context = []): array
+        public function list(string $search = '', array $context = []): Collection
         {
-            return [
-                ['id' => 10, 'label' => 'Ten'],
-                ['id' => 20, 'label' => 'Twenty'],
-            ];
+            return collect([
+                ListItemDTO::make(id: 10, label: 'Ten'),
+                ListItemDTO::make(id: 20, label: 'Twenty'),
+            ]);
         }
 
         public function delete(int|string $id): bool
@@ -124,10 +129,13 @@ it('serves ItemListDemo queries via GET /api/ui-data and CRUD mutations via POST
     $createResponse->assertOk();
 
     $catalogAfterCreate = app(SessionMovieCatalogService::class)->list();
+    $createdDto = $catalogAfterCreate->first();
     expect($catalogAfterCreate)->toHaveCount($initialCount + 1)
-        ->and($catalogAfterCreate[0]['label'])->toBe('Arrival (2016)');
+        ->and($createdDto)->toBeInstanceOf(ListItemDTO::class)
+        ->and($createdDto?->label)->toBe('Arrival (2016)')
+        ->and($createdDto?->style)->toBe(Style::SUCCESS);
 
-    $createdId = $catalogAfterCreate[0]['id'];
+    $createdId = $createdDto->id;
 
     // 3. POST /api/ui-event update handled automatically by Updatable service
     $updateResponse = $this->postJson('/api/ui-event', [

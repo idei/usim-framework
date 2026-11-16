@@ -2,7 +2,9 @@
 
 use App\UI\Screens\Demo\ItemListDemo;
 use Idei\Usim\Components\ItemList;
+use Idei\Usim\DTOs\ListItemDTO;
 use Idei\Usim\Enums\SelectionMode;
+use Idei\Usim\Enums\Style;
 use Idei\Usim\Testing\ScreenTestHarness;
 use Idei\Usim\UI;
 
@@ -302,4 +304,49 @@ test('ItemListDemo auto-hydrates translations from lang files across locales via
     }
 
     app()->setLocale($originalLocale);
+});
+
+test('ListItemDTO represents item presentation with Style without duplicating selection state', function () {
+    $dto = ListItemDTO::make(
+        id: 42,
+        label: 'Suscripción vencida',
+        subtitle: 'Renovar antes del cierre de mes',
+        icon: '⚠️',
+        badge: 'Vencida',
+        badgeStyle: Style::DANGER,
+        style: Style::DANGER,
+        disabled: true,
+        editable: false,
+        deletable: true,
+        meta: ['plan' => 'pro'],
+    );
+
+    expect(property_exists($dto, 'selected'))->toBeFalse()
+        ->and($dto->style)->toBe(Style::DANGER)
+        ->and($dto->badgeStyle)->toBe(Style::DANGER)
+        ->and($dto->disabled)->toBeTrue();
+
+    $list = UI::itemList('dto_list')
+        ->items(collect([$dto]))
+        ->addItem(ListItemDTO::make(id: 99, label: 'Activo', style: Style::SUCCESS, badge: 'OK', badgeStyle: Style::SUCCESS))
+        ->updateItem(99, ListItemDTO::make(id: 99, label: 'Activo (Editado)', style: Style::INFO));
+
+    $items = $list->getItems();
+
+    expect($items)->toHaveCount(2)
+        ->and($items[0])->toBe([
+            'id' => 42,
+            'label' => 'Suscripción vencida',
+            'style' => 'danger',
+            'badge_style' => 'danger',
+            'disabled' => true,
+            'editable' => false,
+            'deletable' => true,
+            'subtitle' => 'Renovar antes del cierre de mes',
+            'icon' => '⚠️',
+            'badge' => 'Vencida',
+            'meta' => ['plan' => 'pro'],
+        ])
+        ->and($items[1]['label'])->toBe('Activo (Editado)')
+        ->and($items[1]['style'])->toBe('info');
 });

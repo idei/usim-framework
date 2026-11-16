@@ -8,7 +8,8 @@ The format is based on Keep a Changelog, and this project follows Semantic Versi
 
 ### Added
 - Capability-based Service Wiring for `ItemList`:
-  - Added segregated contracts under `Idei\Usim\Contracts\ItemList`: `Listable`, `Creatable`, `Updatable`, `Deletable`, and `BulkDeletable`.
+  - Added `Idei\Usim\DTOs\ListItemDTO` (`make()`, `fromArray()`, `toArray()`, `jsonSerialize()`) to type visual row presentation (`id`, `label`, `subtitle`, `icon`, `badge`, `badgeStyle`, `style` via `Idei\Usim\Enums\Style`, `disabled`, `editable`, `deletable`, `meta`) while keeping selection state solely on `ItemList`, plus semantic `.style-*` row styling in `UsimItemListComponent` and `css/components/item-list/index.css`.
+  - Added segregated contracts under `Idei\Usim\Contracts\ItemList`: `Listable` (returning `Collection<int, ListItemDTO>`), `Creatable` (returning `ListItemDTO`), `Updatable` (returning `?ListItemDTO`), `Deletable`, and `BulkDeletable`.
   - Added `ItemList::service(object|string $service)`, `getService()`, `serviceFeedback()`, `onServiceMutated()`, `useServiceDeleteHandlers()`, `serviceActionFor()`, `supportsServiceOperation()`, `queryServiceItems()`, `refreshFromService()`, `handleServiceAction()`, `performServiceDelete()`, and `performServiceBulkDelete()`.
   - Automatically infers CRUD flags and default internal service actions (`__usim_item_list_service__:<target>:<op>`) from the contracts implemented by the bound service, without clobbering explicit PHP or `.layout.yaml` overrides.
   - Added priority ordering for the `service` key in `ContainerLayoutLoader::orderCustomRuleProperties()`.

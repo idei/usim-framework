@@ -254,3 +254,29 @@ test('ItemList: renders row edit and delete buttons with standard SVG icons when
     assert.equal(editIcon.textContent, '');
     assert.equal(deleteIcon.textContent, '');
 });
+
+test('ItemList: applies semantic row style-* classes independently from disabled state', () => {
+    const dom = createDomEnvironment();
+
+    const listComp = dom.window.USIM_COMPONENTS.create('item_list', 702, {
+        name: 'styled_list',
+        selection_mode: 'multiple',
+        items: [
+            { id: 1, label: 'Normal row', style: 'default', disabled: false },
+            { id: 2, label: 'Critical disabled row', style: 'danger', disabled: true, badge: 'Locked', badge_style: 'warning' },
+            { id: 3, label: 'Muted active row', style: 'muted', disabled: false },
+            { id: 4, label: 'Success row', style: 'success', disabled: false },
+        ],
+    });
+
+    const el = listComp.render();
+    const rows = el.querySelectorAll('.usim-item-list-row');
+
+    assert.equal(rows.length, 4);
+    assert.equal(rows[0].classList.contains('style-default'), false);
+    assert.ok(rows[1].classList.contains('style-danger'));
+    assert.ok(rows[1].classList.contains('is-disabled'));
+    assert.ok(rows[2].classList.contains('style-muted'));
+    assert.equal(rows[2].classList.contains('is-disabled'), false);
+    assert.ok(rows[3].classList.contains('style-success'));
+});
