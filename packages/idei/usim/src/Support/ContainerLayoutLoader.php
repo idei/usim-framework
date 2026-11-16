@@ -361,8 +361,20 @@ class ContainerLayoutLoader
             $container->centerHorizontal();
         }
 
+        if (isset($props['min_width']) && (is_int($props['min_width']) || is_string($props['min_width']))) {
+            $container->minWidth(Size::from($props['min_width']));
+        }
+
         if (isset($props['max_width']) && (is_int($props['max_width']) || is_string($props['max_width']))) {
             $container->maxWidth(Size::from($props['max_width']));
+        }
+
+        if (isset($props['min_height']) && (is_int($props['min_height']) || is_string($props['min_height']))) {
+            $container->minHeight(Size::from($props['min_height']));
+        }
+
+        if (isset($props['max_height']) && (is_int($props['max_height']) || is_string($props['max_height']))) {
+            $container->maxHeight(Size::from($props['max_height']));
         }
 
         if (isset($props['width']) && (is_int($props['width']) || is_string($props['width']))) {
@@ -659,21 +671,19 @@ class ContainerLayoutLoader
             }
 
             // Dimension helpers
-            if ($key === 'width' && ($element instanceof UIComponent || $element instanceof Container)) {
-                if ($value === 'full') {
-                    $element->width(Size::full());
-                } elseif (is_string($value) || is_int($value) || $value instanceof Size) {
-                    $element->width(Size::from($value));
-                }
+            if (in_array($key, ['width', 'height', 'min_width', 'max_width', 'min_height', 'max_height'], true)
+                && ($element instanceof UIComponent || $element instanceof Container)) {
+                $size = match (true) {
+                    $value === 'full' => Size::full(),
+                    is_string($value), is_int($value), $value instanceof Size => Size::from($value),
+                    default => null,
+                };
 
-                continue;
-            }
-
-            if ($key === 'height' && ($element instanceof UIComponent || $element instanceof Container)) {
-                if ($value === 'full') {
-                    $element->height(Size::full());
-                } elseif (is_string($value) || is_int($value) || $value instanceof Size) {
-                    $element->height(Size::from($value));
+                if ($size !== null) {
+                    $methodName = Str::camel($key);
+                    if (method_exists($element, $methodName)) {
+                        $element->{$methodName}($size);
+                    }
                 }
 
                 continue;
