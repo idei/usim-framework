@@ -89,16 +89,30 @@ class ContainerLayoutLoader
      *
      * @param  string|null  $path  Explicit path, filename, or null to infer from calling Screen class
      * @param  string|null  $callingContext  Calling Screen class name
+     * @param  string|null  $baseDir  Base directory of a parent layout file for relative includes
      * @return array<string, mixed>
      */
-    public static function loadFile(?string $path = null, ?string $callingContext = null): array
+    public static function loadFile(?string $path = null, ?string $callingContext = null, ?string $baseDir = null): array
     {
-        $resolvedPath = self::resolvePath($path, $callingContext);
+        return self::loadFileWithMeta($path, $callingContext, $baseDir)['definition'];
+    }
+
+    /**
+     * Resolve and parse a YAML layout file, returning both its definition and resolved filesystem path.
+     *
+     * @return array{definition: array<string, mixed>, resolvedPath: string}
+     */
+    public static function loadFileWithMeta(?string $path = null, ?string $callingContext = null, ?string $baseDir = null): array
+    {
+        $resolvedPath = self::resolvePath($path, $callingContext, $baseDir);
         $mtime = @filemtime($resolvedPath) ?: 0;
         $cacheKey = "{$resolvedPath}:{$mtime}";
 
         if (isset(self::$parsedCache[$cacheKey])) {
-            return self::$parsedCache[$cacheKey];
+            return [
+                'definition' => self::$parsedCache[$cacheKey],
+                'resolvedPath' => $resolvedPath,
+            ];
         }
 
         $parsed = Yaml::parseFile($resolvedPath);
@@ -108,8 +122,12 @@ class ContainerLayoutLoader
 
         /** @var array<string, mixed> $normalized */
         $normalized = $parsed;
+        self::$parsedCache[$cacheKey] = $normalized;
 
-        return self::$parsedCache[$cacheKey] = $normalized;
+        return [
+            'definition' => $normalized,
+            'resolvedPath' => $resolvedPath,
+        ];
     }
 
     /**
@@ -130,7 +148,7 @@ class ContainerLayoutLoader
     /**
      * Resolve the filesystem path for a layout file reference.
      */
-    public static function resolvePath(?string $path = null, ?string $callingContext = null): string
+    public static function resolvePath(?string $path = null, ?string $callingContext = null, ?string $baseDir = null): string
     {
         $contextDir = self::resolveContextDirectory($callingContext);
 
@@ -153,6 +171,15 @@ class ContainerLayoutLoader
         if (! str_ends_with($trimmed, '.yaml') && ! str_ends_with($trimmed, '.yml')) {
             $candidates[] = "{$trimmed}.layout.yaml";
             $candidates[] = "{$trimmed}.yaml";
+        }
+
+        if ($baseDir !== null && $baseDir !== '') {
+            foreach ($candidates as $candidate) {
+                $relativeToBase = $baseDir.'/'.ltrim($candidate, '/');
+                if (is_file($relativeToBase)) {
+                    return (string) realpath($relativeToBase);
+                }
+            }
         }
 
         if ($contextDir !== null) {
@@ -209,6 +236,75 @@ class ContainerLayoutLoader
         }
 
         return $slotNames;
+    }
+
+    /**
+     * Extract normalized child rules indexed by slot name or 1-based position.
+     *
+     * @param  array<string, mixed>  $definition
+     * @return array<int|string, array<string, mixed>>
+     */
+    public static function extractChildRulesBySlot(array $definition): array
+    {
+        $grid = isset($definition['grid']) && is_array($definition['grid'])
+            ? $definition['grid']
+            : $definition;
+
+        $children = $grid['children'] ?? null;
+        if (! is_array($children)) {
+            return [];
+        }
+
+        $rules = [];
+        $idx = 0;
+        foreach ($children as $key => $entry) {
+            $idx++;
+            $normalized = self::normalizeChildEntry($key, $entry, $idx);
+            $slotKey = trim((string) $normalized['slot']);
+            if ($slotKey !== '') {
+                $rules[$slotKey] = $normalized['rule'];
+            }
+            $rules[(string) $idx] = $normalized['rule'];
+        }
+
+        return $rules;
+    }
+
+    /**
+     * Determine whether a child rule declares a nested container layout (inline `grid` or external file reference).
+     *
+     * @param  array<string, mixed>  $rule
+     */
+    public static function isNestedContainerRule(array $rule): bool
+    {
+        if (isset($rule['grid']) && is_array($rule['grid'])) {
+            return true;
+        }
+
+        return self::extractExternalLayoutReference($rule) !== null;
+    }
+
+    /**
+     * Extract an external layout file reference from a child rule (`layout_file`, `include`, `file`, or non-enum `layout`).
+     *
+     * @param  array<string, mixed>  $rule
+     */
+    public static function extractExternalLayoutReference(array $rule): ?string
+    {
+        foreach (['layout_file', 'include', 'file'] as $key) {
+            if (isset($rule[$key]) && is_string($rule[$key]) && trim($rule[$key]) !== '') {
+                return trim($rule[$key]);
+            }
+        }
+
+        if (isset($rule['layout']) && is_string($rule['layout']) && trim($rule['layout']) !== '') {
+            $layoutVal = trim($rule['layout']);
+            if (LayoutType::tryFrom(strtolower($layoutVal)) === null) {
+                return $layoutVal;
+            }
+        }
+
+        return null;
     }
 
     /**
@@ -324,21 +420,35 @@ class ContainerLayoutLoader
      * Apply both container-level and child-level layout rules to a Container and its current children.
      *
      * @param  array<string, mixed>  $definition
+     * @param  list<string>  $visitedPaths
      */
     public static function applyToContainer(
         Container $container,
         array $definition,
         ?string $callingContext = null,
-        bool $autoTranslate = false
+        bool $autoTranslate = false,
+        ?string $baseDir = null,
+        array $visitedPaths = []
     ): void {
         self::applyContainerConfig($container, $definition);
 
         $effectiveAutoTranslate = $autoTranslate || self::isAutoTranslateDefinition($definition);
 
+        if ($visitedPaths === [] && $container->getLayoutSourcePath() !== null) {
+            $visitedPaths = [$container->getLayoutSourcePath()];
+        }
+
         if (isset($definition['grid']) && is_array($definition['grid'])) {
             /** @var array<string, mixed> $grid */
             $grid = $definition['grid'];
-            self::applyGridChildrenConfig($container, $grid, $callingContext, $effectiveAutoTranslate);
+            self::applyGridChildrenConfig(
+                $container,
+                $grid,
+                $callingContext,
+                $effectiveAutoTranslate,
+                $baseDir ?? $container->getLayoutBaseDir(),
+                $visitedPaths
+            );
         } elseif ($effectiveAutoTranslate && $callingContext !== null) {
             self::autoHydrateContainerChildren($container, $callingContext);
         }
@@ -431,12 +541,15 @@ class ContainerLayoutLoader
      * Apply grid child placement, ordering, spans, alignments, and auto-computed row tracks.
      *
      * @param  array<string, mixed>  $grid
+     * @param  list<string>  $visitedPaths
      */
     protected static function applyGridChildrenConfig(
         Container $container,
         array $grid,
         ?string $callingContext = null,
-        bool $autoTranslate = false
+        bool $autoTranslate = false,
+        ?string $baseDir = null,
+        array $visitedPaths = []
     ): void {
         $translationTree = ($autoTranslate && $callingContext !== null)
             ? TranslationResolver::resolveScreenTranslationTree($callingContext)
@@ -577,6 +690,10 @@ class ContainerLayoutLoader
                 ? trim($rule['justify'])
                 : $defaultJustify;
 
+            if ($child instanceof Container && self::isNestedContainerRule($rule)) {
+                self::applyNestedContainerLayout($child, $rule, $callingContext, $autoTranslate, $baseDir, $visitedPaths);
+            }
+
             self::applyPlacementToElement($child, $gridCol, $gridRow, $align, $justify, $rule, $callingContext);
 
             if ($translationTree !== []) {
@@ -623,6 +740,53 @@ class ContainerLayoutLoader
     }
 
     /**
+     * Resolve and apply a nested layout (inline `grid` or external `.layout.yaml` reference) to a child Container.
+     *
+     * @param  array<string, mixed>  $rule
+     * @param  list<string>  $visitedPaths
+     */
+    protected static function applyNestedContainerLayout(
+        Container $child,
+        array $rule,
+        ?string $callingContext,
+        bool $autoTranslate,
+        ?string $baseDir,
+        array $visitedPaths
+    ): void {
+        $externalRef = self::extractExternalLayoutReference($rule);
+        if ($externalRef !== null) {
+            $meta = self::loadFileWithMeta($externalRef, $callingContext, $baseDir);
+            $resolvedPath = $meta['resolvedPath'];
+            if (in_array($resolvedPath, $visitedPaths, true)) {
+                throw new InvalidArgumentException("Circular layout reference detected for [{$resolvedPath}].");
+            }
+
+            $nestedDef = $meta['definition'];
+            $childBaseDir = dirname($resolvedPath);
+            $childVisited = [...$visitedPaths, $resolvedPath];
+            $child->layoutSourcePath($resolvedPath);
+        } else {
+            /** @var array<string, mixed> $gridRule */
+            $gridRule = $rule['grid'];
+            $nestedDef = ['grid' => $gridRule];
+            $childBaseDir = $baseDir;
+            $childVisited = $visitedPaths;
+        }
+
+        // Propagate container box overrides from the parent child rule into the nested definition
+        // so subsequent applyLayoutDefinition() passes preserve caller overrides.
+        foreach (['appearance', 'card', 'center_horizontal', 'center', 'padding', 'gap', 'row_gap', 'column_gap', 'width', 'max_width', 'height', 'i18n'] as $boxKey) {
+            if (array_key_exists($boxKey, $rule)) {
+                $nestedDef[$boxKey] = $rule[$boxKey];
+            }
+        }
+
+        $child->layoutBaseDir($childBaseDir);
+        $child->layoutDefinition($nestedDef, $callingContext, $autoTranslate);
+        self::applyToContainer($child, $nestedDef, $callingContext, $autoTranslate, $childBaseDir, $childVisited);
+    }
+
+    /**
      * @param  array<string, mixed>  $rule
      */
     protected static function applyPlacementToElement(
@@ -663,10 +827,42 @@ class ContainerLayoutLoader
     ): void {
         $ignoredKeys = [
             'slot', 'span', 'at', 'row', 'row_height', 'align', 'justify',
+            'grid', 'layout_file', 'include', 'file', 'i18n',
         ];
+        $hasExternalLayoutRef = self::extractExternalLayoutReference($rule) !== null;
 
         foreach (self::orderCustomRuleProperties($rule) as $key => $value) {
             if (in_array($key, $ignoredKeys, true) || $value === null) {
+                continue;
+            }
+
+            if ($key === 'layout' && $hasExternalLayoutRef) {
+                continue;
+            }
+
+            // Spacing helpers for Container (padding, gap, row_gap, column_gap)
+            if ($element instanceof Container && in_array($key, [
+                'padding', 'padding_top', 'padding_right', 'padding_bottom', 'padding_left',
+                'gap', 'row_gap', 'column_gap',
+            ], true) && (is_string($value) || is_int($value) || $value instanceof Spacing)) {
+                $methodName = Str::camel($key);
+                if (method_exists($element, $methodName)) {
+                    $element->{$methodName}(Spacing::from($value));
+                }
+
+                continue;
+            }
+
+            // Container boolean box helpers
+            if ($element instanceof Container && $key === 'card' && $value === true) {
+                $element->card();
+
+                continue;
+            }
+
+            if ($element instanceof Container && in_array($key, ['center_horizontal', 'center'], true) && $value === true) {
+                $element->centerHorizontal();
+
                 continue;
             }
 

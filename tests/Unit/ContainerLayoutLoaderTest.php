@@ -482,3 +482,208 @@ it('allows omitting startingUI when Screen has a default or declared .layout.yam
     expect(fn () => ScreenTestHarness::for(TestNoStartingUIOrLayoutScreen::class)->render())
         ->toThrow(LogicException::class);
 });
+
+it('supports inline nested container grid definitions inside layout children', function () {
+    $root = UI::container('root_panel')->layoutDefinition([
+        'grid' => [
+            'cols' => ['1fr'],
+            'rows' => ['auto', 'auto'],
+            'children' => [
+                'lbl_title' => ['at' => [1, 1]],
+                'cnt_prompt_input_row' => [
+                    'at' => [2, 1],
+                    'width' => 'full',
+                    'appearance' => 'elevated',
+                    'padding' => 'xs',
+                    'grid' => [
+                        'cols' => ['1fr', 'auto'],
+                        'gap' => 's',
+                        'align' => 'center',
+                        'children' => [
+                            'input_prompt' => ['width' => 'full'],
+                            'btn_send' => ['style' => 'primary'],
+                        ],
+                    ],
+                ],
+            ],
+        ],
+    ]);
+
+    $promptRow = UI::container('cnt_prompt_input_row');
+    $inputPrompt = UI::input('input_prompt');
+    $btnSend = UI::button('btn_send');
+    $promptRow->add($inputPrompt);
+    $promptRow->add($btnSend);
+
+    $root->add(UI::newLabel('lbl_title')->text('Title'));
+    $root->add($promptRow);
+
+    $json = $root->toJson();
+
+    $rowJson = $json[$promptRow->getId()] ?? null;
+
+    expect($rowJson)->not->toBeNull()
+        ->and($rowJson['layout'])->toBe('grid')
+        ->and($rowJson['grid_template_columns'])->toBe('1fr auto')
+        ->and($rowJson['gap'])->toBe('8px')
+        ->and($rowJson['padding'])->toBe('4px')
+        ->and($rowJson['appearance'])->toBe('elevated')
+        ->and($rowJson['grid_row'])->toBe('2')
+        ->and($rowJson['grid_column'])->toBe('1');
+
+    expect($json[$inputPrompt->getId()]['width'])->toBe('100%')
+        ->and($json[$inputPrompt->getId()]['align_self'])->toBe('center')
+        ->and($json[$btnSend->getId()]['style'])->toBe('primary');
+});
+
+class TestNestedInlineScreen extends Screen
+{
+    protected NewLabel $lbl_title;
+
+    protected Input $input_prompt;
+
+    protected Button $btn_send;
+
+    protected function startingUI(): Container
+    {
+        return UI::container('nested_screen_root')->layoutDefinition([
+            'grid' => [
+                'cols' => ['1fr'],
+                'rows' => ['auto', 'auto'],
+                'children' => [
+                    'lbl_title' => ['at' => [1, 1], 'text' => 'Studio'],
+                    'cnt_prompt_input_row' => [
+                        'at' => [2, 1],
+                        'width' => 'full',
+                        'appearance' => 'elevated',
+                        'padding' => 'xs',
+                        'grid' => [
+                            'cols' => ['1fr', 'auto'],
+                            'gap' => 's',
+                            'children' => [
+                                'input_prompt' => ['width' => 'full', 'placeholder' => 'Write a prompt...'],
+                                'btn_send' => ['label' => 'Send', 'style' => 'primary'],
+                            ],
+                        ],
+                    ],
+                ],
+            ],
+        ]);
+    }
+}
+
+it('auto-creates structural nested containers in Screen without declaring Container properties in PHP', function () {
+    $harness = ScreenTestHarness::for(TestNestedInlineScreen::class);
+    $harness->render();
+
+    $harness->assertHasComponent('nested_screen_root')
+        ->assertHasComponent('cnt_prompt_input_row')
+        ->assertHasComponent('input_prompt')
+        ->assertHasComponent('btn_send');
+
+    $row = $harness->getComponent('cnt_prompt_input_row');
+    $rowJson = $row->toJson()[$row->getId()];
+    expect($rowJson['layout'])->toBe('grid')
+        ->and($rowJson['grid_template_columns'])->toBe('1fr auto')
+        ->and($rowJson['appearance'])->toBe('elevated')
+        ->and($rowJson['padding'])->toBe('4px');
+
+    expect($harness->getComponent('input_prompt')->get('width'))->toBe('100%')
+        ->and($harness->getComponent('input_prompt')->get('placeholder'))->toBe('Write a prompt...')
+        ->and($harness->getComponent('btn_send')->get('label'))->toBe('Send');
+});
+
+it('supports referencing external layout files via include, layout_file, and layout', function () {
+    $tmpDir = sys_get_temp_dir().'/usim_nested_layouts_'.uniqid();
+    mkdir($tmpDir.'/partials', 0777, true);
+
+    file_put_contents($tmpDir.'/partials/prompt-row.layout.yaml', <<<'YAML'
+appearance: subtle
+padding: s
+grid:
+  cols: [1fr, auto]
+  gap: s
+  align: center
+  children:
+    - input_prompt: { width: full, placeholder: "Type here..." }
+    - btn_send:     { label: "Go", style: primary }
+YAML);
+
+    file_put_contents($tmpDir.'/main.layout.yaml', <<<'YAML'
+name: main_screen_box
+grid:
+  cols: [1fr]
+  rows: [auto, auto]
+  children:
+    - lbl_title: { at: [1, 1], text: "Main" }
+    - cnt_prompt_input_row:
+        at: [2, 1]
+        width: full
+        include: partials/prompt-row
+        appearance: elevated
+YAML);
+
+    try {
+        $root = UI::container('main_screen_box')->layoutFile($tmpDir.'/main.layout.yaml');
+        $promptRow = UI::container('cnt_prompt_input_row');
+        $inputPrompt = UI::input('input_prompt');
+        $btnSend = UI::button('btn_send');
+        $promptRow->add($inputPrompt);
+        $promptRow->add($btnSend);
+        $root->add(UI::newLabel('lbl_title'));
+        $root->add($promptRow);
+
+        $json = $root->toJson();
+        $rowJson = $json[$promptRow->getId()] ?? null;
+
+        expect($rowJson)->not->toBeNull()
+            ->and($rowJson['layout'])->toBe('grid')
+            ->and($rowJson['grid_template_columns'])->toBe('1fr auto')
+            ->and($rowJson['padding'])->toBe('8px')
+            // Parent rule overrides included file's appearance
+            ->and($rowJson['appearance'])->toBe('elevated');
+
+        expect($json[$inputPrompt->getId()]['placeholder'])->toBe('Type here...')
+            ->and($json[$btnSend->getId()]['label'])->toBe('Go');
+    } finally {
+        @unlink($tmpDir.'/partials/prompt-row.layout.yaml');
+        @unlink($tmpDir.'/main.layout.yaml');
+        @rmdir($tmpDir.'/partials');
+        @rmdir($tmpDir);
+    }
+});
+
+it('detects circular layout file references and throws InvalidArgumentException', function () {
+    $tmpDir = sys_get_temp_dir().'/usim_circular_layouts_'.uniqid();
+    mkdir($tmpDir, 0777, true);
+
+    file_put_contents($tmpDir.'/a.layout.yaml', <<<'YAML'
+grid:
+  cols: [1fr]
+  children:
+    - box_b:
+        layout_file: b.layout.yaml
+YAML);
+
+    file_put_contents($tmpDir.'/b.layout.yaml', <<<'YAML'
+grid:
+  cols: [1fr]
+  children:
+    - box_a:
+        include: a.layout.yaml
+YAML);
+
+    try {
+        $root = UI::container('root')->layoutFile($tmpDir.'/a.layout.yaml');
+        $boxB = UI::container('box_b');
+        $boxA = UI::container('box_a');
+        $boxB->add($boxA);
+        $root->add($boxB);
+
+        expect(fn () => $root->toJson())->toThrow(InvalidArgumentException::class, 'Circular layout reference');
+    } finally {
+        @unlink($tmpDir.'/a.layout.yaml');
+        @unlink($tmpDir.'/b.layout.yaml');
+        @rmdir($tmpDir);
+    }
+});

@@ -658,7 +658,8 @@ abstract class Screen
     protected function layoutContainer(?string $path = null, ?string $name = null): Container
     {
         $resolvedPath = $path ?? static::$layoutFile;
-        $definition = ContainerLayoutLoader::loadFile($resolvedPath, static::class);
+        $meta = ContainerLayoutLoader::loadFileWithMeta($resolvedPath, static::class);
+        $definition = $meta['definition'];
 
         $wrapperName = $name;
         if ($wrapperName === null || trim($wrapperName) === '') {
@@ -671,6 +672,8 @@ abstract class Screen
         $containerContext = UIIdGenerator::getCurrentContext() ?? $this->getContextIdentifier();
 
         return UI::container($wrapperName, $containerContext)
+            ->layoutSourcePath($meta['resolvedPath'])
+            ->layoutBaseDir(dirname($meta['resolvedPath']))
             ->layoutDefinition($definition, static::class, static::$autoTranslate);
     }
 

@@ -59,6 +59,12 @@ class Container implements Gapable, Marginable, Paddable, Sizeable, UIElement
     /** @var bool Whether convention-based auto-translation is enabled for this container's layout */
     protected bool $layoutAutoTranslate = false;
 
+    /** @var string|null Base directory of the loaded .layout.yaml file for relative includes */
+    protected ?string $layoutBaseDir = null;
+
+    /** @var string|null Resolved filesystem path of the loaded .layout.yaml file */
+    protected ?string $layoutSourcePath = null;
+
     public function __construct(?string $name = null, ?string $context = null)
     {
         $this->name = $name;
@@ -517,9 +523,47 @@ class Container implements Gapable, Marginable, Paddable, Sizeable, UIElement
     public function layoutFile(?string $path = null, ?string $callingContext = null): self
     {
         $resolvedContext = $callingContext ?? UIIdGenerator::getCurrentContext() ?? $this->detectCallingContext();
-        $definition = ContainerLayoutLoader::loadFile($path, $resolvedContext);
+        $meta = ContainerLayoutLoader::loadFileWithMeta($path, $resolvedContext, $this->layoutBaseDir);
+        $this->layoutSourcePath = $meta['resolvedPath'];
+        $this->layoutBaseDir = dirname($meta['resolvedPath']);
 
-        return $this->layoutDefinition($definition, $resolvedContext);
+        return $this->layoutDefinition($meta['definition'], $resolvedContext);
+    }
+
+    /**
+     * Set the resolved filesystem path of the loaded .layout.yaml file.
+     */
+    public function layoutSourcePath(?string $sourcePath): self
+    {
+        $this->layoutSourcePath = $sourcePath;
+
+        return $this;
+    }
+
+    /**
+     * Get the resolved filesystem path of the loaded .layout.yaml file, if any.
+     */
+    public function getLayoutSourcePath(): ?string
+    {
+        return $this->layoutSourcePath;
+    }
+
+    /**
+     * Set the base directory for resolving relative layout references within this container.
+     */
+    public function layoutBaseDir(?string $baseDir): self
+    {
+        $this->layoutBaseDir = $baseDir;
+
+        return $this;
+    }
+
+    /**
+     * Get the base directory for resolving relative layout references within this container.
+     */
+    public function getLayoutBaseDir(): ?string
+    {
+        return $this->layoutBaseDir;
     }
 
     /**

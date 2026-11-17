@@ -10,6 +10,7 @@ use Idei\Usim\Screen;
 use Idei\Usim\Support\ContainerLayoutLoader;
 use Idei\Usim\Support\UIIdGenerator;
 use Idei\Usim\Support\UIStateManager;
+use Idei\Usim\UI;
 use Illuminate\Contracts\Encryption\DecryptException;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
@@ -428,11 +429,25 @@ trait HandlesScreenProperties
                 }
             }
 
+            $childRulesBySlot = ContainerLayoutLoader::extractChildRulesBySlot($layoutDef);
+
             foreach (ContainerLayoutLoader::extractChildSlotNames($layoutDef) as $idx => $slotName) {
                 $positionKey = (string) ($idx + 1);
                 $element = $elementsByExplicitSlot[$slotName]
                     ?? $elementsByExplicitSlot[$positionKey]
                     ?? ($screenElementsByName[$slotName] ?? null);
+
+                if ($element === null) {
+                    $rule = $childRulesBySlot[$slotName] ?? ($childRulesBySlot[$positionKey] ?? null);
+                    if ($rule !== null && ContainerLayoutLoader::isNestedContainerRule($rule)) {
+                        $existing = $this->findDirectChildBySlotOrName($container, $slotName);
+                        if ($existing === null) {
+                            $context = UIIdGenerator::getCurrentContext() ?? $this->getContextIdentifier();
+                            $element = UI::container($slotName, $context);
+                            $container->add($element);
+                        }
+                    }
+                }
 
                 if ($element === null) {
                     continue;
@@ -451,6 +466,23 @@ trait HandlesScreenProperties
                 $this->reconcileLayoutContainers($child, $screenElementsByName);
             }
         }
+    }
+
+    private function findDirectChildBySlotOrName(Container $container, string $slotName): ?UIElement
+    {
+        foreach ($container->getChildren() as $child) {
+            $childSlot = ($child instanceof UIComponent || $child instanceof Container)
+                ? $child->getSlot()
+                : null;
+            if ($childSlot !== null && trim((string) $childSlot) === $slotName) {
+                return $child;
+            }
+            if ($child->getName() === $slotName) {
+                return $child;
+            }
+        }
+
+        return null;
     }
 
     private function constructorHasParameter(ReflectionMethod $constructor, string $paramName): bool
