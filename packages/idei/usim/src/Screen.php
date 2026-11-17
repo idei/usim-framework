@@ -3,6 +3,7 @@
 namespace Idei\Usim;
 
 use Idei\Usim\Components\Container;
+use Idei\Usim\Components\Timer;
 use Idei\Usim\Concerns\HandlesAuthorization;
 use Idei\Usim\Concerns\HandlesModals;
 use Idei\Usim\Concerns\HandlesNavigation;
@@ -1218,6 +1219,110 @@ abstract class Screen
         }
 
         return $this->findComponentAs($this->container, $id, $expectedClass);
+    }
+
+    /**
+     * Find a UIElement in this screen's container tree by its component name.
+     */
+    protected function ui(string $name): ?UIElement
+    {
+        $container = $this->getContainer();
+        if ($container === null) {
+            return null;
+        }
+
+        return $this->findElementByNameRecursive($container, $name);
+    }
+
+    /**
+     * Find a Timer component in this screen's container tree by name (or the sole Timer if $name is null).
+     */
+    protected function timer(?string $name = null): ?Timer
+    {
+        $container = $this->getContainer();
+        if ($container === null) {
+            return null;
+        }
+
+        if ($name !== null) {
+            $element = $this->findElementByNameRecursive($container, $name);
+
+            return $element instanceof Timer ? $element : null;
+        }
+
+        $timers = $this->collectTimersRecursive($container);
+
+        return count($timers) === 1 ? $timers[0] : null;
+    }
+
+    /**
+     * Start a Timer component in this screen by name (or the sole Timer if $name is null).
+     */
+    protected function startTimer(?string $name = null): bool
+    {
+        $timer = $this->timer($name);
+        if ($timer === null) {
+            return false;
+        }
+
+        $timer->start();
+
+        return true;
+    }
+
+    /**
+     * Stop a Timer component in this screen by name (or the sole Timer if $name is null).
+     */
+    protected function stopTimer(?string $name = null): bool
+    {
+        $timer = $this->timer($name);
+        if ($timer === null) {
+            return false;
+        }
+
+        $timer->stop();
+
+        return true;
+    }
+
+    private function findElementByNameRecursive(Container $container, string $name): ?UIElement
+    {
+        if ($container->getName() === $name) {
+            return $container;
+        }
+
+        foreach ($container->getChildren() as $child) {
+            if ($child->getName() === $name) {
+                return $child;
+            }
+
+            if ($child instanceof Container) {
+                $found = $this->findElementByNameRecursive($child, $name);
+                if ($found !== null) {
+                    return $found;
+                }
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * @return list<Timer>
+     */
+    private function collectTimersRecursive(Container $container): array
+    {
+        $timers = [];
+
+        foreach ($container->getChildren() as $child) {
+            if ($child instanceof Timer) {
+                $timers[] = $child;
+            } elseif ($child instanceof Container) {
+                $timers = array_merge($timers, $this->collectTimersRecursive($child));
+            }
+        }
+
+        return $timers;
     }
 
     /**

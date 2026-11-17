@@ -439,12 +439,17 @@ trait HandlesScreenProperties
 
                 if ($element === null) {
                     $rule = $childRulesBySlot[$slotName] ?? ($childRulesBySlot[$positionKey] ?? null);
-                    if ($rule !== null && ContainerLayoutLoader::isNestedContainerRule($rule)) {
-                        $existing = $this->findDirectChildBySlotOrName($container, $slotName);
-                        if ($existing === null) {
+                    $existing = $this->findDirectChildBySlotOrName($container, $slotName);
+                    if ($existing === null) {
+                        if ($rule !== null && ContainerLayoutLoader::isNestedContainerRule($rule)) {
                             $context = UIIdGenerator::getCurrentContext() ?? $this->getContextIdentifier();
                             $element = UI::container($slotName, $context);
                             $container->add($element);
+                        } else {
+                            $element = ContainerLayoutLoader::instantiateElementForSlot($slotName, $rule ?? []);
+                            if ($element !== null) {
+                                $container->add($element);
+                            }
                         }
                     }
                 }
@@ -455,6 +460,16 @@ trait HandlesScreenProperties
 
                 if ($element->getParent() === null && ! $container->has($element->getId())) {
                     $container->add($element);
+                }
+            }
+
+            foreach (ContainerLayoutLoader::extractTimerEntries($layoutDef) as $timerEntry) {
+                $timerName = $timerEntry['name'];
+                $timerElement = $elementsByExplicitSlot[$timerName]
+                    ?? ($screenElementsByName[$timerName] ?? null);
+
+                if ($timerElement !== null && $timerElement->getParent() === null && ! $container->has($timerElement->getId())) {
+                    $container->add($timerElement);
                 }
             }
 

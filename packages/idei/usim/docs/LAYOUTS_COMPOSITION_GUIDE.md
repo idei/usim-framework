@@ -329,3 +329,65 @@ protected function startingUI(): Container
 | Barra, cabecera o bloque reutilizable en varias pantallas | **`include:` / `layout_file:`** | Un único archivo fuente reutilizable con overrides por instancia y sin lógica PHP duplicada. |
 | Panel complejo con estado propio, eventos y servicio independiente | **`embedToSlot()` (Sub-Screen)** | Aislamiento completo de ciclo de vida, estado (`store_*`/`state_*`) y traducciones. |
 | Posicionar una `Screen` dentro del marco general de la app | **`AbstractLayout`** (`$layout`) | Separa el shell global (menú/navbar) del contenido de cada pantalla. |
+
+---
+
+## 11. Auto-instanciación por Prefijo, `component:` y Timers No Visuales (`timers:`)
+
+### 11.1 Componentes sin propiedad `protected` en `Screen`
+
+Si un componente declarado en `.layout.yaml` no necesita ser manipulado desde PHP, **no necesitas declararlo como propiedad `protected`** en la `Screen`. USIM lo instancia automáticamente usando su prefijo convencional o la clave explícita `component:`:
+
+| Prefijo | Clase instanciada | Alias `component:` |
+|---|---|---|
+| `input_` | `Input` | `input` |
+| `btn_` | `Button` | `button` |
+| `lbl_` | `NewLabel` | `new_label` / `label` |
+| `sel_` | `Select` | `select` |
+| `chk_` | `Checkbox` | `checkbox` |
+| `txt_` | `Textarea` | `textarea` |
+| `tbl_` | `Table` | `table` |
+| `lst_` | `ItemList` | `item_list` / `list` |
+| `img_` | `Image` | `image` |
+| `cal_` | `Calendar` | `calendar` |
+| `car_` | `Carousel` | `carousel` |
+| `upl_` | `Uploader` | `uploader` |
+| `crd_` | `Card` | `card` |
+| `cnt_` | `Container` | `container` / `split` |
+| `tmr_` | `Timer` | `timer` |
+
+```yaml
+grid:
+  cols: [1fr, auto]
+  children:
+    - lbl_title: { text: "Título", size: xl }                 # Instancia NewLabel
+    - submit_action: { component: button, label: "Enviar" }   # Instancia Button sin prefijo
+```
+
+Si eventualmente necesitas acceder en PHP a un componente auto-instanciado, puedes usar `$this->ui('btn_send')` en la `Screen`.
+
+### 11.2 Sección raíz `timers:` y control desde `Screen`
+
+Para componentes autónomos no visuales (`Timer`), usa la sección raíz `timers:` fuera de `grid:` para no ocupar celdas ni alterar el flujo de filas:
+
+```yaml
+grid:
+  cols: [1fr]
+  children:
+    - lbl_status
+
+timers:
+  - tmr_poll_status:
+      action: check_generation_status
+      every: 3000
+      enabled: false
+```
+
+Desde tu `Screen` puedes controlarlos con los helpers tipados:
+
+```php
+$this->startTimer('tmr_poll_status');   // o $this->startTimer() si hay un único Timer
+$this->stopTimer('tmr_poll_status');    // o $this->stopTimer()
+$timer = $this->timer('tmr_poll_status'); // ?Timer
+```
+

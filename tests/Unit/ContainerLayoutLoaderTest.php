@@ -687,3 +687,96 @@ YAML);
         @rmdir($tmpDir);
     }
 });
+
+class TestAutoInstantiatedScreen extends Screen
+{
+    // Only input_prompt is declared explicitly in PHP; lbl_header, btn_send, submit_action,
+    // cnt_prompt_row, and tmr_poll_status are all auto-instantiated from the layout!
+    protected Input $input_prompt;
+
+    protected function startingUI(): Container
+    {
+        return UI::container('auto_inst_root')->layoutDefinition([
+            'grid' => [
+                'cols' => ['1fr'],
+                'children' => [
+                    'lbl_header' => ['at' => [1, 1], 'text' => 'Auto Header'],
+                    'cnt_prompt_row' => [
+                        'at' => [2, 1],
+                        'width' => 'full',
+                        'grid' => [
+                            'cols' => ['1fr', 'auto'],
+                            'children' => [
+                                'input_prompt' => ['width' => 'full', 'placeholder' => 'Ask...'],
+                                'btn_send' => ['label' => 'Send', 'style' => 'primary', 'action' => 'send'],
+                            ],
+                        ],
+                    ],
+                    'submit_action' => ['at' => [3, 1], 'component' => 'button', 'label' => 'Finish'],
+                    'unprefixed_slot' => ['at' => [4, 1]],
+                ],
+            ],
+            'timers' => [
+                'tmr_poll_status' => [
+                    'action' => 'poll_status',
+                    'every' => 3000,
+                    'enabled' => false,
+                ],
+            ],
+        ]);
+    }
+
+    public function onTogglePolling(bool $start): void
+    {
+        if ($start) {
+            $this->startTimer('tmr_poll_status');
+        } else {
+            $this->stopTimer();
+        }
+    }
+
+    public function getTimerInstance(): ?\Idei\Usim\Components\Timer
+    {
+        return $this->timer('tmr_poll_status');
+    }
+
+    public function getAutoButton(): ?\Idei\Usim\Contracts\UIElement
+    {
+        return $this->ui('btn_send');
+    }
+}
+
+it('auto-instantiates leaf components by prefix and explicit component key without PHP properties', function () {
+    $harness = ScreenTestHarness::for(TestAutoInstantiatedScreen::class);
+    $harness->render();
+
+    $harness->assertHasComponent('lbl_header')
+        ->assertHasComponent('cnt_prompt_row')
+        ->assertHasComponent('input_prompt')
+        ->assertHasComponent('btn_send')
+        ->assertHasComponent('submit_action')
+        ->assertHasComponent('tmr_poll_status');
+
+    expect($harness->findComponent('unprefixed_slot'))->toBeNull();
+
+    expect($harness->getComponent('lbl_header')->get('text'))->toBe('Auto Header')
+        ->and($harness->getComponent('btn_send')->get('label'))->toBe('Send')
+        ->and($harness->getComponent('submit_action')->get('label'))->toBe('Finish');
+
+    // Timer does not occupy a grid cell
+    $timerJson = $harness->getComponent('tmr_poll_status')->toJson();
+    $timerData = $timerJson[$harness->getComponent('tmr_poll_status')->getId()];
+    expect($timerData['action'])->toBe('poll_status')
+        ->and($timerData['interval'])->toBe(3000)
+        ->and($timerData['repeat'])->toBeTrue()
+        ->and($timerData['enabled'])->toBeFalse()
+        ->and($timerData)->not->toHaveKey('grid_column')
+        ->and($timerData)->not->toHaveKey('grid_row');
+
+    $harness->onTogglePolling(['start' => true]);
+    $timerId = $harness->getComponent('tmr_poll_status')->getId();
+    expect($harness->getComponent('tmr_poll_status')->toJson()[$timerId]['enabled'])->toBeTrue();
+
+    $harness->onTogglePolling(['start' => false]);
+    expect($harness->getComponent('tmr_poll_status')->toJson()[$timerId]['enabled'])->toBeFalse();
+});

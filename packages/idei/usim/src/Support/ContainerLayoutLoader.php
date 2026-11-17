@@ -3,17 +3,23 @@
 namespace Idei\Usim\Support;
 
 use Idei\Usim\Components\Button;
+use Idei\Usim\Components\Calendar;
 use Idei\Usim\Components\Card;
+use Idei\Usim\Components\Carousel;
 use Idei\Usim\Components\Checkbox;
 use Idei\Usim\Components\Container;
+use Idei\Usim\Components\Image;
 use Idei\Usim\Components\Input;
 use Idei\Usim\Components\ItemList;
 use Idei\Usim\Components\Label;
 use Idei\Usim\Components\NewLabel;
 use Idei\Usim\Components\Select;
+use Idei\Usim\Components\Split;
 use Idei\Usim\Components\Table;
 use Idei\Usim\Components\Textarea;
+use Idei\Usim\Components\Timer;
 use Idei\Usim\Components\UIComponent;
+use Idei\Usim\Components\Uploader;
 use Idei\Usim\Contracts\UIElement;
 use Idei\Usim\Enums\LayoutType;
 use Idei\Usim\Support\Translation\TranslationResolver;
@@ -75,6 +81,56 @@ class ContainerLayoutLoader
         'upl_',
         'crd_',
         'cnt_',
+        'tmr_',
+    ];
+
+    /**
+     * Map of conventional component prefixes to their concrete UIElement classes for auto-instantiation.
+     *
+     * @var array<string, class-string<UIElement>>
+     */
+    protected const COMPONENT_PREFIX_MAP = [
+        'input_' => Input::class,
+        'btn_' => Button::class,
+        'lbl_' => NewLabel::class,
+        'sel_' => Select::class,
+        'chk_' => Checkbox::class,
+        'txt_' => Textarea::class,
+        'tbl_' => Table::class,
+        'lst_' => ItemList::class,
+        'img_' => Image::class,
+        'cal_' => Calendar::class,
+        'car_' => Carousel::class,
+        'upl_' => Uploader::class,
+        'crd_' => Card::class,
+        'cnt_' => Container::class,
+        'tmr_' => Timer::class,
+    ];
+
+    /**
+     * Explicit `component:` aliases supported in `.layout.yaml` child rules.
+     *
+     * @var array<string, class-string<UIElement>>
+     */
+    protected const COMPONENT_ALIAS_MAP = [
+        'input' => Input::class,
+        'button' => Button::class,
+        'label' => Label::class,
+        'new_label' => NewLabel::class,
+        'select' => Select::class,
+        'checkbox' => Checkbox::class,
+        'textarea' => Textarea::class,
+        'table' => Table::class,
+        'item_list' => ItemList::class,
+        'list' => ItemList::class,
+        'image' => Image::class,
+        'calendar' => Calendar::class,
+        'carousel' => Carousel::class,
+        'uploader' => Uploader::class,
+        'card' => Card::class,
+        'container' => Container::class,
+        'split' => Split::class,
+        'timer' => Timer::class,
     ];
 
     /**
@@ -308,6 +364,83 @@ class ContainerLayoutLoader
     }
 
     /**
+     * Resolve a concrete UIElement class from an explicit `component:` rule or conventional name prefix.
+     *
+     * @param  array<string, mixed>  $rule
+     * @return class-string<UIElement>|null
+     */
+    public static function resolveComponentClassForSlot(string $slotName, array $rule = []): ?string
+    {
+        if (isset($rule['component']) && is_string($rule['component']) && trim($rule['component']) !== '') {
+            $raw = trim($rule['component']);
+            $alias = Str::snake($raw);
+            if (isset(self::COMPONENT_ALIAS_MAP[$alias])) {
+                return self::COMPONENT_ALIAS_MAP[$alias];
+            }
+
+            if (class_exists($raw) && is_subclass_of($raw, UIElement::class)) {
+                return $raw;
+            }
+        }
+
+        $lowerSlot = strtolower(trim($slotName));
+        foreach (self::COMPONENT_PREFIX_MAP as $prefix => $class) {
+            if (str_starts_with($lowerSlot, $prefix)) {
+                return $class;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Auto-instantiate a UIElement for a slot using its explicit `component:` or conventional name prefix.
+     *
+     * @param  array<string, mixed>  $rule
+     */
+    public static function instantiateElementForSlot(string $slotName, array $rule = []): ?UIElement
+    {
+        $class = self::resolveComponentClassForSlot($slotName, $rule);
+        if ($class === null) {
+            return null;
+        }
+
+        return new $class($slotName);
+    }
+
+    /**
+     * Extract normalized timer entries from a root `timers:` definition.
+     *
+     * @param  array<string, mixed>  $definition
+     * @return list<array{name: string, rule: array<string, mixed>}>
+     */
+    public static function extractTimerEntries(array $definition): array
+    {
+        $timers = $definition['timers'] ?? null;
+        if (! is_array($timers)) {
+            return [];
+        }
+
+        $entries = [];
+        $idx = 0;
+        foreach ($timers as $key => $entry) {
+            $idx++;
+            $normalized = self::normalizeChildEntry($key, $entry, $idx);
+            $slot = $normalized['slot'];
+            $name = is_string($slot) && trim($slot) !== ''
+                ? trim($slot)
+                : "tmr_{$idx}";
+
+            $entries[] = [
+                'name' => $name,
+                'rule' => $normalized['rule'],
+            ];
+        }
+
+        return $entries;
+    }
+
+    /**
      * Normalize a child entry from the YAML definition into [slot, rule].
      *
      * Supports:
@@ -451,6 +584,47 @@ class ContainerLayoutLoader
             );
         } elseif ($effectiveAutoTranslate && $callingContext !== null) {
             self::autoHydrateContainerChildren($container, $callingContext);
+        }
+
+        if (isset($definition['timers']) && is_array($definition['timers'])) {
+            self::applyTimersConfig($container, $definition, $callingContext);
+        }
+    }
+
+    /**
+     * Mount and configure non-visual Timer components declared under the root `timers:` section.
+     *
+     * @param  array<string, mixed>  $definition
+     */
+    protected static function applyTimersConfig(
+        Container $container,
+        array $definition,
+        ?string $callingContext = null
+    ): void {
+        $entries = self::extractTimerEntries($definition);
+        if ($entries === []) {
+            return;
+        }
+
+        $existingByName = [];
+        foreach ($container->getChildren() as $child) {
+            if ($child instanceof Timer && $child->getName() !== null) {
+                $existingByName[$child->getName()] = $child;
+            }
+        }
+
+        foreach ($entries as $entry) {
+            $name = $entry['name'];
+            $rule = $entry['rule'];
+
+            $timer = $existingByName[$name] ?? null;
+            if ($timer === null) {
+                $timer = new Timer($name);
+                $container->add($timer);
+                $existingByName[$name] = $timer;
+            }
+
+            self::applyElementCustomProperties($timer, $rule, $callingContext);
         }
     }
 
@@ -653,6 +827,10 @@ class ContainerLayoutLoader
             $explicitSlot = ($child instanceof UIComponent || $child instanceof Container) ? $child->getSlot() : null;
             $childName = $child->getName();
 
+            if ($child instanceof Timer && $explicitSlot === null && ($childName === null || ! isset($rulesByName[$childName]))) {
+                continue;
+            }
+
             $rule = [];
             if ($explicitSlot !== null) {
                 if (is_int($explicitSlot) || ctype_digit(trim($explicitSlot))) {
@@ -827,7 +1005,7 @@ class ContainerLayoutLoader
     ): void {
         $ignoredKeys = [
             'slot', 'span', 'at', 'row', 'row_height', 'align', 'justify',
-            'grid', 'layout_file', 'include', 'file', 'i18n',
+            'grid', 'layout_file', 'include', 'file', 'i18n', 'component',
         ];
         $hasExternalLayoutRef = self::extractExternalLayoutReference($rule) !== null;
 
