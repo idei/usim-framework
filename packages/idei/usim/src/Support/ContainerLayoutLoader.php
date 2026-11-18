@@ -645,27 +645,27 @@ class ContainerLayoutLoader
             $container->centerHorizontal();
         }
 
-        if (isset($props['min_width']) && (is_int($props['min_width']) || is_string($props['min_width']))) {
+        if (isset($props['min_width']) && (is_int($props['min_width']) || is_string($props['min_width']) || $props['min_width'] instanceof Size)) {
             $container->minWidth(Size::from($props['min_width']));
         }
 
-        if (isset($props['max_width']) && (is_int($props['max_width']) || is_string($props['max_width']))) {
+        if (isset($props['max_width']) && (is_int($props['max_width']) || is_string($props['max_width']) || $props['max_width'] instanceof Size)) {
             $container->maxWidth(Size::from($props['max_width']));
         }
 
-        if (isset($props['min_height']) && (is_int($props['min_height']) || is_string($props['min_height']))) {
+        if (isset($props['min_height']) && (is_int($props['min_height']) || is_string($props['min_height']) || $props['min_height'] instanceof Size)) {
             $container->minHeight(Size::from($props['min_height']));
         }
 
-        if (isset($props['max_height']) && (is_int($props['max_height']) || is_string($props['max_height']))) {
+        if (isset($props['max_height']) && (is_int($props['max_height']) || is_string($props['max_height']) || $props['max_height'] instanceof Size)) {
             $container->maxHeight(Size::from($props['max_height']));
         }
 
-        if (isset($props['width']) && (is_int($props['width']) || is_string($props['width']))) {
+        if (isset($props['width']) && (is_int($props['width']) || is_string($props['width']) || $props['width'] instanceof Size)) {
             $container->width(Size::from($props['width']));
         }
 
-        if (isset($props['height']) && (is_int($props['height']) || is_string($props['height']))) {
+        if (isset($props['height']) && (is_int($props['height']) || is_string($props['height']) || $props['height'] instanceof Size)) {
             $container->height(Size::from($props['height']));
         }
 
@@ -953,7 +953,7 @@ class ContainerLayoutLoader
 
         // Propagate container box overrides from the parent child rule into the nested definition
         // so subsequent applyLayoutDefinition() passes preserve caller overrides.
-        foreach (['appearance', 'card', 'center_horizontal', 'center', 'padding', 'gap', 'row_gap', 'column_gap', 'width', 'max_width', 'height', 'i18n'] as $boxKey) {
+        foreach (['appearance', 'card', 'center_horizontal', 'center', 'padding', 'gap', 'row_gap', 'column_gap', 'width', 'min_width', 'max_width', 'height', 'min_height', 'max_height', 'i18n'] as $boxKey) {
             if (array_key_exists($boxKey, $rule)) {
                 $nestedDef[$boxKey] = $rule[$boxKey];
             }
@@ -1047,11 +1047,9 @@ class ContainerLayoutLoader
             // Dimension helpers
             if (in_array($key, ['width', 'height', 'min_width', 'max_width', 'min_height', 'max_height'], true)
                 && ($element instanceof UIComponent || $element instanceof Container)) {
-                $size = match (true) {
-                    $value === 'full' => Size::full(),
-                    is_string($value), is_int($value), $value instanceof Size => Size::from($value),
-                    default => null,
-                };
+                $size = (is_string($value) || is_int($value) || $value instanceof Size)
+                    ? Size::from($value)
+                    : null;
 
                 if ($size !== null) {
                     $methodName = Str::camel($key);

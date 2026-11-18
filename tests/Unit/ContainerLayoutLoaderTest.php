@@ -10,6 +10,7 @@ use Idei\Usim\Screen;
 use Idei\Usim\Testing\ScreenTestHarness;
 use Idei\Usim\UI;
 use Idei\Usim\UIChangesCollector;
+use Idei\Usim\ValueObjects\Size;
 
 class TestSlotEmbedLeftScreen extends Screen
 {
@@ -586,7 +587,10 @@ it('auto-creates structural nested containers in Screen without declaring Contai
     expect($rowJson['layout'])->toBe('grid')
         ->and($rowJson['grid_template_columns'])->toBe('1fr auto')
         ->and($rowJson['appearance'])->toBe('elevated')
-        ->and($rowJson['padding'])->toBe('4px');
+        ->and($rowJson['padding'])->toBe('4px')
+        ->and($rowJson['width'])->toBe('100%')
+        ->and($rowJson)->not->toHaveKey('margin_left')
+        ->and($rowJson)->not->toHaveKey('margin_right');
 
     expect($harness->getComponent('input_prompt')->get('width'))->toBe('100%')
         ->and($harness->getComponent('input_prompt')->get('placeholder'))->toBe('Write a prompt...')
@@ -640,6 +644,9 @@ YAML);
             ->and($rowJson['layout'])->toBe('grid')
             ->and($rowJson['grid_template_columns'])->toBe('1fr auto')
             ->and($rowJson['padding'])->toBe('8px')
+            ->and($rowJson['width'])->toBe('100%')
+            ->and($rowJson)->not->toHaveKey('margin_left')
+            ->and($rowJson)->not->toHaveKey('margin_right')
             // Parent rule overrides included file's appearance
             ->and($rowJson['appearance'])->toBe('elevated');
 
@@ -779,4 +786,98 @@ it('auto-instantiates leaf components by prefix and explicit component key witho
 
     $harness->onTogglePolling(['start' => false]);
     expect($harness->getComponent('tmr_poll_status')->toJson()[$timerId]['enabled'])->toBeFalse();
+});
+
+it('normalizes semantic size tokens in Size::from()', function () {
+    expect((string) Size::from('full'))->toBe('100%')
+        ->and((string) Size::from(' FULL '))->toBe('100%')
+        ->and((string) Size::from('half'))->toBe('50%')
+        ->and((string) Size::from('third'))->toBe('33.333%')
+        ->and((string) Size::from('quarter'))->toBe('25%')
+        ->and((string) Size::from('screen'))->toBe('100dvh')
+        ->and((string) Size::from('auto'))->toBe('auto')
+        ->and((string) Size::from('fit-content'))->toBe('fit-content')
+        ->and((string) Size::from('min-content'))->toBe('min-content')
+        ->and((string) Size::from('max-content'))->toBe('max-content')
+        ->and((string) Size::from(320))->toBe('320px')
+        ->and((string) Size::from('18rem'))->toBe('18rem')
+        ->and((string) Size::from(Size::full()))->toBe('100%');
+});
+
+it('omits horizontal auto margins on Container by default unless centerHorizontal is enabled', function () {
+    $plain = UI::container('plain_box');
+    $plainJson = $plain->toJson()[$plain->getId()];
+
+    expect($plainJson)->not->toHaveKey('margin_left')
+        ->and($plainJson)->not->toHaveKey('margin_right');
+
+    $centered = UI::container('centered_box')->centerHorizontal();
+    $centeredJson = $centered->toJson()[$centered->getId()];
+
+    expect($centeredJson['margin_left'])->toBe('auto')
+        ->and($centeredJson['margin_right'])->toBe('auto');
+});
+
+it('resolves semantic width and size tokens via applyBoxProperties on root and nested containers', function () {
+    $root = UI::container('sized_root')->layoutDefinition([
+        'width' => 'full',
+        'max_width' => 'half',
+        'min_width' => 'quarter',
+        'height' => 'screen',
+        'grid' => [
+            'cols' => ['1fr'],
+            'children' => [
+                'cnt_row' => [
+                    'width' => 'full',
+                    'min_width' => 200,
+                    'max_height' => 'fit-content',
+                    'grid' => [
+                        'cols' => ['1fr', 'auto'],
+                        'children' => [
+                            'lbl_a' => ['text' => 'A'],
+                            'lbl_b' => ['text' => 'B'],
+                        ],
+                    ],
+                ],
+                'cnt_centered_row' => [
+                    'width' => 'half',
+                    'center' => true,
+                    'grid' => [
+                        'cols' => 1,
+                        'children' => [
+                            'lbl_c' => ['text' => 'C'],
+                        ],
+                    ],
+                ],
+            ],
+        ],
+    ]);
+
+    $cntRow = UI::container('cnt_row');
+    $cntRow->addMany([UI::newLabel('lbl_a'), UI::newLabel('lbl_b')]);
+    $cntCentered = UI::container('cnt_centered_row');
+    $cntCentered->add(UI::newLabel('lbl_c'));
+    $root->addMany([$cntRow, $cntCentered]);
+
+    $json = $root->toJson();
+    $rootData = $json[$root->getId()];
+    $rowData = $json[$cntRow->getId()];
+    $centeredData = $json[$cntCentered->getId()];
+
+    expect($rootData['width'])->toBe('100%')
+        ->and($rootData['max_width'])->toBe('50%')
+        ->and($rootData['min_width'])->toBe('25%')
+        ->and($rootData['height'])->toBe('100dvh')
+        ->and($rootData)->not->toHaveKey('margin_left')
+        ->and($rootData)->not->toHaveKey('margin_right');
+
+    expect($rowData['width'])->toBe('100%')
+        ->and($rowData['min_width'])->toBe('200px')
+        ->and($rowData['max_height'])->toBe('fit-content')
+        ->and($rowData)->not->toHaveKey('margin_left')
+        ->and($rowData)->not->toHaveKey('margin_right');
+
+    expect($centeredData['width'])->toBe('50%')
+        ->and($centeredData['margin_left'])->toBe('auto')
+        ->and($centeredData['margin_right'])->toBe('auto');
 });

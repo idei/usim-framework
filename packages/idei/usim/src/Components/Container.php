@@ -147,9 +147,9 @@ class Container implements Gapable, Marginable, Paddable, Sizeable, UIElement
             // Margin
             'margin' => null,
             'margin_top' => null,
-            'margin_right' => 'auto',
+            'margin_right' => null,
             'margin_bottom' => null,
-            'margin_left' => 'auto',
+            'margin_left' => null,
 
             // Sizing
             'width' => null,

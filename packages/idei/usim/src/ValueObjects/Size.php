@@ -94,7 +94,18 @@ final class Size
             return self::px($value);
         }
 
-        return new self($value);
+        return match (strtolower(trim($value))) {
+            'full' => self::full(),
+            'half' => self::half(),
+            'third' => self::third(),
+            'quarter' => self::quarter(),
+            'screen' => self::screen(),
+            'auto' => self::auto(),
+            'fit-content' => self::fitContent(),
+            'min-content' => self::minContent(),
+            'max-content' => self::maxContent(),
+            default => new self($value),
+        };
     }
 
     public function __toString(): string
