@@ -18,7 +18,7 @@ RUN apt-get update && \
     apt-get install -y software-properties-common tzdata ca-certificates gnupg && \
     add-apt-repository ppa:ondrej/php -y && \
     apt-get update && \
-    PHP_VERSION=$(apt-cache search --names-only '^php8\.[5-9]$' | awk '{print $1}' | sed 's/^php//' | sort -V | tail -n1) && \
+    PHP_VERSION=8.5 && \
     echo "Instalando PHP ${PHP_VERSION}" && \
     apt-get install -y \
         php${PHP_VERSION} php${PHP_VERSION}-cli php${PHP_VERSION}-mbstring php${PHP_VERSION}-xml \
