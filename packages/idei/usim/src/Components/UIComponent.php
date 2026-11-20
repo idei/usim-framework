@@ -234,6 +234,14 @@ abstract class UIComponent implements Marginable, Sizeable, UIElement
     }
 
     /**
+     * Add custom CSS class(es) to the rendered component element.
+     */
+    public function customClass(string $class): static
+    {
+        return $this->setConfig('custom_class', trim($class));
+    }
+
+    /**
      * {@inheritDoc}
      */
     public function name(?string $name): static

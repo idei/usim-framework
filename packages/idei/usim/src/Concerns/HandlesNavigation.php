@@ -3,6 +3,7 @@
 namespace Idei\Usim\Concerns;
 
 use Idei\Usim\Components\Container;
+use Idei\Usim\Layout\AbstractLayout;
 use Idei\Usim\Screen;
 use Idei\Usim\Support\UIStateManager;
 use RuntimeException;
@@ -45,6 +46,71 @@ trait HandlesNavigation
         }
 
         $effectiveSlot = $slot ?? $targetClass::getDefaultSlot();
+        $isMainSlot = in_array($effectiveSlot, ['main', 'content', 'center'], true);
+        $routeSlug = Screen::resolveScreenSlug($targetClass);
+
+        // If a full-layout transition to this exact screen already occurred in this request cycle
+        // (e.g. both Login::onLoggedUser and Menu::onLoggedUser reacting to logged_user), do not overwrite clear_container='main'.
+        if ($isMainSlot) {
+            $existingChanges = $this->uiChanges()->all();
+            $existingNav = isset($existingChanges['navigate']) && is_array($existingChanges['navigate'])
+                ? $existingChanges['navigate']
+                : [];
+            if (($existingChanges['clear_container'] ?? null) === 'main' && ($existingNav['route'] ?? null) === $routeSlug) {
+                return true;
+            }
+        }
+
+        // Automatic layout transition when navigating the main slot across different layouts (including null <-> Layout)
+        if ($isMainSlot && UIStateManager::hasClientActiveLayout()) {
+            $mountedLayout = UIStateManager::getClientActiveLayout();
+            $targetLayout = $targetClass::getLayoutClass();
+
+            if ($mountedLayout !== $targetLayout) {
+                $routePath = $targetClass::getRoutePath();
+
+                $queryParams = Screen::normalizeParamsForUrl($params);
+                $navigateUrl = ! empty($queryParams)
+                    ? $routePath.'?'.http_build_query($queryParams)
+                    : $routePath;
+
+                $this->uiChanges()->add([
+                    'clear_container' => 'main',
+                ]);
+
+                AbstractLayout::setCurrent(null);
+                Screen::make($targetClass)->clearCachedScreenSnapshot();
+                if ($targetLayout !== null && class_exists($targetLayout) && is_subclass_of($targetLayout, Screen::class)) {
+                    Screen::make($targetLayout)->clearCachedScreenSnapshot();
+                }
+
+                $targetScreen = Screen::make($targetClass);
+                $targetScreen->render(
+                    incomingStorage: $this->uiChanges()->getStorage(),
+                    queryParams: static::getCurrentQueryParams(),
+                    parent: 'main',
+                    shouldReset: true,
+                    buildParams: $params
+                );
+
+                UIStateManager::setClientActiveLayout($targetLayout);
+                UIStateManager::setClientCurrentScreen($routePath, (string) $targetClass);
+
+                if ($updateBrowserUrl) {
+                    $this->uiChanges()->add([
+                        'navigate' => [
+                            'url' => $navigateUrl,
+                            'route' => $routeSlug,
+                            'title' => $targetClass::getMenuLabel(),
+                            'slot' => 'main',
+                            'slot_container_id' => 'main',
+                        ],
+                    ]);
+                }
+
+                return true;
+            }
+        }
 
         $layout = $this->getLayout();
         $currentScreen = $layout?->getActiveScreen($effectiveSlot);
@@ -138,6 +204,19 @@ trait HandlesNavigation
     public function navigate(string $screenClass, array $params = [], ?string $slot = null): bool
     {
         return $this->show($screenClass, $slot, $params);
+    }
+
+    /**
+     * Clear an auxiliary layout slot (e.g. 'right_panel') and collapse its parent Split pane.
+     */
+    public function closeSlot(string $slot = 'right_panel', bool $collapse = true): bool
+    {
+        $layout = $this->getLayout();
+        if ($layout === null) {
+            return false;
+        }
+
+        return $layout->clearSlot($slot, $collapse);
     }
 
     /**

@@ -65,6 +65,13 @@ class Container implements Gapable, Marginable, Paddable, Sizeable, UIElement
     /** @var string|null Resolved filesystem path of the loaded .layout.yaml file */
     protected ?string $layoutSourcePath = null;
 
+    /**
+     * Declarative layout slot metadata (when this container acts as an AbstractLayout slot).
+     *
+     * @var array{name: string, aliases: list<string>, screen: ?string, persist_on_navigate: bool}|null
+     */
+    protected ?array $layoutSlotMeta = null;
+
     public function __construct(?string $name = null, ?string $context = null)
     {
         $this->name = $name;
@@ -490,6 +497,63 @@ class Container implements Gapable, Marginable, Paddable, Sizeable, UIElement
         $slot = $this->config['slot'] ?? null;
 
         return is_int($slot) || is_string($slot) ? $slot : null;
+    }
+
+    /**
+     * Attach declarative page-layout slot metadata (used by AbstractLayout auto-registration).
+     *
+     * @param  list<string>  $aliases
+     */
+    public function layoutSlot(
+        string $name,
+        array $aliases = [],
+        ?string $screen = null,
+        bool $persistOnNavigate = true
+    ): static {
+        $this->layoutSlotMeta = [
+            'name' => $name,
+            'aliases' => $aliases,
+            'screen' => $screen,
+            'persist_on_navigate' => $persistOnNavigate,
+        ];
+
+        $dataAttrs = isset($this->config['data_attributes']) && is_array($this->config['data_attributes'])
+            ? $this->config['data_attributes']
+            : [];
+        $dataAttrs['layout-slot'] = $name;
+        $this->config['data_attributes'] = $dataAttrs;
+
+        return $this;
+    }
+
+    /**
+     * Get declarative page-layout slot metadata, if any.
+     *
+     * @return array{name: string, aliases: list<string>, screen: ?string, persist_on_navigate: bool}|null
+     */
+    public function getLayoutSlotMeta(): ?array
+    {
+        return $this->layoutSlotMeta;
+    }
+
+    /**
+     * Mark which pane ('first' or 'second') this container belongs to inside a parent Split.
+     */
+    public function splitPane(?string $pane): static
+    {
+        $dataAttrs = isset($this->config['data_attributes']) && is_array($this->config['data_attributes'])
+            ? $this->config['data_attributes']
+            : [];
+
+        if ($pane === 'first' || $pane === 'second') {
+            $dataAttrs['split-pane'] = $pane;
+        } else {
+            unset($dataAttrs['split-pane']);
+        }
+
+        $this->config['data_attributes'] = $dataAttrs;
+
+        return $this;
     }
 
     /**

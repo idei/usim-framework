@@ -14,6 +14,7 @@ use Idei\Usim\Components\Input;
 use Idei\Usim\Components\ItemList;
 use Idei\Usim\Components\Label;
 use Idei\Usim\Components\MenuDropdown;
+use Idei\Usim\Components\NavTree;
 use Idei\Usim\Components\NewLabel;
 use Idei\Usim\Components\Select;
 use Idei\Usim\Components\Split;
@@ -122,38 +123,104 @@ class ScreenLifecycleOrchestrator implements ScreenLifecycleOrchestratorInterfac
                             $this->embedInto($screen::class, $slot, $buildParams);
                         }
 
-                        // 2. Re-embed top menu slot if present in the layout
-                        $menuSlot = $layout->getSlot('top_menu') ?? $layout->getSlot('menu');
-                        $menuClass = $layout->getActiveScreen('top_menu')
-                            ?? $layout->getActiveScreen('menu')
-                            ?? ($screen::getMenuScreen() !== null ? $screen::getMenuScreen() : null)
-                            ?? $layout::getMenuScreen()
-                            ?? $this->usimConfig->defaultMenuScreen;
+                        // 2. Re-embed navigation menu slot (supports top_menu, sidebar, or menu)
+                        $menuSlot = $layout->getSlot('sidebar')
+                            ?? $layout->getSlot('top_menu')
+                            ?? $layout->getSlot('menu');
+                        $isSidebarSlot = $layout->getSlot('sidebar') !== null;
 
-                        if (! is_subclass_of($menuClass, Screen::class)) {
+                        $configuredMenuDefault = $isSidebarSlot
+                            ? ($layout->getSlotDefaultScreen('sidebar')
+                                ?? config('usim.default_sidebar_menu_screen', $this->usimConfig->defaultSidebarMenuScreen)
+                                ?? $this->usimConfig->defaultMenuScreen)
+                            : ($layout->getSlotDefaultScreen('top_menu')
+                                ?? $layout->getSlotDefaultScreen('menu')
+                                ?? $this->usimConfig->defaultMenuScreen);
+
+                        $explicitHostMenu = $screen::$menuScreen !== null ? $screen::getMenuScreen() : null;
+                        $explicitLayoutMenu = $layout::$menuScreen !== null ? $layout::getMenuScreen() : null;
+
+                        $menuClass = $explicitHostMenu
+                            ?? $explicitLayoutMenu
+                            ?? $layout->getActiveScreen('sidebar')
+                            ?? $layout->getActiveScreen('top_menu')
+                            ?? $layout->getActiveScreen('menu')
+                            ?? $configuredMenuDefault;
+
+                        if (\is_string($menuClass) && ! is_subclass_of($menuClass, Screen::class)) {
                             $menuClass = Screen::resolveScreenClassFromSlug($menuClass);
                         }
 
-                        if ($menuSlot instanceof Container && $menuClass !== null && class_exists($menuClass) && is_subclass_of($menuClass, Screen::class)) {
+                        if ($menuSlot instanceof Container && \is_string($menuClass) && class_exists($menuClass) && is_subclass_of($menuClass, Screen::class)) {
                             $menuSlot->clear();
                             $this->embedInto($menuClass, $menuSlot);
+                            $layout->setActiveScreen($isSidebarSlot ? 'sidebar' : 'top_menu', $menuClass);
                         }
 
-                        // 3. Re-embed any other registered slot with an active screen
-                        foreach ($layout->getActiveScreens() as $slotName => $activeClass) {
-                            if (in_array($slotName, ['main', 'content', 'top_menu', 'menu'], true)) {
+                        // 3. Re-embed any other registered slot with an active or default screen (e.g. status_bar, right_panel)
+                        $embeddedContainerIds = [];
+                        if ($slot instanceof Container) {
+                            $embeddedContainerIds[$slot->getId()] = true;
+                        }
+                        if ($menuSlot instanceof Container) {
+                            $embeddedContainerIds[$menuSlot->getId()] = true;
+                        }
+
+                        foreach ($layout->getPrimarySlots() as $slotName) {
+                            if (in_array($slotName, ['main', 'content', 'center', 'top_menu', 'menu', 'sidebar'], true)) {
                                 continue;
                             }
+
                             $otherSlot = $layout->getSlot($slotName);
+                            if (! $otherSlot instanceof Container || isset($embeddedContainerIds[$otherSlot->getId()])) {
+                                continue;
+                            }
+
+                            $activeClass = $layout->getActiveScreen($slotName)
+                                ?? $layout->getSlotDefaultScreen($slotName);
+
+                            if ($activeClass === null && $slotName === 'status_bar') {
+                                $statusBarConfig = config('usim.default_status_bar_screen', $this->usimConfig->defaultStatusBarScreen);
+                                $activeClass = \is_string($statusBarConfig) && $statusBarConfig !== '' ? $statusBarConfig : null;
+                            }
+
+                            if (! \is_string($activeClass) || $activeClass === '') {
+                                continue;
+                            }
+
                             $targetClass = is_subclass_of($activeClass, Screen::class)
                                 ? $activeClass
                                 : Screen::resolveScreenClassFromSlug($activeClass);
 
-                            if ($otherSlot instanceof Container && $targetClass !== null && class_exists($targetClass) && is_subclass_of($targetClass, Screen::class)) {
+                            if ($targetClass !== null && class_exists($targetClass) && is_subclass_of($targetClass, Screen::class)) {
                                 $otherSlot->clear();
                                 $this->embedInto($targetClass, $otherSlot);
+                                $layout->setActiveScreen($slotName, $targetClass);
+                                $embeddedContainerIds[$otherSlot->getId()] = true;
                             }
                         }
+
+                        foreach ($layout->getActiveScreens() as $slotName => $activeClass) {
+                            if (in_array($slotName, ['main', 'content', 'center', 'top_menu', 'menu', 'sidebar'], true)) {
+                                continue;
+                            }
+                            $otherSlot = $layout->getSlot($slotName);
+                            if (! $otherSlot instanceof Container || isset($embeddedContainerIds[$otherSlot->getId()])) {
+                                continue;
+                            }
+
+                            $targetClass = is_subclass_of($activeClass, Screen::class)
+                                ? $activeClass
+                                : Screen::resolveScreenClassFromSlug($activeClass);
+
+                            if ($targetClass !== null && class_exists($targetClass) && is_subclass_of($targetClass, Screen::class)) {
+                                $otherSlot->clear();
+                                $this->embedInto($targetClass, $otherSlot);
+                                $embeddedContainerIds[$otherSlot->getId()] = true;
+                            }
+                        }
+
+                        UIStateManager::setClientActiveLayout($layoutClass);
 
                         return;
                     } finally {
@@ -1022,6 +1089,7 @@ class ScreenLifecycleOrchestrator implements ScreenLifecycleOrchestratorInterfac
             'form' => Form::class,
             'tableheaderrow' => TableHeaderRow::class,
             'menudropdown' => MenuDropdown::class,
+            'navtree', 'nav_tree' => NavTree::class,
             'uploader' => Uploader::class,
             'calendar' => Calendar::class,
             'carousel' => Carousel::class,

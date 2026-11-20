@@ -417,6 +417,60 @@ class UIStateRepository implements UIStateRepositoryInterface
     }
 
     /**
+     * Record the layout class currently mounted in the client's root #main container (or null for standalone/kiosk).
+     */
+    public function setClientActiveLayout(?string $layoutClass, ?string $clientId = null): bool
+    {
+        $clientId ??= $this->getOrCreateClientId();
+        $cacheKey = "ui_active_layout:{$clientId}";
+        $ttl = $this->getCacheTtl();
+
+        return Cache::put($cacheKey, [
+            'mounted' => true,
+            'class' => $layoutClass,
+        ], $ttl);
+    }
+
+    /**
+     * Get the layout class currently mounted in the client's root #main container (or null if standalone or unset).
+     */
+    public function getClientActiveLayout(?string $clientId = null): ?string
+    {
+        $clientId ??= $this->getOrCreateClientId();
+        $cacheKey = "ui_active_layout:{$clientId}";
+        $data = Cache::get($cacheKey);
+
+        if (\is_array($data) && isset($data['class']) && \is_string($data['class']) && $data['class'] !== '') {
+            return $data['class'];
+        }
+
+        return null;
+    }
+
+    /**
+     * Whether a layout (including explicit null for standalone screens) has been recorded for this client.
+     */
+    public function hasClientActiveLayout(?string $clientId = null): bool
+    {
+        $clientId ??= $this->getOrCreateClientId();
+        $cacheKey = "ui_active_layout:{$clientId}";
+        $data = Cache::get($cacheKey);
+
+        return \is_array($data) && ($data['mounted'] ?? false) === true;
+    }
+
+    /**
+     * Clear the tracked active layout for the client.
+     */
+    public function clearClientActiveLayout(?string $clientId = null): bool
+    {
+        $clientId ??= $this->getOrCreateClientId();
+        $cacheKey = "ui_active_layout:{$clientId}";
+
+        return Cache::forget($cacheKey);
+    }
+
+    /**
      * Get the currently active top modal definition.
      *
      * @return array{modal_class: string, caller_screen_id: ?int, caller_screen_class: ?string, callback_action: ?string, params: array<int|string, mixed>, layer_index: int, page_screen_route: ?string}|null
@@ -617,31 +671,30 @@ class UIStateRepository implements UIStateRepositoryInterface
     {
         $clientId ??= $this->getOrCreateClientId();
 
-        $defaultMenuConfig = function_exists('config') ? config('usim.default_menu_screen', 'App\\UI\\Screens\\Menu') : 'App\\UI\\Screens\\Menu';
-        $defaultMenuScreen = \is_string($defaultMenuConfig) ? $defaultMenuConfig : 'App\\UI\\Screens\\Menu';
+        $preservedShellScreens = $this->resolvePreservedShellScreens();
         $storedClasses = $this->getClientOpenedClasses($clientId);
 
-        // 1. Clear snapshots of all tracked layout classes and host screens (except Menu which handles auth transition events)
+        // 1. Clear snapshots of all tracked layout classes and host screens (except shell screens handling auth transitions)
         foreach ($storedClasses as $serviceClass) {
-            if ($serviceClass === 'App\\UI\\Screens\\Menu' || $serviceClass === $defaultMenuScreen || is_subclass_of($serviceClass, $defaultMenuScreen)) {
+            if ($this->isPreservedShellScreen($serviceClass, $preservedShellScreens)) {
                 continue;
             }
             $this->clear($serviceClass, $clientId);
         }
 
-        // 2. Clear snapshots of tracked screen root IDs (except Menu)
+        // 2. Clear snapshots of tracked screen root IDs (except shell screens)
         $openedScreens = $this->getClientOpenedScreens($clientId);
         foreach ($openedScreens as $screenRootId) {
             $context = $this->getIdGenerator()->getContextFromId((int) $screenRootId);
             if ($context !== null && $context !== '') {
-                if ($context === 'App\\UI\\Screens\\Menu' || $context === $defaultMenuScreen || is_subclass_of($context, $defaultMenuScreen)) {
+                if ($this->isPreservedShellScreen($context, $preservedShellScreens)) {
                     continue;
                 }
                 $this->clear($context, $clientId);
             }
         }
 
-        // 3. Clear active layout if known from current screen
+        // 3. Clear active layout if known from current screen or mounted layout
         $currentScreenClass = $this->getClientCurrentScreenClass($clientId);
         if ($currentScreenClass !== null && method_exists($currentScreenClass, 'getLayoutClass')) {
             $layoutClass = $currentScreenClass::getLayoutClass();
@@ -650,12 +703,20 @@ class UIStateRepository implements UIStateRepositoryInterface
             }
         }
 
-        // 4. Clear default layout if configured
+        $activeLayout = $this->getClientActiveLayout($clientId);
+        if ($activeLayout !== null && class_exists($activeLayout)) {
+            $this->clear($activeLayout, $clientId);
+        }
+
+        // 4. Clear default and guest layouts if configured
         if (function_exists('app') && app()->bound(\Idei\Usim\Support\UsimConfig::class)) {
             /** @var \Idei\Usim\Support\UsimConfig $usimConfig */
             $usimConfig = app(\Idei\Usim\Support\UsimConfig::class);
             if (! empty($usimConfig->defaultLayout) && class_exists($usimConfig->defaultLayout)) {
                 $this->clear($usimConfig->defaultLayout, $clientId);
+            }
+            if (! empty($usimConfig->guestLayout) && class_exists($usimConfig->guestLayout)) {
+                $this->clear($usimConfig->guestLayout, $clientId);
             }
         }
 
@@ -736,11 +797,17 @@ class UIStateRepository implements UIStateRepositoryInterface
             Cache::put($modalKey, $modal, $ttl);
         }
 
-        // 4. Current screen route and class
+        // 4. Current screen route, class, and active layout
         $currentScreenKey = "ui_current_screen:{$clientId}";
         $currentScreen = Cache::get($currentScreenKey);
         if ($currentScreen !== null) {
             Cache::put($currentScreenKey, $currentScreen, $ttl);
+        }
+
+        $activeLayoutKey = "ui_active_layout:{$clientId}";
+        $activeLayout = Cache::get($activeLayoutKey);
+        if ($activeLayout !== null) {
+            Cache::put($activeLayoutKey, $activeLayout, $ttl);
         }
 
         // 5. Auth token & Active unit
@@ -769,5 +836,40 @@ class UIStateRepository implements UIStateRepositoryInterface
         }
 
         return $ttl;
+    }
+
+    /**
+     * Resolve shell screens (top menu, sidebar menu, status bar) whose snapshots should be preserved across auth transitions.
+     *
+     * @return list<string>
+     */
+    protected function resolvePreservedShellScreens(): array
+    {
+        $screens = ['App\\UI\\Screens\\Menu'];
+
+        if (function_exists('config')) {
+            foreach (['usim.default_menu_screen', 'usim.default_sidebar_menu_screen', 'usim.default_status_bar_screen'] as $key) {
+                $val = config($key);
+                if (\is_string($val) && $val !== '') {
+                    $screens[] = $val;
+                }
+            }
+        }
+
+        return array_values(array_unique($screens));
+    }
+
+    /**
+     * @param  list<string>  $preservedShellScreens
+     */
+    protected function isPreservedShellScreen(string $serviceClass, array $preservedShellScreens): bool
+    {
+        foreach ($preservedShellScreens as $shellScreen) {
+            if ($serviceClass === $shellScreen || is_subclass_of($serviceClass, $shellScreen)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }

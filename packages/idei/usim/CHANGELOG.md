@@ -6,6 +6,26 @@ The format is based on Keep a Changelog, and this project follows Semantic Versi
 
 ## [Unreleased]
 
+### Added
+- **Unified Declarative Layout Engine (`AbstractLayout` + `.layout.yaml`)**:
+  - `AbstractLayout` now natively supports sibling `.layout.yaml` definitions via `ContainerLayoutLoader`, automatically discovering and registering layout slots (`layout_slot`, `slot_aliases`, `screen`, `persist_on_navigate`) recursively across grids and nested `Split` panes, and restoring all slots generically across cached requests (`$state_slot_map`).
+  - Added declarative `component: split` support with `first:` / `second:` panes (including nested splits), `hide_divider_when_collapsed` (`Split::hideDividerWhenCollapsed()`), deterministic `data-split-pane` routing, and `custom_class` box property support (`UIComponent::customClass()` and `ContainerLayoutLoader`).
+  - Added `LayoutInterface` / `AbstractLayout` slot orchestration API (`expandSlot()`, `collapseSlot()`, `clearSlot()`, `getSlotDefaultScreen()`) and `Screen::closeSlot()`.
+  - Added client active layout tracking (`UIStateManager::setClientActiveLayout()`, `getClientActiveLayout()`, `hasClientActiveLayout()`, `clearClientActiveLayout()`) with automatic SPA layout transitions (`MainLayout <-> WorkbenchLayout <-> null`) in `HandlesNavigation::showInto()`, strict `$layout = null` standalone/kiosk guardrails in `Screen::getLayout()`, and automatic collapse of non-persistent auxiliary slots (`persist_on_navigate: false`) on `main` navigation.
+- **VS Code-style `WorkbenchLayout`, `SidebarMenu`, `NavTree` & `StatusBar`**:
+  - Added `Idei\Usim\Components\NavTree` (`UI::navTree()`, `js/components/nav-tree/index.js`, `css/components/nav-tree/index.css`) with inline collapsible accordions (`accordion(true)`), active screen highlighting, and automatic `52px` Activity Bar icon-only adaptation when inside a collapsed `Split` pane (auto-expanding the sidebar when clicking a group icon).
+  - Added `Idei\Usim\Navigation\Contracts\MenuTargetInterface`, `MenuBuilder::renderNavTree()`, and `MenuBuilder::populateNavTree()` so existing `MenuProviderInterface` providers render transparently into either `MenuDropdown` or `NavTree`.
+  - Added `MenuDropdown::floating(true)` with viewport-portaled (`document.body`, `position: fixed`) popovers (`right-top`, `right-bottom`, `top-left`, `top-right`) and viewport-clamped nested submenus so menus inside `Split` panes and `StatusBar` never clip.
+  - Added `config/usim.php` / `UsimConfig` keys: `guest_layout`, `default_sidebar_menu_screen`, and `default_status_bar_screen`.
+  - Added `WorkbenchLayout` + `workbench-layout.layout.yaml` (and package stubs), `SidebarMenu` (brand header, `NavTree`, user account + settings floating popovers with theme toggle & `🌐` language submenu), `StatusBar` (organizational unit switcher left, `UsimEvent('status_bar_message')` center, dev-only `R` reset button right omitted in `production`), shared `HandlesShellActions` trait, and `RightPanelDemo` + `RightPanelInspector` showcase.
+  - Added comprehensive AI/LLM technical documentation in `packages/idei/usim/docs/WORKBENCH_AND_UNIFIED_LAYOUTS_AI_REFERENCE.md` and updated `usim_context_prompt.md`, `LAYOUTS_COMPOSITION_GUIDE.md`, `docs/README.md`, and `README.md`.
+  - Added end-to-end feature test suite `WorkbenchLayoutAndNavigationTest`.
+
+### Changed
+- Removed hardcoded `#reset-btn` from `packages/idei/usim/resources/views/app.blade.php` (dev reset now lives exclusively in `StatusBar` and is omitted when `app()->isProduction()`, keeping standalone/kiosk screens and production builds clean).
+- Removed legacy hardcoded container ID `104921240` and unused `loadMenuUI()` from `ui-renderer.js`.
+- Scoped `Split` pane container styles in `css/components/split/index.css` to direct children (`.ui-split-pane > .ui-container`) so embedded screen cards preserve borders, padding, and sizing.
+
 ### Fixed
 - Fixed `ItemList` row icon rendering (`resources/assets/js/components/item-list/index.js` and `css/components/item-list/index.css`):
   - Row icons (`item.icon`) now resolve dynamically via `helpers.createIconElement` into standard SVG (`span.ui-icon-svg`) or Unicode fallback elements rather than outputting raw icon name strings as plain text.

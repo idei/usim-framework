@@ -166,6 +166,26 @@ class UIStateManager
         return self::getRepository()->clearClientCurrentScreen($clientId);
     }
 
+    public static function setClientActiveLayout(?string $layoutClass, ?string $clientId = null): bool
+    {
+        return self::getRepository()->setClientActiveLayout($layoutClass, $clientId);
+    }
+
+    public static function getClientActiveLayout(?string $clientId = null): ?string
+    {
+        return self::getRepository()->getClientActiveLayout($clientId);
+    }
+
+    public static function hasClientActiveLayout(?string $clientId = null): bool
+    {
+        return self::getRepository()->hasClientActiveLayout($clientId);
+    }
+
+    public static function clearClientActiveLayout(?string $clientId = null): bool
+    {
+        return self::getRepository()->clearClientActiveLayout($clientId);
+    }
+
     /**
      * @return array{modal_class: string, caller_screen_id: ?int, caller_screen_class: ?string, callback_action: ?string, params: array<int|string, mixed>, layer_index: int, page_screen_route: ?string}|null
      */

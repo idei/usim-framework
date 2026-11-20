@@ -39,7 +39,13 @@ final class UsimConfig
 
     public private(set) string $defaultLayout;
 
+    public private(set) ?string $guestLayout = null;
+
     public private(set) string $defaultMenuScreen;
+
+    public private(set) ?string $defaultSidebarMenuScreen = null;
+
+    public private(set) ?string $defaultStatusBarScreen = null;
 
     public private(set) int $uiCacheTtl;
 
@@ -91,7 +97,10 @@ final class UsimConfig
         $this->headlessMode = \is_bool($raw['headless_mode'] ?? null) ? $raw['headless_mode'] : false;
         $this->defaultRegisteringRole = \is_string($raw['default_registering_role'] ?? null) ? $raw['default_registering_role'] : 'registered';
         $this->defaultLayout = \is_string($raw['default_layout'] ?? null) ? $raw['default_layout'] : 'App\\UI\\Layouts\\MainLayout';
+        $this->guestLayout = \is_string($raw['guest_layout'] ?? null) && $raw['guest_layout'] !== '' ? $raw['guest_layout'] : null;
         $this->defaultMenuScreen = \is_string($raw['default_menu_screen'] ?? null) ? $raw['default_menu_screen'] : 'App\\UI\\Screens\\Menu';
+        $this->defaultSidebarMenuScreen = \is_string($raw['default_sidebar_menu_screen'] ?? null) && $raw['default_sidebar_menu_screen'] !== '' ? $raw['default_sidebar_menu_screen'] : null;
+        $this->defaultStatusBarScreen = \is_string($raw['default_status_bar_screen'] ?? null) && $raw['default_status_bar_screen'] !== '' ? $raw['default_status_bar_screen'] : null;
         $this->uiCacheTtl = isset($raw['ui_cache_ttl']) && is_numeric($raw['ui_cache_ttl']) ? (int) $raw['ui_cache_ttl'] : 7200;
 
         // 2. Modelos

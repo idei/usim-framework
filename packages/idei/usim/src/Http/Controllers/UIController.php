@@ -57,6 +57,9 @@ class UIController extends Controller
 
         if ($parent === 'main') {
             UIStateManager::setClientCurrentScreen($screenRoute, $screenClass);
+            if (is_subclass_of($screenClass, Screen::class)) {
+                UIStateManager::setClientActiveLayout($screenClass::getLayoutClass());
+            }
 
             $modalStack = UIStateManager::getClientActiveModalStack();
             if (! empty($modalStack)) {
@@ -212,10 +215,20 @@ class UIController extends Controller
             return true;
         }
 
-        // 4. Caller is Menu (Menu is shared across all screen pages that display menu)
-        $defaultMenuScreen = config('usim.default_menu_screen', 'App\\UI\\Screens\\Menu');
-        if (class_basename($callerClass) === 'Menu' || (is_string($defaultMenuScreen) && is_a($callerClass, $defaultMenuScreen, true))) {
+        // 4. Caller is a persistent shell screen (Menu, SidebarMenu, StatusBar) shared across framed pages
+        $shellKeys = [
+            'usim.default_menu_screen' => 'App\\UI\\Screens\\Menu',
+            'usim.default_sidebar_menu_screen' => null,
+            'usim.default_status_bar_screen' => null,
+        ];
+        if (in_array(class_basename($callerClass), ['Menu', 'SidebarMenu', 'StatusBar'], true)) {
             return true;
+        }
+        foreach ($shellKeys as $configKey => $fallback) {
+            $shellScreen = config($configKey, $fallback);
+            if (is_string($shellScreen) && $shellScreen !== '' && is_a($callerClass, $shellScreen, true)) {
+                return true;
+            }
         }
 
         // 5. Caller was an embedded/opened screen for this client

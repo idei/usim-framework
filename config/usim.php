@@ -64,16 +64,36 @@ return [
     |
     | Clase de layout predeterminada para enmarcar las pantallas que declaran $layout = 'default'.
     */
-    'default_layout' => 'App\\UI\\Layouts\\MainLayout',
+    'default_layout' => 'App\\UI\\Layouts\\WorkbenchLayout',
+
+    /*
+    |--------------------------------------------------------------------------
+    | Guest Layout
+    |--------------------------------------------------------------------------
+    |
+    | Layout opcional para usuarios no autenticados (landing / auth).
+    | Si es null, se usa siempre default_layout.
+    */
+    'guest_layout' => 'App\\UI\\Layouts\\MainLayout',
 
     /*
     |--------------------------------------------------------------------------
     | Default Menu Screen
     |--------------------------------------------------------------------------
     |
-    | Pantalla de menú predeterminada que se embebe en el layout principal.
+    | Pantalla de menú predeterminada que se embebe en layouts de barra superior.
     */
     'default_menu_screen' => 'App\\UI\\Screens\\Menu',
+
+    /*
+    |--------------------------------------------------------------------------
+    | Default Sidebar Menu Screen & Status Bar Screen
+    |--------------------------------------------------------------------------
+    |
+    | Pantallas predeterminadas para los slots 'sidebar' y 'status_bar' en WorkbenchLayout.
+    */
+    'default_sidebar_menu_screen' => 'App\\UI\\Screens\\SidebarMenu',
+    'default_status_bar_screen' => 'App\\UI\\Screens\\StatusBar',
 
     /*
     |--------------------------------------------------------------------------

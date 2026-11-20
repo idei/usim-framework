@@ -11,6 +11,7 @@ use App\UI\Screens\Demo\InputDemo;
 use App\UI\Screens\Demo\ItemListDemo;
 use App\UI\Screens\Demo\ModalDemo;
 use App\UI\Screens\Demo\NewLabelDemo;
+use App\UI\Screens\Demo\RightPanelDemo;
 use App\UI\Screens\Demo\SelectDemo;
 use App\UI\Screens\Demo\SplitDemo;
 use App\UI\Screens\Demo\TableDemo;
@@ -37,6 +38,7 @@ class DemosMenuProvider implements MenuProviderInterface
             $submenu->screenShow(CarouselDemo::class);
             $submenu->screenShow(TextareaDemo::class);
             $submenu->screenShow(SplitDemo::class);
+            $submenu->screenShow(RightPanelDemo::class);
             $submenu->screenShow(TabsDemo::class);
             $submenu->screenShow(ImageDemo::class);
         }, '🎮');

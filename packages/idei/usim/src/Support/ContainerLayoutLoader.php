@@ -12,6 +12,7 @@ use Idei\Usim\Components\Image;
 use Idei\Usim\Components\Input;
 use Idei\Usim\Components\ItemList;
 use Idei\Usim\Components\Label;
+use Idei\Usim\Components\NavTree;
 use Idei\Usim\Components\NewLabel;
 use Idei\Usim\Components\Select;
 use Idei\Usim\Components\Split;
@@ -105,6 +106,7 @@ class ContainerLayoutLoader
         'crd_' => Card::class,
         'cnt_' => Container::class,
         'tmr_' => Timer::class,
+        'nav_' => NavTree::class,
     ];
 
     /**
@@ -131,6 +133,8 @@ class ContainerLayoutLoader
         'container' => Container::class,
         'split' => Split::class,
         'timer' => Timer::class,
+        'nav_tree' => NavTree::class,
+        'navtree' => NavTree::class,
     ];
 
     /**
@@ -390,6 +394,10 @@ class ContainerLayoutLoader
             }
         }
 
+        if (isset($rule['layout_slot']) || isset($rule['slot_aliases']) || isset($rule['screen'])) {
+            return Container::class;
+        }
+
         return null;
     }
 
@@ -641,6 +649,10 @@ class ContainerLayoutLoader
             $container->appearance($props['appearance']);
         }
 
+        if (isset($props['custom_class']) && is_string($props['custom_class']) && trim($props['custom_class']) !== '') {
+            $container->customClass(trim($props['custom_class']));
+        }
+
         if (($props['center_horizontal'] ?? false) === true || ($props['center'] ?? false) === true) {
             $container->centerHorizontal();
         }
@@ -872,6 +884,14 @@ class ContainerLayoutLoader
                 self::applyNestedContainerLayout($child, $rule, $callingContext, $autoTranslate, $baseDir, $visitedPaths);
             }
 
+            if ($child instanceof Split && (isset($rule['first']) || isset($rule['second']))) {
+                self::applySplitPanesLayout($child, $rule, $callingContext, $autoTranslate, $baseDir, $visitedPaths);
+            }
+
+            if ($child instanceof Container) {
+                self::applyLayoutSlotMetadata($child, $rule);
+            }
+
             self::applyPlacementToElement($child, $gridCol, $gridRow, $align, $justify, $rule, $callingContext);
 
             if ($translationTree !== []) {
@@ -965,6 +985,106 @@ class ContainerLayoutLoader
     }
 
     /**
+     * Build and configure declarative `first` and `second` panes inside a Split component.
+     * Supports nested Split components, nested grids/includes, and declarative layout slots.
+     *
+     * @param  array<string, mixed>  $rule
+     * @param  list<string>  $visitedPaths
+     */
+    protected static function applySplitPanesLayout(
+        Split $split,
+        array $rule,
+        ?string $callingContext,
+        bool $autoTranslate,
+        ?string $baseDir,
+        array $visitedPaths
+    ): void {
+        foreach (['first', 'second'] as $side) {
+            if (! isset($rule[$side]) || ! is_array($rule[$side])) {
+                continue;
+            }
+
+            /** @var array<string, mixed> $paneRule */
+            $paneRule = $rule[$side];
+            $defaultName = ($split->getName() ?? ('split_'.$split->getId())).'_'.$side;
+            $paneName = isset($paneRule['name']) && is_string($paneRule['name']) && trim($paneRule['name']) !== ''
+                ? trim($paneRule['name'])
+                : $defaultName;
+
+            $existing = $split->findByName($paneName);
+            if ($existing instanceof Container) {
+                $paneElement = $existing;
+            } else {
+                $isNestedSplit = isset($paneRule['component'])
+                    && is_string($paneRule['component'])
+                    && strtolower(trim($paneRule['component'])) === 'split';
+
+                $paneElement = $isNestedSplit
+                    ? new Split($paneName, $callingContext)
+                    : new Container($paneName, $callingContext);
+
+                $paneElement->plain()->width(Size::pct(100))->height(Size::pct(100));
+                $split->add($paneElement);
+            }
+
+            $paneElement->splitPane($side);
+
+            self::applyBoxProperties($paneElement, $paneRule);
+            self::applyElementCustomProperties($paneElement, $paneRule, $callingContext);
+            self::applyLayoutSlotMetadata($paneElement, $paneRule);
+
+            if (self::isNestedContainerRule($paneRule)) {
+                self::applyNestedContainerLayout($paneElement, $paneRule, $callingContext, $autoTranslate, $baseDir, $visitedPaths);
+            }
+
+            if ($paneElement instanceof Split && (isset($paneRule['first']) || isset($paneRule['second']))) {
+                self::applySplitPanesLayout($paneElement, $paneRule, $callingContext, $autoTranslate, $baseDir, $visitedPaths);
+            }
+        }
+    }
+
+    /**
+     * Apply declarative page-layout slot metadata (`layout_slot`, `slot_aliases`, `screen`, `persist_on_navigate`) to a Container.
+     *
+     * @param  array<string, mixed>  $rule
+     */
+    protected static function applyLayoutSlotMetadata(Container $container, array $rule): void
+    {
+        if (! array_key_exists('layout_slot', $rule)) {
+            return;
+        }
+
+        $rawSlot = $rule['layout_slot'];
+        if ($rawSlot === false || $rawSlot === null) {
+            return;
+        }
+
+        $slotName = is_string($rawSlot) && trim($rawSlot) !== ''
+            ? trim($rawSlot)
+            : ($container->getName() ?? 'slot_'.$container->getId());
+
+        /** @var list<string> $aliases */
+        $aliases = [];
+        if (isset($rule['slot_aliases']) && is_array($rule['slot_aliases'])) {
+            foreach ($rule['slot_aliases'] as $alias) {
+                if (is_string($alias) && trim($alias) !== '') {
+                    $aliases[] = trim($alias);
+                }
+            }
+        }
+
+        $screen = isset($rule['screen']) && is_string($rule['screen']) && trim($rule['screen']) !== ''
+            ? trim($rule['screen'])
+            : null;
+
+        $persist = array_key_exists('persist_on_navigate', $rule)
+            ? (bool) $rule['persist_on_navigate']
+            : true;
+
+        $container->layoutSlot($slotName, $aliases, $screen, $persist);
+    }
+
+    /**
      * @param  array<string, mixed>  $rule
      */
     protected static function applyPlacementToElement(
@@ -1006,6 +1126,7 @@ class ContainerLayoutLoader
         $ignoredKeys = [
             'slot', 'span', 'at', 'row', 'row_height', 'align', 'justify',
             'grid', 'layout_file', 'include', 'file', 'i18n', 'component',
+            'first', 'second', 'layout_slot', 'slot_aliases', 'screen', 'persist_on_navigate', 'name',
         ];
         $hasExternalLayoutRef = self::extractExternalLayoutReference($rule) !== null;
 

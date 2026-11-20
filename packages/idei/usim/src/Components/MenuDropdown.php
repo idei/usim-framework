@@ -2,6 +2,7 @@
 
 namespace Idei\Usim\Components;
 
+use Idei\Usim\Navigation\Contracts\MenuTargetInterface;
 use Idei\Usim\Navigation\TriggerConfig;
 use Idei\Usim\Screen;
 
@@ -15,7 +16,7 @@ use Idei\Usim\Screen;
  * It generates semantic HTML markup with proper accessibility attributes and
  * integrates with the component lifecycle for dynamic menu management.
  */
-class MenuDropdown extends UIComponent
+class MenuDropdown extends UIComponent implements MenuTargetInterface
 {
     /** @var list<array<string, mixed>> */
     private array $items = [];
@@ -266,11 +267,21 @@ class MenuDropdown extends UIComponent
     /**
      * Set menu positioning
      *
-     * @param  string  $position  'bottom-left', 'bottom-right', 'top-left', 'top-right'
+     * @param  string  $position  'bottom-left', 'bottom-right', 'top-left', 'top-right', 'right-top', 'right-bottom'
      */
     public function position(string $position = 'bottom-left'): static
     {
         $this->config['position'] = $position;
+
+        return $this;
+    }
+
+    /**
+     * Render dropdown popup with fixed viewport positioning so it never clips inside overflow-hidden containers (like Split).
+     */
+    public function floating(bool $enabled = true): static
+    {
+        $this->config['floating'] = $enabled;
 
         return $this;
     }

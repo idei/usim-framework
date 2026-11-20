@@ -56,4 +56,24 @@ interface LayoutInterface
      * @param  array<int|string, mixed>  $params
      */
     public function show(string $screenClass, ?string $slot = null, array $params = []): bool;
+
+    /**
+     * Clear the contents of a slot and optionally collapse its parent Split pane.
+     */
+    public function clearSlot(string $slot, bool $collapse = true): bool;
+
+    /**
+     * Expand the Split pane hosting the given slot, if applicable.
+     */
+    public function expandSlot(string $slot): bool;
+
+    /**
+     * Collapse the Split pane hosting the given slot, if applicable.
+     */
+    public function collapseSlot(string $slot): bool;
+
+    /**
+     * Get the default Screen class/slug declared for a slot, if any.
+     */
+    public function getSlotDefaultScreen(string $slot): ?string;
 }

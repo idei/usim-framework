@@ -106,6 +106,8 @@ php artisan vendor:publish --tag=usim-docs --force
 Key guides included:
 
 - [Declarative Layouts & i18n](docs/DECLARATIVE_LAYOUTS_AND_I18N.md) — `.layout.yaml` syntax, CSS Grid, slots, `Spacing`, `Screen::layoutContainer()`, optional `startingUI()`, and two-level i18n (`t:` / `.key` & `i18n: auto`)
+- [Layouts Composition Guide](docs/LAYOUTS_COMPOSITION_GUIDE.md) — Practical catalog of grid, nested inline layouts, external `include:`, `embedToSlot()`, and `AbstractLayout` patterns
+- [Workbench & Unified Layouts (AI Technical Reference)](docs/WORKBENCH_AND_UNIFIED_LAYOUTS_AI_REFERENCE.md) — Unified `.layout.yaml` page layouts, `WorkbenchLayout`, `NavTree`, Activity Bar (`52px`), collapsible `right_panel` (`0px`), `StatusBar`, `guest_layout`, and automatic SPA layout transitions
 - [Icons Guide](docs/ICONS_GUIDE.md) — Agnostic icon API (`HasIcon`), standard 80-SVG library (`--tag=usim-icons`), custom user icons (`public/images/icons/`), theme/container adaptation, and full icon catalog
 - [Events System](docs/USIM_EVENTS_SYSTEM.md) — UI & domain event lifecycle, handlers, and diffs
 - [Screen Testing Guide](docs/SCREEN_TESTING_GUIDE.md) — Testing screens with `ScreenTestHarness`, `uiScenario()`, and Pest
@@ -1040,6 +1042,11 @@ return [
 | Key | Description | Default |
 |---|---|---|
 | `front_store_key` | Unique application identifier used to scope persisted UI storage keys | `my-app` (override via `FRONT_STORE_KEY`) |
+| `default_layout` | Default `AbstractLayout` class wrapping `'default'` screens | `App\UI\Layouts\WorkbenchLayout` |
+| `guest_layout` | Optional `AbstractLayout` used for unauthenticated users on `'default'` screens (`null` falls back to `default_layout`) | `App\UI\Layouts\MainLayout` |
+| `default_menu_screen` | Default Screen mounted into `top_menu` / `menu` slot (`MainLayout`) | `App\UI\Screens\Menu` |
+| `default_sidebar_menu_screen` | Default Screen mounted into `sidebar` slot (`WorkbenchLayout`) | `App\UI\Screens\SidebarMenu` |
+| `default_status_bar_screen` | Default Screen mounted into `status_bar` slot (`WorkbenchLayout`) | `App\UI\Screens\StatusBar` |
 | `screens_namespace` | PSR-4 namespace where screens live | `App\UI\Screens` |
 | `screens_path` | Filesystem path to scan for screens | `app/UI/Screens` |
 | `api_url` | Base URL for internal HTTP calls | `APP_URL` |

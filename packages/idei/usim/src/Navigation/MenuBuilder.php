@@ -4,6 +4,7 @@ namespace Idei\Usim\Navigation;
 
 use Closure;
 use Idei\Usim\Components\MenuDropdown;
+use Idei\Usim\Components\NavTree;
 use Idei\Usim\Navigation\Contracts\MenuProviderInterface;
 use Idei\Usim\Screen;
 use Idei\Usim\UI;
@@ -293,5 +294,31 @@ class MenuBuilder
         $dropdown = UI::menuDropdown($componentId);
 
         return $this->populate($dropdown);
+    }
+
+    /**
+     * Populate an existing NavTree instance with this builder's visible items.
+     */
+    public function populateNavTree(NavTree $navTree): NavTree
+    {
+        $navTree->clearItems();
+        $navTree->visible($this->visible);
+
+        foreach ($this->items as $item) {
+            $item->applyTo($navTree);
+        }
+
+        return $navTree;
+    }
+
+    /**
+     * Render as a new NavTree component (sidebar / inline accordion without dropdowns).
+     */
+    public function renderNavTree(?string $id = null): NavTree
+    {
+        $componentId = $id ?? ($this->id ?? 'nav_'.uniqid());
+        $navTree = UI::navTree($componentId);
+
+        return $this->populateNavTree($navTree);
     }
 }

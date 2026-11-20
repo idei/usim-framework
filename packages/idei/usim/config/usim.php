@@ -68,12 +68,32 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Guest Layout
+    |--------------------------------------------------------------------------
+    |
+    | Layout opcional para usuarios no autenticados (landing / auth).
+    | Si es null, se usa siempre default_layout.
+    */
+    'guest_layout' => null,
+
+    /*
+    |--------------------------------------------------------------------------
     | Default Menu Screen
     |--------------------------------------------------------------------------
     |
     | Pantalla de menú predeterminada que se embebe en el layout principal.
     */
     'default_menu_screen' => 'App\\UI\\Screens\\Menu',
+
+    /*
+    |--------------------------------------------------------------------------
+    | Default Sidebar Menu Screen & Status Bar Screen
+    |--------------------------------------------------------------------------
+    |
+    | Pantallas predeterminadas para layouts tipo Workbench (sidebar + status_bar).
+    */
+    'default_sidebar_menu_screen' => 'App\\UI\\Screens\\SidebarMenu',
+    'default_status_bar_screen' => 'App\\UI\\Screens\\StatusBar',
 
     /*
     |--------------------------------------------------------------------------

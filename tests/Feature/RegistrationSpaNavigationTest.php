@@ -62,7 +62,9 @@ it('executes full SPA registration sequence without redirect and returns registe
     expect($payload['clear_container'] ?? null)->not->toBeNull();
 
     $slotContainerId = $payload['navigate']['slot_container_id'] ?? $payload['clear_container'];
-    expect($slotContainerId)->toBe(104921240);
+    $expectedLayout = (string) Registered::getLayoutClass();
+    $expectedSlotId = \Idei\Usim\Support\UIIdGenerator::generateFromName($expectedLayout, 'content_container');
+    expect($slotContainerId)->toBe($expectedSlotId);
 
     // Verification: Contains Registered screen root container and child components
     $registeredContainer = null;

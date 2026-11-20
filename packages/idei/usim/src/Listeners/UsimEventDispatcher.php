@@ -103,27 +103,58 @@ class UsimEventDispatcher
             }
         }
 
-        // Asegurar notificación de la pantalla de menú predeterminada si Menu está abierta
-        // o si nos encontramos en el ciclo de un evento UI (UIEventController / petición UI)
-        $defaultMenuConfig = config('usim.default_menu_screen', 'App\\UI\\Screens\\Menu');
-        $defaultMenuScreen = \is_string($defaultMenuConfig) ? $defaultMenuConfig : 'App\\UI\\Screens\\Menu';
-        if (class_exists($defaultMenuScreen)) {
+        // Asegurar notificación de las pantallas de shell activas (menú / sidebar / status bar)
+        // Solo si no estamos en una pantalla explícitamente standalone ($layout = null, ej. Kiosk/Pairing)
+        $currentScreen = UIStateManager::getClientCurrentScreenClass();
+        $isStandaloneActive = UIStateManager::hasClientActiveLayout()
+            && UIStateManager::getClientActiveLayout() === null;
+        if (! $isStandaloneActive && \is_string($currentScreen) && class_exists($currentScreen) && is_subclass_of($currentScreen, Screen::class)) {
+            $isStandaloneActive = $currentScreen::$layout === null;
+        }
+
+        if (! $isStandaloneActive) {
             $isUiRequest = self::$deferProcessing || request()->is('api/ui*') || request()->is('ui*') || request()->hasHeader('X-UI-Client-Id');
-            if ($isUiRequest || isset($targetScreenClasses[$defaultMenuScreen])) {
-                $targetScreenClasses[$defaultMenuScreen] = true;
+            $defaultMenuConfig = config('usim.default_menu_screen', 'App\\UI\\Screens\\Menu');
+            $defaultMenuScreen = \is_string($defaultMenuConfig) ? $defaultMenuConfig : 'App\\UI\\Screens\\Menu';
+
+            // Resiliently notify default_menu_screen if no layout or MainLayout is active;
+            // Workbench shell screens (SidebarMenu, StatusBar) are notified when active in the mounted layout or opened screens.
+            $mountedLayout = UIStateManager::getClientActiveLayout();
+            $shellCandidates = [];
+
+            if ($mountedLayout === null || str_ends_with($mountedLayout, 'MainLayout')) {
+                $shellCandidates[] = $defaultMenuScreen;
+            } else {
+                $sidebarScreen = config('usim.default_sidebar_menu_screen');
+                $statusBarScreen = config('usim.default_status_bar_screen');
+                if (\is_string($sidebarScreen) && $sidebarScreen !== '') {
+                    $shellCandidates[] = $sidebarScreen;
+                }
+                if (\is_string($statusBarScreen) && $statusBarScreen !== '') {
+                    $shellCandidates[] = $statusBarScreen;
+                }
+            }
+
+            foreach ($shellCandidates as $shellClass) {
+                if (class_exists($shellClass) && ($isUiRequest || isset($targetScreenClasses[$shellClass]))) {
+                    $targetScreenClasses[$shellClass] = true;
+                }
             }
         }
 
         // Asegurar notificación de la pantalla actualmente activa
-        $currentScreen = UIStateManager::getClientCurrentScreenClass();
         if (\is_string($currentScreen) && class_exists($currentScreen)) {
             $targetScreenClasses[$currentScreen] = true;
         }
 
-        // Asegurar notificación del modal activo si existe
+        // Asegurar notificación del modal activo PRIMERO (para que cierre el modal y emita toast antes de cambios de layout)
         $activeModal = UIStateManager::getClientActiveModal();
-        if (\is_array($activeModal) && ! empty($activeModal['modal_class']) && class_exists($activeModal['modal_class'])) {
-            $targetScreenClasses[$activeModal['modal_class']] = true;
+        $activeModalClass = (\is_array($activeModal) && ! empty($activeModal['modal_class']) && \is_string($activeModal['modal_class']) && class_exists($activeModal['modal_class']))
+            ? $activeModal['modal_class']
+            : null;
+        if ($activeModalClass !== null) {
+            unset($targetScreenClasses[$activeModalClass]);
+            $targetScreenClasses = [$activeModalClass => true] + $targetScreenClasses;
         }
 
         $incomingStorageRaw = request()->storage ?? [];
@@ -143,7 +174,27 @@ class UsimEventDispatcher
             $incomingStorage = array_merge($incomingStorage, $collector->getStorage());
         }
 
+        $hadRootLayoutSwitchBefore = app()->bound(UIChangesCollector::class)
+            && app(UIChangesCollector::class)->get('clear_container') === 'main';
+
+        $allShellScreens = array_filter([
+            config('usim.default_menu_screen', 'App\\UI\\Screens\\Menu'),
+            config('usim.default_sidebar_menu_screen'),
+            config('usim.default_status_bar_screen'),
+        ], static fn (mixed $v): bool => \is_string($v) && $v !== '');
+
         foreach (array_keys($targetScreenClasses) as $screenClass) {
+            // If an earlier handler in this event already triggered a full #main layout switch,
+            // skip remaining shell screens (Menu/SidebarMenu/StatusBar) so they don't overwrite the freshly rendered layout tree,
+            // while still allowing non-shell handlers (like Login modal closing itself) to run.
+            if (! $hadRootLayoutSwitchBefore
+                && in_array($screenClass, $allShellScreens, true)
+                && app()->bound(UIChangesCollector::class)
+                && app(UIChangesCollector::class)->get('clear_container') === 'main'
+            ) {
+                continue;
+            }
+
             if (! class_exists($screenClass) || (! is_subclass_of($screenClass, Screen::class) && $screenClass !== Screen::class)) {
                 continue;
             }

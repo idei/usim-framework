@@ -18,6 +18,7 @@ use Idei\Usim\Support\UIIdGenerator;
 use Idei\Usim\Support\UIStateManager;
 use Idei\Usim\Support\UsimConfig;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 use ReflectionClass;
 use RuntimeException;
@@ -183,6 +184,11 @@ abstract class Screen
     /**
      * Resolve the layout class for this screen.
      *
+     * Precedence:
+     * 1. static::$layout === null -> standalone/kiosk screen (no layout, always wins)
+     * 2. static::$layout !== 'default' -> explicit layout class declared by the Screen
+     * 3. static::$layout === 'default' -> guest_layout when unauthenticated (if configured), otherwise default_layout
+     *
      * @return class-string<AbstractLayout>|null
      */
     public static function getLayoutClass(): ?string
@@ -193,7 +199,21 @@ abstract class Screen
 
         /** @var UsimConfig $usimConfig */
         $usimConfig = app(UsimConfig::class);
-        $layoutClass = static::$layout === 'default' ? $usimConfig->defaultLayout : static::$layout;
+
+        if (static::$layout === 'default') {
+            $isGuest = ! Auth::guard('web')->check() && ! Auth::guard('device')->check();
+            $rawGuestLayout = config('usim.guest_layout', $usimConfig->guestLayout);
+            $guestLayout = \is_string($rawGuestLayout) && $rawGuestLayout !== '' ? $rawGuestLayout : null;
+
+            $rawDefaultLayout = config('usim.default_layout', $usimConfig->defaultLayout);
+            $defaultLayout = \is_string($rawDefaultLayout) && $rawDefaultLayout !== ''
+                ? $rawDefaultLayout
+                : $usimConfig->defaultLayout;
+
+            $layoutClass = ($isGuest && $guestLayout !== null) ? $guestLayout : $defaultLayout;
+        } else {
+            $layoutClass = static::$layout;
+        }
 
         if (class_exists($layoutClass) && is_subclass_of($layoutClass, AbstractLayout::class)) {
             /** @var class-string<AbstractLayout> $layoutClass */
@@ -224,18 +244,43 @@ abstract class Screen
         }
 
         $layoutClass = null;
-        $currentScreenClass = UIStateManager::getClientCurrentScreenClass();
-        if ($currentScreenClass !== null && class_exists($currentScreenClass) && is_subclass_of($currentScreenClass, self::class)) {
-            $layoutClass = $currentScreenClass::getLayoutClass();
+
+        // 1. Respect the layout physically mounted in the client's root #main (including explicit null for kiosk/standalone)
+        if (UIStateManager::hasClientActiveLayout()) {
+            $activeLayout = UIStateManager::getClientActiveLayout();
+            if ($activeLayout === null) {
+                return null;
+            }
+            $layoutClass = $activeLayout;
         }
 
+        // 2. Otherwise inspect the tracked current screen class
+        if ($layoutClass === null) {
+            $currentScreenClass = UIStateManager::getClientCurrentScreenClass();
+            if ($currentScreenClass !== null && class_exists($currentScreenClass) && is_subclass_of($currentScreenClass, self::class)) {
+                $layoutClass = $currentScreenClass::getLayoutClass();
+                if ($layoutClass === null) {
+                    return null;
+                }
+            }
+        }
+
+        // 3. Fallback to configured layout when invoked without a host page (e.g., standalone Menu tests)
         if ($layoutClass === null) {
             /** @var UsimConfig $usimConfig */
             $usimConfig = app(UsimConfig::class);
-            $defaultLayout = $usimConfig->defaultLayout;
-            if (class_exists($defaultLayout) && is_subclass_of($defaultLayout, AbstractLayout::class)) {
-                /** @var class-string<AbstractLayout> $defaultLayout */
-                $layoutClass = $defaultLayout;
+            $isGuest = ! Auth::guard('web')->check() && ! Auth::guard('device')->check();
+            $rawGuestLayout = config('usim.guest_layout', $usimConfig->guestLayout);
+            $guestLayout = \is_string($rawGuestLayout) && $rawGuestLayout !== '' ? $rawGuestLayout : null;
+            $rawDefaultLayout = config('usim.default_layout', $usimConfig->defaultLayout);
+            $defaultLayout = \is_string($rawDefaultLayout) && $rawDefaultLayout !== ''
+                ? $rawDefaultLayout
+                : $usimConfig->defaultLayout;
+
+            $candidateLayout = ($isGuest && $guestLayout !== null) ? $guestLayout : $defaultLayout;
+            if (class_exists($candidateLayout) && is_subclass_of($candidateLayout, AbstractLayout::class)) {
+                /** @var class-string<AbstractLayout> $candidateLayout */
+                $layoutClass = $candidateLayout;
             }
         }
 

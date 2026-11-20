@@ -35,6 +35,7 @@ class MainLayout extends AbstractLayout
         // 1. Top menu slot container
         $mainMenuContainer = UI::container('main_menu_container', static::class)
             ->plain()
+            ->customClass('usim-topbar-slot')
             ->width(Size::full())
             ->padding(Spacing::px(0))
             ->margin(Spacing::px(0));

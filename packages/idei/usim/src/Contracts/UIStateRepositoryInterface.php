@@ -160,6 +160,26 @@ interface UIStateRepositoryInterface
     public function clearClientCurrentScreen(?string $clientId = null): bool;
 
     /**
+     * Record the layout class currently mounted in the client's root #main container (or null for standalone/kiosk).
+     */
+    public function setClientActiveLayout(?string $layoutClass, ?string $clientId = null): bool;
+
+    /**
+     * Get the layout class currently mounted in the client's root #main container (or null if standalone or unset).
+     */
+    public function getClientActiveLayout(?string $clientId = null): ?string;
+
+    /**
+     * Whether a layout (including explicit null for standalone screens) has been recorded for this client.
+     */
+    public function hasClientActiveLayout(?string $clientId = null): bool;
+
+    /**
+     * Clear the tracked active layout for the client.
+     */
+    public function clearClientActiveLayout(?string $clientId = null): bool;
+
+    /**
      * Set the active authentication token in UI state.
      */
     public function setAuthToken(?string $token, ?string $clientId = null): bool;

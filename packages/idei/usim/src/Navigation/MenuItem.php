@@ -3,7 +3,7 @@
 namespace Idei\Usim\Navigation;
 
 use Closure;
-use Idei\Usim\Components\MenuDropdown;
+use Idei\Usim\Navigation\Contracts\MenuTargetInterface;
 use Idei\Usim\Screen;
 use Illuminate\Support\Facades\Gate;
 
@@ -251,16 +251,16 @@ class MenuItem
     }
 
     /**
-     * Applies this item to a MenuDropdown component.
+     * Applies this item to any MenuTargetInterface component (MenuDropdown, NavTree, etc.).
      */
-    public function applyTo(MenuDropdown $dropdown): void
+    public function applyTo(MenuTargetInterface $target): void
     {
         if (! $this->isVisible()) {
             return;
         }
 
         if ($this->isSeparator) {
-            $dropdown->separator();
+            $target->separator();
 
             return;
         }
@@ -286,11 +286,11 @@ class MenuItem
         $resolvedLabel = $label ?? '';
 
         if ($url !== null) {
-            $dropdown->link($resolvedLabel, $url, $icon);
+            $target->link($resolvedLabel, $url, $icon);
         } elseif (! empty($visibleChildren)) {
-            $dropdown->item($resolvedLabel, $this->action, $this->params, $icon, $visibleChildren);
+            $target->item($resolvedLabel, $this->action, $this->params, $icon, $visibleChildren);
         } else {
-            $dropdown->item($resolvedLabel, $this->action, $this->params, $icon);
+            $target->item($resolvedLabel, $this->action, $this->params, $icon);
         }
     }
 }

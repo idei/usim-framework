@@ -56,6 +56,7 @@ class Split extends Container
         $this->config['collapse_target'] = 'first';
         $this->config['collapsed_panel'] = null;
         $this->config['collapse_size'] = '0px';
+        $this->config['hide_divider_when_collapsed'] = false;
         $this->width(Size::full());
     }
 
@@ -138,6 +139,36 @@ class Split extends Container
         $this->config['collapse_size'] = trim($size);
 
         return $this;
+    }
+
+    /**
+     * Hide the split divider when the target panel is collapsed (useful for 0px right panels).
+     */
+    public function hideDividerWhenCollapsed(bool $enabled = true): static
+    {
+        $this->config['hide_divider_when_collapsed'] = $enabled;
+
+        return $this;
+    }
+
+    /**
+     * Get the currently collapsed panel ('first', 'second', or null).
+     */
+    public function getCollapsedPanel(): ?string
+    {
+        $panel = $this->config['collapsed_panel'] ?? null;
+
+        return is_string($panel) && in_array($panel, ['first', 'second'], true) ? $panel : null;
+    }
+
+    /**
+     * Get the configured collapse target ('first' or 'second').
+     */
+    public function getCollapseTarget(): string
+    {
+        $target = $this->config['collapse_target'] ?? 'first';
+
+        return $target === 'second' ? 'second' : 'first';
     }
 
     /**

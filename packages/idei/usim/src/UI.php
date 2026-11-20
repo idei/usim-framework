@@ -14,6 +14,7 @@ use Idei\Usim\Components\Input;
 use Idei\Usim\Components\ItemList;
 use Idei\Usim\Components\Label;
 use Idei\Usim\Components\MenuDropdown;
+use Idei\Usim\Components\NavTree;
 use Idei\Usim\Components\NewLabel;
 use Idei\Usim\Components\Select;
 use Idei\Usim\Components\Split;
@@ -169,6 +170,16 @@ class UI
     public static function menuDropdown(string $name): MenuDropdown
     {
         return new MenuDropdown($name);
+    }
+
+    /**
+     * Create a new vertical navigation tree component (sidebar with inline accordion).
+     *
+     * @param  string|null  $name  The optional semantic name for the navigation tree
+     */
+    public static function navTree(?string $name = null): NavTree
+    {
+        return new NavTree($name);
     }
 
     /**
