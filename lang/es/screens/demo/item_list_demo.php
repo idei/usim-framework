@@ -9,7 +9,7 @@ return [
         'label' => 'Modo de Selección',
         'options' => [
             'multiple' => 'Múltiple (Checkboxes + Selección masiva)',
-            'single' => 'Simple (Radio visual)',
+            'single' => 'Simple (Selección por clic)',
             'none' => 'Sin selección (Solo lectura / CRUD)',
         ],
     ],
