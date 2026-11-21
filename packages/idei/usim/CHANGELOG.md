@@ -6,6 +6,19 @@ The format is based on Keep a Changelog, and this project follows Semantic Versi
 
 ## [Unreleased]
 
+### Changed (v2.15.1)
+- **Subtle `Split` dividers with auto-fading three-dot handles** (`css/components/split/index.css`, `js/components/split/index.js`, `css/ui-components.css`):
+  - Replaced solid divider bars and circular arrow collapse buttons with subtle `1px` inset hairline channels and centered three-dot handles (`.ui-split-dot`, stacked vertically for horizontal splits and horizontally for vertical splits).
+  - Split handles now start hidden (`opacity: 0; pointer-events: none`), fade in (`0.2s`) upon window `mousemove` activity, and fade out (`0.35s`) after 2 seconds of inactivity while remaining visible on hover, drag, or keyboard focus (`:focus-visible`).
+  - Added `UsimSplitComponent::destroy()` to clean up shared pointer listeners, timers, `MutationObserver`, and `ResizeObserver` on unmount, and removed redundant sidebar/`right_panel` borders adjacent to split dividers.
+- **Hover-only fade scrollbars on Workbench Sidebar & `ItemList`** (`css/ui-components.css`, `css/components/item-list/index.css`):
+  - Added slim `6px` transparent-track scrollbars using `@property` color transitions (`0.2s` fade in on panel/list hover, `0.35s` fade out on leave) with light/dark theme adaptation and Firefox `@supports` fallback (preserving `scrollbar-always` and `scrollbar-hidden` overrides on `ItemList`).
+
+### Fixed (v2.15.1)
+- **Removed radio button clutter in `ItemList` single-selection mode** (`js/components/item-list/index.js`, `css/components/item-list/index.css`, `lang/*/screens/demo/item_list_demo.php`):
+  - Removed the visual `.usim-item-list-row-radio` indicator in `SelectionMode::SINGLE` so rows toggle selection cleanly via direct click (or `Enter`/`Space`), while keeping hidden form inputs synchronized for form submission.
+  - Refined `.usim-item-list-row.is-selected` (accent border, tinted background, subtle inset borders, dedicated selected-hover state, and `user-select: none`) and updated `ItemListDemo` option labels in English and Spanish.
+
 ### Added
 - **Unified Declarative Layout Engine (`AbstractLayout` + `.layout.yaml`)**:
   - `AbstractLayout` now natively supports sibling `.layout.yaml` definitions via `ContainerLayoutLoader`, automatically discovering and registering layout slots (`layout_slot`, `slot_aliases`, `screen`, `persist_on_navigate`) recursively across grids and nested `Split` panes, and restoring all slots generically across cached requests (`$state_slot_map`).

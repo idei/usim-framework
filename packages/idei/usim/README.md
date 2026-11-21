@@ -794,7 +794,7 @@ $list = UI::itemList('invited_users')
 $container->add($list);
 ```
 
-Selected IDs are automatically synchronized into hidden inputs (`invited_users[]` in multiple mode or `invited_users` in single mode) so any form submission button collects them without extra wiring, and items selected in previous searches remain pinned and visible across subsequent queries.
+Selected IDs are automatically synchronized into hidden inputs (`invited_users[]` in multiple mode or `invited_users` in single mode) so any form submission button collects them without extra wiring, and items selected in previous searches remain pinned and visible across subsequent queries. In `SelectionMode::SINGLE`, rows toggle selection cleanly by clicking the row directly (highlighted with accent border and tint, without radio circles), while `SelectionMode::MULTIPLE` renders checkboxes and an optional "Select All" control. By default (`scrollbar: 'auto'`), the list scrollbar fades in smoothly only while hovering the list body.
 
 You can also bind an `ItemList` directly to a capability-based service implementing one or more contracts under `Idei\Usim\Contracts\ItemList` (`Listable`, `Creatable`, `Updatable`, `Deletable`, `BulkDeletable`) via `->service(...)` or `service:` in `.layout.yaml`, automatically inferring CRUD flags and routing `GET /api/ui-data` and `POST /api/ui-event` actions without writing pass-through methods on the `Screen`:
 
