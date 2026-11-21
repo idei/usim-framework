@@ -13,6 +13,7 @@ use App\UI\Screens\Demo\RightPanelInspector;
 use App\UI\Screens\Device\DevicePairingScreen;
 use App\UI\Screens\Home;
 use App\UI\Screens\SidebarMenu;
+use App\UI\Screens\SidebarSubmenuPanel;
 use App\UI\Screens\StatusBar;
 use Idei\Usim\Components\Container;
 use Idei\Usim\Events\UsimEvent;
@@ -59,6 +60,22 @@ class TestRightPanelInspectorScreen extends Screen
     }
 }
 
+class TestContextualLeftPanelScreen extends Screen
+{
+    public static ?string $layout = null;
+
+    public static function authorize(): bool
+    {
+        return true;
+    }
+
+    protected function buildBaseUI(Container $container, ...$params): void
+    {
+        $title = is_string($params['title'] ?? null) ? $params['title'] : 'Context Explorer';
+        $container->add(UI::newLabel('lbl_left_context_title')->text($title));
+    }
+}
+
 class TestWorkbenchHostScreen extends Screen
 {
     public static ?string $layout = WorkbenchLayout::class;
@@ -77,6 +94,16 @@ class TestWorkbenchHostScreen extends Screen
                 ->action('open_inspector')
         );
         $container->add(
+            UI::button('btn_open_left_context')
+                ->label('Open Left Context')
+                ->action('open_left_context')
+        );
+        $container->add(
+            UI::button('btn_go_home')
+                ->label('Go Home')
+                ->action('go_home')
+        );
+        $container->add(
             UI::button('btn_go_kiosk')
                 ->label('Go Kiosk')
                 ->action('go_kiosk')
@@ -86,6 +113,21 @@ class TestWorkbenchHostScreen extends Screen
     public function onOpenInspector(): void
     {
         $this->showInto(TestRightPanelInspectorScreen::class, slot: 'right_panel', params: ['title' => 'User #42']);
+    }
+
+    public function onOpenLeftContext(): void
+    {
+        $this->showInto(TestContextualLeftPanelScreen::class, slot: 'left_panel', params: ['title' => 'Project Files']);
+    }
+
+    public function onGoHome(): void
+    {
+        $this->showInto(Home::class);
+    }
+
+    public function onGoRightPanelDemo(): void
+    {
+        $this->showInto(RightPanelDemo::class);
     }
 
     public function onGoKiosk(): void
@@ -118,7 +160,7 @@ it('resolves layout precedence correctly for kiosk, guest, member, and admin use
     expect(Home::getLayoutClass())->toBe(WorkbenchLayout::class);
 });
 
-it('renders WorkbenchLayout declaratively from YAML with nested Splits, Activity Bar collapse size, 0px right panel, NavTree sidebar, and StatusBar', function () {
+it('renders WorkbenchLayout declaratively from YAML with fixed 52px Activity Bar, separate 0px left_panel Split, 0px right_panel Split, NavTree, and StatusBar', function () {
     /** @var Tests\TestCase $this */
     $user = User::factory()->create(['name' => 'Workbench Tester']);
     $this->actingAs($user);
@@ -127,12 +169,21 @@ it('renders WorkbenchLayout declaratively from YAML with nested Splits, Activity
     $response->assertOk();
     $payload = $response->json();
 
-    // Outer left-sidebar Split collapses to 52px Activity Bar
+    // Fixed Activity Bar container sits outside split_shell (sibling of split_shell, not its child)
+    $sidebarContainer = findComponentByName($payload, 'sidebar_container');
     $splitShell = findComponentByName($payload, 'split_shell');
+    expect($sidebarContainer)->not->toBeNull();
     expect($splitShell)->not->toBeNull();
+    expect($sidebarContainer['parent'] ?? null)->toBe($splitShell['parent'] ?? null);
+    expect($sidebarContainer['parent'] ?? null)->not->toBe((int) $splitShell['_json_key']);
+    expect($sidebarContainer['width'] ?? null)->toBe('52px');
+
+    // Left panel Split starts collapsed at 0px with hidden divider (independent from Activity Bar)
     expect($splitShell['type'] ?? null)->toBe('split');
     expect($splitShell['collapse_target'] ?? null)->toBe('first');
-    expect($splitShell['collapse_size'] ?? null)->toBe('52px');
+    expect($splitShell['collapse_size'] ?? null)->toBe('0px');
+    expect($splitShell['collapsed_panel'] ?? null)->toBe('first');
+    expect($splitShell['hide_divider_when_collapsed'] ?? null)->toBeTrue();
 
     // Inner right-panel Split starts collapsed at 0px with hidden divider
     $splitWorkspace = findComponentByName($payload, 'split_workspace');
@@ -143,11 +194,12 @@ it('renders WorkbenchLayout declaratively from YAML with nested Splits, Activity
     expect($splitWorkspace['collapsed_panel'] ?? null)->toBe('second');
     expect($splitWorkspace['hide_divider_when_collapsed'] ?? null)->toBeTrue();
 
-    // Sidebar embeds SidebarMenu with NavTree (not MenuDropdown) and VS Code footer popovers
+    // Activity Bar embeds SidebarMenu with compact NavTree delegating submenu group clicks to left_panel
     $navTree = findComponentByName($payload, 'main_menu');
     expect($navTree)->not->toBeNull();
     expect($navTree['type'] ?? null)->toBe('navtree');
-    expect($navTree['accordion'] ?? null)->toBeTrue();
+    expect($navTree['compact'] ?? null)->toBeTrue();
+    expect($navTree['on_group_click'] ?? null)->toBe('open_menu_group');
 
     $userMenu = findComponentByName($payload, 'user_menu');
     expect($userMenu)->not->toBeNull();
@@ -380,4 +432,164 @@ it('runs RightPanelDemo end-to-end opening RightPanelInspector, updating StatusB
 
     expect($closePayload['clear_container'] ?? null)->toBe($rightPanelId);
     expect($closePayload[$splitWorkspaceId]['collapsed_panel'] ?? null)->toBe('second');
+});
+
+it('opens Demos submenu in left_panel Split from Activity Bar, persists across demo navigation, toggles closed, and yields cleanly to screen-owned contextual left panels', function () {
+    /** @var Tests\TestCase $this */
+    $user = User::factory()->create(['name' => 'Activity Bar Tester']);
+    $this->actingAs($user);
+
+    $host = TestWorkbenchHostScreen::make();
+    $host->render(shouldReset: true);
+    UIStateManager::setClientActiveLayout(WorkbenchLayout::class);
+    UIStateManager::setClientCurrentScreen('/test-workbench-host', TestWorkbenchHostScreen::class);
+
+    $splitShellId = UIIdGenerator::generateFromName(WorkbenchLayout::class, 'split_shell');
+    $leftPanelId = UIIdGenerator::generateFromName(WorkbenchLayout::class, 'left_panel_container');
+    $demosLabel = t('screens.menu.items.demos');
+    $collector = app(\Idei\Usim\UIChangesCollector::class);
+
+    // 1. Clicking Demos group in Activity Bar opens SidebarSubmenuPanel in left_panel and expands split_shell
+    $collector->reset();
+    $sidebar = SidebarMenu::make();
+    $sidebar->callAction('open_menu_group', [
+        'group_label' => $demosLabel,
+        'left_panel_collapsed' => true,
+    ]);
+    $openPayload = $collector->all();
+
+    expect(array_key_exists('collapsed_panel', $openPayload[$splitShellId] ?? []))->toBeTrue();
+    expect($openPayload[$splitShellId]['collapsed_panel'])->toBeNull();
+    expect(findComponentByName($openPayload, 'lbl_panel_title')['text'] ?? null)->toBe($demosLabel);
+    $submenuTree = findComponentByName($openPayload, 'submenu_tree');
+    expect($submenuTree)->not->toBeNull();
+    expect(count($submenuTree['items'] ?? []))->toBeGreaterThanOrEqual(10);
+
+    // 2. Navigating main slot keeps SidebarSubmenuPanel open ($persistOnNavigate = true)
+    $collector->reset();
+    $host->callAction('go_home');
+    $navChanges = $collector->all();
+    expect($navChanges[$splitShellId]['collapsed_panel'] ?? null)->toBeNull();
+    expect(AbstractLayout::current()?->getActiveScreen('left_panel'))->toBe(SidebarSubmenuPanel::class);
+
+    // 3. A screen claiming left_panel replaces SidebarSubmenuPanel with its own contextual panel
+    $collector->reset();
+    $host->callAction('open_left_context');
+    $ctxChanges = $collector->all();
+    expect(findComponentByName($ctxChanges, 'lbl_left_context_title')['text'] ?? null)->toBe('Project Files');
+    expect(AbstractLayout::current()?->getActiveScreen('left_panel'))->toBe(TestContextualLeftPanelScreen::class);
+
+    // 4. Clicking Demos while a custom screen occupies left_panel switches left_panel back to Demos
+    $collector->reset();
+    $sidebar = SidebarMenu::make();
+    $sidebar->callAction('open_menu_group', [
+        'group_label' => $demosLabel,
+        'left_panel_collapsed' => false,
+    ]);
+    $switchBackPayload = $collector->all();
+    expect(findComponentByName($switchBackPayload, 'lbl_panel_title')['text'] ?? null)->toBe($demosLabel);
+    expect(AbstractLayout::current()?->getActiveScreen('left_panel'))->toBe(SidebarSubmenuPanel::class);
+
+    // 5. Clicking Demos again while already open toggles left_panel closed back to 0px
+    $collector->reset();
+    $sidebar = SidebarMenu::make();
+    $sidebar->callAction('open_menu_group', [
+        'group_label' => $demosLabel,
+        'left_panel_collapsed' => false,
+    ]);
+    $togglePayload = $collector->all();
+    expect($togglePayload['clear_container'] ?? null)->toBe($leftPanelId);
+    expect($togglePayload[$splitShellId]['collapsed_panel'] ?? null)->toBe('first');
+
+    // 6. Opening a screen-owned contextual left panel and navigating away auto-closes and collapses it ($persistOnNavigate = false)
+    $collector->reset();
+    $host->callAction('open_left_context');
+    expect(AbstractLayout::current()?->getActiveScreen('left_panel'))->toBe(TestContextualLeftPanelScreen::class);
+
+    $collector->reset();
+    $host->callAction('go_right_panel_demo');
+    $afterCtxNav = $collector->all();
+    expect($afterCtxNav[$splitShellId]['collapsed_panel'] ?? null)->toBe('first');
+    expect(AbstractLayout::current()?->getActiveScreen('left_panel'))->toBeNull();
+});
+
+it('navigates from SidebarSubmenuPanel submenu_tree and closes via HTTP /api/ui-event without 404', function () {
+    /** @var Tests\TestCase $this */
+    $user = User::factory()->create(['name' => 'HTTP Submenu Tester']);
+    $this->actingAs($user);
+
+    $clientId = 'workbench-submenu-http-tab';
+    $this->withCookie('ui_client_id', $clientId)
+        ->getJson(screenApiUrl(Home::class, ['reset' => true]))
+        ->assertOk();
+
+    $splitShellId = UIIdGenerator::generateFromName(WorkbenchLayout::class, 'split_shell');
+    $mainMenuId = UIIdGenerator::generateFromName(SidebarMenu::class, 'main_menu');
+    $submenuTreeId = UIIdGenerator::generateFromName(SidebarSubmenuPanel::class, 'submenu_tree');
+    $closeBtnId = UIIdGenerator::generateFromName(SidebarSubmenuPanel::class, 'btn_close_left_panel');
+    $demosLabel = t('screens.menu.items.demos');
+
+    // 1. Open Demos in left_panel via HTTP /api/ui-event
+    $openResp = $this->withCookie('ui_client_id', $clientId)->postJson('/api/ui-event', [
+        'component_id' => $mainMenuId,
+        'event' => 'click',
+        'action' => 'open_menu_group',
+        'parameters' => [
+            'group_label' => $demosLabel,
+            'left_panel_collapsed' => true,
+        ],
+    ]);
+    $openResp->assertOk();
+    $openPayload = $openResp->json();
+    expect(array_key_exists('collapsed_panel', $openPayload[$splitShellId] ?? []))->toBeTrue();
+    expect($openPayload[$splitShellId]['collapsed_panel'])->toBeNull();
+    expect(findComponentByName($openPayload, 'submenu_tree')['_caller_service_id'] ?? null)->toBeNull();
+
+    // 2. Click a demo item inside SidebarSubmenuPanel's submenu_tree -> must resolve SidebarSubmenuPanel and navigate!
+    $navResp = $this->withCookie('ui_client_id', $clientId)->postJson('/api/ui-event', [
+        'component_id' => $submenuTreeId,
+        'event' => 'click',
+        'action' => 'showScreen',
+        'parameters' => [
+            'screen' => RightPanelDemo::class,
+        ],
+    ]);
+    $navResp->assertOk();
+    expect($navResp->json('navigate.url'))->toBe(RightPanelDemo::getRoutePath());
+
+    // 3. Click close button inside SidebarSubmenuPanel -> must collapse left_panel back to 0px and clear active_group
+    $closeResp = $this->withCookie('ui_client_id', $clientId)->postJson('/api/ui-event', [
+        'component_id' => $closeBtnId,
+        'event' => 'click',
+        'action' => 'close_left_panel',
+        'parameters' => [],
+    ]);
+    $closeResp->assertOk();
+    $closePayload = $closeResp->json();
+    expect($closePayload[$splitShellId]['collapsed_panel'] ?? null)->toBe('first');
+    expect(array_key_exists('active_group', $closePayload[$mainMenuId] ?? []))->toBeTrue();
+    expect($closePayload[$mainMenuId]['active_group'])->toBeNull();
+});
+
+it('preserves multi-level sub-sub-menus recursively in NavTree::setItems()', function () {
+    $nav = UI::navTree('nested_panel_nav')->setItems([
+        [
+            'label' => 'Forms',
+            'icon' => '📝',
+            'submenu' => [
+                [
+                    'label' => 'Advanced Inputs',
+                    'icon' => '⌨️',
+                    'submenu' => [
+                        ['label' => 'Masked Input', 'action' => 'showScreen', 'params' => []],
+                    ],
+                ],
+            ],
+        ],
+    ]);
+
+    $payload = array_values($nav->toJson())[0];
+    expect($payload['items'][0]['label'] ?? null)->toBe('Forms');
+    expect($payload['items'][0]['submenu'][0]['label'] ?? null)->toBe('Advanced Inputs');
+    expect($payload['items'][0]['submenu'][0]['submenu'][0]['label'] ?? null)->toBe('Masked Input');
 });

@@ -165,7 +165,8 @@ abstract class AbstractLayout extends Screen implements LayoutInterface
         if (isset($this->container)) {
             $candidateNames = match ($name) {
                 'menu', 'main_menu', 'top_menu' => ['main_menu_container', 'menu_container', 'top_menu', 'sidebar_container', 'sidebar'],
-                'sidebar' => ['sidebar_container', 'sidebar', 'main_menu_container'],
+                'sidebar', 'activity_bar' => ['sidebar_container', 'activity_bar_container', 'sidebar', 'main_menu_container'],
+                'left_panel', 'left', 'explorer' => ['left_panel_container', 'left_panel', 'explorer_container', 'left'],
                 'main', 'center', 'content' => ['content_container', 'main_container', 'main', 'content'],
                 'right_panel', 'right', 'inspector' => ['right_panel_container', 'right_panel', 'inspector_container', 'right'],
                 'status_bar', 'statusbar' => ['status_bar_container', 'status_bar', 'statusbar'],
@@ -414,6 +415,9 @@ abstract class AbstractLayout extends Screen implements LayoutInterface
         if ($split->getCollapsedPanel() === $side) {
             $split->expand();
             $this->emitSplitCollapseDiff($split);
+        } elseif ($split->getCollapseTarget() === $side) {
+            // Re-emit expanded state for collapsible auxiliary slots in case the user collapsed it client-side
+            $this->emitSplitCollapseDiff($split);
         }
 
         return true;
@@ -522,10 +526,18 @@ abstract class AbstractLayout extends Screen implements LayoutInterface
 
         $isMainNavigation = in_array($effectiveSlot, ['main', 'content', 'center'], true);
 
-        // When navigating main content, clear and collapse non-persistent auxiliary slots (e.g. right_panel)
+        // When navigating main content, clear and collapse non-persistent auxiliary slots (e.g. right_panel, contextual left_panel)
         if ($isMainNavigation) {
             foreach ($this->state_slot_persistence as $slotName => $persist) {
                 if ($persist === false && isset($this->state_active_screens[$slotName])) {
+                    $activeSlotScreen = $this->state_active_screens[$slotName];
+                    if (
+                        class_exists($activeSlotScreen)
+                        && is_subclass_of($activeSlotScreen, Screen::class)
+                        && $activeSlotScreen::shouldPersistOnNavigate()
+                    ) {
+                        continue;
+                    }
                     $this->clearSlot($slotName, collapse: true);
                 }
             }

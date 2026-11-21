@@ -60,6 +60,17 @@ abstract class Screen
     }
 
     /**
+     * Whether this screen should remain mounted when embedded in a non-persistent
+     * auxiliary layout slot (such as `left_panel`) during main-slot navigation.
+     */
+    public static bool $persistOnNavigate = false;
+
+    public static function shouldPersistOnNavigate(): bool
+    {
+        return static::$persistOnNavigate;
+    }
+
+    /**
      * Current container instance
      */
     protected Container $container;

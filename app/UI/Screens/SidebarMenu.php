@@ -24,11 +24,12 @@ use Idei\Usim\ValueObjects\Spacing;
 use Illuminate\Support\Facades\Auth;
 
 /**
- * Sidebar Navigation Screen for WorkbenchLayout.
+ * Fixed VS Code-style Activity Bar Screen for WorkbenchLayout.
  *
- * Renders vertical navigation with inline collapsible accordions (NavTree)
- * and a VS Code-style footer with User Account and Settings floating popovers.
- * Adapts automatically into a 52px Activity Bar when its Split pane is collapsed.
+ * Renders top-level navigation icons (`NavTree` in compact Activity Bar mode)
+ * and a footer with User Account and Settings floating popovers.
+ * Clicking a submenu group (e.g. Demos) opens or toggles its nested navigation tree
+ * inside WorkbenchLayout's separate collapsible `left_panel` Split pane.
  */
 class SidebarMenu extends Screen
 {
@@ -48,6 +49,7 @@ class SidebarMenu extends Screen
     protected string $store_theme = 'dark';
     protected string $store_lang = '';
     protected string $store_token = '';
+    protected string $state_active_group = '';
 
     protected function buildBaseUI(Container $container, ...$params): void
     {
@@ -56,7 +58,7 @@ class SidebarMenu extends Screen
 
         $container
             ->plain()
-            ->customClass('usim-sidebar-shell')
+            ->customClass('usim-sidebar-shell usim-activity-bar')
             ->layout(LayoutType::VERTICAL)
             ->justifyContent(JustifyContent::SPACE_BETWEEN)
             ->alignItems(AlignItems::STRETCH)
@@ -78,6 +80,7 @@ class SidebarMenu extends Screen
         $brand->add(
             UI::newLabel('sidebar_brand_icon')
                 ->text('⚡')
+                ->tooltip($usimConfig->appName)
         );
         $brand->add(
             UI::newLabel('sidebar_brand_title')
@@ -120,6 +123,11 @@ class SidebarMenu extends Screen
 
     protected function postLoadUI(): void
     {
+        $layout = $this->getLayout();
+        if ($layout !== null && $layout->getActiveScreen('left_panel') !== SidebarSubmenuPanel::class) {
+            $this->state_active_group = '';
+        }
+
         $user = Auth::check() ? Auth::user() : null;
         $this->applyUserTrigger(
             $this->user_menu,
@@ -138,7 +146,11 @@ class SidebarMenu extends Screen
             ->provider(MainMenu::class);
 
         $nav = $builder->renderNavTree('main_menu');
-        $nav->accordion(true);
+        $nav
+            ->compact(true)
+            ->accordion(true)
+            ->onGroupClick('open_menu_group')
+            ->activeGroup($this->state_active_group !== '' ? $this->state_active_group : null);
         $this->syncActiveScreen($nav);
 
         return $nav;
@@ -150,6 +162,10 @@ class SidebarMenu extends Screen
             ->provider(MainMenu::class);
 
         $builder->populateNavTree($nav);
+        $nav
+            ->compact(true)
+            ->onGroupClick('open_menu_group')
+            ->activeGroup($this->state_active_group !== '' ? $this->state_active_group : null);
         $this->syncActiveScreen($nav);
     }
 
@@ -301,10 +317,59 @@ class SidebarMenu extends Screen
     }
 
     /**
+     * Open or toggle a top-level submenu group (e.g. Demos) inside WorkbenchLayout's `left_panel` Split.
+     *
+     * @param  array<string, mixed>  $params
+     */
+    public function onOpenMenuGroup(array $params): void
+    {
+        $groupLabel = $this->stringParamOrDefault($params, 'group_label', '');
+        if ($groupLabel === '') {
+            return;
+        }
+
+        $leftPanelCollapsed = (bool) ($params['left_panel_collapsed'] ?? false);
+        $layout = $this->getLayout();
+        $activeLeftScreen = $layout?->getActiveScreen('left_panel');
+        $isSameGroupOpen = ! $leftPanelCollapsed
+            && $activeLeftScreen === SidebarSubmenuPanel::class
+            && $this->state_active_group === $groupLabel;
+
+        if ($isSameGroupOpen) {
+            $this->state_active_group = '';
+            $this->main_menu->activeGroup(null);
+            $this->closeSlot('left_panel');
+
+            return;
+        }
+
+        $this->state_active_group = $groupLabel;
+        $this->main_menu->activeGroup($groupLabel);
+
+        $this->showInto(
+            SidebarSubmenuPanel::class,
+            slot: 'left_panel',
+            params: ['group' => $groupLabel],
+            updateBrowserUrl: false,
+            force: true
+        );
+    }
+
+    /**
+     * @param  array<string, mixed>  $params
+     */
+    public function onLeftPanelClosed(array $params = []): void
+    {
+        $this->state_active_group = '';
+        $this->main_menu->activeGroup(null);
+    }
+
+    /**
      * @param  array<string, mixed>  $params
      */
     public function onUnitChanged(array $params): void
     {
+        $this->state_active_group = '';
         $this->populateNavTree($this->main_menu);
     }
 

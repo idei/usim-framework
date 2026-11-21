@@ -6,32 +6,43 @@ height: 100vh
 padding: none
 
 grid:
-  cols: [1fr]
+  cols: [52px, 1fr]
   rows: [1fr, auto]
   gap: none
   padding: none
 
   children:
-    - split_shell:
+    - sidebar_container:
         at: [1, 1]
+        layout_slot: sidebar
+        slot_aliases: [activity_bar, menu]
+        appearance: plain
+        width: 52px
+        height: 100%
+
+    - split_shell:
+        at: [1, 2]
         component: split
         orientation: horizontal
-        split_size: 260px
+        split_size: 250px
         splitter_size: 6px
         min_first_size: 180px
         min_second_size: 320px
         draggable: true
         collapsible: true
         collapse_target: first
-        collapse_size: 52px
+        collapse_size: 0px
+        collapsed_panel: first
+        hide_divider_when_collapsed: true
         appearance: plain
         width: 100%
         height: 100%
         first:
-          name: sidebar_container
-          layout_slot: sidebar
-          slot_aliases: [menu]
-          appearance: plain
+          name: left_panel_container
+          layout_slot: left_panel
+          slot_aliases: [left, explorer]
+          persist_on_navigate: false
+          appearance: subtle
         second:
           name: split_workspace
           component: split
@@ -63,6 +74,7 @@ grid:
 
     - status_bar_container:
         at: [2, 1]
+        span: full
         layout_slot: status_bar
         appearance: plain
         width: 100%

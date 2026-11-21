@@ -221,7 +221,7 @@ class UIController extends Controller
             'usim.default_sidebar_menu_screen' => null,
             'usim.default_status_bar_screen' => null,
         ];
-        if (in_array(class_basename($callerClass), ['Menu', 'SidebarMenu', 'StatusBar'], true)) {
+        if (in_array(class_basename($callerClass), ['Menu', 'SidebarMenu', 'SidebarSubmenuPanel', 'StatusBar'], true)) {
             return true;
         }
         foreach ($shellKeys as $configKey => $fallback) {

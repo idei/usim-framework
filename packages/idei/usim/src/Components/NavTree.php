@@ -24,9 +24,33 @@ class NavTree extends UIComponent implements MenuTargetInterface
             'items' => [],
             'active_screen' => null,
             'active_route' => null,
+            'active_group' => null,
+            'on_group_click' => null,
             'accordion' => false,
             'compact' => false,
         ];
+    }
+
+    /**
+     * Get the raw normalized navigation items currently stored on this NavTree.
+     *
+     * @return list<array<string, mixed>>
+     */
+    public function getItems(): array
+    {
+        return $this->items;
+    }
+
+    /**
+     * Replace all navigation items on this NavTree (preserving nested submenus of arbitrary depth).
+     *
+     * @param  list<array<string, mixed>>  $items
+     */
+    public function setItems(array $items): static
+    {
+        $this->items = array_values($items);
+
+        return $this->setConfig('items', $this->items);
     }
 
     public function clearItems(): self
@@ -172,6 +196,23 @@ class NavTree extends UIComponent implements MenuTargetInterface
     public function compact(bool $compact = true): static
     {
         return $this->setConfig('compact', $compact);
+    }
+
+    /**
+     * Delegate top-level submenu group clicks to a backend Screen action
+     * (e.g., to open the group inside a separate collapsible left_panel Split).
+     */
+    public function onGroupClick(?string $action): static
+    {
+        return $this->setConfig('on_group_click', $action);
+    }
+
+    /**
+     * Mark a top-level submenu group as currently active (e.g. open in left_panel).
+     */
+    public function activeGroup(?string $group): static
+    {
+        return $this->setConfig('active_group', $group);
     }
 
     public function callerServiceId(string $serviceId): static
