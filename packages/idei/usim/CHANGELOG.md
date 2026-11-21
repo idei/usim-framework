@@ -6,6 +6,16 @@ The format is based on Keep a Changelog, and this project follows Semantic Versi
 
 ## [Unreleased]
 
+### Added (v2.16.0)
+- **Decoupled VS Code-style Activity Bar & Independent Collapsible `left_panel` Split**:
+  - Refactored `WorkbenchLayout` (`app/UI/Layouts/workbench-layout.layout.yaml` and package stub) into a 2-column declarative grid (`cols: [52px, 1fr]`, `rows: [1fr, auto]`):
+    - Fixed `52px` Activity Bar (`sidebar_container`, `layout_slot: sidebar`, aliases `[activity_bar, menu]`) rendered outside any `Split`.
+    - Independent collapsible `left_panel` Split (`split_shell`, `collapse_size: 0px`, `collapsed_panel: first`, `hide_divider_when_collapsed: true`, aliases `[left, explorer]`) alongside `split_workspace` (`main` + `right_panel`) and full-width `status_bar` (`span: full`).
+  - Added `Screen::$persistOnNavigate` / `Screen::shouldPersistOnNavigate()` and updated `AbstractLayout::showInto()` so navigation panels mounted in `left_panel` remain open across `main` navigation while screen-owned contextual left panels automatically clear and collapse to `0px` when navigating away.
+  - Added `NavTree::onGroupClick()`, `NavTree::activeGroup()`, `NavTree::getItems()`, and `NavTree::setItems()` (plus JS/CSS support in `js/components/nav-tree/index.js` and `css/components/nav-tree/index.css`) so top-level Activity Bar groups delegate clicks to the backend with VS Code-style left-border active indicators while nested `NavTree` instances render arbitrary sub-sub-menu depth.
+  - Added `App\UI\Screens\SidebarSubmenuPanel` (Explorer-style header, close button, hover-fade scrollbar, `$persistOnNavigate = true`), registered it as a shell caller in `UIController`, updated `SidebarMenu` to operate as the fixed Activity Bar toggling/recovering `left_panel`, and extended `AbstractLayout::expandSlot()` to re-emit expanded state for client-desync resilience.
+  - Added end-to-end feature and HTTP `/api/ui-event` tests in `WorkbenchLayoutAndNavigationTest`.
+
 ### Changed (v2.15.1)
 - **Subtle `Split` dividers with auto-fading three-dot handles** (`css/components/split/index.css`, `js/components/split/index.js`, `css/ui-components.css`):
   - Replaced solid divider bars and circular arrow collapse buttons with subtle `1px` inset hairline channels and centered three-dot handles (`.ui-split-dot`, stacked vertically for horizontal splits and horizontally for vertical splits).

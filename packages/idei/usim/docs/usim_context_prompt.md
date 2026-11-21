@@ -41,7 +41,7 @@ Created with fluent builders, for example:
 - `UI::image(...)`
 - `UI::uploader(...)`
 - `UI::menuDropdown(...)` (supports `->floating(true)` and `right-top`/`top-left`/`top-right` viewport-portaled popovers)
-- `UI::navTree(...)` (vertical sidebar navigation with inline collapsible accordions and Activity Bar compact mode; populated via `MenuBuilder::renderNavTree()`)
+- `UI::navTree(...)` (vertical sidebar navigation with recursive inline collapsible accordions, `getItems()`/`setItems()`, and Activity Bar mode via `compact(true)` + `onGroupClick()` + `activeGroup()`; populated via `MenuBuilder::renderNavTree()`)
 - `UI::split(...)` (resizable/collapsible two-pane container; supports declarative `first:`/`second:` panes, `collapse_size`, and `hide_divider_when_collapsed` in `.layout.yaml`)
 - `UI::carousel(...)`
 
@@ -52,8 +52,8 @@ Created with fluent builders, for example:
   2. `$layout = CustomLayout::class` -> explicit layout.
   3. `$layout = 'default'` -> `config('usim.guest_layout')` when unauthenticated (if set), otherwise `config('usim.default_layout')` (`WorkbenchLayout` or `MainLayout`).
 - `showInto()` automatically handles SPA layout transitions (`MainLayout <-> WorkbenchLayout <-> null`) via `clear_container: 'main'`.
-- Auxiliary slots like `right_panel` (collapsed to `0px` by default) auto-expand on `$this->showInto($screen, slot: 'right_panel')` and close/collapse via `$this->closeSlot('right_panel')`.
-- `SidebarMenu` renders `NavTree` (`accordion(true)`) + VS Code-style floating footer popovers (`user_menu` + `settings_menu` with theme toggle, `🌐` language submenu, and About).
+- Auxiliary slots `left_panel` and `right_panel` (both collapsed to `0px` by default) auto-expand on `$this->showInto($screen, slot: 'left_panel' | 'right_panel')` and close/collapse via `$this->closeSlot('left_panel' | 'right_panel')`. Contextual screens auto-close when navigating `main`, while persistent navigation panels opt in via `public static bool $persistOnNavigate = true;`.
+- `SidebarMenu` renders the fixed `52px` VS Code-style Activity Bar (outside `split_shell`) with compact `NavTree` icons + floating footer popovers (`user_menu` + `settings_menu`), delegating submenu groups (such as `Demos`) to `SidebarSubmenuPanel` inside `left_panel`.
 - `StatusBar` hosts organizational unit switching (left), dynamic status messages via `UsimEvent('status_bar_message', ['text' => ...])` (center), and the dev-only Reset button (right, automatically omitted in production).
 - Full AI technical reference: `WORKBENCH_AND_UNIFIED_LAYOUTS_AI_REFERENCE.md` in `packages/idei/usim/docs/` (published to `docs/usim/`).
 

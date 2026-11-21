@@ -95,32 +95,43 @@ height: 100vh
 padding: none
 
 grid:
-  cols: [1fr]
+  cols: [52px, 1fr]
   rows: [1fr, auto]
   gap: none
   padding: none
 
   children:
-    - split_shell:
+    - sidebar_container:
         at: [1, 1]
+        layout_slot: sidebar
+        slot_aliases: [activity_bar, menu]
+        appearance: plain
+        width: 52px
+        height: 100%
+
+    - split_shell:
+        at: [1, 2]
         component: split
         orientation: horizontal
-        split_size: 260px
+        split_size: 250px
         splitter_size: 6px
         min_first_size: 180px
         min_second_size: 320px
         draggable: true
         collapsible: true
         collapse_target: first
-        collapse_size: 52px
+        collapse_size: 0px
+        collapsed_panel: first
+        hide_divider_when_collapsed: true
         appearance: plain
         width: 100%
         height: 100%
         first:
-          name: sidebar_container
-          layout_slot: sidebar
-          slot_aliases: [menu]
-          appearance: plain
+          name: left_panel_container
+          layout_slot: left_panel
+          slot_aliases: [left, explorer]
+          persist_on_navigate: false
+          appearance: subtle
         second:
           name: split_workspace
           component: split
@@ -152,6 +163,7 @@ grid:
 
     - status_bar_container:
         at: [2, 1]
+        span: full
         layout_slot: status_bar
         appearance: plain
         width: 100%
@@ -180,19 +192,23 @@ When `$this->showInto($targetScreen, slot: 'main', ...)` executes:
 - **Same layout (`A → A`):** clears only the target slot (`clear_container: <slot_id>`), embeds `$targetScreen`, emits `navigate`, and auto-clears/collapses any auxiliary slot with `persist_on_navigate: false`.
 - **Different layout (`A → B`, `A → null`, or `null → A`):** emits `clear_container: 'main'`, resets the layout singleton, renders `$targetScreen` directly into `parent: 'main'` (which mounts the new layout or standalone screen atomically), updates `setClientActiveLayout()`, and emits `navigate` (`slot: 'main'`, `slot_container_id: 'main'`).
 
-### 5.2 Opening & Closing the Right Panel (`right_panel`)
-Any Screen can mount a secondary Screen (inspector, details, preview, AI assistant) in the right panel without blocking the page with a modal:
+### 5.2 Opening & Closing Auxiliary Side Panels (`left_panel` & `right_panel`)
+Any Screen can mount a secondary Screen (explorer, navigation tree, inspector, details, preview, AI assistant) in either `left_panel` or `right_panel` without blocking the page with a modal:
 
 ```php
-// Open & auto-expand right_panel (expands owning Split from 0px automatically)
+// Open & auto-expand left_panel or right_panel (expands owning Split from 0px automatically)
+$this->showInto(ProjectExplorer::class, slot: 'left_panel');
 $this->showInto(UserInspector::class, slot: 'right_panel', params: ['user_id' => $id]);
 
-// Close & auto-collapse right_panel back to 0px (from host screen OR from inside UserInspector)
+// Close & auto-collapse back to 0px (from host screen OR from inside the panel screen)
+$this->closeSlot('left_panel');
 $this->closeSlot('right_panel');
 ```
 
+- **Navigation persistence override (`Screen::$persistOnNavigate`):** Both `left_panel` and `right_panel` declare `persist_on_navigate: false` so contextual panels mounted by a Screen automatically clear and collapse to `0px` when navigating away in `main`. Persistent shell navigation panels (such as `SidebarSubmenuPanel`) opt in via `public static bool $persistOnNavigate = true;` so browsing submenu items keeps `left_panel` open while still yielding cleanly whenever a Screen mounts its own contextual panel into `left_panel`.
+
 On `AbstractLayout` (`LayoutInterface`):
-- `expandSlot(string $slot): bool` — finds owning `Split`, expands it, and emits incremental diff `[splitId => ['collapsed_panel' => null]]`.
+- `expandSlot(string $slot): bool` — finds owning `Split`, expands it, and emits incremental diff `[splitId => ['collapsed_panel' => null]]` (also re-emits when `$split->getCollapseTarget() === $side` for client-desync resilience).
 - `collapseSlot(string $slot): bool` — collapses owning `Split` pane and emits incremental diff.
 - `clearSlot(string $slot, bool $collapse = true): bool` — clears slot container, emits `clear_container`, removes active screen, and optionally collapses owning `Split`.
 
@@ -207,21 +223,24 @@ Menu providers (`MainMenu`, `DemosMenuProvider`, `AdminMenuProvider`) implement 
 | Target Component | Builder Methods | Presentation |
 |---|---|---|
 | `MenuDropdown` (`type: 'menudropdown'`) | `populate(MenuDropdown)`, `render(?string $id): MenuDropdown` | Dropdown button / floating popover. Supports `->floating(true)` and positions `'bottom-left'`, `'bottom-right'`, `'top-left'`, `'top-right'`, `'right-top'`, `'right-bottom'`. Floating popovers portal to `document.body` with `position: fixed` so they never clip inside `Split` panes (`contain: paint`). |
-| `NavTree` (`type: 'navtree'`) | `populateNavTree(NavTree)`, `renderNavTree(?string $id): NavTree` | Vertical sidebar navigation without dropdowns. Submenus render as **inline collapsible accordions** in the client (`->accordion(true)` for single-open mode), with active route/screen highlight (`->activeScreen(...)`) and automatic **Activity Bar** icon-only adaptation when inside `.ui-split-pane.is-collapsed`. |
+| `NavTree` (`type: 'navtree'`) | `populateNavTree(NavTree)`, `renderNavTree(?string $id): NavTree` | Vertical sidebar navigation without dropdowns. Submenus render recursively to arbitrary depth as **inline collapsible accordions** (`->accordion(true)`), with active route/screen highlight (`->activeScreen(...)`), `getItems()` / `setItems()`, and **Activity Bar** mode (`->compact(true)`, `->onGroupClick('open_menu_group')`, `->activeGroup(...)`) that delegates top-level group clicks to the backend to open them inside `left_panel`. |
 
 ---
 
 ## 7. Workbench Shell Screens
 
-### 7.1 `SidebarMenu` (`app/UI/Screens/SidebarMenu.php`)
-- Declares `public static ?string $layout = null;` and uses `App\UI\Screens\Concerns\HandlesShellActions`.
-- Structure (`.usim-sidebar-shell`):
-  1. Brand header (`.usim-sidebar-brand`) — hides `.usim-sidebar-brand-title` in Activity Bar mode.
-  2. Scrollable `NavTree` (`main_menu`) populated from `MainMenu` with `accordion(true)`. Its scroll container (`.usim-sidebar-body`) uses a slim hover-only fade scrollbar (`@property --usim-sidebar-scrollbar-color`) that appears only while the pointer is over `.usim-sidebar-shell`.
+### 7.1 `SidebarMenu` (`app/UI/Screens/SidebarMenu.php`) & `SidebarSubmenuPanel` (`app/UI/Screens/SidebarSubmenuPanel.php`)
+- Both declare `public static ?string $layout = null;` and use `App\UI\Screens\Concerns\HandlesShellActions`.
+- **`SidebarMenu` (Fixed `52px` Activity Bar, `.usim-sidebar-shell.usim-activity-bar`):**
+  1. Brand header (`.usim-sidebar-brand`) — centered `⚡` icon with app-name tooltip.
+  2. Scrollable `NavTree` (`main_menu`) populated from `MainMenu` with `compact(true)` and `onGroupClick('open_menu_group')`. Its scroll container (`.usim-sidebar-body`) uses a slim hover-only fade scrollbar (`@property --usim-sidebar-scrollbar-color`).
   3. VS Code-style footer (`.usim-sidebar-footer`):
-     - `user_menu` (`MenuDropdown`, `position('right-top')->floating(true)`): avatar/name trigger, Profile + Logout (auth) or Login + Register (guest).
-     - `settings_menu` (`MenuDropdown`, `position('right-top')->floating(true)`): `⚙️` trigger with theme toggle + `🌐` Language submenu (`changeLang`) + About.
-- **Activity Bar behavior (`collapse_size: 52px`):** Collapsing `split_shell` applies `.ui-split-pane.is-collapsed`, which automatically switches `SidebarMenu` and `NavTree` into centered icon-only mode. Clicking a submenu group icon in Activity Bar mode automatically expands `split_shell` and opens that accordion group.
+     - `user_menu` (`MenuDropdown`, `position('right-top')->floating(true)`): centered avatar/icon trigger with tooltip, Profile + Logout (auth) or Login + Register (guest).
+     - `settings_menu` (`MenuDropdown`, `position('right-top')->floating(true)`): centered `⚙️` trigger with theme toggle + `🌐` Language submenu (`changeLang`) + About.
+  - Clicking a top-level submenu group (e.g. `🎮 Demos`) invokes `onOpenMenuGroup()`, opening or toggling `SidebarSubmenuPanel` inside `left_panel` (and recovering `left_panel` if another screen had temporarily claimed it).
+- **`SidebarSubmenuPanel` (Primary Side Bar inside `left_panel`, `.usim-left-panel-shell`):**
+  - Declares `public static bool $persistOnNavigate = true;` so clicking items inside a submenu keeps the panel open across demo/screen switches.
+  - Renders an Explorer-style header (uppercase group title + `✕` close button emitting `UsimEvent('left_panel_closed')`) and a full-width scrollable `NavTree` (`submenu_tree`) with `accordion(true)` and hover-fade scrollbar, supporting unlimited nested sub-sub-menu depth.
 
 ### 7.2 `StatusBar` (`app/UI/Screens/StatusBar.php`)
 - Declares `public static ?string $layout = null;` and uses `HandlesShellActions`.

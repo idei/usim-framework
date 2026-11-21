@@ -23,7 +23,7 @@
 
 En USIM ambos niveles comparten **el mismo motor declarativo (`.layout.yaml` + `ContainerLayoutLoader`)**:
 
-- **Layout de Página (`AbstractLayout`):** Define el marco global de la aplicación (por ejemplo `WorkbenchLayout` con sidebar en `Split` + Activity Bar de `52px`, `right_panel` en `0px` y `status_bar`; o `MainLayout` con barra superior). Se declara en la `Screen` con `public static ?string $layout = 'default';` (resuelve `guest_layout` vs `default_layout`), una clase explícita o `null` para pantallas standalone/kiosk.
+- **Layout de Página (`AbstractLayout`):** Define el marco global de la aplicación (por ejemplo `WorkbenchLayout` con Activity Bar fija de `52px` en `[1, 1]`, panel izquierdo `left_panel` en `Split` colapsable a `0px`, `right_panel` en `0px` y `status_bar` de ancho completo; o `MainLayout` con barra superior). Se declara en la `Screen` con `public static ?string $layout = 'default';` (resuelve `guest_layout` vs `default_layout`), una clase explícita o `null` para pantallas standalone/kiosk.
 - **Layout de Contenedor (`.layout.yaml`):** Define la estructura interna de una `Screen`, un `Container` o un `AbstractLayout` (CSS Grid, `component: split` con panes `first:` / `second:`, `layout_slot`, cajas, espaciados, alineación y propiedades de componentes). Se procesa en PHP mediante `Idei\Usim\Support\ContainerLayoutLoader`.
 
 > Para la referencia técnica completa de `WorkbenchLayout`, `Split` declarativo, `NavTree`, `right_panel`, `StatusBar` y transiciones de layout, consultá [WORKBENCH_AND_UNIFIED_LAYOUTS_AI_REFERENCE.md](./WORKBENCH_AND_UNIFIED_LAYOUTS_AI_REFERENCE.md).
