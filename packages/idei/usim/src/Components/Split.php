@@ -48,6 +48,7 @@ class Split extends Container
         $this->config['type'] = $this->type;
         $this->config['split_orientation'] = 'horizontal';
         $this->config['split_size'] = '50%';
+        $this->config['split_size_target'] = 'first';
         $this->config['splitter_size'] = '8px';
         $this->config['min_first_size'] = '120px';
         $this->config['min_second_size'] = '120px';
@@ -79,13 +80,44 @@ class Split extends Container
     }
 
     /**
-     * Set first panel size (e.g. 30%, 320px).
+     * Set panel size (e.g. 30%, 320px). Applies to first pane by default or second pane when splitSizeTarget('second').
      */
     public function splitSize(string $size): static
     {
         $this->config['split_size'] = trim($size);
 
         return $this;
+    }
+
+    /**
+     * Choose which pane ('first' or 'second') split_size measures.
+     */
+    public function splitSizeTarget(string $target): static
+    {
+        $normalized = strtolower(trim($target));
+        $this->config['split_size_target'] = $normalized === 'second' ? 'second' : 'first';
+
+        return $this;
+    }
+
+    /**
+     * Get the configured split_size value.
+     */
+    public function getSplitSize(): string
+    {
+        $size = $this->config['split_size'] ?? '50%';
+
+        return is_string($size) && trim($size) !== '' ? trim($size) : '50%';
+    }
+
+    /**
+     * Get which pane ('first' or 'second') split_size targets.
+     */
+    public function getSplitSizeTarget(): string
+    {
+        $target = $this->config['split_size_target'] ?? 'first';
+
+        return $target === 'second' ? 'second' : 'first';
     }
 
     /**

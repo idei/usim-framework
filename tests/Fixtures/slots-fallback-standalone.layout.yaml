@@ -1,0 +1,17 @@
+name: slots_fallback_standalone
+
+grid:
+  cols: [1fr]
+  children:
+    - lbl_main_body: { text: "Main Body" }
+
+slots:
+  left_panel:
+    fallback: inline_top
+    children:
+      - lbl_inline_top: { text: "Inline Top Fallback" }
+
+  right_panel:
+    fallback: ignore
+    children:
+      - lbl_ignored_panel: { text: "Ignored When Missing" }

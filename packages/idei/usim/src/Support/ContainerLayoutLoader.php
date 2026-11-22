@@ -268,6 +268,169 @@ class ContainerLayoutLoader
     }
 
     /**
+     * Resolve the effective main layout section from a root definition.
+     * Supports either top-level `grid:`/`children:` OR `slots.main` / `slots.center` / `slots.content`.
+     * Throws fail-fast if both root `grid:` and `slots.main`/`center`/`content` are declared simultaneously.
+     *
+     * @param  array<string, mixed>  $definition
+     * @return array<string, mixed>
+     */
+    public static function resolveMainDefinition(array $definition): array
+    {
+        $hasRootGrid = isset($definition['grid']) && is_array($definition['grid']);
+        $slots = isset($definition['slots']) && is_array($definition['slots']) ? $definition['slots'] : [];
+
+        $mainSlotKey = null;
+        foreach (['main', 'center', 'content'] as $candidate) {
+            if (array_key_exists($candidate, $slots)) {
+                if ($mainSlotKey !== null) {
+                    throw new InvalidArgumentException(
+                        "Layout definition cannot declare multiple main slot aliases ('{$mainSlotKey}' and '{$candidate}')."
+                    );
+                }
+                $mainSlotKey = $candidate;
+            }
+        }
+
+        if ($hasRootGrid && $mainSlotKey !== null) {
+            throw new InvalidArgumentException(
+                "Layout definition cannot declare both root 'grid' and 'slots.{$mainSlotKey}'. Choose one."
+            );
+        }
+
+        if ($mainSlotKey === null) {
+            return $definition;
+        }
+
+        $mainSlotRule = is_array($slots[$mainSlotKey]) ? $slots[$mainSlotKey] : [];
+        $merged = $definition;
+        unset($merged['slots']);
+
+        foreach ($mainSlotRule as $key => $value) {
+            if (in_array($key, ['open', 'size', 'fallback', 'persist_on_navigate', 'screen', 'params'], true)) {
+                continue;
+            }
+            $merged[(string) $key] = $value;
+        }
+
+        return $merged;
+    }
+
+    /**
+     * Extract normalized auxiliary slot projections from a root `slots:` section
+     * (excluding `main` / `center` / `content`, which map to the Screen's primary container).
+     *
+     * @param  array<string, mixed>  $definition
+     * @return list<array{
+     *     slot: string,
+     *     container_name: string,
+     *     open: bool,
+     *     size: ?string,
+     *     fallback: string,
+     *     persist_on_navigate: bool,
+     *     screen: ?string,
+     *     params: array<int|string, mixed>,
+     *     rule: array<string, mixed>
+     * }>
+     */
+    public static function extractSlotDefinitions(array $definition): array
+    {
+        // Validate conflicting root grid + slots.main declarations early
+        self::resolveMainDefinition($definition);
+
+        $slots = $definition['slots'] ?? null;
+        if (! is_array($slots)) {
+            return [];
+        }
+
+        $entries = [];
+        foreach ($slots as $rawSlotName => $rawRule) {
+            if (! is_string($rawSlotName) || trim($rawSlotName) === '') {
+                continue;
+            }
+
+            $slotName = trim($rawSlotName);
+            if (in_array($slotName, ['main', 'center', 'content'], true)) {
+                continue;
+            }
+
+            $rule = is_array($rawRule) ? $rawRule : [];
+
+            $rawFallback = isset($rule['fallback']) && is_string($rule['fallback'])
+                ? strtolower(trim($rule['fallback']))
+                : 'ignore';
+            if (! in_array($rawFallback, ['ignore', 'inline', 'inline_top', 'inline_bottom'], true)) {
+                throw new InvalidArgumentException(
+                    "Invalid fallback mode '{$rawFallback}' for slot '{$slotName}'. Allowed: ignore, inline, inline_top, inline_bottom."
+                );
+            }
+
+            $rawSize = $rule['size'] ?? null;
+            $size = null;
+            if (is_int($rawSize) || is_float($rawSize)) {
+                $size = "{$rawSize}px";
+            } elseif (is_string($rawSize) && trim($rawSize) !== '') {
+                $trimmedSize = trim($rawSize);
+                $size = is_numeric($trimmedSize) ? "{$trimmedSize}px" : $trimmedSize;
+            }
+
+            $open = array_key_exists('open', $rule) ? (bool) $rule['open'] : true;
+            $persistOnNavigate = array_key_exists('persist_on_navigate', $rule) ? (bool) $rule['persist_on_navigate'] : false;
+
+            $screen = isset($rule['screen']) && is_string($rule['screen']) && trim($rule['screen']) !== ''
+                ? trim($rule['screen'])
+                : null;
+            /** @var array<int|string, mixed> $params */
+            $params = isset($rule['params']) && is_array($rule['params']) ? $rule['params'] : [];
+
+            $containerName = isset($rule['name']) && is_string($rule['name']) && trim($rule['name']) !== ''
+                ? trim($rule['name'])
+                : '__portal_'.Str::snake($slotName);
+
+            /** @var array<string, mixed> $cleanRule */
+            $cleanRule = [];
+            foreach ($rule as $k => $v) {
+                $kStr = (string) $k;
+                if (in_array($kStr, ['open', 'size', 'fallback', 'persist_on_navigate', 'screen', 'params', 'name'], true)) {
+                    continue;
+                }
+                $cleanRule[$kStr] = $v;
+            }
+
+            // Apply ergonomic defaults when slot uses inline `children:` without explicit `grid:` or `layout:`
+            if ($screen === null && ! isset($cleanRule['grid']) && self::extractExternalLayoutReference($cleanRule) === null) {
+                $isStatusBarSlot = str_starts_with($slotName, 'status_bar') || $slotName === 'statusbar';
+                if ($isStatusBarSlot) {
+                    $cleanRule['appearance'] = $cleanRule['appearance'] ?? 'plain';
+                    $cleanRule['padding'] = $cleanRule['padding'] ?? 'none';
+                    $cleanRule['layout'] = $cleanRule['layout'] ?? LayoutType::HORIZONTAL->value;
+                    $cleanRule['align_items'] = $cleanRule['align_items'] ?? 'center';
+                    $cleanRule['gap'] = $cleanRule['gap'] ?? 's';
+                } else {
+                    $cleanRule['appearance'] = $cleanRule['appearance'] ?? 'plain';
+                    $cleanRule['width'] = $cleanRule['width'] ?? '100%';
+                    $cleanRule['layout'] = $cleanRule['layout'] ?? LayoutType::VERTICAL->value;
+                    $cleanRule['gap'] = $cleanRule['gap'] ?? 's';
+                }
+            }
+
+            $entries[] = [
+                'slot' => $slotName,
+                'container_name' => $containerName,
+                'open' => $open,
+                'size' => $size,
+                'fallback' => $rawFallback,
+                'persist_on_navigate' => $persistOnNavigate,
+                'screen' => $screen,
+                'params' => $params,
+                'rule' => $cleanRule,
+            ];
+        }
+
+        return $entries;
+    }
+
+    /**
      * Extract ordered slot names (string identifiers) declared in the layout's children list.
      *
      * @param  array<string, mixed>  $definition
@@ -275,9 +438,10 @@ class ContainerLayoutLoader
      */
     public static function extractChildSlotNames(array $definition): array
     {
-        $grid = isset($definition['grid']) && is_array($definition['grid'])
-            ? $definition['grid']
-            : $definition;
+        $resolved = self::resolveMainDefinition($definition);
+        $grid = isset($resolved['grid']) && is_array($resolved['grid'])
+            ? $resolved['grid']
+            : $resolved;
 
         $children = $grid['children'] ?? null;
         if (! is_array($children)) {
@@ -306,9 +470,10 @@ class ContainerLayoutLoader
      */
     public static function extractChildRulesBySlot(array $definition): array
     {
-        $grid = isset($definition['grid']) && is_array($definition['grid'])
-            ? $definition['grid']
-            : $definition;
+        $resolved = self::resolveMainDefinition($definition);
+        $grid = isset($resolved['grid']) && is_array($resolved['grid'])
+            ? $resolved['grid']
+            : $resolved;
 
         $children = $grid['children'] ?? null;
         if (! is_array($children)) {
@@ -547,12 +712,29 @@ class ContainerLayoutLoader
      */
     public static function applyContainerConfig(Container $container, array $definition): void
     {
-        // Support optional top-level container box properties
-        self::applyBoxProperties($container, $definition);
+        $mainDef = self::resolveMainDefinition($definition);
 
-        if (isset($definition['grid']) && is_array($definition['grid'])) {
+        // Support optional top-level container box properties
+        self::applyBoxProperties($container, $mainDef);
+
+        if (isset($mainDef['layout']) && is_string($mainDef['layout'])) {
+            $enumCase = LayoutType::tryFrom(strtolower(trim($mainDef['layout'])));
+            if ($enumCase !== null) {
+                $container->layout($enumCase);
+            }
+        }
+
+        if (isset($mainDef['align_items']) && is_string($mainDef['align_items'])) {
+            $container->alignItems(trim($mainDef['align_items']));
+        }
+
+        if (isset($mainDef['justify_content']) && is_string($mainDef['justify_content'])) {
+            $container->justifyContent(trim($mainDef['justify_content']));
+        }
+
+        if (isset($mainDef['grid']) && is_array($mainDef['grid'])) {
             /** @var array<string, mixed> $grid */
-            $grid = $definition['grid'];
+            $grid = $mainDef['grid'];
             self::applyGridContainerConfig($container, $grid);
         }
     }
@@ -571,32 +753,248 @@ class ContainerLayoutLoader
         ?string $baseDir = null,
         array $visitedPaths = []
     ): void {
-        self::applyContainerConfig($container, $definition);
+        $mainDef = self::resolveMainDefinition($definition);
+        self::applyContainerConfig($container, $mainDef);
 
-        $effectiveAutoTranslate = $autoTranslate || self::isAutoTranslateDefinition($definition);
+        $effectiveAutoTranslate = $autoTranslate
+            || self::isAutoTranslateDefinition($definition)
+            || self::isAutoTranslateDefinition($mainDef);
 
         if ($visitedPaths === [] && $container->getLayoutSourcePath() !== null) {
             $visitedPaths = [$container->getLayoutSourcePath()];
         }
 
-        if (isset($definition['grid']) && is_array($definition['grid'])) {
+        $effectiveBaseDir = $baseDir ?? $container->getLayoutBaseDir();
+
+        // Support `slots.main` using an external `include:` / `layout_file:` reference
+        $mainExternalRef = self::extractExternalLayoutReference($mainDef);
+        if ($mainExternalRef !== null && ! isset($mainDef['grid'])) {
+            self::applyNestedContainerLayout(
+                $container,
+                $mainDef,
+                $callingContext,
+                $effectiveAutoTranslate,
+                $effectiveBaseDir,
+                $visitedPaths
+            );
+        } elseif (isset($mainDef['grid']) && is_array($mainDef['grid'])) {
             /** @var array<string, mixed> $grid */
-            $grid = $definition['grid'];
+            $grid = $mainDef['grid'];
             self::applyGridChildrenConfig(
                 $container,
                 $grid,
                 $callingContext,
                 $effectiveAutoTranslate,
-                $baseDir ?? $container->getLayoutBaseDir(),
+                $effectiveBaseDir,
+                $visitedPaths
+            );
+        } elseif (isset($mainDef['children']) && is_array($mainDef['children'])) {
+            self::applyFlexChildrenConfig(
+                $container,
+                $mainDef,
+                $callingContext,
+                $effectiveAutoTranslate,
+                $effectiveBaseDir,
                 $visitedPaths
             );
         } elseif ($effectiveAutoTranslate && $callingContext !== null) {
             self::autoHydrateContainerChildren($container, $callingContext);
         }
 
+        if (isset($definition['slots']) && is_array($definition['slots'])) {
+            self::applySlotsConfig(
+                $container,
+                $definition,
+                $callingContext,
+                $effectiveAutoTranslate,
+                $effectiveBaseDir,
+                $visitedPaths
+            );
+        }
+
         if (isset($definition['timers']) && is_array($definition['timers'])) {
             self::applyTimersConfig($container, $definition, $callingContext);
         }
+    }
+
+    /**
+     * Apply children rules for non-grid (flex / horizontal / vertical) containers declaring `children:`.
+     *
+     * @param  array<string, mixed>  $definition
+     * @param  list<string>  $visitedPaths
+     */
+    protected static function applyFlexChildrenConfig(
+        Container $container,
+        array $definition,
+        ?string $callingContext = null,
+        bool $autoTranslate = false,
+        ?string $baseDir = null,
+        array $visitedPaths = []
+    ): void {
+        $translationTree = ($autoTranslate && $callingContext !== null)
+            ? TranslationResolver::resolveScreenTranslationTree($callingContext)
+            : [];
+
+        $rulesByName = [];
+        $rulesByPosition = [];
+        $orderedSlotNames = [];
+
+        if (isset($definition['children']) && is_array($definition['children'])) {
+            $idx = 0;
+            foreach ($definition['children'] as $key => $entry) {
+                $idx++;
+                $normalized = self::normalizeChildEntry($key, $entry, $idx);
+                $slot = $normalized['slot'];
+                $rule = $normalized['rule'];
+
+                if (is_int($slot) || (is_string($slot) && ctype_digit(trim($slot)))) {
+                    $slotPos = (int) $slot;
+                    $rulesByPosition[$slotPos] = $rule;
+                    $orderedSlotNames[] = (string) $slotPos;
+                } elseif (is_string($slot) && trim($slot) !== '') {
+                    $slotName = trim($slot);
+                    $rulesByName[$slotName] = $rule;
+                    $rulesByPosition[$idx] = $rule;
+                    $orderedSlotNames[] = $slotName;
+                }
+            }
+        }
+
+        if ($orderedSlotNames !== []) {
+            $container->reorderChildrenByNames($orderedSlotNames);
+        }
+
+        foreach ($container->getChildren() as $idx => $child) {
+            $pos = $idx + 1;
+            $explicitSlot = ($child instanceof UIComponent || $child instanceof Container) ? $child->getSlot() : null;
+            $childName = $child->getName();
+
+            if ($child instanceof Timer && $explicitSlot === null && ($childName === null || ! isset($rulesByName[$childName]))) {
+                continue;
+            }
+            if ($child instanceof Container && $child->getPortalSlot() !== null) {
+                continue;
+            }
+            if ($child instanceof Container && $child->getPortalSlot() !== null) {
+                continue;
+            }
+
+            $rule = [];
+            if ($explicitSlot !== null) {
+                if (is_int($explicitSlot) || ctype_digit(trim($explicitSlot))) {
+                    $rule = $rulesByPosition[(int) $explicitSlot] ?? [];
+                } elseif (trim($explicitSlot) !== '') {
+                    $rule = $rulesByName[trim($explicitSlot)] ?? ($rulesByPosition[$pos] ?? []);
+                }
+            } elseif ($childName !== null && isset($rulesByName[$childName])) {
+                $rule = $rulesByName[$childName];
+            } elseif (isset($rulesByPosition[$pos])) {
+                $rule = $rulesByPosition[$pos];
+            }
+
+            if ($child instanceof Container && self::isNestedContainerRule($rule)) {
+                self::applyNestedContainerLayout($child, $rule, $callingContext, $autoTranslate, $baseDir, $visitedPaths);
+            } elseif ($child instanceof Container && isset($rule['children']) && is_array($rule['children'])) {
+                $child->layoutBaseDir($baseDir);
+                $child->layoutDefinition($rule, $callingContext, $autoTranslate);
+                self::applyToContainer($child, $rule, $callingContext, $autoTranslate, $baseDir, $visitedPaths);
+            }
+
+            if ($child instanceof Split && (isset($rule['first']) || isset($rule['second']))) {
+                self::applySplitPanesLayout($child, $rule, $callingContext, $autoTranslate, $baseDir, $visitedPaths);
+            }
+
+            if ($child instanceof Container) {
+                self::applyLayoutSlotMetadata($child, $rule);
+            }
+
+            self::applyElementCustomProperties($child, $rule, $callingContext);
+
+            if ($translationTree !== []) {
+                $resolvedSlot = $rule['slot'] ?? $explicitSlot ?? $childName;
+                self::autoHydrateElementTranslations(
+                    $child,
+                    is_int($resolvedSlot) || is_string($resolvedSlot) ? $resolvedSlot : null,
+                    $translationTree
+                );
+            }
+        }
+    }
+
+    /**
+     * Mount and configure declarative slot projections declared under the root `slots:` section.
+     *
+     * @param  array<string, mixed>  $definition
+     * @param  list<string>  $visitedPaths
+     */
+    protected static function applySlotsConfig(
+        Container $container,
+        array $definition,
+        ?string $callingContext,
+        bool $autoTranslate,
+        ?string $baseDir,
+        array $visitedPaths
+    ): void {
+        $entries = self::extractSlotDefinitions($definition);
+        if ($entries === []) {
+            return;
+        }
+
+        $declaredScreens = [];
+
+        foreach ($entries as $entry) {
+            if ($entry['screen'] !== null) {
+                $declaredScreens[] = [
+                    'slot' => $entry['slot'],
+                    'screen' => $entry['screen'],
+                    'params' => $entry['params'],
+                    'open' => $entry['open'],
+                    'size' => $entry['size'],
+                    'fallback' => $entry['fallback'],
+                    'persist_on_navigate' => $entry['persist_on_navigate'],
+                ];
+
+                continue;
+            }
+
+            $portalName = $entry['container_name'];
+            $portal = null;
+            foreach ($container->getChildren() as $existingChild) {
+                if ($existingChild instanceof Container && $existingChild->getName() === $portalName) {
+                    $portal = $existingChild;
+                    break;
+                }
+            }
+
+            if ($portal === null) {
+                $portal = new Container($portalName, $callingContext);
+                $container->add($portal);
+            }
+
+            $portal->portalSlot(
+                slot: $entry['slot'],
+                open: $entry['open'],
+                size: $entry['size'],
+                fallback: $entry['fallback'],
+                persistOnNavigate: $entry['persist_on_navigate']
+            );
+
+            $rule = $entry['rule'];
+            if ($autoTranslate && ! array_key_exists('i18n', $rule)) {
+                $rule['i18n'] = 'auto';
+            }
+
+            $externalRef = self::extractExternalLayoutReference($rule);
+            if ($externalRef !== null) {
+                self::applyNestedContainerLayout($portal, $rule, $callingContext, $autoTranslate, $baseDir, $visitedPaths);
+            } else {
+                $portal->layoutBaseDir($baseDir);
+                $portal->layoutDefinition($rule, $callingContext, $autoTranslate);
+                self::applyToContainer($portal, $rule, $callingContext, $autoTranslate, $baseDir, $visitedPaths);
+            }
+        }
+
+        $container->setDeclaredSlotScreens($declaredScreens);
     }
 
     /**
@@ -840,6 +1238,9 @@ class ContainerLayoutLoader
             $childName = $child->getName();
 
             if ($child instanceof Timer && $explicitSlot === null && ($childName === null || ! isset($rulesByName[$childName]))) {
+                continue;
+            }
+            if ($child instanceof Container && $child->getPortalSlot() !== null) {
                 continue;
             }
 
@@ -1127,6 +1528,9 @@ class ContainerLayoutLoader
             'slot', 'span', 'at', 'row', 'row_height', 'align', 'justify',
             'grid', 'layout_file', 'include', 'file', 'i18n', 'component',
             'first', 'second', 'layout_slot', 'slot_aliases', 'screen', 'persist_on_navigate', 'name',
+            'slots', 'children', 'open', 'fallback', 'params',
+            'portal_slot', 'portal_open', 'portal_size', 'portal_fallback',
+            'portal_persist_on_navigate', 'portal_target_id', 'portal_unmounted',
         ];
         $hasExternalLayoutRef = self::extractExternalLayoutReference($rule) !== null;
 

@@ -73,6 +73,21 @@ interface LayoutInterface
     public function collapseSlot(string $slot): bool;
 
     /**
+     * Determine whether the Split pane hosting a slot is currently expanded.
+     */
+    public function isSlotExpanded(string $slot): bool;
+
+    /**
+     * Temporarily override the Split size of a slot (or restore default when $size is null).
+     */
+    public function setSlotSize(string $slot, ?string $size): bool;
+
+    /**
+     * Restore the default Split size of a slot if it was temporarily overridden.
+     */
+    public function restoreSlotSize(string $slot): bool;
+
+    /**
      * Get the default Screen class/slug declared for a slot, if any.
      */
     public function getSlotDefaultScreen(string $slot): ?string;

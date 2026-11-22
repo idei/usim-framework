@@ -24,7 +24,39 @@ class UIChangesCollector
      */
     public function add(array $change = []): void
     {
+        if (array_key_exists('clear_container', $change)) {
+            $incomingClear = $change['clear_container'];
+            $existingClear = $this->changes['clear_container'] ?? null;
+
+            if ($existingClear !== null && $existingClear !== $incomingClear) {
+                $existingList = isset($this->changes['clear_containers']) && is_array($this->changes['clear_containers'])
+                    ? $this->changes['clear_containers']
+                    : [$existingClear];
+
+                if (! in_array($incomingClear, $existingList, true)) {
+                    $existingList[] = $incomingClear;
+                }
+
+                $this->changes['clear_containers'] = $existingList;
+            }
+        }
+
         $this->changes = array_replace($this->changes, $change);
+    }
+
+    /**
+     * Merge incremental property changes into an existing component entry (or create a new delta entry)
+     * without clobbering full component payloads emitted earlier in the same request (e.g. initial render).
+     *
+     * @param  array<string, mixed>  $patch
+     */
+    public function patchComponent(int|string $componentId, array $patch): void
+    {
+        if (isset($this->changes[$componentId]) && is_array($this->changes[$componentId])) {
+            $this->changes[$componentId] = array_merge($this->changes[$componentId], $patch);
+        } else {
+            $this->changes[$componentId] = $patch;
+        }
     }
 
     /**

@@ -1,0 +1,8 @@
+appearance: subtle
+padding: s
+
+grid:
+  cols: [1fr]
+  gap: s
+  children:
+    - lbl_partial_heading: { text: "Included Partial Title", font_weight: bold }

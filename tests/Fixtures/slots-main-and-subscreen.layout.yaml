@@ -1,0 +1,17 @@
+name: slots_main_and_subscreen_host
+
+slots:
+  center:
+    grid:
+      cols: [1fr]
+      children:
+        - lbl_center_only: { text: "Center Via Slots" }
+
+  right_panel:
+    open: true
+    size: 380px
+    screen: App\UI\Screens\Demo\RightPanelInspector
+    params:
+      title: Declarative Inspector
+      category: Storage
+      status: Healthy

@@ -6,6 +6,28 @@ The format is based on Keep a Changelog, and this project follows Semantic Versi
 
 ## [Unreleased]
 
+### Added (v2.17.0)
+- **Declarative Screen Slot Projections (`slots:` in `.layout.yaml`)**:
+  - Extended `ContainerLayoutLoader` and `HandlesScreenProperties` to support a root `slots:` section alongside `grid:` and `timers:`, allowing a single `Screen` to project containers, components, or Sub-Screens into any slot of the active `AbstractLayout` (`left_panel`, `right_panel`, `status_bar` / `status_bar_center`, `status_bar_left`, `status_bar_right`, or custom layout slots) while keeping all projected inline/`include:` components under the host `Screen`'s PHP properties, `$state_*`, `i18n: auto`, and `on*()` event handlers.
+  - Added symmetric `slots.main` / `slots.center` / `slots.content` support as an alternative to root `grid:` (with fail-fast `InvalidArgumentException` if both are declared simultaneously), direct `children:` shorthand on non-grid flex/stack containers, `include:` partials, and declarative `screen:` + `params:` Sub-Screen mounting inside `slots:`.
+  - Added per-slot control options: `open` (default `true`), `size` (temporary Split width/height override restored automatically on navigation), `fallback` (`ignore` default → `portal_unmounted: true`, plus `inline`, `inline_top`, `inline_bottom` for graceful degradation on `MainLayout` or `$layout = null`), and `persist_on_navigate` (default `false`).
+  - Added portal metadata APIs on `Container` (`portalSlot()`, `getPortalSlot()`, `getPortalMeta()`, `portalTargetId()`, `portalUnmounted()`, `clearPortalTarget()`, `setDeclaredSlotScreens()`, `getDeclaredSlotScreens()`, `collectPortalContainers()`, `moveChildToStart()`) and persisted `_layout_slot_meta` across snapshot serialization/deserialization.
+- **Contextual `StatusBar` Sub-Slots**:
+  - Extended `App\UI\Screens\StatusBar` and `css/ui-components.css` with three non-persistent contextual projection slots (`status_bar_left`, `status_bar_center` with aliases `status_bar` / `status_bar_items`, and `status_bar_right`) that preserve permanent shell controls (`unit_menu` and dev-only `btn_reset`) and automatically hide `lbl_status_message` (`visible: false`) while a Screen projects into `status_bar` / `status_bar_center` (restoring it on clear or navigation).
+- **Second-Pane `Split` Sizing, Slot Ownership & Runtime Helpers**:
+  - Added `Split::splitSizeTarget('first'|'second')`, `getSplitSize()`, `getSplitSizeTarget()`, and matching JS support in `js/components/split/index.js` so `size:` works identically in `px` or `%` on both `left_panel` (`first`) and `right_panel` (`second`).
+  - Extended `LayoutInterface` and `AbstractLayout` with `isSlotExpanded()`, `setSlotSize()`, `restoreSlotSize()`, `registerExternalSlotsFromTree()`, `resolveProjectionSlot()`, `prepareScreenPortals()`, `mountDeclaredSlotScreens()`, slot ownership tracking (`$state_slot_owners`), and seamless coexistence with `SidebarSubmenuPanel` in `left_panel`.
+  - Added `Screen` (`HandlesNavigation`) helpers: `openSlot()`, `closeSlot()` (collapses own portals while preserving component state unless `clear: true`), `toggleSlot()`, `isSlotOpen()`, and `slotContainer()`.
+  - Extended `UIChangesCollector` with `patchComponent()` (merges incremental component patches without clobbering initial full payloads) and multi-target `clear_containers` accumulation, and updated `ui-renderer.js` to mount `portal_slot` / `portal_target_id`, skip `portal_unmounted` subtrees, and process `clear_containers`.
+- **Demo, Tests & Documentation**:
+  - Added interactive `SlotProjectionDemo` (`app/UI/Screens/Demo/SlotProjectionDemo.php` + `slot-projection-demo.layout.yaml` + `en`/`es` translations), comprehensive feature test suite `tests/Feature/ScreenSlotProjectionTest.php`, and updated `LAYOUTS_COMPOSITION_GUIDE.md`, `DECLARATIVE_LAYOUTS_AND_I18N.md`, `WORKBENCH_AND_UNIFIED_LAYOUTS_AI_REFERENCE.md`, `usim_context_prompt.md`, and `docs/README.md`.
+
+### Fixed (v2.17.0)
+- **Viewport clamping & scroll for tall `MenuDropdown` submenus** (`js/components/menudropdown/index.js`, `css/ui-components.css`): prevented long submenus (such as `Demos` in guest `MainLayout`) from overflowing above the top edge of the viewport; submenus now clamp strictly within `[8px, innerHeight - 8px]` and scroll vertically when taller than the viewport.
+- **Unit selector lingering in `Menu` after logout** (`app/UI/Screens/Menu.php`): updated `updateUnitMenu()`, `resetToGuestState()`, and `buildBaseUI()` so `unit_menu` is cleared and hidden (`visible: false`) whenever `!Auth::check()`, even when `Menu` is restored from its preserved shell snapshot after logging out from `WorkbenchLayout`.
+- **Guest menu visibility for Workbench panel demos** (`app/UI/Navigation/Menus/DemosMenuProvider.php`): gated `RightPanelDemo` and `SlotProjectionDemo` behind `when: Auth::check()` so demos requiring Workbench side panels only appear once authenticated.
+- **IDE static analysis on `Screen` traits** (`HandlesNavigation.php`, `HandlesScreenProperties.php`, `Screen.php`): declared explicit `abstract` host method contracts on traits and replaced `static::getCurrentQueryParams()` / `static::$autoTranslate` with `Screen::getCurrentQueryParams()` / `$this->isAutoTranslateEnabled()` to eliminate `intelephense(P1013)` warnings.
+
 ### Added (v2.16.0)
 - **Decoupled VS Code-style Activity Bar & Independent Collapsible `left_panel` Split**:
   - Refactored `WorkbenchLayout` (`app/UI/Layouts/workbench-layout.layout.yaml` and package stub) into a 2-column declarative grid (`cols: [52px, 1fr]`, `rows: [1fr, auto]`):

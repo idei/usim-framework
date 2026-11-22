@@ -1,0 +1,63 @@
+name: slot_projection_demo_main
+appearance: card
+max_width: 780
+center_horizontal: true
+i18n: auto
+
+grid:
+  cols: [1fr, 1fr]
+  gap: m
+  padding: l
+  default_span: 2
+
+  children:
+    - lbl_title:          { size: xl, font_weight: bold }
+    - lbl_intro:          { style: info, width: full }
+    - lbl_active_summary: { style: secondary, width: full }
+    - btn_toggle_left:    { span: 1, style: secondary, action: toggle_left_panel, width: full }
+    - btn_open_inspector: { span: 1, style: primary,   action: open_inspector,    width: full }
+
+slots:
+  left_panel:
+    open: true
+    size: 270px
+    fallback: inline_top
+    appearance: subtle
+    padding: m
+    grid:
+      cols: [1fr]
+      gap: s
+      children:
+        - lbl_filters_title: { font_weight: bold }
+        - input_filter:      { width: full, placeholder: .filters.placeholder }
+        - btn_apply_filter:  { style: primary, size: small, action: apply_filter, width: full }
+        - btn_close_left:    { style: secondary, size: small, action: close_left_panel, width: full }
+
+  right_panel:
+    open: false
+    size: 340px
+    fallback: ignore
+    appearance: subtle
+    padding: m
+    grid:
+      cols: [1fr]
+      gap: s
+      children:
+        - cnt_inspector_header:
+            grid:
+              cols: [1fr, auto]
+              align: center
+              children:
+                - lbl_inspector_title: { font_weight: bold }
+                - btn_close_right:     { label: "✕", size: xs, style: secondary, action: close_right_panel }
+        - lbl_inspector_body:  { style: info, width: full }
+        - input_note:          { width: full, placeholder: .inspector.note_placeholder }
+        - btn_save_note:       { style: primary, size: small, action: save_note, width: full }
+
+  status_bar:
+    children:
+      - lbl_status_counter: { text: .status.initial }
+
+  status_bar_right:
+    children:
+      - btn_status_ping: { size: xs, style: info, action: ping_status }

@@ -116,7 +116,43 @@ class ScreenLifecycleOrchestrator implements ScreenLifecycleOrchestratorInterfac
                             shouldReset: $shouldReset
                         );
 
-                        // 1. Re-embed main content slot
+                        // 0. Pre-discover external sub-slots declared by shell screens (e.g. StatusBar's
+                        // status_bar_left/center/right) so main Screen portal projections resolve them immediately
+                        // while preserving canonical payload ordering (layout -> main -> menu -> status_bar).
+                        foreach ($layout->getPrimarySlots() as $slotName) {
+                            if (in_array($slotName, ['main', 'content', 'center', 'top_menu', 'menu', 'sidebar'], true)) {
+                                continue;
+                            }
+
+                            $activeClass = $layout->getActiveScreen($slotName)
+                                ?? $layout->getSlotDefaultScreen($slotName);
+
+                            if ($activeClass === null && $slotName === 'status_bar') {
+                                $statusBarConfig = config('usim.default_status_bar_screen', $this->usimConfig->defaultStatusBarScreen);
+                                $activeClass = \is_string($statusBarConfig) && $statusBarConfig !== '' ? $statusBarConfig : null;
+                            }
+
+                            if (! \is_string($activeClass) || $activeClass === '') {
+                                continue;
+                            }
+
+                            $targetClass = is_subclass_of($activeClass, Screen::class)
+                                ? $activeClass
+                                : Screen::resolveScreenClassFromSlug($activeClass);
+
+                            if ($targetClass !== null && class_exists($targetClass) && is_subclass_of($targetClass, Screen::class)) {
+                                $shellScreen = Screen::make($targetClass);
+                                $this->idGenerator->pushCurrentContext($shellScreen->getContextIdentifier());
+                                try {
+                                    $shellTree = $this->reconstructScreenTree($shellScreen);
+                                    $layout->registerExternalSlotsFromTree($shellTree, $targetClass);
+                                } finally {
+                                    $this->idGenerator->popCurrentContext();
+                                }
+                            }
+                        }
+
+                        // 1. Re-embed main content slot (triggers Screen portal projections & declared slot screens)
                         $slot = $layout->getSlot('content') ?? $layout->getSlot('main');
                         if ($slot instanceof Container) {
                             $slot->clear();
@@ -155,6 +191,7 @@ class ScreenLifecycleOrchestrator implements ScreenLifecycleOrchestratorInterfac
                             $menuSlot->clear();
                             $this->embedInto($menuClass, $menuSlot);
                             $layout->setActiveScreen($isSidebarSlot ? 'sidebar' : 'top_menu', $menuClass);
+                            $layout->registerExternalSlotsFromTree($menuSlot, $menuClass);
                         }
 
                         // 3. Re-embed any other registered slot with an active or default screen (e.g. status_bar, right_panel)
@@ -196,7 +233,13 @@ class ScreenLifecycleOrchestrator implements ScreenLifecycleOrchestratorInterfac
                                 $otherSlot->clear();
                                 $this->embedInto($targetClass, $otherSlot);
                                 $layout->setActiveScreen($slotName, $targetClass);
+                                $layout->registerExternalSlotsFromTree($otherSlot, $targetClass);
                                 $embeddedContainerIds[$otherSlot->getId()] = true;
+
+                                // Re-apply status bar message hiding if main Screen projected into status_bar_center
+                                if ($slotName === 'status_bar' && $layout->getSlotOwner('status_bar_center') !== null) {
+                                    $layout->setStatusBarMessageVisible(false);
+                                }
                             }
                         }
 
@@ -216,10 +259,12 @@ class ScreenLifecycleOrchestrator implements ScreenLifecycleOrchestratorInterfac
                             if ($targetClass !== null && class_exists($targetClass) && is_subclass_of($targetClass, Screen::class)) {
                                 $otherSlot->clear();
                                 $this->embedInto($targetClass, $otherSlot);
+                                $layout->registerExternalSlotsFromTree($otherSlot, $targetClass);
                                 $embeddedContainerIds[$otherSlot->getId()] = true;
                             }
                         }
 
+                        $layout->persistLayoutState();
                         UIStateManager::setClientActiveLayout($layoutClass);
 
                         return;
@@ -237,6 +282,14 @@ class ScreenLifecycleOrchestrator implements ScreenLifecycleOrchestratorInterfac
                 parent: $parent,
                 buildParams: $buildParams
             );
+
+            // Standalone screen ($layout = null or direct render without AbstractLayout): apply portal fallbacks
+            if ($parent === 'main' && ! ($screen instanceof LayoutInterface)) {
+                $standaloneContainer = $screen->getContainer();
+                if ($standaloneContainer instanceof Container) {
+                    $this->applyStandalonePortalFallbacks($standaloneContainer);
+                }
+            }
 
             $this->finalizeEventContext(screen: $screen, reload: true, params: $buildParams);
 
@@ -805,6 +858,19 @@ class ScreenLifecycleOrchestrator implements ScreenLifecycleOrchestratorInterfac
                     $parent->applyLayoutDefinition();
                 }
 
+                // If embedding a host Screen into an AbstractLayout's main content slot,
+                // resolve declarative portal projections BEFORE serializing its JSON.
+                $activeLayout = AbstractLayout::current();
+                $isMainLayoutHost = $activeLayout instanceof AbstractLayout
+                    && ! ($instance instanceof LayoutInterface)
+                    && $activeLayout->isMainSlotContainer($parent);
+                $isInitialLayoutRender = $isMainLayoutHost
+                    && AbstractLayout::getActiveHostScreen() === $instance::class;
+
+                if ($isMainLayoutHost) {
+                    $activeLayout->prepareScreenPortals($instance, $container, $isInitialLayoutRender);
+                }
+
                 $childOrder = $parent->getChildOrder($container->getId());
                 $embeddedJson = $container->toJson($childOrder);
 
@@ -826,6 +892,10 @@ class ScreenLifecycleOrchestrator implements ScreenLifecycleOrchestratorInterfac
                 }
 
                 $this->changesCollector->add($embeddedJson);
+
+                if ($isMainLayoutHost) {
+                    $activeLayout->mountDeclaredSlotScreens($container, $isInitialLayoutRender);
+                }
             }
 
             $this->changesCollector->setStorage($instance->getStorageVariables());
@@ -833,6 +903,36 @@ class ScreenLifecycleOrchestrator implements ScreenLifecycleOrchestratorInterfac
             Screen::setCurrentIncomingStorage($prevIncomingStorage);
             Screen::setCurrentQueryParams($prevQueryParams);
             $this->idGenerator->popCurrentContext();
+        }
+    }
+
+    /**
+     * Resolve portal fallbacks for standalone screens rendered without an AbstractLayout.
+     */
+    protected function applyStandalonePortalFallbacks(Container $screenRoot): void
+    {
+        foreach ($screenRoot->collectPortalContainers() as $portal) {
+            $meta = $portal->getPortalMeta();
+            if ($meta === null) {
+                continue;
+            }
+
+            if ($meta['fallback'] === 'ignore') {
+                $portal->portalUnmounted(true)->portalTargetId(null);
+
+                continue;
+            }
+
+            $portal->clearPortalTarget();
+            if ($meta['fallback'] === 'inline_top') {
+                $parentId = $portal->getParent();
+                $parentContainer = is_int($parentId) ? $screenRoot->findById($parentId) : null;
+                if ($parentContainer instanceof Container) {
+                    $parentContainer->moveChildToStart($portal->getId());
+                } else {
+                    $screenRoot->moveChildToStart($portal->getId());
+                }
+            }
         }
     }
 

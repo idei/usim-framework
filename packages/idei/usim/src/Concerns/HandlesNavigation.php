@@ -6,6 +6,7 @@ use Idei\Usim\Components\Container;
 use Idei\Usim\Layout\AbstractLayout;
 use Idei\Usim\Screen;
 use Idei\Usim\Support\UIStateManager;
+use Idei\Usim\UIChangesCollector;
 use RuntimeException;
 
 /**
@@ -15,6 +16,11 @@ use RuntimeException;
  */
 trait HandlesNavigation
 {
+    abstract public function getLayout(): ?AbstractLayout;
+
+    abstract public function getContainer(): ?Container;
+
+    abstract protected function uiChanges(): UIChangesCollector;
     /**
      * Show a target screen inside a specific slot container or layout slot.
      *
@@ -80,14 +86,14 @@ trait HandlesNavigation
 
                 AbstractLayout::setCurrent(null);
                 Screen::make($targetClass)->clearCachedScreenSnapshot();
-                if ($targetLayout !== null && class_exists($targetLayout) && is_subclass_of($targetLayout, Screen::class)) {
+                if ($targetLayout !== null && class_exists($targetLayout)) {
                     Screen::make($targetLayout)->clearCachedScreenSnapshot();
                 }
 
                 $targetScreen = Screen::make($targetClass);
                 $targetScreen->render(
                     incomingStorage: $this->uiChanges()->getStorage(),
-                    queryParams: static::getCurrentQueryParams(),
+                    queryParams: Screen::getCurrentQueryParams(),
                     parent: 'main',
                     shouldReset: true,
                     buildParams: $params
@@ -143,12 +149,13 @@ trait HandlesNavigation
 
         // 2. Fallback: Search in the current screen's component tree
         $targetContainer = null;
-        if (isset($this->container)) {
-            $found = $this->container->findByName($effectiveSlot);
+        $rootContainer = $this->getContainer();
+        if ($rootContainer !== null) {
+            $found = $rootContainer->findByName($effectiveSlot);
             if ($found instanceof Container) {
                 $targetContainer = $found;
             } elseif ($effectiveSlot === 'main' || $effectiveSlot === 'content') {
-                $foundContent = $this->container->findByName('content_container');
+                $foundContent = $rootContainer->findByName('content_container');
                 if ($foundContent instanceof Container) {
                     $targetContainer = $foundContent;
                 }
@@ -207,16 +214,166 @@ trait HandlesNavigation
     }
 
     /**
-     * Clear an auxiliary layout slot (e.g. 'right_panel') and collapse its parent Split pane.
+     * Open (expand) an auxiliary layout slot (e.g. 'left_panel', 'right_panel').
+     * If this Screen declares a portal container for that slot and the slot was temporarily
+     * replaced by another screen (e.g. SidebarSubmenuPanel) or cleared, re-mounts the portal automatically.
      */
-    public function closeSlot(string $slot = 'right_panel', bool $collapse = true): bool
+    public function openSlot(string $slot = 'right_panel', ?string $size = null): bool
     {
         $layout = $this->getLayout();
         if ($layout === null) {
             return false;
         }
 
-        return $layout->clearSlot($slot, $collapse);
+        $target = $layout->resolveProjectionSlot($slot);
+        if ($target === null) {
+            return false;
+        }
+
+        $canonical = $target['canonical'];
+        $portal = $this->slotContainer($slot);
+
+        if ($portal instanceof Container) {
+            $meta = $portal->getPortalMeta();
+            $currentOwner = $layout->getSlotOwner($canonical);
+            $isAlreadyOwnedByThisPortal = $currentOwner !== null
+                && $currentOwner['mode'] === 'portal'
+                && $currentOwner['owner'] === static::class
+                && ($currentOwner['portal_container_id'] ?? null) === $portal->getId();
+
+            if (! $isAlreadyOwnedByThisPortal || $portal->isPortalUnmounted()) {
+                $portal->portalUnmounted(false)
+                    ->setPortalSlotName($canonical)
+                    ->portalTargetId($target['container_id']);
+
+                if (! $target['external'] && $target['container'] instanceof Container) {
+                    $target['container']->clear();
+                }
+
+                $this->uiChanges()->add([
+                    'clear_container' => $target['container_id'],
+                ]);
+                $this->uiChanges()->add($portal->toJson());
+
+                $layout->setSlotOwner($canonical, [
+                    'mode' => 'portal',
+                    'owner' => static::class,
+                    'portal_container_id' => $portal->getId(),
+                    'persist_on_navigate' => $meta['persist_on_navigate'] ?? false,
+                ]);
+
+                if ($canonical === 'status_bar_center') {
+                    $layout->setStatusBarMessageVisible(false);
+                }
+            }
+
+            $effectiveSize = $size ?? ($meta['size'] ?? null);
+            if ($effectiveSize !== null) {
+                $layout->setSlotSize($canonical, $effectiveSize);
+            }
+        } elseif ($size !== null) {
+            $layout->setSlotSize($canonical, $size);
+        }
+
+        $expanded = $layout->expandSlot($canonical);
+        $layout->persistLayoutState();
+
+        return $expanded || $portal instanceof Container;
+    }
+
+    /**
+     * Close an auxiliary layout slot (e.g. 'right_panel', 'left_panel').
+     *
+     * - When owned by a portal of the current Screen (and $clear is not explicitly true):
+     *   collapses the Split pane while keeping the portal components alive so state is preserved
+     *   and can be updated & re-opened via `openSlot()`.
+     * - When owned by an external sub-Screen (mounted via `showInto`) or when `$clear = true`:
+     *   clears the slot DOM and collapses its Split pane.
+     */
+    public function closeSlot(string $slot = 'right_panel', bool $collapse = true, ?bool $clear = null): bool
+    {
+        $layout = $this->getLayout();
+        if ($layout === null) {
+            return false;
+        }
+
+        $target = $layout->resolveProjectionSlot($slot);
+        if ($target === null) {
+            return false;
+        }
+
+        $canonical = $target['canonical'];
+        $owner = $layout->getSlotOwner($canonical);
+        $isOwnPortal = $owner !== null
+            && $owner['mode'] === 'portal'
+            && $owner['owner'] === static::class;
+
+        $shouldClear = $clear ?? (! $isOwnPortal);
+
+        if (! $shouldClear) {
+            $collapsed = $collapse ? $layout->collapseSlot($canonical) : true;
+            $layout->persistLayoutState();
+
+            return $collapsed;
+        }
+
+        return $layout->clearSlot($canonical, $collapse);
+    }
+
+    /**
+     * Toggle an auxiliary layout slot open or closed.
+     */
+    public function toggleSlot(string $slot = 'right_panel'): bool
+    {
+        return $this->isSlotOpen($slot)
+            ? $this->closeSlot($slot)
+            : $this->openSlot($slot);
+    }
+
+    /**
+     * Determine whether an auxiliary layout slot is currently open (expanded).
+     */
+    public function isSlotOpen(string $slot = 'right_panel'): bool
+    {
+        $layout = $this->getLayout();
+        if ($layout === null) {
+            return false;
+        }
+
+        return $layout->isSlotExpanded($slot);
+    }
+
+    /**
+     * Retrieve the portal Container declared by this Screen for a target layout slot, if any.
+     */
+    public function slotContainer(string $slot): ?Container
+    {
+        $rootContainer = $this->getContainer();
+        if ($rootContainer === null) {
+            return null;
+        }
+
+        $normalized = trim($slot);
+        $layout = $this->getLayout();
+        $resolvedTarget = $layout?->resolveProjectionSlot($normalized);
+        $canonical = $resolvedTarget['canonical']
+            ?? ($layout?->resolveCanonicalSlotName($normalized) ?? $normalized);
+
+        foreach ($rootContainer->collectPortalContainers() as $portal) {
+            $portalSlot = $portal->getPortalSlot();
+            if ($portalSlot === null) {
+                continue;
+            }
+
+            $portalCanonical = $layout?->resolveProjectionSlot($portalSlot)['canonical']
+                ?? ($layout?->resolveCanonicalSlotName($portalSlot) ?? $portalSlot);
+
+            if ($portalSlot === $normalized || $portalCanonical === $canonical) {
+                return $portal;
+            }
+        }
+
+        return null;
     }
 
     /**

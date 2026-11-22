@@ -8,6 +8,7 @@ use Idei\Usim\Components\Split;
 use Idei\Usim\Contracts\ComponentIdGeneratorInterface;
 use Idei\Usim\Screen;
 use Idei\Usim\Support\ContainerLayoutLoader;
+use Idei\Usim\Support\UIIdGenerator;
 use Idei\Usim\Support\UIStateManager;
 use Idei\Usim\UIChangesCollector;
 use Illuminate\Support\Facades\Log;
@@ -62,6 +63,28 @@ abstract class AbstractLayout extends Screen implements LayoutInterface
      * @var list<string>
      */
     protected array $state_primary_slots = [];
+
+    /**
+     * External slots hosted inside embedded shell screens (e.g. StatusBar's status_bar_left/center/right).
+     *
+     * @var array<string, array{container_id: int, container_name: string, host_screen: string, persist_on_navigate: bool, canonical_name: string}>
+     */
+    protected array $state_external_slots = [];
+
+    /**
+     * Ownership metadata for auxiliary slots occupied by either a Screen portal or a sub-Screen.
+     *
+     * @var array<string, array{mode: string, owner: string, portal_container_id?: int, persist_on_navigate: bool}>
+     */
+    protected array $state_slot_owners = [];
+
+    /**
+     * Original Split sizes saved before a Screen applied a temporary `size:` override.
+     * Keyed by Split component ID.
+     *
+     * @var array<int|string, array{split_size: string, split_size_target: string}>
+     */
+    protected array $state_split_default_sizes = [];
 
     /**
      * Get the currently active layout instance in the request/session context.
@@ -326,6 +349,458 @@ abstract class AbstractLayout extends Screen implements LayoutInterface
     }
 
     /**
+     * Recursively discover layout slots hosted inside an embedded shell screen (e.g. StatusBar's contextual sub-slots)
+     * and persist their container IDs and host screen so future requests can target and clear them cleanly.
+     *
+     * @param  class-string<Screen>  $hostScreenClass
+     */
+    public function registerExternalSlotsFromTree(Container $node, string $hostScreenClass): void
+    {
+        $meta = $node->getLayoutSlotMeta();
+        if ($meta !== null) {
+            $primaryName = $meta['name'];
+            $containerName = $node->getName() ?? $primaryName;
+            $entry = [
+                'container_id' => $node->getId(),
+                'container_name' => $containerName,
+                'host_screen' => $hostScreenClass,
+                'persist_on_navigate' => $meta['persist_on_navigate'],
+                'canonical_name' => $primaryName,
+            ];
+
+            $this->state_external_slots[$primaryName] = $entry;
+            $this->state_slot_persistence[$primaryName] = $meta['persist_on_navigate'];
+
+            foreach ($meta['aliases'] as $alias) {
+                $this->state_external_slots[$alias] = $entry;
+                $this->state_slot_persistence[$alias] = $meta['persist_on_navigate'];
+            }
+        }
+
+        foreach ($node->getChildren() as $child) {
+            if ($child instanceof Container) {
+                $this->registerExternalSlotsFromTree($child, $hostScreenClass);
+            }
+        }
+    }
+
+    /**
+     * Resolve a slot name or alias to its canonical primary slot name on this layout.
+     */
+    public function resolveCanonicalSlotName(string $slot): string
+    {
+        $normalized = trim($slot);
+        if (isset($this->state_external_slots[$normalized])) {
+            return $this->state_external_slots[$normalized]['canonical_name'];
+        }
+
+        $targetContainer = $this->getSlot($normalized);
+        if ($targetContainer instanceof Container) {
+            $targetId = $targetContainer->getId();
+            foreach ($this->state_primary_slots as $primary) {
+                $primaryContainer = $this->getSlot($primary);
+                if ($primaryContainer instanceof Container && $primaryContainer->getId() === $targetId) {
+                    return $primary;
+                }
+            }
+        }
+
+        return match ($normalized) {
+            'left', 'explorer' => 'left_panel',
+            'right', 'inspector' => 'right_panel',
+            'content', 'center' => 'main',
+            'statusbar', 'status_bar_items' => 'status_bar_center',
+            default => $normalized,
+        };
+    }
+
+    /**
+     * Resolve a projection target slot (local layout slot or embedded shell sub-slot like status_bar_center).
+     * When a Screen targets `status_bar`, it resolves to `status_bar_center` if registered by StatusBar
+     * so permanent shell controls (`unit_menu`, `btn_reset`) are never destroyed.
+     *
+     * @return array{canonical: string, container_id: int, container: ?Container, external: bool, host_screen: ?string}|null
+     */
+    public function resolveProjectionSlot(string $slot): ?array
+    {
+        $normalized = trim($slot);
+        if (in_array($normalized, ['status_bar', 'statusbar'], true)) {
+            if (isset($this->state_external_slots['status_bar_center'])) {
+                $ext = $this->state_external_slots['status_bar_center'];
+
+                return [
+                    'canonical' => $ext['canonical_name'],
+                    'container_id' => $ext['container_id'],
+                    'container' => null,
+                    'external' => true,
+                    'host_screen' => $ext['host_screen'],
+                ];
+            }
+        }
+
+        if (isset($this->state_external_slots[$normalized])) {
+            $ext = $this->state_external_slots[$normalized];
+
+            return [
+                'canonical' => $ext['canonical_name'],
+                'container_id' => $ext['container_id'],
+                'container' => null,
+                'external' => true,
+                'host_screen' => $ext['host_screen'],
+            ];
+        }
+
+        $local = $this->getSlot($normalized);
+        if ($local instanceof Container) {
+            return [
+                'canonical' => $this->resolveCanonicalSlotName($normalized),
+                'container_id' => $local->getId(),
+                'container' => $local,
+                'external' => false,
+                'host_screen' => null,
+            ];
+        }
+
+        return null;
+    }
+
+    /**
+     * Determine whether the given Container is this layout's main content slot container.
+     */
+    public function isMainSlotContainer(Container $container): bool
+    {
+        $mainSlot = $this->getSlot('main') ?? $this->getSlot('content');
+
+        return $mainSlot instanceof Container && $mainSlot->getId() === $container->getId();
+    }
+
+    /**
+     * Get ownership metadata for a slot, if any.
+     *
+     * @return array{mode: string, owner: string, portal_container_id?: int, persist_on_navigate: bool}|null
+     */
+    public function getSlotOwner(string $slot): ?array
+    {
+        $resolved = $this->resolveProjectionSlot($slot);
+        $canonical = $resolved !== null ? $resolved['canonical'] : $this->resolveCanonicalSlotName($slot);
+
+        return $this->state_slot_owners[$canonical] ?? null;
+    }
+
+    /**
+     * Record ownership metadata for a slot (portal or sub-screen).
+     *
+     * @param  array{mode: string, owner: string, portal_container_id?: int, persist_on_navigate: bool}  $ownerMeta
+     */
+    public function setSlotOwner(string $slot, array $ownerMeta): void
+    {
+        $resolved = $this->resolveProjectionSlot($slot);
+        $canonical = $resolved !== null ? $resolved['canonical'] : $this->resolveCanonicalSlotName($slot);
+
+        $this->state_slot_owners[$canonical] = $ownerMeta;
+    }
+
+    /**
+     * Toggle visibility of StatusBar's built-in `lbl_status_message` when a Screen projects
+     * into `status_bar_center` (alias `status_bar`) or clears it.
+     */
+    public function setStatusBarMessageVisible(bool $visible): void
+    {
+        $statusBarClass = $this->state_external_slots['status_bar_center']['host_screen']
+            ?? $this->getActiveScreen('status_bar');
+
+        if (! is_string($statusBarClass) || ! class_exists($statusBarClass) || ! is_subclass_of($statusBarClass, Screen::class)) {
+            return;
+        }
+
+        $msgId = UIIdGenerator::generateFromName($statusBarClass, 'lbl_status_message');
+
+        // Keep StatusBar's cached snapshot in sync so subsequent events on StatusBar don't drift
+        $cached = UIStateManager::get($statusBarClass);
+        if (is_array($cached) && isset($cached[$msgId]) && is_array($cached[$msgId])) {
+            /** @var array<string, mixed> $msgNode */
+            $msgNode = $cached[$msgId];
+            if ($visible) {
+                unset($msgNode['visible']);
+            } else {
+                $msgNode['visible'] = false;
+            }
+            $cached[$msgId] = $msgNode;
+            UIStateManager::store($statusBarClass, $cached);
+        }
+
+        app(UIChangesCollector::class)->patchComponent($msgId, [
+            'type' => 'newlabel',
+            'visible' => $visible,
+        ]);
+    }
+
+    /**
+     * Prepare all declarative portal containers declared by a host Screen before its JSON is serialized.
+     * Resolves target layout slots, applies fallbacks (`ignore` / `inline*`), configures Split open/size state,
+     * updates ownership, and hides `lbl_status_message` if projecting into `status_bar_center`.
+     */
+    public function prepareScreenPortals(Screen $hostScreen, Container $screenRoot, bool $isInitialRender = false): void
+    {
+        $portals = $screenRoot->collectPortalContainers();
+        if ($portals === []) {
+            return;
+        }
+
+        $changedLayout = false;
+
+        foreach ($portals as $portal) {
+            $meta = $portal->getPortalMeta();
+            if ($meta === null) {
+                continue;
+            }
+
+            $target = $this->resolveProjectionSlot($meta['slot']);
+            if ($target === null) {
+                $this->applyPortalFallback($screenRoot, $portal, $meta['fallback']);
+
+                continue;
+            }
+
+            $canonical = $target['canonical'];
+            $portal->portalUnmounted(false)
+                ->setPortalSlotName($canonical)
+                ->portalTargetId($target['container_id']);
+
+            if (! $isInitialRender) {
+                app(UIChangesCollector::class)->add([
+                    'clear_container' => $target['container_id'],
+                ]);
+            }
+
+            if (! $target['external'] && $target['container'] instanceof Container) {
+                $target['container']->clear();
+            }
+
+            unset(
+                $this->activeScreens[$canonical],
+                $this->state_active_screens[$canonical],
+                $this->activeScreens[$meta['slot']],
+                $this->state_active_screens[$meta['slot']]
+            );
+
+            $this->state_slot_owners[$canonical] = [
+                'mode' => 'portal',
+                'owner' => $hostScreen::class,
+                'portal_container_id' => $portal->getId(),
+                'persist_on_navigate' => $meta['persist_on_navigate'],
+            ];
+
+            if ($meta['size'] !== null) {
+                $this->setSlotSize($canonical, $meta['size']);
+            } else {
+                $this->restoreSlotSize($canonical);
+            }
+
+            if ($meta['open']) {
+                $this->expandSlot($canonical);
+            } else {
+                $this->collapseSlot($canonical);
+            }
+
+            if ($canonical === 'status_bar_center') {
+                $this->setStatusBarMessageVisible(false);
+            }
+
+            $changedLayout = true;
+        }
+
+        if ($changedLayout) {
+            $this->persistLayoutState();
+        }
+    }
+
+    /**
+     * Mount any declarative `screen:` slots declared in a host Screen's `.layout.yaml`.
+     */
+    public function mountDeclaredSlotScreens(Container $screenRoot, bool $isInitialRender = false): void
+    {
+        $declaredScreens = $screenRoot->getDeclaredSlotScreens();
+        if ($declaredScreens === []) {
+            return;
+        }
+
+        foreach ($declaredScreens as $entry) {
+            $target = $this->resolveProjectionSlot($entry['slot']);
+            if ($target === null) {
+                if ($entry['fallback'] !== 'ignore') {
+                    $targetClass = class_exists($entry['screen'])
+                        ? $entry['screen']
+                        : Screen::resolveScreenClassFromSlug($entry['screen']);
+                    if ($targetClass !== null && class_exists($targetClass) && is_subclass_of($targetClass, Screen::class)) {
+                        $hostMain = $this->findPrimaryWrapper($screenRoot);
+                        Screen::embedInto($targetClass, $hostMain, $entry['params']);
+                        if ($entry['fallback'] === 'inline_top') {
+                            $children = $hostMain->getChildren();
+                            $lastChild = end($children);
+                            if ($lastChild !== false) {
+                                $hostMain->moveChildToStart($lastChild->getId());
+                            }
+                        }
+                    }
+                }
+
+                continue;
+            }
+
+            $canonical = $target['canonical'];
+
+            if ($entry['size'] !== null) {
+                $this->setSlotSize($canonical, $entry['size']);
+            } else {
+                $this->restoreSlotSize($canonical);
+            }
+
+            if ($target['external']) {
+                // Embedded shell slot (e.g. status_bar_center) — mount sub-screen with parent = target container ID
+                $targetClass = class_exists($entry['screen'])
+                    ? $entry['screen']
+                    : Screen::resolveScreenClassFromSlug($entry['screen']);
+                if ($targetClass === null || ! class_exists($targetClass) || ! is_subclass_of($targetClass, Screen::class)) {
+                    continue;
+                }
+
+                if (! $isInitialRender) {
+                    app(UIChangesCollector::class)->add(['clear_container' => $target['container_id']]);
+                }
+
+                $subScreen = Screen::make($targetClass);
+                $subScreen->clearCachedScreenSnapshot();
+                $subScreen->render(
+                    incomingStorage: Screen::getCurrentIncomingStorage(),
+                    queryParams: Screen::getCurrentQueryParams(),
+                    parent: $target['container_id'],
+                    shouldReset: true,
+                    buildParams: $entry['params']
+                );
+
+                $this->setActiveScreen($canonical, $targetClass);
+                $this->state_slot_owners[$canonical] = [
+                    'mode' => 'screen',
+                    'owner' => $targetClass,
+                    'persist_on_navigate' => $entry['persist_on_navigate'] || $targetClass::shouldPersistOnNavigate(),
+                ];
+
+                if ($canonical === 'status_bar_center') {
+                    $this->setStatusBarMessageVisible(false);
+                }
+
+                $this->persistLayoutState();
+
+                continue;
+            }
+
+            $this->showInto(
+                $entry['screen'],
+                slot: $canonical,
+                params: $entry['params'],
+                updateBrowserUrl: false,
+                force: true
+            );
+
+            if (isset($this->state_slot_owners[$canonical]) && $entry['persist_on_navigate']) {
+                $this->state_slot_owners[$canonical]['persist_on_navigate'] = true;
+            }
+
+            if (! $entry['open']) {
+                $this->collapseSlot($canonical);
+            }
+
+            $this->persistLayoutState();
+        }
+    }
+
+    /**
+     * Apply fallback strategy (`ignore` or `inline*`) to a portal container when its target slot is unavailable.
+     */
+    public function applyPortalFallback(Container $screenRoot, Container $portal, string $fallback): void
+    {
+        if ($fallback === 'ignore') {
+            $portal->portalUnmounted(true)->portalTargetId(null);
+
+            return;
+        }
+
+        $portal->clearPortalTarget();
+
+        if ($fallback === 'inline_top') {
+            $parentId = $portal->getParent();
+            $parentContainer = is_int($parentId) ? $screenRoot->findById($parentId) : null;
+            if ($parentContainer instanceof Container) {
+                $parentContainer->moveChildToStart($portal->getId());
+            } else {
+                $screenRoot->moveChildToStart($portal->getId());
+            }
+        }
+    }
+
+    /**
+     * Find the primary content wrapper container inside a Screen's root container.
+     */
+    protected function findPrimaryWrapper(Container $screenRoot): Container
+    {
+        foreach ($screenRoot->getChildren() as $child) {
+            if ($child instanceof Container && $child->getPortalSlot() === null) {
+                return $child;
+            }
+        }
+
+        return $screenRoot;
+    }
+
+    /**
+     * Clear all non-persistent auxiliary slots (both sub-Screens and Screen portals) when navigating `main`.
+     */
+    protected function clearNonPersistentAuxiliarySlots(): void
+    {
+        $reservedMainAndShell = ['main', 'content', 'center', 'top_menu', 'menu', 'sidebar', 'activity_bar', 'status_bar'];
+        $candidateSlots = array_values(array_unique(array_merge(
+            array_keys($this->state_active_screens),
+            array_keys($this->state_slot_owners)
+        )));
+
+        foreach ($candidateSlots as $slotName) {
+            if (in_array($slotName, $reservedMainAndShell, true)) {
+                continue;
+            }
+
+            $owner = $this->state_slot_owners[$slotName] ?? null;
+            if ($owner !== null) {
+                if (($owner['persist_on_navigate'] ?? false) === true) {
+                    continue;
+                }
+                if ($owner['mode'] === 'screen') {
+                    $ownerClass = $owner['owner'];
+                    if (class_exists($ownerClass) && is_subclass_of($ownerClass, Screen::class) && $ownerClass::shouldPersistOnNavigate()) {
+                        continue;
+                    }
+                }
+                $this->clearSlot($slotName, collapse: true);
+
+                continue;
+            }
+
+            $persist = $this->state_slot_persistence[$slotName] ?? true;
+            if ($persist === false && isset($this->state_active_screens[$slotName])) {
+                $activeSlotScreen = $this->state_active_screens[$slotName];
+                if (
+                    class_exists($activeSlotScreen)
+                    && is_subclass_of($activeSlotScreen, Screen::class)
+                    && $activeSlotScreen::shouldPersistOnNavigate()
+                ) {
+                    continue;
+                }
+                $this->clearSlot($slotName, collapse: true);
+            }
+        }
+    }
+
+    /**
      * Backward-compatible bridge to build layout structure with a content builder callback.
      *
      * @param  Closure(Container): void  $contentBuilder
@@ -449,24 +924,114 @@ abstract class AbstractLayout extends Screen implements LayoutInterface
     }
 
     /**
+     * Determine whether the Split pane hosting a slot is currently expanded.
+     */
+    public function isSlotExpanded(string $slot): bool
+    {
+        $splitInfo = $this->findOwningSplitForSlot($slot);
+        if ($splitInfo === null) {
+            return $this->resolveProjectionSlot($slot) !== null;
+        }
+
+        return $splitInfo['split']->getCollapsedPanel() !== $splitInfo['side'];
+    }
+
+    /**
+     * Temporarily override the Split size of a slot (or restore default when $size is null).
+     */
+    public function setSlotSize(string $slot, ?string $size): bool
+    {
+        if ($size === null || trim($size) === '') {
+            return $this->restoreSlotSize($slot);
+        }
+
+        $splitInfo = $this->findOwningSplitForSlot($slot);
+        if ($splitInfo === null) {
+            return false;
+        }
+
+        $split = $splitInfo['split'];
+        $side = $splitInfo['side'];
+        $splitId = $split->getId();
+
+        if (! isset($this->state_split_default_sizes[$splitId])) {
+            $this->state_split_default_sizes[$splitId] = [
+                'split_size' => $split->getSplitSize(),
+                'split_size_target' => $split->getSplitSizeTarget(),
+            ];
+        }
+
+        $normalizedSize = trim($size);
+        $split->splitSize($normalizedSize)->splitSizeTarget($side);
+        $this->emitSplitSizeDiff($split);
+
+        return true;
+    }
+
+    /**
+     * Restore the default Split size of a slot if it was temporarily overridden.
+     */
+    public function restoreSlotSize(string $slot): bool
+    {
+        $splitInfo = $this->findOwningSplitForSlot($slot);
+        if ($splitInfo === null) {
+            return false;
+        }
+
+        $split = $splitInfo['split'];
+        $splitId = $split->getId();
+
+        if (! isset($this->state_split_default_sizes[$splitId])) {
+            return false;
+        }
+
+        $saved = $this->state_split_default_sizes[$splitId];
+        unset($this->state_split_default_sizes[$splitId]);
+
+        $split->splitSize($saved['split_size'])->splitSizeTarget($saved['split_size_target']);
+        $this->emitSplitSizeDiff($split);
+
+        return true;
+    }
+
+    /**
      * Clear the contents of a slot and optionally collapse its parent Split pane.
      */
     public function clearSlot(string $slot, bool $collapse = true): bool
     {
-        $targetContainer = $this->getSlot($slot);
-        if (! $targetContainer instanceof Container) {
+        $resolved = $this->resolveProjectionSlot($slot);
+        if ($resolved === null) {
             return false;
         }
 
-        $targetContainer->clear();
-        unset($this->activeScreens[$slot], $this->state_active_screens[$slot]);
+        $canonical = $resolved['canonical'];
+        $containerId = $resolved['container_id'];
+
+        if (! $resolved['external'] && $resolved['container'] instanceof Container) {
+            $resolved['container']->clear();
+        }
+
+        unset(
+            $this->activeScreens[$slot],
+            $this->state_active_screens[$slot],
+            $this->activeScreens[$canonical],
+            $this->state_active_screens[$canonical],
+            $this->state_slot_owners[$slot],
+            $this->state_slot_owners[$canonical]
+        );
 
         app(UIChangesCollector::class)->add([
-            'clear_container' => $targetContainer->getId(),
+            'clear_container' => $containerId,
         ]);
 
+        $this->restoreSlotSize($canonical);
+
         if ($collapse) {
-            $this->collapseSlot($slot);
+            $this->collapseSlot($canonical);
+        }
+
+        if ($canonical === 'status_bar_center') {
+            $this->setStatusBarMessageVisible(true);
         }
 
         $this->persistLayoutState();
@@ -525,21 +1090,17 @@ abstract class AbstractLayout extends Screen implements LayoutInterface
         }
 
         $isMainNavigation = in_array($effectiveSlot, ['main', 'content', 'center'], true);
+        $canonicalSlot = $this->resolveCanonicalSlotName($effectiveSlot);
 
-        // When navigating main content, clear and collapse non-persistent auxiliary slots (e.g. right_panel, contextual left_panel)
+        // When navigating main content, clear and collapse non-persistent auxiliary slots (portals & sub-screens)
         if ($isMainNavigation) {
-            foreach ($this->state_slot_persistence as $slotName => $persist) {
-                if ($persist === false && isset($this->state_active_screens[$slotName])) {
-                    $activeSlotScreen = $this->state_active_screens[$slotName];
-                    if (
-                        class_exists($activeSlotScreen)
-                        && is_subclass_of($activeSlotScreen, Screen::class)
-                        && $activeSlotScreen::shouldPersistOnNavigate()
-                    ) {
-                        continue;
-                    }
-                    $this->clearSlot($slotName, collapse: true);
-                }
+            $this->clearNonPersistentAuxiliarySlots();
+        } else {
+            // If another Screen takes over an auxiliary slot previously owned by a Screen portal with a custom size,
+            // restore the layout's default Split size before expanding.
+            $previousOwner = $this->state_slot_owners[$canonicalSlot] ?? null;
+            if ($previousOwner !== null && $previousOwner['mode'] === 'portal') {
+                $this->restoreSlotSize($canonicalSlot);
             }
         }
 
@@ -554,6 +1115,14 @@ abstract class AbstractLayout extends Screen implements LayoutInterface
         $targetContainer->clear();
         Screen::embedInto($targetClass, $targetContainer, $params);
         $this->setActiveScreen($effectiveSlot, $targetClass);
+
+        if (! $isMainNavigation) {
+            $this->state_slot_owners[$canonicalSlot] = [
+                'mode' => 'screen',
+                'owner' => $targetClass,
+                'persist_on_navigate' => $targetClass::shouldPersistOnNavigate(),
+            ];
+        }
 
         $routeSlug = Screen::resolveScreenSlug($targetClass);
         if ($updateBrowserUrl && $isMainNavigation) {
@@ -654,21 +1223,30 @@ abstract class AbstractLayout extends Screen implements LayoutInterface
     }
 
     /**
-     * Emit incremental Split collapse state change to the frontend and persist snapshot.
+     * Emit incremental Split collapse state change to the frontend without clobbering full initial payloads.
      */
     protected function emitSplitCollapseDiff(Split $split): void
     {
-        app(UIChangesCollector::class)->add([
-            $split->getId() => [
-                'collapsed_panel' => $split->getCollapsedPanel(),
-            ],
+        app(UIChangesCollector::class)->patchComponent($split->getId(), [
+            'collapsed_panel' => $split->getCollapsedPanel(),
+        ]);
+    }
+
+    /**
+     * Emit incremental Split size override / restore change to the frontend.
+     */
+    protected function emitSplitSizeDiff(Split $split): void
+    {
+        app(UIChangesCollector::class)->patchComponent($split->getId(), [
+            'split_size' => $split->getSplitSize(),
+            'split_size_target' => $split->getSplitSizeTarget(),
         ]);
     }
 
     /**
      * Persist updated layout container tree and state_* variables to UIStateManager.
      */
-    protected function persistLayoutState(): void
+    public function persistLayoutState(): void
     {
         if (isset($this->container)) {
             UIStateManager::store(static::class, $this->container->toJson());

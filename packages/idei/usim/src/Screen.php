@@ -175,6 +175,14 @@ abstract class Screen
     protected static bool $autoTranslate = false;
 
     /**
+     * Determine whether convention-based auto-translation is enabled on this Screen.
+     */
+    public function isAutoTranslateEnabled(): bool
+    {
+        return static::$autoTranslate;
+    }
+
+    /**
      * Default layout slot where this screen is mounted (e.g. 'main', 'center', 'right_panel').
      */
     public static string $defaultSlot = 'main';

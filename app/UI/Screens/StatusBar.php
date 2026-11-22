@@ -74,7 +74,18 @@ class StatusBar extends Screen
         $this->populateUnitDropdown($this->unit_menu, $this->usimUnitsService->getAvailableUnits());
         $left->add($this->unit_menu);
 
-        // Center: Status message
+        $leftSlot = UI::container('status_bar_left_slot')
+            ->plain()
+            ->customClass('usim-statusbar-slot usim-statusbar-slot-left')
+            ->layout(LayoutType::HORIZONTAL)
+            ->alignItems(AlignItems::CENTER)
+            ->gap(Spacing::px(6))
+            ->padding(Spacing::px(0))
+            ->margin(Spacing::px(0))
+            ->layoutSlot('status_bar_left', [], null, false);
+        $left->add($leftSlot);
+
+        // Center: Status message + contextual screen projection slot
         $center = UI::container('statusbar_center')
             ->plain()
             ->customClass('usim-statusbar-center')
@@ -87,7 +98,18 @@ class StatusBar extends Screen
             ->text('');
         $center->add($this->lbl_status_message);
 
-        // Right: Dev-only Reset button
+        $centerSlot = UI::container('status_bar_center_slot')
+            ->plain()
+            ->customClass('usim-statusbar-slot usim-statusbar-slot-center')
+            ->layout(LayoutType::HORIZONTAL)
+            ->alignItems(AlignItems::CENTER)
+            ->gap(Spacing::px(8))
+            ->padding(Spacing::px(0))
+            ->margin(Spacing::px(0))
+            ->layoutSlot('status_bar_center', ['status_bar_items'], null, false);
+        $center->add($centerSlot);
+
+        // Right: Contextual screen projection slot + Dev-only Reset button
         $right = UI::container('statusbar_right')
             ->plain()
             ->customClass('usim-statusbar-right')
@@ -96,6 +118,17 @@ class StatusBar extends Screen
             ->gap(Spacing::px(6))
             ->padding(Spacing::px(0))
             ->margin(Spacing::px(0));
+
+        $rightSlot = UI::container('status_bar_right_slot')
+            ->plain()
+            ->customClass('usim-statusbar-slot usim-statusbar-slot-right')
+            ->layout(LayoutType::HORIZONTAL)
+            ->alignItems(AlignItems::CENTER)
+            ->gap(Spacing::px(6))
+            ->padding(Spacing::px(0))
+            ->margin(Spacing::px(0))
+            ->layoutSlot('status_bar_right', [], null, false);
+        $right->add($rightSlot);
 
         if (! app()->isProduction()) {
             $resetBtn = UI::button('btn_reset')

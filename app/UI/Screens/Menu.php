@@ -86,7 +86,7 @@ class Menu extends Screen
             ->action('toggleTheme')
             ->plain();
 
-        $units = $this->usimUnitsService->getAvailableUnits();
+        $units = Auth::check() ? $this->usimUnitsService->getAvailableUnits() : collect();
         $this->unit_menu = $this->buildUnitMenu($units);
 
         $rightSection = UI::container('menu_right_section')
@@ -335,7 +335,14 @@ class Menu extends Screen
 
     private function updateUnitMenu(): void
     {
-        if ($this->unit_menu === null || !Auth::check()) {
+        if ($this->unit_menu === null) {
+            return;
+        }
+
+        if (! Auth::check()) {
+            $this->unit_menu->clearItems();
+            $this->unit_menu->visible(false);
+
             return;
         }
 
@@ -559,6 +566,7 @@ class Menu extends Screen
         if ($this->unit_menu !== null) {
             $this->unit_menu->trigger('🏢');
             $this->unit_menu->clearItems();
+            $this->unit_menu->visible(false);
         }
 
         $this->user_menu->trigger("⚙️");

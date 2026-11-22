@@ -30,6 +30,10 @@ use ReflectionProperty;
  */
 trait HandlesScreenProperties
 {
+    abstract public function getContextIdentifier(): string;
+
+    abstract public function isAutoTranslateEnabled(): bool;
+
     /**
      * Inject storage values into protected properties.
      *
@@ -441,7 +445,7 @@ trait HandlesScreenProperties
                     $rule = $childRulesBySlot[$slotName] ?? ($childRulesBySlot[$positionKey] ?? null);
                     $existing = $this->findDirectChildBySlotOrName($container, $slotName);
                     if ($existing === null) {
-                        if ($rule !== null && ContainerLayoutLoader::isNestedContainerRule($rule)) {
+                        if ($rule !== null && (ContainerLayoutLoader::isNestedContainerRule($rule) || (isset($rule['children']) && is_array($rule['children'])))) {
                             $context = UIIdGenerator::getCurrentContext() ?? $this->getContextIdentifier();
                             $element = UI::container($slotName, $context);
                             $container->add($element);
@@ -473,7 +477,20 @@ trait HandlesScreenProperties
                 }
             }
 
-            $container->applyLayoutDefinition(static::class, static::$autoTranslate);
+            foreach (ContainerLayoutLoader::extractSlotDefinitions($layoutDef) as $slotEntry) {
+                if ($slotEntry['screen'] !== null) {
+                    continue;
+                }
+
+                $portalName = $slotEntry['container_name'];
+                $portalElement = $screenElementsByName[$portalName] ?? null;
+
+                if ($portalElement instanceof Container && $portalElement->getParent() === null && ! $container->has($portalElement->getId())) {
+                    $container->add($portalElement);
+                }
+            }
+
+            $container->applyLayoutDefinition(static::class, $this->isAutoTranslateEnabled());
         }
 
         foreach ($container->getChildren() as $child) {

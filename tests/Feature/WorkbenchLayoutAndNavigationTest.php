@@ -289,7 +289,14 @@ it('transitions layouts automatically on SPA login (MainLayout -> WorkbenchLayou
     expect($loginPayload['navigate']['url'] ?? null)->toBe(UsersManager::getRoutePath());
     expect(UIStateManager::getClientActiveLayout())->toBe(WorkbenchLayout::class);
     expect(findComponentByName($loginPayload, 'split_shell'))->not->toBeNull();
-    expect(findComponentByName($loginPayload, 'main_menu')['type'] ?? null)->toBe('navtree');
+    $authMainMenu = findComponentByName($loginPayload, 'main_menu');
+    expect($authMainMenu['type'] ?? null)->toBe('navtree');
+    $authDemos = collect($authMainMenu['items'] ?? [])->first(
+        static fn (array $item): bool => isset($item['submenu']) && is_array($item['submenu']) && ($item['icon'] ?? null) === '🎮'
+    );
+    $authDemoScreens = collect($authDemos['submenu'] ?? [])->pluck('params.screen')->filter()->all();
+    expect($authDemoScreens)->toContain(RightPanelDemo::class);
+    expect($authDemoScreens)->toContain(\App\UI\Screens\Demo\SlotProjectionDemo::class);
 
     // 4. Logout from SidebarMenu -> must automatically switch #main back to MainLayout + Home
     $sidebarUserMenuId = UIIdGenerator::generateFromName(SidebarMenu::class, 'user_menu');
@@ -307,6 +314,21 @@ it('transitions layouts automatically on SPA login (MainLayout -> WorkbenchLayou
     expect($logoutPayload['navigate']['url'] ?? null)->toBe(Home::getRoutePath());
     expect(UIStateManager::getClientActiveLayout())->toBe(MainLayout::class);
     expect(findComponentByName($logoutPayload, 'main_menu_container'))->not->toBeNull();
+
+    // Unit selector must be hidden & cleared in Menu after logout (guest mode)
+    $guestUnitMenu = findComponentByName($logoutPayload, 'unit_menu');
+    expect($guestUnitMenu)->not->toBeNull();
+    expect($guestUnitMenu['visible'] ?? true)->toBeFalse();
+    expect($guestUnitMenu['items'] ?? [])->toBeEmpty();
+
+    // Panel-dependent demos (RightPanelDemo, SlotProjectionDemo) must be hidden in guest Demos menu
+    $guestMainMenu = findComponentByName($logoutPayload, 'main_menu');
+    $guestDemos = collect($guestMainMenu['items'] ?? [])->first(
+        static fn (array $item): bool => isset($item['submenu']) && is_array($item['submenu'])
+    );
+    $guestDemoScreens = collect($guestDemos['submenu'] ?? [])->pluck('params.screen')->filter()->all();
+    expect($guestDemoScreens)->not->toContain(RightPanelDemo::class);
+    expect($guestDemoScreens)->not->toContain(\App\UI\Screens\Demo\SlotProjectionDemo::class);
 });
 
 it('expands right_panel on showInto, collapses back to 0px on closeSlot, and supports transitioning to standalone screen', function () {

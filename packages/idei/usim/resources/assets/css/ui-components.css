@@ -2018,6 +2018,37 @@ body[data-theme="dark"] .ui-container.usim-left-panel-shell {
     text-overflow: ellipsis;
 }
 
+.ui-container.usim-statusbar-slot {
+    display: flex !important;
+    flex-direction: row !important;
+    flex-wrap: nowrap !important;
+    align-items: center !important;
+    width: auto !important;
+    height: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    background: transparent !important;
+    border: none !important;
+    gap: 6px;
+}
+
+.ui-container.usim-statusbar-slot:empty {
+    display: none !important;
+}
+
+.ui-container.usim-statusbar-slot > .ui-container {
+    width: auto !important;
+    height: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    background: transparent !important;
+    border: none !important;
+}
+
+.usim-statusbar-center:has(.usim-statusbar-slot-center:not(:empty)) > [data-name="lbl_status_message"] {
+    display: none !important;
+}
+
 .usim-statusbar-unit .menu-dropdown-trigger {
     height: 28px;
     min-height: 28px;
@@ -2128,6 +2159,7 @@ body[data-theme="dark"] .ui-container.usim-left-panel-shell {
     border-radius: 12px;
     box-shadow: var(--usim-menu-submenu-shadow, 0 8px 28px rgba(15, 23, 36, 0.2));
     min-width: 220px;
+    box-sizing: border-box;
     display: none;
     opacity: 0;
     visibility: hidden;

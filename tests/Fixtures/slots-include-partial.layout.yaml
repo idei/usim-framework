@@ -1,0 +1,12 @@
+name: slots_include_partial_host
+
+grid:
+  cols: [1fr]
+  children:
+    - lbl_main_content: { text: "Main Content" }
+
+slots:
+  left_panel:
+    open: true
+    include: partials/left-partial
+    padding: l

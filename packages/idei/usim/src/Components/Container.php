@@ -510,12 +510,14 @@ class Container implements Gapable, Marginable, Paddable, Sizeable, UIElement
         ?string $screen = null,
         bool $persistOnNavigate = true
     ): static {
-        $this->layoutSlotMeta = [
+        $meta = [
             'name' => $name,
             'aliases' => $aliases,
             'screen' => $screen,
             'persist_on_navigate' => $persistOnNavigate,
         ];
+        $this->layoutSlotMeta = $meta;
+        $this->config['_layout_slot_meta'] = $meta;
 
         $dataAttrs = isset($this->config['data_attributes']) && is_array($this->config['data_attributes'])
             ? $this->config['data_attributes']
@@ -533,7 +535,260 @@ class Container implements Gapable, Marginable, Paddable, Sizeable, UIElement
      */
     public function getLayoutSlotMeta(): ?array
     {
-        return $this->layoutSlotMeta;
+        if ($this->layoutSlotMeta !== null) {
+            return $this->layoutSlotMeta;
+        }
+
+        $raw = $this->config['_layout_slot_meta'] ?? null;
+        if (is_array($raw) && is_string($raw['name'] ?? null) && trim($raw['name']) !== '') {
+            $aliases = [];
+            if (isset($raw['aliases']) && is_array($raw['aliases'])) {
+                foreach ($raw['aliases'] as $alias) {
+                    if (is_string($alias) && trim($alias) !== '') {
+                        $aliases[] = trim($alias);
+                    }
+                }
+            }
+
+            $screen = is_string($raw['screen'] ?? null) && trim($raw['screen']) !== ''
+                ? trim($raw['screen'])
+                : null;
+
+            $this->layoutSlotMeta = [
+                'name' => trim($raw['name']),
+                'aliases' => $aliases,
+                'screen' => $screen,
+                'persist_on_navigate' => array_key_exists('persist_on_navigate', $raw) ? (bool) $raw['persist_on_navigate'] : true,
+            ];
+
+            return $this->layoutSlotMeta;
+        }
+
+        return null;
+    }
+
+    /**
+     * Mark this container as a portal projected into a named AbstractLayout slot (e.g. left_panel, right_panel, status_bar).
+     */
+    public function portalSlot(
+        ?string $slot,
+        bool $open = true,
+        ?string $size = null,
+        string $fallback = 'ignore',
+        bool $persistOnNavigate = false
+    ): static {
+        if ($slot === null || trim($slot) === '') {
+            return $this->clearPortalTarget();
+        }
+
+        $this->config['portal_slot'] = trim($slot);
+        $this->config['portal_open'] = $open;
+        if ($size !== null && trim($size) !== '') {
+            $this->config['portal_size'] = trim($size);
+        } else {
+            unset($this->config['portal_size']);
+        }
+        $this->config['portal_fallback'] = $fallback;
+        $this->config['portal_persist_on_navigate'] = $persistOnNavigate;
+
+        return $this;
+    }
+
+    /**
+     * Remove portal metadata from this container (e.g. when degrading via `fallback: inline`).
+     */
+    public function clearPortalTarget(): static
+    {
+        unset(
+            $this->config['portal_slot'],
+            $this->config['portal_open'],
+            $this->config['portal_size'],
+            $this->config['portal_fallback'],
+            $this->config['portal_persist_on_navigate'],
+            $this->config['portal_target_id'],
+            $this->config['portal_unmounted']
+        );
+
+        return $this;
+    }
+
+    /**
+     * Get the target layout slot name if this container is a Screen portal.
+     */
+    public function getPortalSlot(): ?string
+    {
+        $slot = $this->config['portal_slot'] ?? null;
+
+        return is_string($slot) && trim($slot) !== '' ? trim($slot) : null;
+    }
+
+    /**
+     * Get complete portal metadata if this container is projected into a layout slot.
+     *
+     * @return array{slot: string, open: bool, size: ?string, fallback: string, persist_on_navigate: bool, target_id: ?int, unmounted: bool}|null
+     */
+    public function getPortalMeta(): ?array
+    {
+        $slot = $this->getPortalSlot();
+        if ($slot === null) {
+            return null;
+        }
+
+        $size = $this->config['portal_size'] ?? null;
+        $fallback = $this->config['portal_fallback'] ?? 'ignore';
+        $targetId = $this->config['portal_target_id'] ?? null;
+
+        return [
+            'slot' => $slot,
+            'open' => array_key_exists('portal_open', $this->config) ? (bool) $this->config['portal_open'] : true,
+            'size' => is_string($size) && trim($size) !== '' ? trim($size) : null,
+            'fallback' => is_string($fallback) && trim($fallback) !== '' ? trim($fallback) : 'ignore',
+            'persist_on_navigate' => (bool) ($this->config['portal_persist_on_navigate'] ?? false),
+            'target_id' => is_int($targetId) ? $targetId : (is_string($targetId) && ctype_digit($targetId) ? (int) $targetId : null),
+            'unmounted' => (bool) ($this->config['portal_unmounted'] ?? false),
+        ];
+    }
+
+    /**
+     * Update the resolved canonical portal slot name (e.g. 'status_bar' -> 'status_bar_center').
+     */
+    public function setPortalSlotName(string $slot): static
+    {
+        $this->config['portal_slot'] = trim($slot);
+
+        return $this;
+    }
+
+    /**
+     * Set or clear the resolved DOM target container ID for a portal container.
+     */
+    public function portalTargetId(?int $containerId): static
+    {
+        if ($containerId === null) {
+            unset($this->config['portal_target_id']);
+        } else {
+            $this->config['portal_target_id'] = $containerId;
+        }
+
+        return $this;
+    }
+
+    public function getPortalTargetId(): ?int
+    {
+        $id = $this->config['portal_target_id'] ?? null;
+
+        return is_int($id) ? $id : (is_string($id) && ctype_digit($id) ? (int) $id : null);
+    }
+
+    /**
+     * Mark whether this portal is currently unmounted in DOM (e.g. `fallback: ignore` when slot does not exist).
+     */
+    public function portalUnmounted(bool $unmounted = true): static
+    {
+        if ($unmounted) {
+            $this->config['portal_unmounted'] = true;
+        } else {
+            unset($this->config['portal_unmounted']);
+        }
+
+        return $this;
+    }
+
+    public function isPortalUnmounted(): bool
+    {
+        return (bool) ($this->config['portal_unmounted'] ?? false);
+    }
+
+    /**
+     * Store declarative `screen:` slot entries declared in this container's `.layout.yaml`.
+     *
+     * @param  list<array{slot: string, screen: string, params: array<int|string, mixed>, open: bool, size: ?string, fallback: string, persist_on_navigate: bool}>  $screens
+     */
+    public function setDeclaredSlotScreens(array $screens): static
+    {
+        if ($screens === []) {
+            unset($this->config['_declared_slot_screens']);
+        } else {
+            $this->config['_declared_slot_screens'] = $screens;
+        }
+
+        return $this;
+    }
+
+    /**
+     * Get declarative `screen:` slot entries stored on this container or its descendants.
+     *
+     * @return list<array{slot: string, screen: string, params: array<int|string, mixed>, open: bool, size: ?string, fallback: string, persist_on_navigate: bool}>
+     */
+    public function getDeclaredSlotScreens(): array
+    {
+        /** @var list<array{slot: string, screen: string, params: array<int|string, mixed>, open: bool, size: ?string, fallback: string, persist_on_navigate: bool}> $result */
+        $result = [];
+
+        if (isset($this->config['_declared_slot_screens']) && is_array($this->config['_declared_slot_screens'])) {
+            foreach ($this->config['_declared_slot_screens'] as $entry) {
+                if (is_array($entry) && is_string($entry['slot'] ?? null) && is_string($entry['screen'] ?? null)) {
+                    $params = isset($entry['params']) && is_array($entry['params']) ? $entry['params'] : [];
+                    $size = is_string($entry['size'] ?? null) ? $entry['size'] : null;
+                    $fallback = is_string($entry['fallback'] ?? null) ? $entry['fallback'] : 'ignore';
+                    $result[] = [
+                        'slot' => $entry['slot'],
+                        'screen' => $entry['screen'],
+                        'params' => $params,
+                        'open' => (bool) ($entry['open'] ?? true),
+                        'size' => $size,
+                        'fallback' => $fallback,
+                        'persist_on_navigate' => (bool) ($entry['persist_on_navigate'] ?? false),
+                    ];
+                }
+            }
+        }
+
+        foreach ($this->children as $child) {
+            if ($child instanceof self) {
+                $result = array_merge($result, $child->getDeclaredSlotScreens());
+            }
+        }
+
+        return $result;
+    }
+
+    /**
+     * Recursively collect all portal containers attached inside this container tree.
+     *
+     * @return list<self>
+     */
+    public function collectPortalContainers(): array
+    {
+        $portals = [];
+        if ($this->getPortalSlot() !== null) {
+            $portals[] = $this;
+        }
+
+        foreach ($this->children as $child) {
+            if ($child instanceof self) {
+                $portals = array_merge($portals, $child->collectPortalContainers());
+            }
+        }
+
+        return $portals;
+    }
+
+    /**
+     * Move an existing child element to the beginning of this container's children list.
+     */
+    public function moveChildToStart(int|string $childId): static
+    {
+        $key = (string) $childId;
+        if (! array_key_exists($key, $this->children)) {
+            return $this;
+        }
+
+        $target = $this->children[$key];
+        unset($this->children[$key]);
+        $this->children = [$key => $target] + $this->children;
+
+        return $this;
     }
 
     /**
