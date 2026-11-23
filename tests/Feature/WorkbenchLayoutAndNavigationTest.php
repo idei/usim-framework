@@ -397,6 +397,19 @@ it('switches operational unit from StatusBar, navigates to role home screen, and
     expect($resp->json('navigate.url'))->toBe(TranslateManager::getRoutePath());
     expect(UIStateManager::getActiveUnit())->toBe('idei');
 
+    // Regression: StatusBar::onUnitChanged() runs in the same request via UsimEvent('unit_changed')
+    // and must NOT clobber unit_menu's updated trigger & items delta in UIChangesCollector.
+    $unitMenuId = UIIdGenerator::generateFromName(StatusBar::class, 'unit_menu');
+    $unitMenuDelta = $resp->json((string) $unitMenuId);
+    expect($unitMenuDelta)->toBeArray();
+    expect($unitMenuDelta['trigger']['label'] ?? '')->toContain($ideiUnit->display_name);
+    $checkedItems = collect($unitMenuDelta['items'] ?? [])
+        ->filter(static fn (array $item): bool => str_starts_with((string) ($item['label'] ?? ''), '✓ '))
+        ->pluck('params.unit')
+        ->values()
+        ->all();
+    expect($checkedItems)->toBe(['idei']);
+
     // Update status bar message via UsimEvent
     $collector = app(\Idei\Usim\UIChangesCollector::class);
     $collector->reset();

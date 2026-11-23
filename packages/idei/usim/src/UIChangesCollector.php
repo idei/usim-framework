@@ -41,7 +41,21 @@ class UIChangesCollector
             }
         }
 
-        $this->changes = array_replace($this->changes, $change);
+        foreach ($change as $key => $value) {
+            $isComponentKey = is_int($key) || ctype_digit((string) $key);
+
+            if (
+                $isComponentKey
+                && isset($this->changes[$key])
+                && is_array($this->changes[$key])
+                && is_array($value)
+                && ! array_key_exists('parent', $value)
+            ) {
+                $this->changes[$key] = array_merge($this->changes[$key], $value);
+            } else {
+                $this->changes[$key] = $value;
+            }
+        }
     }
 
     /**
