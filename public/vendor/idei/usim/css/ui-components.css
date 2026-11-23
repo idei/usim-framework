@@ -1767,6 +1767,34 @@ body[data-theme="dark"] .ui-container.usim-left-panel-shell {
     border-left: none !important;
 }
 
+.ui-split-pane > .ui-container.usim-workbench-center {
+    overflow: hidden !important;
+    min-height: 0 !important;
+    height: 100% !important;
+    padding: 0 !important;
+    margin: 0 !important;
+}
+
+.usim-workbench-center > .ui-split {
+    min-height: 0 !important;
+    height: 100% !important;
+}
+
+.ui-container[data-layout-slot="top_bar"] {
+    background: var(--ui-surface) !important;
+    border-bottom: 1px solid color-mix(in srgb, var(--ui-border) 70%, transparent) !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    min-height: 0;
+    overflow: visible !important;
+    z-index: 4;
+}
+
+.ui-container[data-layout-slot="bottom_panel"] {
+    background: var(--ui-surface) !important;
+    border-top: none !important;
+}
+
 .ui-container.usim-left-panel-header {
     display: flex !important;
     flex-direction: row !important;

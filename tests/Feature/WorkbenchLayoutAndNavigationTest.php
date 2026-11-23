@@ -194,6 +194,24 @@ it('renders WorkbenchLayout declaratively from YAML with fixed 52px Activity Bar
     expect($splitWorkspace['collapsed_panel'] ?? null)->toBe('second');
     expect($splitWorkspace['hide_divider_when_collapsed'] ?? null)->toBeTrue();
 
+    // Center sticky top_bar starts hidden (visible: false -> 0px) until a Screen projects into it
+    $topBar = findComponentByName($payload, 'top_bar_container');
+    expect($topBar)->not->toBeNull();
+    expect($topBar['visible'] ?? true)->toBeFalse();
+
+    // Center vertical Split (main + bottom_panel) starts collapsed at 0px with hidden divider
+    $splitCenter = findComponentByName($payload, 'split_center');
+    expect($splitCenter)->not->toBeNull();
+    expect($splitCenter['type'] ?? null)->toBe('split');
+    expect($splitCenter['split_orientation'] ?? null)->toBe('vertical');
+    expect($splitCenter['split_size'] ?? null)->toBe('240px');
+    expect($splitCenter['split_size_target'] ?? null)->toBe('second');
+    expect($splitCenter['collapse_target'] ?? null)->toBe('second');
+    expect($splitCenter['collapse_size'] ?? null)->toBe('0px');
+    expect($splitCenter['collapsed_panel'] ?? null)->toBe('second');
+    expect($splitCenter['hide_divider_when_collapsed'] ?? null)->toBeTrue();
+    expect(findComponentByName($payload, 'bottom_panel_container'))->not->toBeNull();
+
     // Activity Bar embeds SidebarMenu with compact NavTree delegating submenu group clicks to left_panel
     $navTree = findComponentByName($payload, 'main_menu');
     expect($navTree)->not->toBeNull();

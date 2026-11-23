@@ -426,3 +426,119 @@ it('supports slots.main / slots.center symmetry, declarative screen: sub-screens
     expect($partialPortal['portal_slot'] ?? null)->toBe('left_panel');
     expect(findComponentByName($partialPayload, 'lbl_partial_heading')['text'] ?? null)->toBe('Included Partial Title');
 });
+
+it('projects top_bar (sticky visible toggle) and bottom_panel (vertical Split console) in WorkbenchLayout and cleans up on navigate', function () {
+    /** @var Tests\TestCase $this */
+    $user = User::factory()->create(['name' => 'Center Slots User']);
+    $this->actingAs($user);
+
+    $clientId = 'slot-projection-center-slots-tab';
+    $initialResp = $this->withCookie('ui_client_id', $clientId)
+        ->getJson(screenApiUrl(SlotProjectionDemo::class, ['reset' => true]));
+    $initialResp->assertOk();
+    $initialPayload = $initialResp->json();
+
+    $topBarId = UIIdGenerator::generateFromName(WorkbenchLayout::class, 'top_bar_container');
+    $splitCenterId = UIIdGenerator::generateFromName(WorkbenchLayout::class, 'split_center');
+    $bottomPanelId = UIIdGenerator::generateFromName(WorkbenchLayout::class, 'bottom_panel_container');
+
+    // Initial render: top_bar expanded (visible: true), bottom_panel collapsed (open: false, size: 220px)
+    expect($initialPayload[$topBarId]['visible'] ?? null)->toBeTrue();
+    expect($initialPayload[$splitCenterId]['collapsed_panel'] ?? null)->toBe('second');
+    expect($initialPayload[$splitCenterId]['split_size'] ?? null)->toBe('220px');
+    expect($initialPayload[$splitCenterId]['split_size_target'] ?? null)->toBe('second');
+
+    $topPortal = findComponentByName($initialPayload, '__portal_top_bar');
+    $bottomPortal = findComponentByName($initialPayload, '__portal_bottom_panel');
+    expect($topPortal['portal_slot'] ?? null)->toBe('top_bar');
+    expect($topPortal['portal_target_id'] ?? null)->toBe($topBarId);
+    expect($bottomPortal['portal_slot'] ?? null)->toBe('bottom_panel');
+    expect($bottomPortal['portal_target_id'] ?? null)->toBe($bottomPanelId);
+
+    // 1. Toggle bottom_panel open from status_bar_right shortcut button
+    $btnStatusConsoleId = UIIdGenerator::generateFromName(SlotProjectionDemo::class, 'btn_status_console');
+    $openBottomResp = $this->withCookie('ui_client_id', $clientId)->postJson('/api/ui-event', [
+        'component_id' => $btnStatusConsoleId,
+        'event' => 'click',
+        'action' => 'toggle_bottom_panel',
+        'parameters' => [],
+    ]);
+    $openBottomResp->assertOk();
+    expect(array_key_exists('collapsed_panel', $openBottomResp->json()[$splitCenterId] ?? []))->toBeTrue();
+    expect($openBottomResp->json()[$splitCenterId]['collapsed_panel'])->toBeNull();
+
+    // 2. Run command inside bottom_panel portal -> updates console output and status bar on host Screen
+    $btnRunCommandId = UIIdGenerator::generateFromName(SlotProjectionDemo::class, 'btn_run_command');
+    $consoleOutputId = UIIdGenerator::generateFromName(SlotProjectionDemo::class, 'lbl_console_output');
+    $statusCounterId = UIIdGenerator::generateFromName(SlotProjectionDemo::class, 'lbl_status_counter');
+
+    $runResp = $this->withCookie('ui_client_id', $clientId)->postJson('/api/ui-event', [
+        'component_id' => $btnRunCommandId,
+        'event' => 'click',
+        'action' => 'run_command',
+        'parameters' => ['input_command' => 'status --verbose'],
+    ]);
+    $runResp->assertOk();
+    expect($runResp->json()[$consoleOutputId]['text'] ?? '')->toContain('status --verbose');
+    expect($runResp->json()[$statusCounterId]['text'] ?? '')->toContain('status --verbose');
+
+    // 3. Close bottom_panel preserves portal DOM (no clear_container) and collapses split_center
+    $btnCloseBottomId = UIIdGenerator::generateFromName(SlotProjectionDemo::class, 'btn_close_bottom');
+    $closeBottomResp = $this->withCookie('ui_client_id', $clientId)->postJson('/api/ui-event', [
+        'component_id' => $btnCloseBottomId,
+        'event' => 'click',
+        'action' => 'close_bottom_panel',
+        'parameters' => [],
+    ]);
+    $closeBottomResp->assertOk();
+    expect($closeBottomResp->json()[$splitCenterId]['collapsed_panel'] ?? null)->toBe('second');
+    expect($closeBottomResp->json()['clear_container'] ?? null)->not->toBe($bottomPanelId);
+
+    // 4. Close and re-open top_bar toggles visible false -> true on top_bar_container
+    $btnCloseTopBarId = UIIdGenerator::generateFromName(SlotProjectionDemo::class, 'btn_close_top_bar');
+    $btnToggleTopBarId = UIIdGenerator::generateFromName(SlotProjectionDemo::class, 'btn_toggle_top_bar');
+
+    $closeTopResp = $this->withCookie('ui_client_id', $clientId)->postJson('/api/ui-event', [
+        'component_id' => $btnCloseTopBarId,
+        'event' => 'click',
+        'action' => 'close_top_bar',
+        'parameters' => [],
+    ]);
+    $closeTopResp->assertOk();
+    expect($closeTopResp->json()[$topBarId]['visible'] ?? null)->toBeFalse();
+
+    $reopenTopResp = $this->withCookie('ui_client_id', $clientId)->postJson('/api/ui-event', [
+        'component_id' => $btnToggleTopBarId,
+        'event' => 'click',
+        'action' => 'toggle_top_bar',
+        'parameters' => [],
+    ]);
+    $reopenTopResp->assertOk();
+    expect($reopenTopResp->json()[$topBarId]['visible'] ?? null)->toBeTrue();
+
+    // 5. Re-open bottom_panel, then navigate away via WorkbenchLayout::showInto -> clears & collapses both slots
+    $this->withCookie('ui_client_id', $clientId)->postJson('/api/ui-event', [
+        'component_id' => $btnStatusConsoleId,
+        'event' => 'click',
+        'action' => 'toggle_bottom_panel',
+        'parameters' => [],
+    ])->assertOk();
+
+    $mainMenuId = UIIdGenerator::generateFromName(SidebarMenu::class, 'main_menu');
+    $navResp = $this->withCookie('ui_client_id', $clientId)->postJson('/api/ui-event', [
+        'component_id' => $mainMenuId,
+        'event' => 'click',
+        'action' => 'showScreen',
+        'parameters' => ['screen' => Home::class],
+    ]);
+    $navResp->assertOk();
+    $navPayload = $navResp->json();
+    $cleared = $navPayload['clear_containers'] ?? [];
+
+    expect($cleared)->toContain($topBarId);
+    expect($cleared)->toContain($bottomPanelId);
+    expect($navPayload[$topBarId]['visible'] ?? null)->toBeFalse();
+    expect($navPayload[$splitCenterId]['collapsed_panel'] ?? null)->toBe('second');
+    expect($navPayload[$splitCenterId]['split_size'] ?? null)->toBe('240px');
+    expect($navPayload[$splitCenterId]['split_size_target'] ?? null)->toBe('second');
+});

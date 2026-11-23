@@ -61,10 +61,54 @@ grid:
           width: 100%
           height: 100%
           first:
-            name: content_container
-            layout_slot: main
-            slot_aliases: [content]
+            name: center_column_container
+            custom_class: usim-workbench-center
             appearance: plain
+            width: 100%
+            height: 100%
+            grid:
+              cols: [1fr]
+              rows: [auto, 1fr]
+              gap: none
+              padding: none
+              children:
+                - top_bar_container:
+                    at: [1, 1]
+                    layout_slot: top_bar
+                    slot_aliases: [header, toolbar]
+                    persist_on_navigate: false
+                    appearance: plain
+                    width: 100%
+                    visible: false
+                - split_center:
+                    at: [2, 1]
+                    component: split
+                    orientation: vertical
+                    split_size: 240px
+                    split_size_target: second
+                    splitter_size: 6px
+                    min_first_size: 200px
+                    min_second_size: 120px
+                    draggable: true
+                    collapsible: true
+                    collapse_target: second
+                    collapse_size: 0px
+                    collapsed_panel: second
+                    hide_divider_when_collapsed: true
+                    appearance: plain
+                    width: 100%
+                    height: 100%
+                    first:
+                      name: content_container
+                      layout_slot: main
+                      slot_aliases: [content]
+                      appearance: plain
+                    second:
+                      name: bottom_panel_container
+                      layout_slot: bottom_panel
+                      slot_aliases: [bottom, panel, console, terminal]
+                      persist_on_navigate: false
+                      appearance: subtle
           second:
             name: right_panel_container
             layout_slot: right_panel

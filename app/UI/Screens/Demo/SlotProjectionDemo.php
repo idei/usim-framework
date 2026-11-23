@@ -11,10 +11,12 @@ use Idei\Usim\Screen;
  * Interactive Demo for Declarative Screen Slot Projections (`slots:` in `.layout.yaml`).
  *
  * A single Screen class projects:
+ * - Sticky context header into `top_bar` (`open: true`, `fallback: ignore`)
  * - Filters panel into `left_panel` (`open: true`, `size: 270px`, `fallback: inline_top`)
  * - Inspector panel into `right_panel` (`open: false`, `size: 340px`, `fallback: ignore`)
+ * - Collapsible Console / AI Prompt panel into `bottom_panel` (`open: false`, `size: 220px`, `fallback: ignore`)
  * - Live counter into `status_bar` (hiding default `lbl_status_message` while active)
- * - Quick action button into `status_bar_right` (preserving dev `btn_reset`)
+ * - Quick action & console toggle buttons into `status_bar_right` (preserving dev `btn_reset`)
  */
 class SlotProjectionDemo extends Screen
 {
@@ -30,11 +32,18 @@ class SlotProjectionDemo extends Screen
 
     protected Input $input_note;
 
+    protected NewLabel $lbl_console_output;
+
+    protected Input $input_command;
+
     protected NewLabel $lbl_status_counter;
 
     protected int $state_ping_count = 0;
 
     protected string $state_last_filter = '';
+
+    /** @var list<string> */
+    protected array $state_console_log = [];
 
     protected function postLoadUI(): void
     {
@@ -42,6 +51,10 @@ class SlotProjectionDemo extends Screen
             $this->lbl_active_summary->text(
                 $this->t('.summary.filtered', ['query' => $this->state_last_filter])
             );
+        }
+
+        if ($this->state_console_log !== []) {
+            $this->lbl_console_output->text(implode("\n", $this->state_console_log));
         }
     }
 
@@ -83,6 +96,50 @@ class SlotProjectionDemo extends Screen
     public function onCloseRightPanel(): void
     {
         $this->closeSlot('right_panel');
+    }
+
+    public function onToggleTopBar(): void
+    {
+        $this->toggleSlot('top_bar');
+    }
+
+    public function onCloseTopBar(): void
+    {
+        $this->closeSlot('top_bar');
+    }
+
+    public function onToggleBottomPanel(): void
+    {
+        $this->toggleSlot('bottom_panel');
+    }
+
+    public function onCloseBottomPanel(): void
+    {
+        $this->closeSlot('bottom_panel');
+    }
+
+    /**
+     * @param  array<string, mixed>  $params
+     */
+    public function onRunCommand(array $params): void
+    {
+        $raw = $params['input_command'] ?? $this->input_command->get('value');
+        $command = is_string($raw) ? trim($raw) : '';
+
+        if ($command === '') {
+            return;
+        }
+
+        $this->state_console_log[] = "> {$command}";
+        $this->state_console_log[] = $this->t('.console.response', ['command' => $command]);
+
+        if (count($this->state_console_log) > 12) {
+            $this->state_console_log = array_slice($this->state_console_log, -12);
+        }
+
+        $this->lbl_console_output->text(implode("\n", $this->state_console_log));
+        $this->input_command->value('');
+        $this->lbl_status_counter->text($this->t('.console.executed', ['command' => $command]));
     }
 
     /**

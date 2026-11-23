@@ -14,10 +14,26 @@ grid:
     - lbl_title:          { size: xl, font_weight: bold }
     - lbl_intro:          { style: info, width: full }
     - lbl_active_summary: { style: secondary, width: full }
-    - btn_toggle_left:    { span: 1, style: secondary, action: toggle_left_panel, width: full }
-    - btn_open_inspector: { span: 1, style: primary,   action: open_inspector,    width: full }
+    - btn_toggle_left:    { span: 1, style: secondary, action: toggle_left_panel,   width: full }
+    - btn_open_inspector: { span: 1, style: primary,   action: open_inspector,      width: full }
+    - btn_toggle_bottom:  { span: 1, style: secondary, action: toggle_bottom_panel, width: full }
+    - btn_toggle_top_bar: { span: 1, style: secondary, action: toggle_top_bar,      width: full }
 
 slots:
+  top_bar:
+    open: true
+    fallback: ignore
+    appearance: plain
+    padding: s
+    grid:
+      cols: [1fr, auto, auto]
+      gap: s
+      align: center
+      children:
+        - lbl_top_bar_title:    { font_weight: bold }
+        - btn_top_open_console: { size: xs, style: secondary, action: toggle_bottom_panel }
+        - btn_close_top_bar:    { label: "✕", size: xs, style: secondary, action: close_top_bar }
+
   left_panel:
     open: true
     size: 270px
@@ -54,10 +70,45 @@ slots:
         - input_note:          { width: full, placeholder: .inspector.note_placeholder }
         - btn_save_note:       { style: primary, size: small, action: save_note, width: full }
 
+  bottom_panel:
+    open: false
+    size: 220px
+    fallback: ignore
+    appearance: subtle
+    padding: m
+    grid:
+      cols: [1fr]
+      rows: [auto, 1fr, auto]
+      gap: s
+      children:
+        - cnt_console_header:
+            at: [1, 1]
+            grid:
+              cols: [1fr, auto]
+              align: center
+              children:
+                - lbl_console_title: { font_weight: bold }
+                - btn_close_bottom:  { label: "✕", size: xs, style: secondary, action: close_bottom_panel }
+        - lbl_console_output:
+            at: [2, 1]
+            style: secondary
+            width: full
+        - cnt_console_prompt_row:
+            at: [3, 1]
+            width: full
+            grid:
+              cols: [1fr, auto]
+              gap: s
+              align: center
+              children:
+                - input_command:   { width: full, placeholder: .console.placeholder }
+                - btn_run_command: { style: primary, size: small, action: run_command }
+
   status_bar:
     children:
       - lbl_status_counter: { text: .status.initial }
 
   status_bar_right:
     children:
-      - btn_status_ping: { size: xs, style: info, action: ping_status }
+      - btn_status_console: { size: xs, style: secondary, action: toggle_bottom_panel }
+      - btn_status_ping:    { size: xs, style: info, action: ping_status }

@@ -6,6 +6,17 @@ The format is based on Keep a Changelog, and this project follows Semantic Versi
 
 ## [Unreleased]
 
+### Added (v2.19.0)
+- **Workbench Center `bottom_panel` (Vertical `Split`) & Sticky `top_bar` Slots**:
+  - Extended `WorkbenchLayout` (`app/UI/Layouts/workbench-layout.layout.yaml` and package stub) so the center column (`center_column_container`, `.usim-workbench-center`) hosts:
+    - **`top_bar`** (`top_bar_container`, aliases `[header, toolbar]`, `visible: false` by default, `persist_on_navigate: false`): sticky contextual header row (`auto`) directly above `main` that occupies `0px` when unused.
+    - **`bottom_panel`** (`bottom_panel_container`, aliases `[bottom, panel, console, terminal]`, `persist_on_navigate: false`) inside a vertical `Split` (`split_center`, `split_size: 240px`, `split_size_target: second`, `collapse_target: second`, `collapse_size: 0px`, `collapsed_panel: second`, `hide_divider_when_collapsed: true`, `min_first_size: 200px`, `min_second_size: 120px`) ideal for consoles, logs, batch output, or AI prompt bars.
+  - Extended `AbstractLayout::expandSlot()`, `collapseSlot()`, and `isSlotExpanded()` to toggle `visible` seamlessly on non-Split auxiliary local slots (such as `top_bar`), added `bottom_panel` / `top_bar` alias resolution, and added `.usim-workbench-center` / `top_bar` / `bottom_panel` CSS rules.
+  - Extended `SlotProjectionDemo` (PHP, `.layout.yaml`, `en`/`es` translations), `WorkbenchLayoutAndNavigationTest`, `ScreenSlotProjectionTest`, `LAYOUTS_COMPOSITION_GUIDE.md`, `WORKBENCH_AND_UNIFIED_LAYOUTS_AI_REFERENCE.md`, and `usim_context_prompt.md`.
+
+### Fixed (v2.19.0)
+- **Split drag size persistence with `split_size_target: 'second'`** (`js/components/split/index.js`): updated `UsimSplitComponent::_startDrag()` to compute and store the second pane's size in `lastExpandedSize` when `split_size_target === 'second'`, preventing vertical/horizontal secondary panes (`bottom_panel`, `right_panel`) from snapping to the wrong size on resize after manual dragging.
+
 ### Added (v2.18.0)
 - **New `UI::richText()` WYSIWYG HTML Editor Component (`Idei\Usim\Components\RichText`, `type: 'rich_text'`)**:
   - Added dedicated server-driven rich text editor powered by **SunEditor v3.4.3** (MIT, zero dependencies), vendored locally under `resources/assets/lib/suneditor/` and **lazy-loaded** on demand only when a screen renders a `rich_text` component (zero payload overhead on other screens).

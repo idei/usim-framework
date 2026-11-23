@@ -191,6 +191,8 @@ abstract class AbstractLayout extends Screen implements LayoutInterface
                 'sidebar', 'activity_bar' => ['sidebar_container', 'activity_bar_container', 'sidebar', 'main_menu_container'],
                 'left_panel', 'left', 'explorer' => ['left_panel_container', 'left_panel', 'explorer_container', 'left'],
                 'main', 'center', 'content' => ['content_container', 'main_container', 'main', 'content'],
+                'top_bar', 'header', 'toolbar' => ['top_bar_container', 'top_bar', 'header_container', 'toolbar_container'],
+                'bottom_panel', 'bottom', 'panel', 'console', 'terminal' => ['bottom_panel_container', 'bottom_panel', 'console_container', 'terminal_container', 'bottom'],
                 'right_panel', 'right', 'inspector' => ['right_panel_container', 'right_panel', 'inspector_container', 'right'],
                 'status_bar', 'statusbar' => ['status_bar_container', 'status_bar', 'statusbar'],
                 default => [$name, "{$name}_container", "{$name}_slot"],
@@ -409,6 +411,8 @@ abstract class AbstractLayout extends Screen implements LayoutInterface
         return match ($normalized) {
             'left', 'explorer' => 'left_panel',
             'right', 'inspector' => 'right_panel',
+            'bottom', 'panel', 'console', 'terminal' => 'bottom_panel',
+            'header', 'toolbar' => 'top_bar',
             'content', 'center' => 'main',
             'statusbar', 'status_bar_items' => 'status_bar_center',
             default => $normalized,
@@ -876,65 +880,111 @@ abstract class AbstractLayout extends Screen implements LayoutInterface
     }
 
     /**
-     * Expand the Split pane hosting the given slot, if applicable.
+     * Expand the Split pane hosting the given slot, or reveal a collapsible non-Split local slot container (e.g. `top_bar`).
      */
     public function expandSlot(string $slot): bool
     {
         $splitInfo = $this->findOwningSplitForSlot($slot);
-        if ($splitInfo === null) {
+        if ($splitInfo !== null) {
+            $split = $splitInfo['split'];
+            $side = $splitInfo['side'];
+
+            if ($split->getCollapsedPanel() === $side) {
+                $split->expand();
+                $this->emitSplitCollapseDiff($split);
+            } elseif ($split->getCollapseTarget() === $side) {
+                // Re-emit expanded state for collapsible auxiliary slots in case the user collapsed it client-side
+                $this->emitSplitCollapseDiff($split);
+            }
+
+            return true;
+        }
+
+        $slotContainer = $this->getSlot($slot);
+        if (! $slotContainer instanceof Container || $this->isReservedAlwaysVisibleSlot($slot)) {
             return false;
         }
 
-        $split = $splitInfo['split'];
-        $side = $splitInfo['side'];
-
-        if ($split->getCollapsedPanel() === $side) {
-            $split->expand();
-            $this->emitSplitCollapseDiff($split);
-        } elseif ($split->getCollapseTarget() === $side) {
-            // Re-emit expanded state for collapsible auxiliary slots in case the user collapsed it client-side
-            $this->emitSplitCollapseDiff($split);
+        if (! $slotContainer->isVisible()) {
+            $slotContainer->visible(true);
+            app(UIChangesCollector::class)->patchComponent($slotContainer->getId(), [
+                'visible' => true,
+            ]);
         }
 
         return true;
     }
 
     /**
-     * Collapse the Split pane hosting the given slot, if applicable.
+     * Collapse the Split pane hosting the given slot, or hide a collapsible non-Split local slot container (e.g. `top_bar`).
      */
     public function collapseSlot(string $slot): bool
     {
         $splitInfo = $this->findOwningSplitForSlot($slot);
-        if ($splitInfo === null) {
+        if ($splitInfo !== null) {
+            $split = $splitInfo['split'];
+            $side = $splitInfo['side'];
+
+            if ($split->getCollapsedPanel() !== $side) {
+                if ($side === 'second') {
+                    $split->collapseSecond();
+                } else {
+                    $split->collapseFirst();
+                }
+                $this->emitSplitCollapseDiff($split);
+            }
+
+            return true;
+        }
+
+        $slotContainer = $this->getSlot($slot);
+        if (! $slotContainer instanceof Container || $this->isReservedAlwaysVisibleSlot($slot)) {
             return false;
         }
 
-        $split = $splitInfo['split'];
-        $side = $splitInfo['side'];
-
-        if ($split->getCollapsedPanel() !== $side) {
-            if ($side === 'second') {
-                $split->collapseSecond();
-            } else {
-                $split->collapseFirst();
-            }
-            $this->emitSplitCollapseDiff($split);
+        if ($slotContainer->isVisible()) {
+            $slotContainer->visible(false);
+            app(UIChangesCollector::class)->patchComponent($slotContainer->getId(), [
+                'visible' => false,
+            ]);
         }
 
         return true;
     }
 
     /**
-     * Determine whether the Split pane hosting a slot is currently expanded.
+     * Determine whether the Split pane or collapsible local container hosting a slot is currently expanded/visible.
      */
     public function isSlotExpanded(string $slot): bool
     {
         $splitInfo = $this->findOwningSplitForSlot($slot);
-        if ($splitInfo === null) {
-            return $this->resolveProjectionSlot($slot) !== null;
+        if ($splitInfo !== null) {
+            return $splitInfo['split']->getCollapsedPanel() !== $splitInfo['side'];
         }
 
-        return $splitInfo['split']->getCollapsedPanel() !== $splitInfo['side'];
+        $slotContainer = $this->getSlot($slot);
+        if ($slotContainer instanceof Container) {
+            return $slotContainer->isVisible();
+        }
+
+        return $this->resolveProjectionSlot($slot) !== null;
+    }
+
+    protected function isReservedAlwaysVisibleSlot(string $slot): bool
+    {
+        $canonical = $this->resolveCanonicalSlotName($slot);
+
+        return in_array($canonical, [
+            'main',
+            'content',
+            'center',
+            'sidebar',
+            'activity_bar',
+            'menu',
+            'main_menu',
+            'top_menu',
+            'status_bar',
+        ], true);
     }
 
     /**
