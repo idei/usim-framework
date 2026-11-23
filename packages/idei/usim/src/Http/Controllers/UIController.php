@@ -47,6 +47,13 @@ class UIController extends Controller
 
         $buildParams = array_diff_key($requestData['queryParams'], array_flip(['reset', 'parent', 'route_screen', 'screen']));
 
+        if ($parent === 'main') {
+            UIStateManager::setClientCurrentScreen($screenRoute, $screenClass);
+            if (is_subclass_of($screenClass, Screen::class)) {
+                UIStateManager::setClientActiveLayout($screenClass::getLayoutClass());
+            }
+        }
+
         $screen->render(
             incomingStorage: $requestData['storage'],
             queryParams: $requestData['queryParams'],
@@ -56,11 +63,6 @@ class UIController extends Controller
         );
 
         if ($parent === 'main') {
-            UIStateManager::setClientCurrentScreen($screenRoute, $screenClass);
-            if (is_subclass_of($screenClass, Screen::class)) {
-                UIStateManager::setClientActiveLayout($screenClass::getLayoutClass());
-            }
-
             $modalStack = UIStateManager::getClientActiveModalStack();
             if (! empty($modalStack)) {
                 $bottomModal = $modalStack[0];

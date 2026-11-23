@@ -50,10 +50,11 @@
             --green-label: #145e35;
         }
 
-        /* ─── Reset & Base ─── */
-        *,
-        *::before,
-        *::after {
+        /* ─── Reset & Base (scoped to .wf so it never leaks into Workbench/shell components) ─── */
+        .wf,
+        .wf *,
+        .wf *::before,
+        .wf *::after {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
@@ -82,13 +83,13 @@
             z-index: 1;
         }
 
-        a {
+        .wf a {
             color: inherit;
             text-decoration: none;
         }
 
-        code,
-        pre {
+        .wf code,
+        .wf pre {
             font-family: var(--font-mono);
         }
 
@@ -104,7 +105,7 @@
         }
 
         /* ─── NAV ─── */
-        nav {
+        .wf nav {
             position: fixed;
             top: 0;
             left: 0;
@@ -536,7 +537,7 @@
             }
         }
 
-        h1 {
+        .wf h1 {
             font-family: var(--font-display);
             font-size: clamp(1.85rem, 3.8vw, 3.5rem);
             font-weight: 700;
@@ -546,7 +547,7 @@
             animation: fadeUp 0.6s 0.1s both;
         }
 
-        h1 .accent-word {
+        .wf h1 .accent-word {
             background: linear-gradient(90deg, var(--accent), var(--accent2));
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
@@ -742,7 +743,7 @@
         }
 
         /* ─── SECTIONS COMMON ─── */
-        section {
+        .wf section {
             padding: 6rem 2rem;
             position: relative;
             z-index: 1;
@@ -770,7 +771,7 @@
             opacity: 0.5;
         }
 
-        h2 {
+        .wf h2 {
             font-family: var(--font-display);
             font-size: clamp(1.4rem, 2.8vw, 2.1rem);
             font-weight: 700;
@@ -1272,7 +1273,7 @@
         }
 
         /* ─── FOOTER ─── */
-        footer {
+        .wf footer {
             background: var(--bg2);
             border-top: 1px solid var(--border);
             padding: 3rem 2rem;

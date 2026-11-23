@@ -615,3 +615,58 @@ it('preserves multi-level sub-sub-menus recursively in NavTree::setItems()', fun
     expect($payload['items'][0]['submenu'][0]['label'] ?? null)->toBe('Advanced Inputs');
     expect($payload['items'][0]['submenu'][0]['submenu'][0]['label'] ?? null)->toBe('Masked Input');
 });
+
+it('updates active_screen and layout main slot when loading Home directly after UsersManager so clicking UsersManager works again', function () {
+    /** @var Tests\TestCase $this */
+    $mainUnit = UsimUnit::firstOrCreate(['slug' => 'main']);
+    $admin = User::factory()->create([
+        'name' => 'Home Nav Admin',
+        'email' => 'home.nav.admin.'.uniqid().'@example.com',
+    ]);
+    $admin->usimUnits()->sync([$mainUnit->id]);
+    setPermissionsTeamId($mainUnit->id);
+    $admin->assignRole('admin');
+    setPermissionsTeamId(null);
+    $this->actingAs($admin);
+
+    $clientId = 'workbench-home-after-users-tab';
+
+    // 1. Load UsersManager first (populates cached WorkbenchLayout with state_active_screens['main'] = UsersManager)
+    $usersResp = $this->withCookie('ui_client_id', $clientId)
+        ->getJson(screenApiUrl(UsersManager::class, ['reset' => true]));
+    $usersResp->assertOk();
+    expect(findComponentByName($usersResp->json(), 'main_menu')['active_screen'] ?? null)->toBe(UsersManager::class);
+
+    // 2. Full page load of Home ('/') -> SidebarMenu must report Home (not stale UsersManager), and layout active main screen must be Home
+    $homeResp = $this->withCookie('ui_client_id', $clientId)
+        ->getJson(screenApiUrl(Home::class));
+    $homeResp->assertOk();
+    expect(findComponentByName($homeResp->json(), 'main_menu')['active_screen'] ?? null)->toBe(Home::class);
+    expect(AbstractLayout::current()?->getActiveScreen('main'))->toBe(Home::class);
+
+    // 3. Clicking UsersManager in Activity Bar must actually navigate back to UsersManager (not no-op as "already active")
+    $mainMenuId = UIIdGenerator::generateFromName(SidebarMenu::class, 'main_menu');
+    $backToUsersResp = $this->withCookie('ui_client_id', $clientId)->postJson('/api/ui-event', [
+        'component_id' => $mainMenuId,
+        'event' => 'click',
+        'action' => 'showScreen',
+        'parameters' => ['screen' => UsersManager::class],
+    ]);
+    $backToUsersResp->assertOk();
+    expect($backToUsersResp->json('navigate.url'))->toBe(UsersManager::getRoutePath());
+
+    // 4. MainMenu Home item uses SPA screenShow(Home::class) and navigates cleanly between UsersManager and Home
+    $mainMenuItems = findComponentByName($homeResp->json(), 'main_menu')['items'] ?? [];
+    expect($mainMenuItems[0]['action'] ?? null)->toBe('showScreen');
+    expect($mainMenuItems[0]['params']['screen'] ?? null)->toBe(Home::class);
+    expect($mainMenuItems[0]['icon'] ?? null)->toBe('🏠');
+
+    $spaHomeResp = $this->withCookie('ui_client_id', $clientId)->postJson('/api/ui-event', [
+        'component_id' => $mainMenuId,
+        'event' => 'click',
+        'action' => 'showScreen',
+        'parameters' => ['screen' => Home::class],
+    ]);
+    $spaHomeResp->assertOk();
+    expect($spaHomeResp->json('navigate.url'))->toBe(Home::getRoutePath());
+});

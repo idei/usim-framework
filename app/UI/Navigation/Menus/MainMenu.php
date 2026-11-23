@@ -5,6 +5,7 @@ namespace App\UI\Navigation\Menus;
 use App\UI\Screens\About;
 use App\UI\Screens\Admin\TranslateManager;
 use App\UI\Screens\Admin\UsersManager;
+use App\UI\Screens\Home;
 use Idei\Usim\Navigation\Contracts\MenuProviderInterface;
 use Idei\Usim\Navigation\MenuBuilder;
 
@@ -12,7 +13,7 @@ class MainMenu implements MenuProviderInterface
 {
     public function build(MenuBuilder $menu): void
     {
-        $menu->link(t('screens.menu.items.home'), '/', '🏠');
+        $menu->screenShow(Home::class);
         $menu->screenShow(
             UsersManager::class,
             when: UsersManager::checkAccess()['allowed'] == true

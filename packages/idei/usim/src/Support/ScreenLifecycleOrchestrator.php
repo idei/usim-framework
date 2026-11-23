@@ -115,6 +115,7 @@ class ScreenLifecycleOrchestrator implements ScreenLifecycleOrchestratorInterfac
                             parent: 'main',
                             shouldReset: $shouldReset
                         );
+                        $layout->setActiveScreen('main', $screen::class);
 
                         // 0. Pre-discover external sub-slots declared by shell screens (e.g. StatusBar's
                         // status_bar_left/center/right) so main Screen portal projections resolve them immediately

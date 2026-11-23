@@ -1,6 +1,6 @@
 <?php
 
 return [
-    'menu_title' => 'Home',
-    'icon' => '',
+    'menu_title' => 'Inicio',
+    'icon' => '🏠',
 ];

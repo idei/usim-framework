@@ -1932,9 +1932,28 @@ body[data-theme="dark"] .ui-container.usim-left-panel-shell {
 
 .ui-split-pane.is-collapsed .usim-sidebar-footer .menu-dropdown-trigger,
 .usim-activity-bar .usim-sidebar-footer .menu-dropdown-trigger {
+    display: flex;
+    width: 100%;
+    box-sizing: border-box;
     justify-content: center;
+    align-items: center;
     padding: 6px 0;
     gap: 0;
+}
+
+.ui-split-pane.is-collapsed .usim-sidebar-footer .menu-dropdown-trigger .trigger-icon,
+.usim-activity-bar .usim-sidebar-footer .menu-dropdown-trigger .trigger-icon {
+    margin: 0;
+    justify-content: center;
+    font-size: 18px;
+    line-height: 1;
+}
+
+.ui-split-pane.is-collapsed .usim-sidebar-footer .menu-dropdown-trigger .trigger-image,
+.usim-activity-bar .usim-sidebar-footer .menu-dropdown-trigger .trigger-image {
+    margin: 0;
+    flex-shrink: 0;
+    box-sizing: border-box;
 }
 
 .ui-split-pane.is-collapsed .usim-sidebar-footer .menu-dropdown-trigger .trigger-image + .trigger-label,

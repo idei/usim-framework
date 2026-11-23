@@ -6,6 +6,11 @@ The format is based on Keep a Changelog, and this project follows Semantic Versi
 
 ## [Unreleased]
 
+### Fixed (v2.17.1)
+- **Activity Bar `NavTree` layout collision on `Home` landing page** (`resources/views/welcome-usim.blade.php`, `css/components/nav-tree/index.css`): scoped global `nav`, `*`, `a`, `code`, `pre`, `h1`, `h2`, `section`, and `footer` rules in `welcome-usim.blade.php` under `.wf` and hardened `nav.usim-nav-tree` positioning/backdrop styles so embedded HTML fragments cannot hijack the Workbench Activity Bar.
+- **Stale active screen & Home vs. Role Landing consistency** (`UIController.php`, `AbstractLayout.php`, `ScreenLifecycleOrchestrator.php`, `app/UI/Navigation/Menus/MainMenu.php`, `lang/*/screens/home.php`): updated `UIController::show()` to set `UIStateManager::setClientCurrentScreen()` before `render()`, fixed `AbstractLayout::postLoadUI()` and `ScreenLifecycleOrchestrator::render()` so explicit `main` slot renders are never overwritten by stale cached `state_active_screens`, and switched `MainMenu`'s `🏠` Home item to SPA `screenShow(Home::class)` so clicking `🏠` loads the landing page without colliding with the role's default screen (e.g. `Users`) in `NavTree`.
+- **Activity Bar footer icon alignment** (`css/ui-components.css`): cleared the inherited `margin-right: 8px` on `.trigger-icon` and normalized `.trigger-image` / `.menu-dropdown-trigger` box alignment inside `.usim-activity-bar .usim-sidebar-footer` (and collapsed Split sidebars) so the `⚙️` settings icon aligns centered directly beneath circular user profile avatars.
+
 ### Added (v2.17.0)
 - **Declarative Screen Slot Projections (`slots:` in `.layout.yaml`)**:
   - Extended `ContainerLayoutLoader` and `HandlesScreenProperties` to support a root `slots:` section alongside `grid:` and `timers:`, allowing a single `Screen` to project containers, components, or Sub-Screens into any slot of the active `AbstractLayout` (`left_panel`, `right_panel`, `status_bar` / `status_bar_center`, `status_bar_left`, `status_bar_right`, or custom layout slots) while keeping all projected inline/`include:` components under the host `Screen`'s PHP properties, `$state_*`, `i18n: auto`, and `on*()` event handlers.

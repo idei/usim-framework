@@ -246,7 +246,8 @@ abstract class AbstractLayout extends Screen implements LayoutInterface
     protected function postLoadUI(): void
     {
         if (! empty($this->state_active_screens)) {
-            $this->activeScreens = array_merge($this->activeScreens, $this->state_active_screens);
+            $this->activeScreens = array_merge($this->state_active_screens, $this->activeScreens);
+            $this->state_active_screens = $this->activeScreens;
         }
 
         // Restore all slot references when loaded from cached snapshot
