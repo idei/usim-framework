@@ -33,7 +33,8 @@ Created with fluent builders, for example:
 - `UI::newLabel(...)` (preferred over deprecated `UI::label(...)`)
 - `UI::button(...)`
 - `UI::input(...)`
-- `UI::textarea(...)`
+- `UI::textarea(...)` (plain multi-line text only; do NOT call removed `markdown()`/`plainText()`/`mode()` methods)
+- `UI::richText(...)` (WYSIWYG HTML editor powered by lazy-loaded SunEditor v3 with `basicToolbar()`/`standardToolbar()`/`fullToolbar()`, editable base64 or upload images, char/word counters, `rte_` YAML prefix, and automatic light/dark theme sync; see `RICH_TEXT_AI_REFERENCE.md`)
 - `UI::select(...)`
 - `UI::checkbox(...)`
 - `UI::table(...)`

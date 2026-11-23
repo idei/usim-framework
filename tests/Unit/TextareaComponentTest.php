@@ -50,7 +50,6 @@ test('UI::textarea() returns a concrete Textarea instance with fluent builder AP
         ->label('Notas')
         ->placeholder('Placeholder...')
         ->value('Initial text')
-        ->plainText()
         ->maxLength(500)
         ->helpText('Ayuda')
         ->onChange('on_saved', ['extra' => 123])
@@ -169,23 +168,23 @@ test('UIEventController handles action with on_ prefix without 404 (e.g. on_plai
         ],
     ]);
 
-    $mdTextarea = $ui->component('md_textarea');
-    $mdComponentId = $mdTextarea->id();
+    $notesTextarea = $ui->component('notes_textarea');
+    $notesComponentId = $notesTextarea->id();
 
-    $mdResponse = $this->postJson('/api/ui-event', [
-        'component_id' => $mdComponentId,
+    $notesResponse = $this->postJson('/api/ui-event', [
+        'component_id' => $notesComponentId,
         'event' => 'change',
-        'action' => 'on_md_saved',
+        'action' => 'on_notes_saved',
         'parameters' => [
-            'value' => '# Título Markdown',
-            'md_textarea' => '# Título Markdown',
+            'value' => 'Observaciones de prueba largas',
+            'notes_textarea' => 'Observaciones de prueba largas',
         ],
     ]);
 
-    $mdResponse->assertOk();
-    $mdResponse->assertJson([
+    $notesResponse->assertOk();
+    $notesResponse->assertJson([
         'toast' => [
-            'message' => 'Markdown guardado (17 car.)',
+            'message' => 'Observaciones guardadas (30 car.)',
         ],
     ]);
 });

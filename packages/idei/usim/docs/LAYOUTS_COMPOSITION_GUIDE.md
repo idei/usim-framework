@@ -351,6 +351,7 @@ Si un componente declarado en `.layout.yaml` no necesita ser manipulado desde PH
 | `sel_` | `Select` | `select` |
 | `chk_` | `Checkbox` | `checkbox` |
 | `txt_` | `Textarea` | `textarea` |
+| `rte_` | `RichText` | `rich_text` / `richtext` |
 | `tbl_` | `Table` | `table` |
 | `lst_` | `ItemList` | `item_list` / `list` |
 | `img_` | `Image` | `image` |

@@ -29,7 +29,6 @@ class Right extends Screen
                 $textarea
                     ->label('Texto recibido')
                     ->placeholder('Aquí aparecerá lo enviado desde el Input...')
-                    ->plainText()
                     ->value('')
                     ->readonly(true)
                     ->width(Size::full())

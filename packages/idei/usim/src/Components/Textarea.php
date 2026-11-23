@@ -3,9 +3,10 @@
 namespace Idei\Usim\Components;
 
 /**
- * Builder for Textarea UI components
+ * Builder for Textarea UI components.
  *
- * Supports plain text editing and markdown-enabled rich editing with live preview.
+ * Supports multi-line plain text editing with length constraints,
+ * character counter, styling options, and input/change events.
  */
 class Textarea extends UIComponent
 {
@@ -19,7 +20,6 @@ class Textarea extends UIComponent
             'height' => null,
             'min_length' => null,
             'max_length' => null,
-            'mode' => 'plain',   // 'plain' | 'markdown'
             'required' => false,
             'disabled' => false,
             'readonly' => false,
@@ -87,28 +87,6 @@ class Textarea extends UIComponent
     public function unlimited(): self
     {
         return $this->setConfig('max_length', null);
-    }
-
-    /**
-     * Set the editing mode.
-     *
-     * @param  string  $mode  'plain' | 'markdown'
-     */
-    public function mode(string $mode): self
-    {
-        return $this->setConfig('mode', $mode);
-    }
-
-    /** Shortcut: enable plain text mode. */
-    public function plainText(): self
-    {
-        return $this->mode('plain');
-    }
-
-    /** Shortcut: enable markdown editing mode. */
-    public function markdown(): self
-    {
-        return $this->mode('markdown');
     }
 
     /** Mark the field as required. */

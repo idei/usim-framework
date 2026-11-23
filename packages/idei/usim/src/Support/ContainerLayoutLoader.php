@@ -14,6 +14,7 @@ use Idei\Usim\Components\ItemList;
 use Idei\Usim\Components\Label;
 use Idei\Usim\Components\NavTree;
 use Idei\Usim\Components\NewLabel;
+use Idei\Usim\Components\RichText;
 use Idei\Usim\Components\Select;
 use Idei\Usim\Components\Split;
 use Idei\Usim\Components\Table;
@@ -74,6 +75,7 @@ class ContainerLayoutLoader
         'sel_',
         'chk_',
         'txt_',
+        'rte_',
         'tbl_',
         'lst_',
         'img_',
@@ -97,6 +99,7 @@ class ContainerLayoutLoader
         'sel_' => Select::class,
         'chk_' => Checkbox::class,
         'txt_' => Textarea::class,
+        'rte_' => RichText::class,
         'tbl_' => Table::class,
         'lst_' => ItemList::class,
         'img_' => Image::class,
@@ -122,6 +125,8 @@ class ContainerLayoutLoader
         'select' => Select::class,
         'checkbox' => Checkbox::class,
         'textarea' => Textarea::class,
+        'rich_text' => RichText::class,
+        'richtext' => RichText::class,
         'table' => Table::class,
         'item_list' => ItemList::class,
         'list' => ItemList::class,
@@ -1719,7 +1724,7 @@ class ContainerLayoutLoader
                 'groups' => ['actions', 'buttons'],
                 'attributes' => ['label', 'tooltip', 'title'],
             ],
-            $element instanceof Input, $element instanceof Textarea => [
+            $element instanceof Input, $element instanceof Textarea, $element instanceof RichText => [
                 'primary' => 'label',
                 'groups' => ['inputs', 'fields'],
                 'attributes' => ['label', 'placeholder', 'help_text', 'tooltip'],

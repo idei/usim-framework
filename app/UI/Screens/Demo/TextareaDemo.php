@@ -1,4 +1,5 @@
 <?php
+
 namespace App\UI\Screens\Demo;
 
 use Idei\Usim\Components\Container;
@@ -12,16 +13,16 @@ use Idei\Usim\ValueObjects\Spacing;
 /**
  * TextareaDemo
  *
- * Demonstrates the Textarea component in both modes:
- *  - Plain text  : width/height/maxLength/onChange
- *  - Markdown    : editor con toolbar, split-view preview y contador
+ * Demonstrates the Textarea component for multi-line plain text input:
+ *  - Length constraints (minLength / maxLength) and live character counter
+ *  - onChange and debounced onInput events
  */
 class TextareaDemo extends Screen
 {
     public static Visibility $visibility = Visibility::PUBLIC;
 
     protected Textarea $plain_textarea;
-    protected Textarea $md_textarea;
+    protected Textarea $notes_textarea;
 
     protected function buildBaseUI(Container $container, ...$params): void
     {
@@ -29,17 +30,18 @@ class TextareaDemo extends Screen
             ->card()
             ->maxWidth(Size::px(1024))
             ->centerHorizontal()
-            ->gap(Spacing::px(5))
-            ->padding(Spacing::px(8));
+            ->gap(Spacing::px(12))
+            ->padding(Spacing::px(16));
 
-        $title = UI::label('textarea_demo_title')
+        $title = UI::newLabel('textarea_demo_title')
             ->text(t('screens.demo.textarea_demo.title'))
             ->center()
-            ->style('h2');
+            ->xl()
+            ->bold();
 
         $wrapper->add($title);
 
-        // Sección 1: texto plano
+        // Sección 1: texto plano con límite máximo
         $sectionPlain = UI::container('section_plain')
             ->plain()
             ->width(Size::full())
@@ -51,9 +53,8 @@ class TextareaDemo extends Screen
             $plainTextarea
                 ->label('Notas rápidas')
                 ->placeholder('Escribe algo aquí…')
-                ->plainText()
                 ->width(Size::full())
-                ->height(Size::px(200))
+                ->height(Size::px(180))
                 ->maxLength(300)
                 ->helpText('Máximo 300 caracteres. Se guarda al salir del campo (onChange).')
                 ->onChange('on_plain_saved')
@@ -61,30 +62,27 @@ class TextareaDemo extends Screen
 
         $wrapper->add($sectionPlain);
 
-        // Sección 2: markdown
-        $sectionMd = UI::container('section_md')
+        // Sección 2: texto plano con mínimo y máximo
+        $sectionNotes = UI::container('section_notes')
             ->plain()
             ->width(Size::full())
             ->gap(Spacing::px(12));
 
-        $defaultMd = "## Bienvenido al editor Markdown\n\nEscribe **negrita**, *cursiva* o `código inline`.\n\n- Viñeta 1\n- Viñeta 2\n\n> Una cita de ejemplo.\n";
+        $notesTextarea = UI::textarea('notes_textarea');
 
-        $markdownTextarea = UI::textarea('md_textarea');
-
-        $sectionMd->add(
-            $markdownTextarea
-                ->label('Descripción con formato')
-                ->placeholder('Escribe en Markdown…')
-                ->markdown()
-                ->value($defaultMd)
+        $sectionNotes->add(
+            $notesTextarea
+                ->label('Observaciones detalladas')
+                ->placeholder('Escribe al menos 20 caracteres…')
                 ->width(Size::full())
-                ->height(Size::px(300))
-                ->maxLength(2000)
-                ->helpText('Vista previa en tiempo real a la derecha.')
-                ->onChange('on_md_saved')
+                ->height(Size::px(220))
+                ->minLength(20)
+                ->maxLength(1000)
+                ->helpText('Entre 20 y 1000 caracteres. Contador dinámico integrado.')
+                ->onChange('on_notes_saved')
         );
 
-        $wrapper->add($sectionMd);
+        $wrapper->add($sectionNotes);
 
         $container->add($wrapper);
     }
@@ -100,12 +98,12 @@ class TextareaDemo extends Screen
     }
 
     /** @param array<string, mixed> $params */
-    public function onMdSaved(array $params): void
+    public function onNotesSaved(array $params): void
     {
         $rawValue = $params['value'] ?? '';
-        $value = is_scalar($rawValue) || $rawValue instanceof \Stringable ? (string) $rawValue : '';
+        $value = trim(is_scalar($rawValue) || $rawValue instanceof \Stringable ? (string) $rawValue : '');
         $len = mb_strlen($value);
 
-        $this->toast("Markdown guardado ({$len} car.)");
+        $this->toast("Observaciones guardadas ({$len} car.)");
     }
 }

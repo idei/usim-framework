@@ -108,6 +108,7 @@ Key guides included:
 - [Declarative Layouts & i18n](docs/DECLARATIVE_LAYOUTS_AND_I18N.md) — `.layout.yaml` syntax, CSS Grid, slots, `Spacing`, `Screen::layoutContainer()`, optional `startingUI()`, and two-level i18n (`t:` / `.key` & `i18n: auto`)
 - [Layouts Composition Guide](docs/LAYOUTS_COMPOSITION_GUIDE.md) — Practical catalog of grid, nested inline layouts, external `include:`, `embedToSlot()`, and `AbstractLayout` patterns
 - [Workbench & Unified Layouts (AI Technical Reference)](docs/WORKBENCH_AND_UNIFIED_LAYOUTS_AI_REFERENCE.md) — Unified `.layout.yaml` page layouts, `WorkbenchLayout`, `NavTree`, Activity Bar (`52px`), collapsible `right_panel` (`0px`), `StatusBar`, `guest_layout`, and automatic SPA layout transitions
+- [RichText Editor Guide](docs/RICH_TEXT_GUIDE.md) & [AI Technical Reference](docs/RICH_TEXT_AI_REFERENCE.md) — WYSIWYG HTML editing (`UI::richText()`), SunEditor v3 lazy loading, toolbar presets, editable images, and security best practices
 - [Icons Guide](docs/ICONS_GUIDE.md) — Agnostic icon API (`HasIcon`), standard 80-SVG library (`--tag=usim-icons`), custom user icons (`public/images/icons/`), theme/container adaptation, and full icon catalog
 - [Events System](docs/USIM_EVENTS_SYSTEM.md) — UI & domain event lifecycle, handlers, and diffs
 - [Screen Testing Guide](docs/SCREEN_TESTING_GUIDE.md) — Testing screens with `ScreenTestHarness`, `uiScenario()`, and Pest
@@ -373,7 +374,8 @@ Use `_crypt` only when the value should not be readable from client storage.
 | `UI::newLabel()` / `UI::label()` | `NewLabel` / `Label` | Text labels, headings, pills, badges, markdown/HTML, and agnostic icons |
 | `UI::button()` | `Button` | Action buttons with styles, variants, and agnostic/auto icon-only icons |
 | `UI::input()` | `Input` | Text, email, password, hidden inputs |
-| `UI::textarea()` | `Textarea` | Multi-line text and Markdown editor with live preview |
+| `UI::textarea()` | `Textarea` | Multi-line plain text input with length constraints and live character counter |
+| `UI::richText()` | `RichText` | WYSIWYG HTML editor (lazy-loaded SunEditor v3) with toolbar presets, editable base64/upload images, and theme sync |
 | `UI::select()` | `Select` | Dropdown selects with static or dynamic `/api/ui-data` options |
 | `UI::itemList()` / `UI::list()` | `ItemList` | Vertical interactive list with single/multiple selection, live `/api/ui-data` search, and inline/delegated CRUD |
 | `UI::checkbox()` | `Checkbox` | Checkboxes and toggles |

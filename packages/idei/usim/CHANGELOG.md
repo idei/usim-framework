@@ -6,6 +6,18 @@ The format is based on Keep a Changelog, and this project follows Semantic Versi
 
 ## [Unreleased]
 
+### Added (v2.18.0)
+- **New `UI::richText()` WYSIWYG HTML Editor Component (`Idei\Usim\Components\RichText`, `type: 'rich_text'`)**:
+  - Added dedicated server-driven rich text editor powered by **SunEditor v3.4.3** (MIT, zero dependencies), vendored locally under `resources/assets/lib/suneditor/` and **lazy-loaded** on demand only when a screen renders a `rich_text` component (zero payload overhead on other screens).
+  - Fluent PHP builder API in `RichText`: `label()`, `placeholder()`, `value()`, `getValue()`, `toolbar()` (`'basic' | 'standard' | 'full'` or custom SunEditor `buttonList` array), `basicToolbar()`, `standardToolbar()`, `fullToolbar()`, `allowImages()` (base64 data URIs with interactive resize, rotate, mirror, align, and caption editing by default), `imageUploadUrl()`, `maxLength()`, `charCounter()`, `wordCounter()`, `statusbar()`, `lang()`, `required()`, `disabled()`, `readonly()`, `error()`, `helpText()`, `onChange()`, `onInput()`, `debounce()`, and border/sizing helpers.
+  - Full USIM integration: `UI::richText()`, client value synchronization & deserialization in `ScreenLifecycleOrchestrator`, declarative `.layout.yaml` support (`rte_` prefix, `rich_text` / `richtext` aliases, and `i18n: auto` hydration in `ContainerLayoutLoader`), automatic light/dark theme synchronization via `usim:theme-changed` (`editor.$.ui.setTheme()`), synced hidden `<textarea>` for form submissions with internal SunEditor modal controls excluded in `UsimButtonComponent::collectContextValues()`, and outer wrapper height override so SunEditor chrome never overlaps sibling components.
+  - Added `window.USIM_ASSET_BASE` in `resources/views/app.blade.php`, interactive `RichTextDemo` screen (`en`/`es` translations, registered in `DemosMenuProvider` and `ButtonDemo`), unit/JS tests (`RichTextComponentTest`, `tests/js/rich-text-component.test.mjs`), user guide (`docs/RICH_TEXT_GUIDE.md`), and AI technical reference (`docs/RICH_TEXT_AI_REFERENCE.md`).
+
+### Removed / Breaking Changes (v2.18.0)
+- **Removed incomplete Markdown split-view mode from `UI::textarea()`**:
+  - Removed `Textarea::mode()`, `Textarea::plainText()`, and `Textarea::markdown()`, along with the split-view editor/preview UI, toolbar, CSS, and bundled `marked.min.js` (`resources/assets/js/lib/marked.min.js`).
+  - `UI::textarea()` is now focused exclusively on multi-line plain text input; rich content editing should use `UI::richText()`.
+
 ### Fixed (v2.17.1)
 - **StatusBar unit selector not updating on unit switch (`UIChangesCollector::add()`):** merged incremental component property deltas (entries without a `parent` key) instead of shallowly overwriting them with `array_replace()`. Previously, when `StatusBar::onChangeUnit()` updated `unit_menu` (`trigger` + `items`) and queued `UsimEvent('unit_changed')`, the subsequent `StatusBar::onUnitChanged()` pass emitted only `{ visible: true, type: 'menudropdown' }` against the already-cached snapshot and clobbered the `trigger` and `items` diff in the response.
 - **Activity Bar `NavTree` layout collision on `Home` landing page** (`resources/views/welcome-usim.blade.php`, `css/components/nav-tree/index.css`): scoped global `nav`, `*`, `a`, `code`, `pre`, `h1`, `h2`, `section`, and `footer` rules in `welcome-usim.blade.php` under `.wf` and hardened `nav.usim-nav-tree` positioning/backdrop styles so embedded HTML fragments cannot hijack the Workbench Activity Bar.

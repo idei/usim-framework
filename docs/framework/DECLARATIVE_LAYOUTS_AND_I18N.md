@@ -400,7 +400,7 @@ Luego busca el primer `string` no vacío en el diccionario de la Screen en este 
 |---|---|---|---|
 | `NewLabel`, `Label` | `text` | `['labels']` | `text`, `tooltip` |
 | `Button` | `label` | `['actions', 'buttons']` | `label`, `tooltip`, `title` |
-| `Input`, `Textarea` | `label` | `['inputs', 'fields']` | `label`, `placeholder`, `help_text`, `tooltip` |
+| `Input`, `Textarea`, `RichText` | `label` | `['inputs', 'fields']` | `label`, `placeholder`, `help_text`, `tooltip` |
 | `Select` | `label` | `['selects', 'inputs', 'fields']` | `label`, `placeholder`, `help_text`, `empty_message`, `tooltip` |
 | `Checkbox` | `label` | `['checkboxes', 'inputs', 'fields']` | `label`, `description`, `help_text`, `tooltip` |
 | `ItemList` | `title` | `['lists']` | `title`, `label`, `help_text`, `empty_message`, `no_results_message`, `search_placeholder`, `create_placeholder`, `create_button_label`, `bulk_delete_label` |

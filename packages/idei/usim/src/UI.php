@@ -16,6 +16,7 @@ use Idei\Usim\Components\Label;
 use Idei\Usim\Components\MenuDropdown;
 use Idei\Usim\Components\NavTree;
 use Idei\Usim\Components\NewLabel;
+use Idei\Usim\Components\RichText;
 use Idei\Usim\Components\Select;
 use Idei\Usim\Components\Split;
 use Idei\Usim\Components\Table;
@@ -240,6 +241,16 @@ class UI
     public static function textarea(?string $name = null): Textarea
     {
         return new Textarea($name);
+    }
+
+    /**
+     * Create a new rich text (WYSIWYG HTML) editor component
+     *
+     * @param  string|null  $name  The optional semantic name for the rich text editor
+     */
+    public static function richText(?string $name = null): RichText
+    {
+        return new RichText($name);
     }
 
     /**

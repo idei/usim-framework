@@ -16,6 +16,7 @@ use Idei\Usim\Components\Label;
 use Idei\Usim\Components\MenuDropdown;
 use Idei\Usim\Components\NavTree;
 use Idei\Usim\Components\NewLabel;
+use Idei\Usim\Components\RichText;
 use Idei\Usim\Components\Select;
 use Idei\Usim\Components\Split;
 use Idei\Usim\Components\Table;
@@ -949,7 +950,7 @@ class ScreenLifecycleOrchestrator implements ScreenLifecycleOrchestratorInterfac
             $triggerElement = $container->findById($triggerComponentId);
             if ($triggerElement instanceof UIComponent) {
                 $type = $triggerElement->getType();
-                if (in_array($type, ['input', 'textarea', 'select'], true) && array_key_exists('value', $eventParameters)) {
+                if (in_array($type, ['input', 'textarea', 'rich_text', 'select'], true) && array_key_exists('value', $eventParameters)) {
                     $val = $eventParameters['value'];
                     if (is_scalar($val) || $val === null) {
                         $triggerElement->syncClientConfig('value', $val ?? '');
@@ -979,7 +980,7 @@ class ScreenLifecycleOrchestrator implements ScreenLifecycleOrchestratorInterfac
             }
 
             $type = $element->getType();
-            if (in_array($type, ['input', 'textarea', 'select'], true)) {
+            if (in_array($type, ['input', 'textarea', 'rich_text', 'select'], true)) {
                 if (is_scalar($paramValue) || $paramValue === null) {
                     $element->syncClientConfig('value', $paramValue ?? '');
                 }
@@ -1195,6 +1196,7 @@ class ScreenLifecycleOrchestrator implements ScreenLifecycleOrchestratorInterfac
             'calendar' => Calendar::class,
             'carousel' => Carousel::class,
             'textarea' => Textarea::class,
+            'rich_text', 'richtext' => RichText::class,
             'split' => Split::class,
             'timer' => Timer::class,
             'item_list', 'itemlist' => ItemList::class,

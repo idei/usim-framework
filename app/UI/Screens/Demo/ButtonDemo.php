@@ -33,6 +33,7 @@ class ButtonDemo extends Screen
         Main::class,
         ImageDemo::class,
         NewLabelDemo::class,
+        RichTextDemo::class,
     ];
 
     protected Container $buttons_container;

@@ -406,12 +406,11 @@ test('Textarea: ignores invalid bounds (min_length >= max_length) and displays w
     }
 });
 
-test('Textarea: supports in-field counter in markdown mode and dynamic update()', () => {
+test('Textarea: supports dynamic update() for length bounds and clearing limits', () => {
     const dom = createDomEnvironment();
 
     const comp = dom.window.USIM_COMPONENTS.create('textarea', 407, {
-        name: 'md_notes',
-        mode: 'markdown',
+        name: 'notes_dynamic',
         min_length: 10,
         max_length: 30,
         value: '12345',
@@ -420,11 +419,11 @@ test('Textarea: supports in-field counter in markdown mode and dynamic update()'
     const el = comp.render();
     assert.equal(el.querySelector('.usim-textarea-footer'), null);
 
-    const editorField = el.querySelector('.usim-textarea-editor-pane .usim-textarea-field');
-    assert.ok(editorField, 'Markdown editor pane should wrap textarea in .usim-textarea-field');
+    const field = el.querySelector('.usim-textarea-field');
+    assert.ok(field, 'Textarea should be wrapped in .usim-textarea-field');
 
-    const counter = editorField.querySelector('.usim-textarea-counter');
-    const ta = editorField.querySelector('textarea');
+    const counter = field.querySelector('.usim-textarea-counter');
+    const ta = field.querySelector('textarea');
     assert.equal(counter.textContent, '-5');
     assert.ok(counter.classList.contains('is-error'));
 

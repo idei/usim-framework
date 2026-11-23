@@ -37,6 +37,8 @@
     <link rel="stylesheet"
         href="{{ asset('vendor/idei/usim/css/components/textarea/index.css') }}?v={{ $usimAssetVersion('vendor/idei/usim/css/components/textarea/index.css') }}">
     <link rel="stylesheet"
+        href="{{ asset('vendor/idei/usim/css/components/rich-text/index.css') }}?v={{ $usimAssetVersion('vendor/idei/usim/css/components/rich-text/index.css') }}">
+    <link rel="stylesheet"
         href="{{ asset('vendor/idei/usim/css/components/split/index.css') }}?v={{ $usimAssetVersion('vendor/idei/usim/css/components/split/index.css') }}">
     <link rel="stylesheet"
         href="{{ asset('vendor/idei/usim/css/components/container/index.css') }}?v={{ $usimAssetVersion('vendor/idei/usim/css/components/container/index.css') }}">
@@ -75,6 +77,7 @@
         window.PARAMS = @json($allParams);
         window.QUERY_PARAMS = new URLSearchParams(window.location.search);
         window.USIM_ICONS = @json(app(\Idei\Usim\Support\UsimIconRegistry::class)->getManifest());
+        window.USIM_ASSET_BASE = @json(rtrim(asset('vendor/idei/usim'), '/'));
     </script>
     <script
         src="{{ asset('vendor/idei/usim/js/component-registry.js') }}?v={{ $usimAssetVersion('vendor/idei/usim/js/component-registry.js') }}">
@@ -146,10 +149,10 @@
         src="{{ asset('vendor/idei/usim/js/components/carousel/index.js') }}?v={{ $usimAssetVersion('vendor/idei/usim/js/components/carousel/index.js') }}">
     </script>
     <script
-        src="{{ asset('vendor/idei/usim/js/lib/marked.min.js') }}?v={{ $usimAssetVersion('vendor/idei/usim/js/lib/marked.min.js') }}">
+        src="{{ asset('vendor/idei/usim/js/components/textarea/index.js') }}?v={{ $usimAssetVersion('vendor/idei/usim/js/components/textarea/index.js') }}">
     </script>
     <script
-        src="{{ asset('vendor/idei/usim/js/components/textarea/index.js') }}?v={{ $usimAssetVersion('vendor/idei/usim/js/components/textarea/index.js') }}">
+        src="{{ asset('vendor/idei/usim/js/components/rich-text/index.js') }}?v={{ $usimAssetVersion('vendor/idei/usim/js/components/rich-text/index.js') }}">
     </script>
     <script
         src="{{ asset('vendor/idei/usim/js/components/split/index.js') }}?v={{ $usimAssetVersion('vendor/idei/usim/js/components/split/index.js') }}">
