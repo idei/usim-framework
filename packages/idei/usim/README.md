@@ -109,7 +109,7 @@ Key guides included:
 - [Layouts Composition Guide](docs/LAYOUTS_COMPOSITION_GUIDE.md) — Practical catalog of grid, nested inline layouts, external `include:`, `embedToSlot()`, and `AbstractLayout` patterns
 - [Workbench & Unified Layouts (AI Technical Reference)](docs/WORKBENCH_AND_UNIFIED_LAYOUTS_AI_REFERENCE.md) — Unified `.layout.yaml` page layouts, `WorkbenchLayout`, `NavTree`, Activity Bar (`52px`), collapsible `right_panel` (`0px`), `StatusBar`, `guest_layout`, and automatic SPA layout transitions
 - [RichText Editor Guide](docs/RICH_TEXT_GUIDE.md) & [AI Technical Reference](docs/RICH_TEXT_AI_REFERENCE.md) — WYSIWYG HTML editing (`UI::richText()`), SunEditor v3 lazy loading, toolbar presets, editable images, and security best practices
-- [CardGrid Guide](docs/CARD_GRID_GUIDE.md) & [AI Technical Reference](docs/CARD_GRID_AI_REFERENCE.md) — Responsive 2D card grids (`UI::cardGrid()`), `CardListable` contract, integrated search/sort/filters toolbar, `pages` & `load_more` pagination, and surgical `patchCard()` diffs
+- [CardGrid & ItemCard Guide](docs/CARD_GRID_GUIDE.md) & [AI Technical Reference](docs/CARD_GRID_AI_REFERENCE.md) — First-class `UI::itemCard()` (standalone or grid-managed) and responsive `UI::cardGrid()`, `CardListable` contract, integrated search/sort/filters toolbar, `pages` & `load_more` pagination, and native `ComponentDiffer` diffs
 - [Icons Guide](docs/ICONS_GUIDE.md) — Agnostic icon API (`HasIcon`), standard 80-SVG library (`--tag=usim-icons`), custom user icons (`public/images/icons/`), theme/container adaptation, and full icon catalog
 - [Events System](docs/USIM_EVENTS_SYSTEM.md) — UI & domain event lifecycle, handlers, and diffs
 - [Screen Testing Guide](docs/SCREEN_TESTING_GUIDE.md) — Testing screens with `ScreenTestHarness`, `uiScenario()`, and Pest
@@ -379,11 +379,12 @@ Use `_crypt` only when the value should not be readable from client storage.
 | `UI::richText()` | `RichText` | WYSIWYG HTML editor (lazy-loaded SunEditor v3) with toolbar presets, editable base64/upload images, and theme sync |
 | `UI::select()` | `Select` | Dropdown selects with static or dynamic `/api/ui-data` options |
 | `UI::itemList()` / `UI::list()` | `ItemList` | Vertical interactive list with single/multiple selection, live `/api/ui-data` search, and inline/delegated CRUD |
-| `UI::cardGrid()` | `CardGrid` | Responsive 2D card grid with `CardListable` binding, integrated search/sort/filters, `pages`/`load_more` pagination, per-card actions, and surgical `patchCard()` diffs |
+| `UI::cardGrid()` | `CardGrid` | Responsive 2D card grid managing child `ItemCard` components with `CardListable` binding, integrated search/sort/filters, `pages`/`load_more` pagination, and native `ComponentDiffer` diffs |
+| `UI::itemCard()` | `ItemCard` | First-class standardized card component (standalone or inside `CardGrid`) with typed slots, theme-safe semantic styles, and overflow actions (replaces deprecated `UI::card()`) |
 | `UI::checkbox()` | `Checkbox` | Checkboxes and toggles |
 | `UI::form()` | `Form` | Form grouping |
 | `UI::table()` | `Table` | Data tables with pagination |
-| `UI::card()` | `Card` | Cards with title, description, actions |
+| `UI::card()` *(deprecated)* | `Card` | Legacy card builder (`@deprecated` since v2.20.0; use `UI::itemCard()` or `UI::container()->card()`) |
 | `UI::image()` | `Image` | Static or dynamic `/api/ui-data` images with placeholders and loading state |
 | `UI::container()` | `Container` | Layout container (vertical/horizontal/grid) with `card()` / `plain()` appearance and optional server-driven tabs |
 | `UI::menuDropdown()` | `MenuDropdown` | Navigation dropdown menus |
@@ -814,9 +815,9 @@ See [ITEM_LIST_SERVICE_WIRING.md](docs/ITEM_LIST_SERVICE_WIRING.md) for the full
 
 ---
 
-## Responsive Card Grids (`CardGrid`)
+## Responsive Card Grids (`CardGrid`) & `ItemCard`
 
-Use `UI::cardGrid()` for responsive 2D catalogs of standardized cards backed by a `CardListable` (or adapted `Listable`) service, with integrated debounced search, sorting, declarative filters (`select`, `multi_select`, `toggle`, `chips`), `pages` / `load_more` pagination, per-card actions (with automatic `⋮` overflow menu), and surgical per-card DOM patching (`patchCard`, `removeCard`, `prependCard`):
+Use `UI::itemCard()` for standardized standalone cards (replacing deprecated `UI::card()`) and `UI::cardGrid()` for responsive 2D catalogs backed by a `CardListable` (or adapted `Listable`) service. `CardGrid` manages real child `ItemCard` components with deterministic IDs over `POST /api/ui-event`, so USIM's native `ComponentDiffer` emits minimal `ADD`/`UPDATE`/`DELETE` diffs automatically:
 
 ```php
 $grid = UI::cardGrid('movies_grid')
@@ -831,11 +832,11 @@ $grid = UI::cardGrid('movies_grid')
     ->perPage(12)
     ->onCardClick('view_movie');
 
-// In an event handler, update a single card in-place without reloading GET /api/ui-data:
-$this->movies_grid->patchCard($movieId, [
-    'badge' => '★ Favorite',
-    'badge_style' => Style::WARNING,
-]);
+// In an event handler, mutate the mounted child ItemCard directly:
+// ComponentDiffer automatically emits ONLY the changed keys for that single ItemCard.
+$this->movies_grid->card($movieId)
+    ?->badge('★ Favorite', Style::WARNING)
+    ->footerText('In your list');
 ```
 
 See [CARD_GRID_GUIDE.md](docs/CARD_GRID_GUIDE.md) and [CARD_GRID_AI_REFERENCE.md](docs/CARD_GRID_AI_REFERENCE.md) for the full guide and JSON protocol.

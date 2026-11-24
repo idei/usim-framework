@@ -11,6 +11,7 @@ use Idei\Usim\Components\Checkbox;
 use Idei\Usim\Components\Container;
 use Idei\Usim\Components\Image;
 use Idei\Usim\Components\Input;
+use Idei\Usim\Components\ItemCard;
 use Idei\Usim\Components\ItemList;
 use Idei\Usim\Components\Label;
 use Idei\Usim\Components\NavTree;
@@ -84,6 +85,7 @@ class ContainerLayoutLoader
         'car_',
         'upl_',
         'crd_',
+        'icrd_',
         'grd_',
         'cnt_',
         'tmr_',
@@ -110,6 +112,7 @@ class ContainerLayoutLoader
         'car_' => Carousel::class,
         'upl_' => Uploader::class,
         'crd_' => Card::class,
+        'icrd_' => ItemCard::class,
         'cnt_' => Container::class,
         'tmr_' => Timer::class,
         'nav_' => NavTree::class,
@@ -135,6 +138,8 @@ class ContainerLayoutLoader
         'list' => ItemList::class,
         'card_grid' => CardGrid::class,
         'cardgrid' => CardGrid::class,
+        'item_card' => ItemCard::class,
+        'itemcard' => ItemCard::class,
         'image' => Image::class,
         'calendar' => Calendar::class,
         'carousel' => Carousel::class,
@@ -1757,6 +1762,18 @@ class ContainerLayoutLoader
                     'create_placeholder',
                     'create_button_label',
                     'bulk_delete_label',
+                ],
+            ],
+            $element instanceof ItemCard => [
+                'primary' => 'title',
+                'groups' => ['cards'],
+                'attributes' => [
+                    'title',
+                    'subtitle',
+                    'eyebrow',
+                    'description',
+                    'badge',
+                    'footer_text',
                 ],
             ],
             $element instanceof CardGrid => [

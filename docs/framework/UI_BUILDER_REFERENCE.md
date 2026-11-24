@@ -130,11 +130,21 @@ UI::itemList('movies_list') // Alias: UI::list('movies_list')
 
 > **Cableado automático por capacidades (`->service(...)`)**: En lugar de declarar handlers manuales (`action`, `onCreate`, `onUpdate`, `onDelete`, `onBulkDelete`) en la `Screen`, podés vincular un servicio con `->service(MyCatalogService::class)` que implemente `Listable`, `Creatable`, `Updatable`, `Deletable` y/o `BulkDeletable` (`Idei\Usim\Contracts\ItemList\*`). Opcionalmente agregá `->onServiceMutated('catalog_mutated')` para sincronizar resúmenes en la `Screen`. Ver [ITEM_LIST_SERVICE_WIRING.md](../../packages/idei/usim/docs/ITEM_LIST_SERVICE_WIRING.md).
 
-### CardGrid
+### CardGrid & ItemCard
 ```php
 use App\Services\Movie\MovieCardGridService;
 use Idei\Usim\Enums\Style;
 
+// Tarjeta individual estandarizada (reemplazo moderno de UI::card() deprecado):
+UI::itemCard('welcome_card')
+    ->eyebrow('Cuenta')
+    ->title('Registro completado')
+    ->description('Tu cuenta fue registrada correctamente.')
+    ->badge('Pendiente', Style::INFO)
+    ->style(Style::INFO)
+    ->addAction('Ir al perfil', 'go_to_profile', icon: 'user', style: Style::PRIMARY, variant: 'solid');
+
+// Grilla 2D responsive administrando hijos reales ItemCard con diffing nativo:
 UI::cardGrid('movies_grid')
     ->title('Cartelera Destacada')
     ->service(MovieCardGridService::class) // Implementa CardListable (o Listable adaptado)
@@ -160,11 +170,10 @@ UI::cardGrid('movies_grid')
     ->showLayoutToggle(true)
     ->onCardClick('view_movie');
 
-// Parcheo quirúrgico de una sola tarjeta desde un handler (sin recargar GET /api/ui-data):
-$this->movies_grid->patchCard($movieId, [
-    'badge' => '★ Favorita',
-    'badge_style' => Style::WARNING,
-]);
+// Mutación directa sobre el ItemCard montado (ComponentDiffer emite solo las claves modificadas):
+$this->movies_grid->card($movieId)
+    ?->badge('★ Favorita', Style::WARNING)
+    ->footerText('En tu lista');
 ```
 
 > **Guía y contrato técnico**: Ver [CARD_GRID_GUIDE.md](../../packages/idei/usim/docs/CARD_GRID_GUIDE.md) y [CARD_GRID_AI_REFERENCE.md](../../packages/idei/usim/docs/CARD_GRID_AI_REFERENCE.md).

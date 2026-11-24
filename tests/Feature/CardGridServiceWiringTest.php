@@ -3,6 +3,7 @@
 use App\Services\Movie\MovieCardGridService;
 use App\UI\Screens\Demo\CardGridDemo;
 use Idei\Usim\Components\CardGrid;
+use Idei\Usim\Components\ItemCard;
 use Idei\Usim\Contracts\CardGrid\CardListable;
 use Idei\Usim\Contracts\ItemList\Listable;
 use Idei\Usim\DTOs\CardItemDTO;
@@ -41,19 +42,21 @@ it('binds a CardListable service and lazily honors perPage/sort set after servic
         ->perPage(2)
         ->defaultSort('title', 'asc');
 
-    // Service has not been queried redundantly before serialization or getItems()
     expect($service->calls)->toBe(0);
 
-    $json = $grid->toJson()[$grid->getId()];
+    $tree = $grid->toJson();
+    $gridJson = $tree[$grid->getId()];
+    $cards = $grid->getCards();
 
     expect($service->calls)->toBe(1)
-        ->and($json['action'])->toBe($grid->serviceActionFor('query'))
-        ->and($json['items'])->toHaveCount(2)
-        ->and($json['items'][0]['title'])->toBe('Alpha')
-        ->and($json['items'][1]['title'])->toBe('Middle')
-        ->and($json['pagination']['total'])->toBe(3)
-        ->and($json['pagination']['total_pages'])->toBe(2)
-        ->and($json['pagination']['has_more'])->toBeTrue();
+        ->and($gridJson['query_action'])->toBe($grid->serviceActionFor('query'))
+        ->and($cards)->toHaveCount(2)
+        ->and($cards[0]->get('title'))->toBe('Alpha')
+        ->and($cards[1]->get('title'))->toBe('Middle')
+        ->and($tree[$cards[0]->getId()]['parent'])->toBe($grid->getId())
+        ->and($gridJson['pagination']['total'])->toBe(3)
+        ->and($gridJson['pagination']['total_pages'])->toBe(2)
+        ->and($gridJson['pagination']['has_more'])->toBeTrue();
 });
 
 it('adapts a plain Listable service seamlessly for CardGrid pagination', function () {
@@ -78,16 +81,14 @@ it('adapts a plain Listable service seamlessly for CardGrid pagination', functio
     };
 
     $grid = UI::cardGrid('listable_adapted')->service($listable)->perPage(2);
+    expect($grid->getCards())->toHaveCount(2);
 
-    $page1 = $grid->queryServicePage(['page' => 1, 'per_page' => 2]);
-    $page2 = $grid->queryServicePage(['page' => 2, 'per_page' => 2]);
-    $filtered = $grid->queryServicePage(['search' => 'in']);
+    $grid->handleServiceAction('query', ['page' => 2, 'per_page' => 2]);
+    expect($grid->getCards())->toHaveCount(1)
+        ->and($grid->getCards()[0]->get('title'))->toBe('Gladiator');
 
-    expect($page1['items'])->toHaveCount(2)
-        ->and($page1['pagination']['has_more'])->toBeTrue()
-        ->and($page2['items'])->toHaveCount(1)
-        ->and($page2['items'][0]['title'])->toBe('Gladiator')
-        ->and($filtered['items'])->toHaveCount(2);
+    $grid->handleServiceAction('query', ['page' => 1, 'search' => 'in']);
+    expect($grid->getCards())->toHaveCount(2);
 });
 
 it('rejects services that do not implement CardListable or Listable', function () {
@@ -95,106 +96,181 @@ it('rejects services that do not implement CardListable or Listable', function (
         ->toThrow(InvalidArgumentException::class);
 });
 
-it('serves CardGridDemo queries (search, filters, sort, pagination) via GET /api/ui-data and events via POST /api/ui-event', function () {
+it('handles CardGridDemo queries and single-card updates via native ComponentDiffer over POST /api/ui-event', function () {
     $screen = Screen::make(CardGridDemo::class);
     $screen->render(parent: null, shouldReset: true);
 
     /** @var CardGrid $moviesGrid */
     $moviesGrid = $screen->getContainer()->findByName('movies_grid');
-    $componentId = $moviesGrid->getId();
+    $gridId = $moviesGrid->getId();
     $queryAction = $moviesGrid->serviceActionFor('query');
 
-    // Initial render obeys YAML per_page: 6 and defaultSort rating desc
-    expect($moviesGrid->getItems())->toHaveCount(6)
-        ->and($moviesGrid->getItems()[0]['title'])->toBe('El Padrino')
+    // Initial render mounts 6 child ItemCard components (rating desc: El Padrino, The Dark Knight, Inception, Forrest Gump, Interstellar, Matrix)
+    $initialCards = $moviesGrid->getCards();
+    expect($initialCards)->toHaveCount(6)
+        ->and($initialCards[0])->toBeInstanceOf(ItemCard::class)
+        ->and($initialCards[0]->get('title'))->toBe('El Padrino')
         ->and($moviesGrid->getPagination()['total'])->toBe(18)
         ->and($moviesGrid->getPagination()['total_pages'])->toBe(3);
 
-    // 1. Search via GET /api/ui-data
-    $searchRes = $this->getJson('/api/ui-data?component_id='.$componentId.'&action='.urlencode($queryAction).'&parameters='.urlencode((string) json_encode([
-        'search' => 'Nolan',
-        'page' => 1,
-        'per_page' => 6,
-        'sort_by' => 'year',
-        'sort_direction' => 'asc',
-    ])));
-    $searchRes->assertOk();
-    $searchData = $searchRes->json();
-    expect($searchData['pagination']['total'])->toBe(4)
-        ->and($searchData['items'][0]['title'])->toBe('The Dark Knight')
-        ->and($searchData['items'][3]['title'])->toBe('Oppenheimer');
+    $inceptionCard = $moviesGrid->card(2);
+    expect($inceptionCard)->toBeInstanceOf(ItemCard::class);
+    assert($inceptionCard instanceof ItemCard);
+    $inceptionCardId = $inceptionCard->getId();
 
-    // 2. Integrated filters (genre + decade + featured toggle + multi_select tags)
-    $filterRes = $this->getJson('/api/ui-data?component_id='.$componentId.'&action='.urlencode($queryAction).'&parameters='.urlencode((string) json_encode([
-        'page' => 1,
-        'per_page' => 6,
-        'filters' => [
-            'genre' => 'sci-fi',
-            'decade' => '2010',
-            'featured' => true,
-            'tags' => ['IMAX'],
-        ],
-    ])));
-    $filterRes->assertOk();
-    $filterData = $filterRes->json();
-    expect($filterData['pagination']['total'])->toBe(1)
-        ->and($filterData['items'][0]['title'])->toBe('Interstellar');
-
-    // 3. Page 2 pagination
-    $page2Res = $this->getJson('/api/ui-data?component_id='.$componentId.'&action='.urlencode($queryAction).'&parameters='.urlencode((string) json_encode([
-        'page' => 2,
-        'per_page' => 6,
-        'sort_by' => 'title',
-        'sort_direction' => 'asc',
-    ])));
-    $page2Res->assertOk();
-    $page2Data = $page2Res->json();
-    expect($page2Data['items'])->toHaveCount(6)
-        ->and($page2Data['pagination']['page'])->toBe(2)
-        ->and($page2Data['pagination']['can_prev'])->toBeTrue()
-        ->and($page2Data['pagination']['can_next'])->toBeTrue();
-
-    // 4. Card action event (toggle_favorite) via POST /api/ui-event emits ONLY a surgical card_patches diff (no items, no reload_token)
-    $initialFavs = app(MovieCardGridService::class)->getFavoriteIds();
-    expect($initialFavs)->not->toContain(2);
+    // 1. Toggle favorite on Inception (id=2): native ComponentDiffer emits ONLY the changed keys
+    //    on Inception's ItemCard (ZERO diff on CardGrid, ZERO diff on the 5 sibling ItemCards!)
+    expect(app(MovieCardGridService::class)->getFavoriteIds())->not->toContain(2);
 
     $favRes = $this->postJson('/api/ui-event', [
-        'component_id' => $componentId,
+        'component_id' => $inceptionCardId,
         'event' => 'click',
         'action' => 'toggle_favorite',
         'parameters' => ['movie_id' => 2],
     ]);
     $favRes->assertOk();
-    expect(app(MovieCardGridService::class)->getFavoriteIds())->toContain(2);
+    $favPayload = $favRes->json();
 
-    $favDiff = $favRes->json((string) $componentId);
-    expect($favDiff)->toBeArray()
-        ->and($favDiff)->toHaveKey('card_patches')
-        ->and($favDiff)->not->toHaveKey('items')
-        ->and($favDiff)->not->toHaveKey('reload_token')
-        ->and($favDiff['card_patches']['seq'])->toBe(1)
-        ->and($favDiff['card_patches']['ops'])->toHaveCount(1)
-        ->and($favDiff['card_patches']['ops'][0]['op'])->toBe('patch')
-        ->and($favDiff['card_patches']['ops'][0]['id'])->toBe(2)
-        ->and($favDiff['card_patches']['ops'][0]['data']['badge'])->toBe('★ Favorita')
-        ->and($favDiff['card_patches']['ops'][0]['data']['badge_style'])->toBe('warning');
+    expect(app(MovieCardGridService::class)->getFavoriteIds())->toContain(2)
+        ->and($favPayload)->toHaveKey((string) $inceptionCardId)
+        ->and($favPayload)->not->toHaveKey((string) $gridId)
+        ->and($favPayload[(string) $inceptionCardId]['badge'])->toBe('★ Favorita')
+        ->and($favPayload[(string) $inceptionCardId]['badge_style'])->toBe('warning')
+        ->and($favPayload[(string) $inceptionCardId])->not->toHaveKey('title')
+        ->and($favPayload[(string) $inceptionCardId])->not->toHaveKey('image');
 
-    // A second toggle increments seq cleanly and sends only the new op (never replaying turn 1)
-    $unfavRes = $this->postJson('/api/ui-event', [
-        'component_id' => $componentId,
-        'event' => 'click',
-        'action' => 'toggle_favorite',
-        'parameters' => ['movie_id' => 2],
+    // Confirm none of the other 5 cards appeared in the diff payload
+    foreach ($initialCards as $sibling) {
+        if ($sibling->getId() !== $inceptionCardId) {
+            expect($favPayload)->not->toHaveKey((string) $sibling->getId());
+        }
+    }
+
+    // 2. Search "Nolan" + sort by year asc via POST /api/ui-event:
+    //    Reuses Inception (id=2) and Interstellar (id=1) and The Dark Knight (id=11) with their exact IDs,
+    //    detaches non-matching cards (parent: null), and adds Oppenheimer (id=17).
+    $searchRes = $this->postJson('/api/ui-event', [
+        'component_id' => $gridId,
+        'event' => 'action',
+        'action' => $queryAction,
+        'parameters' => [
+            'search' => 'Nolan',
+            'page' => 1,
+            'per_page' => 6,
+            'sort_by' => 'year',
+            'sort_direction' => 'asc',
+        ],
     ]);
-    $unfavRes->assertOk();
-    $unfavDiff = $unfavRes->json((string) $componentId);
-    expect($unfavDiff['card_patches']['seq'])->toBe(2)
-        ->and($unfavDiff['card_patches']['ops'])->toHaveCount(1)
-        ->and($unfavDiff['card_patches']['ops'][0]['data']['badge'])->toBe('Destacada');
+    $searchRes->assertOk();
+    $searchPayload = $searchRes->json();
 
-    // 5. Switching pagination mode to load_more via Screen action
+    $elPadrinoId = $initialCards[0]->getId();
+    expect($searchPayload[(string) $gridId]['pagination']['total'])->toBe(4)
+        ->and($searchPayload[(string) $elPadrinoId])->toBe(['parent' => null]);
+
+    // 3. Integrated filters (genre + decade + featured + multi_select tags) -> only Interstellar (id=1)
+    $filterRes = $this->postJson('/api/ui-event', [
+        'component_id' => $gridId,
+        'event' => 'action',
+        'action' => $queryAction,
+        'parameters' => [
+            'search' => '',
+            'page' => 1,
+            'per_page' => 6,
+            'filters' => [
+                'genre' => 'sci-fi',
+                'decade' => '2010',
+                'featured' => true,
+                'tags' => ['IMAX'],
+            ],
+        ],
+    ]);
+    $filterRes->assertOk();
+    expect($filterRes->json((string) $gridId.'.pagination.total'))->toBe(1);
+
+    // 4. Clear filters back to page 1, switch to load_more, then append page 2:
+    //    Existing page-1 ItemCards must NOT be re-sent; ONLY the 6 new page-2 ItemCards are added!
+    $resetRes = $this->postJson('/api/ui-event', [
+        'component_id' => $gridId,
+        'event' => 'action',
+        'action' => $queryAction,
+        'parameters' => [
+            'search' => '',
+            'page' => 1,
+            'per_page' => 6,
+            'sort_by' => 'title',
+            'sort_direction' => 'asc',
+            'filters' => [],
+        ],
+    ]);
+    $resetRes->assertOk();
+
     $screen->callAction('pagination_mode_changed', ['value' => 'load_more']);
-    /** @var CardGrid $updatedGrid */
-    $updatedGrid = $screen->getContainer()->findByName('movies_grid');
-    expect($updatedGrid->getPagination()['mode'])->toBe('load_more');
+
+    $loadMoreRes = $this->postJson('/api/ui-event', [
+        'component_id' => $gridId,
+        'event' => 'action',
+        'action' => $queryAction,
+        'parameters' => [
+            'page' => 2,
+            'per_page' => 6,
+            'sort_by' => 'title',
+            'sort_direction' => 'asc',
+            'filters' => [],
+            'append' => true,
+        ],
+    ]);
+    $loadMoreRes->assertOk();
+    $loadMorePayload = $loadMoreRes->json();
+
+    // Count newly added ItemCard nodes in the diff payload (should be exactly 6, zero deletes!)
+    $addedCards = array_filter(
+        $loadMorePayload,
+        static fn (mixed $v): bool => is_array($v) && ($v['type'] ?? null) === 'item_card'
+    );
+    $deletedCards = array_filter(
+        $loadMorePayload,
+        static fn (mixed $v): bool => is_array($v) && array_key_exists('parent', $v) && $v['parent'] === null
+    );
+
+    expect($addedCards)->toHaveCount(6)
+        ->and($deletedCards)->toHaveCount(0)
+        ->and($loadMorePayload[(string) $gridId]['visible_count'])->toBe(12)
+        ->and($loadMorePayload[(string) $gridId]['pagination']['page'])->toBe(2);
+
+    // 5. Changing density & card_layout updates ALL 12 currently mounted ItemCards (both page 1 and dynamically added page 2)
+    $selDensity = $screen->getContainer()->findByName('sel_density');
+    $selLayout = $screen->getContainer()->findByName('sel_card_layout');
+
+    $densityRes = $this->postJson('/api/ui-event', [
+        'component_id' => $selDensity->getId(),
+        'event' => 'change',
+        'action' => 'density_changed',
+        'parameters' => ['value' => 'compact'],
+    ]);
+    $densityRes->assertOk();
+    $densityPayload = $densityRes->json();
+
+    $updatedDensityCards = array_filter(
+        $densityPayload,
+        static fn (mixed $v): bool => is_array($v) && ($v['density'] ?? null) === 'compact'
+    );
+    // 12 mounted ItemCards + 1 CardGrid = 13 entries with density: compact
+    expect($updatedDensityCards)->toHaveCount(13);
+
+    $layoutRes = $this->postJson('/api/ui-event', [
+        'component_id' => $selLayout->getId(),
+        'event' => 'change',
+        'action' => 'card_layout_changed',
+        'parameters' => ['value' => 'horizontal'],
+    ]);
+    $layoutRes->assertOk();
+    $layoutPayload = $layoutRes->json();
+
+    $updatedLayoutCards = array_filter(
+        $layoutPayload,
+        static fn (mixed $v): bool => is_array($v) && ($v['layout'] ?? null) === 'horizontal'
+    );
+    expect($updatedLayoutCards)->toHaveCount(12)
+        ->and($layoutPayload[(string) $gridId]['card_layout'])->toBe('horizontal');
 });

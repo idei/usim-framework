@@ -113,7 +113,7 @@ class CardGridDemo extends Screen
         $mode = is_string($raw) && $raw === 'load_more' ? 'load_more' : 'pages';
         $this->store_pagination_mode = $mode;
         $this->sel_pagination_mode->value($mode);
-        $this->movies_grid->paginationMode($mode)->reload();
+        $this->movies_grid->paginationMode($mode)->page(1)->reload();
     }
 
     /**
@@ -179,9 +179,13 @@ class CardGridDemo extends Screen
         }
 
         $added = $service->toggleFavorite($movieId);
+        $card = $this->movies_grid->card($movieId);
         $patch = $service->buildFavoritePatch($movieId, $added);
-        if ($patch !== null) {
-            $this->movies_grid->patchCard($movieId, $patch);
+
+        if ($card !== null && $patch !== null) {
+            // Pure USIM diffing: mutating the child ItemCard emits ONLY the changed keys
+            // for this single ItemCard via ComponentDiffer (zero diff on CardGrid or siblings).
+            $card->patch($patch);
         } else {
             $this->movies_grid->reload();
         }

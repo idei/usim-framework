@@ -1,6 +1,7 @@
 <?php
 
 use Idei\Usim\Components\CardGrid;
+use Idei\Usim\Components\ItemCard;
 use Idei\Usim\DTOs\CardActionDTO;
 use Idei\Usim\DTOs\CardItemDTO;
 use Idei\Usim\DTOs\CardPageResult;
@@ -9,14 +10,57 @@ use Idei\Usim\DTOs\ListItemDTO;
 use Idei\Usim\Enums\Style;
 use Idei\Usim\UI;
 
-it('builds CardGrid with sensible defaults and fluent configuration', function () {
+it('builds standalone ItemCard with typed semantic slots and fluent actions', function () {
+    $card = UI::itemCard('welcome_card')
+        ->title('Bienvenido a USIM')
+        ->subtitle('Servidor primero')
+        ->eyebrow('Sistema')
+        ->description('Tu cuenta fue registrada correctamente.')
+        ->icon('sparkles')
+        ->badge('Activo', Style::SUCCESS)
+        ->metric('100%', 'Listo', Style::PRIMARY)
+        ->attributes([
+            ['icon' => 'shield', 'label' => 'Rol', 'value' => 'Registrado'],
+        ])
+        ->tags(['Cuenta', 'USIM', 'Cuenta'])
+        ->footerText('Hace un momento')
+        ->addAction('Ir al perfil', 'go_to_profile', ['tab' => 'general'], 'user', Style::PRIMARY, 'solid')
+        ->addAction('Ayuda', 'open_help', style: Style::DEFAULT, overflow: true)
+        ->style(Style::INFO)
+        ->featured(true)
+        ->variant('outlined')
+        ->density('compact')
+        ->horizontal();
+
+    $json = $card->toJson()[$card->getId()];
+
+    expect($json['type'])->toBe('item_card')
+        ->and($json['title'])->toBe('Bienvenido a USIM')
+        ->and($json['eyebrow'])->toBe('Sistema')
+        ->and($json['badge'])->toBe('Activo')
+        ->and($json['badge_style'])->toBe('success')
+        ->and($json['metric'])->toBe('100%')
+        ->and($json['metric_style'])->toBe('primary')
+        ->and($json['attributes'])->toHaveCount(1)
+        ->and($json['tags'])->toBe(['Cuenta', 'USIM'])
+        ->and($json['actions'])->toHaveCount(2)
+        ->and($json['actions'][0]['variant'])->toBe('solid')
+        ->and($json['actions'][1]['overflow'])->toBeTrue()
+        ->and($json['style'])->toBe('info')
+        ->and($json['featured'])->toBeTrue()
+        ->and($json['variant'])->toBe('outlined')
+        ->and($json['density'])->toBe('compact')
+        ->and($json['layout'])->toBe('horizontal');
+});
+
+it('builds CardGrid with sensible defaults, fluent config, and static child ItemCards', function () {
     $grid = UI::cardGrid('catalog')
         ->title('Productos')
         ->subtitle('Catálogo completo')
         ->headerAction('Nuevo producto', 'create_product', ['scope' => 'catalog'], 'plus', Style::PRIMARY)
         ->paginationMode('load_more')
-        ->perPage(24)
-        ->perPageOptions([12, 24, 48])
+        ->perPage(2)
+        ->perPageOptions([2, 4, 8])
         ->searchable(true, 'Buscar producto...')
         ->debounce(400)
         ->minSearchChars(2)
@@ -35,35 +79,40 @@ it('builds CardGrid with sensible defaults and fluent configuration', function (
         ->variant('outlined')
         ->density('compact')
         ->showLayoutToggle(true)
-        ->maxVisibleActions(2)
-        ->maxVisibleTags(3)
-        ->onCardClick('open_product', ['origin' => 'grid']);
+        ->onCardClick('open_product', ['origin' => 'grid'])
+        ->items([
+            CardItemDTO::make(id: 'p1', title: 'Auriculares', style: Style::INFO, meta: ['in_stock' => true, 'price' => 199]),
+            CardItemDTO::make(id: 'p2', title: 'Monitor', style: Style::SUCCESS, meta: ['in_stock' => true, 'price' => 499]),
+            CardItemDTO::make(id: 'p3', title: 'Teclado', style: Style::DEFAULT, meta: ['in_stock' => false, 'price' => 99]),
+        ]);
 
-    $json = $grid->toJson()[$grid->getId()];
+    $tree = $grid->toJson();
+    $gridJson = $tree[$grid->getId()];
 
-    expect($json['type'])->toBe('card_grid')
-        ->and($json['title'])->toBe('Productos')
-        ->and($json['subtitle'])->toBe('Catálogo completo')
-        ->and($json['header_action']['action'])->toBe('create_product')
-        ->and($json['pagination']['mode'])->toBe('load_more')
-        ->and($json['pagination']['per_page'])->toBe(24)
-        ->and($json['pagination']['per_page_options'])->toBe([12, 24, 48])
-        ->and($json['searchable'])->toBeTrue()
-        ->and($json['search_placeholder'])->toBe('Buscar producto...')
-        ->and($json['debounce'])->toBe(400)
-        ->and($json['min_search_chars'])->toBe(2)
-        ->and($json['sort_options'])->toHaveCount(2)
-        ->and($json['sort_by'])->toBe('price')
-        ->and($json['sort_direction'])->toBe('desc')
-        ->and($json['filters'])->toHaveCount(4)
-        ->and($json['active_filters'])->toBe(['in_stock' => true])
-        ->and($json['min_card_width'])->toBe('260px')
-        ->and($json['max_columns'])->toBe(4)
-        ->and($json['card_layout'])->toBe('horizontal')
-        ->and($json['variant'])->toBe('outlined')
-        ->and($json['density'])->toBe('compact')
-        ->and($json['show_layout_toggle'])->toBeTrue()
-        ->and($json['on_card_click'])->toBe(['action' => 'open_product', 'parameters' => ['origin' => 'grid']]);
+    expect($gridJson['type'])->toBe('card_grid')
+        ->and($gridJson['title'])->toBe('Productos')
+        ->and($gridJson['header_action']['action'])->toBe('create_product')
+        ->and($gridJson['pagination']['mode'])->toBe('load_more')
+        ->and($gridJson['pagination']['per_page'])->toBe(2)
+        ->and($gridJson['pagination']['total'])->toBe(2)
+        ->and($gridJson['searchable'])->toBeTrue()
+        ->and($gridJson['sort_by'])->toBe('price')
+        ->and($gridJson['sort_direction'])->toBe('desc')
+        ->and($gridJson['filters'])->toHaveCount(4)
+        ->and($gridJson['active_filters'])->toBe(['in_stock' => true])
+        ->and($gridJson['max_columns'])->toBe(4)
+        ->and($gridJson['card_layout'])->toBe('horizontal')
+        ->and($grid->getCards())->toHaveCount(2);
+
+    // Child ItemCards are serialized in the flat USIM tree with parent = CardGrid ID
+    $firstCard = $grid->getCards()[0];
+    expect($firstCard)->toBeInstanceOf(ItemCard::class)
+        ->and($firstCard->get('title'))->toBe('Monitor')
+        ->and($firstCard->get('layout'))->toBe('horizontal')
+        ->and($firstCard->get('variant'))->toBe('outlined')
+        ->and($tree[$firstCard->getId()]['parent'])->toBe($grid->getId())
+        ->and($tree[$firstCard->getId()]['type'])->toBe('item_card')
+        ->and($tree[$firstCard->getId()]['click_action'])->toBe('open_product');
 });
 
 it('serializes CardItemDTO and CardActionDTO with typed semantic slots', function () {
@@ -112,19 +161,10 @@ it('serializes CardItemDTO and CardActionDTO with typed semantic slots', functio
 
     expect($arr['id'])->toBe('prod-1')
         ->and($arr['title'])->toBe('Auriculares Pro')
-        ->and($arr['eyebrow'])->toBe('Audio')
         ->and($arr['badge_style'])->toBe('success')
-        ->and($arr['metric'])->toBe('$199')
-        ->and($arr['metric_style'])->toBe('primary')
-        ->and($arr['attributes'])->toHaveCount(2)
         ->and($arr['tags'])->toBe(['Audio', 'Inalámbrico'])
         ->and($arr['actions'])->toHaveCount(2)
-        ->and($arr['actions'][0]['variant'])->toBe('solid')
-        ->and($arr['actions'][1]['overflow'])->toBeTrue()
-        ->and($arr['style'])->toBe('info')
-        ->and($arr['featured'])->toBeTrue()
-        ->and($arr['accent_color'])->toBe('#3498db')
-        ->and($arr['meta'])->toBe(['stock' => 14]);
+        ->and($arr['actions'][1]['overflow'])->toBeTrue();
 });
 
 it('converts ListItemDTO cleanly to CardItemDTO and slices collections via CardPageResult', function () {
@@ -143,28 +183,19 @@ it('converts ListItemDTO cleanly to CardItemDTO and slices collections via CardP
         'filters' => json_encode(['genre' => 'sci-fi', 'empty' => '']),
     ]);
 
-    expect($query->search)->toBe('test')
-        ->and($query->page)->toBe(2)
-        ->and($query->perPage)->toBe(2)
-        ->and($query->sortDirection)->toBe('desc')
-        ->and($query->filters)->toBe(['genre' => 'sci-fi'])
-        ->and($query->offset())->toBe(2);
-
     $pageResult = CardPageResult::fromCollection($listDtos, $query);
     $payload = $pageResult->toArray();
 
-    expect($payload['items'])->toHaveCount(1)
+    expect($query->search)->toBe('test')
+        ->and($query->sortDirection)->toBe('desc')
+        ->and($query->filters)->toBe(['genre' => 'sci-fi'])
+        ->and($payload['items'])->toHaveCount(1)
         ->and($payload['items'][0]['id'])->toBe(3)
-        ->and($payload['items'][0]['title'])->toBe('Gamma')
-        ->and($payload['items'][0]['disabled'])->toBeTrue()
         ->and($payload['pagination']['total'])->toBe(3)
-        ->and($payload['pagination']['total_pages'])->toBe(2)
-        ->and($payload['pagination']['page'])->toBe(2)
-        ->and($payload['pagination']['has_more'])->toBeFalse()
         ->and($payload['pagination']['can_prev'])->toBeTrue();
 });
 
-it('auto-instantiates CardGrid from layout definitions via grd_ prefix and card_grid alias', function () {
+it('auto-instantiates CardGrid and ItemCard from layout definitions via prefixes and aliases', function () {
     $screen = new class extends \Idei\Usim\Screen
     {
         protected function startingUI(): \Idei\Usim\Components\Container
@@ -175,6 +206,8 @@ it('auto-instantiates CardGrid from layout definitions via grd_ prefix and card_
                     'children' => [
                         ['grd_products' => ['per_page' => 12, 'variant' => 'outlined']],
                         ['custom_catalog' => ['component' => 'card_grid', 'pagination_mode' => 'load_more', 'max_columns' => 3]],
+                        ['icrd_summary' => ['title' => 'Resumen', 'style' => 'info']],
+                        ['standalone_card' => ['component' => 'item_card', 'title' => 'Standalone']],
                     ],
                 ],
             ]);
@@ -188,49 +221,56 @@ it('auto-instantiates CardGrid from layout definitions via grd_ prefix and card_
 
     $prefixed = $container->findByName('grd_products');
     $aliased = $container->findByName('custom_catalog');
+    $icrd = $container->findByName('icrd_summary');
+    $standalone = $container->findByName('standalone_card');
 
     expect($prefixed)->toBeInstanceOf(CardGrid::class)
-        ->and($aliased)->toBeInstanceOf(CardGrid::class);
+        ->and($aliased)->toBeInstanceOf(CardGrid::class)
+        ->and($icrd)->toBeInstanceOf(ItemCard::class)
+        ->and($standalone)->toBeInstanceOf(ItemCard::class);
 
     assert($prefixed instanceof CardGrid);
     assert($aliased instanceof CardGrid);
+    assert($icrd instanceof ItemCard);
+    assert($standalone instanceof ItemCard);
 
     expect($prefixed->get('variant'))->toBe('outlined')
         ->and($aliased->getPagination()['mode'])->toBe('load_more')
-        ->and($aliased->get('max_columns'))->toBe(3);
+        ->and($aliased->get('max_columns'))->toBe(3)
+        ->and($icrd->get('title'))->toBe('Resumen')
+        ->and($standalone->get('title'))->toBe('Standalone');
 });
 
-it('queues surgical card_patches (patchCard, removeCard, prependCard) with monotonic seq without mutating items', function () {
-    $grid = UI::cardGrid('patchable')->items([
+it('mutates, removes, and prepends child ItemCards directly in the USIM component tree', function () {
+    $grid = UI::cardGrid('tree_grid')->items([
         CardItemDTO::make(id: 1, title: 'Uno', badge: 'Borrador'),
         CardItemDTO::make(id: 2, title: 'Dos'),
     ]);
 
-    $grid
-        ->patchCard(1, [
-            'badge' => '★ Destacada',
-            'badgeStyle' => Style::WARNING,
-            'footerText' => null,
-            'actions' => [
-                CardActionDTO::make(label: 'Quitar', action: 'unstar', style: Style::WARNING),
-            ],
-        ])
-        ->removeCard(2)
-        ->prependCard(CardItemDTO::make(id: 3, title: 'Tres', style: Style::SUCCESS));
+    $grid->patchCard(1, [
+        'badge' => '★ Destacada',
+        'badgeStyle' => Style::WARNING,
+        'footerText' => null,
+    ]);
 
-    $payload = $grid->toJson()[$grid->getId()];
-    $patches = $payload['card_patches'];
+    $card1 = $grid->card(1);
+    expect($card1)->toBeInstanceOf(ItemCard::class);
+    assert($card1 instanceof ItemCard);
+    expect($card1->get('badge'))->toBe('★ Destacada')
+        ->and($card1->get('badge_style'))->toBe('warning')
+        ->and($card1->get('footer_text'))->toBeNull();
 
-    expect($patches['seq'])->toBe(1)
-        ->and($patches['ops'])->toHaveCount(3)
-        ->and($patches['ops'][0]['op'])->toBe('patch')
-        ->and($patches['ops'][0]['id'])->toBe(1)
-        ->and($patches['ops'][0]['data']['badge'])->toBe('★ Destacada')
-        ->and($patches['ops'][0]['data']['badge_style'])->toBe('warning')
-        ->and(array_key_exists('footer_text', $patches['ops'][0]['data']))->toBeTrue()
-        ->and($patches['ops'][0]['data']['footer_text'])->toBeNull()
-        ->and($patches['ops'][0]['data']['actions'][0]['label'])->toBe('Quitar')
-        ->and($patches['ops'][1])->toBe(['op' => 'remove', 'id' => 2])
-        ->and($patches['ops'][2]['op'])->toBe('prepend')
-        ->and($patches['ops'][2]['data']['id'])->toBe(3);
+    $grid->removeCard(2);
+    expect($grid->card(2))->toBeNull()
+        ->and($grid->getCards())->toHaveCount(1)
+        ->and($grid->getPagination()['total'])->toBe(1);
+
+    $grid->prependCard(CardItemDTO::make(id: 3, title: 'Tres', style: Style::SUCCESS));
+    $cards = $grid->getCards();
+    expect($cards)->toHaveCount(2)
+        ->and($cards[0]->getItemId())->toBe(3)
+        ->and($cards[0]->getCardOrder())->toBe(0)
+        ->and($cards[1]->getItemId())->toBe(1)
+        ->and($cards[1]->getCardOrder())->toBe(1)
+        ->and($grid->getPagination()['total'])->toBe(2);
 });

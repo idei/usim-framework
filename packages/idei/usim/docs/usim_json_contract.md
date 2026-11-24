@@ -372,26 +372,31 @@ Reglas de interpretación en cliente:
 - **Detección automática de *icon-only* (`button`):** Si `icon` está presente y `label` está vacío (`""` o `null`), el cliente aplica el layout compacto *icon-only* y utiliza `aria_label` o `tooltip` para accesibilidad.
 - **Resolución de nombres:** El shell web recibe `window.USIM_ICONS` generado por `UsimIconRegistry` (`public/images/icons` con prioridad sobre `public/vendor/idei/usim/icons` publicado vía `vendor:publish --tag=usim-icons`), con soporte de variantes por tema (`{nombre}-light.{ext}` / `{nombre}-dark.{ext}`) y fallback Unicode si la biblioteca aún no fue publicada. Ver catálogo completo en [ICONS_GUIDE.md](ICONS_GUIDE.md).
 
-## 5.6 Componente `card_grid`
+## 5.6 Componentes `card_grid` e `item_card`
 
-Representa una grilla 2D responsive de tarjetas estandarizadas con toolbar integrada (búsqueda con debounce, ordenamiento y filtros declarativos), paginado (`pages` o `load_more`), acciones por tarjeta (con menú de desborde `⋮`) y soporte de parches quirúrgicos incrementales (`card_patches`).
+`card_grid` representa una grilla 2D responsive orientada a datos que administra hijos reales **`item_card`** (con ID determinístico `<grid>__card_<itemId>` y `parent = <card_grid_id>`), aprovechando el diffing nativo `ADD` / `UPDATE` / `DELETE` (`parent: null`) de `ComponentDiffer`. `item_card` también puede renderizarse de forma independiente en cualquier contenedor (reemplazo moderno del `card` deprecado).
 
-Campos soportados:
+Campos soportados en `card_grid`:
 
 - `type` (string): `"card_grid"` (alias soportado: `"cardgrid"`).
 - `parent` (string|int): ID del contenedor padre.
 - `name` (string): Identificador funcional del componente.
 - `title`, `subtitle` (string, opcional), `show_count` (bool), `header_action` (object, opcional): cabecera del componente.
-- `items` (array): lista de tarjetas normalizadas (`CardItemDTO`: `{ id, title, subtitle?, eyebrow?, description?, image?, image_alt?, image_fit?, aspect_ratio?, icon?, avatar?, badge?, badge_style?, metric?, metric_label?, metric_style?, attributes?, tags?, footer_text?, actions?, click_action?, click_parameters?, url?, target?, style?, featured?, disabled?, accent_color?, meta? }`).
+- `visible_count` (int): cantidad de hijos `item_card` actualmente montados.
 - `pagination` (object): `{ mode: "pages"|"load_more", page, per_page, per_page_options, show_per_page, total, total_pages, has_more, can_prev, can_next }`.
 - `searchable`, `search_placeholder`, `search_term`, `min_search_chars`, `debounce`: configuración del buscador integrado.
 - `sort_options` (`list<{ field, label }>`), `sort_by`, `sort_direction` (`"asc"|"desc"`): configuración de ordenamiento.
 - `filters` (`list<{ name, label, type: "select"|"multi_select"|"toggle"|"chips", options?, placeholder?, default? }>`), `active_filters` (object): filtros declarativos renderizados en la toolbar.
-- `action` (string, opcional): acción de consulta vía `GET /api/ui-data` (por defecto `__usim_card_grid:<target>:query` al vincular `service:`), recibiendo `{ page, per_page, search, sort_by, sort_direction, filters, ...parameters }` y devolviendo `{ items, pagination }`.
-- `reload_token` (int, opcional): fuerza recarga completa de la página actual vía `GET /api/ui-data`.
-- `card_patches` (object, opcional): canal de parches quirúrgicos `{ seq: int, ops: list<{ op: "patch"|"replace"|"remove"|"prepend", id?, data? }> }` emitido en deltas de `POST /api/ui-event` para actualizar tarjetas puntuales en el DOM sin re-consultar `GET /api/ui-data` ni reenviar `items`.
-- `min_card_width`, `max_columns`, `gap`, `card_layout` (`"vertical"|"horizontal"`), `variant` (`"elevated"|"outlined"|"flat"`), `density` (`"compact"|"comfortable"|"spacious"`), `image_aspect_ratio`, `max_visible_actions`, `max_visible_tags`, `skeleton_count`, `show_layout_toggle`: presentación responsive.
-- `on_card_click` (string|object, opcional): acción por defecto vía `POST /api/ui-event` al hacer clic en una tarjeta.
+- `query_action` (string): acción interna despachada vía `POST /api/ui-event` (por defecto `__usim_card_grid:<target>:query`), recibiendo `{ page, per_page, search, sort_by, sort_direction, filters, append, ...parameters }` y devolviendo diffs incrementales nativos de `ComponentDiffer`.
+- `min_card_width`, `max_columns`, `gap`, `card_layout` (`"vertical"|"horizontal"`), `variant` (`"elevated"|"outlined"|"flat"`), `density` (`"compact"|"comfortable"|"spacious"`), `show_layout_toggle`: presentación responsive.
+
+Campos soportados en `item_card`:
+
+- `type` (string): `"item_card"` (alias soportado: `"itemcard"`).
+- `parent` (string|int): ID del contenedor padre (`card_grid`, `container`, etc.).
+- `item_id` (int|string, opcional) y `card_order` (int, opcional): identidad de dominio y orden explícito dentro de `card_grid`.
+- Slots de contenido: `title`, `subtitle`, `eyebrow`, `description`, `image`, `image_alt`, `image_fit` (`"cover"|"contain"`), `aspect_ratio`, `icon`, `avatar`, `badge`, `badge_style`, `metric`, `metric_label`, `metric_style`, `attributes` (`list<{ icon?, label, value }>`), `tags` (`list<string>`), `footer_text`, `actions` (`list<CardActionDTO>`), `click_action`, `click_parameters`, `url`, `target`.
+- Estilo y presentación: `style` (`Idei\Usim\Enums\Style`), `featured`, `disabled`, `accent_color`, `layout`, `variant`, `density`, `max_visible_actions`, `max_visible_tags`, `meta`.
 
 Ver especificación técnica completa en [CARD_GRID_AI_REFERENCE.md](CARD_GRID_AI_REFERENCE.md).
 

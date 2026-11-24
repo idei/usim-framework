@@ -12,6 +12,7 @@ use Idei\Usim\Components\Container;
 use Idei\Usim\Components\Form;
 use Idei\Usim\Components\Image;
 use Idei\Usim\Components\Input;
+use Idei\Usim\Components\ItemCard;
 use Idei\Usim\Components\ItemList;
 use Idei\Usim\Components\Label;
 use Idei\Usim\Components\MenuDropdown;
@@ -382,9 +383,7 @@ class ScreenLifecycleOrchestrator implements ScreenLifecycleOrchestratorInterfac
                     }
                 }
             } elseif (($binding = $this->resolveScreenComponentBinding($screen, $triggerComponentId, $method, queryOnly: false)) !== null) {
-                if ($binding['component'] instanceof ItemList) {
-                    $binding['component']->handleServiceAction($binding['operation'], $parameters, $screen);
-                }
+                $binding['component']->handleServiceAction($binding['operation'], $parameters, $screen);
             }
 
             $this->finalizeEventContext(screen: $screen, reload: false);
@@ -443,14 +442,13 @@ class ScreenLifecycleOrchestrator implements ScreenLifecycleOrchestratorInterfac
                 $result = $reflectionMethod->invokeArgs($screen, $arguments);
             } elseif (($binding = $this->resolveScreenComponentBinding($screen, $triggerComponentId, $method, queryOnly: true)) !== null) {
                 $boundComponent = $binding['component'];
-                if ($boundComponent instanceof CardGrid) {
-                    $mergedParams = array_merge($queryParams, $parameters);
-                    $result = $boundComponent->queryServicePage($mergedParams);
-                } else {
+                if ($boundComponent instanceof ItemList) {
                     $rawSearch = $parameters['search'] ?? $queryParams['search'] ?? '';
                     $search = is_scalar($rawSearch) ? (string) $rawSearch : '';
 
                     $result = $boundComponent->queryServiceItems($search, $parameters);
+                } else {
+                    throw new \BadMethodCallException("Query method [{$method}] does not exist on screen [".get_class($screen).'].');
                 }
             } else {
                 throw new \BadMethodCallException("Query method [{$method}] does not exist on screen [" . get_class($screen) . '].');
@@ -525,7 +523,7 @@ class ScreenLifecycleOrchestrator implements ScreenLifecycleOrchestratorInterfac
             return $itemListBinding;
         }
 
-        if ($queryOnly) {
+        if (! $queryOnly) {
             return $this->resolveCardGridServiceBinding($container, $componentId, $action);
         }
 
@@ -533,7 +531,7 @@ class ScreenLifecycleOrchestrator implements ScreenLifecycleOrchestratorInterfac
     }
 
     /**
-     * Resolve a CardGrid component and read-only query operation.
+     * Resolve a CardGrid component and event-driven query operation (`POST /api/ui-event`).
      *
      * @return array{component: CardGrid, operation: string}|null
      */
@@ -556,7 +554,7 @@ class ScreenLifecycleOrchestrator implements ScreenLifecycleOrchestratorInterfac
         }
 
         $operation = $parsed['operation'] ?? null;
-        if ($operation === null && $component->get('action') === $action) {
+        if ($operation === null && $component->get('query_action') === $action) {
             $operation = 'query';
         }
 
@@ -1075,7 +1073,12 @@ class ScreenLifecycleOrchestrator implements ScreenLifecycleOrchestratorInterfac
     protected function clearContainerDirtyState(Container $container): void
     {
         foreach ($container->getChildren() as $child) {
-            if ($child instanceof UIComponent) {
+            if ($child instanceof CardGrid) {
+                $child->clearDirtyKeys();
+                foreach ($child->getCards() as $card) {
+                    $card->clearDirtyKeys();
+                }
+            } elseif ($child instanceof UIComponent) {
                 $child->clearDirtyKeys();
             } elseif ($child instanceof Container) {
                 $this->clearContainerDirtyState($child);
@@ -1145,7 +1148,21 @@ class ScreenLifecycleOrchestrator implements ScreenLifecycleOrchestratorInterfac
         $ignoredKeys = ['type', 'parent', '_order', '_storage_path'];
 
         foreach ($container->getChildren() as $child) {
-            if ($child instanceof UIComponent) {
+            if ($child instanceof CardGrid) {
+                $elementsToInspect = [$child, ...$child->getCards()];
+                foreach ($elementsToInspect as $el) {
+                    $dirtyKeys = $el->getDirtyKeys();
+                    if (! empty($dirtyKeys)) {
+                        $id = $el->getId();
+                        foreach ($dirtyKeys as $key) {
+                            if (in_array($key, $ignoredKeys, true)) {
+                                continue;
+                            }
+                            $dirtyChanges[$id][$key] = $el->get($key);
+                        }
+                    }
+                }
+            } elseif ($child instanceof UIComponent) {
                 $dirtyKeys = $child->getDirtyKeys();
                 if (! empty($dirtyKeys)) {
                     $id = $child->getId();
@@ -1270,6 +1287,7 @@ class ScreenLifecycleOrchestrator implements ScreenLifecycleOrchestratorInterfac
             'split' => Split::class,
             'timer' => Timer::class,
             'item_list', 'itemlist' => ItemList::class,
+            'item_card', 'itemcard' => ItemCard::class,
             'card_grid', 'cardgrid' => CardGrid::class,
             default => null,
         };

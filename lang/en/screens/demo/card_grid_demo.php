@@ -4,7 +4,7 @@ return [
     'menu_title' => 'Card Grid Demo',
     'icon' => '🃏',
     'card_grid_demo_title' => '🃏 Movies Catalog — CardGrid Demo',
-    'card_grid_demo_intro' => 'Responsive CardGrid wired to CardListable via GET /api/ui-data, featuring debounced search, integrated filters, sorting, pagination (pages & load more), and per-card actions.',
+    'card_grid_demo_intro' => 'Responsive CardGrid managing first-class ItemCard components wired to CardListable via POST /api/ui-event, with native ComponentDiffer diffs, debounced search, integrated filters, sorting, and pagination (pages & load more).',
     'pagination_mode' => [
         'label' => 'Pagination Mode',
         'options' => [

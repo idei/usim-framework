@@ -4,7 +4,7 @@ return [
     'menu_title' => 'Grilla de Tarjetas',
     'icon' => '🃏',
     'card_grid_demo_title' => '🃏 Catálogo de Películas — CardGrid Demo',
-    'card_grid_demo_intro' => 'CardGrid responsive conectado a CardListable vía GET /api/ui-data, con buscador con debounce, filtros integrados, ordenamiento, paginado (páginas y cargar más) y acciones por tarjeta.',
+    'card_grid_demo_intro' => 'CardGrid responsive que administra componentes ItemCard conectados a CardListable vía POST /api/ui-event, con diffing nativo de ComponentDiffer, buscador, filtros integrados, ordenamiento y paginado (páginas y cargar más).',
     'pagination_mode' => [
         'label' => 'Modo de Paginado',
         'options' => [

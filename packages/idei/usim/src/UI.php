@@ -12,6 +12,7 @@ use Idei\Usim\Components\Container;
 use Idei\Usim\Components\Form;
 use Idei\Usim\Components\Image;
 use Idei\Usim\Components\Input;
+use Idei\Usim\Components\ItemCard;
 use Idei\Usim\Components\ItemList;
 use Idei\Usim\Components\Label;
 use Idei\Usim\Components\MenuDropdown;
@@ -188,10 +189,22 @@ class UI
      * Create a new card component
      *
      * @param  string|null  $name  The optional semantic name for the card
+     *
+     * @deprecated Since v2.20.0. Use UI::itemCard() or UI::container()->card() instead.
      */
     public static function card(?string $name = null): Card
     {
         return new Card($name);
+    }
+
+    /**
+     * Create a new standardized ItemCard component (standalone or inside CardGrid)
+     *
+     * @param  string|null  $name  The optional semantic name for the item card
+     */
+    public static function itemCard(?string $name = null): ItemCard
+    {
+        return new ItemCard($name);
     }
 
     /**

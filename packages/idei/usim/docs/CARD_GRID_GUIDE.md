@@ -1,6 +1,9 @@
-# Guía del Componente `CardGrid` (`UI::cardGrid()`)
+# Guía de `CardGrid` e `ItemCard` (`UI::cardGrid()` y `UI::itemCard()`)
 
-`CardGrid` es el componente de **grilla 2D responsive de tarjetas** de USIM (introducido en **v2.20.0**), diseñado para catálogos visuales, directorios, galerías, productos, cursos o tableros de fichas.
+Introducidos en **USIM v2.20.0**, **`ItemCard`** (`type: 'item_card'`) y **`CardGrid`** (`type: 'card_grid'`) conforman el sistema moderno de tarjetas de USIM, 100% alineado con la filosofía **server-driven + `ComponentDiffer` nativo**:
+
+- **`UI::itemCard()`** es un componente de tarjeta estandarizado de primera clase (reemplazo moderno de `UI::card()`, marcado `@deprecated` en v2.20.0). Puede usarse **suelto** en cualquier `Screen`, `Container`, `Modal` o `.layout.yaml`, o **administrado** dentro de un `CardGrid`.
+- **`UI::cardGrid()`** es una grilla 2D responsive que administra hijos reales `ItemCard`, conectada a servicios por contrato (`CardListable` o `Listable`) con toolbar integrada (búsqueda, ordenamiento y filtros) y paginado (`pages` y `load_more`) vía `POST /api/ui-event`.
 
 ---
 
@@ -8,15 +11,49 @@
 
 | Componente | Ideal para | Capacidades clave |
 |---|---|---|
-| `UI::table()` | Datos tabulares densos de backoffice | Columnas fijas, paginación y orden por columna |
+| `UI::table()` | Datos tabulares densos de backoffice | Columnas fijas, filas/celdas `TableRow`/`TableCell`, paginación y orden |
 | `UI::itemList()` | Listas 1D, selectores en formularios y CRUD inline | Selección simple/múltiple persistente, `Listable`/`Creatable`/`Updatable`/`Deletable` |
-| **`UI::cardGrid()`** | **Catálogos visuales, fichas ricas y exploración responsive** | **Grilla CSS responsive, búsqueda + filtros integrados + ordenamiento, paginado (`pages` / `load_more`), acciones por tarjeta y parcheo quirúrgico (`patchCard`)** |
+| **`UI::cardGrid()` + `UI::itemCard()`** | **Catálogos visuales, fichas ricas y tarjetas individuales** | **Grilla CSS responsive, hijos reales `ItemCard` con diffing nativo de `ComponentDiffer`, búsqueda + filtros + ordenamiento integrados y paginado (`pages` / `load_more`)** |
 
 ---
 
-## 2. Arquitectura y Contratos (`CardListable`)
+## 2. Uso de `ItemCard` de forma independiente (Standalone)
 
-`CardGrid` sigue el mismo principio de desacoplamiento que `ItemList`: la `Screen` no construye consultas SQL ni formatea filas manualmente, sino que vincula un servicio que implementa `Idei\Usim\Contracts\CardGrid\CardListable`:
+`ItemCard` funciona de forma completamente autónoma en cualquier contenedor o pantalla (por ejemplo, para reemplazar el viejo `UI::card()`):
+
+```php
+use Idei\Usim\Enums\Style;
+use Idei\Usim\UI;
+use Idei\Usim\ValueObjects\Size;
+use Idei\Usim\ValueObjects\Spacing;
+
+$card = UI::itemCard('welcome_card')
+    ->eyebrow('Cuenta')
+    ->title('Registro completado')
+    ->subtitle('Esperando asignación de rol')
+    ->description('Tu cuenta fue registrada correctamente y pronto será asignada a una unidad.')
+    ->icon('sparkles')
+    ->badge('Pendiente', Style::INFO)
+    ->style(Style::INFO)
+    ->maxWidth(Size::px(650))
+    ->marginTop(Spacing::px(24))
+    ->addAction('Ir al perfil', 'go_to_profile', icon: 'user', style: Style::PRIMARY, variant: 'solid')
+    ->addAction('Ver ayuda', 'open_help', style: Style::DEFAULT, variant: 'outline');
+```
+
+### Anatomía estandarizada (6 zonas tipadas, sin HTML crudo)
+1. **Media / Visual**: `image()` (con `loading="lazy"` y fallback automático), `aspectRatio()`, o `icon()` / `avatar()` cuando no hay imagen.
+2. **Header**: `eyebrow()`, `title()`, `subtitle()` y `badge($text, $style)`.
+3. **Highlight**: `metric($value, $label, $style)` (ej. precio, rating, porcentaje).
+4. **Body**: `description()` (line-clamp automático), `attributes([...])` (pares `{ icon?, label, value }`) y `tags([...])` (capado a `max_visible_tags` + `+N`).
+5. **Footer y Acciones**: siempre alineado al borde inferior (`margin-top: auto`). Muestra `footerText()` y hasta `max_visible_actions` botones (default `2`); cualquier acción adicional (o marcada `overflow: true`) colapsa automáticamente en un menú **`⋮`**.
+6. **Estilo y Estado**: `style(Style::...)` (borde superior `3px` en vertical / izquierdo `4px` en horizontal con soporte Light/Dark), `featured()`, `disabled()`, `accentColor()`, `variant('elevated'|'outlined'|'flat')`, `density('compact'|'comfortable'|'spacious')`, `vertical()` / `horizontal()`.
+
+---
+
+## 3. `CardGrid` conectado a un servicio `CardListable`
+
+El servicio de dominio sigue siendo 100% puro y desacoplado de la UI: implementa `Idei\Usim\Contracts\CardGrid\CardListable` y devuelve `CardPageResult` de `CardItemDTO`:
 
 ```php
 namespace App\Services\Catalog;
@@ -53,34 +90,11 @@ class ProductCardService implements CardListable
             metric: '$' . number_format($p->price, 0, ',', '.'),
             metricLabel: 'ARS',
             metricStyle: Style::PRIMARY,
-            attributes: [
-                ['icon' => 'box', 'label' => 'Stock', 'value' => (string) $p->stock],
-            ],
             tags: $p->tags ?? [],
-            footerText: "Actualizado {$p->updated_at->diffForHumans()}",
             actions: [
-                CardActionDTO::make(
-                    label: 'Ver',
-                    action: 'view_product',
-                    parameters: ['product_id' => $p->id],
-                    icon: 'eye',
-                    style: Style::PRIMARY,
-                    variant: 'solid',
-                ),
-                CardActionDTO::make(
-                    label: 'Favorito',
-                    action: 'toggle_favorite',
-                    parameters: ['product_id' => $p->id],
-                    icon: 'heart',
-                ),
-                // A partir de la 3ª acción (o con overflow: true), colapsa automáticamente en el menú ⋮
-                CardActionDTO::make(
-                    label: 'Archivar',
-                    action: 'archive_product',
-                    parameters: ['product_id' => $p->id],
-                    icon: 'trash',
-                    style: Style::DANGER,
-                ),
+                CardActionDTO::make(label: 'Ver', action: 'view_product', parameters: ['product_id' => $p->id], icon: 'eye', style: Style::PRIMARY, variant: 'solid'),
+                CardActionDTO::make(label: 'Favorito', action: 'toggle_favorite', parameters: ['product_id' => $p->id], icon: 'heart'),
+                CardActionDTO::make(label: 'Archivar', action: 'archive_product', parameters: ['product_id' => $p->id], icon: 'trash', style: Style::DANGER),
             ],
             clickAction: 'view_product',
             clickParameters: ['product_id' => $p->id],
@@ -88,77 +102,60 @@ class ProductCardService implements CardListable
             featured: (bool) $p->featured,
         ));
 
-        return CardPageResult::make(
-            items: $cards,
-            total: $total,
-            page: $query->page,
-            perPage: $query->perPage,
-        );
+        return CardPageResult::make(items: $cards, total: $total, page: $query->page, perPage: $query->perPage);
     }
 }
 ```
 
-### Compatibilidad con servicios `Listable` existentes
-Si ya tenés un servicio que implementa `Idei\Usim\Contracts\ItemList\Listable`, podés pasarlo directamente a `->service(MiListableService::class)`: `CardGrid` adapta automáticamente los `ListItemDTO` a `CardItemDTO` y pagina la colección con `CardPageResult::fromCollection()`.
+### Compatibilidad con servicios `Listable` y colecciones estáticas
+- Si ya tenés un servicio `Idei\Usim\Contracts\ItemList\Listable`, pasalo directo a `->service(...)`: `CardGrid` convierte automáticamente `ListItemDTO` → `CardItemDTO` y pagina con `CardPageResult::fromCollection()`.
+- Si no necesitás servicio, podés pasar `->items([...])`: búsqueda, filtros, orden y paginación siguen ejecutándose del lado del servidor sobre `POST /api/ui-event`.
 
 ---
 
-## 3. Anatomía Estandarizada de la Tarjeta (`CardItemDTO`)
+## 4. Cómo funciona el Diffing Nativo (`ComponentDiffer`)
 
-Para preservar jerarquía visual, alturas parejas por fila y compatibilidad automática con **Light y Dark mode**, cada tarjeta usa 6 zonas tipadas (sin HTML crudo):
+`CardGrid` crea y mantiene un componente hijo **`ItemCard`** por cada ítem visible en pantalla, con **ID determinístico por `item_id`** (`<grid>__card_<itemId>`).
 
-1. **Media / Visual**: `image` (lazy-loaded con fallback automático si falla), `imageAlt`, `imageFit` (`cover` | `contain`), `aspectRatio` (ej. `'16/9'`, `'4/3'`, `'1/1'`), o `icon` / `avatar` cuando no hay foto.
-2. **Header**: `eyebrow` (micro-etiqueta superior), `title` *(obligatorio, line-clamp 2)*, `subtitle` *(line-clamp 1)* y `badge` + `badgeStyle` (sobre la media si hay imagen, o alineado en cabecera si no).
-3. **Highlight (opcional)**: `metric`, `metricLabel`, `metricStyle` (precio, puntaje, porcentaje).
-4. **Body**: `description` *(line-clamp 3)*, `attributes` (pares `{ icon?, label, value }`) y `tags` (muestra hasta `max_visible_tags` + chip `+N`).
-5. **Footer y Acciones**: siempre alineado al borde inferior (`margin-top: auto`). Muestra `footerText` y hasta `max_visible_actions` botones visibles (por defecto `2`); el resto pasa automáticamente al menú contextual **`⋮`**.
-6. **Estilo y Estado**: `style` (`Idei\Usim\Enums\Style`), `featured` (destacada), `disabled`, `accentColor` (acento controlado en borde superior/izquierdo).
-
----
-
-## 4. Toolbar Integrada: Búsqueda, Filtros y Ordenamiento
-
-Los controles de consulta viven dentro del propio `CardGrid` y ejecutan peticiones de solo lectura hacia `GET /api/ui-data` (con `debounce`, cancelación automática vía `AbortController` y reset automático a `page = 1`):
+Esto significa que el diffing es **100% estándar de USIM**, sin protocolos paralelos:
 
 ```php
-$grid = UI::cardGrid('products_grid')
-    ->title('Catálogo de Productos')
-    ->subtitle('Explora, filtra y gestiona los productos disponibles')
-    ->service(ProductCardService::class)
-    ->searchable(true, 'Buscar por nombre, SKU o marca...')
-    ->debounce(250)
-    ->sortOptions([
-        ['field' => 'name', 'label' => 'Nombre'],
-        ['field' => 'price', 'label' => 'Precio'],
-    ])
-    ->defaultSort('name', 'asc')
-    ->addSelectFilter('category', 'Categoría', ['audio' => 'Audio', 'video' => 'Video'])
-    ->addMultiSelectFilter('tags', 'Etiquetas', ['4K' => '4K', 'Oferta' => 'Oferta'])
-    ->addToggleFilter('in_stock', 'Solo en stock')
-    ->addChipsFilter('tier', 'Gama', ['basic' => 'Inicial', 'pro' => 'Pro'])
-    ->paginationMode('pages') // o 'load_more'
-    ->perPage(12)
-    ->perPageOptions([12, 24, 36, 48])
-    ->minCardWidth('280px')
-    ->maxColumns(4)
-    ->cardLayout('vertical') // o 'horizontal'
-    ->variant('elevated')    // 'elevated' | 'outlined' | 'flat'
-    ->density('comfortable') // 'compact' | 'comfortable' | 'spacious'
-    ->showLayoutToggle(true)
-    ->onCardClick('view_product');
+public function onToggleFavorite(array $params): void
+{
+    $movieId = (int) ($params['movie_id'] ?? $params['id'] ?? 0);
+    $added = app(MovieCardGridService::class)->toggleFavorite($movieId);
+
+    // Mutación directa sobre el ItemCard hijo montado:
+    // ComponentDiffer envía ÚNICAMENTE las propiedades modificadas de ese ItemCard
+    // (0 diff sobre CardGrid, 0 diff sobre las demás tarjetas, 0 recarga de imagen)
+    $this->movies_grid->card($movieId)
+        ?->badge($added ? '★ Favorita' : 'Destacada', $added ? Style::WARNING : Style::PRIMARY)
+        ->footerText($added ? 'En tu lista' : '148 min')
+        ->actions($updatedActions);
+}
 ```
 
-- **Chips de filtros activos**: aparecen automáticamente al activar cualquier filtro, con borrado individual (`×`) y botón `"Limpiar filtros"`.
-- **Responsive móvil**: en pantallas angostas (`<= 720px`) los filtros se colapsan bajo un botón `"Filtros (N)"` y las tarjetas horizontales pasan automáticamente a formato vertical.
+Operaciones disponibles en `CardGrid`:
+- `$grid->card($itemId)`: devuelve el `ItemCard` hijo actualmente montado para mutarlo directamente con la API fluida (o `$card->patch([...])`).
+- `$grid->patchCard($itemId, CardItemDTO|array $changes)`: atajo para aplicar un DTO o un array parcial sobre `$grid->card($itemId)`.
+- `$grid->removeCard($itemId)`: desengancha ese `ItemCard` del árbol → `ComponentDiffer` emite `{ "<card_id>": { "parent": null } }` y actualiza `pagination.total`.
+- `$grid->prependCard(CardItemDTO|array $card)`: agrega un `ItemCard` en `card_order: 0` → `ComponentDiffer` emite solo la nueva tarjeta y los `card_order` desplazados.
+- `$grid->reload()`: vuelve a consultar el servicio con el estado actual (búsqueda, orden, filtros, página) y sincroniza los hijos reutilizando IDs existentes.
+
+### Comportamiento en búsquedas, filtros y `load_more`
+- Todas las consultas de la toolbar (búsqueda con debounce, filtros `select`/`multi_select`/`toggle`/`chips`, ordenamiento y paginación) se envían vía **`POST /api/ui-event`** hacia la acción interna `__usim_card_grid:<nombre>:query` (atendida automáticamente por `ScreenLifecycleOrchestrator` sin código extra en la `Screen`).
+- Si un ítem que ya estaba en pantalla sigue coincidiendo tras filtrar o buscar, **conserva su ID y produce diff = 0** (sin parpadeo de imagen).
+- En modo **`load_more`**, las tarjetas ya montadas **quedan intactas** (diff = 0) y `ComponentDiffer` envía únicamente las N tarjetas nuevas de la página siguiente.
 
 ---
 
 ## 5. Uso Declarativo en `.layout.yaml`
 
-`CardGrid` soporta el prefijo automático **`grd_`** y el alias explícito **`component: card_grid`** (o `cardgrid`), junto con `i18n: auto`:
+- `CardGrid`: prefijo automático **`grd_`** o alias **`component: card_grid`** (`cardgrid`).
+- `ItemCard` standalone: prefijo automático **`icrd_`** o alias **`component: item_card`** (`itemcard`).
 
 ```yaml
-name: catalog_wrapper
+name: card_grid_demo_wrapper
 appearance: card
 max_width: 1200
 center_horizontal: true
@@ -185,42 +182,11 @@ grid:
         on_card_click: view_movie
 ```
 
-> [!TIP]
-> Gracias a la hidratación diferida de `CardGrid`, podés declarar `service:` antes que `per_page:`, `sort_by:` o `filters:` en YAML (o ajustarlos en `startingUI()`) y solo se ejecutará una única consulta inicial con la configuración final.
-
 ---
 
-## 6. Parcheo Quirúrgico vs Recarga (`patchCard` vs `reload`)
+## 6. Demo, Tests y Referencia IA
 
-Cuando una acción de tarjeta modifica **solo un ítem** (marcar favorito/estrella, fijar un pin, cambiar un estado o deshabilitar una acción), usá los métodos quirúrgicos para evitar un segundo `GET /api/ui-data` y evitar reconstruir el resto de la grilla:
-
-```php
-public function onToggleFavorite(array $params): void
-{
-    $movieId = (int) ($params['movie_id'] ?? $params['id'] ?? 0);
-    $added = app(MovieCardGridService::class)->toggleFavorite($movieId);
-
-    // Envía únicamente { card_patches: { seq, ops: [...] } } en el diff de POST /api/ui-event
-    $this->movies_grid->patchCard($movieId, [
-        'badge' => $added ? '★ Favorita' : 'Destacada',
-        'badge_style' => $added ? Style::WARNING : Style::PRIMARY,
-        'footer_text' => $added ? 'En tu lista' : '148 min',
-    ]);
-}
-```
-
-Métodos disponibles:
-- `patchCard($id, array $changes)`: merge parcial en el cliente (los `null` explícitos limpian el slot; reutiliza el `<img>` existente si la URL no cambió).
-- `patchCard($id, CardItemDTO $card)`: reemplaza únicamente esa tarjeta en el DOM.
-- `removeCard($id)`: elimina solo esa tarjeta del DOM y decrementa el contador total.
-- `prependCard(CardItemDTO|array $card)`: inserta una nueva tarjeta al inicio sin re-consultar.
-- `reload()`: usar solo cuando la mutación altera el ordenamiento o el conjunto filtrado global de la página actual.
-
----
-
-## 7. Demo y Referencia Rápida
-
-- **Pantalla demo**: `App\UI\Screens\Demo\CardGridDemo` (accesible desde el menú **Demos → Grilla de Tarjetas**).
+- **Pantalla demo**: `App\UI\Screens\Demo\CardGridDemo` (**Demos → Grilla de Tarjetas**).
 - **Servicio demo**: `App\Services\Movie\MovieCardGridService`.
-- **Tests de referencia**: `tests/Unit/CardGridComponentTest.php` y `tests/Feature/CardGridServiceWiringTest.php`.
+- **Tests**: `tests/Unit/CardGridComponentTest.php` y `tests/Feature/CardGridServiceWiringTest.php`.
 - **Referencia técnica para IA**: [CARD_GRID_AI_REFERENCE.md](CARD_GRID_AI_REFERENCE.md).

@@ -45,6 +45,8 @@
     <link rel="stylesheet"
         href="{{ asset('vendor/idei/usim/css/components/item-list/index.css') }}?v={{ $usimAssetVersion('vendor/idei/usim/css/components/item-list/index.css') }}">
     <link rel="stylesheet"
+        href="{{ asset('vendor/idei/usim/css/components/item-card/index.css') }}?v={{ $usimAssetVersion('vendor/idei/usim/css/components/item-card/index.css') }}">
+    <link rel="stylesheet"
         href="{{ asset('vendor/idei/usim/css/components/card-grid/index.css') }}?v={{ $usimAssetVersion('vendor/idei/usim/css/components/card-grid/index.css') }}">
     <link rel="stylesheet"
         href="{{ asset('vendor/idei/usim/css/components/nav-tree/index.css') }}?v={{ $usimAssetVersion('vendor/idei/usim/css/components/nav-tree/index.css') }}">
@@ -164,6 +166,9 @@
     </script>
     <script
         src="{{ asset('vendor/idei/usim/js/components/item-list/index.js') }}?v={{ $usimAssetVersion('vendor/idei/usim/js/components/item-list/index.js') }}">
+    </script>
+    <script
+        src="{{ asset('vendor/idei/usim/js/components/item-card/index.js') }}?v={{ $usimAssetVersion('vendor/idei/usim/js/components/item-card/index.js') }}">
     </script>
     <script
         src="{{ asset('vendor/idei/usim/js/components/card-grid/index.js') }}?v={{ $usimAssetVersion('vendor/idei/usim/js/components/card-grid/index.js') }}">

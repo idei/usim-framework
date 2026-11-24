@@ -11,6 +11,8 @@ use Idei\Usim\Support\UIIdGenerator;
  * Flexible card component for displaying structured content with support for
  * titles, images, actions, badges, and multiple visual styles. Supports both
  * clickable and static modes with customizable layout and appearance.
+ *
+ * @deprecated Since v2.20.0. Use Idei\Usim\Components\ItemCard (`UI::itemCard()`) or `UI::container()->card()` instead.
  */
 class Card extends UIComponent
 {

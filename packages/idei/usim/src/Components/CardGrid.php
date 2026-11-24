@@ -4,26 +4,32 @@ namespace Idei\Usim\Components;
 
 use Idei\Usim\Contracts\CardGrid\CardListable;
 use Idei\Usim\Contracts\ItemList\Listable;
-use Idei\Usim\DTOs\CardActionDTO;
+use Idei\Usim\Contracts\UIElement;
 use Idei\Usim\DTOs\CardItemDTO;
 use Idei\Usim\DTOs\CardPageResult;
 use Idei\Usim\DTOs\CardQuery;
 use Idei\Usim\DTOs\ListItemDTO;
 use Idei\Usim\Enums\Style;
+use Idei\Usim\Screen;
 use Idei\Usim\ValueObjects\Size;
 use Illuminate\Contracts\Support\Arrayable;
 use Illuminate\Support\Collection;
 
 /**
- * Builder for CardGrid UI components.
+ * Builder for CardGrid UI components (`type: 'card_grid'`).
  *
- * Responsive 2D card grid component supporting:
- * - Service binding via CardListable (and seamless fallback for Listable)
- * - Asynchronous querying via GET /api/ui-data (search, sort, integrated filters, pagination)
- * - Classic numbered pagination ('pages') and incremental 'load_more' mode
- * - Standardized client-side card rendering with media, icons, badges, metrics, attributes, tags, and actions
- * - Semantic per-card styling compatible with USIM Light/Dark design tokens
- * - Card click and per-card action events dispatched to Screen via POST /api/ui-event
+ * Pure server-driven USIM responsive 2D card grid managing first-class child
+ * `ItemCard` components with native `ComponentDiffer` incremental diffs:
+ * - Service binding via `CardListable` (and automatic fallback for `Listable`),
+ *   plus server-side static collection support via `items()`
+ * - Integrated toolbar (debounced search, sorting, declarative filters: select,
+ *   multi_select, toggle, chips) and pagination (`pages` & `load_more`) dispatched
+ *   via `POST /api/ui-event` so the server always owns the authoritative card tree
+ * - Deterministic per-item child `ItemCard` IDs (`<grid>__card_<itemId>`), so:
+ *   - Mutating one card (`$grid->card($id)->badge(...)` or `$grid->patchCard(...)`)
+ *     emits ONLY that single `ItemCard`'s changed properties
+ *   - Removing one card (`$grid->removeCard($id)`) emits `{ "<id>": { "parent": null } }`
+ *   - `load_more` keeps already-mounted cards untouched (zero diff) and emits ONLY new cards
  */
 class CardGrid extends UIComponent
 {
@@ -36,19 +42,18 @@ class CardGrid extends UIComponent
     protected bool $itemsManuallySet = false;
 
     /**
-     * Surgical patch operations queued during the current event lifecycle.
+     * Active child ItemCard components keyed by stringified item ID.
      *
-     * @var list<array<string, mixed>>
+     * @var array<string, ItemCard>
      */
-    protected array $pendingPatchOps = [];
-
-    protected ?int $currentPatchSeq = null;
+    protected array $cards = [];
 
     public function __construct(?string $name = null)
     {
         parent::__construct($name);
         $this->type = 'card_grid';
         $this->config['type'] = 'card_grid';
+        $this->config['query_action'] = $this->serviceActionFor('query');
     }
 
     /**
@@ -63,8 +68,8 @@ class CardGrid extends UIComponent
             'show_count' => true,
             'header_action' => null,
 
-            // Items & Pagination
-            'items' => [],
+            // Pagination & Active Count
+            'visible_count' => 0,
             'pagination' => [
                 'mode' => 'pages', // 'pages' | 'load_more'
                 'page' => 1,
@@ -94,16 +99,14 @@ class CardGrid extends UIComponent
             'filters' => [],
             'active_filters' => [],
 
-            // Remote Data Query (GET /api/ui-data) & Service Binding
-            'action' => null,
+            // Service Binding & Event Query Action (POST /api/ui-event)
+            'query_action' => null,
             'parameters' => [],
-            'auto_fetch' => true,
-            'reload_token' => 0,
-            'card_patches' => null,
             'loading' => false,
             'service' => null,
+            'static_items' => null,
 
-            // Grid & Standardized Card Appearance
+            // Grid & Child ItemCard Presentation
             'min_card_width' => '280px',
             'max_columns' => null,
             'gap' => '16px',
@@ -116,7 +119,7 @@ class CardGrid extends UIComponent
             'skeleton_count' => 6,
             'show_layout_toggle' => false,
 
-            // Events
+            // Default click action propagated to child ItemCards lacking their own clickAction/url
             'on_card_click' => null,
 
             // States & Copy
@@ -124,13 +127,48 @@ class CardGrid extends UIComponent
             'empty_message' => 'No hay elementos para mostrar',
             'no_results_message' => 'No se encontraron resultados con los criterios actuales',
             'min_chars_message' => 'Escribe al menos :count caracteres para buscar...',
-            'error_message' => 'No se pudieron cargar los elementos',
             'load_more_label' => 'Cargar más',
             'clear_filters_label' => 'Limpiar filtros',
             'sort_label' => 'Ordenar',
             'filters_label' => 'Filtros',
-            'retry_label' => 'Reintentar',
         ];
+    }
+
+    // ─── Tree Connection & Serialization ──────────────────────────────────────
+
+    public function connectChild(UIElement $element): void
+    {
+        if ($element instanceof ItemCard) {
+            $element->setParent($this->id);
+            $this->cards[$element->getItemKey()] = $element;
+        }
+    }
+
+    public function postConnect(): void
+    {
+        if ($this->cards === []) {
+            return;
+        }
+
+        uasort($this->cards, static fn (ItemCard $a, ItemCard $b): int => $a->getCardOrder() <=> $b->getCardOrder());
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public function toJson(?int $order = null): array
+    {
+        $this->hydrateServicePageIfStale();
+
+        $result = parent::toJson($order);
+
+        $orderedCards = $this->getCards();
+        foreach ($orderedCards as $index => $card) {
+            $card->setParent($this->id);
+            $result += $card->toJson($index + 1);
+        }
+
+        return $result;
     }
 
     // ─── Header ───────────────────────────────────────────────────────────────
@@ -182,10 +220,36 @@ class CardGrid extends UIComponent
         ]);
     }
 
-    // ─── Items & Pagination Result ────────────────────────────────────────────
+    // ─── Child ItemCard Management (Native USIM Tree) ─────────────────────────
 
     /**
-     * Set static or initial card items.
+     * Retrieve a currently mounted child ItemCard by its domain item ID.
+     */
+    public function card(int|string $itemId): ?ItemCard
+    {
+        $this->hydrateServicePageIfStale();
+
+        return $this->cards[(string) $itemId] ?? null;
+    }
+
+    /**
+     * Retrieve all currently mounted child ItemCards ordered by position.
+     *
+     * @return list<ItemCard>
+     */
+    public function getCards(): array
+    {
+        $this->hydrateServicePageIfStale();
+
+        $list = array_values($this->cards);
+        usort($list, static fn (ItemCard $a, ItemCard $b): int => $a->getCardOrder() <=> $b->getCardOrder());
+
+        return $list;
+    }
+
+    /**
+     * Set static card items (no external service needed).
+     * Search, sort, filters, and pagination are evaluated server-side via POST /api/ui-event.
      *
      * @param  Collection<covariant int|string, covariant mixed>|array<int|string, mixed>  $items
      */
@@ -195,62 +259,132 @@ class CardGrid extends UIComponent
         $this->serviceDataStale = false;
 
         $normalized = self::normalizeItems($items);
-        $this->setConfig('items', $normalized);
+        $this->setConfig('static_items', $normalized);
 
-        $pagination = $this->getPagination();
-        $total = count($normalized);
-        $perPage = max(1, $pagination['per_page']);
-        $totalPages = $total > 0 ? (int) ceil($total / $perPage) : 0;
-        $page = min($pagination['page'], max(1, $totalPages));
+        $result = $this->executeStaticQuery($this->buildQueryFromCurrentState());
+        $this->syncCardsFromPageResult($result, append: false);
 
-        $pagination['total'] = $total;
-        $pagination['total_pages'] = $totalPages;
-        $pagination['page'] = $page;
-        $pagination['has_more'] = ($page * $perPage) < $total;
-        $pagination['can_prev'] = $page > 1;
-        $pagination['can_next'] = $pagination['has_more'];
-
-        return $this->setConfig('pagination', $pagination);
+        return $this;
     }
 
     /**
-     * Apply a CardPageResult (items + server pagination metadata) directly to the component.
+     * Apply a CardPageResult directly, synchronizing child ItemCard components
+     * and pagination metadata.
      */
-    public function pageResult(CardPageResult $result): static
+    public function pageResult(CardPageResult $result, bool $append = false): static
     {
         $this->serviceDataStale = false;
-        $payload = $result->toArray();
-        $this->setConfig('items', $payload['items']);
+        $this->syncCardsFromPageResult($result, append: $append);
 
-        $pagination = array_merge($this->getPagination(), $payload['pagination']);
-
-        return $this->setConfig('pagination', $pagination);
+        return $this;
     }
 
     /**
-     * @return list<array<string, mixed>>
+     * Mutate a single mounted child ItemCard cleanly via native ComponentDiffer.
+     *
+     * Accepts either a full CardItemDTO or a partial associative array of changed
+     * fields. Emits ONLY the mutated properties of that single ItemCard.
+     *
+     * @param  CardItemDTO|array<string, mixed>  $changes
      */
-    public function getItems(): array
+    public function patchCard(int|string $id, CardItemDTO|array $changes): static
     {
-        $this->hydrateServicePageIfStale();
-
-        $raw = $this->config['items'] ?? [];
-        if (! is_array($raw)) {
-            return [];
+        $card = $this->card($id);
+        if ($card === null) {
+            return $this;
         }
 
-        return self::normalizeItems($raw);
+        if ($changes instanceof CardItemDTO) {
+            [$defaultClickAction, $defaultClickParams] = $this->resolveDefaultClickConfig();
+            $aspectRatio = is_string($this->config['image_aspect_ratio'] ?? null)
+                ? $this->config['image_aspect_ratio']
+                : '16/9';
+            $card->applyFromDTO($changes, $defaultClickAction, $defaultClickParams, $aspectRatio);
+            $this->applyGridPresentationToCard($card);
+
+            return $this;
+        }
+
+        $card->patch($changes);
+
+        return $this;
     }
 
     /**
-     * {@inheritDoc}
+     * Remove a single mounted child ItemCard from the grid tree.
+     * ComponentDiffer automatically emits `{ "<card_id>": { "parent": null } }`.
      */
-    public function toJson(?int $order = null): array
+    public function removeCard(int|string $id): static
     {
         $this->hydrateServicePageIfStale();
+        $key = (string) $id;
 
-        return parent::toJson($order);
+        if (! isset($this->cards[$key])) {
+            return $this;
+        }
+
+        $this->cards[$key]->setParent(null);
+        unset($this->cards[$key]);
+
+        $this->reindexCardPositions();
+        $this->setConfig('visible_count', count($this->cards));
+
+        $pagination = $this->getPagination();
+        if ($pagination['total'] !== null) {
+            $pagination['total'] = max(0, $pagination['total'] - 1);
+            $pagination['total_pages'] = $pagination['total'] > 0
+                ? (int) ceil($pagination['total'] / max(1, $pagination['per_page']))
+                : 0;
+            $pagination['has_more'] = ($pagination['page'] * $pagination['per_page']) < $pagination['total'];
+            $pagination['can_next'] = $pagination['has_more'];
+            $this->setConfig('pagination', $pagination);
+        }
+
+        return $this;
     }
+
+    /**
+     * Prepend a new ItemCard at position 0 of the grid tree.
+     * ComponentDiffer emits ONLY the new ItemCard and position updates for shifted siblings.
+     *
+     * @param  CardItemDTO|array<string, mixed>  $card
+     */
+    public function prependCard(CardItemDTO|array $card): static
+    {
+        $this->hydrateServicePageIfStale();
+        $dto = $card instanceof CardItemDTO ? $card : CardItemDTO::fromArray($card);
+        $key = (string) $dto->id;
+
+        $ordered = array_values(array_filter(
+            $this->getCards(),
+            static fn (ItemCard $existing): bool => $existing->getItemKey() !== $key
+        ));
+
+        $itemCard = $this->cards[$key] ?? $this->instantiateChildCard($key);
+        $this->hydrateChildCard($itemCard, $dto, 0);
+
+        $newMap = [$key => $itemCard];
+        foreach ($ordered as $idx => $existing) {
+            $existing->cardOrder($idx + 1);
+            $newMap[$existing->getItemKey()] = $existing;
+        }
+
+        $this->cards = $newMap;
+        $this->setConfig('visible_count', count($this->cards));
+
+        $pagination = $this->getPagination();
+        if ($pagination['total'] !== null) {
+            $pagination['total'] += 1;
+            $pagination['total_pages'] = (int) ceil($pagination['total'] / max(1, $pagination['per_page']));
+            $pagination['has_more'] = ($pagination['page'] * $pagination['per_page']) < $pagination['total'];
+            $pagination['can_next'] = $pagination['has_more'];
+            $this->setConfig('pagination', $pagination);
+        }
+
+        return $this;
+    }
+
+    // ─── Pagination ───────────────────────────────────────────────────────────
 
     /**
      * @return array{
@@ -321,9 +455,6 @@ class CardGrid extends UIComponent
         return $this->setConfig('pagination', $pagination);
     }
 
-    /**
-     * Set number of cards per page.
-     */
     public function perPage(int $perPage): static
     {
         $pagination = $this->getPagination();
@@ -334,8 +465,6 @@ class CardGrid extends UIComponent
     }
 
     /**
-     * Set selectable page size options (multiples of 12 work best across 1-4 columns).
-     *
      * @param  array<int, int>  $options
      */
     public function perPageOptions(array $options): static
@@ -420,12 +549,6 @@ class CardGrid extends UIComponent
     // ─── Sorting ──────────────────────────────────────────────────────────────
 
     /**
-     * Define sortable fields shown in the integrated sort selector.
-     *
-     * Accepts:
-     * - [['field' => 'title', 'label' => 'Título'], ...]
-     * - ['title' => 'Título', 'release_year' => 'Año']
-     *
      * @param  array<int|string, mixed>  $options
      */
     public function sortOptions(array $options): static
@@ -496,10 +619,6 @@ class CardGrid extends UIComponent
     // ─── Integrated Toolbar Filters ───────────────────────────────────────────
 
     /**
-     * Set declarative filter definitions rendered inside the CardGrid toolbar.
-     *
-     * Supported types: 'select', 'multi_select', 'toggle', 'chips'.
-     *
      * @param  array<int, array<string, mixed>>  $filters
      */
     public function filters(array $filters): static
@@ -528,15 +647,13 @@ class CardGrid extends UIComponent
         $this->setConfig('filters', $normalized);
 
         if ($defaults !== []) {
-            $this->setConfig('active_filters', $defaults);
+            $this->activeFilters($defaults);
         }
 
         return $this;
     }
 
     /**
-     * Add a single-select dropdown filter to the integrated toolbar.
-     *
      * @param  array<int|string, mixed>  $options
      */
     public function addSelectFilter(
@@ -557,8 +674,6 @@ class CardGrid extends UIComponent
     }
 
     /**
-     * Add a multi-select checkbox dropdown filter to the integrated toolbar.
-     *
      * @param  array<int|string, mixed>  $options
      * @param  list<string>  $default
      */
@@ -579,9 +694,6 @@ class CardGrid extends UIComponent
         ]);
     }
 
-    /**
-     * Add a boolean toggle pill filter to the integrated toolbar.
-     */
     public function addToggleFilter(
         string $name,
         string $label,
@@ -596,8 +708,6 @@ class CardGrid extends UIComponent
     }
 
     /**
-     * Add a quick-select chips filter row to the integrated toolbar.
-     *
      * @param  array<int|string, mixed>  $options
      */
     public function addChipsFilter(
@@ -616,8 +726,6 @@ class CardGrid extends UIComponent
     }
 
     /**
-     * Set active filter values map.
-     *
      * @param  array<string, mixed>  $filters
      */
     public function activeFilters(array $filters): static
@@ -635,9 +743,6 @@ class CardGrid extends UIComponent
         return $this->setConfig('active_filters', $clean);
     }
 
-    /**
-     * Set or clear a single active filter value.
-     */
     public function setFilter(string $name, mixed $value): static
     {
         $active = $this->getActiveFilters();
@@ -673,31 +778,21 @@ class CardGrid extends UIComponent
         return $result;
     }
 
-    // ─── Remote Data Query & Service Binding ──────────────────────────────────
+    // ─── Service Binding & Event-Driven Querying (POST /api/ui-event) ─────────
 
     /**
-     * Set the action used to fetch card pages asynchronously via GET /api/ui-data.
+     * Override the Screen action invoked for query events (search, sort, filter, paginate).
      *
      * @param  array<string, mixed>  $parameters
      */
-    public function action(?string $action, array $parameters = []): static
+    public function queryAction(?string $action, array $parameters = []): static
     {
-        $this->setConfig('action', $action);
+        $this->setConfig('query_action', $action);
         if ($parameters !== []) {
             $this->setConfig('parameters', $parameters);
         }
 
         return $this;
-    }
-
-    /**
-     * Alias for action() matching ItemList API.
-     *
-     * @param  array<string, mixed>  $parameters
-     */
-    public function dataAction(?string $action, array $parameters = []): static
-    {
-        return $this->action($action, $parameters);
     }
 
     /**
@@ -708,80 +803,13 @@ class CardGrid extends UIComponent
         return $this->setConfig('parameters', $parameters);
     }
 
-    public function autoFetch(bool $autoFetch = true): static
-    {
-        return $this->setConfig('auto_fetch', $autoFetch);
-    }
-
-    /**
-     * Trigger a reactive client-side reload of the current card page via GET /api/ui-data.
-     */
-    public function reload(): static
-    {
-        $current = $this->config['reload_token'] ?? 0;
-        $next = is_int($current) ? $current + 1 : 1;
-
-        return $this->setConfig('reload_token', $next);
-    }
-
-    /**
-     * Surgically patch a single card on the client without re-fetching GET /api/ui-data
-     * or re-rendering other cards.
-     *
-     * Accepts either a full CardItemDTO (replaces that single card) or a partial
-     * associative array of changed fields (e.g. ['badge' => '★ Favorita', 'badge_style' => Style::WARNING]).
-     * Explicit null values clear the corresponding optional slot on the client.
-     *
-     * @param  CardItemDTO|array<string, mixed>  $changes
-     */
-    public function patchCard(int|string $id, CardItemDTO|array $changes): static
-    {
-        if ($changes instanceof CardItemDTO) {
-            return $this->queuePatchOp([
-                'op' => 'replace',
-                'id' => $id,
-                'data' => $changes->toArray(),
-            ]);
-        }
-
-        return $this->queuePatchOp([
-            'op' => 'patch',
-            'id' => $id,
-            'data' => self::normalizePartialCardPatch($changes),
-        ]);
-    }
-
-    /**
-     * Surgically remove a single card from the client DOM without re-fetching GET /api/ui-data.
-     */
-    public function removeCard(int|string $id): static
-    {
-        return $this->queuePatchOp([
-            'op' => 'remove',
-            'id' => $id,
-        ]);
-    }
-
-    /**
-     * Surgically prepend a new card to the client grid without re-fetching GET /api/ui-data.
-     *
-     * @param  CardItemDTO|array<string, mixed>  $card
-     */
-    public function prependCard(CardItemDTO|array $card): static
-    {
-        return $this->queuePatchOp([
-            'op' => 'prepend',
-            'data' => self::normalizeSingleItem($card),
-        ]);
-    }
-
     public function loading(bool $loading = true): static
     {
         return $this->setConfig('loading', $loading);
     }
 
     /**
-     * Bind a CardListable (or Listable) service and auto-wire the GET /api/ui-data endpoint.
+     * Bind a CardListable (or Listable) service and auto-wire the server-side query event.
      *
      * @param  object|class-string  $service
      */
@@ -802,12 +830,9 @@ class CardGrid extends UIComponent
 
         $this->serviceInstance = $instance;
         $this->setConfig('service', $instance::class);
+        $this->setConfig('query_action', $this->serviceActionFor('query'));
 
-        if ($this->isConfigDefault('action')) {
-            $this->action($this->serviceActionFor('query'));
-        }
-
-        if (! $this->itemsManuallySet && $this->isConfigDefault('items')) {
+        if (! $this->itemsManuallySet && $this->cards === []) {
             $this->serviceDataStale = true;
         }
 
@@ -840,8 +865,27 @@ class CardGrid extends UIComponent
     }
 
     /**
-     * Build the deterministic internal action identifier for a service operation on this CardGrid.
+     * Re-query the bound service (or static items) with current search/sort/filter/page state
+     * and synchronize child ItemCard components so ComponentDiffer emits minimal diffs.
+     *
+     * @param  array<string, mixed>  $extraContext
      */
+    public function reload(array $extraContext = []): static
+    {
+        $query = $this->buildQueryFromCurrentState($extraContext);
+        $service = $this->getService();
+
+        if ($service !== null) {
+            $result = $this->executeServiceQuery($service, $query);
+            $this->syncCardsFromPageResult($result, append: false);
+        } elseif (is_array($this->config['static_items'] ?? null)) {
+            $result = $this->executeStaticQuery($query);
+            $this->syncCardsFromPageResult($result, append: false);
+        }
+
+        return $this;
+    }
+
     public function serviceActionFor(string $operation = 'query'): string
     {
         $target = $this->name !== null && trim($this->name) !== ''
@@ -852,8 +896,6 @@ class CardGrid extends UIComponent
     }
 
     /**
-     * Parse an internal CardGrid service action string.
-     *
      * @return array{target: string, operation: string}|null
      */
     public static function parseServiceAction(string $action): ?array
@@ -882,65 +924,87 @@ class CardGrid extends UIComponent
 
     public function supportsServiceOperation(string $operation): bool
     {
-        $service = $this->getService();
-        if ($service === null) {
+        if ($operation !== 'query') {
             return false;
         }
 
-        return $operation === 'query' && self::implementsSupportedContract($service);
+        return $this->getService() !== null || is_array($this->config['static_items'] ?? null);
     }
 
     /**
-     * Execute a read-only paginated query against the bound service without mutating component state.
+     * Handle an internal CardGrid service event dispatched via POST /api/ui-event.
+     * Updates query state on the component and synchronizes child ItemCard components
+     * so ComponentDiffer returns exact ADD / UPDATE / DELETE diffs.
      *
      * @param  array<string, mixed>  $parameters
-     * @return array<string, mixed>
      */
-    public function queryServicePage(array $parameters = []): array
+    public function handleServiceAction(string $operation, array $parameters = [], ?Screen $screen = null): void
     {
-        $service = $this->getService();
-        if ($service === null) {
-            throw new \BadMethodCallException('CardGrid does not have a CardListable or Listable service bound.');
+        if ($operation !== 'query') {
+            throw new \BadMethodCallException("Unsupported CardGrid service operation [{$operation}].");
         }
 
+        $append = (bool) ($parameters['append'] ?? false);
         $pagination = $this->getPagination();
-        $defaultSortBy = is_string($this->config['sort_by'] ?? null) ? $this->config['sort_by'] : null;
-        $defaultSortDir = is_string($this->config['sort_direction'] ?? null) ? $this->config['sort_direction'] : 'asc';
 
-        $mergedParams = $parameters;
-        if (! array_key_exists('filters', $mergedParams) && $this->getActiveFilters() !== []) {
-            $mergedParams['filters'] = $this->getActiveFilters();
+        if (array_key_exists('search', $parameters)) {
+            $rawSearch = $parameters['search'];
+            $searchVal = is_scalar($rawSearch) ? trim((string) $rawSearch) : '';
+            $this->setConfig('search_term', $searchVal === '' ? null : $searchVal);
         }
 
-        $query = CardQuery::fromArray(
-            data: $mergedParams,
-            defaultPerPage: $pagination['per_page'],
-            defaultSortBy: $defaultSortBy,
-            defaultSortDirection: $defaultSortDir,
-            context: $this->getServiceContext(),
-        );
+        if (array_key_exists('sort_by', $parameters)) {
+            $rawSort = $parameters['sort_by'];
+            $this->setConfig('sort_by', is_string($rawSort) && trim($rawSort) !== '' ? trim($rawSort) : null);
+        }
 
-        return $this->executeServiceQuery($service, $query)->toArray();
-    }
+        if (array_key_exists('sort_direction', $parameters)) {
+            $rawDir = $parameters['sort_direction'];
+            $this->setConfig('sort_direction', is_string($rawDir) && strtolower(trim($rawDir)) === 'desc' ? 'desc' : 'asc');
+        }
 
-    /**
-     * Refresh the initial items from the bound service and trigger a reactive client reload.
-     *
-     * @param  array<string, mixed>  $context
-     */
-    public function refreshFromService(array $context = []): static
-    {
+        if (array_key_exists('filters', $parameters)) {
+            $rawFilters = $parameters['filters'];
+            if (is_string($rawFilters) && trim($rawFilters) !== '') {
+                $decoded = json_decode($rawFilters, true);
+                $rawFilters = is_array($decoded) ? $decoded : [];
+            }
+
+            /** @var array<string, mixed> $cleanFilters */
+            $cleanFilters = [];
+            if (is_array($rawFilters)) {
+                foreach ($rawFilters as $k => $v) {
+                    if (is_string($k) && $k !== '' && $v !== null && $v !== '' && $v !== [] && $v !== false) {
+                        $cleanFilters[$k] = $v;
+                    }
+                }
+            }
+            $this->setConfig('active_filters', $cleanFilters);
+        }
+
+        if (array_key_exists('per_page', $parameters) && is_numeric($parameters['per_page'])) {
+            $pagination['per_page'] = max(1, min(200, (int) $parameters['per_page']));
+        }
+
+        if (array_key_exists('page', $parameters) && is_numeric($parameters['page'])) {
+            $pagination['page'] = max(1, (int) $parameters['page']);
+        }
+
+        $this->setConfig('pagination', $pagination);
+
+        $query = $this->buildQueryFromCurrentState();
         $service = $this->getService();
+
         if ($service !== null) {
-            $result = $this->executeServiceQuery($service, $this->buildQueryFromCurrentState($context));
-            $this->pageResult($result);
-            $this->reload();
+            $result = $this->executeServiceQuery($service, $query);
+        } else {
+            $result = $this->executeStaticQuery($query);
         }
 
-        return $this;
+        $this->syncCardsFromPageResult($result, append: $append);
     }
 
-    // ─── Layout & Card Presentation ───────────────────────────────────────────
+    // ─── Layout & Child Card Presentation ─────────────────────────────────────
 
     public function minCardWidth(Size|int|string $width): static
     {
@@ -961,19 +1025,15 @@ class CardGrid extends UIComponent
         return $this->setConfig('gap', $value !== '' ? $value : '16px');
     }
 
-    /**
-     * Card orientation: 'vertical' (media top) or 'horizontal' (media left).
-     */
     public function cardLayout(string $layout): static
     {
         $normalized = strtolower(trim($layout)) === 'horizontal' ? 'horizontal' : 'vertical';
+        $this->setConfig('card_layout', $normalized);
+        $this->propagatePresentationToCards();
 
-        return $this->setConfig('card_layout', $normalized);
+        return $this;
     }
 
-    /**
-     * Card surface variant: 'elevated' | 'outlined' | 'flat'.
-     */
     public function variant(string $variant): static
     {
         $normalized = match (strtolower(trim($variant))) {
@@ -981,13 +1041,12 @@ class CardGrid extends UIComponent
             'flat' => 'flat',
             default => 'elevated',
         };
+        $this->setConfig('variant', $normalized);
+        $this->propagatePresentationToCards();
 
-        return $this->setConfig('variant', $normalized);
+        return $this;
     }
 
-    /**
-     * Spacing density: 'compact' | 'comfortable' | 'spacious'.
-     */
     public function density(string $density): static
     {
         $normalized = match (strtolower(trim($density))) {
@@ -995,23 +1054,34 @@ class CardGrid extends UIComponent
             'spacious' => 'spacious',
             default => 'comfortable',
         };
+        $this->setConfig('density', $normalized);
+        $this->propagatePresentationToCards();
 
-        return $this->setConfig('density', $normalized);
+        return $this;
     }
 
     public function imageAspectRatio(string $ratio): static
     {
-        return $this->setConfig('image_aspect_ratio', trim($ratio) !== '' ? trim($ratio) : '16/9');
+        $value = trim($ratio) !== '' ? trim($ratio) : '16/9';
+        $this->setConfig('image_aspect_ratio', $value);
+
+        return $this;
     }
 
     public function maxVisibleActions(int $max): static
     {
-        return $this->setConfig('max_visible_actions', max(0, min(5, $max)));
+        $this->setConfig('max_visible_actions', max(0, min(5, $max)));
+        $this->propagatePresentationToCards();
+
+        return $this;
     }
 
     public function maxVisibleTags(int $max): static
     {
-        return $this->setConfig('max_visible_tags', max(0, min(10, $max)));
+        $this->setConfig('max_visible_tags', max(0, min(10, $max)));
+        $this->propagatePresentationToCards();
+
+        return $this;
     }
 
     public function skeletonCount(int $count): static
@@ -1027,8 +1097,6 @@ class CardGrid extends UIComponent
     // ─── Events & Messages ────────────────────────────────────────────────────
 
     /**
-     * Register a default Screen event handler when any card is clicked (overridable per CardItemDTO).
-     *
      * @param  string|array<string, mixed>|null  $action
      * @param  array<string, mixed>  $parameters
      */
@@ -1084,7 +1152,7 @@ class CardGrid extends UIComponent
         return $this->setConfig('clear_filters_label', $label);
     }
 
-    // ─── Normalization & Internal Helpers ─────────────────────────────────────
+    // ─── Normalization & Internal Sync ────────────────────────────────────────
 
     /**
      * @param  Collection<covariant int|string, covariant mixed>|array<int|string, mixed>  $items
@@ -1133,6 +1201,144 @@ class CardGrid extends UIComponent
         $title = is_scalar($item) ? (string) $item : (string) $fallbackId;
 
         return CardItemDTO::make(id: $fallbackId, title: $title)->toArray();
+    }
+
+    /**
+     * Synchronize child ItemCard components against a CardPageResult.
+     *
+     * - Existing ItemCards matching an item ID are reused (preserving deterministic IDs)
+     * - Detached ItemCards are excluded from `$this->cards` so ComponentDiffer emits `parent: null`
+     * - In `append: true` (`load_more`), existing cards stay untouched (zero diff) and only new cards are added
+     */
+    private function syncCardsFromPageResult(CardPageResult $result, bool $append = false): void
+    {
+        $this->serviceDataStale = false;
+
+        if ($append) {
+            $nextCards = $this->cards;
+            $position = count($nextCards);
+
+            foreach ($result->items as $dto) {
+                $key = (string) $dto->id;
+                if (isset($nextCards[$key])) {
+                    continue;
+                }
+
+                $card = $this->instantiateChildCard($key);
+                $this->hydrateChildCard($card, $dto, $position);
+                $nextCards[$key] = $card;
+                $position++;
+            }
+
+            $this->cards = $nextCards;
+        } else {
+            /** @var array<string, ItemCard> $nextCards */
+            $nextCards = [];
+
+            foreach ($result->items as $pos => $dto) {
+                $key = (string) $dto->id;
+                $card = $this->cards[$key] ?? $this->instantiateChildCard($key);
+                $this->hydrateChildCard($card, $dto, $pos);
+                $nextCards[$key] = $card;
+            }
+
+            // Detach cards that are no longer on the active page
+            foreach ($this->cards as $oldKey => $oldCard) {
+                if (! isset($nextCards[$oldKey])) {
+                    $oldCard->setParent(null);
+                }
+            }
+
+            $this->cards = $nextCards;
+        }
+
+        $this->setConfig('visible_count', count($this->cards));
+
+        $payload = $result->toArray();
+        $pagination = array_merge($this->getPagination(), $payload['pagination']);
+        $this->setConfig('pagination', $pagination);
+    }
+
+    private function instantiateChildCard(string $itemKey): ItemCard
+    {
+        $gridTarget = $this->name !== null && trim($this->name) !== ''
+            ? trim($this->name)
+            : (string) $this->id;
+        $safeKey = preg_replace('/[^a-zA-Z0-9_\-]/', '_', $itemKey) ?: $itemKey;
+
+        $card = new ItemCard("{$gridTarget}__card_{$safeKey}");
+        $card->setParent($this->id);
+
+        return $card;
+    }
+
+    private function hydrateChildCard(ItemCard $card, CardItemDTO $dto, int $position): void
+    {
+        [$defaultClickAction, $defaultClickParams] = $this->resolveDefaultClickConfig();
+        $aspectRatio = is_string($this->config['image_aspect_ratio'] ?? null)
+            ? $this->config['image_aspect_ratio']
+            : '16/9';
+
+        $card->setParent($this->id);
+        $card->cardOrder($position);
+        $card->applyFromDTO($dto, $defaultClickAction, $defaultClickParams, $aspectRatio);
+        $this->applyGridPresentationToCard($card);
+    }
+
+    private function applyGridPresentationToCard(ItemCard $card): void
+    {
+        $layout = is_string($this->config['card_layout'] ?? null) ? $this->config['card_layout'] : 'vertical';
+        $variant = is_string($this->config['variant'] ?? null) ? $this->config['variant'] : 'elevated';
+        $density = is_string($this->config['density'] ?? null) ? $this->config['density'] : 'comfortable';
+        $maxActions = is_numeric($this->config['max_visible_actions'] ?? null) ? (int) $this->config['max_visible_actions'] : 2;
+        $maxTags = is_numeric($this->config['max_visible_tags'] ?? null) ? (int) $this->config['max_visible_tags'] : 3;
+
+        $card
+            ->layout($layout)
+            ->variant($variant)
+            ->density($density)
+            ->maxVisibleActions($maxActions)
+            ->maxVisibleTags($maxTags);
+    }
+
+    private function propagatePresentationToCards(): void
+    {
+        foreach ($this->cards as $card) {
+            $this->applyGridPresentationToCard($card);
+        }
+    }
+
+    private function reindexCardPositions(): void
+    {
+        $ordered = array_values($this->cards);
+        usort($ordered, static fn (ItemCard $a, ItemCard $b): int => $a->getCardOrder() <=> $b->getCardOrder());
+
+        $reindexed = [];
+        foreach ($ordered as $idx => $card) {
+            $card->cardOrder($idx);
+            $reindexed[$card->getItemKey()] = $card;
+        }
+        $this->cards = $reindexed;
+    }
+
+    /**
+     * @return array{0: ?string, 1: array<string, mixed>}
+     */
+    private function resolveDefaultClickConfig(): array
+    {
+        $raw = $this->config['on_card_click'] ?? null;
+        if (is_string($raw) && trim($raw) !== '') {
+            return [trim($raw), []];
+        }
+        if (is_array($raw)) {
+            $action = is_string($raw['action'] ?? null) && trim($raw['action']) !== '' ? trim($raw['action']) : null;
+            /** @var array<string, mixed> $params */
+            $params = is_array($raw['parameters'] ?? null) ? $raw['parameters'] : [];
+
+            return [$action, $params];
+        }
+
+        return [null, []];
     }
 
     /**
@@ -1289,6 +1495,86 @@ class CardGrid extends UIComponent
         throw new \BadMethodCallException('CardGrid service does not implement CardListable or Listable.');
     }
 
+    private function executeStaticQuery(CardQuery $query): CardPageResult
+    {
+        $raw = $this->config['static_items'] ?? [];
+        if (! is_array($raw)) {
+            return CardPageResult::make([], 0, $query->page, $query->perPage);
+        }
+
+        /** @var list<array<string, mixed>> $items */
+        $items = array_values(array_filter($raw, static fn (mixed $v): bool => is_array($v)));
+
+        $term = mb_strtolower(trim($query->search));
+        if ($term !== '') {
+            $items = array_values(array_filter($items, static function (array $item) use ($term): bool {
+                $parts = [
+                    is_scalar($item['title'] ?? null) ? (string) $item['title'] : '',
+                    is_scalar($item['subtitle'] ?? null) ? (string) $item['subtitle'] : '',
+                    is_scalar($item['eyebrow'] ?? null) ? (string) $item['eyebrow'] : '',
+                    is_scalar($item['description'] ?? null) ? (string) $item['description'] : '',
+                    is_scalar($item['badge'] ?? null) ? (string) $item['badge'] : '',
+                ];
+                if (isset($item['tags']) && is_array($item['tags'])) {
+                    foreach ($item['tags'] as $t) {
+                        if (is_scalar($t)) {
+                            $parts[] = (string) $t;
+                        }
+                    }
+                }
+
+                return str_contains(mb_strtolower(implode(' ', $parts)), $term);
+            }));
+        }
+
+        foreach ($query->filters as $filterKey => $filterVal) {
+            $items = array_values(array_filter($items, static function (array $item) use ($filterKey, $filterVal): bool {
+                $meta = is_array($item['meta'] ?? null) ? $item['meta'] : [];
+                $candidate = array_key_exists($filterKey, $meta) ? $meta[$filterKey] : ($item[$filterKey] ?? null);
+
+                if (is_array($filterVal)) {
+                    $wanted = array_map(static fn (mixed $v): string => is_scalar($v) ? (string) $v : '', $filterVal);
+                    if (is_array($candidate)) {
+                        $actual = array_map(static fn (mixed $v): string => is_scalar($v) ? (string) $v : '', $candidate);
+
+                        return count(array_intersect($actual, $wanted)) > 0;
+                    }
+
+                    return is_scalar($candidate) && in_array((string) $candidate, $wanted, true);
+                }
+
+                if (is_bool($filterVal)) {
+                    return (bool) $candidate === $filterVal;
+                }
+
+                return is_scalar($candidate) && is_scalar($filterVal)
+                    && mb_strtolower((string) $candidate) === mb_strtolower((string) $filterVal);
+            }));
+        }
+
+        if ($query->sortBy !== null) {
+            $field = $query->sortBy;
+            $dir = $query->sortDirection === 'desc' ? -1 : 1;
+            usort($items, static function (array $a, array $b) use ($field, $dir): int {
+                $metaA = is_array($a['meta'] ?? null) ? $a['meta'] : [];
+                $metaB = is_array($b['meta'] ?? null) ? $b['meta'] : [];
+                $va = $a[$field] ?? $metaA[$field] ?? '';
+                $vb = $b[$field] ?? $metaB[$field] ?? '';
+
+                if (is_numeric($va) && is_numeric($vb)) {
+                    return ((float) $va <=> (float) $vb) * $dir;
+                }
+
+                $sa = is_scalar($va) ? (string) $va : '';
+                $sb = is_scalar($vb) ? (string) $vb : '';
+
+                return strcasecmp($sa, $sb) * $dir;
+            });
+        }
+
+        return CardPageResult::fromCollection($items, $query);
+    }
+
     /**
      * @return array<string, mixed>
      */
@@ -1314,7 +1600,7 @@ class CardGrid extends UIComponent
 
         $this->serviceDataStale = false;
         $result = $this->executeServiceQuery($service, $this->buildQueryFromCurrentState());
-        $this->pageResult($result);
+        $this->syncCardsFromPageResult($result, append: false);
     }
 
     private function markServiceDataStaleIfBound(): void
@@ -1322,91 +1608,6 @@ class CardGrid extends UIComponent
         if (! $this->itemsManuallySet && $this->serviceInstance !== null) {
             $this->serviceDataStale = true;
         }
-    }
-
-    /**
-     * Queue a surgical card mutation op into the monotonic `card_patches` diff channel.
-     *
-     * @param  array<string, mixed>  $op
-     */
-    private function queuePatchOp(array $op): static
-    {
-        if ($this->currentPatchSeq === null) {
-            $existing = $this->config['card_patches'] ?? null;
-            $prevSeq = is_array($existing) && is_numeric($existing['seq'] ?? null)
-                ? (int) $existing['seq']
-                : 0;
-            $this->currentPatchSeq = $prevSeq + 1;
-        }
-
-        $this->pendingPatchOps[] = $op;
-
-        return $this->setConfig('card_patches', [
-            'seq' => $this->currentPatchSeq,
-            'ops' => $this->pendingPatchOps,
-        ]);
-    }
-
-    /**
-     * Normalize a partial card patch payload while preserving explicit null values
-     * (so callers can clear optional fields such as badge, metric, or footer_text).
-     *
-     * @param  array<string, mixed>  $changes
-     * @return array<string, mixed>
-     */
-    private static function normalizePartialCardPatch(array $changes): array
-    {
-        $keyMap = [
-            'badgeStyle' => 'badge_style',
-            'metricLabel' => 'metric_label',
-            'metricStyle' => 'metric_style',
-            'imageAlt' => 'image_alt',
-            'imageFit' => 'image_fit',
-            'aspectRatio' => 'aspect_ratio',
-            'footerText' => 'footer_text',
-            'clickAction' => 'click_action',
-            'clickParameters' => 'click_parameters',
-            'accentColor' => 'accent_color',
-        ];
-
-        $styleKeys = ['style', 'badge_style', 'metric_style'];
-        $normalized = [];
-
-        foreach ($changes as $rawKey => $value) {
-            $key = $keyMap[$rawKey] ?? $rawKey;
-
-            if (in_array($key, $styleKeys, true)) {
-                if ($value instanceof Style) {
-                    $normalized[$key] = $value->value;
-                } elseif (is_string($value)) {
-                    $parsed = Style::tryFrom(strtolower(trim($value)));
-                    $normalized[$key] = $parsed !== null ? $parsed->value : Style::DEFAULT->value;
-                } else {
-                    $normalized[$key] = Style::DEFAULT->value;
-                }
-
-                continue;
-            }
-
-            if ($key === 'actions' && is_array($value)) {
-                $actions = [];
-                foreach ($value as $entry) {
-                    if ($entry instanceof CardActionDTO) {
-                        $actions[] = $entry->toArray();
-                    } elseif (is_array($entry)) {
-                        /** @var array<string, mixed> $entry */
-                        $actions[] = CardActionDTO::fromArray($entry)->toArray();
-                    }
-                }
-                $normalized['actions'] = $actions;
-
-                continue;
-            }
-
-            $normalized[$key] = $value;
-        }
-
-        return $normalized;
     }
 
     /**

@@ -1,21 +1,21 @@
 /**
- * CardGrid component (modular implementation)
+ * CardGrid component (modular implementation, `type: 'card_grid'`)
  *
- * Responsive 2D card grid with:
- * - Client-side lightweight standardized card rendering (no raw innerHTML)
- * - Asynchronous server querying via GET /api/ui-data (CardListable / Listable / Screen query handler)
- * - Client-side fallback for static item arrays
- * - Integrated toolbar: debounced search, declarative filters (select, multi_select, toggle, chips),
- *   sort selector + direction toggle, active filter chips, and optional layout toggle
- * - Pagination modes: classic numbered 'pages' and incremental 'load_more'
- * - Skeleton loading cards, empty / no-results / error states
- * - Card click and per-card actions (up to max_visible_actions + automatic ⋮ overflow menu)
+ * Pure server-driven USIM responsive 2D container managing child `UsimItemCardComponent`
+ * elements mounted directly via UIRenderer (`getChildMountTarget()`):
+ * - Header (title, subtitle, count badge, optional global CTA)
+ * - Integrated toolbar: debounced search, sort selector + direction toggle,
+ *   declarative filters (select, multi_select, toggle, chips), active filter chips,
+ *   and optional layout toggle
+ * - Pagination footer: classic numbered 'pages' and incremental 'load_more'
+ * - All queries (search, sort, filter, paginate, load_more) dispatch POST /api/ui-event
+ *   so the backend owns the authoritative ItemCard tree and ComponentDiffer sends
+ *   minimal ADD / UPDATE / DELETE diffs natively.
  */
 class UsimCardGridComponent extends UIComponent {
     constructor(id, config) {
         super(id, config);
 
-        this._items = [];
         this._pagination = this._normalizePagination(config?.pagination);
         this._searchTerm = typeof config?.search_term === 'string' ? config.search_term : '';
         this._sortBy = typeof config?.sort_by === 'string' ? config.sort_by : '';
@@ -23,30 +23,25 @@ class UsimCardGridComponent extends UIComponent {
         this._activeFilters = this._cloneFilters(config?.active_filters);
         this._cardLayout = config?.card_layout === 'horizontal' ? 'horizontal' : 'vertical';
 
-        this._isFetching = false;
+        this._isQuerying = false;
         this._isAppending = false;
-        this._hasError = false;
         this._debounceTimer = null;
         this._mobileFiltersOpen = false;
         this._openPopoverKey = null;
-        this._openOverflowCardKey = null;
-        this._lastReloadToken = Number(config?.reload_token ?? 0);
-        this._lastPatchSeq = Number(config?.card_patches?.seq ?? 0);
-        this._hasFetchedOnce = false;
-        this._staticAllItems = [];
+        this._orderSyncScheduled = false;
 
         this.wrapperElement = null;
         this.headerElement = null;
         this.toolbarElement = null;
-        this.gridHostElement = null;
+        this.gridElement = null;
+        this.stateHostElement = null;
         this.paginationElement = null;
         this.searchInputElement = null;
         this.liveRegionElement = null;
+        this._gridObserver = null;
 
         this._boundDocumentClick = this._handleDocumentClick.bind(this);
         this._boundDocumentKeydown = this._handleDocumentKeydown.bind(this);
-
-        this._syncStateFromConfig(this.config, { initial: true });
     }
 
     // ─── Normalization ────────────────────────────────────────────────────────
@@ -102,99 +97,16 @@ class UsimCardGridComponent extends UIComponent {
         return out;
     }
 
-    _normalizeItem(raw, fallbackIdx = 0) {
-        if (!raw || typeof raw !== 'object') {
-            const title = raw !== null && raw !== undefined ? String(raw) : String(fallbackIdx);
-            return { id: fallbackIdx, title, style: 'default', badge_style: 'default', metric_style: 'default', actions: [], attributes: [], tags: [] };
+    // ─── USIM Child Mount Hook ────────────────────────────────────────────────
+
+    /**
+     * Tell UIRenderer to mount child `item_card` components directly inside `.usim-cg-grid`.
+     */
+    getChildMountTarget(childConfig, _childComponent) {
+        if (childConfig && (childConfig.type === 'item_card' || childConfig.type === 'itemcard')) {
+            return this.gridElement || this.element;
         }
-
-        const rawId = raw.id ?? raw.value ?? raw._model_id ?? fallbackIdx;
-        const id = (typeof rawId === 'number' || typeof rawId === 'string') ? rawId : String(fallbackIdx);
-        const title = String(raw.title ?? raw.label ?? raw.name ?? id);
-
-        const attributes = Array.isArray(raw.attributes)
-            ? raw.attributes.filter((a) => a && typeof a === 'object').map((a) => ({
-                label: String(a.label ?? ''),
-                value: String(a.value ?? ''),
-                icon: a.icon ? String(a.icon) : null,
-            }))
-            : [];
-
-        const tags = Array.isArray(raw.tags)
-            ? raw.tags.map((t) => String(t).trim()).filter(Boolean)
-            : [];
-
-        const actions = Array.isArray(raw.actions)
-            ? raw.actions.filter((a) => a && typeof a === 'object').map((a) => ({
-                label: String(a.label ?? ''),
-                action: a.action ? String(a.action) : null,
-                parameters: a.parameters && typeof a.parameters === 'object' ? a.parameters : {},
-                url: a.url ? String(a.url) : null,
-                target: a.target ? String(a.target) : '_self',
-                icon: a.icon ? String(a.icon) : null,
-                style: this._normalizeStyleToken(a.style),
-                variant: ['solid', 'outline', 'ghost'].includes(String(a.variant)) ? String(a.variant) : 'outline',
-                disabled: Boolean(a.disabled),
-                overflow: Boolean(a.overflow),
-                tooltip: a.tooltip ? String(a.tooltip) : null,
-            }))
-            : [];
-
-        return {
-            ...raw,
-            id,
-            title,
-            subtitle: raw.subtitle ? String(raw.subtitle) : null,
-            eyebrow: raw.eyebrow ? String(raw.eyebrow) : null,
-            description: raw.description ? String(raw.description) : null,
-            image: raw.image ? String(raw.image) : null,
-            image_alt: raw.image_alt ? String(raw.image_alt) : title,
-            image_fit: raw.image_fit === 'contain' ? 'contain' : 'cover',
-            aspect_ratio: raw.aspect_ratio ? String(raw.aspect_ratio) : null,
-            icon: raw.icon ? String(raw.icon) : null,
-            avatar: raw.avatar ? String(raw.avatar) : null,
-            badge: raw.badge !== null && raw.badge !== undefined && raw.badge !== '' ? String(raw.badge) : null,
-            badge_style: this._normalizeStyleToken(raw.badge_style),
-            metric: raw.metric !== null && raw.metric !== undefined && raw.metric !== '' ? String(raw.metric) : null,
-            metric_label: raw.metric_label ? String(raw.metric_label) : null,
-            metric_style: this._normalizeStyleToken(raw.metric_style),
-            attributes,
-            tags,
-            footer_text: raw.footer_text ? String(raw.footer_text) : null,
-            actions,
-            click_action: raw.click_action ? String(raw.click_action) : null,
-            click_parameters: raw.click_parameters && typeof raw.click_parameters === 'object' ? raw.click_parameters : {},
-            url: raw.url ? String(raw.url) : null,
-            target: raw.target ? String(raw.target) : '_self',
-            style: this._normalizeStyleToken(raw.style),
-            featured: Boolean(raw.featured),
-            disabled: Boolean(raw.disabled),
-            accent_color: raw.accent_color ? String(raw.accent_color) : null,
-        };
-    }
-
-    _normalizeItems(rawItems) {
-        if (!Array.isArray(rawItems)) return [];
-        return rawItems.map((item, idx) => this._normalizeItem(item, idx));
-    }
-
-    _syncStateFromConfig(cfg = this.config, options = {}) {
-        const normalizedItems = this._normalizeItems(cfg?.items || []);
-        this._items = normalizedItems;
-        if (!cfg?.action) {
-            this._staticAllItems = normalizedItems;
-        }
-
-        this._pagination = this._normalizePagination(cfg?.pagination);
-        if (options.initial || cfg?.card_layout) {
-            this._cardLayout = cfg?.card_layout === 'horizontal' ? 'horizontal' : 'vertical';
-        }
-        if (options.initial) {
-            this._searchTerm = typeof cfg?.search_term === 'string' ? cfg.search_term : '';
-            this._sortBy = typeof cfg?.sort_by === 'string' ? cfg.sort_by : '';
-            this._sortDirection = cfg?.sort_direction === 'desc' ? 'desc' : 'asc';
-            this._activeFilters = this._cloneFilters(cfg?.active_filters);
-        }
+        return this.gridElement || this.element;
     }
 
     // ─── Lifecycle ────────────────────────────────────────────────────────────
@@ -204,12 +116,6 @@ class UsimCardGridComponent extends UIComponent {
         wrapper.className = this._getWrapperClasses();
         this.wrapperElement = wrapper;
 
-        this.headerElement = document.createElement('div');
-        this.headerElement.className = 'usim-cg-header';
-
-        this.toolbarElement = document.createElement('div');
-        this.toolbarElement.className = 'usim-cg-toolbar';
-
         this.liveRegionElement = document.createElement('div');
         this.liveRegionElement.setAttribute('aria-live', 'polite');
         this.liveRegionElement.style.position = 'absolute';
@@ -218,8 +124,19 @@ class UsimCardGridComponent extends UIComponent {
         this.liveRegionElement.style.overflow = 'hidden';
         this.liveRegionElement.style.clip = 'rect(0 0 0 0)';
 
-        this.gridHostElement = document.createElement('div');
-        this.gridHostElement.className = 'usim-cg-body';
+        this.headerElement = document.createElement('div');
+        this.headerElement.className = 'usim-cg-header';
+
+        this.toolbarElement = document.createElement('div');
+        this.toolbarElement.className = 'usim-cg-toolbar';
+
+        this.gridElement = document.createElement('div');
+        this.gridElement.className = 'usim-cg-grid';
+        this.gridElement.setAttribute('role', 'list');
+        this._applyGridCssVars();
+
+        this.stateHostElement = document.createElement('div');
+        this.stateHostElement.className = 'usim-cg-state-host';
 
         this.paginationElement = document.createElement('div');
         this.paginationElement.className = 'usim-cg-pagination-host';
@@ -227,62 +144,41 @@ class UsimCardGridComponent extends UIComponent {
         wrapper.appendChild(this.liveRegionElement);
         wrapper.appendChild(this.headerElement);
         wrapper.appendChild(this.toolbarElement);
-        wrapper.appendChild(this.gridHostElement);
+        wrapper.appendChild(this.gridElement);
+        wrapper.appendChild(this.stateHostElement);
         wrapper.appendChild(this.paginationElement);
 
         this._renderHeader();
         this._renderToolbar();
-        this._renderGridArea();
+        this._renderStateBox();
         this._renderPagination();
 
         document.addEventListener('click', this._boundDocumentClick);
         document.addEventListener('keydown', this._boundDocumentKeydown);
 
-        // If configured with remote action and no preloaded items, auto-fetch on mount
-        if (this.config.action && this.config.auto_fetch !== false && this._items.length === 0) {
-            setTimeout(() => {
-                if (this.wrapperElement && !this._hasFetchedOnce) {
-                    this.loadPage(1, { append: false });
-                }
-            }, 0);
+        if (typeof MutationObserver === 'function') {
+            this._gridObserver = new MutationObserver(() => {
+                this.scheduleOrderSync();
+            });
+            this._gridObserver.observe(this.gridElement, { childList: true });
         }
 
         return this.applyCommonAttributes(wrapper);
     }
 
     update(newConfig) {
-        const prevReloadToken = this._lastReloadToken;
-        const prevMode = this._pagination.mode;
-
-        const incomingPatches = newConfig?.card_patches;
-        const hasNewPatches = Boolean(
-            incomingPatches
-            && typeof incomingPatches === 'object'
-            && Number(incomingPatches.seq ?? 0) > this._lastPatchSeq
-            && Array.isArray(incomingPatches.ops)
-            && incomingPatches.ops.length > 0
-        );
-
-        const nonPatchKeys = Object.keys(newConfig || {}).filter(
-            (k) => k !== 'card_patches' && k !== '_order' && k !== 'type'
-        );
-
         this.config = { ...this.config, ...newConfig };
         this.applyCommonAttributes(this.wrapperElement);
-
-        // Fast surgical path: when only card_patches arrived, update only the affected card DOM nodes
-        // without touching the toolbar, other cards, scroll position, or firing GET /api/ui-data.
-        if (hasNewPatches && nonPatchKeys.length === 0) {
-            this._lastPatchSeq = Number(incomingPatches.seq);
-            this._applyCardPatches(incomingPatches.ops);
-            return;
-        }
 
         if (newConfig.card_layout !== undefined) {
             this._cardLayout = newConfig.card_layout === 'horizontal' ? 'horizontal' : 'vertical';
         }
         if (newConfig.search_term !== undefined) {
-            this._searchTerm = typeof newConfig.search_term === 'string' ? newConfig.search_term : '';
+            const incomingSearch = typeof newConfig.search_term === 'string' ? newConfig.search_term : '';
+            // Avoid overwriting user's active typing buffer if input is focused
+            if (!this.searchInputElement || document.activeElement !== this.searchInputElement) {
+                this._searchTerm = incomingSearch;
+            }
         }
         if (newConfig.sort_by !== undefined) {
             this._sortBy = typeof newConfig.sort_by === 'string' ? newConfig.sort_by : '';
@@ -296,157 +192,17 @@ class UsimCardGridComponent extends UIComponent {
         if (newConfig.pagination !== undefined) {
             this._pagination = this._normalizePagination({ ...this._pagination, ...newConfig.pagination });
         }
-        if (Array.isArray(newConfig.items)) {
-            this._items = this._normalizeItems(newConfig.items);
-            if (!this.config.action) {
-                this._staticAllItems = this._items;
-            }
-        }
 
         if (this.wrapperElement) {
             this.wrapperElement.className = this._getWrapperClasses();
         }
-
-        const nextReloadToken = Number(this.config.reload_token ?? prevReloadToken);
-        const modeChanged = prevMode !== this._pagination.mode;
+        this._applyGridCssVars();
 
         this._renderHeader();
         this._renderToolbar();
-        this._renderGridArea();
+        this._renderStateBox();
         this._renderPagination();
-
-        if (hasNewPatches) {
-            this._lastPatchSeq = Number(incomingPatches.seq);
-            this._applyCardPatches(incomingPatches.ops);
-        }
-
-        if (nextReloadToken !== prevReloadToken && this.config.action) {
-            this._lastReloadToken = nextReloadToken;
-            const targetPage = modeChanged ? 1 : this._pagination.page;
-            this.loadPage(targetPage, { append: false, silentSkeleton: this._items.length > 0 });
-        } else if (modeChanged && this.config.action) {
-            this.loadPage(1, { append: false, silentSkeleton: this._items.length > 0 });
-        }
-    }
-
-    /**
-     * Apply surgical per-card DOM patches (patch, replace, remove, prepend) without
-     * re-fetching GET /api/ui-data or rebuilding unrelated cards.
-     */
-    _applyCardPatches(ops) {
-        if (!Array.isArray(ops) || ops.length === 0) return;
-
-        let countChanged = false;
-
-        ops.forEach((op) => {
-            if (!op || typeof op !== 'object') return;
-
-            if (op.op === 'patch' || op.op === 'replace') {
-                const targetKey = String(op.id);
-                const idx = this._items.findIndex((it) => String(it.id) === targetKey);
-                if (idx === -1) return;
-
-                const existing = this._items[idx];
-                const updated = op.op === 'replace'
-                    ? this._normalizeItem(op.data, idx)
-                    : this._normalizeItem({ ...existing, ...(op.data || {}), id: existing.id }, idx);
-
-                this._items[idx] = updated;
-
-                if (!this.config.action && this._staticAllItems.length > 0) {
-                    const staticIdx = this._staticAllItems.findIndex((it) => String(it.id) === targetKey);
-                    if (staticIdx !== -1) {
-                        this._staticAllItems[staticIdx] = updated;
-                    }
-                }
-
-                this._replaceCardDomNode(targetKey, existing, updated);
-            } else if (op.op === 'remove') {
-                const targetKey = String(op.id);
-                const prevLen = this._items.length;
-                this._items = this._items.filter((it) => String(it.id) !== targetKey);
-
-                if (!this.config.action) {
-                    this._staticAllItems = this._staticAllItems.filter((it) => String(it.id) !== targetKey);
-                }
-
-                if (this._items.length !== prevLen) {
-                    countChanged = true;
-                    if (this._pagination.total !== null) {
-                        this._pagination.total = Math.max(0, this._pagination.total - 1);
-                        this._pagination.total_pages = this._pagination.total > 0
-                            ? Math.ceil(this._pagination.total / this._pagination.per_page)
-                            : 0;
-                    }
-                }
-
-                const existingNode = this._findCardDomNode(targetKey);
-                if (existingNode) {
-                    existingNode.remove();
-                }
-
-                if (this._items.length === 0) {
-                    this._renderGridArea();
-                }
-            } else if (op.op === 'prepend' && op.data) {
-                const newCard = this._normalizeItem(op.data, 0);
-                const newKey = String(newCard.id);
-                this._items = [newCard, ...this._items.filter((it) => String(it.id) !== newKey)];
-
-                if (!this.config.action) {
-                    this._staticAllItems = [newCard, ...this._staticAllItems.filter((it) => String(it.id) !== newKey)];
-                }
-
-                countChanged = true;
-                if (this._pagination.total !== null) {
-                    this._pagination.total += 1;
-                    this._pagination.total_pages = Math.ceil(this._pagination.total / this._pagination.per_page);
-                }
-
-                const grid = this.gridHostElement?.querySelector?.('.usim-cg-grid');
-                if (grid) {
-                    const existingDup = this._findCardDomNode(newKey);
-                    if (existingDup) existingDup.remove();
-                    grid.prepend(this._buildCardElement(newCard));
-                } else {
-                    this._renderGridArea();
-                }
-            }
-        });
-
-        if (countChanged) {
-            this._renderHeader();
-            this._renderPagination();
-        }
-    }
-
-    _findCardDomNode(cardKey) {
-        if (!this.gridHostElement) return null;
-        const nodes = this.gridHostElement.querySelectorAll('.usim-cg-card');
-        for (const node of nodes) {
-            if (node.dataset.cardId === cardKey) {
-                return node;
-            }
-        }
-        return null;
-    }
-
-    _replaceCardDomNode(cardKey, previousItem, updatedItem) {
-        const oldNode = this._findCardDomNode(cardKey);
-        if (!oldNode) return;
-
-        const newNode = this._buildCardElement(updatedItem);
-
-        // Reuse the existing <img> element when the image URL is unchanged to avoid visual flicker/re-decoding
-        if (previousItem.image && updatedItem.image && previousItem.image === updatedItem.image) {
-            const oldImg = oldNode.querySelector('.usim-cg-media img');
-            const newImg = newNode.querySelector('.usim-cg-media img');
-            if (oldImg && newImg) {
-                newImg.replaceWith(oldImg);
-            }
-        }
-
-        oldNode.replaceWith(newNode);
+        this.scheduleOrderSync();
     }
 
     destroy() {
@@ -455,63 +211,103 @@ class UsimCardGridComponent extends UIComponent {
             clearTimeout(this._debounceTimer);
             this._debounceTimer = null;
         }
+        if (this._gridObserver) {
+            this._gridObserver.disconnect();
+            this._gridObserver = null;
+        }
         document.removeEventListener('click', this._boundDocumentClick);
         document.removeEventListener('keydown', this._boundDocumentKeydown);
     }
 
     _getWrapperClasses() {
-        const variant = ['elevated', 'outlined', 'flat'].includes(this.config.variant) ? this.config.variant : 'elevated';
-        const density = ['compact', 'comfortable', 'spacious'].includes(this.config.density) ? this.config.density : 'comfortable';
-        const layout = this._cardLayout === 'horizontal' ? 'horizontal' : 'vertical';
-        const classes = ['usim-cg-wrapper', `variant-${variant}`, `density-${density}`, `layout-${layout}`];
+        const classes = ['usim-cg-wrapper'];
         if (this.config.disabled) classes.push('is-disabled');
         return classes.join(' ');
     }
 
-    // ─── Document Listeners (popovers & overflow menus) ───────────────────────
+    _applyGridCssVars() {
+        if (!this.gridElement) return;
+        this.gridElement.style.setProperty('--usim-cg-min-width', String(this.config.min_card_width || '280px'));
+        this.gridElement.style.setProperty('--usim-cg-gap', String(this.config.gap || '16px'));
 
-    _handleDocumentClick(event) {
-        if (!this.wrapperElement) return;
-        const target = event.target;
+        const maxCols = Number(this.config.max_columns);
+        if (maxCols > 0) {
+            this.gridElement.classList.add('has-max-cols');
+            this.gridElement.style.setProperty('--usim-cg-max-cols', String(maxCols));
+        } else {
+            this.gridElement.classList.remove('has-max-cols');
+            this.gridElement.style.removeProperty('--usim-cg-max-cols');
+        }
 
-        if (this._openPopoverKey !== null) {
-            const insidePopover = target?.closest?.('.usim-cg-multiselect');
-            if (!insidePopover || insidePopover.dataset.filterName !== this._openPopoverKey) {
-                this._openPopoverKey = null;
-                this._renderToolbar();
+        this.gridElement.classList.toggle('is-refreshing', this._isQuerying && !this._isAppending);
+    }
+
+    /**
+     * Keep mounted ItemCard children strictly sorted by `data-position` in the DOM
+     * so incremental sort/prepend/filter updates preserve both visual and Tab order.
+     */
+    scheduleOrderSync() {
+        if (this._orderSyncScheduled) return;
+        this._orderSyncScheduled = true;
+        queueMicrotask(() => {
+            this._orderSyncScheduled = false;
+            this._syncCardOrderAndVisibility();
+        });
+    }
+
+    _syncCardOrderAndVisibility() {
+        if (!this.gridElement) return;
+
+        const cards = Array.from(this.gridElement.children).filter(
+            (el) => el instanceof HTMLElement && el.classList.contains('usim-ic-card')
+        );
+
+        if (cards.length > 1) {
+            const sorted = [...cards].sort((a, b) => {
+                const posA = Number(a.dataset.cardOrder ?? a.getAttribute('data-order') ?? 999999);
+                const posB = Number(b.dataset.cardOrder ?? b.getAttribute('data-order') ?? 999999);
+                return posA - posB;
+            });
+
+            let needsReorder = false;
+            for (let i = 0; i < sorted.length; i++) {
+                if (cards[i] !== sorted[i]) {
+                    needsReorder = true;
+                    break;
+                }
+            }
+
+            if (needsReorder) {
+                sorted.forEach((node) => this.gridElement.appendChild(node));
             }
         }
 
-        if (this._openOverflowCardKey !== null) {
-            const insideOverflow = target?.closest?.('.usim-cg-overflow-wrap');
-            if (!insideOverflow || insideOverflow.dataset.cardKey !== this._openOverflowCardKey) {
-                this._openOverflowCardKey = null;
-                this._closeAllOverflowMenus();
-            }
+        this._renderStateBox();
+        this._renderPagination();
+
+        if (this.liveRegionElement) {
+            const total = this._getEffectiveTotal();
+            this.liveRegionElement.textContent = `${cards.length} tarjetas visibles de ${total} resultados`;
+        }
+    }
+
+    // ─── Document Listeners (multi-select popovers) ───────────────────────────
+
+    _handleDocumentClick(event) {
+        if (!this.wrapperElement || this._openPopoverKey === null) return;
+        const insidePopover = event.target?.closest?.('.usim-cg-multiselect');
+        if (!insidePopover || insidePopover.dataset.filterName !== this._openPopoverKey) {
+            this._openPopoverKey = null;
+            this._renderToolbar();
         }
     }
 
     _handleDocumentKeydown(event) {
-        if (event.key !== 'Escape') return;
-        let changed = false;
-        if (this._openPopoverKey !== null) {
+        if (event.key === 'Escape' && this._openPopoverKey !== null) {
             this._openPopoverKey = null;
             this._renderToolbar();
-            changed = true;
-        }
-        if (this._openOverflowCardKey !== null) {
-            this._openOverflowCardKey = null;
-            this._closeAllOverflowMenus();
-            changed = true;
-        }
-        if (changed) {
             event.stopPropagation();
         }
-    }
-
-    _closeAllOverflowMenus() {
-        if (!this.gridHostElement) return;
-        this.gridHostElement.querySelectorAll('.usim-cg-overflow-menu').forEach((menu) => menu.remove());
     }
 
     // ─── Header Rendering ─────────────────────────────────────────────────────
@@ -574,7 +370,7 @@ class UsimCardGridComponent extends UIComponent {
 
             const btn = document.createElement('button');
             btn.type = 'button';
-            btn.className = `usim-cg-action-btn variant-solid style-${this._normalizeStyleToken(headerAction.style || 'primary')}`;
+            btn.className = `usim-ic-action-btn variant-solid style-${this._normalizeStyleToken(headerAction.style || 'primary')}`;
             if (headerAction.icon) {
                 btn.appendChild(this._createIconNode(headerAction.icon, 15));
             }
@@ -608,7 +404,6 @@ class UsimCardGridComponent extends UIComponent {
             return;
         }
 
-        // Preserve focus & cursor inside search input if currently typing
         const hadSearchFocus = this.searchInputElement && document.activeElement === this.searchInputElement;
         const selectionStart = hadSearchFocus ? this.searchInputElement.selectionStart : null;
         const selectionEnd = hadSearchFocus ? this.searchInputElement.selectionEnd : null;
@@ -656,7 +451,7 @@ class UsimCardGridComponent extends UIComponent {
             this.searchInputElement = input;
             searchBox.appendChild(input);
 
-            if (this._isFetching && !this._isAppending) {
+            if (this._isQuerying && !this._isAppending) {
                 const spinner = document.createElement('span');
                 spinner.className = 'usim-cg-search-spinner';
                 spinner.setAttribute('aria-hidden', 'true');
@@ -681,12 +476,10 @@ class UsimCardGridComponent extends UIComponent {
             this.searchInputElement = null;
         }
 
-        // Separate inline filters vs chips filters
         const inlineFilters = filters.filter((f) => f.type !== 'chips');
         const chipsFilters = filters.filter((f) => f.type === 'chips');
         const activeFilterCount = Object.keys(this._activeFilters).length;
 
-        // Mobile Filters Collapse Trigger
         if (filters.length > 0) {
             const mobileBtn = document.createElement('button');
             mobileBtn.type = 'button';
@@ -704,7 +497,6 @@ class UsimCardGridComponent extends UIComponent {
             mainRow.appendChild(mobileBtn);
         }
 
-        // 2. Inline Filters (select, multi_select, toggle)
         if (inlineFilters.length > 0) {
             const filtersBar = document.createElement('div');
             filtersBar.className = `usim-cg-filters-bar usim-cg-filters-collapsible${this._mobileFiltersOpen ? ' is-open' : ''}`;
@@ -717,7 +509,6 @@ class UsimCardGridComponent extends UIComponent {
             mainRow.appendChild(filtersBar);
         }
 
-        // 3. Right Side: Sort Controls + Layout Toggle
         if (sortOptions.length > 0 || showLayoutToggle) {
             const rightGroup = document.createElement('div');
             rightGroup.className = 'usim-cg-toolbar-right';
@@ -739,15 +530,13 @@ class UsimCardGridComponent extends UIComponent {
                     const o = document.createElement('option');
                     o.value = String(opt.field);
                     o.textContent = String(opt.label);
-                    if (this._sortBy === String(opt.field)) {
-                        o.selected = true;
-                    }
+                    if (this._sortBy === String(opt.field)) o.selected = true;
                     sortSelect.appendChild(o);
                 });
 
                 sortSelect.addEventListener('change', (e) => {
                     this._sortBy = e.target.value;
-                    this._onQueryCriteriaChanged();
+                    this._dispatchQuery({ page: 1, append: false });
                 });
 
                 sortGroup.appendChild(sortSelect);
@@ -760,7 +549,7 @@ class UsimCardGridComponent extends UIComponent {
                 dirBtn.setAttribute('aria-label', dirBtn.title);
                 dirBtn.addEventListener('click', () => {
                     this._sortDirection = this._sortDirection === 'desc' ? 'asc' : 'desc';
-                    this._onQueryCriteriaChanged();
+                    this._dispatchQuery({ page: 1, append: false });
                 });
 
                 sortGroup.appendChild(dirBtn);
@@ -774,16 +563,10 @@ class UsimCardGridComponent extends UIComponent {
                 const vertBtn = document.createElement('button');
                 vertBtn.type = 'button';
                 vertBtn.className = `usim-cg-icon-btn${this._cardLayout === 'vertical' ? ' is-active' : ''}`;
-                vertBtn.title = 'Vista de tarjetas';
-                vertBtn.setAttribute('aria-label', 'Vista de tarjetas');
+                vertBtn.title = 'Vista vertical';
+                vertBtn.setAttribute('aria-label', 'Vista vertical');
                 vertBtn.appendChild(this._createIconNode('grid', 15));
-                vertBtn.addEventListener('click', () => {
-                    if (this._cardLayout !== 'vertical') {
-                        this._cardLayout = 'vertical';
-                        this.wrapperElement.className = this._getWrapperClasses();
-                        this._renderToolbar();
-                    }
-                });
+                vertBtn.addEventListener('click', () => this._toggleLocalCardLayout('vertical'));
 
                 const horizBtn = document.createElement('button');
                 horizBtn.type = 'button';
@@ -791,13 +574,7 @@ class UsimCardGridComponent extends UIComponent {
                 horizBtn.title = 'Vista horizontal';
                 horizBtn.setAttribute('aria-label', 'Vista horizontal');
                 horizBtn.appendChild(this._createIconNode('list', 15));
-                horizBtn.addEventListener('click', () => {
-                    if (this._cardLayout !== 'horizontal') {
-                        this._cardLayout = 'horizontal';
-                        this.wrapperElement.className = this._getWrapperClasses();
-                        this._renderToolbar();
-                    }
-                });
+                horizBtn.addEventListener('click', () => this._toggleLocalCardLayout('horizontal'));
 
                 toggleWrap.appendChild(vertBtn);
                 toggleWrap.appendChild(horizBtn);
@@ -809,7 +586,7 @@ class UsimCardGridComponent extends UIComponent {
 
         this.toolbarElement.appendChild(mainRow);
 
-        // 4. Chips Filters Rows
+        // Chips Filters
         if (chipsFilters.length > 0) {
             const chipsContainer = document.createElement('div');
             chipsContainer.className = `usim-cg-filters-collapsible${this._mobileFiltersOpen ? ' is-open' : ''}`;
@@ -827,9 +604,7 @@ class UsimCardGridComponent extends UIComponent {
                 row.appendChild(lbl);
 
                 const currentVal = this._activeFilters[filterDef.name] ?? '';
-                const options = Array.isArray(filterDef.options) ? filterDef.options : [];
-
-                options.forEach((opt) => {
+                (Array.isArray(filterDef.options) ? filterDef.options : []).forEach((opt) => {
                     const chip = document.createElement('button');
                     chip.type = 'button';
                     const isActive = String(currentVal) === String(opt.value);
@@ -842,7 +617,7 @@ class UsimCardGridComponent extends UIComponent {
                         } else {
                             this._activeFilters[filterDef.name] = String(opt.value);
                         }
-                        this._onQueryCriteriaChanged();
+                        this._dispatchQuery({ page: 1, append: false });
                     });
                     row.appendChild(chip);
                 });
@@ -853,7 +628,7 @@ class UsimCardGridComponent extends UIComponent {
             this.toolbarElement.appendChild(chipsContainer);
         }
 
-        // 5. Active Filter Chips Summary Row
+        // Active Filter Chips Summary
         const activeChips = this._collectActiveFilterChips(filters);
         if (activeChips.length > 0) {
             const activeBar = document.createElement('div');
@@ -874,7 +649,7 @@ class UsimCardGridComponent extends UIComponent {
                 rm.setAttribute('aria-label', `Quitar filtro ${chipInfo.label}`);
                 rm.addEventListener('click', () => {
                     chipInfo.onRemove();
-                    this._onQueryCriteriaChanged();
+                    this._dispatchQuery({ page: 1, append: false });
                 });
 
                 pill.appendChild(rm);
@@ -891,17 +666,33 @@ class UsimCardGridComponent extends UIComponent {
             this.toolbarElement.appendChild(activeBar);
         }
 
-        // Restore focus & selection range cleanly
         if (hadSearchFocus && this.searchInputElement) {
             this.searchInputElement.focus();
             if (selectionStart !== null && selectionEnd !== null) {
                 try {
                     this.searchInputElement.setSelectionRange(selectionStart, selectionEnd);
                 } catch (_e) {
-                    // Ignore on unsupported input types
+                    // Ignore
                 }
             }
         }
+    }
+
+    _toggleLocalCardLayout(targetLayout) {
+        if (this._cardLayout === targetLayout) return;
+        this._cardLayout = targetLayout;
+        if (this.gridElement) {
+            this.gridElement.querySelectorAll('.usim-ic-card').forEach((cardEl) => {
+                cardEl.classList.remove('layout-vertical', 'layout-horizontal');
+                cardEl.classList.add(`layout-${targetLayout}`);
+                const cid = cardEl.getAttribute('data-component-id');
+                const childComp = cid ? window.globalRenderer?.components?.get?.(String(cid)) : null;
+                if (childComp && childComp.config) {
+                    childComp.config.layout = targetLayout;
+                }
+            });
+        }
+        this._renderToolbar();
     }
 
     _buildInlineFilterControl(filterDef) {
@@ -924,9 +715,7 @@ class UsimCardGridComponent extends UIComponent {
                 const o = document.createElement('option');
                 o.value = String(opt.value);
                 o.textContent = String(opt.label);
-                if (String(currentVal) === String(opt.value)) {
-                    o.selected = true;
-                }
+                if (String(currentVal) === String(opt.value)) o.selected = true;
                 select.appendChild(o);
             });
 
@@ -937,7 +726,7 @@ class UsimCardGridComponent extends UIComponent {
                 } else {
                     this._activeFilters[name] = val;
                 }
-                this._onQueryCriteriaChanged();
+                this._dispatchQuery({ page: 1, append: false });
             });
 
             return select;
@@ -996,17 +785,15 @@ class UsimCardGridComponent extends UIComponent {
                     cb.checked = selectedValues.includes(optVal);
                     cb.addEventListener('change', () => {
                         const next = new Set(selectedValues);
-                        if (cb.checked) {
-                            next.add(optVal);
-                        } else {
-                            next.delete(optVal);
-                        }
+                        if (cb.checked) next.add(optVal);
+                        else next.delete(optVal);
+
                         if (next.size === 0) {
                             delete this._activeFilters[name];
                         } else {
                             this._activeFilters[name] = Array.from(next);
                         }
-                        this._onQueryCriteriaChanged();
+                        this._dispatchQuery({ page: 1, append: false });
                     });
 
                     const txt = document.createElement('span');
@@ -1031,12 +818,9 @@ class UsimCardGridComponent extends UIComponent {
             btn.setAttribute('aria-pressed', isActive ? 'true' : 'false');
             btn.textContent = label;
             btn.addEventListener('click', () => {
-                if (isActive) {
-                    delete this._activeFilters[name];
-                } else {
-                    this._activeFilters[name] = true;
-                }
-                this._onQueryCriteriaChanged();
+                if (isActive) delete this._activeFilters[name];
+                else this._activeFilters[name] = true;
+                this._dispatchQuery({ page: 1, append: false });
             });
             return btn;
         }
@@ -1061,11 +845,8 @@ class UsimCardGridComponent extends UIComponent {
                         displayValue: opt ? opt.label : String(val),
                         onRemove: () => {
                             const remaining = value.filter((v) => String(v) !== String(val));
-                            if (remaining.length === 0) {
-                                delete this._activeFilters[key];
-                            } else {
-                                this._activeFilters[key] = remaining;
-                            }
+                            if (remaining.length === 0) delete this._activeFilters[key];
+                            else this._activeFilters[key] = remaining;
                         },
                     });
                 });
@@ -1090,139 +871,47 @@ class UsimCardGridComponent extends UIComponent {
         return chips;
     }
 
-    // ─── Grid & Cards Rendering ───────────────────────────────────────────────
+    // ─── Empty / No-Results / Min-Chars State ─────────────────────────────────
 
-    _renderGridArea() {
-        if (!this.gridHostElement) return;
-        this.gridHostElement.textContent = '';
+    _renderStateBox() {
+        if (!this.stateHostElement || !this.gridElement) return;
+        this.stateHostElement.textContent = '';
 
-        // 1. Min search chars prompt
         const minChars = Number(this.config.min_search_chars || 0);
         const trimmedSearch = this._searchTerm.trim();
+
         if (minChars > 0 && trimmedSearch.length > 0 && trimmedSearch.length < minChars) {
+            this.gridElement.classList.add('is-hidden');
             const msg = String(this.config.min_chars_message || 'Escribe al menos :count caracteres para buscar...')
                 .replace(':count', String(minChars));
-            this.gridHostElement.appendChild(this._buildStateBox('🔎', msg));
+            this.stateHostElement.appendChild(this._buildStateBox('🔎', msg));
             return;
         }
 
-        // 2. Initial Loading Skeletons
-        if ((this._isFetching || this.config.loading) && !this._isAppending && this._items.length === 0) {
-            this.gridHostElement.appendChild(this._buildSkeletonGrid());
+        const visibleCount = this._getVisibleCardCount();
+        if (visibleCount > 0) {
+            this.gridElement.classList.remove('is-hidden');
             return;
         }
 
-        // 3. Error State
-        if (this._hasError && this._items.length === 0) {
-            this.gridHostElement.appendChild(this._buildStateBox(
-                '⚠️',
-                String(this.config.error_message || 'No se pudieron cargar los elementos'),
+        this.gridElement.classList.add('is-hidden');
+        const hasCriteria = trimmedSearch !== '' || Object.keys(this._activeFilters).length > 0;
+
+        if (hasCriteria) {
+            this.stateHostElement.appendChild(this._buildStateBox(
+                '🔍',
+                String(this.config.no_results_message || 'No se encontraron resultados con los criterios actuales'),
                 {
-                    label: String(this.config.retry_label || 'Reintentar'),
-                    onClick: () => this.loadPage(this._pagination.page, { append: false }),
+                    label: String(this.config.clear_filters_label || 'Limpiar filtros'),
+                    onClick: () => this._clearAllCriteria(),
                 }
             ));
-            return;
+        } else {
+            this.stateHostElement.appendChild(this._buildStateBox(
+                '🗂️',
+                String(this.config.empty_message || 'No hay elementos para mostrar')
+            ));
         }
-
-        // 4. Determine items to display (remote or client-side filtered/sorted/paginated)
-        const visibleItems = this._getDisplayItems();
-
-        // 5. Empty / No Results State
-        if (visibleItems.length === 0) {
-            const hasCriteria = trimmedSearch !== '' || Object.keys(this._activeFilters).length > 0;
-            if (hasCriteria) {
-                this.gridHostElement.appendChild(this._buildStateBox(
-                    '🔍',
-                    String(this.config.no_results_message || 'No se encontraron resultados con los criterios actuales'),
-                    {
-                        label: String(this.config.clear_filters_label || 'Limpiar filtros'),
-                        onClick: () => this._clearAllCriteria(),
-                    }
-                ));
-            } else {
-                this.gridHostElement.appendChild(this._buildStateBox(
-                    '🗂️',
-                    String(this.config.empty_message || 'No hay elementos para mostrar')
-                ));
-            }
-            return;
-        }
-
-        // 6. Responsive Card Grid
-        const grid = document.createElement('div');
-        grid.className = 'usim-cg-grid';
-        grid.setAttribute('role', 'list');
-
-        if (this.config.min_card_width) {
-            grid.style.setProperty('--usim-cg-min-width', String(this.config.min_card_width));
-        }
-        if (this.config.gap) {
-            grid.style.setProperty('--usim-cg-gap', String(this.config.gap));
-        }
-        if (Number(this.config.max_columns) > 0) {
-            grid.classList.add('has-max-cols');
-            grid.style.setProperty('--usim-cg-max-cols', String(Number(this.config.max_columns)));
-        }
-        if (this._isFetching && !this._isAppending) {
-            grid.classList.add('is-refreshing');
-        }
-
-        visibleItems.forEach((item) => {
-            grid.appendChild(this._buildCardElement(item));
-        });
-
-        this.gridHostElement.appendChild(grid);
-
-        if (this.liveRegionElement) {
-            const total = this._getEffectiveTotal();
-            this.liveRegionElement.textContent = `${visibleItems.length} tarjetas visibles de ${total} resultados`;
-        }
-    }
-
-    _buildSkeletonGrid() {
-        const grid = document.createElement('div');
-        grid.className = 'usim-cg-grid';
-        grid.setAttribute('aria-busy', 'true');
-
-        if (this.config.min_card_width) {
-            grid.style.setProperty('--usim-cg-min-width', String(this.config.min_card_width));
-        }
-        if (this.config.gap) {
-            grid.style.setProperty('--usim-cg-gap', String(this.config.gap));
-        }
-        if (Number(this.config.max_columns) > 0) {
-            grid.classList.add('has-max-cols');
-            grid.style.setProperty('--usim-cg-max-cols', String(Number(this.config.max_columns)));
-        }
-
-        const count = Math.max(1, Math.min(24, Number(this.config.skeleton_count) || 6));
-        for (let i = 0; i < count; i++) {
-            const sk = document.createElement('div');
-            sk.className = 'usim-cg-skeleton-card';
-
-            const media = document.createElement('div');
-            media.className = 'usim-cg-skeleton-media usim-cg-shimmer';
-
-            const body = document.createElement('div');
-            body.className = 'usim-cg-skeleton-body';
-
-            const l1 = document.createElement('div');
-            l1.className = 'usim-cg-skeleton-line is-short usim-cg-shimmer';
-            const l2 = document.createElement('div');
-            l2.className = 'usim-cg-skeleton-line is-title usim-cg-shimmer';
-            const l3 = document.createElement('div');
-            l3.className = 'usim-cg-skeleton-line is-full usim-cg-shimmer';
-
-            body.appendChild(l1);
-            body.appendChild(l2);
-            body.appendChild(l3);
-            sk.appendChild(media);
-            sk.appendChild(body);
-            grid.appendChild(sk);
-        }
-
-        return grid;
     }
 
     _buildStateBox(iconText, message, cta = null) {
@@ -1242,7 +931,7 @@ class UsimCardGridComponent extends UIComponent {
         if (cta && cta.label && typeof cta.onClick === 'function') {
             const btn = document.createElement('button');
             btn.type = 'button';
-            btn.className = 'usim-cg-action-btn variant-outline style-primary';
+            btn.className = 'usim-ic-action-btn variant-outline style-primary';
             btn.textContent = cta.label;
             btn.addEventListener('click', cta.onClick);
             box.appendChild(btn);
@@ -1251,380 +940,19 @@ class UsimCardGridComponent extends UIComponent {
         return box;
     }
 
-    _buildCardElement(item) {
-        const card = document.createElement('article');
-        const cardKey = String(item.id);
-        const isClickable = !item.disabled && Boolean(item.url || item.click_action || this.config.on_card_click);
-
-        const classes = ['usim-cg-card', `style-${item.style || 'default'}`];
-        if (item.featured) classes.push('is-featured');
-        if (item.disabled) classes.push('is-disabled');
-        if (isClickable) classes.push('is-clickable');
-        if (item.accent_color) {
-            classes.push('has-accent');
-            card.style.setProperty('--usim-cg-card-accent', item.accent_color);
-        }
-
-        card.className = classes.join(' ');
-        card.setAttribute('role', 'listitem');
-        card.dataset.cardId = cardKey;
-
-        if (isClickable) {
-            card.tabIndex = 0;
-            card.addEventListener('click', () => this._handleCardClick(item));
-            card.addEventListener('keydown', (e) => {
-                if (e.key === 'Enter' || e.key === ' ') {
-                    e.preventDefault();
-                    this._handleCardClick(item);
-                }
-            });
-        }
-
-        const hasMedia = Boolean(item.image);
-
-        // 1. Media Zone (image + optional overlay badge)
-        if (hasMedia) {
-            const media = document.createElement('div');
-            media.className = 'usim-cg-media';
-            media.style.aspectRatio = String(item.aspect_ratio || this.config.image_aspect_ratio || '16/9');
-
-            const img = document.createElement('img');
-            img.src = item.image;
-            img.alt = item.image_alt || item.title;
-            img.loading = 'lazy';
-            img.style.objectFit = item.image_fit || 'cover';
-            img.addEventListener('error', () => {
-                img.remove();
-                const fallback = document.createElement('div');
-                fallback.className = 'usim-cg-media-fallback';
-                if (item.icon) {
-                    fallback.appendChild(this._createIconNode(item.icon, 34));
-                } else {
-                    fallback.textContent = item.title.slice(0, 2).toUpperCase();
-                }
-                media.appendChild(fallback);
-            });
-            media.appendChild(img);
-
-            if (item.badge) {
-                const badge = this._buildBadgeElement(item.badge, item.badge_style);
-                badge.classList.add('usim-cg-media-badge');
-                media.appendChild(badge);
-            }
-
-            card.appendChild(media);
-        }
-
-        // 2. Content Container
-        const content = document.createElement('div');
-        content.className = 'usim-cg-content';
-
-        // Header Row (icon/avatar + eyebrow + title + subtitle + inline badge if no media)
-        const header = document.createElement('div');
-        header.className = 'usim-cg-card-header';
-
-        if (!hasMedia && (item.avatar || item.icon)) {
-            const visual = document.createElement('div');
-            visual.className = `usim-cg-visual-badge${item.avatar ? ' is-avatar' : ''}`;
-            if (item.avatar) {
-                if (/^(https?:\/\/|\/|data:image\/)/i.test(item.avatar)) {
-                    const avImg = document.createElement('img');
-                    avImg.src = item.avatar;
-                    avImg.alt = item.title;
-                    avImg.loading = 'lazy';
-                    visual.appendChild(avImg);
-                } else {
-                    visual.textContent = item.avatar;
-                }
-            } else if (item.icon) {
-                visual.appendChild(this._createIconNode(item.icon, 20));
-            }
-            header.appendChild(visual);
-        }
-
-        const headerMeta = document.createElement('div');
-        headerMeta.className = 'usim-cg-header-meta';
-
-        if (item.eyebrow || (!hasMedia && item.badge)) {
-            const eyebrowRow = document.createElement('div');
-            eyebrowRow.className = 'usim-cg-eyebrow-row';
-
-            const eyebrow = document.createElement('span');
-            eyebrow.className = 'usim-cg-eyebrow';
-            eyebrow.textContent = item.eyebrow || '';
-            eyebrowRow.appendChild(eyebrow);
-
-            if (!hasMedia && item.badge) {
-                eyebrowRow.appendChild(this._buildBadgeElement(item.badge, item.badge_style));
-            }
-
-            headerMeta.appendChild(eyebrowRow);
-        }
-
-        const titleEl = document.createElement('h4');
-        titleEl.className = 'usim-cg-card-title';
-        titleEl.textContent = item.title;
-        titleEl.title = item.title;
-        headerMeta.appendChild(titleEl);
-
-        if (item.subtitle) {
-            const subEl = document.createElement('p');
-            subEl.className = 'usim-cg-card-subtitle';
-            subEl.textContent = item.subtitle;
-            subEl.title = item.subtitle;
-            headerMeta.appendChild(subEl);
-        }
-
-        header.appendChild(headerMeta);
-        content.appendChild(header);
-
-        // 3. Highlight Metric
-        if (item.metric) {
-            const metricRow = document.createElement('div');
-            metricRow.className = 'usim-cg-metric-row';
-
-            const val = document.createElement('span');
-            val.className = `usim-cg-metric-value style-${item.metric_style || 'default'}`;
-            val.textContent = item.metric;
-            metricRow.appendChild(val);
-
-            if (item.metric_label) {
-                const lbl = document.createElement('span');
-                lbl.className = 'usim-cg-metric-label';
-                lbl.textContent = item.metric_label;
-                metricRow.appendChild(lbl);
-            }
-
-            content.appendChild(metricRow);
-        }
-
-        // 4. Description
-        if (item.description) {
-            const desc = document.createElement('p');
-            desc.className = 'usim-cg-description';
-            desc.textContent = item.description;
-            content.appendChild(desc);
-        }
-
-        // 5. Attributes
-        if (item.attributes.length > 0) {
-            const list = document.createElement('ul');
-            list.className = 'usim-cg-attributes';
-
-            item.attributes.forEach((attr) => {
-                const li = document.createElement('li');
-                li.className = 'usim-cg-attribute';
-                if (attr.icon) {
-                    li.appendChild(this._createIconNode(attr.icon, 13));
-                }
-                if (attr.label) {
-                    const l = document.createElement('span');
-                    l.className = 'usim-cg-attribute-label';
-                    l.textContent = `${attr.label}:`;
-                    li.appendChild(l);
-                }
-                const v = document.createElement('span');
-                v.className = 'usim-cg-attribute-value';
-                v.textContent = attr.value;
-                li.appendChild(v);
-                list.appendChild(li);
-            });
-
-            content.appendChild(list);
-        }
-
-        // 6. Tags (capped at max_visible_tags + "+N")
-        if (item.tags.length > 0) {
-            const maxTags = Math.max(0, Number(this.config.max_visible_tags ?? 3));
-            const tagsWrap = document.createElement('div');
-            tagsWrap.className = 'usim-cg-tags';
-
-            const visibleTags = maxTags > 0 ? item.tags.slice(0, maxTags) : [];
-            const hiddenTags = maxTags > 0 ? item.tags.slice(maxTags) : item.tags;
-
-            visibleTags.forEach((tagText) => {
-                const tag = document.createElement('span');
-                tag.className = 'usim-cg-tag';
-                tag.textContent = tagText;
-                tagsWrap.appendChild(tag);
-            });
-
-            if (hiddenTags.length > 0) {
-                const more = document.createElement('span');
-                more.className = 'usim-cg-tag is-more';
-                more.textContent = `+${hiddenTags.length}`;
-                more.title = hiddenTags.join(', ');
-                tagsWrap.appendChild(more);
-            }
-
-            content.appendChild(tagsWrap);
-        }
-
-        // 7. Footer & Per-Card Actions
-        if (item.footer_text || item.actions.length > 0) {
-            const footer = document.createElement('div');
-            footer.className = 'usim-cg-footer';
-
-            if (item.footer_text) {
-                const ft = document.createElement('span');
-                ft.className = 'usim-cg-footer-text';
-                ft.textContent = item.footer_text;
-                ft.title = item.footer_text;
-                footer.appendChild(ft);
-            }
-
-            if (item.actions.length > 0) {
-                footer.appendChild(this._buildCardActions(item, cardKey));
-            }
-
-            content.appendChild(footer);
-        }
-
-        card.appendChild(content);
-        return card;
-    }
-
-    _buildBadgeElement(text, styleToken) {
-        const badge = document.createElement('span');
-        badge.className = `usim-cg-badge style-${this._normalizeStyleToken(styleToken)}`;
-        badge.textContent = text;
-        return badge;
-    }
-
-    _buildCardActions(item, cardKey) {
-        const actionsWrap = document.createElement('div');
-        actionsWrap.className = 'usim-cg-actions';
-
-        const maxVisible = Math.max(0, Number(this.config.max_visible_actions ?? 2));
-        const inlineActions = [];
-        const overflowActions = [];
-
-        item.actions.forEach((act) => {
-            if (act.overflow || inlineActions.length >= maxVisible) {
-                overflowActions.push(act);
-            } else {
-                inlineActions.push(act);
-            }
-        });
-
-        inlineActions.forEach((act) => {
-            actionsWrap.appendChild(this._buildInlineActionButton(act, item));
-        });
-
-        if (overflowActions.length > 0) {
-            const overflowWrap = document.createElement('div');
-            overflowWrap.className = 'usim-cg-overflow-wrap';
-            overflowWrap.dataset.cardKey = cardKey;
-
-            const trigger = document.createElement('button');
-            trigger.type = 'button';
-            trigger.className = 'usim-cg-action-btn variant-ghost usim-cg-overflow-trigger';
-            trigger.textContent = '⋮';
-            trigger.title = 'Más acciones';
-            trigger.setAttribute('aria-label', 'Más acciones');
-            trigger.setAttribute('aria-haspopup', 'menu');
-
-            trigger.addEventListener('click', (e) => {
-                e.stopPropagation();
-                const alreadyOpen = this._openOverflowCardKey === cardKey;
-                this._closeAllOverflowMenus();
-                if (alreadyOpen) {
-                    this._openOverflowCardKey = null;
-                    return;
-                }
-
-                this._openOverflowCardKey = cardKey;
-                const menu = document.createElement('div');
-                menu.className = 'usim-cg-overflow-menu';
-                menu.setAttribute('role', 'menu');
-                menu.addEventListener('click', (ev) => ev.stopPropagation());
-
-                overflowActions.forEach((act) => {
-                    const menuItem = act.url && !act.disabled
-                        ? document.createElement('a')
-                        : document.createElement('button');
-                    menuItem.className = `usim-cg-overflow-item style-${act.style || 'default'}`;
-                    menuItem.setAttribute('role', 'menuitem');
-
-                    if (act.url && !act.disabled) {
-                        menuItem.href = act.url;
-                        menuItem.target = act.target || '_self';
-                        if (act.target === '_blank') menuItem.rel = 'noopener noreferrer';
-                    } else {
-                        menuItem.type = 'button';
-                        menuItem.disabled = Boolean(act.disabled);
-                        menuItem.addEventListener('click', () => {
-                            this._openOverflowCardKey = null;
-                            this._closeAllOverflowMenus();
-                            this._handleCardAction(act, item);
-                        });
-                    }
-
-                    if (act.icon) {
-                        menuItem.appendChild(this._createIconNode(act.icon, 14));
-                    }
-                    const lbl = document.createElement('span');
-                    lbl.textContent = act.label;
-                    menuItem.appendChild(lbl);
-                    menu.appendChild(menuItem);
-                });
-
-                overflowWrap.appendChild(menu);
-            });
-
-            overflowWrap.appendChild(trigger);
-            actionsWrap.appendChild(overflowWrap);
-        }
-
-        return actionsWrap;
-    }
-
-    _buildInlineActionButton(act, item) {
-        const isLink = Boolean(act.url && !act.disabled);
-        const el = document.createElement(isLink ? 'a' : 'button');
-        el.className = `usim-cg-action-btn variant-${act.variant || 'outline'} style-${act.style || 'default'}`;
-        if (act.tooltip) el.title = act.tooltip;
-
-        if (isLink) {
-            el.href = act.url;
-            el.target = act.target || '_self';
-            if (act.target === '_blank') el.rel = 'noopener noreferrer';
-            el.addEventListener('click', (e) => e.stopPropagation());
-        } else {
-            el.type = 'button';
-            el.disabled = Boolean(act.disabled);
-            el.addEventListener('click', (e) => {
-                e.stopPropagation();
-                this._handleCardAction(act, item);
-            });
-        }
-
-        if (act.icon) {
-            el.appendChild(this._createIconNode(act.icon, 14));
-        }
-        if (act.label) {
-            const lbl = document.createElement('span');
-            lbl.textContent = act.label;
-            el.appendChild(lbl);
-        }
-
-        return el;
-    }
-
     // ─── Pagination Rendering ─────────────────────────────────────────────────
 
     _renderPagination() {
         if (!this.paginationElement) return;
         this.paginationElement.textContent = '';
 
-        const total = this._getEffectiveTotal();
-        const visibleCount = this._getDisplayItems().length;
-
-        if (visibleCount === 0 && !this._isFetching) {
+        const visibleCount = this._getVisibleCardCount();
+        if (visibleCount === 0 && !this._isQuerying) {
             return;
         }
 
-        const p = this._getEffectivePagination();
+        const p = this._pagination;
+        const total = this._getEffectiveTotal();
 
         if (p.mode === 'load_more') {
             const wrap = document.createElement('div');
@@ -1641,7 +969,7 @@ class UsimCardGridComponent extends UIComponent {
                 const btn = document.createElement('button');
                 btn.type = 'button';
                 btn.className = 'usim-cg-load-more-btn';
-                btn.disabled = this._isFetching;
+                btn.disabled = this._isQuerying;
                 const remaining = p.total !== null ? Math.max(0, p.total - visibleCount) : null;
                 const baseLabel = String(this.config.load_more_label || 'Cargar más');
                 btn.textContent = this._isAppending
@@ -1649,7 +977,7 @@ class UsimCardGridComponent extends UIComponent {
                     : (remaining !== null && remaining > 0 ? `${baseLabel} (${remaining} restantes)` : baseLabel);
 
                 btn.addEventListener('click', () => {
-                    this.loadPage(p.page + 1, { append: true });
+                    this._dispatchQuery({ page: p.page + 1, append: true });
                 });
                 wrap.appendChild(btn);
             }
@@ -1658,7 +986,6 @@ class UsimCardGridComponent extends UIComponent {
             return;
         }
 
-        // Classic 'pages' mode
         if (p.total_pages <= 1 && !p.show_per_page) {
             return;
         }
@@ -1694,7 +1021,7 @@ class UsimCardGridComponent extends UIComponent {
 
             perPageSel.addEventListener('change', (e) => {
                 this._pagination.per_page = Math.max(1, Number(e.target.value) || 12);
-                this._onQueryCriteriaChanged();
+                this._dispatchQuery({ page: 1, append: false });
             });
             controls.appendChild(perPageSel);
         }
@@ -1704,8 +1031,8 @@ class UsimCardGridComponent extends UIComponent {
             prevBtn.type = 'button';
             prevBtn.className = 'usim-cg-page-btn';
             prevBtn.textContent = '‹ Anterior';
-            prevBtn.disabled = this._isFetching || !p.can_prev;
-            prevBtn.addEventListener('click', () => this._goToPage(p.page - 1));
+            prevBtn.disabled = this._isQuerying || !p.can_prev;
+            prevBtn.addEventListener('click', () => this._dispatchQuery({ page: p.page - 1, append: false, scrollToTop: true }));
             controls.appendChild(prevBtn);
 
             if (p.total_pages > 1) {
@@ -1722,11 +1049,9 @@ class UsimCardGridComponent extends UIComponent {
                     pageBtn.type = 'button';
                     pageBtn.className = `usim-cg-page-btn${entry === p.page ? ' is-active' : ''}`;
                     pageBtn.textContent = String(entry);
-                    pageBtn.disabled = this._isFetching || entry === p.page;
-                    if (entry === p.page) {
-                        pageBtn.setAttribute('aria-current', 'page');
-                    }
-                    pageBtn.addEventListener('click', () => this._goToPage(entry));
+                    pageBtn.disabled = this._isQuerying || entry === p.page;
+                    if (entry === p.page) pageBtn.setAttribute('aria-current', 'page');
+                    pageBtn.addEventListener('click', () => this._dispatchQuery({ page: entry, append: false, scrollToTop: true }));
                     controls.appendChild(pageBtn);
                 });
             }
@@ -1735,8 +1060,8 @@ class UsimCardGridComponent extends UIComponent {
             nextBtn.type = 'button';
             nextBtn.className = 'usim-cg-page-btn';
             nextBtn.textContent = 'Siguiente ›';
-            nextBtn.disabled = this._isFetching || !p.can_next;
-            nextBtn.addEventListener('click', () => this._goToPage(p.page + 1));
+            nextBtn.disabled = this._isQuerying || !p.can_next;
+            nextBtn.addEventListener('click', () => this._dispatchQuery({ page: p.page + 1, append: false, scrollToTop: true }));
             controls.appendChild(nextBtn);
         }
 
@@ -1745,25 +1070,21 @@ class UsimCardGridComponent extends UIComponent {
     }
 
     _computePageNumbers(current, total) {
-        if (total <= 7) {
-            return Array.from({ length: total }, (_, i) => i + 1);
-        }
+        if (total <= 7) return Array.from({ length: total }, (_, i) => i + 1);
 
         const pages = [1];
         const left = Math.max(2, current - 1);
         const right = Math.min(total - 1, current + 1);
 
         if (left > 2) pages.push('...');
-        for (let i = left; i <= right; i++) {
-            pages.push(i);
-        }
+        for (let i = left; i <= right; i++) pages.push(i);
         if (right < total - 1) pages.push('...');
         pages.push(total);
 
         return pages;
     }
 
-    // ─── Querying (Remote GET /api/ui-data & Static Client Fallback) ───────────
+    // ─── Event-Driven Querying (POST /api/ui-event) ───────────────────────────
 
     _onSearchChanged(immediate = false) {
         if (this._debounceTimer) {
@@ -1771,47 +1092,24 @@ class UsimCardGridComponent extends UIComponent {
             this._debounceTimer = null;
         }
 
-        const delay = (!immediate && this.config.action) ? Number(this.config.debounce ?? 300) : 0;
+        const delay = immediate ? 0 : Number(this.config.debounce ?? 300);
 
-        const execute = () => {
-            this._pagination.page = 1;
+        const run = () => {
             const minChars = Number(this.config.min_search_chars || 0);
             const term = this._searchTerm.trim();
-
             if (minChars > 0 && term.length > 0 && term.length < minChars) {
                 this._renderToolbar();
-                this._renderGridArea();
+                this._renderStateBox();
                 this._renderPagination();
                 return;
             }
-
-            if (this.config.action) {
-                this.loadPage(1, { append: false, silentSkeleton: this._items.length > 0 });
-            } else {
-                this._renderHeader();
-                this._renderToolbar();
-                this._renderGridArea();
-                this._renderPagination();
-            }
+            this._dispatchQuery({ page: 1, append: false });
         };
 
         if (delay > 0) {
-            this._debounceTimer = setTimeout(execute, delay);
+            this._debounceTimer = setTimeout(run, delay);
         } else {
-            execute();
-        }
-    }
-
-    _onQueryCriteriaChanged() {
-        this._pagination.page = 1;
-
-        if (this.config.action) {
-            this.loadPage(1, { append: false, silentSkeleton: this._items.length > 0 });
-        } else {
-            this._renderHeader();
-            this._renderToolbar();
-            this._renderGridArea();
-            this._renderPagination();
+            run();
         }
     }
 
@@ -1819,111 +1117,43 @@ class UsimCardGridComponent extends UIComponent {
         this._searchTerm = '';
         this._activeFilters = {};
         this._openPopoverKey = null;
-        this._onQueryCriteriaChanged();
+        this._dispatchQuery({ page: 1, append: false });
     }
 
-    _goToPage(page) {
-        const target = Math.max(1, Number(page) || 1);
-        if (this.config.action) {
-            this.loadPage(target, { append: false, silentSkeleton: true, scrollToTop: true });
-        } else {
-            this._pagination.page = target;
-            this._renderGridArea();
-            this._renderPagination();
-            this._scrollIntoViewIfNeeded();
-        }
-    }
+    async _dispatchQuery(options = {}) {
+        const queryAction = this.config.query_action;
+        if (!queryAction) return;
 
-    async loadPage(page = 1, options = {}) {
-        if (!this.config.action) {
-            this._pagination.page = Math.max(1, page);
-            this._renderHeader();
-            this._renderGridArea();
-            this._renderPagination();
-            return;
-        }
-
+        const targetPage = Math.max(1, Number(options.page) || 1);
         const append = Boolean(options.append);
-        this._isFetching = true;
+
+        this._isQuerying = true;
         this._isAppending = append;
-        this._hasError = false;
-
-        if (!append && !options.silentSkeleton) {
-            this._items = [];
-        }
-
+        this._applyGridCssVars();
         this._renderToolbar();
-        this._renderGridArea();
         this._renderPagination();
 
         try {
-            const params = {
+            await this.sendEventToBackend('action', queryAction, {
                 ...(this.config.parameters || {}),
-                page: Math.max(1, Number(page) || 1),
+                page: targetPage,
                 per_page: this._pagination.per_page,
                 search: this._searchTerm.trim(),
                 sort_by: this._sortBy || null,
                 sort_direction: this._sortDirection,
                 filters: this._activeFilters,
-            };
-
-            const result = await this.fetchData(this.config.action, params, {
-                showLoadingOverlay: false,
+                append,
             });
-
-            if (result === null) {
-                // Aborted or failed; if no active request replaced us, show error if nothing loaded
-                if (!this._activeAbortController) {
-                    this._hasError = this._items.length === 0;
-                }
-                return;
-            }
-
-            this._hasFetchedOnce = true;
-
-            const rawItems = Array.isArray(result)
-                ? result
-                : (Array.isArray(result.items) ? result.items : []);
-            const incoming = this._normalizeItems(rawItems);
-
-            if (append) {
-                const existingIds = new Set(this._items.map((it) => String(it.id)));
-                incoming.forEach((it) => {
-                    if (!existingIds.has(String(it.id))) {
-                        this._items.push(it);
-                        existingIds.add(String(it.id));
-                    }
-                });
-            } else {
-                this._items = incoming;
-            }
-
-            if (result && typeof result === 'object' && result.pagination && typeof result.pagination === 'object') {
-                this._pagination = this._normalizePagination({
-                    ...this._pagination,
-                    ...result.pagination,
-                });
-            } else {
-                this._pagination = this._normalizePagination({
-                    ...this._pagination,
-                    page,
-                    total: this._items.length,
-                    has_more: false,
-                });
-            }
 
             if (options.scrollToTop) {
                 this._scrollIntoViewIfNeeded();
             }
-        } catch (error) {
-            console.error('CardGrid loadPage error:', error);
-            this._hasError = true;
         } finally {
-            this._isFetching = false;
+            this._isQuerying = false;
             this._isAppending = false;
-            this._renderHeader();
+            this._applyGridCssVars();
             this._renderToolbar();
-            this._renderGridArea();
+            this._renderStateBox();
             this._renderPagination();
         }
     }
@@ -1936,149 +1166,17 @@ class UsimCardGridComponent extends UIComponent {
         }
     }
 
-    // ─── Client-Side Static Data Pipeline ─────────────────────────────────────
-
-    _getStaticFilteredSortedItems() {
-        let list = [...this._staticAllItems];
-        const term = this._searchTerm.trim().toLowerCase();
-
-        if (term !== '') {
-            list = list.filter((it) => {
-                const haystack = [
-                    it.title,
-                    it.subtitle,
-                    it.eyebrow,
-                    it.description,
-                    it.badge,
-                    ...(it.tags || []),
-                    ...(it.attributes || []).map((a) => `${a.label} ${a.value}`),
-                ].filter(Boolean).join(' ').toLowerCase();
-                return haystack.includes(term);
-            });
+    _getVisibleCardCount() {
+        if (this.gridElement) {
+            const domCount = this.gridElement.querySelectorAll(':scope > .usim-ic-card').length;
+            if (domCount > 0) return domCount;
         }
-
-        Object.entries(this._activeFilters).forEach(([key, val]) => {
-            list = list.filter((it) => {
-                const candidate = it.meta?.[key] ?? it[key];
-                if (Array.isArray(val)) {
-                    if (Array.isArray(candidate)) {
-                        return val.some((v) => candidate.map(String).includes(String(v)));
-                    }
-                    return val.map(String).includes(String(candidate));
-                }
-                if (typeof val === 'boolean') {
-                    return Boolean(candidate) === val;
-                }
-                return String(candidate ?? '').toLowerCase() === String(val).toLowerCase();
-            });
-        });
-
-        if (this._sortBy) {
-            const field = this._sortBy;
-            const dir = this._sortDirection === 'desc' ? -1 : 1;
-            list.sort((a, b) => {
-                const va = a[field] ?? a.meta?.[field] ?? '';
-                const vb = b[field] ?? b.meta?.[field] ?? '';
-                if (typeof va === 'number' && typeof vb === 'number') {
-                    return (va - vb) * dir;
-                }
-                return String(va).localeCompare(String(vb), undefined, { numeric: true, sensitivity: 'base' }) * dir;
-            });
-        }
-
-        return list;
-    }
-
-    _getEffectivePagination() {
-        if (this.config.action) {
-            return this._pagination;
-        }
-
-        const filtered = this._getStaticFilteredSortedItems();
-        const total = filtered.length;
-        const perPage = Math.max(1, this._pagination.per_page);
-        const totalPages = total > 0 ? Math.ceil(total / perPage) : 0;
-        const page = Math.min(this._pagination.page, Math.max(1, totalPages));
-
-        return {
-            ...this._pagination,
-            page,
-            total,
-            total_pages: totalPages,
-            has_more: (page * perPage) < total,
-            can_prev: page > 1,
-            can_next: (page * perPage) < total,
-        };
+        return Math.max(0, Number(this.config.visible_count) || 0);
     }
 
     _getEffectiveTotal() {
-        const p = this._getEffectivePagination();
-        return p.total !== null ? p.total : this._items.length;
+        return this._pagination.total !== null ? this._pagination.total : this._getVisibleCardCount();
     }
-
-    _getDisplayItems() {
-        if (this.config.action) {
-            return this._items;
-        }
-
-        const filtered = this._getStaticFilteredSortedItems();
-        const p = this._getEffectivePagination();
-        if (p.mode === 'load_more') {
-            return filtered.slice(0, p.page * p.per_page);
-        }
-        const start = (p.page - 1) * p.per_page;
-        return filtered.slice(start, start + p.per_page);
-    }
-
-    // ─── Card & Action Events ─────────────────────────────────────────────────
-
-    _handleCardClick(item) {
-        if (item.disabled) return;
-
-        if (item.url) {
-            if (item.target === '_blank') {
-                window.open(item.url, '_blank', 'noopener,noreferrer');
-            } else {
-                window.location.assign(item.url);
-            }
-            return;
-        }
-
-        if (item.click_action) {
-            this.sendEventToBackend('click', item.click_action, {
-                id: item.id,
-                item,
-                ...(item.click_parameters || {}),
-            });
-            return;
-        }
-
-        const configured = this.config.on_card_click;
-        if (configured) {
-            const actionName = typeof configured === 'string' ? configured : configured.action;
-            const extraParams = typeof configured === 'object' && configured.parameters ? configured.parameters : {};
-            if (actionName) {
-                this.sendEventToBackend('click', actionName, {
-                    ...extraParams,
-                    id: item.id,
-                    item,
-                });
-            }
-        }
-    }
-
-    _handleCardAction(act, item) {
-        if (act.disabled) return;
-        if (!act.action) return;
-
-        this.sendEventToBackend('click', act.action, {
-            id: item.id,
-            item,
-            ...(act.parameters || {}),
-        });
-    }
-
-    // ─── Icon Helper ──────────────────────────────────────────────────────────
 
     _createIconNode(iconValue, size = 16) {
         const helpers = window.USIM_COMPONENT_HELPERS;
