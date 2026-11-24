@@ -6,6 +6,10 @@ The format is based on Keep a Changelog, and this project follows Semantic Versi
 
 ## [Unreleased]
 
+### Fixed (v2.20.1)
+- **Dynamically added components missing `component.element` reference (`js/ui-renderer.js`):** updated `UIRenderer::addComponent()` to assign `component.element = element` after `component.render()` (matching `UIComponent::mount()`). Previously, `ItemCard` children mounted incrementally during pagination, search, filtering, or `load_more` had `this.element === null`, causing subsequent `density` or `layout` updates to skip those dynamically added cards while only updating initially mounted cards.
+- **Resilient `ItemCard` DOM binding & local layout toggle sync (`js/components/item-card/index.js`, `js/components/card-grid/index.js`, `tests/Feature/CardGridServiceWiringTest.php`):** assigned `this.element` directly in `UsimItemCardComponent::render()`, added a `[data-component-id]` DOM fallback in `update()`, synchronized `childComp.config.layout` when toggling layout from `CardGrid`'s inline toolbar button so subsequent single-card updates preserve the active orientation, and added regression tests verifying `density_changed` and `card_layout_changed` diffs across all mounted cards after `load_more`.
+
 ### Added (v2.20.0)
 - **New `UI::itemCard()` First-Class Standardized Card Component (`Idei\Usim\Components\ItemCard`, `type: 'item_card'`)**:
   - Added modern, theme-safe card component usable both **standalone** (in any `Screen`, `Container`, `Modal`, or `.layout.yaml`) and **managed as child components inside `CardGrid`**.
