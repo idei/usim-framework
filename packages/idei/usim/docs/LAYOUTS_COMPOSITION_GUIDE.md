@@ -354,6 +354,7 @@ Si un componente declarado en `.layout.yaml` no necesita ser manipulado desde PH
 | `rte_` | `RichText` | `rich_text` / `richtext` |
 | `tbl_` | `Table` | `table` |
 | `lst_` | `ItemList` | `item_list` / `list` |
+| `grd_` | `CardGrid` | `card_grid` / `cardgrid` |
 | `img_` | `Image` | `image` |
 | `cal_` | `Calendar` | `calendar` |
 | `car_` | `Carousel` | `carousel` |

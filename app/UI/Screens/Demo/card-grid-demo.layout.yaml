@@ -1,0 +1,31 @@
+name: card_grid_demo_wrapper
+appearance: plain
+max_width: 1200
+center_horizontal: true
+i18n: auto
+
+grid:
+  cols: 12
+  gap: m
+  padding: l
+  default_span: 12
+
+  children:
+    - card_grid_demo_title: { style: default, text_align: center, size: xl, font_weight: bold }
+    - card_grid_demo_intro: { style: info, text_align: center, size: large, font_weight: normal }
+    - sel_pagination_mode:  { span: 4, on_change: pagination_mode_changed }
+    - sel_card_layout:      { span: 4, on_change: card_layout_changed }
+    - sel_density:          { span: 4, on_change: density_changed }
+    - movies_grid:
+        service: App\Services\Movie\MovieCardGridService
+        searchable: true
+        debounce: 250
+        per_page: 6
+        per_page_options: [6, 12, 18]
+        min_card_width: 270px
+        max_columns: 3
+        variant: elevated
+        show_layout_toggle: true
+        max_visible_actions: 2
+        max_visible_tags: 3
+        on_card_click: view_movie

@@ -6,6 +6,19 @@ The format is based on Keep a Changelog, and this project follows Semantic Versi
 
 ## [Unreleased]
 
+### Added (v2.20.0)
+- **New `UI::cardGrid()` Responsive Card Grid Component (`Idei\Usim\Components\CardGrid`, `type: 'card_grid'`)**:
+  - Added data-driven responsive 2D card grid component (left-to-right, top-to-bottom intrinsic CSS Grid with `--usim-cg-min-width`, optional `maxColumns()`, `gap()`, `cardLayout('vertical'|'horizontal')`, `variant('elevated'|'outlined'|'flat')`, `density('compact'|'comfortable'|'spacious')`, and optional client-side layout toggle).
+  - Added typed service contract and immutable DTOs:
+    - `Idei\Usim\Contracts\CardGrid\CardListable` (`query(CardQuery $query): CardPageResult`), plus automatic fallback adapter for existing `ItemList\Listable` services.
+    - `CardQuery`, `CardPageResult` (including `fromCollection()`), `CardItemDTO` (closed semantic slots: media/icon/avatar, eyebrow/title/subtitle/badge, highlight metric, description, key-value attributes, tags, footer text, actions, click action/URL, semantic `Style`, `featured`, `disabled`, `accentColor`, `meta`), and `CardActionDTO`.
+  - Added integrated responsive toolbar inside `CardGrid`: debounced live search (`GET /api/ui-data` with `AbortController`), sort field selector + direction toggle, declarative filters (`select`, `multi_select`, `toggle`, `chips`), removable active-filter chips with "Limpiar filtros", and collapsible mobile filter bar.
+  - Added dual pagination support: classic numbered `pages` (with optional `perPageOptions`) and incremental `load_more`, plus skeleton loading cards, empty/no-results/error states, and automatic static client-side fallback when `items()` are provided without a remote service/action.
+  - Added standardized lightweight client-side card rendering (`js/components/card-grid/index.js`, `css/components/card-grid/index.css`) using `textContent` (no raw `innerHTML`), Light/Dark theme `--usim-*` tokens, native `border-top` / `border-left` semantic accents aligned to rounded corners, lazy-loaded images with fallback, and automatic `⋮` overflow kebab menu when actions exceed `maxVisibleActions`.
+  - Added **surgical incremental card patching (`card_patches`)**: `CardGrid::patchCard()`, `removeCard()`, and `prependCard()` emit monotonic `{ seq, ops }` deltas over `POST /api/ui-event` without mutating `items` or `reload_token` and without firing a second `GET /api/ui-data`; the client patches only the affected `<article>` DOM node (reusing existing `<img>` nodes when URLs are unchanged).
+  - Integrated `UI::cardGrid()`, lazy service hydration (`toJson()` / `getItems()`), `ScreenLifecycleOrchestrator` read-only query routing (`__usim_card_grid:<target>:query`), `ContainerLayoutLoader` (`grd_` prefix, `card_grid`/`cardgrid` aliases, `i18n: auto`), and `app.blade.php` asset loading.
+  - Added interactive `CardGridDemo` (`app/UI/Screens/Demo/CardGridDemo.php`, `card-grid-demo.layout.yaml`, `MovieCardGridService`, `en`/`es` translations, registered in `DemosMenuProvider`), comprehensive unit/feature tests (`CardGridComponentTest`, `CardGridServiceWiringTest`), user guide (`docs/CARD_GRID_GUIDE.md`), AI technical reference (`docs/CARD_GRID_AI_REFERENCE.md`), and updated JSON contract/context docs.
+
 ### Added (v2.19.0)
 - **Workbench Center `bottom_panel` (Vertical `Split`) & Sticky `top_bar` Slots**:
   - Extended `WorkbenchLayout` (`app/UI/Layouts/workbench-layout.layout.yaml` and package stub) so the center column (`center_column_container`, `.usim-workbench-center`) hosts:

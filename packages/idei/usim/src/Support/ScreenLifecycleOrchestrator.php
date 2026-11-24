@@ -5,6 +5,7 @@ namespace Idei\Usim\Support;
 use Idei\Usim\Components\Button;
 use Idei\Usim\Components\Calendar;
 use Idei\Usim\Components\Card;
+use Idei\Usim\Components\CardGrid;
 use Idei\Usim\Components\Carousel;
 use Idei\Usim\Components\Checkbox;
 use Idei\Usim\Components\Container;
@@ -381,7 +382,9 @@ class ScreenLifecycleOrchestrator implements ScreenLifecycleOrchestratorInterfac
                     }
                 }
             } elseif (($binding = $this->resolveScreenComponentBinding($screen, $triggerComponentId, $method, queryOnly: false)) !== null) {
-                $binding['component']->handleServiceAction($binding['operation'], $parameters, $screen);
+                if ($binding['component'] instanceof ItemList) {
+                    $binding['component']->handleServiceAction($binding['operation'], $parameters, $screen);
+                }
             }
 
             $this->finalizeEventContext(screen: $screen, reload: false);
@@ -439,10 +442,16 @@ class ScreenLifecycleOrchestrator implements ScreenLifecycleOrchestratorInterfac
 
                 $result = $reflectionMethod->invokeArgs($screen, $arguments);
             } elseif (($binding = $this->resolveScreenComponentBinding($screen, $triggerComponentId, $method, queryOnly: true)) !== null) {
-                $rawSearch = $parameters['search'] ?? $queryParams['search'] ?? '';
-                $search = is_scalar($rawSearch) ? (string) $rawSearch : '';
+                $boundComponent = $binding['component'];
+                if ($boundComponent instanceof CardGrid) {
+                    $mergedParams = array_merge($queryParams, $parameters);
+                    $result = $boundComponent->queryServicePage($mergedParams);
+                } else {
+                    $rawSearch = $parameters['search'] ?? $queryParams['search'] ?? '';
+                    $search = is_scalar($rawSearch) ? (string) $rawSearch : '';
 
-                $result = $binding['component']->queryServiceItems($search, $parameters);
+                    $result = $boundComponent->queryServiceItems($search, $parameters);
+                }
             } else {
                 throw new \BadMethodCallException("Query method [{$method}] does not exist on screen [" . get_class($screen) . '].');
             }
@@ -474,7 +483,7 @@ class ScreenLifecycleOrchestrator implements ScreenLifecycleOrchestratorInterfac
         try {
             $container = $screen->getContainer() ?? $this->reconstructScreenTree($screen);
 
-            return $this->resolveItemListServiceBinding($container, $componentId, $action, $queryOnly) !== null;
+            return $this->resolveComponentServiceBinding($container, $componentId, $action, $queryOnly) !== null;
         } catch (\Throwable) {
             return false;
         } finally {
@@ -483,9 +492,9 @@ class ScreenLifecycleOrchestrator implements ScreenLifecycleOrchestratorInterfac
     }
 
     /**
-     * Resolve an ItemList component binding from an already-initialized screen container.
+     * Resolve a service-bound component (ItemList or CardGrid) from an already-initialized screen container.
      *
-     * @return array{component: ItemList, operation: string}|null
+     * @return array{component: ItemList|CardGrid, operation: string}|null
      */
     protected function resolveScreenComponentBinding(
         Screen $screen,
@@ -496,8 +505,69 @@ class ScreenLifecycleOrchestrator implements ScreenLifecycleOrchestratorInterfac
         $container = $screen->getContainer();
 
         return $container !== null
-            ? $this->resolveItemListServiceBinding($container, $componentId, $action, $queryOnly)
+            ? $this->resolveComponentServiceBinding($container, $componentId, $action, $queryOnly)
             : null;
+    }
+
+    /**
+     * Resolve a service-bound component (ItemList or CardGrid) and operation.
+     *
+     * @return array{component: ItemList|CardGrid, operation: string}|null
+     */
+    protected function resolveComponentServiceBinding(
+        Container $container,
+        ?int $componentId,
+        string $action,
+        bool $queryOnly
+    ): ?array {
+        $itemListBinding = $this->resolveItemListServiceBinding($container, $componentId, $action, $queryOnly);
+        if ($itemListBinding !== null) {
+            return $itemListBinding;
+        }
+
+        if ($queryOnly) {
+            return $this->resolveCardGridServiceBinding($container, $componentId, $action);
+        }
+
+        return null;
+    }
+
+    /**
+     * Resolve a CardGrid component and read-only query operation.
+     *
+     * @return array{component: CardGrid, operation: string}|null
+     */
+    protected function resolveCardGridServiceBinding(
+        Container $container,
+        ?int $componentId,
+        string $action
+    ): ?array {
+        $parsed = CardGrid::parseServiceAction($action);
+
+        $component = $componentId !== null ? $container->findById($componentId) : null;
+        if (! ($component instanceof CardGrid) && $parsed !== null) {
+            $target = $parsed['target'];
+            $component = $container->findByName($target)
+                ?? (ctype_digit($target) ? $container->findById((int) $target) : null);
+        }
+
+        if (! ($component instanceof CardGrid)) {
+            return null;
+        }
+
+        $operation = $parsed['operation'] ?? null;
+        if ($operation === null && $component->get('action') === $action) {
+            $operation = 'query';
+        }
+
+        if ($operation !== 'query' || ! $component->supportsServiceOperation($operation)) {
+            return null;
+        }
+
+        return [
+            'component' => $component,
+            'operation' => $operation,
+        ];
     }
 
     /**
@@ -1200,6 +1270,7 @@ class ScreenLifecycleOrchestrator implements ScreenLifecycleOrchestratorInterfac
             'split' => Split::class,
             'timer' => Timer::class,
             'item_list', 'itemlist' => ItemList::class,
+            'card_grid', 'cardgrid' => CardGrid::class,
             default => null,
         };
     }

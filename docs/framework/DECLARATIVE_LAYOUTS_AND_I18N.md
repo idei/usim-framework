@@ -392,7 +392,7 @@ Luego busca el primer `string` no vacío en el diccionario de la Screen en este 
 ### 6.6 Tabla de Schemas y Prefijos por Componente
 
 **Prefijos reconocidos y eliminados automáticamente (`COMPONENT_PREFIXES`):**
-`input_`, `btn_`, `lbl_`, `sel_`, `chk_`, `txt_`, `tbl_`, `lst_`, `img_`, `cal_`, `car_`, `upl_`, `crd_`, `cnt_`.
+`input_`, `btn_`, `lbl_`, `sel_`, `chk_`, `txt_`, `rte_`, `tbl_`, `lst_`, `grd_`, `img_`, `cal_`, `car_`, `upl_`, `crd_`, `cnt_`.
 
 **Schema de atributos auto-hidratables por clase:**
 

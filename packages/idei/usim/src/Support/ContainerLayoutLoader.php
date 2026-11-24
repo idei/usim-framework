@@ -5,6 +5,7 @@ namespace Idei\Usim\Support;
 use Idei\Usim\Components\Button;
 use Idei\Usim\Components\Calendar;
 use Idei\Usim\Components\Card;
+use Idei\Usim\Components\CardGrid;
 use Idei\Usim\Components\Carousel;
 use Idei\Usim\Components\Checkbox;
 use Idei\Usim\Components\Container;
@@ -83,6 +84,7 @@ class ContainerLayoutLoader
         'car_',
         'upl_',
         'crd_',
+        'grd_',
         'cnt_',
         'tmr_',
     ];
@@ -102,6 +104,7 @@ class ContainerLayoutLoader
         'rte_' => RichText::class,
         'tbl_' => Table::class,
         'lst_' => ItemList::class,
+        'grd_' => CardGrid::class,
         'img_' => Image::class,
         'cal_' => Calendar::class,
         'car_' => Carousel::class,
@@ -130,6 +133,8 @@ class ContainerLayoutLoader
         'table' => Table::class,
         'item_list' => ItemList::class,
         'list' => ItemList::class,
+        'card_grid' => CardGrid::class,
+        'cardgrid' => CardGrid::class,
         'image' => Image::class,
         'calendar' => Calendar::class,
         'carousel' => Carousel::class,
@@ -1752,6 +1757,20 @@ class ContainerLayoutLoader
                     'create_placeholder',
                     'create_button_label',
                     'bulk_delete_label',
+                ],
+            ],
+            $element instanceof CardGrid => [
+                'primary' => 'title',
+                'groups' => ['grids', 'cards'],
+                'attributes' => [
+                    'title',
+                    'subtitle',
+                    'empty_message',
+                    'no_results_message',
+                    'min_chars_message',
+                    'search_placeholder',
+                    'load_more_label',
+                    'clear_filters_label',
                 ],
             ],
             $element instanceof Table => [

@@ -39,6 +39,7 @@ Created with fluent builders, for example:
 - `UI::checkbox(...)`
 - `UI::table(...)`
 - `UI::itemList(...)`
+- `UI::cardGrid(...)` (responsive 2D card grid wired to `CardListable` or adapted `Listable` via `GET /api/ui-data`, with integrated search/sort/filters toolbar, `pages` & `load_more` pagination, closed `CardItemDTO`/`CardActionDTO` slots, `grd_` YAML prefix, and surgical single-card diffs via `patchCard()`/`removeCard()`/`prependCard()` instead of full `reload()`; see `CARD_GRID_AI_REFERENCE.md`)
 - `UI::image(...)`
 - `UI::uploader(...)`
 - `UI::menuDropdown(...)` (supports `->floating(true)` and `right-top`/`top-left`/`top-right` viewport-portaled popovers)

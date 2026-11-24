@@ -109,6 +109,7 @@ Key guides included:
 - [Layouts Composition Guide](docs/LAYOUTS_COMPOSITION_GUIDE.md) — Practical catalog of grid, nested inline layouts, external `include:`, `embedToSlot()`, and `AbstractLayout` patterns
 - [Workbench & Unified Layouts (AI Technical Reference)](docs/WORKBENCH_AND_UNIFIED_LAYOUTS_AI_REFERENCE.md) — Unified `.layout.yaml` page layouts, `WorkbenchLayout`, `NavTree`, Activity Bar (`52px`), collapsible `right_panel` (`0px`), `StatusBar`, `guest_layout`, and automatic SPA layout transitions
 - [RichText Editor Guide](docs/RICH_TEXT_GUIDE.md) & [AI Technical Reference](docs/RICH_TEXT_AI_REFERENCE.md) — WYSIWYG HTML editing (`UI::richText()`), SunEditor v3 lazy loading, toolbar presets, editable images, and security best practices
+- [CardGrid Guide](docs/CARD_GRID_GUIDE.md) & [AI Technical Reference](docs/CARD_GRID_AI_REFERENCE.md) — Responsive 2D card grids (`UI::cardGrid()`), `CardListable` contract, integrated search/sort/filters toolbar, `pages` & `load_more` pagination, and surgical `patchCard()` diffs
 - [Icons Guide](docs/ICONS_GUIDE.md) — Agnostic icon API (`HasIcon`), standard 80-SVG library (`--tag=usim-icons`), custom user icons (`public/images/icons/`), theme/container adaptation, and full icon catalog
 - [Events System](docs/USIM_EVENTS_SYSTEM.md) — UI & domain event lifecycle, handlers, and diffs
 - [Screen Testing Guide](docs/SCREEN_TESTING_GUIDE.md) — Testing screens with `ScreenTestHarness`, `uiScenario()`, and Pest
@@ -378,6 +379,7 @@ Use `_crypt` only when the value should not be readable from client storage.
 | `UI::richText()` | `RichText` | WYSIWYG HTML editor (lazy-loaded SunEditor v3) with toolbar presets, editable base64/upload images, and theme sync |
 | `UI::select()` | `Select` | Dropdown selects with static or dynamic `/api/ui-data` options |
 | `UI::itemList()` / `UI::list()` | `ItemList` | Vertical interactive list with single/multiple selection, live `/api/ui-data` search, and inline/delegated CRUD |
+| `UI::cardGrid()` | `CardGrid` | Responsive 2D card grid with `CardListable` binding, integrated search/sort/filters, `pages`/`load_more` pagination, per-card actions, and surgical `patchCard()` diffs |
 | `UI::checkbox()` | `Checkbox` | Checkboxes and toggles |
 | `UI::form()` | `Form` | Form grouping |
 | `UI::table()` | `Table` | Data tables with pagination |
@@ -809,6 +811,34 @@ $list = UI::itemList('movies_list')
 ```
 
 See [ITEM_LIST_SERVICE_WIRING.md](docs/ITEM_LIST_SERVICE_WIRING.md) for the full contracts reference and partial override hooks (such as `ConfirmDialog` deletion confirmation).
+
+---
+
+## Responsive Card Grids (`CardGrid`)
+
+Use `UI::cardGrid()` for responsive 2D catalogs of standardized cards backed by a `CardListable` (or adapted `Listable`) service, with integrated debounced search, sorting, declarative filters (`select`, `multi_select`, `toggle`, `chips`), `pages` / `load_more` pagination, per-card actions (with automatic `⋮` overflow menu), and surgical per-card DOM patching (`patchCard`, `removeCard`, `prependCard`):
+
+```php
+$grid = UI::cardGrid('movies_grid')
+    ->title('Featured Catalog')
+    ->service(\App\Services\Movie\MovieCardGridService::class)
+    ->searchable(true, 'Search by title, director, or tag...')
+    ->sortOptions(['rating' => 'IMDb Rating', 'year' => 'Year', 'title' => 'Title'])
+    ->defaultSort('rating', 'desc')
+    ->addSelectFilter('genre', 'Genre', ['sci-fi' => 'Sci-Fi', 'drama' => 'Drama'])
+    ->addToggleFilter('featured', 'Featured only')
+    ->paginationMode('pages') // or 'load_more'
+    ->perPage(12)
+    ->onCardClick('view_movie');
+
+// In an event handler, update a single card in-place without reloading GET /api/ui-data:
+$this->movies_grid->patchCard($movieId, [
+    'badge' => '★ Favorite',
+    'badge_style' => Style::WARNING,
+]);
+```
+
+See [CARD_GRID_GUIDE.md](docs/CARD_GRID_GUIDE.md) and [CARD_GRID_AI_REFERENCE.md](docs/CARD_GRID_AI_REFERENCE.md) for the full guide and JSON protocol.
 
 ---
 

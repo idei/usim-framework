@@ -130,6 +130,45 @@ UI::itemList('movies_list') // Alias: UI::list('movies_list')
 
 > **Cableado automático por capacidades (`->service(...)`)**: En lugar de declarar handlers manuales (`action`, `onCreate`, `onUpdate`, `onDelete`, `onBulkDelete`) en la `Screen`, podés vincular un servicio con `->service(MyCatalogService::class)` que implemente `Listable`, `Creatable`, `Updatable`, `Deletable` y/o `BulkDeletable` (`Idei\Usim\Contracts\ItemList\*`). Opcionalmente agregá `->onServiceMutated('catalog_mutated')` para sincronizar resúmenes en la `Screen`. Ver [ITEM_LIST_SERVICE_WIRING.md](../../packages/idei/usim/docs/ITEM_LIST_SERVICE_WIRING.md).
 
+### CardGrid
+```php
+use App\Services\Movie\MovieCardGridService;
+use Idei\Usim\Enums\Style;
+
+UI::cardGrid('movies_grid')
+    ->title('Cartelera Destacada')
+    ->service(MovieCardGridService::class) // Implementa CardListable (o Listable adaptado)
+    ->searchable(true, 'Buscar por título, director o etiqueta...')
+    ->debounce(250)
+    ->sortOptions([
+        ['field' => 'rating', 'label' => 'Puntaje IMDb'],
+        ['field' => 'year', 'label' => 'Año'],
+        ['field' => 'title', 'label' => 'Título'],
+    ])
+    ->defaultSort('rating', 'desc')
+    ->addSelectFilter('genre', 'Género', ['sci-fi' => 'Ciencia Ficción', 'drama' => 'Drama'])
+    ->addMultiSelectFilter('tags', 'Etiquetas', ['IMAX' => 'IMAX', '4K' => '4K'])
+    ->addToggleFilter('featured', 'Solo destacadas')
+    ->addChipsFilter('decade', 'Década', ['2010' => '2010s', '2020' => '2020s'])
+    ->paginationMode('pages') // o 'load_more'
+    ->perPage(12)
+    ->minCardWidth('270px')
+    ->maxColumns(3)
+    ->cardLayout('vertical') // o 'horizontal'
+    ->variant('elevated')    // 'elevated' | 'outlined' | 'flat'
+    ->density('comfortable') // 'compact' | 'comfortable' | 'spacious'
+    ->showLayoutToggle(true)
+    ->onCardClick('view_movie');
+
+// Parcheo quirúrgico de una sola tarjeta desde un handler (sin recargar GET /api/ui-data):
+$this->movies_grid->patchCard($movieId, [
+    'badge' => '★ Favorita',
+    'badge_style' => Style::WARNING,
+]);
+```
+
+> **Guía y contrato técnico**: Ver [CARD_GRID_GUIDE.md](../../packages/idei/usim/docs/CARD_GRID_GUIDE.md) y [CARD_GRID_AI_REFERENCE.md](../../packages/idei/usim/docs/CARD_GRID_AI_REFERENCE.md).
+
 
 ## 🌳 Manipulación de Árbol
 

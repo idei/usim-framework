@@ -3,6 +3,7 @@
 namespace App\UI\Navigation\Menus;
 
 use App\UI\Screens\Demo\ButtonDemo;
+use App\UI\Screens\Demo\CardGridDemo;
 use App\UI\Screens\Demo\CarouselDemo;
 use App\UI\Screens\Demo\CheckboxDemo;
 use App\UI\Screens\Demo\FormDemo;
@@ -34,6 +35,7 @@ class DemosMenuProvider implements MenuProviderInterface
             $submenu->screenShow(NewLabelDemo::class);
             $submenu->screenShow(TableDemo::class);
             $submenu->screenShow(ItemListDemo::class);
+            $submenu->screenShow(CardGridDemo::class);
             $submenu->screenShow(ModalDemo::class);
             $submenu->action(t('screens.menu.demos.abort_error'), 'show_error_info', [], '❌');
             $submenu->screenShow(FormDemo::class);

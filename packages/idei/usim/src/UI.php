@@ -5,6 +5,7 @@ namespace Idei\Usim;
 use Idei\Usim\Components\Button;
 use Idei\Usim\Components\Calendar;
 use Idei\Usim\Components\Card;
+use Idei\Usim\Components\CardGrid;
 use Idei\Usim\Components\Carousel;
 use Idei\Usim\Components\Checkbox;
 use Idei\Usim\Components\Container;
@@ -281,5 +282,15 @@ class UI
     public static function list(?string $name = null): ItemList
     {
         return new ItemList($name);
+    }
+
+    /**
+     * Create a new responsive CardGrid component
+     *
+     * @param  string|null  $name  The optional semantic name for the card grid
+     */
+    public static function cardGrid(?string $name = null): CardGrid
+    {
+        return new CardGrid($name);
     }
 }
