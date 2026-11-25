@@ -2,7 +2,9 @@
 
 namespace Idei\Usim\DTOs;
 
+use Idei\Usim\Enums\AspectRatio;
 use Idei\Usim\Enums\Style;
+use Idei\Usim\Support\ImageSourceResolver;
 use Illuminate\Contracts\Support\Arrayable;
 use JsonSerializable;
 
@@ -18,7 +20,7 @@ use JsonSerializable;
 final readonly class CardItemDTO implements Arrayable, JsonSerializable
 {
     /**
-     * @param  'cover'|'contain'  $imageFit
+     * @param  'cover'|'contain'|'scale-down'  $imageFit
      * @param  list<array{label: string, value: string, icon?: string}>  $attributes
      * @param  list<string>  $tags
      * @param  list<CardActionDTO>  $actions
@@ -55,6 +57,12 @@ final readonly class CardItemDTO implements Arrayable, JsonSerializable
         public bool $disabled = false,
         public ?string $accentColor = null,
         public array $meta = [],
+        public ?string $imageStorage = null,
+        public ?bool $imagePlaceholder = null,
+        public ?string $imagePlaceholderAspect = null,
+        public ?string $imagePlaceholderId = null,
+        public ?string $imagePlaceholderBackground = null,
+        public ?string $imagePlaceholderText = null,
     ) {}
 
     /**
@@ -97,6 +105,12 @@ final readonly class CardItemDTO implements Arrayable, JsonSerializable
         bool $disabled = false,
         ?string $accentColor = null,
         array $meta = [],
+        ?string $imageStorage = null,
+        ?bool $imagePlaceholder = null,
+        AspectRatio|string|null $imagePlaceholderAspect = null,
+        int|string|null $imagePlaceholderId = null,
+        ?string $imagePlaceholderBackground = null,
+        ?string $imagePlaceholderText = null,
     ): self {
         return new self(
             id: $id,
@@ -128,6 +142,12 @@ final readonly class CardItemDTO implements Arrayable, JsonSerializable
             disabled: $disabled,
             accentColor: self::nullableString($accentColor),
             meta: $meta,
+            imageStorage: ImageSourceResolver::normalizeStorageDirectory(self::nullableString($imageStorage)),
+            imagePlaceholder: $imagePlaceholder,
+            imagePlaceholderAspect: ImageSourceResolver::normalizeAspectRatio($imagePlaceholderAspect),
+            imagePlaceholderId: $imagePlaceholderId !== null ? self::nullableString((string) $imagePlaceholderId) : null,
+            imagePlaceholderBackground: self::nullableString($imagePlaceholderBackground),
+            imagePlaceholderText: self::nullableString($imagePlaceholderText),
         );
     }
 
@@ -195,6 +215,17 @@ final readonly class CardItemDTO implements Arrayable, JsonSerializable
         $rawTarget = $data['target'] ?? '_self';
         $target = is_string($rawTarget) && trim($rawTarget) !== '' ? trim($rawTarget) : '_self';
 
+        $rawImageStorage = self::extractNullableScalar($data, ['image_storage', 'imageStorage']);
+        $imageStorage = ImageSourceResolver::normalizeStorageDirectory($rawImageStorage);
+
+        $rawPlaceholder = $data['image_placeholder'] ?? $data['imagePlaceholder'] ?? null;
+        $imagePlaceholder = is_bool($rawPlaceholder) ? $rawPlaceholder : null;
+
+        $rawPlaceholderAspect = $data['image_placeholder_aspect'] ?? $data['imagePlaceholderAspect'] ?? null;
+        $imagePlaceholderAspect = $rawPlaceholderAspect instanceof AspectRatio || is_string($rawPlaceholderAspect)
+            ? ImageSourceResolver::normalizeAspectRatio($rawPlaceholderAspect)
+            : null;
+
         return new self(
             id: $id,
             title: $title,
@@ -225,6 +256,12 @@ final readonly class CardItemDTO implements Arrayable, JsonSerializable
             disabled: (bool) ($data['disabled'] ?? false),
             accentColor: self::extractNullableScalar($data, ['accent_color', 'accentColor']),
             meta: $meta,
+            imageStorage: $imageStorage,
+            imagePlaceholder: $imagePlaceholder,
+            imagePlaceholderAspect: $imagePlaceholderAspect,
+            imagePlaceholderId: self::extractNullableScalar($data, ['image_placeholder_id', 'imagePlaceholderId']),
+            imagePlaceholderBackground: self::extractNullableScalar($data, ['image_placeholder_background', 'imagePlaceholderBackground']),
+            imagePlaceholderText: self::extractNullableScalar($data, ['image_placeholder_text', 'imagePlaceholderText']),
         );
     }
 
@@ -260,12 +297,21 @@ final readonly class CardItemDTO implements Arrayable, JsonSerializable
             'click_action' => $this->clickAction,
             'url' => $this->url,
             'accent_color' => $this->accentColor,
+            'image_storage' => $this->imageStorage,
+            'image_placeholder_aspect' => $this->imagePlaceholderAspect,
+            'image_placeholder_id' => $this->imagePlaceholderId,
+            'image_placeholder_background' => $this->imagePlaceholderBackground,
+            'image_placeholder_text' => $this->imagePlaceholderText,
         ];
 
         foreach ($optionalScalars as $key => $value) {
             if ($value !== null && $value !== '') {
                 $payload[$key] = $value;
             }
+        }
+
+        if ($this->imagePlaceholder !== null) {
+            $payload['image_placeholder'] = $this->imagePlaceholder;
         }
 
         if ($this->url !== null && $this->url !== '') {
@@ -345,11 +391,15 @@ final readonly class CardItemDTO implements Arrayable, JsonSerializable
     }
 
     /**
-     * @return 'cover'|'contain'
+     * @return 'cover'|'contain'|'scale-down'
      */
     private static function normalizeImageFit(string $fit): string
     {
-        return strtolower(trim($fit)) === 'contain' ? 'contain' : 'cover';
+        return match (strtolower(trim($fit))) {
+            'contain' => 'contain',
+            'scale-down' => 'scale-down',
+            default => 'cover',
+        };
     }
 
     /**

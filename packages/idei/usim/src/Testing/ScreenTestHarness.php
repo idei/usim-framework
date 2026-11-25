@@ -2,8 +2,11 @@
 
 namespace Idei\Usim\Testing;
 
+use Idei\Usim\Components\CardGrid;
 use Idei\Usim\Components\Container;
+use Idei\Usim\Components\ItemCard;
 use Idei\Usim\Contracts\UIElement;
+use Idei\Usim\Enums\Style;
 use Idei\Usim\Screen;
 use Idei\Usim\UIChangesCollector;
 use PHPUnit\Framework\Assert;
@@ -205,6 +208,260 @@ class ScreenTestHarness
         Assert::assertNotNull($component, "Component [{$name}] was not found in Screen [{$screenClass}].");
 
         return $component;
+    }
+
+    // ─── CardGrid & ItemCard Helpers ──────────────────────────────────────────
+
+    /**
+     * Retrieve a CardGrid component by name, failing if missing or not a CardGrid.
+     */
+    public function getCardGrid(string $gridName): CardGrid
+    {
+        $component = $this->getComponent($gridName);
+        $screenClass = $this->screen::class;
+        Assert::assertInstanceOf(
+            CardGrid::class,
+            $component,
+            "Component [{$gridName}] on Screen [{$screenClass}] is not a CardGrid."
+        );
+
+        return $component;
+    }
+
+    /**
+     * Find a mounted child ItemCard inside a CardGrid by domain item ID.
+     */
+    public function findCard(string $gridName, int|string $itemId): ?ItemCard
+    {
+        $grid = $this->findComponent($gridName);
+        if (! $grid instanceof CardGrid) {
+            return null;
+        }
+
+        return $grid->card($itemId);
+    }
+
+    /**
+     * Retrieve a mounted child ItemCard inside a CardGrid, failing if not found.
+     */
+    public function getCard(string $gridName, int|string $itemId): ItemCard
+    {
+        $grid = $this->getCardGrid($gridName);
+        $card = $grid->card($itemId);
+        $screenClass = $this->screen::class;
+
+        Assert::assertNotNull(
+            $card,
+            "Card [{$itemId}] was not found in CardGrid [{$gridName}] on Screen [{$screenClass}]."
+        );
+
+        return $card;
+    }
+
+    /**
+     * Assert that a card with the given item ID is currently mounted in the CardGrid.
+     *
+     * @return self<TScreen>
+     */
+    public function assertHasCard(string $gridName, int|string $itemId): self
+    {
+        $this->getCard($gridName, $itemId);
+
+        return $this;
+    }
+
+    /**
+     * Assert that no card with the given item ID is currently mounted in the CardGrid.
+     *
+     * @return self<TScreen>
+     */
+    public function assertMissingCard(string $gridName, int|string $itemId): self
+    {
+        $grid = $this->getCardGrid($gridName);
+        Assert::assertNull(
+            $grid->card($itemId),
+            "Expected card [{$itemId}] to be absent from CardGrid [{$gridName}], but it was found."
+        );
+
+        return $this;
+    }
+
+    /**
+     * Assert the number of currently mounted ItemCards in a CardGrid.
+     *
+     * @return self<TScreen>
+     */
+    public function assertCardCount(string $gridName, int $expected): self
+    {
+        $grid = $this->getCardGrid($gridName);
+        $actual = count($grid->getCards());
+        Assert::assertSame(
+            $expected,
+            $actual,
+            "Expected CardGrid [{$gridName}] to have {$expected} mounted cards, got {$actual}."
+        );
+
+        return $this;
+    }
+
+    /**
+     * Assert a card's badge text (and optionally its badge style).
+     *
+     * @return self<TScreen>
+     */
+    public function assertCardBadge(
+        string $gridName,
+        int|string $itemId,
+        ?string $expectedBadge,
+        Style|string|null $expectedStyle = null
+    ): self {
+        $card = $this->getCard($gridName, $itemId);
+        $actualBadge = $card->get('badge');
+
+        Assert::assertSame(
+            $expectedBadge,
+            $actualBadge,
+            "Expected card [{$itemId}] in CardGrid [{$gridName}] to have badge [" . var_export($expectedBadge, true) . '], got [' . var_export($actualBadge, true) . '].'
+        );
+
+        if ($expectedStyle !== null) {
+            $expectedStyleValue = $expectedStyle instanceof Style ? $expectedStyle->value : strtolower(trim($expectedStyle));
+            $actualStyle = $card->get('badge_style');
+            Assert::assertSame(
+                $expectedStyleValue,
+                $actualStyle,
+                "Expected card [{$itemId}] in CardGrid [{$gridName}] to have badge style [{$expectedStyleValue}], got [" . var_export($actualStyle, true) . '].'
+            );
+        }
+
+        return $this;
+    }
+
+    /**
+     * Assert that a card exposes a configured action with the given action name.
+     *
+     * @return self<TScreen>
+     */
+    public function assertCardHasAction(string $gridName, int|string $itemId, string $action): self
+    {
+        $card = $this->getCard($gridName, $itemId);
+        $matched = $this->findActionOnCard($card, $action);
+
+        Assert::assertNotNull(
+            $matched,
+            "Expected card [{$itemId}] in CardGrid [{$gridName}] to have action [{$action}], but it was not found."
+        );
+
+        return $this;
+    }
+
+    /**
+     * Assert that a card does NOT expose a configured action with the given action name.
+     *
+     * @return self<TScreen>
+     */
+    public function assertCardMissingAction(string $gridName, int|string $itemId, string $action): self
+    {
+        $card = $this->getCard($gridName, $itemId);
+        $matched = $this->findActionOnCard($card, $action);
+
+        Assert::assertNull(
+            $matched,
+            "Expected card [{$itemId}] in CardGrid [{$gridName}] NOT to have action [{$action}], but it was found."
+        );
+
+        return $this;
+    }
+
+    /**
+     * Click a specific action button (inline or overflow) on a mounted CardGrid ItemCard,
+     * merging its configured parameters and default `id` exactly as UsimItemCardComponent does.
+     *
+     * @param  array<string, mixed>  $parameters
+     * @return self<TScreen>
+     */
+    public function clickCardAction(string $gridName, int|string $itemId, string $action, array $parameters = []): self
+    {
+        $card = $this->getCard($gridName, $itemId);
+        $matched = $this->findActionOnCard($card, $action);
+
+        Assert::assertNotNull(
+            $matched,
+            "Action [{$action}] was not found on card [{$itemId}] in CardGrid [{$gridName}]."
+        );
+
+        if ((bool) ($matched['disabled'] ?? false)) {
+            throw new \InvalidArgumentException(
+                "Action [{$action}] on card [{$itemId}] in CardGrid [{$gridName}] is disabled and cannot be clicked."
+            );
+        }
+
+        $actionParams = isset($matched['parameters']) && is_array($matched['parameters'])
+            ? $matched['parameters']
+            : [];
+
+        /** @var array<string, mixed> $actionParams */
+        if (! array_key_exists('id', $actionParams) && $card->getItemId() !== null) {
+            $actionParams['id'] = $card->getItemId();
+        }
+
+        return $this->call($action, array_merge($actionParams, $parameters));
+    }
+
+    /**
+     * Trigger the card-level click action (`click_action`) on a mounted CardGrid ItemCard.
+     *
+     * @param  array<string, mixed>  $parameters
+     * @return self<TScreen>
+     */
+    public function clickCard(string $gridName, int|string $itemId, array $parameters = []): self
+    {
+        $card = $this->getCard($gridName, $itemId);
+
+        if ((bool) ($card->get('disabled') ?? false)) {
+            throw new \InvalidArgumentException(
+                "Card [{$itemId}] in CardGrid [{$gridName}] is disabled and cannot be clicked."
+            );
+        }
+
+        $clickAction = $card->get('click_action');
+        if (! is_string($clickAction) || trim($clickAction) === '') {
+            throw new \InvalidArgumentException(
+                "Card [{$itemId}] in CardGrid [{$gridName}] does not have a click_action configured."
+            );
+        }
+
+        $clickParams = $card->get('click_parameters');
+        if (! is_array($clickParams)) {
+            $clickParams = [];
+        }
+
+        /** @var array<string, mixed> $clickParams */
+        if (! array_key_exists('id', $clickParams) && $card->getItemId() !== null) {
+            $clickParams['id'] = $card->getItemId();
+        }
+
+        return $this->call($clickAction, array_merge($clickParams, $parameters));
+    }
+
+    /**
+     * @return array<string, mixed>|null
+     */
+    private function findActionOnCard(ItemCard $card, string $action): ?array
+    {
+        $actions = $card->get('actions');
+        if (! is_array($actions)) {
+            return null;
+        }
+
+        foreach ($actions as $entry) {
+            if (is_array($entry) && ($entry['action'] ?? null) === $action) {
+                /** @var array<string, mixed> $entry */
+                return $entry;
+            }
+        }
+
+        return null;
     }
 
     /**

@@ -191,3 +191,116 @@ it('asserts modal opening and closing', function () {
     $modalHarness->assertModalClosed();
     expect($modalHarness)->toContainModalClosed();
 });
+
+it('provides CardGrid and ItemCard inspection, assertion, and click helpers in ScreenTestHarness and Container::findByName', function () {
+    $screen = new class extends Screen
+    {
+        protected \Idei\Usim\Components\CardGrid $posts_grid;
+
+        protected function buildBaseUI(\Idei\Usim\Components\Container $container, ...$params): void
+        {
+            $this->posts_grid = \Idei\Usim\UI::cardGrid('posts_grid')
+                ->onCardClick('open_post')
+                ->items([
+                    \Idei\Usim\DTOs\CardItemDTO::make(
+                        id: 42,
+                        title: 'Primer Post',
+                        badge: '🟡 En revisión',
+                        badgeStyle: \Idei\Usim\Enums\Style::WARNING,
+                        actions: [
+                            \Idei\Usim\DTOs\CardActionDTO::make(
+                                label: 'Aprobar',
+                                action: 'approve_post',
+                                parameters: ['source' => 'card'],
+                                style: \Idei\Usim\Enums\Style::SUCCESS,
+                            ),
+                            \Idei\Usim\DTOs\CardActionDTO::make(
+                                label: '',
+                                action: 'delete_post',
+                                icon: 'trash',
+                                style: \Idei\Usim\Enums\Style::DANGER,
+                                tooltip: 'Eliminar post',
+                            ),
+                        ],
+                    ),
+                    \Idei\Usim\DTOs\CardItemDTO::make(
+                        id: 99,
+                        title: 'Segundo Post',
+                        badge: '🟢 Publicado',
+                        badgeStyle: \Idei\Usim\Enums\Style::SUCCESS,
+                    ),
+                ]);
+
+            $container->add($this->posts_grid);
+        }
+
+        /**
+         * @param  array<string, mixed>  $params
+         */
+        public function onApprovePost(array $params = []): void
+        {
+            $id = (int) ($params['id'] ?? 0);
+            $source = (string) ($params['source'] ?? '');
+            $this->posts_grid->patchCard($id, [
+                'badge' => '🟢 Publicado',
+                'badgeStyle' => \Idei\Usim\Enums\Style::SUCCESS,
+            ]);
+            $this->toast("Post {$id} aprobado ({$source})", 'success');
+        }
+
+        /**
+         * @param  array<string, mixed>  $params
+         */
+        public function onDeletePost(array $params = []): void
+        {
+            $id = (int) ($params['id'] ?? 0);
+            $this->posts_grid->removeCard($id);
+            $this->toast("Post {$id} eliminado", 'info');
+        }
+
+        /**
+         * @param  array<string, mixed>  $params
+         */
+        public function onOpenPost(array $params = []): void
+        {
+            $id = (int) ($params['id'] ?? 0);
+            $this->redirect("/posts/{$id}");
+        }
+    };
+
+    $harness = ScreenTestHarness::for($screen)->render();
+
+    // Container::findByName() & findById() locate mounted child ItemCards inside CardGrid
+    $cardByName = $harness->findComponent('posts_grid__card_42');
+    expect($cardByName)->toBeInstanceOf(\Idei\Usim\Components\ItemCard::class);
+    assert($cardByName instanceof \Idei\Usim\Components\ItemCard);
+    expect($harness->getContainer()?->findById($cardByName->getId()))->toBe($cardByName);
+
+    // ScreenTestHarness CardGrid / ItemCard assertions
+    $harness
+        ->assertCardCount('posts_grid', 2)
+        ->assertHasCard('posts_grid', 42)
+        ->assertMissingCard('posts_grid', 777)
+        ->assertCardBadge('posts_grid', 42, '🟡 En revisión', \Idei\Usim\Enums\Style::WARNING)
+        ->assertCardHasAction('posts_grid', 42, 'approve_post')
+        ->assertCardHasAction('posts_grid', 42, 'delete_post')
+        ->assertCardMissingAction('posts_grid', 99, 'delete_post');
+
+    expect($harness->findCard('posts_grid', 42))->toBe($cardByName)
+        ->and($harness->findCard('posts_grid', 777))->toBeNull();
+
+    // Clicking a card action merges configured parameters + item id automatically
+    $harness->clickCardAction('posts_grid', 42, 'approve_post')
+        ->assertToast('Post 42 aprobado (card)', 'success')
+        ->assertCardBadge('posts_grid', 42, '🟢 Publicado', \Idei\Usim\Enums\Style::SUCCESS);
+
+    // Clicking the card body invokes click_action with default id
+    $harness->clickCard('posts_grid', 99)
+        ->assertRedirect('/posts/99');
+
+    // Clicking delete_post removes the card from grid & static_items
+    $harness->clickCardAction('posts_grid', 42, 'delete_post')
+        ->assertToast('Post 42 eliminado', 'info')
+        ->assertMissingCard('posts_grid', 42)
+        ->assertCardCount('posts_grid', 1);
+});

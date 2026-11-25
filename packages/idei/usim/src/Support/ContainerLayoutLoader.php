@@ -52,11 +52,17 @@ class ContainerLayoutLoader
         'placeholder',
         'help_text',
         'title',
+        'subtitle',
+        'eyebrow',
+        'badge',
+        'footer_text',
         'description',
         'empty_message',
         'no_results_message',
         'min_chars_message',
         'search_placeholder',
+        'load_more_label',
+        'clear_filters_label',
         'create_placeholder',
         'create_button_label',
         'bulk_delete_label',
@@ -1610,6 +1616,22 @@ class ContainerLayoutLoader
 
             if (is_string($value) && in_array($key, self::TRANSLATABLE_TEXT_PROPERTIES, true)) {
                 $value = TranslationResolver::resolveText($value, $callingContext);
+            }
+
+            if ($key === 'header_actions' && is_array($value)) {
+                $resolvedActions = [];
+                foreach ($value as $entry) {
+                    if (is_array($entry)) {
+                        if (isset($entry['label']) && is_string($entry['label'])) {
+                            $entry['label'] = TranslationResolver::resolveText($entry['label'], $callingContext);
+                        }
+                        if (isset($entry['tooltip']) && is_string($entry['tooltip'])) {
+                            $entry['tooltip'] = TranslationResolver::resolveText($entry['tooltip'], $callingContext);
+                        }
+                    }
+                    $resolvedActions[] = $entry;
+                }
+                $value = $resolvedActions;
             }
 
             // Direct fluent methods (style, action, required, type, placeholder, label, text, helpText)

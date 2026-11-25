@@ -4,7 +4,9 @@ namespace Idei\Usim\Components;
 
 use Idei\Usim\DTOs\CardActionDTO;
 use Idei\Usim\DTOs\CardItemDTO;
+use Idei\Usim\Enums\AspectRatio;
 use Idei\Usim\Enums\Style;
+use Idei\Usim\Support\ImageSourceResolver;
 
 /**
  * Builder for standardized ItemCard UI components (`type: 'item_card'`).
@@ -145,7 +147,7 @@ class ItemCard extends UIComponent
         if ($alt !== null) {
             $this->setConfig('image_alt', self::nullableTrim($alt));
         }
-        $this->setConfig('image_fit', strtolower(trim($fit)) === 'contain' ? 'contain' : 'cover');
+        $this->setConfig('image_fit', self::normalizeImageFit($fit));
         if ($aspectRatio !== null) {
             $this->aspectRatio($aspectRatio);
         }
@@ -160,7 +162,119 @@ class ItemCard extends UIComponent
 
     public function imageFit(string $fit): static
     {
-        return $this->setConfig('image_fit', strtolower(trim($fit)) === 'contain' ? 'contain' : 'cover');
+        return $this->setConfig('image_fit', self::normalizeImageFit($fit));
+    }
+
+    /**
+     * Resolve relative `image` filenames from the configured USIM upload directory
+     * (parity with `UI::image()->storage(...)`).
+     *
+     * Absolute URLs, root-relative URLs, and data URIs are left unchanged.
+     */
+    public function imageStorage(?string $directory): static
+    {
+        $normalized = ImageSourceResolver::normalizeStorageDirectory($directory);
+        if ($normalized === null) {
+            unset($this->config['_storage_path']);
+        } else {
+            $this->config['_storage_path'] = $normalized;
+        }
+
+        return $this;
+    }
+
+    /**
+     * Enable or configure automatic placeholder generation when `image` is empty
+     * (parity with `UI::image()` placeholder pipeline).
+     */
+    public function imagePlaceholder(
+        bool $enabled = true,
+        AspectRatio|string|null $aspect = null,
+        ?string $backgroundColor = null,
+        ?string $textColor = null,
+        int|string|null $id = null
+    ): static {
+        $placeholder = $this->getImagePlaceholderConfig();
+        $placeholder['enabled'] = $enabled;
+
+        if ($aspect !== null) {
+            $placeholder['aspect'] = ImageSourceResolver::normalizeAspectRatio($aspect);
+        }
+        if ($backgroundColor !== null) {
+            $placeholder['background_color'] = self::nullableTrim($backgroundColor);
+        }
+        if ($textColor !== null) {
+            $placeholder['text_color'] = self::nullableTrim($textColor);
+        }
+        if ($id !== null) {
+            $placeholder['id'] = self::nullableTrim((string) $id);
+        }
+
+        $this->config['_image_placeholder'] = $placeholder;
+
+        return $this;
+    }
+
+    public function imagePlaceholderEnabled(bool $enabled = true): static
+    {
+        $placeholder = $this->getImagePlaceholderConfig();
+        $placeholder['enabled'] = $enabled;
+        $this->config['_image_placeholder'] = $placeholder;
+
+        return $this;
+    }
+
+    public function imagePlaceholderAspect(AspectRatio|string|null $aspectRatio): static
+    {
+        $placeholder = $this->getImagePlaceholderConfig();
+        $placeholder['enabled'] = true;
+        $placeholder['aspect'] = ImageSourceResolver::normalizeAspectRatio($aspectRatio);
+        $this->config['_image_placeholder'] = $placeholder;
+
+        return $this;
+    }
+
+    public function imagePlaceholderColors(?string $background, ?string $text): static
+    {
+        $placeholder = $this->getImagePlaceholderConfig();
+        $placeholder['enabled'] = true;
+        $placeholder['background_color'] = self::nullableTrim($background);
+        $placeholder['text_color'] = self::nullableTrim($text);
+        $this->config['_image_placeholder'] = $placeholder;
+
+        return $this;
+    }
+
+    public function imagePlaceholderId(int|string|null $id): static
+    {
+        $placeholder = $this->getImagePlaceholderConfig();
+        $placeholder['enabled'] = true;
+        $placeholder['id'] = $id !== null ? self::nullableTrim((string) $id) : null;
+        $this->config['_image_placeholder'] = $placeholder;
+
+        return $this;
+    }
+
+    /**
+     * Apply inherited storage and placeholder configuration from a parent `CardGrid`.
+     *
+     * @param  array<string, mixed>|null  $placeholderConfig
+     */
+    public function applyInheritedImageConfig(?string $storagePath, ?array $placeholderConfig): static
+    {
+        if ($storagePath !== null && $storagePath !== '') {
+            $this->config['_storage_path'] = $storagePath;
+        } else {
+            unset($this->config['_storage_path']);
+        }
+
+        if ($placeholderConfig !== null) {
+            $this->config['_image_placeholder'] = $placeholderConfig;
+        } else {
+            unset($this->config['_image_placeholder']);
+        }
+
+        return $this;
     }
 
     public function aspectRatio(?string $ratio): static
@@ -498,7 +612,67 @@ class ItemCard extends UIComponent
         $this->setConfig('accent_color', $dto->accentColor);
         $this->setConfig('meta', $dto->meta);
 
+        if ($dto->imageStorage !== null) {
+            $this->imageStorage($dto->imageStorage);
+        }
+
+        if (
+            $dto->imagePlaceholder !== null
+            || $dto->imagePlaceholderAspect !== null
+            || $dto->imagePlaceholderId !== null
+            || $dto->imagePlaceholderBackground !== null
+            || $dto->imagePlaceholderText !== null
+        ) {
+            $placeholder = $this->getImagePlaceholderConfig();
+            if ($dto->imagePlaceholder !== null) {
+                $placeholder['enabled'] = $dto->imagePlaceholder;
+            } elseif (! array_key_exists('enabled', $placeholder)) {
+                $placeholder['enabled'] = true;
+            }
+            if ($dto->imagePlaceholderAspect !== null) {
+                $placeholder['aspect'] = $dto->imagePlaceholderAspect;
+            }
+            if ($dto->imagePlaceholderId !== null) {
+                $placeholder['id'] = $dto->imagePlaceholderId;
+            }
+            if ($dto->imagePlaceholderBackground !== null) {
+                $placeholder['background_color'] = $dto->imagePlaceholderBackground;
+            }
+            if ($dto->imagePlaceholderText !== null) {
+                $placeholder['text_color'] = $dto->imagePlaceholderText;
+            }
+            $this->config['_image_placeholder'] = $placeholder;
+        }
+
         return $this;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public function toJson(?int $order = null): array
+    {
+        $json = parent::toJson($order);
+        $component = reset($json);
+
+        if (! is_array($component)) {
+            return $json;
+        }
+
+        $storagePath = is_string($this->config['_storage_path'] ?? null) && $this->config['_storage_path'] !== ''
+            ? $this->config['_storage_path']
+            : null;
+        $image = $this->config['image'] ?? null;
+
+        if (is_string($image) && trim($image) !== '') {
+            $component['image'] = ImageSourceResolver::resolveStoredSource($image, $storagePath);
+        } elseif ($this->shouldGenerateImagePlaceholder()) {
+            $component['image'] = $this->generateImagePlaceholderSource();
+        }
+
+        $json[$this->id] = $component;
+
+        return $json;
     }
 
     /**
@@ -515,6 +689,12 @@ class ItemCard extends UIComponent
             'metricStyle' => 'metric_style',
             'imageAlt' => 'image_alt',
             'imageFit' => 'image_fit',
+            'imageStorage' => 'image_storage',
+            'imagePlaceholder' => 'image_placeholder',
+            'imagePlaceholderAspect' => 'image_placeholder_aspect',
+            'imagePlaceholderId' => 'image_placeholder_id',
+            'imagePlaceholderBackground' => 'image_placeholder_background',
+            'imagePlaceholderText' => 'image_placeholder_text',
             'aspectRatio' => 'aspect_ratio',
             'footerText' => 'footer_text',
             'clickAction' => 'click_action',
@@ -532,6 +712,45 @@ class ItemCard extends UIComponent
                     ? self::resolveStyle($value)
                     : Style::DEFAULT->value;
                 $this->setConfig($key, $resolved);
+
+                continue;
+            }
+
+            if ($key === 'image_fit') {
+                $this->setConfig('image_fit', is_string($value) ? self::normalizeImageFit($value) : 'cover');
+
+                continue;
+            }
+
+            if ($key === 'image_storage') {
+                $this->imageStorage(is_string($value) ? $value : null);
+
+                continue;
+            }
+
+            if ($key === 'image_placeholder') {
+                $this->imagePlaceholderEnabled((bool) $value);
+
+                continue;
+            }
+
+            if ($key === 'image_placeholder_aspect' && ($value instanceof AspectRatio || is_string($value) || $value === null)) {
+                $this->imagePlaceholderAspect($value);
+
+                continue;
+            }
+
+            if ($key === 'image_placeholder_id' && (is_int($value) || is_string($value) || $value === null)) {
+                $this->imagePlaceholderId($value);
+
+                continue;
+            }
+
+            if ($key === 'image_placeholder_background' || $key === 'image_placeholder_text') {
+                $placeholder = $this->getImagePlaceholderConfig();
+                $targetKey = $key === 'image_placeholder_background' ? 'background_color' : 'text_color';
+                $placeholder[$targetKey] = is_string($value) ? self::nullableTrim($value) : null;
+                $this->config['_image_placeholder'] = $placeholder;
 
                 continue;
             }
@@ -560,6 +779,68 @@ class ItemCard extends UIComponent
         }
 
         return $this;
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function getImagePlaceholderConfig(): array
+    {
+        $raw = $this->config['_image_placeholder'] ?? null;
+
+        return is_array($raw) ? $raw : [];
+    }
+
+    private function shouldGenerateImagePlaceholder(): bool
+    {
+        $image = $this->config['image'] ?? null;
+        if (is_string($image) && trim($image) !== '') {
+            return false;
+        }
+
+        $placeholder = $this->getImagePlaceholderConfig();
+
+        return (bool) ($placeholder['enabled'] ?? false)
+            && ImageSourceResolver::isGlobalPlaceholderEnabled();
+    }
+
+    private function generateImagePlaceholderSource(): string
+    {
+        $placeholder = $this->getImagePlaceholderConfig();
+
+        $rawId = $placeholder['id'] ?? $this->getItemId() ?? $this->name ?? $this->id;
+        $placeholderId = is_int($rawId) || is_string($rawId) ? $rawId : $this->id;
+
+        $aspect = is_string($placeholder['aspect'] ?? null) && $placeholder['aspect'] !== ''
+            ? $placeholder['aspect']
+            : (is_string($this->config['aspect_ratio'] ?? null) ? $this->config['aspect_ratio'] : null);
+
+        $imageAlt = is_string($this->config['image_alt'] ?? null) && trim($this->config['image_alt']) !== ''
+            ? trim($this->config['image_alt'])
+            : null;
+        $title = is_string($this->config['title'] ?? null) && trim($this->config['title']) !== ''
+            ? trim($this->config['title'])
+            : null;
+
+        return ImageSourceResolver::generatePlaceholder(
+            id: $placeholderId,
+            caption: $imageAlt ?? $title,
+            aspectRatio: $aspect,
+            backgroundColor: is_string($placeholder['background_color'] ?? null) ? $placeholder['background_color'] : null,
+            textColor: is_string($placeholder['text_color'] ?? null) ? $placeholder['text_color'] : null,
+        );
+    }
+
+    /**
+     * @return 'cover'|'contain'|'scale-down'
+     */
+    private static function normalizeImageFit(string $fit): string
+    {
+        return match (strtolower(trim($fit))) {
+            'contain' => 'contain',
+            'scale-down' => 'scale-down',
+            default => 'cover',
+        };
     }
 
     private static function nullableTrim(?string $value): ?string

@@ -14,6 +14,13 @@ use Idei\Usim\Contracts\UIDifferInterface;
  */
 class ComponentDiffer implements UIDifferInterface
 {
+    /** @var list<string> */
+    private const INTERNAL_KEYS = [
+        '_storage_path',
+        '_image_placeholder',
+        'static_items',
+    ];
+
     /**
      * Compare two UI component trees and return only changes.
      *
@@ -30,14 +37,18 @@ class ComponentDiffer implements UIDifferInterface
 
         foreach ($newComponents as $id => $newComp) {
             if (! isset($oldComponents[$id])) {
-                unset($newComp['_storage_path']);
+                foreach (self::INTERNAL_KEYS as $internalKey) {
+                    unset($newComp[$internalKey]);
+                }
                 $changes[$id] = $newComp;
             } else {
                 $oldParent = $oldComponents[$id]['parent'] ?? null;
                 $newParent = $newComp['parent'] ?? null;
 
                 if ($oldParent === null && $newParent !== null) {
-                    unset($newComp['_storage_path']);
+                    foreach (self::INTERNAL_KEYS as $internalKey) {
+                        unset($newComp[$internalKey]);
+                    }
                     $changes[$id] = $newComp;
                 } else {
                     $diff = $this->diffProperties($oldComponents[$id], $newComp);
@@ -69,7 +80,7 @@ class ComponentDiffer implements UIDifferInterface
         $changes = [];
 
         foreach ($new as $key => $value) {
-            if ($key === 'type' || $key === '_order' || $key === '_storage_path') {
+            if ($key === 'type' || $key === '_order' || in_array($key, self::INTERNAL_KEYS, true)) {
                 continue;
             }
 
@@ -79,7 +90,7 @@ class ComponentDiffer implements UIDifferInterface
         }
 
         foreach ($old as $key => $value) {
-            if (! isset($new[$key]) && $key !== 'type' && $key !== 'parent' && $key !== '_order' && $key !== '_storage_path') {
+            if (! isset($new[$key]) && $key !== 'type' && $key !== 'parent' && $key !== '_order' && ! in_array($key, self::INTERNAL_KEYS, true)) {
                 $changes[$key] = null;
             }
         }

@@ -274,3 +274,170 @@ it('mutates, removes, and prepends child ItemCards directly in the USIM componen
         ->and($cards[1]->getCardOrder())->toBe(1)
         ->and($grid->getPagination()['total'])->toBe(2);
 });
+
+it('synchronizes static_items in prependCard, removeCard, and patchCard across subsequent static queries', function () {
+    $grid = UI::cardGrid('static_sync_grid')
+        ->perPage(10)
+        ->items([
+            CardItemDTO::make(id: 1, title: 'Alpha Post', badge: 'Borrador', footerText: 'Original'),
+            CardItemDTO::make(id: 2, title: 'Beta Post', badge: 'Publicado'),
+            CardItemDTO::make(id: 3, title: 'Gamma Post', badge: 'Borrador'),
+        ]);
+
+    // 1. Patch card 1, remove card 2, prepend card 4
+    $grid->patchCard(1, [
+        'badge' => 'Publicado',
+        'badgeStyle' => Style::SUCCESS,
+        'footerText' => null,
+    ]);
+    $grid->removeCard(2);
+    $grid->prependCard(CardItemDTO::make(id: 4, title: 'Delta Post', badge: 'Nuevo', style: Style::INFO));
+
+    // 2. Execute a static query (search/sort/reload): removed must stay gone, prepended & patched must persist!
+    $grid->handleServiceAction('query', [
+        'search' => '',
+        'page' => 1,
+        'per_page' => 10,
+    ]);
+
+    $ids = array_map(static fn (ItemCard $c): int|string|null => $c->getItemId(), $grid->getCards());
+    expect($ids)->toBe([4, 1, 3])
+        ->and($grid->card(2))->toBeNull()
+        ->and($grid->card(4)?->get('title'))->toBe('Delta Post')
+        ->and($grid->card(1)?->get('badge'))->toBe('Publicado')
+        ->and($grid->card(1)?->get('badge_style'))->toBe('success')
+        ->and($grid->card(1)?->get('footer_text'))->toBeNull()
+        ->and($grid->getPagination()['total'])->toBe(3);
+
+    // 3. Search specifically for the prepended item and ensure the removed item never matches
+    $grid->handleServiceAction('query', ['search' => 'Delta', 'page' => 1]);
+    expect($grid->getCards())->toHaveCount(1)
+        ->and($grid->getCards()[0]->getItemId())->toBe(4);
+
+    $grid->handleServiceAction('query', ['search' => 'Beta', 'page' => 1]);
+    expect($grid->getCards())->toHaveCount(0);
+});
+
+it('resolves imageStorage, imagePlaceholder, and scale-down imageFit identically to UI::image()', function () {
+    // Standalone ItemCard with storage + scale-down
+    $cardWithStorage = UI::itemCard('post_card')
+        ->title('Mi Post')
+        ->image('posts/cover.jpg', 'Portada', 'scale-down')
+        ->imageStorage('uploads/images');
+
+    $cardJson = $cardWithStorage->toJson()[$cardWithStorage->getId()];
+    expect($cardJson['image'])->toBe(url('/files/uploads/images/posts/cover.jpg'))
+        ->and($cardJson['image_fit'])->toBe('scale-down');
+
+    // Absolute URL is left untouched even when imageStorage is configured
+    $cardAbsolute = UI::itemCard('external_card')
+        ->title('Externo')
+        ->image('https://cdn.example.com/pic.webp')
+        ->imageStorage('uploads/images');
+
+    expect($cardAbsolute->toJson()[$cardAbsolute->getId()]['image'])->toBe('https://cdn.example.com/pic.webp');
+
+    // CardGrid propagates imageStorage & imagePlaceholder to child cards (with per-DTO override)
+    $grid = UI::cardGrid('posts_media_grid')
+        ->imageStorage('uploads/images')
+        ->imagePlaceholder(true, \Idei\Usim\Enums\AspectRatio::_16_9, '#112233', '#ffffff')
+        ->items([
+            CardItemDTO::make(id: 10, title: 'Con Imagen', image: 'hero.png', imageFit: 'scale-down'),
+            CardItemDTO::make(id: 11, title: 'Sin Imagen'),
+            CardItemDTO::make(id: 12, title: 'Sin Placeholder', imagePlaceholder: false),
+        ]);
+
+    $tree = $grid->toJson();
+    $card10 = $grid->card(10);
+    $card11 = $grid->card(11);
+    $card12 = $grid->card(12);
+    assert($card10 instanceof ItemCard && $card11 instanceof ItemCard && $card12 instanceof ItemCard);
+
+    expect($tree[$card10->getId()]['image'])->toBe(url('/files/uploads/images/hero.png'))
+        ->and($tree[$card10->getId()]['image_fit'])->toBe('scale-down')
+        ->and($tree[$card11->getId()]['image'])->toBeString()
+        ->and($tree[$card11->getId()]['image'])->not->toBeEmpty()
+        ->and($tree[$card12->getId()])->not->toHaveKey('image');
+
+    // ComponentDiffer strips internal storage/placeholder/static_items metadata from wire diffs
+    $differ = new \Idei\Usim\Support\ComponentDiffer;
+    $wireDiff = $differ->compare([], $tree);
+    expect($wireDiff[$grid->getId()])->not->toHaveKey('_storage_path')
+        ->and($wireDiff[$grid->getId()])->not->toHaveKey('_image_placeholder')
+        ->and($wireDiff[$grid->getId()])->not->toHaveKey('static_items')
+        ->and($wireDiff[$card10->getId()])->not->toHaveKey('_storage_path')
+        ->and($wireDiff[$card10->getId()])->not->toHaveKey('_image_placeholder');
+});
+
+it('supports multiple headerActions and semantic titleStyle on CardGrid while preserving headerAction compatibility', function () {
+    $grid = UI::cardGrid('auth_header_grid')
+        ->title('Publicaciones pendientes')
+        ->titleStyle(Style::WARNING)
+        ->headerActions([
+            CardActionDTO::make(label: 'Iniciar sesión', action: 'go_login', icon: 'login', style: Style::PRIMARY, variant: 'solid'),
+            CardActionDTO::make(label: 'Registrarse', action: 'go_register', icon: 'user', style: Style::SECONDARY, variant: 'outline'),
+        ]);
+
+    $json = $grid->toJson()[$grid->getId()];
+
+    expect($json['title_style'])->toBe('warning')
+        ->and($json['header_actions'])->toHaveCount(2)
+        ->and($json['header_actions'][0]['label'])->toBe('Iniciar sesión')
+        ->and($json['header_actions'][0]['variant'])->toBe('solid')
+        ->and($json['header_actions'][1]['label'])->toBe('Registrarse')
+        ->and($json['header_actions'][1]['variant'])->toBe('outline')
+        ->and($json['header_action']['action'])->toBe('go_login');
+
+    // addHeaderAction appends another action
+    $grid->addHeaderAction('Ayuda', 'open_help', icon: 'help', style: Style::INFO, variant: 'ghost');
+    expect($grid->get('header_actions'))->toHaveCount(3);
+
+    // Clearing via headerAction(null) clears both header_action and header_actions
+    $grid->headerAction(null);
+    expect($grid->get('header_action'))->toBeNull()
+        ->and($grid->get('header_actions'))->toBe([]);
+});
+
+it('translates Level 1 CardGrid keys load_more_label and clear_filters_label in layout definitions', function () {
+    app('translator')->addLines([
+        'custom.grid.load_more' => 'Ver más publicaciones',
+        'custom.grid.clear_filters' => 'Restablecer filtros',
+        'custom.grid.subtitle' => 'Explora los artículos recientes',
+        'custom.grid.cta_new' => 'Publicar post',
+    ], app()->getLocale());
+
+    $screen = new class extends \Idei\Usim\Screen
+    {
+        protected function startingUI(): \Idei\Usim\Components\Container
+        {
+            return UI::container('i18n_card_grid_test')->layoutDefinition([
+                'grid' => [
+                    'cols' => 12,
+                    'children' => [
+                        [
+                            'posts_grid' => [
+                                'component' => 'card_grid',
+                                'subtitle' => 't:custom.grid.subtitle',
+                                'load_more_label' => 't:custom.grid.load_more',
+                                'clear_filters_label' => 't:custom.grid.clear_filters',
+                                'header_actions' => [
+                                    ['label' => 't:custom.grid.cta_new', 'action' => 'create_post', 'style' => 'primary', 'variant' => 'solid'],
+                                ],
+                            ],
+                        ],
+                    ],
+                ],
+            ]);
+        }
+    };
+
+    $screen->render(parent: null, shouldReset: true);
+    $grid = $screen->getContainer()?->findByName('posts_grid');
+    expect($grid)->toBeInstanceOf(CardGrid::class);
+    assert($grid instanceof CardGrid);
+
+    expect($grid->get('subtitle'))->toBe('Explora los artículos recientes')
+        ->and($grid->get('load_more_label'))->toBe('Ver más publicaciones')
+        ->and($grid->get('clear_filters_label'))->toBe('Restablecer filtros')
+        ->and($grid->get('header_actions')[0]['label'])->toBe('Publicar post');
+});

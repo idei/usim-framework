@@ -5,12 +5,15 @@ namespace Idei\Usim\Components;
 use Idei\Usim\Contracts\CardGrid\CardListable;
 use Idei\Usim\Contracts\ItemList\Listable;
 use Idei\Usim\Contracts\UIElement;
+use Idei\Usim\DTOs\CardActionDTO;
 use Idei\Usim\DTOs\CardItemDTO;
 use Idei\Usim\DTOs\CardPageResult;
 use Idei\Usim\DTOs\CardQuery;
 use Idei\Usim\DTOs\ListItemDTO;
+use Idei\Usim\Enums\AspectRatio;
 use Idei\Usim\Enums\Style;
 use Idei\Usim\Screen;
+use Idei\Usim\Support\ImageSourceResolver;
 use Idei\Usim\ValueObjects\Size;
 use Illuminate\Contracts\Support\Arrayable;
 use Illuminate\Support\Collection;
@@ -64,9 +67,11 @@ class CardGrid extends UIComponent
         return [
             // Header
             'title' => null,
+            'title_style' => Style::DEFAULT->value,
             'subtitle' => null,
             'show_count' => true,
             'header_action' => null,
+            'header_actions' => [],
 
             // Pagination & Active Count
             'visible_count' => 0,
@@ -178,6 +183,11 @@ class CardGrid extends UIComponent
         return $this->setConfig('title', $title);
     }
 
+    public function titleStyle(Style|string $style): static
+    {
+        return $this->setConfig('title_style', self::resolveStyle($style));
+    }
+
     public function subtitle(?string $subtitle): static
     {
         return $this->setConfig('subtitle', $subtitle);
@@ -189,7 +199,8 @@ class CardGrid extends UIComponent
     }
 
     /**
-     * Configure an optional global CTA button in the grid header (e.g. "+ Nuevo").
+     * Configure an optional single global CTA button in the grid header (e.g. "+ Nuevo").
+     * Preserved as backward-compatible syntactic sugar over `headerActions()`.
      *
      * @param  array<string, mixed>  $parameters
      */
@@ -198,26 +209,121 @@ class CardGrid extends UIComponent
         ?string $action = null,
         array $parameters = [],
         ?string $icon = null,
-        Style|string $style = Style::PRIMARY
+        Style|string $style = Style::PRIMARY,
+        string $variant = 'solid',
+        ?string $url = null,
+        string $target = '_self',
+        bool $disabled = false,
+        ?string $tooltip = null
     ): static {
         if ($label === null || trim($label) === '') {
-            return $this->setConfig('header_action', null);
+            $this->setConfig('header_action', null);
+            $this->setConfig('header_actions', []);
+
+            return $this;
         }
 
-        if ($style instanceof Style) {
-            $resolvedStyle = $style->value;
-        } else {
-            $parsedStyle = Style::tryFrom(strtolower(trim($style)));
-            $resolvedStyle = $parsedStyle !== null ? $parsedStyle->value : Style::PRIMARY->value;
-        }
+        $resolvedStyle = self::resolveStyle($style, Style::PRIMARY);
+        $resolvedVariant = match (strtolower(trim($variant))) {
+            'outline' => 'outline',
+            'ghost' => 'ghost',
+            default => 'solid',
+        };
 
-        return $this->setConfig('header_action', [
+        $entry = [
             'label' => $label,
             'action' => $action,
             'parameters' => $parameters,
             'icon' => $icon,
             'style' => $resolvedStyle,
-        ]);
+            'variant' => $resolvedVariant,
+            'disabled' => $disabled,
+        ];
+
+        if ($url !== null && trim($url) !== '') {
+            $entry['url'] = trim($url);
+            $entry['target'] = trim($target) !== '' ? trim($target) : '_self';
+        }
+
+        if ($tooltip !== null && trim($tooltip) !== '') {
+            $entry['tooltip'] = trim($tooltip);
+        }
+
+        $this->setConfig('header_action', $entry);
+        $this->setConfig('header_actions', [$entry]);
+
+        return $this;
+    }
+
+    /**
+     * Configure multiple contextual action buttons in the grid header.
+     *
+     * @param  array<int, CardActionDTO|array<string, mixed>>  $actions
+     */
+    public function headerActions(array $actions): static
+    {
+        $normalized = [];
+
+        foreach ($actions as $entry) {
+            if ($entry instanceof CardActionDTO) {
+                if ($entry->label !== '' || $entry->icon !== null) {
+                    $normalized[] = $entry->toArray();
+                }
+            } elseif (is_array($entry)) {
+                /** @var array<string, mixed> $entry */
+                $dto = CardActionDTO::fromArray($entry);
+                if ($dto->label !== '' || $dto->icon !== null) {
+                    $normalized[] = $dto->toArray();
+                }
+            }
+        }
+
+        $this->setConfig('header_actions', $normalized);
+        $this->setConfig('header_action', $normalized[0] ?? null);
+
+        return $this;
+    }
+
+    /**
+     * Append a single contextual action button to the grid header.
+     *
+     * @param  array<string, mixed>  $parameters
+     */
+    public function addHeaderAction(
+        string $label,
+        ?string $action = null,
+        array $parameters = [],
+        ?string $icon = null,
+        Style|string $style = Style::PRIMARY,
+        string $variant = 'solid',
+        bool $disabled = false,
+        ?string $url = null,
+        string $target = '_self',
+        ?string $tooltip = null
+    ): static {
+        $existing = is_array($this->config['header_actions'] ?? null) ? $this->config['header_actions'] : [];
+        if ($existing === [] && is_array($this->config['header_action'] ?? null)) {
+            $existing = [$this->config['header_action']];
+        }
+
+        $existing[] = CardActionDTO::make(
+            label: $label,
+            action: $action,
+            parameters: $parameters,
+            url: $url,
+            target: $target,
+            icon: $icon,
+            style: $style,
+            variant: $variant,
+            disabled: $disabled,
+            tooltip: $tooltip,
+        )->toArray();
+
+        $existing = array_values($existing);
+        $this->setConfig('header_actions', $existing);
+        $this->setConfig('header_action', $existing[0]);
+
+        return $this;
     }
 
     // ─── Child ItemCard Management (Native USIM Tree) ─────────────────────────
@@ -230,6 +336,36 @@ class CardGrid extends UIComponent
         $this->hydrateServicePageIfStale();
 
         return $this->cards[(string) $itemId] ?? null;
+    }
+
+    /**
+     * Find an already-mounted child ItemCard by component name without triggering
+     * premature lazy service hydration (used by Container::findByName()).
+     */
+    public function findMountedCardByName(string $name): ?ItemCard
+    {
+        foreach ($this->cards as $card) {
+            if ($card->getName() === $name) {
+                return $card;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Find an already-mounted child ItemCard by component ID without triggering
+     * premature lazy service hydration (used by Container::findById()).
+     */
+    public function findMountedCardById(int $id): ?ItemCard
+    {
+        foreach ($this->cards as $card) {
+            if ($card->getId() === $id) {
+                return $card;
+            }
+        }
+
+        return null;
     }
 
     /**
@@ -290,6 +426,8 @@ class CardGrid extends UIComponent
     public function patchCard(int|string $id, CardItemDTO|array $changes): static
     {
         $card = $this->card($id);
+        $this->syncStaticItemPatch($id, $changes);
+
         if ($card === null) {
             return $this;
         }
@@ -299,6 +437,7 @@ class CardGrid extends UIComponent
             $aspectRatio = is_string($this->config['image_aspect_ratio'] ?? null)
                 ? $this->config['image_aspect_ratio']
                 : '16/9';
+            $this->applyInheritedImageConfigToCard($card);
             $card->applyFromDTO($changes, $defaultClickAction, $defaultClickParams, $aspectRatio);
             $this->applyGridPresentationToCard($card);
 
@@ -313,21 +452,27 @@ class CardGrid extends UIComponent
     /**
      * Remove a single mounted child ItemCard from the grid tree.
      * ComponentDiffer automatically emits `{ "<card_id>": { "parent": null } }`.
+     * When operating in static `items()` mode, also removes the entry from `static_items`.
      */
     public function removeCard(int|string $id): static
     {
         $this->hydrateServicePageIfStale();
         $key = (string) $id;
 
-        if (! isset($this->cards[$key])) {
+        $removedFromStatic = $this->syncStaticItemRemove($key);
+        $wasMounted = isset($this->cards[$key]);
+
+        if (! $wasMounted && ! $removedFromStatic) {
             return $this;
         }
 
-        $this->cards[$key]->setParent(null);
-        unset($this->cards[$key]);
+        if ($wasMounted) {
+            $this->cards[$key]->setParent(null);
+            unset($this->cards[$key]);
 
-        $this->reindexCardPositions();
-        $this->setConfig('visible_count', count($this->cards));
+            $this->reindexCardPositions();
+            $this->setConfig('visible_count', count($this->cards));
+        }
 
         $pagination = $this->getPagination();
         if ($pagination['total'] !== null) {
@@ -346,6 +491,7 @@ class CardGrid extends UIComponent
     /**
      * Prepend a new ItemCard at position 0 of the grid tree.
      * ComponentDiffer emits ONLY the new ItemCard and position updates for shifted siblings.
+     * When operating in static `items()` mode, also prepends the entry into `static_items`.
      *
      * @param  CardItemDTO|array<string, mixed>  $card
      */
@@ -354,6 +500,9 @@ class CardGrid extends UIComponent
         $this->hydrateServicePageIfStale();
         $dto = $card instanceof CardItemDTO ? $card : CardItemDTO::fromArray($card);
         $key = (string) $dto->id;
+
+        $existedInCards = isset($this->cards[$key]);
+        $existedInStatic = $this->syncStaticItemPrepend($dto);
 
         $ordered = array_values(array_filter(
             $this->getCards(),
@@ -372,13 +521,15 @@ class CardGrid extends UIComponent
         $this->cards = $newMap;
         $this->setConfig('visible_count', count($this->cards));
 
-        $pagination = $this->getPagination();
-        if ($pagination['total'] !== null) {
-            $pagination['total'] += 1;
-            $pagination['total_pages'] = (int) ceil($pagination['total'] / max(1, $pagination['per_page']));
-            $pagination['has_more'] = ($pagination['page'] * $pagination['per_page']) < $pagination['total'];
-            $pagination['can_next'] = $pagination['has_more'];
-            $this->setConfig('pagination', $pagination);
+        if (! $existedInCards && ! $existedInStatic) {
+            $pagination = $this->getPagination();
+            if ($pagination['total'] !== null) {
+                $pagination['total'] += 1;
+                $pagination['total_pages'] = (int) ceil($pagination['total'] / max(1, $pagination['per_page']));
+                $pagination['has_more'] = ($pagination['page'] * $pagination['per_page']) < $pagination['total'];
+                $pagination['can_next'] = $pagination['has_more'];
+                $this->setConfig('pagination', $pagination);
+            }
         }
 
         return $this;
@@ -1068,6 +1219,76 @@ class CardGrid extends UIComponent
         return $this;
     }
 
+    /**
+     * Resolve relative card image filenames from the configured USIM upload directory
+     * for all child ItemCards in this grid (parity with `UI::image()->storage(...)`).
+     */
+    public function imageStorage(?string $directory): static
+    {
+        $normalized = ImageSourceResolver::normalizeStorageDirectory($directory);
+        if ($normalized === null) {
+            unset($this->config['_storage_path']);
+        } else {
+            $this->config['_storage_path'] = $normalized;
+        }
+
+        $this->propagateImageConfigToCards();
+
+        return $this;
+    }
+
+    /**
+     * Enable or configure automatic placeholder generation for child ItemCards
+     * lacking an `image` (parity with `UI::image()` placeholder pipeline).
+     */
+    public function imagePlaceholder(
+        bool $enabled = true,
+        AspectRatio|string|null $aspect = null,
+        ?string $backgroundColor = null,
+        ?string $textColor = null
+    ): static {
+        $placeholder = $this->getImagePlaceholderConfig();
+        $placeholder['enabled'] = $enabled;
+
+        if ($aspect !== null) {
+            $placeholder['aspect'] = ImageSourceResolver::normalizeAspectRatio($aspect);
+        }
+        if ($backgroundColor !== null) {
+            $placeholder['background_color'] = trim($backgroundColor) !== '' ? trim($backgroundColor) : null;
+        }
+        if ($textColor !== null) {
+            $placeholder['text_color'] = trim($textColor) !== '' ? trim($textColor) : null;
+        }
+
+        $this->config['_image_placeholder'] = $placeholder;
+        $this->propagateImageConfigToCards();
+
+        return $this;
+    }
+
+    public function imagePlaceholderAspect(AspectRatio|string|null $aspectRatio): static
+    {
+        $placeholder = $this->getImagePlaceholderConfig();
+        $placeholder['enabled'] = true;
+        $placeholder['aspect'] = ImageSourceResolver::normalizeAspectRatio($aspectRatio);
+        $this->config['_image_placeholder'] = $placeholder;
+        $this->propagateImageConfigToCards();
+
+        return $this;
+    }
+
+    public function imagePlaceholderColors(?string $background, ?string $text): static
+    {
+        $placeholder = $this->getImagePlaceholderConfig();
+        $placeholder['enabled'] = true;
+        $placeholder['background_color'] = $background !== null && trim($background) !== '' ? trim($background) : null;
+        $placeholder['text_color'] = $text !== null && trim($text) !== '' ? trim($text) : null;
+        $this->config['_image_placeholder'] = $placeholder;
+        $this->propagateImageConfigToCards();
+
+        return $this;
+    }
+
     public function maxVisibleActions(int $max): static
     {
         $this->setConfig('max_visible_actions', max(0, min(5, $max)));
@@ -1281,8 +1502,191 @@ class CardGrid extends UIComponent
 
         $card->setParent($this->id);
         $card->cardOrder($position);
+        $this->applyInheritedImageConfigToCard($card);
         $card->applyFromDTO($dto, $defaultClickAction, $defaultClickParams, $aspectRatio);
         $this->applyGridPresentationToCard($card);
+    }
+
+    private function applyInheritedImageConfigToCard(ItemCard $card): void
+    {
+        $storagePath = is_string($this->config['_storage_path'] ?? null) && $this->config['_storage_path'] !== ''
+            ? $this->config['_storage_path']
+            : null;
+        $placeholder = is_array($this->config['_image_placeholder'] ?? null)
+            ? $this->getImagePlaceholderConfig()
+            : null;
+
+        $card->applyInheritedImageConfig($storagePath, $placeholder);
+    }
+
+    private function propagateImageConfigToCards(): void
+    {
+        foreach ($this->cards as $card) {
+            $this->applyInheritedImageConfigToCard($card);
+        }
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function getImagePlaceholderConfig(): array
+    {
+        $raw = $this->config['_image_placeholder'] ?? null;
+
+        return is_array($raw) ? $raw : [];
+    }
+
+    /**
+     * @param  CardItemDTO|array<string, mixed>  $changes
+     */
+    private function syncStaticItemPatch(int|string $id, CardItemDTO|array $changes): void
+    {
+        $raw = $this->config['static_items'] ?? null;
+        if (! is_array($raw)) {
+            return;
+        }
+
+        $targetKey = (string) $id;
+        $updated = false;
+
+        foreach ($raw as $index => $entry) {
+            if (! is_array($entry)) {
+                continue;
+            }
+            $entryId = $entry['id'] ?? null;
+            if (! is_int($entryId) && ! is_string($entryId)) {
+                continue;
+            }
+            if ((string) $entryId !== $targetKey) {
+                continue;
+            }
+
+            if ($changes instanceof CardItemDTO) {
+                $raw[$index] = $changes->toArray();
+            } else {
+                /** @var array<string, mixed> $entry */
+                $raw[$index] = self::applyPatchToStaticEntry($entry, $changes, $id);
+            }
+            $updated = true;
+            break;
+        }
+
+        if ($updated) {
+            $this->config['static_items'] = array_values($raw);
+        }
+    }
+
+    private function syncStaticItemRemove(string $key): bool
+    {
+        $raw = $this->config['static_items'] ?? null;
+        if (! is_array($raw)) {
+            return false;
+        }
+
+        $removed = false;
+        $remaining = [];
+
+        foreach ($raw as $entry) {
+            if (is_array($entry) && (is_int($entry['id'] ?? null) || is_string($entry['id'] ?? null)) && (string) $entry['id'] === $key) {
+                $removed = true;
+
+                continue;
+            }
+            $remaining[] = $entry;
+        }
+
+        if ($removed) {
+            $this->config['static_items'] = $remaining;
+        }
+
+        return $removed;
+    }
+
+    private function syncStaticItemPrepend(CardItemDTO $dto): bool
+    {
+        $raw = $this->config['static_items'] ?? null;
+        if (! is_array($raw)) {
+            return false;
+        }
+
+        $key = (string) $dto->id;
+        $existed = false;
+        $remaining = [];
+
+        foreach ($raw as $entry) {
+            if (is_array($entry) && (is_int($entry['id'] ?? null) || is_string($entry['id'] ?? null)) && (string) $entry['id'] === $key) {
+                $existed = true;
+
+                continue;
+            }
+            $remaining[] = $entry;
+        }
+
+        array_unshift($remaining, $dto->toArray());
+        $this->config['static_items'] = $remaining;
+
+        return $existed;
+    }
+
+    /**
+     * @param  array<string, mixed>  $entry
+     * @param  array<string, mixed>  $changes
+     * @return array<string, mixed>
+     */
+    private static function applyPatchToStaticEntry(array $entry, array $changes, int|string $id): array
+    {
+        $keyMap = [
+            'badgeStyle' => 'badge_style',
+            'metricLabel' => 'metric_label',
+            'metricStyle' => 'metric_style',
+            'imageAlt' => 'image_alt',
+            'imageFit' => 'image_fit',
+            'imageStorage' => 'image_storage',
+            'imagePlaceholder' => 'image_placeholder',
+            'imagePlaceholderAspect' => 'image_placeholder_aspect',
+            'imagePlaceholderId' => 'image_placeholder_id',
+            'imagePlaceholderBackground' => 'image_placeholder_background',
+            'imagePlaceholderText' => 'image_placeholder_text',
+            'aspectRatio' => 'aspect_ratio',
+            'footerText' => 'footer_text',
+            'clickAction' => 'click_action',
+            'clickParameters' => 'click_parameters',
+            'accentColor' => 'accent_color',
+        ];
+
+        $merged = $entry;
+        foreach ($changes as $rawKey => $value) {
+            $key = $keyMap[$rawKey] ?? $rawKey;
+            if ($value === null) {
+                unset($merged[$key]);
+
+                continue;
+            }
+            if ($value instanceof Style) {
+                $merged[$key] = $value->value;
+
+                continue;
+            }
+            if ($value instanceof AspectRatio) {
+                $merged[$key] = $value->value;
+
+                continue;
+            }
+            $merged[$key] = $value;
+        }
+
+        return CardItemDTO::fromArray($merged, $id)->toArray();
+    }
+
+    private static function resolveStyle(Style|string $style, Style $fallback = Style::DEFAULT): string
+    {
+        if ($style instanceof Style) {
+            return $style->value;
+        }
+
+        $parsed = Style::tryFrom(strtolower(trim($style)));
+
+        return $parsed !== null ? $parsed->value : $fallback->value;
     }
 
     private function applyGridPresentationToCard(ItemCard $card): void

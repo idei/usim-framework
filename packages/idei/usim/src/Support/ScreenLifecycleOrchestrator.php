@@ -1145,7 +1145,7 @@ class ScreenLifecycleOrchestrator implements ScreenLifecycleOrchestratorInterfac
     protected function collectDirtyComponentChanges(Container $container): array
     {
         $dirtyChanges = [];
-        $ignoredKeys = ['type', 'parent', '_order', '_storage_path'];
+        $ignoredKeys = ['type', 'parent', '_order', '_storage_path', '_image_placeholder', 'static_items'];
 
         foreach ($container->getChildren() as $child) {
             if ($child instanceof CardGrid) {

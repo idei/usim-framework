@@ -2874,6 +2874,14 @@ class Container implements Gapable, Marginable, Paddable, Sizeable, UIElement
                     return $found;
                 }
             }
+
+            // Buscar en tarjetas ItemCard ya montadas dentro de CardGrid
+            if ($child instanceof CardGrid) {
+                $foundCard = $child->findMountedCardByName($name);
+                if ($foundCard !== null) {
+                    return $foundCard;
+                }
+            }
         }
 
         return null;
@@ -2903,6 +2911,14 @@ class Container implements Gapable, Marginable, Paddable, Sizeable, UIElement
                 $found = $child->findById($id);
                 if ($found !== null) {
                     return $found;
+                }
+            }
+
+            // Buscar en tarjetas ItemCard ya montadas dentro de CardGrid
+            if ($child instanceof CardGrid) {
+                $foundCard = $child->findMountedCardById($id);
+                if ($foundCard !== null) {
+                    return $foundCard;
                 }
             }
         }
