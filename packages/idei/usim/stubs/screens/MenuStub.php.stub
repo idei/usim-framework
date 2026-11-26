@@ -5,8 +5,7 @@ namespace {{ namespace }};
 use {{ userModel }};
 use App\Services\Auth\AuthSessionService;
 use App\Services\Units\UsimUnitsService;
-use {{ screensNamespace }}\Admin\TranslateManager;
-use {{ screensNamespace }}\Admin\UsersManager;
+use {{ navigationNamespace }}\Menus\MainMenu;
 use {{ screensNamespace }}\Auth\Login;
 use {{ screensNamespace }}\Auth\Profile;
 use {{ screensNamespace }}\Auth\Register;
@@ -84,7 +83,7 @@ class Menu extends Screen
             ->action('toggleTheme')
             ->plain();
 
-        $units = $this->usimUnitsService->getAvailableUnits();
+        $units = Auth::check() ? $this->usimUnitsService->getAvailableUnits() : collect();
         $this->unit_menu = $this->buildUnitMenu($units);
 
         $rightSection = UI::container('menu_right_section')
@@ -333,7 +332,14 @@ class Menu extends Screen
 
     private function updateUnitMenu(): void
     {
-        if ($this->unit_menu === null || !Auth::check()) {
+        if ($this->unit_menu === null) {
+            return;
+        }
+
+        if (! Auth::check()) {
+            $this->unit_menu->clearItems();
+            $this->unit_menu->visible(false);
+
             return;
         }
 
@@ -386,25 +392,11 @@ class Menu extends Screen
 
     private function getMainMenuBuilder(): MenuBuilder
     {
-        $builder = MenuBuilder::make('main_menu')
+        return MenuBuilder::make('main_menu')
             ->trigger()
             ->position('bottom-left')
-            ->width(Size::px(200));
-
-        $builder->link(t('screens.menu.items.home'), '/', '🏠');
-        $builder->screenShow(
-            UsersManager::class,
-            when: UsersManager::checkAccess()['allowed'] == true
-        );
-        $builder->screenShow(
-            TranslateManager::class,
-            when: TranslateManager::checkAccess()['allowed'] == true
-        );
-
-        $builder->separator();
-        $builder->action(t('screens.menu.items.about'), 'show_about_info', [], 'ℹ️');
-
-        return $builder;
+            ->width(Size::px(200))
+            ->provider(MainMenu::class);
     }
 
     private function buildLeftMenu(): MenuDropdown
@@ -568,6 +560,7 @@ class Menu extends Screen
         if ($this->unit_menu !== null) {
             $this->unit_menu->trigger('🏢');
             $this->unit_menu->clearItems();
+            $this->unit_menu->visible(false);
         }
 
         $this->user_menu->trigger("⚙️");

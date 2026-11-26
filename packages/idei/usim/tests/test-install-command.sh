@@ -32,43 +32,30 @@ git clean -fd > /dev/null 2>&1
 php artisan usim:install --force
 
 # Verificar archivos clave
-if [ ! -f "app/UI/Screens/Home.php" ]; then
-    echo "❌ Error: Home.php no se creó."
-    exit 1
-fi
-if [ ! -f "app/UI/Screens/Menu.php" ]; then
-    echo "❌ Error: Menu.php no se creó."
-    exit 1
-fi
-if [ ! -f "app/UI/Screens/Admin/UsersManager.php" ]; then
-    echo "❌ Error: Admin/UsersManager.php no se creó."
-    exit 1
-fi
-if [ ! -f "app/UI/Components/DataTable/UserTableModel.php" ]; then
-    echo "❌ Error: DataTable/UserTableModel.php no se creó."
-    exit 1
-fi
-if [ ! -f "app/UI/Components/Modals/EditUserDialog.php" ]; then
-    echo "❌ Error: Modals/EditUserDialog.php no se creó."
-    exit 1
-fi
-
-if [ ! -f "app/UI/Screens/Auth/Login.php" ]; then
-    echo "❌ Error: Login.php no se creó."
-    exit 1
-fi
-if [ ! -f "config/users.php" ]; then
-    echo "❌ Error: config/users.php no se creó."
-    exit 1
-fi
-if [ ! -f "resources/legal/terms.en.md" ]; then
-    echo "❌ Error: resources/legal/terms.en.md no se creó."
-    exit 1
-fi
-if [ ! -f "resources/legal/terms.es.md" ]; then
-    echo "❌ Error: resources/legal/terms.es.md no se creó."
-    exit 1
-fi
+for required_file in \
+    "app/UI/Layouts/MainLayout.php" \
+    "app/UI/Layouts/WorkbenchLayout.php" \
+    "app/UI/Layouts/workbench-layout.layout.yaml" \
+    "app/UI/Navigation/Menus/MainMenu.php" \
+    "app/UI/Screens/Concerns/HandlesShellActions.php" \
+    "app/UI/Screens/Home.php" \
+    "app/UI/Screens/Menu.php" \
+    "app/UI/Screens/SidebarMenu.php" \
+    "app/UI/Screens/SidebarSubmenuPanel.php" \
+    "app/UI/Screens/StatusBar.php" \
+    "app/UI/Screens/Admin/UsersManager.php" \
+    "app/UI/Components/DataTable/UserTableModel.php" \
+    "app/UI/Components/Modals/EditUserDialog.php" \
+    "app/UI/Screens/Auth/Login.php" \
+    "config/users.php" \
+    "resources/legal/terms.en.md" \
+    "resources/legal/terms.es.md"
+do
+    if [ ! -f "$required_file" ]; then
+        echo "❌ Error: $required_file no se creó."
+        exit 1
+    fi
+done
 
 # Verificar sintaxis PHP
 echo "🔍 Verificando sintaxis PHP en archivos generados..."

@@ -4,7 +4,7 @@
 
 namespace App\UI\Layouts;
 
-use Idei\Usim\Layout\AbstractLayout;
+use Idei\Usim\Layout\WorkbenchLayout as BaseWorkbenchLayout;
 
 /**
  * VS Code-inspired Workbench Layout.
@@ -18,6 +18,6 @@ use Idei\Usim\Layout\AbstractLayout;
  * - Right resizable/collapsible Split (`right_panel`, collapsed to 0px by default)
  * - Bottom Status Bar slot (`status_bar`, full width)
  */
-class WorkbenchLayout extends AbstractLayout
+class WorkbenchLayout extends BaseWorkbenchLayout
 {
 }

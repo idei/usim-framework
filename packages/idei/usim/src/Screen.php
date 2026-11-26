@@ -201,45 +201,119 @@ abstract class Screen
     protected ?AbstractLayout $layoutInstance = null;
 
     /**
-     * Resolve the layout class for this screen.
+     * Resolve a layout declaration (FQCN, 'default', 'workbench', 'main', or null) to a concrete AbstractLayout class.
      *
-     * Precedence:
-     * 1. static::$layout === null -> standalone/kiosk screen (no layout, always wins)
-     * 2. static::$layout !== 'default' -> explicit layout class declared by the Screen
-     * 3. static::$layout === 'default' -> guest_layout when unauthenticated (if configured), otherwise default_layout
+     * For short aliases ('workbench', 'main') and standard App\UI\Layouts\* names, an application-owned
+     * layout class takes precedence when present, falling back cleanly to the built-in package layout.
      *
      * @return class-string<AbstractLayout>|null
      */
-    public static function getLayoutClass(): ?string
+    public static function resolveLayoutClass(?string $layout): ?string
     {
-        if (static::$layout === null) {
+        if ($layout === null) {
+            return null;
+        }
+
+        $trimmed = trim($layout);
+        if ($trimmed === '' || strtolower($trimmed) === 'none' || strtolower($trimmed) === 'null') {
             return null;
         }
 
         /** @var UsimConfig $usimConfig */
         $usimConfig = app(UsimConfig::class);
 
-        if (static::$layout === 'default') {
+        if (strtolower($trimmed) === 'default') {
             $isGuest = ! Auth::guard('web')->check() && ! Auth::guard('device')->check();
             $rawGuestLayout = config('usim.guest_layout', $usimConfig->guestLayout);
-            $guestLayout = \is_string($rawGuestLayout) && $rawGuestLayout !== '' ? $rawGuestLayout : null;
+            $guestLayout = \is_string($rawGuestLayout) && trim($rawGuestLayout) !== '' ? trim($rawGuestLayout) : null;
 
             $rawDefaultLayout = config('usim.default_layout', $usimConfig->defaultLayout);
-            $defaultLayout = \is_string($rawDefaultLayout) && $rawDefaultLayout !== ''
-                ? $rawDefaultLayout
+            $defaultLayout = \is_string($rawDefaultLayout) && trim($rawDefaultLayout) !== ''
+                ? trim($rawDefaultLayout)
                 : $usimConfig->defaultLayout;
 
-            $layoutClass = ($isGuest && $guestLayout !== null) ? $guestLayout : $defaultLayout;
-        } else {
-            $layoutClass = static::$layout;
+            $selected = ($isGuest && $guestLayout !== null) ? $guestLayout : $defaultLayout;
+
+            if (strtolower($selected) === 'default') {
+                return self::resolveLayoutAlias('workbench', $usimConfig);
+            }
+
+            return self::resolveLayoutClass($selected);
         }
 
-        if (class_exists($layoutClass) && is_subclass_of($layoutClass, AbstractLayout::class)) {
-            /** @var class-string<AbstractLayout> $layoutClass */
-            return $layoutClass;
+        $aliasClass = self::resolveLayoutAlias($trimmed, $usimConfig);
+        if ($aliasClass !== null) {
+            return $aliasClass;
+        }
+
+        if (class_exists($trimmed) && is_subclass_of($trimmed, AbstractLayout::class)) {
+            /** @var class-string<AbstractLayout> $trimmed */
+            return $trimmed;
+        }
+
+        // Resilient fallback if config/screen references App\UI\Layouts\WorkbenchLayout or MainLayout before publishing
+        $normalized = ltrim($trimmed, '\\');
+        $layoutsNamespace = self::resolveLayoutsNamespace($usimConfig);
+        if ($normalized === 'App\\UI\\Layouts\\WorkbenchLayout' || $normalized === $layoutsNamespace.'\\WorkbenchLayout') {
+            return \Idei\Usim\Layout\WorkbenchLayout::class;
+        }
+        if ($normalized === 'App\\UI\\Layouts\\MainLayout' || $normalized === $layoutsNamespace.'\\MainLayout') {
+            return \Idei\Usim\Layout\MainLayout::class;
         }
 
         return null;
+    }
+
+    /**
+     * Resolve short built-in layout aliases ('workbench', 'main'), preferring app-level overrides when present.
+     *
+     * @return class-string<AbstractLayout>|null
+     */
+    protected static function resolveLayoutAlias(string $alias, UsimConfig $usimConfig): ?string
+    {
+        $normalized = strtolower(trim($alias));
+        $map = [
+            'workbench' => ['WorkbenchLayout', \Idei\Usim\Layout\WorkbenchLayout::class],
+            'main' => ['MainLayout', \Idei\Usim\Layout\MainLayout::class],
+        ];
+
+        if (! isset($map[$normalized])) {
+            return null;
+        }
+
+        [$className, $packageFallback] = $map[$normalized];
+        $appCandidate = self::resolveLayoutsNamespace($usimConfig).'\\'.$className;
+
+        if (class_exists($appCandidate) && is_subclass_of($appCandidate, AbstractLayout::class)) {
+            /** @var class-string<AbstractLayout> $appCandidate */
+            return $appCandidate;
+        }
+
+        return $packageFallback;
+    }
+
+    protected static function resolveLayoutsNamespace(UsimConfig $usimConfig): string
+    {
+        $screensNamespace = trim($usimConfig->screensNamespace, '\\');
+
+        return str_ends_with($screensNamespace, '\\Screens')
+            ? Str::beforeLast($screensNamespace, '\\Screens').'\\Layouts'
+            : 'App\\UI\\Layouts';
+    }
+
+    /**
+     * Resolve the layout class for this screen.
+     *
+     * Precedence:
+     * 1. static::$layout === null -> standalone/kiosk screen (no layout, always wins)
+     * 2. static::$layout !== 'default' -> explicit layout class or alias ('workbench', 'main') declared by the Screen
+     * 3. static::$layout === 'default' -> guest_layout when unauthenticated (if configured), otherwise default_layout
+     *
+     * @return class-string<AbstractLayout>|null
+     */
+    public static function getLayoutClass(): ?string
+    {
+        return self::resolveLayoutClass(static::$layout);
     }
 
     /**
@@ -286,21 +360,7 @@ abstract class Screen
 
         // 3. Fallback to configured layout when invoked without a host page (e.g., standalone Menu tests)
         if ($layoutClass === null) {
-            /** @var UsimConfig $usimConfig */
-            $usimConfig = app(UsimConfig::class);
-            $isGuest = ! Auth::guard('web')->check() && ! Auth::guard('device')->check();
-            $rawGuestLayout = config('usim.guest_layout', $usimConfig->guestLayout);
-            $guestLayout = \is_string($rawGuestLayout) && $rawGuestLayout !== '' ? $rawGuestLayout : null;
-            $rawDefaultLayout = config('usim.default_layout', $usimConfig->defaultLayout);
-            $defaultLayout = \is_string($rawDefaultLayout) && $rawDefaultLayout !== ''
-                ? $rawDefaultLayout
-                : $usimConfig->defaultLayout;
-
-            $candidateLayout = ($isGuest && $guestLayout !== null) ? $guestLayout : $defaultLayout;
-            if (class_exists($candidateLayout) && is_subclass_of($candidateLayout, AbstractLayout::class)) {
-                /** @var class-string<AbstractLayout> $candidateLayout */
-                $layoutClass = $candidateLayout;
-            }
+            $layoutClass = self::resolveLayoutClass('default');
         }
 
         if ($layoutClass !== null && class_exists($layoutClass) && is_subclass_of($layoutClass, AbstractLayout::class)) {

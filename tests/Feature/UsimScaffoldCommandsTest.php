@@ -12,6 +12,7 @@ $cleanTempScaffoldDirs = function (): void {
         lang_path('en/screens/testing/scaffold_temp'),
         lang_path('es/requests/testing/scaffold_temp'),
         lang_path('en/requests/testing/scaffold_temp'),
+        base_path('tests/Feature/Testing/ScaffoldTemp'),
     ];
 
     foreach ($dirs as $dir) {
@@ -252,4 +253,189 @@ it('scaffolds screen and request together with --request --i18n flags', function
     expect(File::exists($screenLangEn))->toBeTrue();
     expect(File::exists($requestLangEs))->toBeTrue();
     expect(File::exists($requestLangEn))->toBeTrue();
+});
+
+it('scaffolds a declarative Workbench screen with sibling .layout.yaml, slots, i18n: auto, and Pest test', function () {
+    /** @var TestCase $this */
+    artisanCommand($this, 'usim:screen', [
+        'name' => 'Testing/ScaffoldTemp/OrderExplorer',
+        '--layout' => 'workbench',
+        '--slots' => 'top_bar,left_panel,right_panel,bottom_panel,status_bar,status_bar_right',
+        '--visibility' => 'authenticated',
+        '--i18n' => true,
+        '--test' => true,
+    ])
+        ->expectsOutput('Scaffolding a new screen...')
+        ->expectsOutputToContain("Screen 'OrderExplorer' has been scaffolded at")
+        ->expectsOutputToContain('Layout YAML created:')
+        ->expectsOutputToContain('Test created:')
+        ->expectsOutputToContain('Route path: /testing/scaffold-temp/order-explorer')
+        ->assertSuccessful();
+
+    $screenFile = app_path('UI/Screens/Testing/ScaffoldTemp/OrderExplorer.php');
+    $yamlFile = app_path('UI/Screens/Testing/ScaffoldTemp/order-explorer.layout.yaml');
+    $langEnFile = lang_path('en/screens/testing/scaffold_temp/order_explorer.php');
+    $langEsFile = lang_path('es/screens/testing/scaffold_temp/order_explorer.php');
+    $testFile = base_path('tests/Feature/Testing/ScaffoldTemp/OrderExplorerScreenTest.php');
+
+    foreach ([$screenFile, $yamlFile, $langEnFile, $langEsFile, $testFile] as $path) {
+        expect(File::exists($path))->toBeTrue("Expected [{$path}] to exist.");
+    }
+
+    foreach ([$screenFile, $langEnFile, $langEsFile, $testFile] as $phpFile) {
+        $output = [];
+        $exitCode = 0;
+        exec('php -l '.escapeshellarg($phpFile).' 2>&1', $output, $exitCode);
+        expect($exitCode)->toBe(0, implode("\n", $output));
+    }
+
+    $screenContent = File::get($screenFile);
+    expect($screenContent)
+        ->toContain('public static Visibility $visibility = Visibility::AUTHENTICATED;')
+        ->toContain("public static ?string \$layout = 'workbench';")
+        ->toContain('public function onToggleLeftPanel(): void')
+        ->toContain('public function onToggleRightPanel(): void')
+        ->toContain('public function onToggleBottomPanel(): void')
+        ->toContain('public function onToggleTopBar(): void')
+        ->toContain('public function onStatusAction(): void');
+
+    $parsedYaml = \Symfony\Component\Yaml\Yaml::parseFile($yamlFile);
+    expect($parsedYaml)->toBeArray();
+    expect($parsedYaml['i18n'] ?? null)->toBe('auto');
+    expect(array_keys($parsedYaml['slots'] ?? []))->toBe([
+        'top_bar',
+        'left_panel',
+        'right_panel',
+        'bottom_panel',
+        'status_bar',
+        'status_bar_right',
+    ]);
+
+    // Actually load and render the scaffolded Screen over HTTP to prove PHP + YAML + WorkbenchLayout + i18n: auto work end-to-end
+    require_once $screenFile;
+    $screenClass = 'App\\UI\\Screens\\Testing\\ScaffoldTemp\\OrderExplorer';
+    expect($screenClass::getLayoutClass())->toBe(\App\UI\Layouts\WorkbenchLayout::class);
+    expect(\Idei\Usim\Support\ContainerLayoutLoader::hasDefaultLayout($screenClass))->toBeTrue();
+
+    app(\Idei\Usim\Support\RoleAndPermissionSyncService::class)->sync();
+    $this->loginAs('root');
+
+    $response = $this->getJson(screenApiUrl($screenClass, ['reset' => true]));
+    $response->assertOk();
+    $payload = $response->json();
+
+    $titleNode = findComponentByName($payload, 'lbl_title');
+    expect($titleNode)->toBeArray();
+    expect($titleNode['text'] ?? null)->toBe('Order Explorer');
+
+    $statusNode = findComponentByName($payload, 'lbl_status_text');
+    expect($statusNode)->toBeArray();
+    expect($statusNode['text'] ?? null)->toBe('Order Explorer ready');
+
+    expect(findComponentByName($payload, '__portal_left_panel'))->toBeArray();
+    expect(findComponentByName($payload, '__portal_right_panel'))->toBeArray();
+    expect(findComponentByName($payload, '__portal_top_bar'))->toBeArray();
+    expect(findComponentByName($payload, '__portal_bottom_panel'))->toBeArray();
+});
+
+it('scaffolds workspace, modal, kiosk, and custom layout presets declaratively', function () {
+    /** @var TestCase $this */
+    artisanCommand($this, 'usim:screen', [
+        'name' => 'Testing/ScaffoldTemp/SalesWorkspace',
+        '--type' => 'workspace',
+    ])->assertSuccessful();
+
+    expect(File::get(app_path('UI/Screens/Testing/ScaffoldTemp/SalesWorkspace.php')))
+        ->toContain("public static ?string \$layout = 'workbench';");
+    $workspaceYaml = \Symfony\Component\Yaml\Yaml::parseFile(app_path('UI/Screens/Testing/ScaffoldTemp/sales-workspace.layout.yaml'));
+    expect(array_keys($workspaceYaml['slots'] ?? []))->toBe(['top_bar', 'left_panel', 'right_panel', 'status_bar']);
+
+    artisanCommand($this, 'usim:screen', [
+        'name' => 'Testing/ScaffoldTemp/EditItemModal',
+        '--type' => 'modal',
+    ])->assertSuccessful();
+
+    expect(File::get(app_path('UI/Screens/Testing/ScaffoldTemp/EditItemModal.php')))
+        ->toContain('public static ?string $layout = null;')
+        ->toContain('public function onSave(): void')
+        ->toContain('$this->closeModal();');
+    expect(File::exists(app_path('UI/Screens/Testing/ScaffoldTemp/edit-item-modal.layout.yaml')))->toBeTrue();
+
+    artisanCommand($this, 'usim:screen', [
+        'name' => 'Testing/ScaffoldTemp/LobbyKiosk',
+        '--type' => 'kiosk',
+    ])->assertSuccessful();
+
+    expect(File::get(app_path('UI/Screens/Testing/ScaffoldTemp/LobbyKiosk.php')))
+        ->toContain('public static ?string $layout = null;');
+    expect(File::exists(app_path('UI/Screens/Testing/ScaffoldTemp/lobby-kiosk.layout.yaml')))->toBeTrue();
+
+    artisanCommand($this, 'usim:screen', [
+        'name' => 'Testing/ScaffoldTemp/SlotlessWorkbench',
+        '--layout' => 'workbench',
+        '--slots' => 'none',
+    ])->assertSuccessful();
+
+    $slotlessYaml = \Symfony\Component\Yaml\Yaml::parseFile(app_path('UI/Screens/Testing/ScaffoldTemp/slotless-workbench.layout.yaml'));
+    expect($slotlessYaml['slots'] ?? null)->toBeNull();
+    expect(File::get(app_path('UI/Screens/Testing/ScaffoldTemp/SlotlessWorkbench.php')))
+        ->toContain('public function onPrimaryAction(): void');
+});
+
+it('supports --imperative with --layout and --visibility without generating a YAML file', function () {
+    /** @var TestCase $this */
+    artisanCommand($this, 'usim:screen', [
+        'name' => 'Testing/ScaffoldTemp/ImperativeWorkbench',
+        '--layout' => 'workbench',
+        '--visibility' => 'authenticated',
+        '--imperative' => true,
+    ])->assertSuccessful();
+
+    $screenFile = app_path('UI/Screens/Testing/ScaffoldTemp/ImperativeWorkbench.php');
+    $yamlFile = app_path('UI/Screens/Testing/ScaffoldTemp/imperative-workbench.layout.yaml');
+
+    expect(File::exists($screenFile))->toBeTrue();
+    expect(File::exists($yamlFile))->toBeFalse();
+    expect(File::get($screenFile))
+        ->toContain('public static Visibility $visibility = Visibility::AUTHENTICATED;')
+        ->toContain("public static ?string \$layout = 'workbench';")
+        ->toContain('protected function startingUI(): Container');
+});
+
+it('validates invalid --visibility and --slots values gracefully', function () {
+    /** @var TestCase $this */
+    artisanCommand($this, 'usim:screen', [
+        'name' => 'Testing/ScaffoldTemp/BadVisibility',
+        '--visibility' => 'secret',
+    ])
+        ->expectsOutputToContain('Invalid visibility')
+        ->assertFailed();
+
+    artisanCommand($this, 'usim:screen', [
+        'name' => 'Testing/ScaffoldTemp/BadSlots',
+        '--layout' => 'workbench',
+        '--slots' => 'left_panel,invalid_zone',
+    ])
+        ->expectsOutputToContain('Unknown Workbench slot(s): invalid_zone')
+        ->assertFailed();
+});
+
+it('guides the developer in --interactive mode', function () {
+    /** @var TestCase $this */
+    artisanCommand($this, 'usim:screen', ['--interactive' => true])
+        ->expectsQuestion('Screen name (e.g. Orders/OrderExplorer)', 'Testing/ScaffoldTemp/InteractiveScreen')
+        ->expectsChoice('Which page layout should wrap this screen?', 'workbench', ['default', 'workbench', 'main', 'none'])
+        ->expectsChoice('Which template preset do you want?', 'workspace', ['basic', 'workspace', 'modal', 'kiosk'])
+        ->expectsQuestion('Workbench slots to project (comma-separated: top_bar,left_panel,right_panel,bottom_panel,status_bar,status_bar_right or none)', 'left_panel,right_panel')
+        ->expectsChoice('Screen visibility?', 'authenticated', ['public', 'authenticated', 'guest'])
+        ->expectsConfirmation('Generate declarative sibling .layout.yaml?', 'yes')
+        ->expectsConfirmation('Generate i18n language files (en/es)?', 'yes')
+        ->expectsConfirmation('Generate a Pest feature test?', 'no')
+        ->expectsConfirmation('Run php artisan usim:discover now?', 'no')
+        ->assertSuccessful();
+
+    expect(File::exists(app_path('UI/Screens/Testing/ScaffoldTemp/InteractiveScreen.php')))->toBeTrue();
+    expect(File::exists(app_path('UI/Screens/Testing/ScaffoldTemp/interactive-screen.layout.yaml')))->toBeTrue();
+    expect(File::exists(lang_path('en/screens/testing/scaffold_temp/interactive_screen.php')))->toBeTrue();
+    expect(File::exists(lang_path('es/screens/testing/scaffold_temp/interactive_screen.php')))->toBeTrue();
 });

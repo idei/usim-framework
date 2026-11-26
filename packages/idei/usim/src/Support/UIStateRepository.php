@@ -712,11 +712,13 @@ class UIStateRepository implements UIStateRepositoryInterface
         if (function_exists('app') && app()->bound(\Idei\Usim\Support\UsimConfig::class)) {
             /** @var \Idei\Usim\Support\UsimConfig $usimConfig */
             $usimConfig = app(\Idei\Usim\Support\UsimConfig::class);
-            if (! empty($usimConfig->defaultLayout) && class_exists($usimConfig->defaultLayout)) {
-                $this->clear($usimConfig->defaultLayout, $clientId);
+            $defaultLayoutClass = \Idei\Usim\Screen::resolveLayoutClass($usimConfig->defaultLayout);
+            if ($defaultLayoutClass !== null) {
+                $this->clear($defaultLayoutClass, $clientId);
             }
-            if (! empty($usimConfig->guestLayout) && class_exists($usimConfig->guestLayout)) {
-                $this->clear($usimConfig->guestLayout, $clientId);
+            $guestLayoutClass = \Idei\Usim\Screen::resolveLayoutClass($usimConfig->guestLayout);
+            if ($guestLayoutClass !== null) {
+                $this->clear($guestLayoutClass, $clientId);
             }
         }
 

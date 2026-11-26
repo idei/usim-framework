@@ -63,8 +63,10 @@ return [
     |--------------------------------------------------------------------------
     |
     | Clase de layout predeterminada para enmarcar las pantallas que declaran $layout = 'default'.
+    | También acepta aliases cortos ('workbench', 'main'). Si App\UI\Layouts\WorkbenchLayout no existe,
+    | USIM usa automáticamente Idei\Usim\Layout\WorkbenchLayout incluido en el paquete.
     */
-    'default_layout' => 'App\\UI\\Layouts\\MainLayout',
+    'default_layout' => 'App\\UI\\Layouts\\WorkbenchLayout',
 
     /*
     |--------------------------------------------------------------------------
@@ -74,7 +76,7 @@ return [
     | Layout opcional para usuarios no autenticados (landing / auth).
     | Si es null, se usa siempre default_layout.
     */
-    'guest_layout' => null,
+    'guest_layout' => 'App\\UI\\Layouts\\MainLayout',
 
     /*
     |--------------------------------------------------------------------------

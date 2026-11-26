@@ -6,13 +6,23 @@ The format is based on Keep a Changelog, and this project follows Semantic Versi
 
 ## [Unreleased]
 
-### Fixed
+### Added (v2.22.0)
+- **Enhanced `php artisan usim:screen` Scaffolding (`UsimScreenScaffoldCommand`, `DeclarativeScreenGenerator`)**:
+  - Added `--layout=` (`default`, `workbench`, `main`, `none`, or FQCN), `--slots=` (`top_bar,left_panel,right_panel,bottom_panel,status_bar,status_bar_right`, `all`, `none`, plus aliases), `--visibility=` (`public`, `authenticated`, `guest`), `--yaml`, `--imperative`, `--test`, `--discover`, and `--interactive` (also triggered automatically when omitting the `name` argument).
+  - Added modern declarative presets (`--type=workspace`, `--type=modal`, `--type=kiosk`) generating both the PHP Screen and its auto-discovered sibling `<kebab-name>.layout.yaml`, synchronized `i18n: auto` language files (`en`/`es`) when `--i18n` is passed, matching Pest feature tests (`--test`), and route URL preview while preserving 100% backwards compatibility with existing `usim:screen <Name>` / `usim:scaf` workflows.
+- **Built-in Package Layouts (`Idei\Usim\Layout\WorkbenchLayout` & `Idei\Usim\Layout\MainLayout`), Short Layout Aliases & Complete `usim:install` Workbench Scaffolding**:
+  - Shipped `Idei\Usim\Layout\WorkbenchLayout` (+ sibling `workbench-layout.layout.yaml`) and `Idei\Usim\Layout\MainLayout` directly inside `packages/idei/usim/src/Layout/`, enabling zero-config usage in any consuming application.
+  - Extended `ContainerLayoutLoader::hasDefaultLayout()` and `resolvePath()` to walk concrete parent classes so subclasses of `Idei\Usim\Layout\WorkbenchLayout` inherit the package's `workbench-layout.layout.yaml` automatically unless overridden by a sibling file.
+  - Added `Screen::resolveLayoutClass()` supporting short aliases (`'workbench'`, `'main'`, `'none'`) and resilient fallbacks to built-in package layouts when `App\UI\Layouts\*` overrides have not been published, used consistently across `Screen::getLayoutClass()`, `Screen::getLayout()`, and `UIStateRepository::clearAllForClient()`.
+  - Updated `usim:install` (`InstallAppScaffoldingManager`, `InstallContextResolver`, `InstallCommand`, `config/usim.php`) to publish `WorkbenchLayout.php`, `workbench-layout.layout.yaml`, `MainLayout.php`, shared `App\UI\Navigation\Menus\MainMenu`, `Concerns/HandlesShellActions`, `SidebarMenu`, `SidebarSubmenuPanel`, `StatusBar`, and their `en`/`es` language stubs, defaulting `default_layout` to `WorkbenchLayout` and `guest_layout` to `MainLayout`.
+
+### Fixed (v2.21.0)
 - **Invisible `0px × 0px` SVG icons inside `CardGrid` and `ItemCard` (`js/components/shared/content-render.js`, `css/ui-components.css`, `css/components/card-grid/index.css`, `css/components/item-card/index.css`):** updated `createIconElement()` to honor `options.size` (`width`/`height` on `.ui-icon-svg`/`.ui-icon-img`, `font-size` on `.ui-icon-text`), added base dimensions to `.ui-icon-svg`/`.ui-icon-img` in `ui-components.css` (without overriding `.ui-button-icon`/`.ui-label-icon`), and added explicit `.usim-cg-icon`/`.usim-ic-icon` rules so published SVG icons render visibly across toolbars, header actions, card attributes, and action buttons.
 - **`CardGrid` static-mode `static_items` desynchronization (`Idei\Usim\Components\CardGrid`):** synchronized `$this->config['static_items']` in `prependCard()`, `removeCard()`, and `patchCard()` (and omitted internal server-only `static_items` from client wire diffs in `ComponentDiffer`) so subsequent search, sort, filter, or pagination queries preserve inserted, patched, and deleted cards.
 - **Icon-only action accessibility and `⋮` overflow menu fallback (`js/components/item-card/index.js`):** set `aria-label` from `tooltip` on icon-only inline action buttons (`!label && tooltip`), and fell back to `act.label || act.tooltip || ''` inside the `⋮` overflow menu so icon-only actions always display readable text.
 - **Level 1 declarative i18n parity for `CardGrid` and `ItemCard` (`Idei\Usim\Support\ContainerLayoutLoader`):** added `load_more_label`, `clear_filters_label`, `subtitle`, `eyebrow`, `badge`, and `footer_text` to `TRANSLATABLE_TEXT_PROPERTIES` (matching Level 2 `i18n: auto` schemas) and resolved `.key`/`t:key` strings inside `header_actions`.
 
-### Added
+### Added (v2.21.0)
 - **Image storage & placeholder pipeline parity for `CardGrid`, `ItemCard`, and `CardItemDTO` (`Idei\Usim\Support\ImageSourceResolver`, `ItemCard`, `CardGrid`, `CardItemDTO`, `js/components/item-card/index.js`):**
   - Added `imageStorage(?string $dir)`, `imagePlaceholder(...)`, `imagePlaceholderAspect(...)`, `imagePlaceholderColors(...)` on both `ItemCard` and `CardGrid` (plus `imagePlaceholderId()` on `ItemCard` and optional per-item fields on `CardItemDTO`), delegating relative filename resolution to `UploadService::fileUrl()` and empty-image placeholder generation to `ImagePlaceholderGeneratorInterface` identically to `UI::image()`.
   - Added `'scale-down'` support to `imageFit` alongside `'cover'` and `'contain'` across `CardItemDTO`, `ItemCard`, and `UsimItemCardComponent`.

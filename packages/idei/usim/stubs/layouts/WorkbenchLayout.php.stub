@@ -2,10 +2,21 @@
 
 // @usim: feature="core", type="layout"
 
-namespace App\UI\Layouts;
+namespace {{ namespace }};
 
-use Idei\Usim\Layout\AbstractLayout;
+use Idei\Usim\Layout\WorkbenchLayout as BaseWorkbenchLayout;
 
-class WorkbenchLayout extends AbstractLayout
-{
-}
+/**
+ * VS Code-inspired Workbench Layout.
+ *
+ * Declaratively defined via sibling `workbench-layout.layout.yaml` (or inherits the
+ * built-in package definition if the sibling YAML file is removed):
+ * - Fixed 52px Activity Bar (`sidebar` / `activity_bar` / `menu`)
+ * - Left resizable/collapsible Split (`left_panel` / `left` / `explorer`)
+ * - Center sticky header slot (`top_bar` / `header` / `toolbar`)
+ * - Center main content slot (`main` / `content`)
+ * - Center bottom resizable/collapsible vertical Split (`bottom_panel` / `bottom` / `panel` / `console` / `terminal`)
+ * - Right resizable/collapsible Split (`right_panel` / `right` / `inspector`)
+ * - Full-width bottom Status Bar (`status_bar`)
+ */
+class WorkbenchLayout extends BaseWorkbenchLayout {}

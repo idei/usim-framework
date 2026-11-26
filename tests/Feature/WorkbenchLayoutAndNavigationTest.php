@@ -701,3 +701,169 @@ it('updates active_screen and layout main slot when loading Home directly after 
     $spaHomeResp->assertOk();
     expect($spaHomeResp->json('navigate.url'))->toBe(Home::getRoutePath());
 });
+
+class TestAliasWorkbenchScreen extends Screen
+{
+    public static ?string $layout = 'workbench';
+
+    public static function authorize(): bool
+    {
+        return true;
+    }
+
+    protected function buildBaseUI(Container $container, ...$params): void
+    {
+        $container->add(UI::newLabel('lbl_alias_workbench')->text('Workbench Alias'));
+    }
+}
+
+class TestAliasMainScreen extends Screen
+{
+    public static ?string $layout = 'main';
+
+    public static function authorize(): bool
+    {
+        return true;
+    }
+
+    protected function buildBaseUI(Container $container, ...$params): void
+    {
+        $container->add(UI::newLabel('lbl_alias_main')->text('Main Alias'));
+    }
+}
+
+class TestAliasNoneScreen extends Screen
+{
+    public static ?string $layout = 'none';
+
+    public static function authorize(): bool
+    {
+        return true;
+    }
+
+    protected function buildBaseUI(Container $container, ...$params): void
+    {
+        $container->add(UI::newLabel('lbl_alias_none')->text('None Alias'));
+    }
+}
+
+class TestInheritedPackageWorkbenchLayout extends \Idei\Usim\Layout\WorkbenchLayout {}
+
+it('ships built-in package WorkbenchLayout and MainLayout usable directly and inherited without sibling YAML', function () {
+    $packageWorkbench = app(\Idei\Usim\Layout\WorkbenchLayout::class);
+    $packageWorkbench->render();
+
+    expect($packageWorkbench->getSlot('sidebar'))->not->toBeNull();
+    expect($packageWorkbench->getSlot('left_panel'))->not->toBeNull();
+    expect($packageWorkbench->getSlot('top_bar'))->not->toBeNull();
+    expect($packageWorkbench->getSlot('main'))->not->toBeNull();
+    expect($packageWorkbench->getSlot('bottom_panel'))->not->toBeNull();
+    expect($packageWorkbench->getSlot('right_panel'))->not->toBeNull();
+    expect($packageWorkbench->getSlot('status_bar'))->not->toBeNull();
+
+    // A concrete subclass without its own sibling .layout.yaml inherits the package YAML definition
+    expect(\Idei\Usim\Support\ContainerLayoutLoader::hasDefaultLayout(TestInheritedPackageWorkbenchLayout::class))->toBeTrue();
+    $inheritedLayout = app(TestInheritedPackageWorkbenchLayout::class);
+    $inheritedLayout->render();
+    expect($inheritedLayout->getSlot('right_panel'))->not->toBeNull();
+    expect($inheritedLayout->getSlot('bottom_panel'))->not->toBeNull();
+
+    $packageMain = app(\Idei\Usim\Layout\MainLayout::class);
+    $packageMain->render();
+    expect($packageMain->getSlot('top_menu'))->not->toBeNull();
+    expect($packageMain->getSlot('main'))->not->toBeNull();
+});
+
+it('resolves short layout aliases preferring app overrides and falling back to built-in package layouts', function () {
+    // App overrides exist in this project, so aliases resolve to App\UI\Layouts\*
+    expect(TestAliasWorkbenchScreen::getLayoutClass())->toBe(WorkbenchLayout::class);
+    expect(TestAliasMainScreen::getLayoutClass())->toBe(MainLayout::class);
+    expect(TestAliasNoneScreen::getLayoutClass())->toBeNull();
+
+    // When configured under a namespace without published App layouts, aliases & App names fall back to package layouts
+    config()->set('usim.screens_namespace', 'CustomApp\\UI\\Screens');
+    app()->forgetInstance(\Idei\Usim\Support\UsimConfig::class);
+
+    try {
+        expect(Screen::resolveLayoutClass('workbench'))->toBe(\Idei\Usim\Layout\WorkbenchLayout::class);
+        expect(Screen::resolveLayoutClass('main'))->toBe(\Idei\Usim\Layout\MainLayout::class);
+        expect(Screen::resolveLayoutClass('CustomApp\\UI\\Layouts\\WorkbenchLayout'))->toBe(\Idei\Usim\Layout\WorkbenchLayout::class);
+        expect(Screen::resolveLayoutClass('CustomApp\\UI\\Layouts\\MainLayout'))->toBe(\Idei\Usim\Layout\MainLayout::class);
+        expect(Screen::resolveLayoutClass('none'))->toBeNull();
+    } finally {
+        config()->set('usim.screens_namespace', 'App\\UI\\Screens');
+        app()->forgetInstance(\Idei\Usim\Support\UsimConfig::class);
+    }
+});
+
+it('scaffolds WorkbenchLayout, MainLayout, MainMenu, and Workbench shell screens via InstallAppScaffoldingManager', function () {
+    $tempRoot = sys_get_temp_dir().'/usim_install_workbench_test_'.uniqid();
+    $files = app(\Illuminate\Filesystem\Filesystem::class);
+    $files->makeDirectory($tempRoot, 0755, true);
+
+    try {
+        $resolver = app(\Idei\Usim\Console\Commands\Support\InstallContextResolver::class);
+        $publisher = app(\Idei\Usim\Console\Commands\Support\InstallStubPublisher::class);
+        $manager = app(\Idei\Usim\Console\Commands\Support\InstallAppScaffoldingManager::class);
+
+        $context = $resolver->buildScaffoldingContext(
+            stubsBasePath: $resolver->stubsPath(),
+            namespaces: [
+                'screensNamespace' => 'SampleApp\\UI\\Screens',
+                'screensPath' => $tempRoot.'/UI/Screens',
+                'componentsNamespace' => 'SampleApp\\UI\\Components',
+                'componentsPath' => $tempRoot.'/UI/Components',
+                'layoutsNamespace' => 'SampleApp\\UI\\Layouts',
+                'layoutsPath' => $tempRoot.'/UI/Layouts',
+                'navigationNamespace' => 'SampleApp\\UI\\Navigation',
+                'navigationPath' => $tempRoot.'/UI/Navigation',
+            ],
+            userModelImport: 'App\\Models\\User',
+            userModelClass: 'User',
+            force: true,
+        );
+
+        $manager->installCoreScreens(
+            context: $context,
+            publishStub: static function (string $stubPath, string $targetPath, bool $autoForce, array $replacements) use ($publisher): void {
+                $publisher->publish($stubPath, $targetPath, true, $autoForce, $replacements);
+            },
+            line: static function (string $message): void {},
+            installTranslationManagerScaffolding: static function (): void {},
+            installActorsManagerScaffolding: static function (): void {},
+        );
+
+        $expectedFiles = [
+            $tempRoot.'/UI/Layouts/MainLayout.php',
+            $tempRoot.'/UI/Layouts/WorkbenchLayout.php',
+            $tempRoot.'/UI/Layouts/workbench-layout.layout.yaml',
+            $tempRoot.'/UI/Navigation/Menus/MainMenu.php',
+            $tempRoot.'/UI/Screens/Concerns/HandlesShellActions.php',
+            $tempRoot.'/UI/Screens/Home.php',
+            $tempRoot.'/UI/Screens/Menu.php',
+            $tempRoot.'/UI/Screens/SidebarMenu.php',
+            $tempRoot.'/UI/Screens/SidebarSubmenuPanel.php',
+            $tempRoot.'/UI/Screens/StatusBar.php',
+            $tempRoot.'/UI/Screens/Registered.php',
+        ];
+
+        foreach ($expectedFiles as $path) {
+            expect(is_file($path))->toBeTrue("Expected scaffolded file [{$path}] to exist.");
+            $content = (string) file_get_contents($path);
+            expect($content)->not->toContain('{{ ');
+
+            if (str_ends_with($path, '.php')) {
+                $output = [];
+                $exitCode = 0;
+                exec('php -l '.escapeshellarg($path).' 2>&1', $output, $exitCode);
+                expect($exitCode)->toBe(0, implode("\n", $output));
+            }
+        }
+
+        $parsedYaml = \Symfony\Component\Yaml\Yaml::parseFile($tempRoot.'/UI/Layouts/workbench-layout.layout.yaml');
+        expect($parsedYaml)->toBeArray();
+        expect($parsedYaml['name'] ?? null)->toBe('workbench_layout');
+    } finally {
+        $files->deleteDirectory($tempRoot);
+    }
+});

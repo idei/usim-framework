@@ -94,6 +94,10 @@ class InstallCommand extends Command
 
     protected string $layoutsPath;
 
+    protected string $navigationNamespace;
+
+    protected string $navigationPath;
+
     public function __construct(
         Filesystem $files
     ) {
@@ -184,6 +188,8 @@ class InstallCommand extends Command
         $this->componentsPath = $namespaces['componentsPath'];
         $this->layoutsNamespace = $namespaces['layoutsNamespace'];
         $this->layoutsPath = $namespaces['layoutsPath'];
+        $this->navigationNamespace = $namespaces['navigationNamespace'];
+        $this->navigationPath = $namespaces['navigationPath'];
     }
 
     protected function installCoreScreens(): void
@@ -460,8 +466,14 @@ class InstallCommand extends Command
             'routes/web.php',
             'composer.json',
             'bootstrap/providers.php',
+            'app/UI/Layouts',
+            'app/UI/Navigation',
+            'app/UI/Screens/Concerns',
             'app/UI/Screens/Home.php',
             'app/UI/Screens/Menu.php',
+            'app/UI/Screens/SidebarMenu.php',
+            'app/UI/Screens/SidebarSubmenuPanel.php',
+            'app/UI/Screens/StatusBar.php',
             'app/UI/Screens/Admin',
             'app/UI/Screens/Auth',
             'app/UI/Components/Modals',
@@ -555,6 +567,8 @@ class InstallCommand extends Command
                 'componentsPath' => $this->componentsPath,
                 'layoutsNamespace' => $this->layoutsNamespace,
                 'layoutsPath' => $this->layoutsPath,
+                'navigationNamespace' => $this->navigationNamespace,
+                'navigationPath' => $this->navigationPath,
             ],
             userModelImport: $this->resolveUserModelImport(),
             userModelClass: $this->resolveUserModelClass(),

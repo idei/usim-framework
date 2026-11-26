@@ -27,8 +27,15 @@ class InstallAppScaffoldingManager
         callable $installActorsManagerScaffolding
     ): void {
         $this->installLayout('MainLayout.php.stub', 'MainLayout.php', $context, $publishStub, $line);
+        $this->installLayout('WorkbenchLayout.php.stub', 'WorkbenchLayout.php', $context, $publishStub, $line);
+        $this->installLayout('workbench-layout.layout.yaml.stub', 'workbench-layout.layout.yaml', $context, $publishStub, $line);
+        $this->installNavigation('Menus/MainMenu.php.stub', 'MainMenu.php', 'Menus', $context, $publishStub, $line);
+        $this->installScreen('Concerns/HandlesShellActions.php.stub', 'HandlesShellActions.php', 'Concerns', $context, $publishStub, $line);
         $this->installScreen('HomeStub.php.stub', 'Home.php', null, $context, $publishStub, $line);
         $this->installScreen('MenuStub.php.stub', 'Menu.php', null, $context, $publishStub, $line);
+        $this->installScreen('SidebarMenu.php.stub', 'SidebarMenu.php', null, $context, $publishStub, $line);
+        $this->installScreen('SidebarSubmenuPanel.php.stub', 'SidebarSubmenuPanel.php', null, $context, $publishStub, $line);
+        $this->installScreen('StatusBar.php.stub', 'StatusBar.php', null, $context, $publishStub, $line);
         $this->installScreen('Registered.php.stub', 'Registered.php', null, $context, $publishStub, $line);
 
         $installActorsManagerScaffolding();
@@ -110,6 +117,7 @@ class InstallAppScaffoldingManager
         $screensPath = (string) $context['screensPath'];
         $screensNamespace = (string) $context['screensNamespace'];
         $componentsNamespace = (string) $context['componentsNamespace'];
+        $navigationNamespace = (string) ($context['navigationNamespace'] ?? 'App\\UI\\Navigation');
         $userModelImport = (string) $context['userModelImport'];
         $userModelClass = (string) $context['userModelClass'];
 
@@ -122,6 +130,46 @@ class InstallAppScaffoldingManager
 
         $publishStub($stubPath, $targetFile, false, [
             '{{ namespace }}' => $namespace,
+            '{{ screensNamespace }}' => $screensNamespace,
+            '{{ componentsNamespace }}' => $componentsNamespace,
+            '{{ navigationNamespace }}' => $navigationNamespace,
+            '{{ userModel }}' => $userModelImport,
+            '{{ userModelClass }}' => $userModelClass,
+        ]);
+
+        $relativePath = $this->toRelativePath($targetFile);
+        $line("  <fg=green>✓</> {$relativePath}");
+    }
+
+    /**
+     * @param  array<string, string|bool>  $context
+     */
+    private function installNavigation(
+        string $stubName,
+        string $targetName,
+        ?string $subdirectory,
+        array $context,
+        callable $publishStub,
+        callable $line
+    ): void {
+        $stubsBasePath = (string) $context['stubsBasePath'];
+        $navigationPath = (string) ($context['navigationPath'] ?? app_path('UI/Navigation'));
+        $navigationNamespace = (string) ($context['navigationNamespace'] ?? 'App\\UI\\Navigation');
+        $screensNamespace = (string) $context['screensNamespace'];
+        $componentsNamespace = (string) $context['componentsNamespace'];
+        $userModelImport = (string) $context['userModelImport'];
+        $userModelClass = (string) $context['userModelClass'];
+
+        $stubPath = $stubsBasePath.'/navigation/'.$stubName;
+        $targetDir = $subdirectory ? $navigationPath.'/'.$subdirectory : $navigationPath;
+        $targetFile = $targetDir.'/'.$targetName;
+        $namespace = $subdirectory
+            ? $navigationNamespace.'\\'.str_replace('/', '\\', $subdirectory)
+            : $navigationNamespace;
+
+        $publishStub($stubPath, $targetFile, false, [
+            '{{ namespace }}' => $namespace,
+            '{{ navigationNamespace }}' => $navigationNamespace,
             '{{ screensNamespace }}' => $screensNamespace,
             '{{ componentsNamespace }}' => $componentsNamespace,
             '{{ userModel }}' => $userModelImport,

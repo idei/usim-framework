@@ -1172,11 +1172,31 @@ The client-side JavaScript (`ui-renderer.js`) handles these calls automatically.
 | Command | Description |
 |---|---|
 | `php artisan usim:discover` | Scan screens directory and generate manifest cache |
-| `php artisan usim:install` | Scaffold a complete USIM application (screens, auth, admin, tests) |
+| `php artisan usim:install` | Scaffold a complete USIM application (Workbench & Main layouts, shell screens, auth, admin, tests) |
 | `php artisan usim:install --force` | Overwrite existing files |
+| `php artisan usim:screen [Name]` | Scaffold a new Screen (supports `--layout=workbench\|main\|default\|none\|<FQCN>`, `--slots=...`, `--type=basic\|workspace\|modal\|kiosk`, `--visibility=public\|authenticated\|guest`, `--yaml`, `--imperative`, `--request`, `--i18n`, `--test`, `--discover`, `--interactive`) |
+| `php artisan usim:request <Name>` | Scaffold a matching `UIRequest` (supports `--i18n`, `--force`) |
 | `php artisan vendor:publish --tag=usim-icons` | Publish the standard 80-SVG icon library to `public/vendor/idei/usim/icons/` |
 | `php artisan vendor:publish --tag=usim-docs` | Publish package documentation into `docs/usim/` |
 | `php artisan vendor:publish --tag=usim-assets --force` | Publish updated frontend JS/CSS assets to `public/vendor/idei/usim/` |
+
+### Scaffolding Declarative Workbench Screens
+
+```bash
+# Declarative Screen framed by WorkbenchLayout with sibling .layout.yaml, slots, i18n: auto, and Pest test
+php artisan usim:screen Orders/OrderExplorer \
+  --layout=workbench \
+  --slots=top_bar,left_panel,right_panel,status_bar \
+  --visibility=authenticated \
+  --i18n --test --discover
+
+# Modal or kiosk presets ($layout = null + sibling .layout.yaml)
+php artisan usim:screen Orders/EditOrderDialog --type=modal --i18n
+php artisan usim:screen Displays/LobbyKiosk --type=kiosk
+
+# Interactive step-by-step wizard (omitting Name or passing --interactive)
+php artisan usim:screen
+```
 
 ---
 
@@ -1220,11 +1240,23 @@ app/
     │   └── Modals/
     │       ├── EditUserDialog.php
     │       └── RegisterDialog.php
+    ├── Layouts/
+    │   ├── MainLayout.php               # Classic top-bar layout (extends Idei\Usim\Layout\MainLayout)
+    │   ├── WorkbenchLayout.php          # VS Code-style Workbench (extends Idei\Usim\Layout\WorkbenchLayout)
+    │   └── workbench-layout.layout.yaml # Customizable declarative Workbench grid & splits
+    ├── Navigation/
+    │   └── Menus/
+    │       └── MainMenu.php             # Shared navigation provider for Menu, SidebarMenu & SidebarSubmenuPanel
     └── Screens/
-        ├── Home.php              # Landing page
-        ├── Menu.php              # Navigation menu (links UsersManager for admins)
+        ├── Concerns/
+        │   └── HandlesShellActions.php  # Shared shell handlers (navigation, logout, unit/lang dropdowns)
+        ├── Home.php                     # Landing page
+        ├── Menu.php                     # Top-bar navigation menu (MainLayout)
+        ├── SidebarMenu.php              # Fixed 52px Activity Bar (WorkbenchLayout)
+        ├── SidebarSubmenuPanel.php      # Collapsible left_panel submenu tree (WorkbenchLayout)
+        ├── StatusBar.php                # Bottom status bar with unit switcher & contextual slots
         ├── Admin/
-        │   └── UsersManager.php     # User management (admin only)
+        │   └── UsersManager.php         # User management (admin only)
         └── Auth/
             ├── Login.php
             ├── ForgotPassword.php

@@ -1,0 +1,30 @@
+<?php
+
+// @usim: feature="core", type="navigation"
+
+namespace {{ namespace }};
+
+use {{ screensNamespace }}\Admin\TranslateManager;
+use {{ screensNamespace }}\Admin\UsersManager;
+use {{ screensNamespace }}\Home;
+use Idei\Usim\Navigation\Contracts\MenuProviderInterface;
+use Idei\Usim\Navigation\MenuBuilder;
+
+class MainMenu implements MenuProviderInterface
+{
+    public function build(MenuBuilder $menu): void
+    {
+        $menu->screenShow(Home::class);
+        $menu->screenShow(
+            UsersManager::class,
+            when: UsersManager::checkAccess()['allowed'] == true
+        );
+        $menu->screenShow(
+            TranslateManager::class,
+            when: TranslateManager::checkAccess()['allowed'] == true
+        );
+
+        $menu->separator();
+        $menu->action(t('screens.menu.items.about'), 'show_about_info', [], 'ℹ️');
+    }
+}

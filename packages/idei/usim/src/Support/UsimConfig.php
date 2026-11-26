@@ -96,7 +96,7 @@ final class UsimConfig
         $this->uploadDisk = \is_string($raw['upload_disk'] ?? null) ? $raw['upload_disk'] : 'local';
         $this->headlessMode = \is_bool($raw['headless_mode'] ?? null) ? $raw['headless_mode'] : false;
         $this->defaultRegisteringRole = \is_string($raw['default_registering_role'] ?? null) ? $raw['default_registering_role'] : 'registered';
-        $this->defaultLayout = \is_string($raw['default_layout'] ?? null) ? $raw['default_layout'] : 'App\\UI\\Layouts\\MainLayout';
+        $this->defaultLayout = \is_string($raw['default_layout'] ?? null) ? $raw['default_layout'] : 'App\\UI\\Layouts\\WorkbenchLayout';
         $this->guestLayout = \is_string($raw['guest_layout'] ?? null) && $raw['guest_layout'] !== '' ? $raw['guest_layout'] : null;
         $this->defaultMenuScreen = \is_string($raw['default_menu_screen'] ?? null) ? $raw['default_menu_screen'] : 'App\\UI\\Screens\\Menu';
         $this->defaultSidebarMenuScreen = \is_string($raw['default_sidebar_menu_screen'] ?? null) && $raw['default_sidebar_menu_screen'] !== '' ? $raw['default_sidebar_menu_screen'] : null;

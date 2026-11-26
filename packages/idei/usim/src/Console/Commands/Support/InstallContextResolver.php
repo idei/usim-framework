@@ -7,7 +7,7 @@ use Illuminate\Support\Str;
 class InstallContextResolver
 {
     /**
-     * @return array{screensNamespace:string,screensPath:string,componentsNamespace:string,componentsPath:string,layoutsNamespace:string,layoutsPath:string}
+     * @return array{screensNamespace:string,screensPath:string,componentsNamespace:string,componentsPath:string,layoutsNamespace:string,layoutsPath:string,navigationNamespace:string,navigationPath:string}
      */
     public function resolveNamespaces(): array
     {
@@ -30,6 +30,8 @@ class InstallContextResolver
             'componentsPath' => Str::beforeLast($normalizedScreensPath, '/Screens').'/Components',
             'layoutsNamespace' => Str::beforeLast($normalizedScreensNamespace, '\\Screens').'\\Layouts',
             'layoutsPath' => Str::beforeLast($normalizedScreensPath, '/Screens').'/Layouts',
+            'navigationNamespace' => Str::beforeLast($normalizedScreensNamespace, '\\Screens').'\\Navigation',
+            'navigationPath' => Str::beforeLast($normalizedScreensPath, '/Screens').'/Navigation',
         ];
     }
 
@@ -52,6 +54,8 @@ class InstallContextResolver
             'componentsPath' => (string) ($namespaces['componentsPath'] ?? app_path('UI/Components')),
             'layoutsNamespace' => (string) ($namespaces['layoutsNamespace'] ?? 'App\\UI\\Layouts'),
             'layoutsPath' => (string) ($namespaces['layoutsPath'] ?? app_path('UI/Layouts')),
+            'navigationNamespace' => (string) ($namespaces['navigationNamespace'] ?? 'App\\UI\\Navigation'),
+            'navigationPath' => (string) ($namespaces['navigationPath'] ?? app_path('UI/Navigation')),
             'userModelImport' => $userModelImport,
             'userModelClass' => $userModelClass,
             'force' => $force,

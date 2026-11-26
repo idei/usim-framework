@@ -212,18 +212,42 @@ class ContainerLayoutLoader
     }
 
     /**
-     * Determine whether a sibling "<kebab-class-name>.layout.yaml" exists for the given Screen class.
+     * Determine whether a sibling "<kebab-class-name>.layout.yaml" exists for the given Screen/Layout class
+     * (walking concrete parent classes so subclasses can inherit a package layout's YAML definition).
      */
     public static function hasDefaultLayout(?string $callingContext): bool
     {
-        $contextDir = self::resolveContextDirectory($callingContext);
-        if ($callingContext === null || $contextDir === null) {
-            return false;
+        return self::findDefaultLayoutFile($callingContext) !== null;
+    }
+
+    /**
+     * Resolve the default sibling "<kebab-class-name>.layout.yaml" file for a class or its parent classes.
+     */
+    protected static function findDefaultLayoutFile(?string $callingContext): ?string
+    {
+        if ($callingContext === null || ! class_exists($callingContext)) {
+            return null;
         }
 
-        $defaultFile = $contextDir.'/'.Str::kebab(class_basename($callingContext)).'.layout.yaml';
+        $cursor = $callingContext;
+        while ($cursor !== null) {
+            if ($cursor === \Idei\Usim\Screen::class || $cursor === \Idei\Usim\Layout\AbstractLayout::class) {
+                break;
+            }
 
-        return is_file($defaultFile);
+            $contextDir = self::resolveContextDirectory($cursor);
+            if ($contextDir !== null) {
+                $defaultFile = $contextDir.'/'.Str::kebab(class_basename($cursor)).'.layout.yaml';
+                if (is_file($defaultFile)) {
+                    return (string) realpath($defaultFile);
+                }
+            }
+
+            $parent = get_parent_class($cursor);
+            $cursor = \is_string($parent) ? $parent : null;
+        }
+
+        return null;
     }
 
     /**
@@ -238,12 +262,14 @@ class ContainerLayoutLoader
                 throw new InvalidArgumentException('Cannot auto-resolve layout file without a valid Screen context.');
             }
 
-            $defaultFile = $contextDir.'/'.Str::kebab(class_basename($callingContext)).'.layout.yaml';
-            if (is_file($defaultFile)) {
-                return (string) realpath($defaultFile);
+            $defaultFile = self::findDefaultLayoutFile($callingContext);
+            if ($defaultFile !== null) {
+                return $defaultFile;
             }
 
-            throw new InvalidArgumentException("Default layout file [{$defaultFile}] not found for [{$callingContext}].");
+            $expectedFile = $contextDir.'/'.Str::kebab(class_basename($callingContext)).'.layout.yaml';
+
+            throw new InvalidArgumentException("Default layout file [{$expectedFile}] not found for [{$callingContext}].");
         }
 
         $trimmed = trim($path);
