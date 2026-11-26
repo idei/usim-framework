@@ -64,6 +64,11 @@ class UIIdGenerator
         self::getGenerator()->reserveContextId($context, $id);
     }
 
+    public static function registerContext(string $context): int
+    {
+        return self::getGenerator()->registerContext($context);
+    }
+
     public static function getContextFromId(int $id): ?string
     {
         return self::getGenerator()->getContextFromId($id);

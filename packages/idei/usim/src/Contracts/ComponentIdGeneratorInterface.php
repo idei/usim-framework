@@ -45,6 +45,11 @@ interface ComponentIdGeneratorInterface
     public function reserveContextId(string $context, int $id): void;
 
     /**
+     * Register a context class/identifier so its deterministic offset is resolvable via getContextFromId().
+     */
+    public function registerContext(string $context): int;
+
+    /**
      * Resolve the context class name associated with a component ID.
      */
     public function getContextFromId(int $id): ?string;

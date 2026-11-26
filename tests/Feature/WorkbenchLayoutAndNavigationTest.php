@@ -984,3 +984,108 @@ it('auto-discovers accessible screens with SVG home icon and respects user permi
     expect($rootScreens)->not->toContain(DevicePairingScreen::class);
     setPermissionsTeamId(null);
 });
+
+it('resolves built-in package screen, layout, and modal contexts across fresh ComponentIdGenerator instances', function () {
+    $classes = [
+        \Idei\Usim\Screens\SidebarMenu::class,
+        \Idei\Usim\Screens\SidebarSubmenuPanel::class,
+        \Idei\Usim\Screens\StatusBar::class,
+        \Idei\Usim\Layout\WorkbenchLayout::class,
+        \Idei\Usim\Layout\MainLayout::class,
+        \Idei\Usim\Modals\ConfirmDialog::class,
+    ];
+
+    foreach ($classes as $class) {
+        $renderGenerator = new \Idei\Usim\Support\ComponentIdGenerator;
+        $componentId = $renderGenerator->generateFromName($class, 'test_btn');
+
+        // Brand-new generator simulating a separate HTTP request (POST /api/ui-event)
+        $freshEventGenerator = new \Idei\Usim\Support\ComponentIdGenerator;
+        expect($freshEventGenerator->getContextFromId($componentId))->toBe($class);
+    }
+});
+
+it('handles POST /api/ui-event actions on built-in SidebarMenu and StatusBar across isolated HTTP requests', function () {
+    /** @var Tests\TestCase $this */
+    config()->set('usim.default_sidebar_menu_screen', 'MissingApp\\UI\\Screens\\SidebarMenu');
+    config()->set('usim.default_status_bar_screen', 'MissingApp\\UI\\Screens\\StatusBar');
+
+    $resetFreshIdGenerator = static function (): void {
+        app()->forgetInstance(\Idei\Usim\Contracts\ComponentIdGeneratorInterface::class);
+        app()->scoped(\Idei\Usim\Contracts\ComponentIdGeneratorInterface::class, static fn () => new \Idei\Usim\Support\ComponentIdGenerator);
+        AbstractLayout::setCurrent(null);
+    };
+
+    try {
+        $lobbyUnit = UsimUnit::firstOrCreate(['slug' => 'lobby'], ['type' => 'system']);
+        $user = User::factory()->create([
+            'name' => 'Cross Request User',
+            'email' => 'cross.req.'.uniqid().'@example.com',
+        ]);
+        $user->usimUnits()->sync([$lobbyUnit->id]);
+        setPermissionsTeamId($lobbyUnit->id);
+        $user->assignRole('registered');
+        setPermissionsTeamId(null);
+        $this->actingAs($user);
+
+        $clientId = 'builtin-workbench-cross-request-'.uniqid();
+
+        // Request 1: Initial render mounts Idei\Usim\Screens\SidebarMenu and Idei\Usim\Screens\StatusBar
+        $renderResponse = $this->withCookie('ui_client_id', $clientId)
+            ->getJson(screenApiUrl(Home::class, ['reset' => true]));
+        $renderResponse->assertOk();
+        $payload = $renderResponse->json();
+
+        $findIdByName = static function (array $uiPayload, string $name): int {
+            foreach ($uiPayload as $key => $node) {
+                if (is_numeric($key) && is_array($node) && ($node['name'] ?? null) === $name) {
+                    return (int) $key;
+                }
+            }
+
+            return 0;
+        };
+
+        $resetBtnId = $findIdByName($payload, 'btn_reset');
+        $settingsMenuId = $findIdByName($payload, 'settings_menu');
+        $mainMenuId = $findIdByName($payload, 'main_menu');
+
+        expect($resetBtnId)->toBeGreaterThan(0);
+        expect($settingsMenuId)->toBeGreaterThan(0);
+        expect($mainMenuId)->toBeGreaterThan(0);
+
+        // Request 2 (fresh generator): Click 'show_about_info' in built-in SidebarMenu -> 200 OK (opens ConfirmDialog)
+        $resetFreshIdGenerator();
+        $aboutResponse = $this->withCookie('ui_client_id', $clientId)->postJson('/api/ui-event', [
+            'component_id' => $settingsMenuId,
+            'event' => 'click',
+            'action' => 'show_about_info',
+            'parameters' => [],
+        ]);
+        $aboutResponse->assertOk();
+
+        // Request 3 (fresh generator): Click 'showScreen' (Home) in built-in SidebarMenu -> 200 OK
+        $resetFreshIdGenerator();
+        $navResponse = $this->withCookie('ui_client_id', $clientId)->postJson('/api/ui-event', [
+            'component_id' => $mainMenuId,
+            'event' => 'click',
+            'action' => 'showScreen',
+            'parameters' => ['screen' => Home::class],
+        ]);
+        $navResponse->assertOk();
+
+        // Request 4 (fresh generator): Click 'reset_app' (R button) in built-in StatusBar -> 200 OK (returns redirect)
+        $resetFreshIdGenerator();
+        $resetResponse = $this->withCookie('ui_client_id', $clientId)->postJson('/api/ui-event', [
+            'component_id' => $resetBtnId,
+            'event' => 'click',
+            'action' => 'reset_app',
+            'parameters' => [],
+        ]);
+        $resetResponse->assertOk();
+        expect($resetResponse->json('redirect'))->toContain('reset=true');
+    } finally {
+        config()->set('usim.default_sidebar_menu_screen', SidebarMenu::class);
+        config()->set('usim.default_status_bar_screen', StatusBar::class);
+    }
+});

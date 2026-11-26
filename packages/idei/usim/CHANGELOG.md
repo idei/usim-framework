@@ -6,6 +6,12 @@ The format is based on Keep a Changelog, and this project follows Semantic Versi
 
 ## [Unreleased]
 
+### Fixed (v2.23.1)
+- **`404 Screen not found for this component` on built-in `WorkbenchLayout` shell screens (`Idei\Usim\Support\ComponentIdGenerator`, `ComponentIdGeneratorInterface`, `UIIdGenerator`):**
+  - Registered built-in package contexts (`Idei\Usim\Screens\SidebarMenu`, `SidebarSubmenuPanel`, `StatusBar`, `Idei\Usim\Layout\WorkbenchLayout`, `MainLayout`, and `Idei\Usim\Modals\ConfirmDialog`) directly in `ComponentIdGenerator::ensureServicesLoaded()` after loading `bootstrap/cache/usim_screens.php`, so `POST /api/ui-event` and `GET /api/ui-data` resolve built-in component IDs across separate HTTP requests without requiring `usim:discover` or app-level copies.
+  - Added `ComponentIdGeneratorInterface::registerContext()` / `UIIdGenerator::registerContext()` and a defense-in-depth `loadDynamicClientContexts()` fallback on bucket miss that probes configured layouts/shell screens, active/opened client screens, and stacked modals (`ClassName@layer`).
+  - Added cross-request regression tests in `tests/Feature/WorkbenchLayoutAndNavigationTest.php` resetting `ComponentIdGeneratorInterface` between initial `GET /api/ui/*` and subsequent `POST /api/ui-event` calls.
+
 ### Added (v2.22.0)
 - **Enhanced `php artisan usim:screen` Scaffolding (`UsimScreenScaffoldCommand`, `DeclarativeScreenGenerator`)**:
   - Added `--layout=` (`default`, `workbench`, `main`, `none`, or FQCN), `--slots=` (`top_bar,left_panel,right_panel,bottom_panel,status_bar,status_bar_right`, `all`, `none`, plus aliases), `--visibility=` (`public`, `authenticated`, `guest`), `--yaml`, `--imperative`, `--test`, `--discover`, and `--interactive` (also triggered automatically when omitting the `name` argument).
