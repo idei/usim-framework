@@ -4,5 +4,5 @@
 
 return [
     'menu_title' => 'Inicio',
-    'icon' => '🏠',
+    'icon' => 'home',
 ];

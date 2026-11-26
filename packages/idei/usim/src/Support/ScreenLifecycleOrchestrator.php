@@ -132,8 +132,7 @@ class ScreenLifecycleOrchestrator implements ScreenLifecycleOrchestratorInterfac
                                 ?? $layout->getSlotDefaultScreen($slotName);
 
                             if ($activeClass === null && $slotName === 'status_bar') {
-                                $statusBarConfig = config('usim.default_status_bar_screen', $this->usimConfig->defaultStatusBarScreen);
-                                $activeClass = \is_string($statusBarConfig) && $statusBarConfig !== '' ? $statusBarConfig : null;
+                                $activeClass = Screen::resolveShellScreenClass('status_bar');
                             }
 
                             if (! \is_string($activeClass) || $activeClass === '') {
@@ -171,7 +170,7 @@ class ScreenLifecycleOrchestrator implements ScreenLifecycleOrchestratorInterfac
 
                         $configuredMenuDefault = $isSidebarSlot
                             ? ($layout->getSlotDefaultScreen('sidebar')
-                                ?? config('usim.default_sidebar_menu_screen', $this->usimConfig->defaultSidebarMenuScreen)
+                                ?? Screen::resolveShellScreenClass('sidebar')
                                 ?? $this->usimConfig->defaultMenuScreen)
                             : ($layout->getSlotDefaultScreen('top_menu')
                                 ?? $layout->getSlotDefaultScreen('menu')
@@ -221,8 +220,7 @@ class ScreenLifecycleOrchestrator implements ScreenLifecycleOrchestratorInterfac
                                 ?? $layout->getSlotDefaultScreen($slotName);
 
                             if ($activeClass === null && $slotName === 'status_bar') {
-                                $statusBarConfig = config('usim.default_status_bar_screen', $this->usimConfig->defaultStatusBarScreen);
-                                $activeClass = \is_string($statusBarConfig) && $statusBarConfig !== '' ? $statusBarConfig : null;
+                                $activeClass = Screen::resolveShellScreenClass('status_bar');
                             }
 
                             if (! \is_string($activeClass) || $activeClass === '') {

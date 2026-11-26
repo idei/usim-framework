@@ -125,12 +125,12 @@ class UsimEventDispatcher
             if ($mountedLayout === null || str_ends_with($mountedLayout, 'MainLayout')) {
                 $shellCandidates[] = $defaultMenuScreen;
             } else {
-                $sidebarScreen = config('usim.default_sidebar_menu_screen');
-                $statusBarScreen = config('usim.default_status_bar_screen');
-                if (\is_string($sidebarScreen) && $sidebarScreen !== '') {
+                $sidebarScreen = Screen::resolveShellScreenClass('sidebar');
+                $statusBarScreen = Screen::resolveShellScreenClass('status_bar');
+                if ($sidebarScreen !== null) {
                     $shellCandidates[] = $sidebarScreen;
                 }
-                if (\is_string($statusBarScreen) && $statusBarScreen !== '') {
+                if ($statusBarScreen !== null) {
                     $shellCandidates[] = $statusBarScreen;
                 }
             }
@@ -179,8 +179,10 @@ class UsimEventDispatcher
 
         $allShellScreens = array_filter([
             config('usim.default_menu_screen', 'App\\UI\\Screens\\Menu'),
-            config('usim.default_sidebar_menu_screen'),
-            config('usim.default_status_bar_screen'),
+            Screen::resolveShellScreenClass('sidebar'),
+            Screen::resolveShellScreenClass('status_bar'),
+            \Idei\Usim\Screens\SidebarMenu::class,
+            \Idei\Usim\Screens\StatusBar::class,
         ], static fn (mixed $v): bool => \is_string($v) && $v !== '');
 
         foreach (array_keys($targetScreenClasses) as $screenClass) {

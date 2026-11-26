@@ -183,6 +183,17 @@ abstract class Screen
     }
 
     /**
+     * Whether this screen should appear in auto-discovered navigation menus (e.g. built-in SidebarMenu).
+     * Set to false on helper/detail/standalone screens that should not be listed automatically.
+     */
+    public static bool $showInMenu = true;
+
+    public static function shouldShowInMenu(): bool
+    {
+        return static::$showInMenu;
+    }
+
+    /**
      * Default layout slot where this screen is mounted (e.g. 'main', 'center', 'right_panel').
      */
     public static string $defaultSlot = 'main';
@@ -299,6 +310,50 @@ abstract class Screen
         return str_ends_with($screensNamespace, '\\Screens')
             ? Str::beforeLast($screensNamespace, '\\Screens').'\\Layouts'
             : 'App\\UI\\Layouts';
+    }
+
+    /**
+     * Resolve a default Workbench shell screen class ('sidebar' or 'status_bar'),
+     * preferring the configured app class when it exists and falling back to USIM's built-in screen.
+     *
+     * @return class-string<Screen>|null
+     */
+    public static function resolveShellScreenClass(string $slot): ?string
+    {
+        /** @var UsimConfig $usimConfig */
+        $usimConfig = app(UsimConfig::class);
+
+        [$configKey, $configFallback, $packageFallback] = match ($slot) {
+            'sidebar' => [
+                'usim.default_sidebar_menu_screen',
+                $usimConfig->defaultSidebarMenuScreen,
+                \Idei\Usim\Screens\SidebarMenu::class,
+            ],
+            'status_bar' => [
+                'usim.default_status_bar_screen',
+                $usimConfig->defaultStatusBarScreen,
+                \Idei\Usim\Screens\StatusBar::class,
+            ],
+            default => [null, null, null],
+        };
+
+        if ($configKey === null || $packageFallback === null) {
+            return null;
+        }
+
+        $configured = config($configKey, $configFallback);
+        if (\is_string($configured) && trim($configured) !== '') {
+            $candidate = is_subclass_of($configured, self::class)
+                ? $configured
+                : self::resolveScreenClassFromSlug($configured);
+
+            if ($candidate !== null && class_exists($candidate) && is_subclass_of($candidate, self::class)) {
+                /** @var class-string<Screen> $candidate */
+                return $candidate;
+            }
+        }
+
+        return $packageFallback;
     }
 
     /**

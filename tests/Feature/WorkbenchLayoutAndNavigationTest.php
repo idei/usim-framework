@@ -867,3 +867,120 @@ it('scaffolds WorkbenchLayout, MainLayout, MainMenu, and Workbench shell screens
         $files->deleteDirectory($tempRoot);
     }
 });
+
+it('falls back to built-in package SidebarMenu and StatusBar with SVG icons when app shell screens are missing', function () {
+    /** @var Tests\TestCase $this */
+    // Existing app shell screens take precedence
+    expect(Screen::resolveShellScreenClass('sidebar'))->toBe(SidebarMenu::class);
+    expect(Screen::resolveShellScreenClass('status_bar'))->toBe(StatusBar::class);
+
+    // When configured to non-existent app shell screens (e.g. upgraded consumer app), fall back to package screens
+    config()->set('usim.default_sidebar_menu_screen', 'MissingApp\\UI\\Screens\\SidebarMenu');
+    config()->set('usim.default_status_bar_screen', 'MissingApp\\UI\\Screens\\StatusBar');
+
+    try {
+        expect(Screen::resolveShellScreenClass('sidebar'))->toBe(\Idei\Usim\Screens\SidebarMenu::class);
+        expect(Screen::resolveShellScreenClass('status_bar'))->toBe(\Idei\Usim\Screens\StatusBar::class);
+
+        $mainUnit = UsimUnit::firstOrCreate(['slug' => 'lobby'], ['type' => 'system']);
+        $registeredUser = User::factory()->create([
+            'name' => 'Fallback Shell User',
+            'email' => 'fallback.shell.'.uniqid().'@example.com',
+        ]);
+        $registeredUser->usimUnits()->sync([$mainUnit->id]);
+        setPermissionsTeamId($mainUnit->id);
+        $registeredUser->assignRole('registered');
+        setPermissionsTeamId(null);
+        $this->actingAs($registeredUser);
+
+        $response = $this->getJson(screenApiUrl(Home::class, ['reset' => true]));
+        $response->assertOk();
+        $payload = $response->json();
+
+        // Package SidebarMenu rendered with SVG icons (bolt, user, settings)
+        $brandIcon = findComponentByName($payload, 'sidebar_brand_icon');
+        $userMenu = findComponentByName($payload, 'user_menu');
+        $settingsMenu = findComponentByName($payload, 'settings_menu');
+
+        expect($brandIcon['icon'] ?? null)->toBe('bolt');
+        expect($userMenu['trigger']['icon'] ?? null)->toBe('user');
+        expect($settingsMenu['trigger']['icon'] ?? null)->toBe('settings');
+
+        // Package StatusBar rendered with contextual sub-slots and dev reset button
+        expect(findComponentByName($payload, 'status_bar_left_slot'))->not->toBeNull();
+        expect(findComponentByName($payload, 'status_bar_center_slot'))->not->toBeNull();
+        expect(findComponentByName($payload, 'status_bar_right_slot'))->not->toBeNull();
+    } finally {
+        config()->set('usim.default_sidebar_menu_screen', SidebarMenu::class);
+        config()->set('usim.default_status_bar_screen', StatusBar::class);
+    }
+});
+
+it('auto-discovers accessible screens with SVG home icon and respects user permissions in AutoDiscoveredMenuProvider', function () {
+    /** @var Tests\TestCase $this */
+    // 1. Registered user sees Home (with SVG 'home' icon) and does NOT see Admin screens (UsersManager/TranslateManager)
+    $lobbyUnit = UsimUnit::firstOrCreate(['slug' => 'lobby'], ['type' => 'system']);
+    $registeredUser = User::factory()->create([
+        'name' => 'AutoNav Registered',
+        'email' => 'autonav.reg.'.uniqid().'@example.com',
+    ]);
+    $registeredUser->usimUnits()->sync([$lobbyUnit->id]);
+    setPermissionsTeamId($lobbyUnit->id);
+    $registeredUser->assignRole('registered');
+    setPermissionsTeamId(null);
+    $this->actingAs($registeredUser);
+
+    $registeredNav = MenuBuilder::make('main_menu')
+        ->provider(\Idei\Usim\Navigation\AutoDiscoveredMenuProvider::class)
+        ->renderNavTree('auto_registered_nav');
+    $registeredItems = $registeredNav->getItems();
+
+    expect($registeredItems)->not->toBeEmpty();
+    expect($registeredItems[0]['params']['screen'] ?? null)->toBe(Home::class);
+    expect($registeredItems[0]['icon'] ?? null)->toBe('home');
+
+    $collectScreens = static function (array $items) use (&$collectScreens): array {
+        $screens = [];
+        foreach ($items as $item) {
+            if (is_string($item['params']['screen'] ?? null)) {
+                $screens[] = $item['params']['screen'];
+            }
+            if (is_array($item['submenu'] ?? null)) {
+                $screens = array_merge($screens, $collectScreens($item['submenu']));
+            }
+        }
+
+        return $screens;
+    };
+
+    $registeredScreens = $collectScreens($registeredItems);
+    expect($registeredScreens)->toContain(Home::class);
+    expect($registeredScreens)->not->toContain(UsersManager::class);
+    expect($registeredScreens)->not->toContain(TranslateManager::class);
+    expect($registeredScreens)->not->toContain(Login::class);
+    expect($registeredScreens)->not->toContain(SidebarMenu::class);
+    expect($registeredScreens)->not->toContain(StatusBar::class);
+
+    // 2. Root user sees Home + Admin screens (UsersManager & TranslateManager grouped under Admin)
+    $mainUnit = UsimUnit::firstOrCreate(['slug' => 'main'], ['type' => 'system']);
+    $rootUser = User::factory()->create([
+        'name' => 'AutoNav Root',
+        'email' => 'autonav.root.'.uniqid().'@example.com',
+    ]);
+    $rootUser->usimUnits()->sync([$mainUnit->id]);
+    setPermissionsTeamId($mainUnit->id);
+    $rootUser->assignRole('root');
+    $this->actingAs($rootUser);
+
+    $rootNav = MenuBuilder::make('main_menu')
+        ->provider(\Idei\Usim\Navigation\AutoDiscoveredMenuProvider::class)
+        ->renderNavTree('auto_root_nav');
+    $rootScreens = $collectScreens($rootNav->getItems());
+
+    expect($rootScreens)->toContain(Home::class);
+    expect($rootScreens)->toContain(UsersManager::class);
+    expect($rootScreens)->toContain(TranslateManager::class);
+    expect($rootScreens)->not->toContain(Login::class);
+    expect($rootScreens)->not->toContain(DevicePairingScreen::class);
+    setPermissionsTeamId(null);
+});

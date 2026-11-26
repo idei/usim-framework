@@ -87,7 +87,7 @@ class SidebarMenu extends Screen
 
         $brand->add(
             UI::newLabel('sidebar_brand_icon')
-                ->text('⚡')
+                ->icon('bolt')
                 ->tooltip($usimConfig->appName)
         );
         $brand->add(
@@ -141,7 +141,7 @@ class SidebarMenu extends Screen
             $this->user_menu,
             $user instanceof {{ userModelClass }} ? $user : null,
             guestLabel: t('screens.menu.items.login'),
-            guestIcon: '👤'
+            guestIcon: 'user'
         );
         $this->populateSidebarUserMenu($this->user_menu);
         $this->populateSettingsMenu($this->settings_menu);
@@ -191,7 +191,7 @@ class SidebarMenu extends Screen
             ->render('user_menu');
 
         $menu->floating(true);
-        $menu->trigger(t('screens.menu.items.login'), '👤');
+        $menu->trigger(t('screens.menu.items.login'), 'user');
 
         return $menu;
     }
@@ -205,7 +205,7 @@ class SidebarMenu extends Screen
     private function buildSettingsMenu(): MenuDropdown
     {
         $menu = UI::menuDropdown('settings_menu')
-            ->trigger(t('screens.menu.items.settings'), '⚙️')
+            ->trigger(t('screens.menu.items.settings'), 'settings')
             ->position('right-top')
             ->floating(true)
             ->width(Size::px(220));
@@ -223,7 +223,7 @@ class SidebarMenu extends Screen
 
         $menu->clearItems();
         $nextTheme = $this->store_theme === 'light' ? 'dark' : 'light';
-        $themeIcon = $this->store_theme === 'light' ? '🌙' : '☀️';
+        $themeIcon = $this->store_theme === 'light' ? 'moon' : 'sun';
 
         $menu->item(
             t('screens.menu.theme_switch_to', ['theme' => $nextTheme]),
@@ -234,14 +234,14 @@ class SidebarMenu extends Screen
         $menu->submenu(
             t('screens.menu.items.language'),
             fn (MenuDropdown $sub) => $this->populateLangDropdown($sub, $this->store_lang),
-            '🌐'
+            'sliders'
         );
         $menu->separator();
         $menu->item(
             t('screens.menu.items.about'),
             'show_about_info',
             [],
-            'ℹ️'
+            'info'
         );
     }
 
@@ -301,7 +301,7 @@ class SidebarMenu extends Screen
             $this->user_menu,
             $user instanceof {{ userModelClass }} ? $user : null,
             guestLabel: t('screens.menu.items.login'),
-            guestIcon: '👤'
+            guestIcon: 'user'
         );
 
         $this->populateSidebarUserMenu($this->user_menu);
@@ -421,7 +421,7 @@ class SidebarMenu extends Screen
             $this->user_menu,
             null,
             guestLabel: t('screens.menu.items.login'),
-            guestIcon: '👤'
+            guestIcon: 'user'
         );
         $this->populateSidebarUserMenu($this->user_menu);
         $this->populateNavTree($this->main_menu);

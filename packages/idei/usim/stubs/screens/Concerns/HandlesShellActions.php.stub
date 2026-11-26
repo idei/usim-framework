@@ -126,14 +126,14 @@ trait HandlesShellActions
             t('screens.menu.items.logout'),
             'confirm_logout',
             [],
-            '🚪',
+            'logout',
             when: Auth::check()
         );
 
         return $builder;
     }
 
-    protected function applyUserTrigger(MenuDropdown $menu, ?{{ userModelClass }} $user, string $guestLabel = '⚙️', ?string $guestIcon = null): void
+    protected function applyUserTrigger(MenuDropdown $menu, ?{{ userModelClass }} $user, string $guestLabel = 'settings', ?string $guestIcon = 'user'): void
     {
         if ($user instanceof {{ userModelClass }}) {
             if ($user->profile_image) {
@@ -144,7 +144,7 @@ trait HandlesShellActions
                     label: $user->name
                 );
             } else {
-                $menu->trigger($user->name, '👤');
+                $menu->trigger($user->name, 'user');
             }
 
             return;
