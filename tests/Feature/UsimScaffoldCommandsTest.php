@@ -314,7 +314,7 @@ it('scaffolds a declarative Workbench screen with sibling .layout.yaml, slots, i
     // Actually load and render the scaffolded Screen over HTTP to prove PHP + YAML + WorkbenchLayout + i18n: auto work end-to-end
     require_once $screenFile;
     $screenClass = 'App\\UI\\Screens\\Testing\\ScaffoldTemp\\OrderExplorer';
-    expect($screenClass::getLayoutClass())->toBe(\App\UI\Layouts\WorkbenchLayout::class);
+    expect($screenClass::getLayoutClass())->toBe(\Idei\Usim\Layout\WorkbenchLayout::class);
     expect(\Idei\Usim\Support\ContainerLayoutLoader::hasDefaultLayout($screenClass))->toBeTrue();
 
     app(\Idei\Usim\Support\RoleAndPermissionSyncService::class)->sync();

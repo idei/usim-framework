@@ -1,6 +1,6 @@
 <?php
 
-use App\UI\Layouts\MainLayout;
+use Idei\Usim\Layout\MainLayout;
 use App\UI\Screens\Admin\AdminMenu;
 use App\UI\Screens\Home;
 use App\UI\Screens\Testing\CustomAdminFramedScreen;

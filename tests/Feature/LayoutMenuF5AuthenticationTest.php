@@ -2,7 +2,7 @@
 
 use App\Models\User;
 use App\Services\Auth\AuthSessionService;
-use App\UI\Layouts\MainLayout;
+use Idei\Usim\Layout\MainLayout;
 use App\UI\Screens\Auth\Login;
 use App\UI\Screens\Home;
 use App\UI\Screens\Menu;

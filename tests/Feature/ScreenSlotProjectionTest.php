@@ -1,14 +1,14 @@
 <?php
 
 use App\Models\User;
-use App\UI\Layouts\MainLayout;
-use App\UI\Layouts\WorkbenchLayout;
+use Idei\Usim\Layout\MainLayout;
+use Idei\Usim\Layout\WorkbenchLayout;
 use App\UI\Screens\Demo\RightPanelInspector;
 use App\UI\Screens\Demo\SlotProjectionDemo;
 use App\UI\Screens\Home;
-use App\UI\Screens\SidebarMenu;
-use App\UI\Screens\SidebarSubmenuPanel;
-use App\UI\Screens\StatusBar;
+use Idei\Usim\Screens\SidebarMenu;
+use Idei\Usim\Screens\SidebarSubmenuPanel;
+use Idei\Usim\Screens\StatusBar;
 use Idei\Usim\Components\Container;
 use Idei\Usim\Components\NewLabel;
 use Idei\Usim\Layout\AbstractLayout;

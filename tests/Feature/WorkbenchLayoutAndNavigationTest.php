@@ -2,8 +2,6 @@
 
 use App\Models\User;
 use App\Services\User\UsimUserService;
-use App\UI\Layouts\MainLayout;
-use App\UI\Layouts\WorkbenchLayout;
 use App\UI\Navigation\Menus\MainMenu;
 use App\UI\Screens\Admin\TranslateManager;
 use App\UI\Screens\Admin\UsersManager;
@@ -12,9 +10,11 @@ use App\UI\Screens\Demo\RightPanelDemo;
 use App\UI\Screens\Demo\RightPanelInspector;
 use App\UI\Screens\Device\DevicePairingScreen;
 use App\UI\Screens\Home;
-use App\UI\Screens\SidebarMenu;
-use App\UI\Screens\SidebarSubmenuPanel;
-use App\UI\Screens\StatusBar;
+use Idei\Usim\Layout\MainLayout;
+use Idei\Usim\Layout\WorkbenchLayout;
+use Idei\Usim\Screens\SidebarMenu;
+use Idei\Usim\Screens\SidebarSubmenuPanel;
+use Idei\Usim\Screens\StatusBar;
 use Idei\Usim\Components\Container;
 use Idei\Usim\Events\UsimEvent;
 use Idei\Usim\Layout\AbstractLayout;
@@ -230,7 +230,7 @@ it('renders WorkbenchLayout declaratively from YAML with fixed 52px Activity Bar
     expect($settingsMenu['position'] ?? null)->toBe('right-top');
     expect($settingsMenu['floating'] ?? null)->toBeTrue();
     $langSubmenu = collect($settingsMenu['items'] ?? [])->first(
-        static fn (array $item): bool => ($item['icon'] ?? null) === '🌐'
+        static fn (array $item): bool => ($item['icon'] ?? null) === 'sliders'
     );
     expect($langSubmenu)->not->toBeNull();
     expect($langSubmenu['submenu'] ?? [])->toBeArray();
@@ -245,12 +245,16 @@ it('renders WorkbenchLayout declaratively from YAML with fixed 52px Activity Bar
 
 it('omits reset button in StatusBar when application environment is production', function () {
     /** @var Tests\TestCase $this */
+    $user = User::factory()->create(['name' => 'Prod StatusBar User']);
+    $this->actingAs($user);
+
     $originalEnv = $this->app['env'];
     $this->app['env'] = 'production';
 
     try {
-        $ui = uiScenario($this, StatusBar::class, ['reset' => true]);
-        expect(fn () => $ui->component('btn_reset'))->toThrow(RuntimeException::class);
+        $response = $this->getJson(screenApiUrl(Home::class, ['reset' => true]));
+        $response->assertOk();
+        expect(findComponentByName($response->json(), 'btn_reset'))->toBeNull();
     } finally {
         $this->app['env'] = $originalEnv;
     }
@@ -404,20 +408,30 @@ it('switches operational unit from StatusBar, navigates to role home screen, and
     setPermissionsTeamId($oafaUnit->id);
     UIStateManager::setActiveUnit('oafa');
 
-    $ui = uiScenario($this, StatusBar::class, ['reset' => true]);
-    $unitData = $ui->component('unit_menu')->data();
+    $clientId = 'statusbar-unit-switch-'.uniqid();
+    $homeResp = $this->withCookie('ui_client_id', $clientId)
+        ->getJson(screenApiUrl(Home::class, ['reset' => true]));
+    $homeResp->assertOk();
+
+    $unitData = findComponentByName($homeResp->json(), 'unit_menu');
+    expect($unitData)->toBeArray();
     expect($unitData['visible'] ?? true)->toBeTrue();
-    expect($unitData['trigger']['label'] ?? '')->toContain('🏢');
+    expect($unitData['trigger']['icon'] ?? null)->toBe('layout-grid');
 
     // Switch unit to idei (translator role -> TranslateManager)
-    $resp = $ui->action('unit_menu', 'changeUnit', ['unit' => 'idei', 'unit_id' => $ideiUnit->id]);
+    $unitMenuId = UIIdGenerator::generateFromName(StatusBar::class, 'unit_menu');
+    $resp = $this->withCookie('ui_client_id', $clientId)->postJson('/api/ui-event', [
+        'component_id' => $unitMenuId,
+        'event' => 'click',
+        'action' => 'changeUnit',
+        'parameters' => ['unit' => 'idei', 'unit_id' => $ideiUnit->id],
+    ]);
     $resp->assertOk();
     expect($resp->json('navigate.url'))->toBe(TranslateManager::getRoutePath());
     expect(UIStateManager::getActiveUnit())->toBe('idei');
 
     // Regression: StatusBar::onUnitChanged() runs in the same request via UsimEvent('unit_changed')
     // and must NOT clobber unit_menu's updated trigger & items delta in UIChangesCollector.
-    $unitMenuId = UIIdGenerator::generateFromName(StatusBar::class, 'unit_menu');
     $unitMenuDelta = $resp->json((string) $unitMenuId);
     expect($unitMenuDelta)->toBeArray();
     expect($unitMenuDelta['trigger']['label'] ?? '')->toContain($ideiUnit->display_name);
@@ -686,11 +700,11 @@ it('updates active_screen and layout main slot when loading Home directly after 
     $backToUsersResp->assertOk();
     expect($backToUsersResp->json('navigate.url'))->toBe(UsersManager::getRoutePath());
 
-    // 4. MainMenu Home item uses SPA screenShow(Home::class) and navigates cleanly between UsersManager and Home
+    // 4. MainMenu Home item uses SPA screenShow(Home::class) with SVG 'home' icon and navigates cleanly between UsersManager and Home
     $mainMenuItems = findComponentByName($homeResp->json(), 'main_menu')['items'] ?? [];
     expect($mainMenuItems[0]['action'] ?? null)->toBe('showScreen');
     expect($mainMenuItems[0]['params']['screen'] ?? null)->toBe(Home::class);
-    expect($mainMenuItems[0]['icon'] ?? null)->toBe('🏠');
+    expect($mainMenuItems[0]['icon'] ?? null)->toBe('home');
 
     $spaHomeResp = $this->withCookie('ui_client_id', $clientId)->postJson('/api/ui-event', [
         'component_id' => $mainMenuId,
@@ -774,19 +788,21 @@ it('ships built-in package WorkbenchLayout and MainLayout usable directly and in
     expect($packageMain->getSlot('main'))->not->toBeNull();
 });
 
-it('resolves short layout aliases preferring app overrides and falling back to built-in package layouts', function () {
-    // App overrides exist in this project, so aliases resolve to App\UI\Layouts\*
-    expect(TestAliasWorkbenchScreen::getLayoutClass())->toBe(WorkbenchLayout::class);
-    expect(TestAliasMainScreen::getLayoutClass())->toBe(MainLayout::class);
+it('resolves short layout aliases and app layout class names to built-in package layouts when no app override exists', function () {
+    // Lab app consumes built-in package layouts directly (no App\UI\Layouts\* overrides)
+    expect(TestAliasWorkbenchScreen::getLayoutClass())->toBe(\Idei\Usim\Layout\WorkbenchLayout::class);
+    expect(TestAliasMainScreen::getLayoutClass())->toBe(\Idei\Usim\Layout\MainLayout::class);
     expect(TestAliasNoneScreen::getLayoutClass())->toBeNull();
 
-    // When configured under a namespace without published App layouts, aliases & App names fall back to package layouts
+    // Resilient fallback when config or a Screen references App\UI\Layouts\* or custom namespace layouts before publishing
     config()->set('usim.screens_namespace', 'CustomApp\\UI\\Screens');
     app()->forgetInstance(\Idei\Usim\Support\UsimConfig::class);
 
     try {
         expect(Screen::resolveLayoutClass('workbench'))->toBe(\Idei\Usim\Layout\WorkbenchLayout::class);
         expect(Screen::resolveLayoutClass('main'))->toBe(\Idei\Usim\Layout\MainLayout::class);
+        expect(Screen::resolveLayoutClass('App\\UI\\Layouts\\WorkbenchLayout'))->toBe(\Idei\Usim\Layout\WorkbenchLayout::class);
+        expect(Screen::resolveLayoutClass('App\\UI\\Layouts\\MainLayout'))->toBe(\Idei\Usim\Layout\MainLayout::class);
         expect(Screen::resolveLayoutClass('CustomApp\\UI\\Layouts\\WorkbenchLayout'))->toBe(\Idei\Usim\Layout\WorkbenchLayout::class);
         expect(Screen::resolveLayoutClass('CustomApp\\UI\\Layouts\\MainLayout'))->toBe(\Idei\Usim\Layout\MainLayout::class);
         expect(Screen::resolveLayoutClass('none'))->toBeNull();
