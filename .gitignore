@@ -30,3 +30,4 @@ rr
 *_old/
 *_trash
 .env.before_lerd
+/build

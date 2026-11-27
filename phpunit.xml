@@ -26,7 +26,12 @@
     <source>
         <include>
             <directory>app</directory>
+            <directory>packages/idei/usim/src</directory>
         </include>
+        <exclude>
+            <directory>packages/idei/usim/src/Testing</directory>
+            <directory>app/UI/Screens/Demo</directory>
+        </exclude>
     </source>
     <php>
         <env name="APP_ENV" value="testing"/>

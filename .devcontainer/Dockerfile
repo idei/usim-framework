@@ -25,6 +25,7 @@ RUN apt-get update && \
         php${PHP_VERSION}-bcmath php${PHP_VERSION}-curl php${PHP_VERSION}-zip \
         php${PHP_VERSION}-sqlite3 php${PHP_VERSION}-pdo php${PHP_VERSION}-pdo-mysql \
         php${PHP_VERSION}-gd php${PHP_VERSION}-intl php${PHP_VERSION}-readline \
+        php${PHP_VERSION}-pcov \
         openssl curl git unzip composer \
         # Herramientas de red y diagnóstico
         iputils-ping \

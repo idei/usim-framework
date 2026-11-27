@@ -86,6 +86,10 @@
         "phpstan-usim": [
             "vendor/bin/phpstan clear-result-cache --configuration=phpstan-usim.neon",
             "vendor/bin/phpstan analyse --configuration=phpstan-usim.neon"
+        ],
+        "crap": [
+            "@php -d pcov.directory=packages/idei/usim/src ./vendor/bin/pest --coverage-clover=build/logs/clover-usim.xml",
+            "@php scripts/crap.php --skip-tests --clover=build/logs/clover-usim.xml --path=packages/idei/usim/src --threshold=30 --top=25"
         ]
     },
     "extra": {
