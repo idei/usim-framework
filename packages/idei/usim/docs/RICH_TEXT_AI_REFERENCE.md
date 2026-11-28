@@ -75,7 +75,7 @@ Notice SunEditor **v3** uses `blockStyle`, `backgroundColor`, `list_bulleted`, `
 |---|---|
 | `packages/idei/usim/src/Components/RichText.php` | Fluent builder (`type = 'rich_text'`). Inherits `HasSizing` (`width`, `height`, `minWidth`, `maxWidth`, `minHeight`, `maxHeight`) and `HasMargin` from `UIComponent`. |
 | `packages/idei/usim/src/UI.php` | Factory method `UI::richText(?string $name = null): RichText`. |
-| `packages/idei/usim/src/Support/ScreenLifecycleOrchestrator.php` | Includes `'rich_text'` in client-to-server `syncClientConfig('value', ...)` syncing (both trigger component and form parameter sync) and `'rich_text', 'richtext' => RichText::class` in `resolveComponentClassForType()`. |
+| `packages/idei/usim/src/Support/Lifecycle/` (`ComponentTreeStateSynchronizer`, `ScreenSnapshotManager`) | Includes `'rich_text'` in client-to-server `syncClientConfig('value', ...)` syncing (both trigger component and form parameter sync in `ComponentTreeStateSynchronizer`) and `'rich_text', 'richtext' => RichText::class` in `ScreenSnapshotManager::TYPE_CLASS_MAP`. |
 | `packages/idei/usim/src/Support/ContainerLayoutLoader.php` | Prefix `'rte_' => RichText::class`, aliases `'rich_text'` & `'richtext'`, and `i18n: auto` hydration (`primary: 'label'`, `groups: ['inputs', 'fields']`, `attributes: ['label', 'placeholder', 'help_text', 'tooltip']`). |
 
 ---

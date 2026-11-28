@@ -162,7 +162,7 @@
 |---|---|
 | `packages/idei/usim/src/UI.php` | `UI::itemCard()`, `UI::cardGrid()`, and `@deprecated` on `UI::card()`. |
 | `packages/idei/usim/src/Components/Card.php` | Marked `@deprecated` since v2.20.0 (backward compatible). |
-| `packages/idei/usim/src/Support/ScreenLifecycleOrchestrator.php` | Maps `'item_card'/'itemcard' => ItemCard::class` and `'card_grid'/'cardgrid' => CardGrid::class`; routes `__usim_card_grid:<target>:query` in `handleEvent()` (`queryOnly: false`); traverses `CardGrid::getCards()` in dirty-state clearing/collection. |
+| `packages/idei/usim/src/Support/ScreenLifecycleOrchestrator.php` & `Support/Lifecycle/` | `ScreenSnapshotManager` maps `'item_card'/'itemcard' => ItemCard::class` and `'card_grid'/'cardgrid' => CardGrid::class`; `ComponentServiceBindingResolver` (via `ScreenHandlerDispatcher`) routes `__usim_card_grid:<target>:query` in `handleAction()` (`queryOnly: false`); `ComponentTreeStateSynchronizer` traverses `CardGrid::getCards()` in dirty-state clearing/collection. |
 | `packages/idei/usim/src/Support/ContainerLayoutLoader.php` | Prefixes `'grd_' => CardGrid::class` and `'icrd_' => ItemCard::class`; aliases `'card_grid'`/`'cardgrid'` and `'item_card'`/`'itemcard'`; `i18n: auto` hydration for both. |
 | `packages/idei/usim/resources/views/app.blade.php` | Loads `item-card/index.css`, `card-grid/index.css`, `item-card/index.js`, and `card-grid/index.js`. |
 | `packages/idei/usim/resources/assets/js/components/item-card/index.js` | `UsimItemCardComponent` (`'item_card'`). Safe DOM rendering, `⋮` overflow menu, in-place `update()` reusing unchanged `<img>` DOM nodes, and notifying parent `CardGrid` on `card_order` change. |

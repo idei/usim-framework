@@ -17,6 +17,7 @@
 3. [Ciclo de Vida de Ejecución de un Evento](#3-ciclo-de-vida-de-ejecución-de-un-evento)
    - [3.1 Diagrama de Secuencia del Flujo Completo](#31-diagrama-de-secuencia-del-flujo-completo)
    - [3.2 Detalle Paso a Paso del Ciclo de Vida](#32-detalle-paso-a-paso-del-ciclo-de-vida)
+   - [3.3 Arquitectura Interna del Orquestador de Ciclo de Vida (`Support\Lifecycle`)](#33-arquitectura-interna-del-orquestador-de-ciclo-de-vida-supportlifecycle)
 4. [Especificación Formal del Protocolo HTTP (`POST /api/ui-event`)](#4-especificación-formal-del-protocolo-http-post-apiui-event)
    - [4.1 Headers HTTP Requeridos y Opcionales](#41-headers-http-requeridos-y-opcionales)
    - [4.2 Contrato del Request (JSON Body)](#42-contrato-del-request-json-body)
@@ -370,10 +371,10 @@ sequenceDiagram
   - Si el usuario está autenticado pero no autorizado, devuelve `abort(403)`.
 
 #### 5. Inicialización de Contexto (`initializeEventContext`)
-- Reconstrucción del árbol de componentes: recupera el estado previo de la pantalla desde la caché (`UIStateManager::get`) y reconstruye el contenedor mediante `reconstructContainerFromJson()`.
-- Almacena el snapshot inicial: `$this->oldUI = $this->container->toJson()`.
+- Reconstrucción del árbol de componentes: recupera el estado previo de la pantalla desde la caché (`UIStateRepositoryInterface`) y reconstruye el contenedor mediante `ScreenSnapshotManager::reconstructContainerFromJson()`.
+- Hidratación de estado DOM entrante (`ComponentTreeStateSynchronizer::hydrateClientState()`), limpieza de claves dirty y captura del snapshot inicial: `$this->oldUI = $this->container->toJson()`.
 - **Inyección automática de Storage:** Mediante reflexión, localiza propiedades `protected` cuyo nombre empiece con `store_`. Si existen en `$incomingStorage`, inyecta su valor. Si la propiedad termina en `_crypt`, se desencripta automáticamente usando `decrypt()`.
-- **Inyección automática de Componentes:** Localiza propiedades protegidas tipadas con clases de componentes (por ejemplo, `protected ?Button $btn_submit;`) y las vincula al componente cuyo nombre coincida en el contenedor.
+- **Inyección automática de Componentes:** `ComponentTreeStateSynchronizer::injectComponentReferences()` localiza propiedades protegidas tipadas con clases de componentes (por ejemplo, `protected ?Button $btn_submit;`) y las vincula al componente cuyo nombre coincida en el contenedor.
 
 #### 6. Activación del Modo Diferido (`beginDeferredProcessing`)
 - Se llama a `UsimEventDispatcher::beginDeferredProcessing()`. Esto evita que cualquier evento de dominio emitido dentro del handler de la pantalla ejecute listeners inmediatamente, garantizando que el handler principal complete sus mutaciones antes de que se procesen eventos en cascada.
@@ -381,7 +382,8 @@ sequenceDiagram
 #### 7. Ejecución de la Acción del Screen
 - Convención de nombres: `snake_case` se transforma automáticamente en `onPascalCase`.
   - Ejemplo: `submit_login` $\rightarrow$ `onSubmitLogin(array $parameters)`.
-- Si el método no es invocable, se devuelve un error 404: `Action '{action}' not implemented`.
+- `ScreenHandlerDispatcher` resuelve parámetros tipados con `MethodParameterResolver`, maneja la vinculación automática de errores de `UIRequestValidationException` y, si no existe un método en la `Screen`, delega en `ComponentServiceBindingResolver` para acciones/consultas respaldadas por servicios (`ItemList` y `CardGrid`).
+- Si el método no es invocable ni existe un handler de componente, se devuelve un error 404: `Action '{action}' not implemented`.
 - Durante la ejecución, el desarrollador puede:
   - Modificar componentes (`$this->lbl_status->text('Listo')`).
   - Disparar efectos secundarios (`$this->toast(...)`, `$this->redirect(...)`, `$this->abort(...)`, etc.).
@@ -389,8 +391,8 @@ sequenceDiagram
 
 #### 8. Finalización de Contexto (`finalizeEventContext`)
 - Serializa el nuevo árbol: `$this->newUI = $this->container->toJson()`.
-- Guarda el snapshot actualizado en caché (`cacheScreenSnapshot`).
-- **Cálculo de Diffs (`buildDiffResponse`):** `UIDiffer::compare($oldUI, $newUI)` genera el delta exacto. **Garantía USIM:** todo componente modificado incluye obligatoriamente la propiedad `type` del nuevo árbol para que el cliente sepa cómo interpretarlo.
+- Guarda el snapshot actualizado y las variables `state_*` en caché mediante `ScreenSnapshotManager::cacheSnapshot()`.
+- **Cálculo de Diffs (`buildDiffResponse`):** `ComponentTreeStateSynchronizer::buildDiffResponse()` compara `$oldUI` y `$newUI` mediante `UIDifferInterface`, fusiona mutaciones dirty explícitas y asegura que todo componente modificado incluya obligatoriamente la propiedad `type` del nuevo árbol.
 - **Recolección y Cifrado de Storage (`getStorageVariables`):** Escanea propiedades `protected store_*`. Aquellas que terminan en `_crypt` se encriptan con `encrypt()`.
 - Registra los deltas y el nuevo storage en `UIChangesCollector`.
 
@@ -408,6 +410,38 @@ sequenceDiagram
 #### 10. Reseteo y Respuesta
 - En el bloque `finally`, se resetea el estado estático del dispatcher (`resetRequestState()`).
 - Se genera la respuesta JSON llamando a `$this->uiChanges->all()`.
+
+### 3.3 Arquitectura Interna del Orquestador de Ciclo de Vida (`Support\Lifecycle`)
+
+`Idei\Usim\Support\ScreenLifecycleOrchestrator` (implementación de `ScreenLifecycleOrchestratorInterface`) actúa como coordinador de alto nivel del ciclo de vida de `Screen` (`render`, `handleAction`, `handleQuery`, `embedInto` y gestión de contexto/snapshots), delegando cada fase especializada en colaboradores cohesivos bajo el subnamespace `Idei\Usim\Support\Lifecycle\`:
+
+```mermaid
+flowchart TD
+    A["ScreenLifecycleOrchestrator::render()"] --> B["Push ID context & setStorage()"]
+    B --> C{"shouldReset?"}
+    C -- Sí --> D["screen->onResetScreen()"]
+    C -- No --> E
+    D --> E{"LayoutRenderCoordinator:<br/>¿Aplica AbstractLayout?"}
+    E -- Sí --> F["Render Layout + pre-descubrir sub-slots<br/>Embeber main, menu y slots auxiliares<br/>Persistir estado de layout"]
+    F --> Z["Pop ID context (finally)"]
+    E -- No --> G["initializeEventContext()<br/>(Storage, State, ScreenSnapshotManager,<br/>ComponentTreeStateSynchronizer)"]
+    G --> H["LayoutRenderCoordinator:<br/>applyStandalonePortalFallbacksIfApplicable()"]
+    H --> I["finalizeEventContext()<br/>(postLoadUI, cacheSnapshot, buildDiffResponse)"]
+    I --> J["Publicar agent_context (si existe)"]
+    J --> Z
+```
+
+#### Tabla de Responsabilidades (`Idei\Usim\Support\Lifecycle\`)
+
+| Clase | Responsabilidad |
+|---|---|
+| `ScreenLifecycleOrchestrator` | Fachada/orquestador de alto nivel que implementa `ScreenLifecycleOrchestratorInterface`, controla el contexto de `ComponentIdGeneratorInterface` (`try/finally`) y coordina las fases de `render()`, `handleAction()`, `handleQuery()` y `embedInto()`. |
+| `Lifecycle\LayoutRenderCoordinator` | Envuelve la `Screen` en su `AbstractLayout` resuelto durante `render()`: pre-descubre sub-slots externos de pantallas shell (ej. `StatusBar`), embebe `main`, `sidebar`/`top_menu` y slots auxiliares en orden canónico, persiste estado de layout y aplica fallbacks de portales en pantallas standalone. |
+| `Lifecycle\EmbeddedScreenMounter` | Implementa `embedInto()`: limpia el slot destino, aísla storage/query/contexto de IDs, aplica resets y `buildParams`, monta el sub-árbol en el contenedor padre, coordina portales/slots declarados del layout activo, cachea el snapshot hijo y publica diffs. |
+| `Lifecycle\ScreenSnapshotManager` | Gestiona lectura, validación estructural (`isTypedSnapshot`/`isValidSnapshot`), persistencia y limpieza de snapshots en `UIStateRepositoryInterface`, además de la reconstrucción determinista JSON → `Container` y el mapa `type` → clase (`TYPE_CLASS_MAP`). |
+| `Lifecycle\ComponentTreeStateSynchronizer` | Hidrata el estado DOM del cliente antes de `$oldUI` (`hydrateClientState`), limpia y recolecta claves dirty (incluyendo `CardGrid` y sus `ItemCard`), inyecta referencias a propiedades `protected` de componentes por reflexión y construye respuestas de diff con `UIDifferInterface`. |
+| `Lifecycle\ScreenHandlerDispatcher` | Invoca métodos de acción y consulta en la `Screen` mediante `MethodParameterResolver`, captura y auto-vincula errores de `UIRequestValidationException`, aplica el guardrail de solo lectura (`UsimReadOnlyLifecycleException`) en queries GET y delega handlers de componentes con servicio. |
+| `Lifecycle\ComponentServiceBindingResolver` y `ComponentServiceBinding` | Resuelven y ejecutan operaciones respaldadas por servicios en `ItemList` (`list`, `create`, `update`, `delete`, `bulk_delete`, tanto con prefijo interno como con acciones personalizadas) y `CardGrid` (`query`). |
 
 ---
 

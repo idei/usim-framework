@@ -87,7 +87,7 @@ Al llamar a `->service($classOrInstance)`:
 Las acciones generadas por el servicio viajan por los mismos canales estándar de USIM (`GET /api/ui-data` para `list` y `POST /api/ui-event` para `create`/`update`/`delete`/`bulk_delete`):
 
 1. `UIDataController::resolveQueryHandler()` y `UIEventController::resolveActionHandler()` buscan primero métodos concretos en la `Screen`.
-2. Si no existe un método en la `Screen`, consultan `Screen::getLifecycleOrchestrator()->supportsComponentHandler($screen, $componentId, $action, queryOnly: ...)`, que verifica si el componente destino en el árbol de la pantalla (o su caller modal) posee un servicio que soporte esa operación.
+2. Si no existe un método en la `Screen`, consultan `Screen::getLifecycleOrchestrator()->supportsComponentHandler($screen, $componentId, $action, queryOnly: ...)`, que delega en `ScreenHandlerDispatcher` y `ComponentServiceBindingResolver` (`Idei\Usim\Support\Lifecycle\`) para verificar si el componente destino en el árbol de la pantalla (o su caller modal) posee un servicio que soporte esa operación (ya sea por prefijo interno `__usim_item_list:` o por nombres de acción personalizados en `action` / `on_*`).
 3. Si es válido, ejecutan `$screen->handleQuery()` o `$screen->handleAction()` de forma uniforme (incluyendo protección `UsimReadOnlyLifecycleException` en queries GET, hidratación de contexto, storage, diffing y `Screen::callAction()` en tests/PHP).
 
 ---

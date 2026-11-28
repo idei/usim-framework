@@ -536,6 +536,8 @@ protected function postLoadUI(): void
 > **Navigation Model Normalization**: When calling `$this->navigate(EditPost::class, ['post' => $post])`, USIM normalizes Eloquent models (`$model->getKey()`) and `BackedEnum` cases into browser query strings (`/edit_post?post=123`) while passing rich model instances directly into `buildBaseUI()` and `postLoadUI()`.
 
 > Component auto-injection: If you declare a typed property with the same name as a component ID, USIM automatically injects the builder instance. For example, `protected Input $input_name;` will be populated with the input created as `UI::input('input_name')`.
+>
+> **Internal Lifecycle Architecture**: Screen rendering, layout wrapping, snapshot caching, state synchronization, and action/query dispatching are coordinated by `Idei\Usim\Support\ScreenLifecycleOrchestrator` (`ScreenLifecycleOrchestratorInterface`) through cohesive phase collaborators in `Idei\Usim\Support\Lifecycle\` (`LayoutRenderCoordinator`, `EmbeddedScreenMounter`, `ScreenSnapshotManager`, `ComponentTreeStateSynchronizer`, `ScreenHandlerDispatcher`, and `ComponentServiceBindingResolver`). See [`docs/USIM_EVENTS_SYSTEM.md`](docs/USIM_EVENTS_SYSTEM.md#33-arquitectura-interna-del-orquestador-de-ciclo-de-vida-supportlifecycle) for the full phase diagram and responsibility breakdown.
 
 ---
 
