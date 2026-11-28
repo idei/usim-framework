@@ -28,7 +28,8 @@
         "mockery/mockery": "^1.6",
         "nunomaduro/collision": "^8.6",
         "pestphp/pest": "^3.8",
-        "pestphp/pest-plugin-laravel": "^3.2"
+        "pestphp/pest-plugin-laravel": "^3.2",
+        "phpmetrics/phpmetrics": "^2.11"
     },
     "autoload": {
         "psr-4": {
@@ -90,6 +91,10 @@
         "crap": [
             "@php -d pcov.directory=packages/idei/usim/src ./vendor/bin/pest --coverage-clover=build/logs/clover-usim.xml",
             "@php scripts/crap.php --skip-tests --clover=build/logs/clover-usim.xml --path=packages/idei/usim/src --threshold=30 --top=25"
+        ],
+        "metrics:usim": [
+            "@php ./vendor/bin/phpmetrics --exclude=Testing --report-html=build/metrics --report-json=build/metrics/metrics.json packages/idei/usim/src",
+            "@php -S 127.0.0.1:8000 -t build/metrics"
         ]
     },
     "extra": {
