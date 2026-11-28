@@ -6,6 +6,23 @@ The format is based on Keep a Changelog, and this project follows Semantic Versi
 
 ## [Unreleased]
 
+### Added (v2.24.0)
+- **Capability-Driven Master-Detail CRUD Scaffolding (`php artisan usim:crud`, `UsimCrudScaffoldCommand`, `CrudSchemaInspector`, `CrudStubRenderer`)**:
+  - Added `php artisan usim:crud` supporting three workflows:
+    1. **Existing Service (`--service=...`):** inspects any predefined Service via PHP Reflection, detects implemented capabilities (`Listable`, `Detailable`, `CreatableDetail`, `UpdatableDetail`, `DeletableDetail`), infers field widgets and validation rules directly from the detail `DTO` constructor/properties, and scaffolds the declarative `Screen` + `<kebab-name>.layout.yaml` + `UIRequest` (with typed `toDto()`) + `en`/`es` `i18n: auto` translations + Pest feature test. Automatically generates clean read-only Master-Detail explorers (`screen_readonly.php.stub`, omitting `UIRequest` and mutation buttons) when the Service only implements `Listable` + `Detailable`.
+    2. **Rapid Mock-Stack Prototyping (`--with-stack=json|session|memory --fields=...`):** scaffolds a complete Eloquent-agnostic `Screen ➔ Service ➔ RepositoryInterface` stack backed by immutable `readonly` DTOs and seed-populated flat-file JSON (`storage/app/usim/*.json`), `session()`, or in-memory repositories.
+    3. **Interactive Wizard:** launched automatically when running `php artisan usim:crud` without arguments (while honoring `--no-interaction` in CI/automation pipelines), plus `--dry-run`, `--discover`, and `--force` flags.
+- **DTO-Oriented Master-Detail Contracts & Relation Attributes (`Idei\Usim\Contracts\MasterDetail\*`, `Idei\Usim\Attributes\Crud\*`)**:
+  - Added `Detailable` (`findDetail()`), `CreatableDetail` (`createDetail()`), `UpdatableDetail` (`updateDetail()`), and `DeletableDetail` (`deleteDetail()`), keeping central-panel DTO operations cleanly decoupled from Eloquent and preventing unintended inline single-label inputs inside the left-panel `ItemList`.
+  - Added `#[BelongsTo(Service::class)]` (`1:N` `Select` auto-hydrated from any `Listable` service), `#[BelongsToMany(Service::class)]` (`M:N` multi-select searchable `ItemList` wired to any `Listable` service), and `#[CrudField(...)]` for optional widget, validation rule, grid span, `readonly`, or `ignore` overrides.
+- **Octane-Safe Reusable Master-Detail Screen Engine (`Idei\Usim\Concerns\InteractsWithMasterDetail`, `Idei\Usim\Screens\MasterDetailScreen`)**:
+  - Encapsulated the Master-Detail state machine (`empty` | `viewing` | `editing` | `creating`) in per-instance `state_*` properties over `WorkbenchLayout` (`slots.left_panel` + `slots.top_bar` + `main`), handling initial empty state, selection hydration, `+ New` creation mode, change reset/cancellation, `ConfirmDialog` deletion confirmation, and ghost-free `ItemList` refresh synchronization.
+- **Publishable & Cascading Scaffolding Stubs (`BaseScaffoldCommand`, `UsimServiceProvider`)**:
+  - Added `php artisan vendor:publish --tag=usim-crud-stubs` (`stubs/usim/crud/*`) and `--tag=usim-stubs` (`stubs/usim/*`).
+  - Upgraded `BaseScaffoldCommand::stubsPath()` and `renderStubContent()` with file-by-file cascading lookup (`stubs/usim/...` overriding package defaults without stub drift on untouched files), indent-preserving multiline block injection, and `--package-stubs` bypass flag.
+- **Visibility Test Assertions (`Idei\Usim\Testing\ScreenTestHarness`)**:
+  - Added `assertComponentVisible(string $name)` and `assertComponentHidden(string $name)` to `ScreenTestHarness`.
+
 ### Fixed (v2.23.1)
 - **`404 Screen not found for this component` on built-in `WorkbenchLayout` shell screens (`Idei\Usim\Support\ComponentIdGenerator`, `ComponentIdGeneratorInterface`, `UIIdGenerator`):**
   - Registered built-in package contexts (`Idei\Usim\Screens\SidebarMenu`, `SidebarSubmenuPanel`, `StatusBar`, `Idei\Usim\Layout\WorkbenchLayout`, `MainLayout`, and `Idei\Usim\Modals\ConfirmDialog`) directly in `ComponentIdGenerator::ensureServicesLoaded()` after loading `bootstrap/cache/usim_screens.php`, so `POST /api/ui-event` and `GET /api/ui-data` resolve built-in component IDs across separate HTTP requests without requiring `usim:discover` or app-level copies.

@@ -487,6 +487,32 @@ class ScreenTestHarness
     }
 
     /**
+     * Assert that a component or container is currently visible.
+     *
+     * @return self<TScreen>
+     */
+    public function assertComponentVisible(string $name): self
+    {
+        $component = $this->getComponent($name);
+        Assert::assertTrue($component->isVisible(), "Expected component [{$name}] to be visible, but it is hidden.");
+
+        return $this;
+    }
+
+    /**
+     * Assert that a component or container is currently hidden.
+     *
+     * @return self<TScreen>
+     */
+    public function assertComponentHidden(string $name): self
+    {
+        $component = $this->getComponent($name);
+        Assert::assertFalse($component->isVisible(), "Expected component [{$name}] to be hidden, but it is visible.");
+
+        return $this;
+    }
+
+    /**
      * Assert a component has a specific value.
      *
      * @return self<TScreen>

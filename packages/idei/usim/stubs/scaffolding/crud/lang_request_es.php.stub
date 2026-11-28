@@ -1,0 +1,14 @@
+<?php
+
+/**
+ * USIM Customizable CRUD Stub: Spanish Request Translations (es)
+ */
+
+return [
+    'attributes' => [
+        {{ request_attributes_es }}
+    ],
+    'toast' => [
+        'fix_errors' => 'Revisa los campos marcados antes de guardar.',
+    ],
+];

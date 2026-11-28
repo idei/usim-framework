@@ -36,8 +36,9 @@ docs/
 
 ## 🎯 Acceso Rápido por Categoría
 
-### 🚀 Para Empezar (Tutorial)
+### 🚀 Para Empezar (Tutoriales)
 
+| **[packages/idei/usim/docs/MASTER_DETAIL_CRUD_GUIDE.md](../packages/idei/usim/docs/MASTER_DETAIL_CRUD_GUIDE.md)** 🗂️ | **Getting Started Master-Detail (`usim:crud` — v2.24.0)**: Crea pantallas Master-Detail en 2 minutos con `Screen ➔ Service ➔ Repository` + `DTOs`, relaciones `1:N` y `M:N`, mocks en JSON/Sesión/Memoria y stubs personalizables (`--tag=usim-crud-stubs`) | 12K |
 | **[TUTORIAL_CREAR_APP_CON_USIM.md](TUTORIAL_CREAR_APP_CON_USIM.md)** 🚀 | **Guía paso a paso para desarrolladores**: Instalación con `composer require idei/usim`, `usim:install`, scaffolding con `usim:screen` y `usim:request`, construcción de Screens declarativas, eventos reactivos (`onAction`), navegación y testing headless con Pest en < 10ms | 10K |
 
 ---

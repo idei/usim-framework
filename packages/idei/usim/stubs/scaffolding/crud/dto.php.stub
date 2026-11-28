@@ -1,0 +1,46 @@
+<?php
+
+declare(strict_types=1);
+
+/**
+ * USIM Customizable CRUD Stub: Immutable Domain DTO
+ */
+
+namespace {{ namespace }};
+
+{{ imports }}
+use Illuminate\Contracts\Support\Arrayable;
+
+/**
+ * @implements Arrayable<string, mixed>
+ */
+final readonly class {{ class }} implements Arrayable
+{
+    {{ constructor_docblock }}
+    public function __construct(
+        {{ constructor_params }}
+    ) {}
+
+    /**
+     * @param  array<string, mixed>  $data
+     */
+    public static function fromArray(array $data): self
+    {
+        {{ from_array_body }}
+    }
+
+    public function withId(int|string $id): self
+    {
+        {{ with_id_body }}
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    public function toArray(): array
+    {
+        return [
+            {{ to_array_body }}
+        ];
+    }
+}

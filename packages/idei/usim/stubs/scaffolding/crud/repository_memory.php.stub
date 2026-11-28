@@ -1,0 +1,120 @@
+<?php
+
+declare(strict_types=1);
+
+/**
+ * USIM Customizable CRUD Stub: In-Memory Repository Mock (Octane-safe per instance)
+ */
+
+namespace {{ namespace }};
+
+{{ dto_import }}
+{{ interface_import }}
+
+class {{ class }} implements {{ interface_class }}
+{
+    /** @var list<array<string, mixed>> */
+    protected array $rows;
+
+    /**
+     * @param  list<array<string, mixed>>|null  $initialRows
+     */
+    public function __construct(?array $initialRows = null)
+    {
+        $this->rows = $initialRows ?? $this->seedRows();
+    }
+
+    /**
+     * @return list<{{ dto_class }}>
+     */
+    public function all(): array
+    {
+        return array_map(
+            static fn (array $row): {{ dto_class }} => {{ dto_class }}::fromArray($row),
+            $this->rows
+        );
+    }
+
+    public function find(int|string $id): ?{{ dto_class }}
+    {
+        $target = (string) $id;
+
+        foreach ($this->rows as $row) {
+            $rowId = $row['id'] ?? null;
+            if ((is_int($rowId) || is_string($rowId)) && (string) $rowId === $target) {
+                return {{ dto_class }}::fromArray($row);
+            }
+        }
+
+        return null;
+    }
+
+    public function create({{ dto_class }} $dto): {{ dto_class }}
+    {
+        $assigned = $dto->withId($dto->id ?? $this->nextId());
+        $this->rows[] = $assigned->toArray();
+
+        return $assigned;
+    }
+
+    public function update(int|string $id, {{ dto_class }} $dto): ?{{ dto_class }}
+    {
+        $target = (string) $id;
+
+        foreach ($this->rows as $index => $row) {
+            $rowId = $row['id'] ?? null;
+            if ((is_int($rowId) || is_string($rowId)) && (string) $rowId === $target) {
+                $updated = $dto->withId($id);
+                $this->rows[$index] = $updated->toArray();
+
+                return $updated;
+            }
+        }
+
+        return null;
+    }
+
+    public function delete(int|string $id): bool
+    {
+        $target = (string) $id;
+        $filtered = array_values(array_filter(
+            $this->rows,
+            static function (array $row) use ($target): bool {
+                $rowId = $row['id'] ?? null;
+
+                return ! ((is_int($rowId) || is_string($rowId)) && (string) $rowId === $target);
+            }
+        ));
+
+        if (count($filtered) === count($this->rows)) {
+            return false;
+        }
+
+        $this->rows = $filtered;
+
+        return true;
+    }
+
+    protected function nextId(): int
+    {
+        $max = 0;
+        foreach ($this->rows as $row) {
+            $id = $row['id'] ?? null;
+            if (is_numeric($id) && (int) $id > $max) {
+                $max = (int) $id;
+            }
+        }
+
+        return $max + 1;
+    }
+
+    /**
+     * @return list<array<string, mixed>>
+     */
+    protected function seedRows(): array
+    {
+        return [
+            {{ seed_items_body }}
+        ];
+    }
+}

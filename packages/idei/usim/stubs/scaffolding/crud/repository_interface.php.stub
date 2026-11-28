@@ -1,0 +1,27 @@
+<?php
+
+declare(strict_types=1);
+
+/**
+ * USIM Customizable CRUD Stub: Eloquent-agnostic Repository Contract
+ */
+
+namespace {{ namespace }};
+
+{{ dto_import }}
+
+interface {{ class }}
+{
+    /**
+     * @return list<{{ dto_class }}>
+     */
+    public function all(): array;
+
+    public function find(int|string $id): ?{{ dto_class }};
+
+    public function create({{ dto_class }} $dto): {{ dto_class }};
+
+    public function update(int|string $id, {{ dto_class }} $dto): ?{{ dto_class }};
+
+    public function delete(int|string $id): bool;
+}

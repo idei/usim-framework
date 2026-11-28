@@ -1,0 +1,14 @@
+<?php
+
+/**
+ * USIM Customizable CRUD Stub: English Request Translations (en)
+ */
+
+return [
+    'attributes' => [
+        {{ request_attributes_en }}
+    ],
+    'toast' => [
+        'fix_errors' => 'Please review the highlighted fields before saving.',
+    ],
+];

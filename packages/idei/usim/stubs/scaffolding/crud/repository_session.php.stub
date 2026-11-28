@@ -1,0 +1,146 @@
+<?php
+
+declare(strict_types=1);
+
+/**
+ * USIM Customizable CRUD Stub: Session-Backed Repository Mock
+ */
+
+namespace {{ namespace }};
+
+{{ dto_import }}
+{{ interface_import }}
+
+class {{ class }} implements {{ interface_class }}
+{
+    public const SESSION_KEY = 'usim.crud.{{ session_key }}';
+
+    /**
+     * @return list<{{ dto_class }}>
+     */
+    public function all(): array
+    {
+        return array_map(
+            static fn (array $row): {{ dto_class }} => {{ dto_class }}::fromArray($row),
+            $this->readRows()
+        );
+    }
+
+    public function find(int|string $id): ?{{ dto_class }}
+    {
+        $target = (string) $id;
+
+        foreach ($this->readRows() as $row) {
+            $rowId = $row['id'] ?? null;
+            if ((is_int($rowId) || is_string($rowId)) && (string) $rowId === $target) {
+                return {{ dto_class }}::fromArray($row);
+            }
+        }
+
+        return null;
+    }
+
+    public function create({{ dto_class }} $dto): {{ dto_class }}
+    {
+        $rows = $this->readRows();
+        $assigned = $dto->withId($dto->id ?? $this->nextId($rows));
+        $rows[] = $assigned->toArray();
+        $this->writeRows($rows);
+
+        return $assigned;
+    }
+
+    public function update(int|string $id, {{ dto_class }} $dto): ?{{ dto_class }}
+    {
+        $rows = $this->readRows();
+        $target = (string) $id;
+
+        foreach ($rows as $index => $row) {
+            $rowId = $row['id'] ?? null;
+            if ((is_int($rowId) || is_string($rowId)) && (string) $rowId === $target) {
+                $updated = $dto->withId($id);
+                $rows[$index] = $updated->toArray();
+                $this->writeRows($rows);
+
+                return $updated;
+            }
+        }
+
+        return null;
+    }
+
+    public function delete(int|string $id): bool
+    {
+        $rows = $this->readRows();
+        $target = (string) $id;
+        $filtered = array_values(array_filter(
+            $rows,
+            static function (array $row) use ($target): bool {
+                $rowId = $row['id'] ?? null;
+
+                return ! ((is_int($rowId) || is_string($rowId)) && (string) $rowId === $target);
+            }
+        ));
+
+        if (count($filtered) === count($rows)) {
+            return false;
+        }
+
+        $this->writeRows($filtered);
+
+        return true;
+    }
+
+    /**
+     * @return list<array<string, mixed>>
+     */
+    protected function readRows(): array
+    {
+        $stored = session()->get(self::SESSION_KEY);
+        if (is_array($stored)) {
+            /** @var list<array<string, mixed>> $normalized */
+            $normalized = array_values(array_filter($stored, static fn (mixed $item): bool => is_array($item)));
+
+            return $normalized;
+        }
+
+        $seed = $this->seedRows();
+        $this->writeRows($seed);
+
+        return $seed;
+    }
+
+    /**
+     * @param  list<array<string, mixed>>  $rows
+     */
+    protected function writeRows(array $rows): void
+    {
+        session()->put(self::SESSION_KEY, array_values($rows));
+    }
+
+    /**
+     * @param  list<array<string, mixed>>  $rows
+     */
+    protected function nextId(array $rows): int
+    {
+        $max = 0;
+        foreach ($rows as $row) {
+            $id = $row['id'] ?? null;
+            if (is_numeric($id) && (int) $id > $max) {
+                $max = (int) $id;
+            }
+        }
+
+        return $max + 1;
+    }
+
+    /**
+     * @return list<array<string, mixed>>
+     */
+    protected function seedRows(): array
+    {
+        return [
+            {{ seed_items_body }}
+        ];
+    }
+}

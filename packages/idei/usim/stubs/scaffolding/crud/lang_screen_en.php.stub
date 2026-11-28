@@ -1,0 +1,58 @@
+<?php
+
+/**
+ * USIM Customizable CRUD Stub: English Screen Translations (en)
+ */
+
+return [
+    'title' => '{{ human_name }}',
+    'menu_title' => '{{ human_name }}',
+    'icon' => '🗂️',
+
+    'labels' => [
+        'master_title' => '{{ human_name }}',
+        'empty_title' => 'No item selected',
+        'empty_description' => 'Select a record from the left panel to view or edit its details.',
+    ],
+
+    'actions' => [
+        'new' => '+ New',
+        'empty_create' => 'Create new record',
+        'save' => 'Save changes',
+        'cancel' => 'Reset',
+        'delete' => 'Delete',
+    ],
+
+    'detail' => [
+        'empty_heading' => '{{ human_name }}',
+        'creating_heading' => 'New record',
+        'editing_heading' => 'Editing: :item',
+        'viewing_heading' => 'Details: :item',
+    ],
+
+    'lists' => [
+        'items' => [
+            'search_placeholder' => 'Search...',
+            'empty_message' => 'No records available',
+            'no_results_message' => 'No matching records found',
+        ],
+        {{ lists_lang_en }}
+    ],
+
+    'fields' => [
+        {{ fields_lang_en }}
+    ],
+
+    'confirm_delete' => [
+        'title' => 'Confirm deletion',
+        'message' => 'Are you sure you want to delete ":item"? This action cannot be undone.',
+    ],
+
+    'messages' => [
+        'created' => 'Record created successfully.',
+        'updated' => 'Changes saved successfully.',
+        'deleted' => 'Record deleted.',
+        'changes_discarded' => 'Original values restored.',
+        'not_found' => 'The requested record no longer exists.',
+    ],
+];

@@ -1,0 +1,94 @@
+<?php
+
+declare(strict_types=1);
+
+/**
+ * USIM Customizable CRUD Stub: Domain Service implementing USIM Master-Detail Contracts
+ */
+
+namespace {{ namespace }};
+
+{{ default_repo_import }}
+{{ dto_import }}
+{{ repo_import }}
+use Idei\Usim\Contracts\ItemList\Listable;
+use Idei\Usim\Contracts\MasterDetail\CreatableDetail;
+use Idei\Usim\Contracts\MasterDetail\DeletableDetail;
+use Idei\Usim\Contracts\MasterDetail\Detailable;
+use Idei\Usim\Contracts\MasterDetail\UpdatableDetail;
+use Idei\Usim\DTOs\ListItemDTO;
+use Idei\Usim\Enums\Style;
+use Illuminate\Support\Collection;
+
+/**
+ * @implements Detailable<{{ dto_class }}>
+ * @implements CreatableDetail<{{ dto_class }}>
+ * @implements UpdatableDetail<{{ dto_class }}>
+ */
+class {{ class }} implements CreatableDetail, DeletableDetail, Detailable, Listable, UpdatableDetail
+{
+    protected {{ repo_interface }} $repository;
+
+    public function __construct(?{{ repo_interface }} $repository = null)
+    {
+        $this->repository = $repository ?? (
+            app()->bound({{ repo_interface }}::class)
+                ? app({{ repo_interface }}::class)
+                : new {{ default_repo_class }}
+        );
+    }
+
+    /**
+     * @param  array<string, mixed>  $context
+     * @return Collection<int, ListItemDTO>
+     */
+    public function list(string $search = '', array $context = []): Collection
+    {
+        $items = collect($this->repository->all())
+            ->map(fn ({{ dto_class }} $dto): ListItemDTO => $this->toListItem($dto));
+
+        $term = mb_strtolower(trim($search));
+        if ($term === '') {
+            return $items->values();
+        }
+
+        return $items->filter(static function (ListItemDTO $item) use ($term): bool {
+            $haystack = mb_strtolower($item->label.' '.($item->subtitle ?? '').' '.($item->badge ?? ''));
+
+            return str_contains($haystack, $term);
+        })->values();
+    }
+
+    public function findDetail(int|string $id): ?{{ dto_class }}
+    {
+        return $this->repository->find($id);
+    }
+
+    public function createDetail(object $dto): {{ dto_class }}
+    {
+        if (! ($dto instanceof {{ dto_class }})) {
+            throw new \InvalidArgumentException('Expected instance of '.{{ dto_class }}::class);
+        }
+
+        return $this->repository->create($dto);
+    }
+
+    public function updateDetail(int|string $id, object $dto): ?{{ dto_class }}
+    {
+        if (! ($dto instanceof {{ dto_class }})) {
+            throw new \InvalidArgumentException('Expected instance of '.{{ dto_class }}::class);
+        }
+
+        return $this->repository->update($id, $dto);
+    }
+
+    public function deleteDetail(int|string $id): bool
+    {
+        return $this->repository->delete($id);
+    }
+
+    protected function toListItem({{ dto_class }} $dto): ListItemDTO
+    {
+        {{ to_list_item_body }}
+    }
+}

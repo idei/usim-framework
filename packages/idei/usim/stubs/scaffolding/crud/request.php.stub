@@ -1,0 +1,72 @@
+<?php
+
+declare(strict_types=1);
+
+/**
+ * USIM Customizable CRUD Stub: UIRequest with DTO Mapping
+ */
+
+namespace {{ namespace }};
+
+{{ dto_import }}
+use Idei\Usim\Http\Requests\UIRequest;
+
+/**
+{{ phpdoc_properties }}
+ */
+class {{ class }} extends UIRequest
+{
+    {{ typed_properties }}
+
+    /**
+     * Map clean DTO attribute names to Screen UI component names for automatic error binding.
+     *
+     * @var array<string, string>
+     */
+    protected array $map = [
+        {{ component_map }}
+    ];
+
+    public function authorize(): bool
+    {
+        return true;
+    }
+
+    protected function prepareForValidation(): void
+    {
+        {{ prepare_body }}
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    public function rules(): array
+    {
+        return [
+            {{ rules_body }}
+        ];
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    public function attributes(): array
+    {
+        return [
+            {{ attributes_body }}
+        ];
+    }
+
+    public function errorToastMessage(): ?string
+    {
+        return {{ error_toast_body }};
+    }
+
+    /**
+     * Build an immutable detail DTO from the validated request values.
+     */
+    public function toDto(int|string|null $id = null): {{ dto_class }}
+    {
+        {{ to_dto_body }}
+    }
+}

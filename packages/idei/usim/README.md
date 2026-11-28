@@ -106,6 +106,7 @@ php artisan vendor:publish --tag=usim-docs --force
 Key guides included:
 
 - [Declarative Layouts & i18n](docs/DECLARATIVE_LAYOUTS_AND_I18N.md) — `.layout.yaml` syntax, CSS Grid, slots, `Spacing`, `Screen::layoutContainer()`, optional `startingUI()`, and two-level i18n (`t:` / `.key` & `i18n: auto`)
+- [Master-Detail CRUD Guide & Getting Started](docs/MASTER_DETAIL_CRUD_GUIDE.md) & [AI Technical Reference](docs/MASTER_DETAIL_CRUD_AI_REFERENCE.md) — `php artisan usim:crud`, Eloquent-agnostic `Screen ➔ Service ➔ Repository` + `DTO` architecture, `1:N` (`#[BelongsTo]`) & `M:N` (`#[BelongsToMany]`) relations, mock stacks (`json`/`session`/`memory`), and customizable stubs (`--tag=usim-crud-stubs`)
 - [Layouts Composition Guide](docs/LAYOUTS_COMPOSITION_GUIDE.md) — Practical catalog of grid, nested inline layouts, external `include:`, `embedToSlot()`, and `AbstractLayout` patterns
 - [Workbench & Unified Layouts (AI Technical Reference)](docs/WORKBENCH_AND_UNIFIED_LAYOUTS_AI_REFERENCE.md) — Unified `.layout.yaml` page layouts, `WorkbenchLayout`, `NavTree`, Activity Bar (`52px`), collapsible `right_panel` (`0px`), `StatusBar`, `guest_layout`, and automatic SPA layout transitions
 - [RichText Editor Guide](docs/RICH_TEXT_GUIDE.md) & [AI Technical Reference](docs/RICH_TEXT_AI_REFERENCE.md) — WYSIWYG HTML editing (`UI::richText()`), SunEditor v3 lazy loading, toolbar presets, editable images, and security best practices
@@ -1177,12 +1178,15 @@ The client-side JavaScript (`ui-renderer.js`) handles these calls automatically.
 | `php artisan usim:install` | Scaffold a complete USIM application (Workbench & Main layouts, shell screens, auth, admin, tests) |
 | `php artisan usim:install --force` | Overwrite existing files |
 | `php artisan usim:screen [Name]` | Scaffold a new Screen (supports `--layout=workbench\|main\|default\|none\|<FQCN>`, `--slots=...`, `--type=basic\|workspace\|modal\|kiosk`, `--visibility=public\|authenticated\|guest`, `--yaml`, `--imperative`, `--request`, `--i18n`, `--test`, `--discover`, `--interactive`) |
+| `php artisan usim:crud [Name]` | Scaffold a capability-driven Master-Detail Screen from a DTO-based Service (`--service=...`), or generate the full `DTO + RepositoryInterface + MockRepo + Service` stack (`--with-stack=json\|session\|memory --fields=...`) |
 | `php artisan usim:request <Name>` | Scaffold a matching `UIRequest` (supports `--i18n`, `--force`) |
+| `php artisan vendor:publish --tag=usim-crud-stubs` | Publish customizable Master-Detail CRUD stubs to `stubs/usim/crud/` (file-by-file fallback) |
+| `php artisan vendor:publish --tag=usim-stubs` | Publish all scaffolding stubs (`screen`, `request`, `crud`) to `stubs/usim/` |
 | `php artisan vendor:publish --tag=usim-icons` | Publish the standard 80-SVG icon library to `public/vendor/idei/usim/icons/` |
 | `php artisan vendor:publish --tag=usim-docs` | Publish package documentation into `docs/usim/` |
 | `php artisan vendor:publish --tag=usim-assets --force` | Publish updated frontend JS/CSS assets to `public/vendor/idei/usim/` |
 
-### Scaffolding Declarative Workbench Screens
+### Scaffolding Declarative Workbench & Master-Detail CRUD Screens
 
 ```bash
 # Declarative Screen framed by WorkbenchLayout with sibling .layout.yaml, slots, i18n: auto, and Pest test
@@ -1192,12 +1196,22 @@ php artisan usim:screen Orders/OrderExplorer \
   --visibility=authenticated \
   --i18n --test --discover
 
+# Master-Detail CRUD from an existing DTO-based Service (inspects capabilities & DTO relations via Reflection)
+php artisan usim:crud Catalog/ProductManager --service=Catalog/ProductService --discover
+
+# Rapid Master-Detail prototyping with a flat-file JSON (or session/memory) Mock Repository stack
+php artisan usim:crud Catalog/ProductManager \
+  --with-stack=json \
+  --fields="sku:string,name:string,price:float,active:bool,notes:text?" \
+  --discover
+
 # Modal or kiosk presets ($layout = null + sibling .layout.yaml)
 php artisan usim:screen Orders/EditOrderDialog --type=modal --i18n
 php artisan usim:screen Displays/LobbyKiosk --type=kiosk
 
-# Interactive step-by-step wizard (omitting Name or passing --interactive)
+# Interactive step-by-step wizards (omitting Name or passing --interactive)
 php artisan usim:screen
+php artisan usim:crud
 ```
 
 ---

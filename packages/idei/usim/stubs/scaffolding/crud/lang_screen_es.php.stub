@@ -1,0 +1,58 @@
+<?php
+
+/**
+ * USIM Customizable CRUD Stub: Spanish Screen Translations (es)
+ */
+
+return [
+    'title' => '{{ human_name }}',
+    'menu_title' => '{{ human_name }}',
+    'icon' => '🗂️',
+
+    'labels' => [
+        'master_title' => '{{ human_name }}',
+        'empty_title' => 'Ningún elemento seleccionado',
+        'empty_description' => 'Selecciona un registro en el panel izquierdo para inspeccionar o editar su detalle.',
+    ],
+
+    'actions' => [
+        'new' => '+ Nuevo',
+        'empty_create' => 'Crear nuevo registro',
+        'save' => 'Guardar cambios',
+        'cancel' => 'Restablecer',
+        'delete' => 'Eliminar',
+    ],
+
+    'detail' => [
+        'empty_heading' => '{{ human_name }}',
+        'creating_heading' => 'Nuevo registro',
+        'editing_heading' => 'Editando: :item',
+        'viewing_heading' => 'Detalle: :item',
+    ],
+
+    'lists' => [
+        'items' => [
+            'search_placeholder' => 'Buscar...',
+            'empty_message' => 'No hay registros disponibles',
+            'no_results_message' => 'Sin coincidencias para la búsqueda',
+        ],
+        {{ lists_lang_es }}
+    ],
+
+    'fields' => [
+        {{ fields_lang_es }}
+    ],
+
+    'confirm_delete' => [
+        'title' => 'Confirmar eliminación',
+        'message' => '¿Seguro que deseas eliminar ":item"? Esta acción no se puede deshacer.',
+    ],
+
+    'messages' => [
+        'created' => 'Registro creado correctamente.',
+        'updated' => 'Cambios guardados correctamente.',
+        'deleted' => 'Registro eliminado.',
+        'changes_discarded' => 'Se restablecieron los valores originales.',
+        'not_found' => 'El registro solicitado ya no existe.',
+    ],
+];

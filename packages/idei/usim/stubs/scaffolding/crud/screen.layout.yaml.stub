@@ -1,0 +1,87 @@
+# USIM Customizable CRUD Stub: Declarative Master-Detail Layout (.layout.yaml)
+#
+# Placeholders: wrapper_name, service_fqcn, empty_state_actions_yaml,
+# detail_fields_yaml, detail_actions_yaml, top_bar_cols, top_bar_actions_yaml,
+# master_header_cols, master_header_actions_yaml
+
+name: {{ wrapper_name }}
+appearance: plain
+width: full
+padding: l
+i18n: auto
+
+grid:
+  cols: [1fr]
+  gap: m
+  default_span: 1
+
+  children:
+    - cnt_empty_state:
+        appearance: card
+        max_width: 640
+        center_horizontal: true
+        padding: xl
+        grid:
+          cols: [1fr]
+          gap: s
+          children:
+            - lbl_empty_title:       { size: xl, font_weight: bold, text_align: center }
+            - lbl_empty_description: { style: secondary, text_align: center }
+            {{ empty_state_actions_yaml }}
+
+    - cnt_detail_form:
+        appearance: card
+        max_width: 920
+        center_horizontal: true
+        padding: l
+        visible: false
+        grid:
+          cols: [1fr, 1fr]
+          gap: m
+          default_span: 2
+          children:
+            {{ detail_fields_yaml }}
+            {{ detail_actions_yaml }}
+
+slots:
+  top_bar:
+    open: true
+    fallback: inline_top
+    appearance: plain
+    padding: s
+    grid:
+      cols: {{ top_bar_cols }}
+      gap: s
+      align: center
+      children:
+        - lbl_detail_heading: { font_weight: bold, size: large }
+        {{ top_bar_actions_yaml }}
+
+  left_panel:
+    open: true
+    size: 300px
+    fallback: inline_top
+    appearance: subtle
+    padding: m
+    grid:
+      cols: [1fr]
+      gap: s
+      children:
+        - cnt_master_header:
+            grid:
+              cols: {{ master_header_cols }}
+              gap: s
+              align: center
+              children:
+                - lbl_master_title: { font_weight: bold }
+                {{ master_header_actions_yaml }}
+        - lst_items:
+            service: {{ service_fqcn }}
+            searchable: true
+            debounce: 250
+            keep_selected_visible: true
+            selection_mode: single
+            variant: plain
+            max_height: 560
+            scrollbar: auto
+            on_select: item_selected

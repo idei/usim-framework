@@ -1,0 +1,21 @@
+<?php
+
+/**
+ * USIM Customizable CRUD Stub: Pest Feature Test
+ */
+
+use Idei\Usim\Enums\Visibility;
+use Idei\Usim\Testing\ScreenTestHarness;
+use {{ screen_fqcn }};
+
+it('renders {{ screen_class }} in initial empty master-detail state', function (): void {
+    expect({{ screen_class }}::$visibility)->toBe(Visibility::{{ visibility_enum }});
+
+    $harness = ScreenTestHarness::for({{ screen_class }}::class)->render();
+
+    $harness->assertComponentVisible('cnt_empty_state');
+    $harness->assertComponentHidden('cnt_detail_form');
+    $harness->assertHasComponent('lst_items');
+});
+
+{{ test_extra_cases }}

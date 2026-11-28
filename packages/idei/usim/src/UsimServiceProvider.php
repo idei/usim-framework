@@ -4,6 +4,7 @@ namespace Idei\Usim;
 
 use Idei\Usim\Console\Commands\DiscoverScreensCommand;
 use Idei\Usim\Console\Commands\InstallCommand;
+use Idei\Usim\Console\Commands\UsimCrudScaffoldCommand;
 use Idei\Usim\Console\Commands\UsimRequestScaffoldCommand;
 use Idei\Usim\Console\Commands\UsimScreenScaffoldCommand;
 use Idei\Usim\Console\Commands\UsimSyncCommand;
@@ -202,6 +203,7 @@ class UsimServiceProvider extends ServiceProvider
             UsimSyncCommand::class,
             UsimScreenScaffoldCommand::class,
             UsimRequestScaffoldCommand::class,
+            UsimCrudScaffoldCommand::class,
         ]);
     }
 
@@ -223,6 +225,14 @@ class UsimServiceProvider extends ServiceProvider
             $this->publishes([
                 __DIR__.'/../docs' => base_path('docs/usim'),
             ], 'usim-docs');
+
+            $this->publishes([
+                __DIR__.'/../stubs/scaffolding' => base_path('stubs/usim'),
+            ], 'usim-stubs');
+
+            $this->publishes([
+                __DIR__.'/../stubs/scaffolding/crud' => base_path('stubs/usim/crud'),
+            ], 'usim-crud-stubs');
         }
 
         // Programar limpieza de archivos temporales (Self-healing maintenance)

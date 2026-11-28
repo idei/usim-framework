@@ -1,0 +1,44 @@
+<?php
+
+declare(strict_types=1);
+
+/**
+ * USIM Customizable CRUD Stub: Read-Only Master-Detail Explorer Screen
+ */
+
+namespace {{ namespace }};
+
+{{ imports }}
+
+class {{ class }} extends Screen
+{
+    use InteractsWithMasterDetail;
+
+    public static Visibility $visibility = Visibility::{{ visibility_enum }};
+
+    {{ layout_declaration }}
+
+    {{ component_properties }}
+
+    public function __construct(
+        {{ constructor_params }}
+    ) {
+        parent::__construct();
+    }
+
+    protected function detailService(): Detailable
+    {
+        return $this->service;
+    }
+
+    protected function hydrateDetailFields(object $dto): void
+    {
+        if (! ($dto instanceof {{ dto_class }})) {
+            return;
+        }
+
+        {{ hydrate_body }}
+    }
+
+    {{ relations_method }}
+}

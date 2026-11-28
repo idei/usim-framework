@@ -15,6 +15,7 @@ Eso publicará todas estas guías en `docs/usim/` para consulta local del equipo
 | Documento | Descripción |
 |---|---|
 | **[DECLARATIVE_LAYOUTS_AND_I18N.md](DECLARATIVE_LAYOUTS_AND_I18N.md)** | Referencia completa de `.layout.yaml`, CSS Grid, slots, proyección declarativa `slots:`, escala `Spacing`, `Size`, `Screen::layoutContainer()`, `startingUI()` opcional e i18n en dos niveles (`t:` / `.clave` + `i18n: auto`) |
+| **[MASTER_DETAIL_CRUD_GUIDE.md](MASTER_DETAIL_CRUD_GUIDE.md)** | Guía y tutorial *Getting Started* de `php artisan usim:crud`: arquitectura `Screen ➔ Service ➔ Repository` con `DTOs`, relaciones `1:N` (`#[BelongsTo]`) y `M:N` (`#[BelongsToMany]`), exploradores *read-only*, mocks `json`/`session`/`memory` y stubs publicables (`--tag=usim-crud-stubs`) |
 | **[LAYOUTS_COMPOSITION_GUIDE.md](LAYOUTS_COMPOSITION_GUIDE.md)** | Catálogo práctico con ejemplos de todas las posibilidades de layouts: grids 12-col y `[1fr, auto]`, `at:`/`span:`, sub-grids *inline*, `include:`/`layout_file:`, proyección de `slots:` hacia paneles/StatusBar, `embedToSlot()` y `AbstractLayout` |
 | **[WORKBENCH_AND_UNIFIED_LAYOUTS_AI_REFERENCE.md](WORKBENCH_AND_UNIFIED_LAYOUTS_AI_REFERENCE.md)** | Referencia técnica y contrato completo para IA/desarrolladores: motor unificado de layouts (`AbstractLayout` + `.layout.yaml`), `WorkbenchLayout`, `Split` declarativo (`split_size_target`), `NavTree`, Activity Bar (`52px`), proyección de `slots:`, `StatusBar` contextual, `guest_layout` y transiciones SPA |
 | **[ITEM_LIST_SERVICE_WIRING.md](ITEM_LIST_SERVICE_WIRING.md)** | Cableado de `ItemList` mediante contratos de capacidades (`Listable`, `Creatable`, `Updatable`, `Deletable`, `BulkDeletable`), soporte YAML `service:` y despacho en ciclo de vida |
@@ -45,6 +46,7 @@ Eso publicará todas estas guías en `docs/usim/` para consulta local del equipo
 | Documento | Descripción |
 |---|---|
 | **[usim_context_prompt.md](usim_context_prompt.md)** | Prompt base para dar contexto de USIM a un chat/agente IA |
+| **[MASTER_DETAIL_CRUD_AI_REFERENCE.md](MASTER_DETAIL_CRUD_AI_REFERENCE.md)** | Contrato técnico y guardrails para IA sobre `php artisan usim:crud`, contratos `MasterDetail\*`, atributos `#[BelongsTo]`/`#[BelongsToMany]`, `InteractsWithMasterDetail` y resolución de stubs en cascada |
 | **[WORKBENCH_AND_UNIFIED_LAYOUTS_AI_REFERENCE.md](WORKBENCH_AND_UNIFIED_LAYOUTS_AI_REFERENCE.md)** | Contrato técnico detallado para IA sobre Layouts Unificados, `WorkbenchLayout`, `NavTree`, `Split` y `StatusBar` |
 | **[RICH_TEXT_AI_REFERENCE.md](RICH_TEXT_AI_REFERENCE.md)** | Contrato técnico y guardrails para IA sobre `UI::richText()` (`type: 'rich_text'`), SunEditor v3 lazy-load, sanitización HTML y separación estricta con `UI::textarea()` |
 | **[CARD_GRID_AI_REFERENCE.md](CARD_GRID_AI_REFERENCE.md)** | Contrato técnico y guardrails para IA sobre `UI::cardGrid()` (`type: 'card_grid'`) e `UI::itemCard()` (`type: 'item_card'`), `CardListable`, árbol de hijos con IDs determinísticos, `POST /api/ui-event` y diffing nativo de `ComponentDiffer` |
