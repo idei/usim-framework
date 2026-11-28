@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Idei\Usim\Support\Config;
 
 final class UnitConfig
@@ -12,4 +14,21 @@ final class UnitConfig
         public private(set) ?string $type = null,
         public private(set) array $defaultTranslations = [],
     ) {}
+
+    /**
+     * @param  array<mixed, mixed>  $data
+     */
+    public static function fromArray(array $data): self
+    {
+        $reader = new ConfigReader($data);
+
+        /** @var array<string, array{display_name: string, description: string}> $defaultTranslations */
+        $defaultTranslations = $reader->array('default_translations');
+
+        return new self(
+            parent: $reader->nullableString('parent'),
+            type: $reader->nullableString('type'),
+            defaultTranslations: $defaultTranslations,
+        );
+    }
 }

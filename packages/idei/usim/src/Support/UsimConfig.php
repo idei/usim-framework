@@ -1,10 +1,13 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Idei\Usim\Support;
 
 use App\Models\Device;
 use App\Models\User;
 use Idei\Usim\Screen;
+use Idei\Usim\Support\Config\ConfigReader;
 use Idei\Usim\Support\Config\DeviceConfig;
 use Idei\Usim\Support\Config\I18nConfig;
 use Idei\Usim\Support\Config\LanguageConfig;
@@ -77,164 +80,64 @@ final class UsimConfig
 
     public function __construct()
     {
-        $raw = config('usim');
-        if (! \is_array($raw)) {
-            $raw = [];
-        }
+        $config = ConfigReader::fromMixed(config('usim'));
 
-        // 1. Escalares Base
-        $this->appName = \is_string($raw['app_name'] ?? null) ? $raw['app_name'] : 'USIM Framework';
+        $this->loadBaseScalars($config);
+        $this->models = $this->parseModels($config->section('models'));
+        $this->units = ConfigReader::mapEntries($config->section('units')->array('structure'), UnitConfig::fromArray(...));
+        $this->permissions = ConfigReader::mapEntries($config->array('permissions'), PermissionConfig::fromArray(...));
+        $this->i18n = I18nConfig::fromArray($config->array('i18n'));
+        $this->roles = ConfigReader::mapEntries($config->array('roles'), RoleConfig::fromArray(...));
+        $this->loadUsers($config->array('users'));
+        $this->devices = ConfigReader::mapEntries($config->array('devices'), DeviceConfig::fromArray(...));
+    }
 
-        $fallbackUrl = config('app.url', 'http://localhost');
-        $this->apiUrl = \is_string($raw['api_url'] ?? null) ? $raw['api_url'] : (\is_string($fallbackUrl) ? $fallbackUrl : 'http://localhost');
+    private function loadBaseScalars(ConfigReader $config): void
+    {
+        $defaultApiUrl = ConfigReader::stringValue(config('app.url', 'http://localhost'), 'http://localhost');
 
-        $this->frontStoreKey = \is_string($raw['front_store_key'] ?? null) ? $raw['front_store_key'] : 'usim';
-        $this->screensNamespace = \is_string($raw['screens_namespace'] ?? null) ? $raw['screens_namespace'] : 'App\\UI\\Screens';
-        $this->screensPath = \is_string($raw['screens_path'] ?? null) ? $raw['screens_path'] : app_path('UI/Screens');
-        $this->requestsNamespace = \is_string($raw['requests_namespace'] ?? null) ? $raw['requests_namespace'] : 'App\\UI\\Requests';
-        $this->requestsPath = \is_string($raw['requests_path'] ?? null) ? $raw['requests_path'] : app_path('UI/Requests');
-        $this->uploadDisk = \is_string($raw['upload_disk'] ?? null) ? $raw['upload_disk'] : 'local';
-        $this->headlessMode = \is_bool($raw['headless_mode'] ?? null) ? $raw['headless_mode'] : false;
-        $this->defaultRegisteringRole = \is_string($raw['default_registering_role'] ?? null) ? $raw['default_registering_role'] : 'registered';
-        $this->defaultLayout = \is_string($raw['default_layout'] ?? null) ? $raw['default_layout'] : 'App\\UI\\Layouts\\WorkbenchLayout';
-        $this->guestLayout = \is_string($raw['guest_layout'] ?? null) && $raw['guest_layout'] !== '' ? $raw['guest_layout'] : null;
-        $this->defaultMenuScreen = \is_string($raw['default_menu_screen'] ?? null) ? $raw['default_menu_screen'] : 'App\\UI\\Screens\\Menu';
-        $this->defaultSidebarMenuScreen = \is_string($raw['default_sidebar_menu_screen'] ?? null) && $raw['default_sidebar_menu_screen'] !== '' ? $raw['default_sidebar_menu_screen'] : null;
-        $this->defaultStatusBarScreen = \is_string($raw['default_status_bar_screen'] ?? null) && $raw['default_status_bar_screen'] !== '' ? $raw['default_status_bar_screen'] : null;
-        $this->uiCacheTtl = isset($raw['ui_cache_ttl']) && is_numeric($raw['ui_cache_ttl']) ? (int) $raw['ui_cache_ttl'] : 7200;
+        $this->appName = $config->string('app_name', 'USIM Framework');
+        $this->apiUrl = $config->string('api_url', $defaultApiUrl);
+        $this->frontStoreKey = $config->string('front_store_key', 'usim');
+        $this->screensNamespace = $config->string('screens_namespace', 'App\\UI\\Screens');
+        $this->screensPath = $config->string('screens_path', app_path('UI/Screens'));
+        $this->requestsNamespace = $config->string('requests_namespace', 'App\\UI\\Requests');
+        $this->requestsPath = $config->string('requests_path', app_path('UI/Requests'));
+        $this->uploadDisk = $config->string('upload_disk', 'local');
+        $this->headlessMode = $config->bool('headless_mode', false);
+        $this->defaultRegisteringRole = $config->string('default_registering_role', 'registered');
+        $this->defaultLayout = $config->string('default_layout', 'App\\UI\\Layouts\\WorkbenchLayout');
+        $this->guestLayout = $config->nonEmptyString('guest_layout');
+        $this->defaultMenuScreen = $config->string('default_menu_screen', 'App\\UI\\Screens\\Menu');
+        $this->defaultSidebarMenuScreen = $config->nonEmptyString('default_sidebar_menu_screen');
+        $this->defaultStatusBarScreen = $config->nonEmptyString('default_status_bar_screen');
+        $this->uiCacheTtl = $config->int('ui_cache_ttl', 7200);
+    }
 
-        // 2. Modelos
-        $rawModels = \is_array($raw['models'] ?? null) ? $raw['models'] : [];
-        $this->models = [
-            'user' => \is_string($rawModels['user'] ?? null) ? $rawModels['user'] : User::class,
-            'device' => \is_string($rawModels['device'] ?? null) ? $rawModels['device'] : Device::class,
+    /**
+     * @return array<string, string>
+     */
+    private function parseModels(ConfigReader $models): array
+    {
+        return [
+            'user' => $models->string('user', User::class),
+            'device' => $models->string('device', Device::class),
         ];
+    }
 
-        // 3. Unidades (Units)
-        $rawUnits = \is_array($raw['units'] ?? null) ? $raw['units'] : [];
-        $rawStructure = \is_array($rawUnits['structure'] ?? null) ? $rawUnits['structure'] : [];
-        foreach ($rawStructure as $slug => $meta) {
-            if (\is_array($meta)) {
-                /** @var array<string, array{display_name: string, description: string}> $parsedTranslations */
-                $parsedTranslations = \is_array($meta['default_translations'] ?? null) ? $meta['default_translations'] : [];
+    /**
+     * @param  array<mixed, mixed>  $rawUsers
+     */
+    private function loadUsers(array $rawUsers): void
+    {
+        $parsedUsers = ConfigReader::mapEntries($rawUsers, UserConfig::fromArray(...));
 
-                $this->units[$slug] = new UnitConfig(
-                    parent: \is_string($meta['parent'] ?? null) ? $meta['parent'] : null,
-                    type: \is_string($meta['type'] ?? null) ? $meta['type'] : null,
-                    defaultTranslations: $parsedTranslations,
-                );
-            }
+        if (isset($parsedUsers['root'])) {
+            $this->rootUser = $parsedUsers['root'];
+            unset($parsedUsers['root']);
         }
 
-        // 4. Permisos
-        $rawPerms = \is_array($raw['permissions'] ?? null) ? $raw['permissions'] : [];
-        foreach ($rawPerms as $slug => $meta) {
-            if (\is_array($meta)) {
-                /** @var array<string, array{display_name: string, description: string}> $parsedTranslations */
-                $parsedTranslations = \is_array($meta['default_translations'] ?? null) ? $meta['default_translations'] : [];
-
-                $this->permissions[$slug] = new PermissionConfig(
-                    defaultTranslations: $parsedTranslations,
-                );
-            }
-        }
-
-        // 5. I18n
-        $rawI18n = \is_array($raw['i18n'] ?? null) ? $raw['i18n'] : [];
-
-        $languages = [];
-        $rawLangs = \is_array($rawI18n['languages'] ?? null) ? $rawI18n['languages'] : [];
-        foreach ($rawLangs as $lang) {
-            if (\is_array($lang)) {
-                $languages[] = new LanguageConfig(
-                    code: \is_string($lang['code'] ?? null) ? $lang['code'] : '',
-                    name: \is_string($lang['name'] ?? null) ? $lang['name'] : '',
-                    nativeName: \is_string($lang['native_name'] ?? null) ? $lang['native_name'] : '',
-                    active: \is_bool($lang['active'] ?? null) ? $lang['active'] : false,
-                );
-            }
-        }
-
-        $keyPrefixes = [];
-        $rawPrefixes = \is_array($rawI18n['i18n_key_prefixes'] ?? null) ? $rawI18n['i18n_key_prefixes'] : [];
-        foreach ($rawPrefixes as $key => $val) {
-            if (\is_string($key) && \is_string($val)) {
-                $keyPrefixes[$key] = $val;
-            }
-        }
-
-        $this->i18n = new I18nConfig(
-            defaultLocale: \is_string($rawI18n['default_locale'] ?? null) ? $rawI18n['default_locale'] : 'en',
-            fallbackLocale: \is_string($rawI18n['fallback_locale'] ?? null) ? $rawI18n['fallback_locale'] : 'en',
-            autoKeyMaxLength: \is_numeric($rawI18n['auto_key_max_length'] ?? null) ? (int) $rawI18n['auto_key_max_length'] : 30,
-            logChannel: \is_string($rawI18n['log_channel'] ?? null) ? $rawI18n['log_channel'] : 'i18n',
-            logAutokeySuggestions: \is_bool($rawI18n['log_autokey_suggestions'] ?? null) ? $rawI18n['log_autokey_suggestions'] : true,
-            languages: $languages,
-            keyPrefixes: $keyPrefixes,
-        );
-
-        // 6. Roles
-        $rawRoles = \is_array($raw['roles'] ?? null) ? $raw['roles'] : [];
-        foreach ($rawRoles as $name => $meta) {
-            if (\is_array($meta)) {
-                /** @var array<string, array{display_name: string, description: string}> $parsedTranslations */
-                $parsedTranslations = \is_array($meta['default_translations'] ?? null) ? $meta['default_translations'] : [];
-
-                /** @var array<int, string> $parsedPermissions */
-                $parsedPermissions = \is_array($meta['permissions'] ?? null) ? $meta['permissions'] : [];
-
-                $this->roles[$name] = new RoleConfig(
-                    defaultTranslations: $parsedTranslations,
-                    priority: \is_numeric($meta['priority'] ?? null) ? (int) $meta['priority'] : 10,
-                    homeScreen: \is_string($meta['home_screen'] ?? null) ? $meta['home_screen'] : null,
-                    permissions: $parsedPermissions,
-                    guardName: \is_string($meta['guard_name'] ?? null) ? $meta['guard_name'] : 'web'
-                );
-            }
-        }
-
-        // 7. Usuarios
-        $rawUsers = \is_array($raw['users'] ?? null) ? $raw['users'] : [];
-        foreach ($rawUsers as $slug => $meta) {
-            if (\is_array($meta)) {
-                /** @var array<string, array<int, string>> $parsedUnitRoles */
-                $parsedUnitRoles = \is_array($meta['unit_roles'] ?? null) ? $meta['unit_roles'] : [];
-
-                $userConfig = new UserConfig(
-                    firstName: \is_string($meta['first_name'] ?? null) ? $meta['first_name'] : '',
-                    lastName: \is_string($meta['last_name'] ?? null) ? $meta['last_name'] : '',
-                    email: \is_string($meta['email'] ?? null) ? $meta['email'] : '',
-                    password: \is_string($meta['password'] ?? null) ? $meta['password'] : '',
-                    unitRoles: $parsedUnitRoles,
-                );
-
-                if ($slug === 'root') {
-                    $this->rootUser = $userConfig;
-
-                    continue;
-                }
-
-                $this->users[$slug] = $userConfig;
-            }
-        }
-
-        // 8. Dispositivos
-        $rawDevices = \is_array($raw['devices'] ?? null) ? $raw['devices'] : [];
-        foreach ($rawDevices as $slug => $meta) {
-            if (\is_array($meta)) {
-                /** @var array<string, mixed> $parsedSpecs */
-                $parsedSpecs = \is_array($meta['specs'] ?? null) ? $meta['specs'] : [];
-
-                /** @var array<string, array<int, string>> $parsedUnitRoles */
-                $parsedUnitRoles = \is_array($meta['unit_roles'] ?? null) ? $meta['unit_roles'] : [];
-
-                $this->devices[$slug] = new DeviceConfig(
-                    name: \is_string($meta['name'] ?? null) ? $meta['name'] : '',
-                    specs: $parsedSpecs,
-                    unitRoles: $parsedUnitRoles,
-                );
-            }
-        }
+        $this->users = $parsedUsers;
     }
 
     /** @var array<int, string> */
